@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity ^0.6.10;
@@ -22,6 +23,8 @@ contract OptyRegistry {
         address borrowToken; 
         address liquidityPool; 
         address strategyContract;
+        address lendingPoolToken;
+        address poolProxy;
     }
     
     struct Strategy { 
@@ -211,7 +214,7 @@ contract OptyRegistry {
         require(tokens[_token],"tokens");
         bytes32[] memory hashes = new bytes32[](_strategySteps.length);
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
-            hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,_strategySteps[i].strategyContract));
+            hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken, _strategySteps[i].poolProxy));
         }
         bytes32  hash = keccak256(abi.encodePacked(hashes));
         require(_isNewStrategy(hash),"isNewStrategy");
@@ -223,7 +226,8 @@ contract OptyRegistry {
             tokens[address(_strategySteps[i].token)],"!strategyStep");
                     strategies[hash].strategySteps.push(
                         StrategyStep(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,
-                        _strategySteps[i].liquidityPool,_strategySteps[i].strategyContract)
+                        _strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken,
+                        _strategySteps[i].poolProxy)
                         );
             }
             else if(address(_strategySteps[i].creditPool).isContract() && address(_strategySteps[i].borrowToken).isContract()){
@@ -244,10 +248,11 @@ contract OptyRegistry {
     /**
      * @dev Returns the Strategy by `_hash`.
      */
-    function getStrategy(bytes32 _hash) public view returns(uint8 _score, bool _isStrategy, uint256 _blockNumber, StrategyStep[] memory _strategySteps) {
+    function getStrategy(bytes32 _hash) public view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps) {
          require(_hash.length > 0 , "empty");
          _score = strategies[_hash].score;
          _isStrategy = strategies[_hash].isStrategy;
+         _index = strategies[_hash].index;
          _blockNumber = strategies[_hash].blockNumber;
          _strategySteps = strategies[_hash].strategySteps;
     }
