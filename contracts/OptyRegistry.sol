@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity ^0.6.10;
@@ -43,6 +42,7 @@ contract OptyRegistry {
     mapping(bytes32 => Strategy)      public strategies;
     mapping(address => bytes32[])     public tokenToStrategies;
     mapping(address => LiquidityPool) public liquidityPools;
+    mapping(address => address[])     public liquidityPoolToUnderlyingTokens;
 
     /**
      * @dev Sets the value for {governance} and {strategist}, 
@@ -190,6 +190,42 @@ contract OptyRegistry {
         liquidityPools[_pool].rating = _rate;
         emit LogRateLiquidityPool(msg.sender,_pool,liquidityPools[_pool].rating);
         return true;
+    }
+    
+    /**
+     * @dev Assign `_tokens` to `_pool` in the {liquidityPoolToUnderlyingTokens} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogSetLiquidityPoolToUnderlyingTokens} event.
+     *
+     * Requirements:
+     *
+     * - `_pool` cannot be the zero address or an EOA.
+     * - msg.sender should be governance.
+     * - `_pool` should be approved
+     * - `_tokens` should be approved
+     */
+    function setLiquidityPoolToUnderlyingTokens(address _pool, address[] memory _tokens) public onlyValidAddress onlyGovernance returns(bool) {
+        require(_pool != address(0), "zero address");
+        require(address(_pool).isContract(), "isContract");
+        require(liquidityPools[_pool].isLiquidityPool,"liquidityPools.isLiquidityPool");
+        for(uint8 i = 0; i < _tokens.length ; i++) {
+            require(tokens[_tokens[i]],"!tokens");
+            liquidityPoolToUnderlyingTokens[_pool].push(_tokens[i]);   
+        }
+        emit LogSetLiquidityPoolToUnderlyingTokens(msg.sender,_pool,keccak256(abi.encodePacked(_tokens)));
+        return true;
+    }
+    
+    /**
+     * @dev Returns the list of tokens by `_pool`.
+     */
+    function getUnderlyingTokens(address _pool) public view returns(address[] memory) {
+        require(_pool != address(0), "zero address");
+        require(address(_pool).isContract(), "isContract");
+        require(liquidityPools[_pool].isLiquidityPool,"liquidityPools.isLiquidityPool");
+        return liquidityPoolToUnderlyingTokens[_pool];
     }
 
      /**
@@ -407,4 +443,11 @@ contract OptyRegistry {
      * Note that `hash` startegy should exist in {strategyIndexes}.
      */
     event LogScoreStrategy(address indexed caller, bytes32 indexed hash, uint8 indexed score);
+    
+    /**
+     * @dev Emitted when `hash` strategy is scored.
+     *
+     * Note that `hash` startegy should exist in {strategyIndexes}.
+     */
+    event LogSetLiquidityPoolToUnderlyingTokens(address indexed caller, address indexed pool, bytes32 indexed tokens);
 }
