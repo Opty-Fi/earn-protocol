@@ -34,7 +34,7 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         // Mantisa 1e18 to decimals
         uint256 b = balance(_lendingPoolToken,_holder);
         if (b > 0) {
-            b = b.mul(Compound(_lendingPoolToken).exchangeRateStored()).div(1e18);
+            b = b.mul(ICompound(_lendingPoolToken).exchangeRateStored()).div(1e18);
          }
          return b;
     }
