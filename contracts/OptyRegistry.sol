@@ -445,9 +445,9 @@ contract OptyRegistry {
     event LogScoreStrategy(address indexed caller, bytes32 indexed hash, uint8 indexed score);
     
     /**
-     * @dev Emitted when `hash` strategy is scored.
+     * @dev Emitted when `tokens` are assigned to pool.
      *
-     * Note that `hash` startegy should exist in {strategyIndexes}.
+     * Note that `pool` and `tokens` should be approved in {liquidityPools} and {tokens} respectively.
      */
     event LogSetLiquidityPoolToUnderlyingTokens(address indexed caller, address indexed pool, bytes32 indexed tokens);
 }
