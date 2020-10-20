@@ -54,7 +54,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     IOptyRegistry.Strategy public currentStrategy;
     address public token; //  store the Dai token contract address
     // uint256 totalsupply;
-    uint256 private poolValue;
+    uint256 public poolValue;
     address public riskManager;
     string public profile;
     
@@ -185,27 +185,58 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  -   _redeemAmount: amount to withdraw from the compound dai's liquidity pool. Its uints are: 
      *      in  weth uints i.e. 1e18
      */
-    function redeem(address optyCompoundDaiLiquidityPool, uint256 _redeemAmount) external nonReentrant returns(bool _withdrawStatus) {
+    function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
         require(_redeemAmount > 0, "withdraw must be greater than 0");
         
-        uint256 opDaiUserBalanceBefore = balanceOf(msg.sender);
-        require(_redeemAmount <= opDaiUserBalanceBefore, "Insufficient balance");
+        uint256 opBalance = balanceOf(msg.sender);
+        require(_redeemAmount <= opBalance, "Insufficient balance");
         
         poolValue = calPoolValueInToken();
-        uint256 redeemOpDaiInDai = (poolValue.mul(_redeemAmount)).div(totalSupply());
+        uint256 redeemAmountInToken = (poolValue.mul(_redeemAmount)).div(totalSupply());
         
         //  Updating the totalSupply of opDai tokens
         _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
         
+        // Check Token balance
+      uint256 tokenBalance = IERC20(token).balanceOf(address(this));
+      
+      if (tokenBalance < redeemAmountInToken) {
+    //       // TODO
+    //       // get the best strategy from RM 
+    //       // withdraw All if newProvider != provider
+          
+    //       // Withdraw some if provider is unchanged
+    
+    // TODO : Include this calculation as a part of Proxy
+    // -------------------------------------------------
+    uint256 _amt =  redeemAmountInToken.sub(tokenBalance);
+    uint256 balComp = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
+    balance(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
+    uint256 balToken = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
+    balanceInToken(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
+    require(balToken >= _amt, "insufficient funds");
+    // can have unintentional rounding errors
+    uint256 amount = (balComp.mul(_amt)).div(balToken).add(1);
+    // ---------------------------------------------
+        IERC20(currentStrategy.strategySteps[0].lendingPoolToken).
+        safeTransfer(currentStrategy.strategySteps[0].poolProxy, amount);
+        require(IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
+        recall(currentStrategy.strategySteps[0].token,currentStrategy.strategySteps[0].lendingPoolToken,amount));
+      }
+
+      IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
+       // TODO: redeploy if provider is changes 
+       
         //  Get the liquidityPool's address from the getStrategy()
         // address _liquidityPool = getStrategy(token, "basic", 0)[0].liquidityPool;
-        address _liquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
+        // address _liquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
         
         //  Calling the withdraw function  from the IOptyLiquidityPool interface for cDai tokens
         // optyCompoundDaiLiquidityPool is the address the OptyFi's Compound Dai Interaction contract
-        _withdrawStatus = IOptyLiquidityPool(optyCompoundDaiLiquidityPool).withdraw(_liquidityPool, redeemOpDaiInDai);
-        poolValue = calPoolValueInToken();
+        // _withdrawStatus = IOptyLiquidityPool(optyCompoundDaiLiquidityPool).withdraw(_liquidityPool, redeemOpDaiInDai);
+       poolValue = calPoolValueInToken();
+       return true;
     }
 }
