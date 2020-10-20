@@ -19,6 +19,11 @@ import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
 
 interface IOptyRegistry{
+    struct LiquidityPool{
+        uint8 rating;
+        bool  isLiquidityPool;
+    }
+    
     struct StrategyStep {
         address token; 
         address creditPool; 
@@ -39,10 +44,146 @@ interface IOptyRegistry{
 
     function tokenToStrategies(address _underLyingToken, uint256 index) external view returns(bytes32);
     function getStrategy(bytes32 _hash) external view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps);
+    function getTokenStrategies(address _token) external view returns(bytes32[] memory);
+    function liquidityPools(address _pool) external view returns(LiquidityPool memory);
 }
 
 interface IRiskManager {
-    function getBestStrategy(string memory _profile, address _underlyingToken) external view returns (IOptyRegistry.Strategy memory strategy);
+    // function getBestStrategy(string memory _profile, address _underlyingToken) external view returns (IOptyRegistry.Strategy memory strategy);
+    function getBestStrategy(string memory _profile, address _underlyingToken) external view returns (bytes32 hash);
+}
+
+interface IDelegatedStrategyPool{
+    function deploy(uint _amount, bytes32 _hash) external returns(bool _success);
+    function recall(uint _amount, bytes32 _hash) external returns(bool _success);
+    function balance(bytes32 _hash, address _account) external view returns(uint _balance);
+    function balanceInToken(bytes32 _hash, address _account) external view returns(uint _balance);
+    function getLiquidityPool(bytes32 _hash) external view returns(address _lendingPool);
+}
+
+contract DelegatedStrategyPool {
+    
+    using SafeERC20 for IERC20;
+
+    
+    address public optyRegistry;
+    address public governance;
+
+
+    constructor(address _optyRegistry) public {
+          governance = msg.sender;
+        optyRegistry = _optyRegistry;
+    }
+
+    function setOptyRegistry(address _optyRegistry) public onlyGovernance {
+        optyRegistry = _optyRegistry;
+    }
+    
+    function balance(bytes32 _hash, address _account) public view returns(uint _balance) {
+        _balance = 0;
+        if(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+         IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        if(_strategySteps.length == 1){
+            _balance = singleStepBalance(_strategySteps, _account);
+        }
+        else {
+            revert("not-implemented");
+        }
+        }
+    }
+    
+    function singleStepBalance(IOptyRegistry.StrategyStep[] memory _strategySteps, address _account) 
+    public view returns(uint _balance) {
+     _balance = IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+     balance(_strategySteps[0].lendingPoolToken, _account);
+
+    }
+    
+    function balanceInToken(bytes32 _hash, address _account) public view returns(uint _balance) {
+        _balance = 0;
+        if(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+          IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        if(_strategySteps.length == 1){
+            _balance = singleStepBalanceInToken(_strategySteps, _account);
+        }
+        else {
+            revert("not-implemented");
+        }
+        }
+    }
+    
+    function singleStepBalanceInToken(IOptyRegistry.StrategyStep[] memory _strategySteps, address _account) 
+    public view returns(uint _balance) {
+     _balance = IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+     balanceInToken(_strategySteps[0].lendingPoolToken, _account);
+
+    }
+    
+    function deploy(uint _amount, bytes32 _hash) public returns(bool _success) {
+    IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        if(_strategySteps.length == 1) {
+            require(singleStepDeploy(_amount,_strategySteps),"!singleStepDeploy()");
+        }
+        else {
+            revert("not implemented");
+        }
+        _success = true;
+    }
+    
+    function singleStepDeploy(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public returns(bool _success) {
+        IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
+        IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool, 
+        _strategySteps[0].lendingPoolToken, _amount);
+        IERC20(_strategySteps[0].lendingPoolToken).
+        safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
+            _strategySteps[0].poolProxy).balance(_strategySteps[0].liquidityPool,address(this)
+            ));
+        _success = true;
+    }
+    
+    function recall(uint _amount, bytes32 _hash) public returns(bool _success) {
+        IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        if(_strategySteps.length == 1) {
+            require(singleStepRecall(_amount,_strategySteps),"!singleStepDeploy()");
+        }
+        else {
+            revert("not implemented");
+        }
+        _success = true;
+    }
+    
+    function singleStepRecall(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public returns(bool _success) {
+        IERC20(_strategySteps[0].lendingPoolToken).safeTransferFrom(msg.sender,_strategySteps[0].poolProxy,_amount);
+        require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).recall(_strategySteps[0].token,_strategySteps[0].lendingPoolToken,_amount));
+        IERC20(_strategySteps[0].token).safeTransfer(msg.sender,IERC20(_strategySteps[0].token).balanceOf(address(this)));
+        _success = true;
+    }
+    
+    function _getStrategySteps(bytes32 _hash) internal view returns(IOptyRegistry.StrategyStep[] memory _strategySteps) {
+        (,,,, _strategySteps) = IOptyRegistry(optyRegistry).getStrategy(_hash);
+    }
+    
+    function getLiquidityPool(bytes32 _hash) public view returns(address _lendingPool) {
+        IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        if(_strategySteps.length == 1){
+            _lendingPool = getSingleStepLiquidityPool(_strategySteps);
+        }
+        else{
+            revert("not implemented");
+        }
+    }
+    
+    function getSingleStepLiquidityPool(IOptyRegistry.StrategyStep[] memory _strategySteps) public pure returns(address) {
+        return _strategySteps[0].liquidityPool;
+    }
+    
+    /**
+     * @dev Modifier to check caller is governance or not
+     */
+    modifier onlyGovernance() {
+        require(msg.sender == governance, "!governance");
+        _;
+    }
 }
 
 /**
@@ -51,12 +192,14 @@ interface IRiskManager {
 contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    IOptyRegistry.Strategy public currentStrategy;
+    // IOptyRegistry.Strategy public currentStrategy;
+    bytes32 public strategyHash;
     address public token; //  store the Dai token contract address
-    // uint256 totalsupply;
-    uint256 public poolValue;
     address public riskManager;
+    address public delegatedStrategyPool;
+    uint256 public poolValue;
     string public profile;
+    
     
     
     /**
@@ -64,11 +207,12 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for DAI token
      *  - Storing the DAI contract address also in the contract
      */
-    constructor(string memory _profile, address _riskManager, address _underlyingToken) public ERC20Detailed("Opty Fi DAI", "opDai", 18) {
+    constructor(string memory _profile, address _riskManager, address _underlyingToken, address _delegatedStrategyPool) public ERC20Detailed("Opty Fi DAI", "opDai", 18) {
         
         setProfile(_profile);
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  DAI token contract address
+        setDelegatedStartegyPool(_delegatedStrategyPool);
         // provider = Lender.COMPOUND;
     }
     
@@ -86,6 +230,33 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
          token = _underlyingToken;
          _success = true;
     }
+    
+    function setDelegatedStartegyPool(address _delegatedStrategyPool) public onlyOwner returns (bool _success) {
+         delegatedStrategyPool = _delegatedStrategyPool;
+         _success = true;
+    }
+    
+    function rebalance() public {
+    // Lender newProvider = recommend();
+    bytes32 newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
+
+    if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
+      uint256 amount = IDelegatedStrategyPool(delegatedStrategyPool).balance(strategyHash,address(this));
+    if (amount > 0) {
+        address lendingPool = IDelegatedStrategyPool(delegatedStrategyPool).getLiquidityPool(strategyHash);
+      IERC20(lendingPool).safeTransfer(delegatedStrategyPool, amount);
+      IDelegatedStrategyPool(delegatedStrategyPool).recall(amount,strategyHash);
+     }
+    }
+
+    if (balance() > 0) {
+        IERC20(token).safeTransfer(delegatedStrategyPool, balance());
+        IDelegatedStrategyPool(delegatedStrategyPool).deploy(balance(),strategyHash);
+    }
+
+    strategyHash = newStrategyHash;
+  }
+    
     /**
      * @dev Function for depositing DAI tokens into the contract and in return giving opDai tokens to the user
      *
@@ -99,20 +270,10 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
 
         poolValue = calPoolValueInToken();
         
-        IOptyRegistry.Strategy memory tempStrategy = IRiskManager(riskManager).getBestStrategy(profile, token);
-        currentStrategy.score = tempStrategy.score;
-        currentStrategy.isStrategy = tempStrategy.isStrategy;
-        currentStrategy.index = tempStrategy.index;
-        currentStrategy.blockNumber = tempStrategy.blockNumber;
-        currentStrategy.strategySteps.push(IOptyRegistry.StrategyStep(tempStrategy.strategySteps[0].token, tempStrategy.strategySteps[0].creditPool,
-        tempStrategy.strategySteps[0].borrowToken, tempStrategy.strategySteps[0].liquidityPool, tempStrategy.strategySteps[0].strategyContract,
-        tempStrategy.strategySteps[0].lendingPoolToken, tempStrategy.strategySteps[0].poolProxy));
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
         
-        IERC20(token).safeTransferFrom(msg.sender, currentStrategy.strategySteps[0].poolProxy, _amount);
-        
-        
-        IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).deploy(currentStrategy.strategySteps[0].token, currentStrategy.strategySteps[0].liquidityPool, 
-        currentStrategy.strategySteps[0].lendingPoolToken, _amount);
+        rebalance();
+
         //  Calculate the shares value for opDai tokens
         uint256 shares = 0;
         if (poolValue == 0) {
@@ -136,10 +297,12 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *    credit pool like compound is added.
      */
     function calPoolValueInToken() internal view returns (uint256) {
-        if (currentStrategy.isStrategy ) {
-            return IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).balanceInToken(currentStrategy.strategySteps[0].lendingPoolToken, address(this)).add(balance());       
-        } 
-        return balance();
+        (bool success , bytes memory returnedData) = 
+        delegatedStrategyPool.
+        staticcall(abi.encodeWithSignature("balanceInToken(bytes32,address)",strategyHash,address(this)));
+        require(success);
+        (uint balanceInToken) = abi.decode(returnedData,(uint));
+        return balanceInToken.add(balance());
     }
 
     /**
@@ -185,58 +348,58 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  -   _redeemAmount: amount to withdraw from the compound dai's liquidity pool. Its uints are: 
      *      in  weth uints i.e. 1e18
      */
-    function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
-        require(_redeemAmount > 0, "withdraw must be greater than 0");
+    // function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
+    //     require(_redeemAmount > 0, "withdraw must be greater than 0");
         
-        uint256 opBalance = balanceOf(msg.sender);
-        require(_redeemAmount <= opBalance, "Insufficient balance");
+    //     uint256 opBalance = balanceOf(msg.sender);
+    //     require(_redeemAmount <= opBalance, "Insufficient balance");
         
-        poolValue = calPoolValueInToken();
-        uint256 redeemAmountInToken = (poolValue.mul(_redeemAmount)).div(totalSupply());
+    //     poolValue = calPoolValueInToken();
+    //     uint256 redeemAmountInToken = (poolValue.mul(_redeemAmount)).div(totalSupply());
         
-        //  Updating the totalSupply of opDai tokens
-        _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
-        _totalSupply = _totalSupply.sub(_redeemAmount);
-        emit Transfer(msg.sender, address(0), _redeemAmount);
+    //     //  Updating the totalSupply of opDai tokens
+    //     _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
+    //     _totalSupply = _totalSupply.sub(_redeemAmount);
+    //     emit Transfer(msg.sender, address(0), _redeemAmount);
         
-        // Check Token balance
-      uint256 tokenBalance = IERC20(token).balanceOf(address(this));
+    //     // Check Token balance
+    //   uint256 tokenBalance = IERC20(token).balanceOf(address(this));
       
-      if (tokenBalance < redeemAmountInToken) {
-    //       // TODO
-    //       // get the best strategy from RM 
-    //       // withdraw All if newProvider != provider
+    //   if (tokenBalance < redeemAmountInToken) {
+    // //       // TODO
+    // //       // get the best strategy from RM 
+    // //       // withdraw All if newProvider != provider
           
-    //       // Withdraw some if provider is unchanged
+    // //       // Withdraw some if provider is unchanged
     
-    // TODO : Include this calculation as a part of Proxy
-    // -------------------------------------------------
-    uint256 _amt =  redeemAmountInToken.sub(tokenBalance);
-    uint256 balComp = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
-    balance(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
-    uint256 balToken = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
-    balanceInToken(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
-    require(balToken >= _amt, "insufficient funds");
-    // can have unintentional rounding errors
-    uint256 amount = (balComp.mul(_amt)).div(balToken).add(1);
-    // ---------------------------------------------
-        IERC20(currentStrategy.strategySteps[0].lendingPoolToken).
-        safeTransfer(currentStrategy.strategySteps[0].poolProxy, amount);
-        require(IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
-        recall(currentStrategy.strategySteps[0].token,currentStrategy.strategySteps[0].lendingPoolToken,amount));
-      }
+    // // TODO : Include this calculation as a part of Proxy
+    // // -------------------------------------------------
+    // uint256 _amt =  redeemAmountInToken.sub(tokenBalance);
+    // uint256 balComp = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
+    // balance(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
+    // uint256 balToken = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
+    // balanceInToken(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
+    // require(balToken >= _amt, "insufficient funds");
+    // // can have unintentional rounding errors
+    // uint256 amount = (balComp.mul(_amt)).div(balToken).add(1);
+    // // ---------------------------------------------
+    //     IERC20(currentStrategy.strategySteps[0].lendingPoolToken).
+    //     safeTransfer(currentStrategy.strategySteps[0].poolProxy, amount);
+    //     require(IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
+    //     recall(currentStrategy.strategySteps[0].token,currentStrategy.strategySteps[0].lendingPoolToken,amount));
+    //   }
 
-      IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-       // TODO: redeploy if provider is changes 
+    //   IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
+    //   // TODO: redeploy if provider is changes 
        
-        //  Get the liquidityPool's address from the getStrategy()
-        // address _liquidityPool = getStrategy(token, "basic", 0)[0].liquidityPool;
-        // address _liquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
+    //     //  Get the liquidityPool's address from the getStrategy()
+    //     // address _liquidityPool = getStrategy(token, "basic", 0)[0].liquidityPool;
+    //     // address _liquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
         
-        //  Calling the withdraw function  from the IOptyLiquidityPool interface for cDai tokens
-        // optyCompoundDaiLiquidityPool is the address the OptyFi's Compound Dai Interaction contract
-        // _withdrawStatus = IOptyLiquidityPool(optyCompoundDaiLiquidityPool).withdraw(_liquidityPool, redeemOpDaiInDai);
-       poolValue = calPoolValueInToken();
-       return true;
-    }
+    //     //  Calling the withdraw function  from the IOptyLiquidityPool interface for cDai tokens
+    //     // optyCompoundDaiLiquidityPool is the address the OptyFi's Compound Dai Interaction contract
+    //     // _withdrawStatus = IOptyLiquidityPool(optyCompoundDaiLiquidityPool).withdraw(_liquidityPool, redeemOpDaiInDai);
+    //   poolValue = calPoolValueInToken();
+    //   return true;
+    // }
 }
