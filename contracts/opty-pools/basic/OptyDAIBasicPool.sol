@@ -136,7 +136,7 @@ contract DelegatedStrategyPool {
         deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
         IERC20(_strategySteps[0].lendingPoolToken).
         safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
-            _strategySteps[0].poolProxy).balance(_strategySteps[0].liquidityPool,address(this)
+            _strategySteps[0].poolProxy).balance(_strategySteps[0].lendingPoolToken,address(this)
             ));
         _success = true;
     }
@@ -153,7 +153,7 @@ contract DelegatedStrategyPool {
     }
     
     function singleStepRecall(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public returns(bool _success) {
-        IERC20(_strategySteps[0].lendingPoolToken).safeTransferFrom(msg.sender,_strategySteps[0].poolProxy,_amount);
+        IERC20(_strategySteps[0].lendingPoolToken).safeTransfer(_strategySteps[0].poolProxy,_amount);
         require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).recall(_strategySteps[0].token,_strategySteps[0].lendingPoolToken,_amount));
         IERC20(_strategySteps[0].token).safeTransfer(msg.sender,IERC20(_strategySteps[0].token).balanceOf(address(this)));
         _success = true;
