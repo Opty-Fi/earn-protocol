@@ -4,7 +4,7 @@ pragma solidity ^0.6.10;
 
 import "../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
 import "../../interfaces/aave/IAave.sol";
-import "../../interfaces/aave/IILendingPoolAddressesProvider.sol";
+import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../interfaces/aave/IAToken.sol";
 import "../../interfaces/ERC20/IERC20.sol";
 import "../../libraries/SafeMath.sol";

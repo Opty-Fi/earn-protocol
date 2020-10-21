@@ -132,8 +132,8 @@ contract DelegatedStrategyPool {
     
     function singleStepDeploy(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public returns(bool _success) {
         IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
-        IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool, 
-        _strategySteps[0].lendingPoolToken, _amount);
+        require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+        deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
         IERC20(_strategySteps[0].lendingPoolToken).
         safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
             _strategySteps[0].poolProxy).balance(_strategySteps[0].liquidityPool,address(this)
@@ -192,7 +192,6 @@ contract DelegatedStrategyPool {
 contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    // IOptyRegistry.Strategy public currentStrategy;
     bytes32 public strategyHash;
     address public token; //  store the Dai token contract address
     address public riskManager;
@@ -236,16 +235,18 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
          _success = true;
     }
     
+    event Test(uint indexed amount);
+    
     function rebalance() public {
-    // Lender newProvider = recommend();
     bytes32 newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
 
     if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
       uint256 amount = IDelegatedStrategyPool(delegatedStrategyPool).balance(strategyHash,address(this));
+      emit Test(amount);
     if (amount > 0) {
-        address lendingPool = IDelegatedStrategyPool(delegatedStrategyPool).getLiquidityPool(strategyHash);
-      IERC20(lendingPool).safeTransfer(delegatedStrategyPool, amount);
-      IDelegatedStrategyPool(delegatedStrategyPool).recall(amount,strategyHash);
+        // address lendingPool = IDelegatedStrategyPool(delegatedStrategyPool).getLiquidityPool(strategyHash);
+    //   IERC20(lendingPool).safeTransfer(delegatedStrategyPool, amount);
+    //   IDelegatedStrategyPool(delegatedStrategyPool).recall(amount,strategyHash);
      }
     }
 
