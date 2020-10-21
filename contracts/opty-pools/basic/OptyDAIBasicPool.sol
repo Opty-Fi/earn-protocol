@@ -58,7 +58,7 @@ interface IDelegatedStrategyPool{
     function recall(uint _amount, bytes32 _hash) external returns(bool _success);
     function balance(bytes32 _hash, address _account) external view returns(uint _balance);
     function balanceInToken(bytes32 _hash, address _account) external view returns(uint _balance);
-    function getLiquidityPool(bytes32 _hash) external view returns(address _lendingPool);
+    function getLiquidityPoolToken(bytes32 _hash) external view returns(address _lendingPool);
 }
 
 contract DelegatedStrategyPool {
@@ -163,18 +163,18 @@ contract DelegatedStrategyPool {
         (,,,, _strategySteps) = IOptyRegistry(optyRegistry).getStrategy(_hash);
     }
     
-    function getLiquidityPool(bytes32 _hash) public view returns(address _lendingPool) {
+    function getLiquidityPoolToken(bytes32 _hash) public view returns(address _lendingPool) {
         IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         if(_strategySteps.length == 1){
-            _lendingPool = getSingleStepLiquidityPool(_strategySteps);
+            _lendingPool = getSingleStepLiquidityPoolToken(_strategySteps);
         }
         else{
             revert("not implemented");
         }
     }
     
-    function getSingleStepLiquidityPool(IOptyRegistry.StrategyStep[] memory _strategySteps) public pure returns(address) {
-        return _strategySteps[0].liquidityPool;
+    function getSingleStepLiquidityPoolToken(IOptyRegistry.StrategyStep[] memory _strategySteps) public pure returns(address) {
+        return _strategySteps[0].lendingPoolToken;
     }
     
     /**
@@ -235,18 +235,15 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
          _success = true;
     }
     
-    event Test(uint indexed amount);
-    
     function rebalance() public {
     bytes32 newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
 
     if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
       uint256 amount = IDelegatedStrategyPool(delegatedStrategyPool).balance(strategyHash,address(this));
-      emit Test(amount);
     if (amount > 0) {
-        // address lendingPool = IDelegatedStrategyPool(delegatedStrategyPool).getLiquidityPool(strategyHash);
-    //   IERC20(lendingPool).safeTransfer(delegatedStrategyPool, amount);
-    //   IDelegatedStrategyPool(delegatedStrategyPool).recall(amount,strategyHash);
+        address lendingPoolToken = IDelegatedStrategyPool(delegatedStrategyPool).getLiquidityPoolToken(strategyHash);
+      IERC20(lendingPoolToken).safeTransfer(delegatedStrategyPool, amount);
+      IDelegatedStrategyPool(delegatedStrategyPool).recall(amount,strategyHash);
      }
     }
 
@@ -349,33 +346,49 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  -   _redeemAmount: amount to withdraw from the compound dai's liquidity pool. Its uints are: 
      *      in  weth uints i.e. 1e18
      */
-    // function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
-    //     require(_redeemAmount > 0, "withdraw must be greater than 0");
+    function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
+        require(_redeemAmount > 0, "withdraw must be greater than 0");
         
-    //     uint256 opBalance = balanceOf(msg.sender);
-    //     require(_redeemAmount <= opBalance, "Insufficient balance");
+        uint256 opBalance = balanceOf(msg.sender);
+        require(_redeemAmount <= opBalance, "Insufficient balance");
         
-    //     poolValue = calPoolValueInToken();
-    //     uint256 redeemAmountInToken = (poolValue.mul(_redeemAmount)).div(totalSupply());
+        poolValue = calPoolValueInToken();
+        uint256 redeemAmountInToken = (poolValue.mul(_redeemAmount)).div(totalSupply());
         
-    //     //  Updating the totalSupply of opDai tokens
-    //     _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
-    //     _totalSupply = _totalSupply.sub(_redeemAmount);
-    //     emit Transfer(msg.sender, address(0), _redeemAmount);
+        //  Updating the totalSupply of opDai tokens
+        _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
+        _totalSupply = _totalSupply.sub(_redeemAmount);
+        emit Transfer(msg.sender, address(0), _redeemAmount);
         
     //     // Check Token balance
-    //   uint256 tokenBalance = IERC20(token).balanceOf(address(this));
-      
-    //   if (tokenBalance < redeemAmountInToken) {
-    // //       // TODO
-    // //       // get the best strategy from RM 
-    // //       // withdraw All if newProvider != provider
+      uint256 tokenBalance = IERC20(token).balanceOf(address(this));
+      bytes32 newStrategyHash =  strategyHash;
+      if (tokenBalance < redeemAmountInToken) {
+          newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
+          if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
+              uint256 amount = _balanceCompound();
+              if (amount > 0) {
+                  _withdrawCompound(amount);
+               }
+          }
+          else {
+              uint _amt = redeemAmountInToken.sub(tokenBalance);
+              uint256 b = balanceCompound();
+              uint256 bT = balanceCompoundInToken();
+              require(bT >= _amt, "insufficient funds");
+             // can have unintentional rounding errors
+               uint256 amount = (b.mul(_amt)).div(bT).add(1);
+               _withdrawCompound(amount);
+          }
+    //       // TODO
+    //       // get the best strategy from RM 
+    //       // withdraw All if newProvider != provider
           
-    // //       // Withdraw some if provider is unchanged
+    //       // Withdraw some if provider is unchanged
     
-    // // TODO : Include this calculation as a part of Proxy
-    // // -------------------------------------------------
-    // uint256 _amt =  redeemAmountInToken.sub(tokenBalance);
+    // TODO : Include this calculation as a part of Proxy
+    // -------------------------------------------------
+    uint256 _amt =  redeemAmountInToken.sub(tokenBalance);
     // uint256 balComp = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
     // balance(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
     // uint256 balToken = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
@@ -388,9 +401,15 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     //     safeTransfer(currentStrategy.strategySteps[0].poolProxy, amount);
     //     require(IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
     //     recall(currentStrategy.strategySteps[0].token,currentStrategy.strategySteps[0].lendingPoolToken,amount));
-    //   }
+      }
 
-    //   IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
+      IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
+       if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
+        if (_balance() > 0) {
+           // supply _balance() to newStrategyHash
+       }
+    provider = newProvider;
+      }
     //   // TODO: redeploy if provider is changes 
        
     //     //  Get the liquidityPool's address from the getStrategy()
@@ -400,7 +419,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     //     //  Calling the withdraw function  from the IOptyLiquidityPool interface for cDai tokens
     //     // optyCompoundDaiLiquidityPool is the address the OptyFi's Compound Dai Interaction contract
     //     // _withdrawStatus = IOptyLiquidityPool(optyCompoundDaiLiquidityPool).withdraw(_liquidityPool, redeemOpDaiInDai);
-    //   poolValue = calPoolValueInToken();
-    //   return true;
+      poolValue = calPoolValueInToken();
+      return true;
     // }
 }
