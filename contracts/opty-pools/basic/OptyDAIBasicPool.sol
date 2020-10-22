@@ -67,7 +67,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
        IOptyStrategy(optyStrategy).deploy(_amount,strategyHash);
     }
     
-    function rebalance() public {
+    function rebalance() public onlyValidAddress {
     bytes32 newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
     
     if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
