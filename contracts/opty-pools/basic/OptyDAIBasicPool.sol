@@ -204,7 +204,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  -   _redeemAmount: amount to withdraw from the compound dai's liquidity pool. Its uints are: 
      *      in  weth uints i.e. 1e18
      */
-    function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
+    function redeem(uint256 _redeemAmount) external onlyValidAddress nonReentrant returns(bool) {
         require(_redeemAmount > 0, "withdraw must be greater than 0");
         
         uint256 opBalance = balanceOf(msg.sender);
