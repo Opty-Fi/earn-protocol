@@ -178,6 +178,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     }
     
     function _withdrawSome(uint _amount) internal {
+        require(_amount > 0,"insufficient funds");
         uint256 b = IOptyStrategy(optyStrategy).balance(strategyHash,address(this));
         uint256 bT = IOptyStrategy(optyStrategy).balanceInToken(strategyHash,address(this));
         require(bT >= _amount, "insufficient funds");
