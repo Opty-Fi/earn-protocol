@@ -61,7 +61,8 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
          _success = true;
     }
     
-    function supplyToken(uint _amount) public {
+    function supplyToken(uint _amount) public onlyValidAddress {
+        require(_amount > 0,"withdraw must be greater than 0");
        IERC20(token).safeTransfer(optyStrategy, _amount);
        IOptyStrategy(optyStrategy).deploy(_amount,strategyHash);
     }
@@ -233,5 +234,13 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
       }
       poolValue = calPoolValueInToken();
       return true;
+    }
+    
+    /**
+     * @dev Modifier to check if the address is zero address or not
+     */
+    modifier onlyValidAddress(){
+        require(msg.sender != address(0), "zero address");
+        _;
     }
 }
