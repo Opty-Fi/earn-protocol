@@ -3,17 +3,8 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./../libraries/SafeMath.sol";
-import "./../libraries/Addresses.sol";
 import "./../libraries/SafeERC20.sol";
-import "./../utils/Context.sol";
-import "./../utils/ERC20.sol";
-import "./../utils/ERC20Detailed.sol";
-import "./../utils/Modifiers.sol";
-import "./../interfaces/compound/ICompound.sol";
 import "./../interfaces/opty/IOptyLiquidityPoolProxy.sol";
-import "./../utils/Ownable.sol";
-import "./../utils/ReentrancyGuard.sol";
 import "./../interfaces/opty/IOptyRegistry.sol";
 
 contract OptyStrategy {
