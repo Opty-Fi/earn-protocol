@@ -1,0 +1,182 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint256[4]",
+						"name": "amountsIn",
+						"type": "uint256[4]"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minAmountOut",
+						"type": "uint256"
+					}
+				],
+				"name": "add_liquidity",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256[2]",
+						"name": "amountsIn",
+						"type": "uint256[2]"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minAmountOut",
+						"type": "uint256"
+					}
+				],
+				"name": "add_liquidity",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256[3]",
+						"name": "amountsIn",
+						"type": "uint256[3]"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minAmountOut",
+						"type": "uint256"
+					}
+				],
+				"name": "add_liquidity",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256[2]",
+						"name": "minAmountOut",
+						"type": "uint256[2]"
+					}
+				],
+				"name": "remove_liquidity",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256[4]",
+						"name": "minAmountOut",
+						"type": "uint256[4]"
+					}
+				],
+				"name": "remove_liquidity",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256[3]",
+						"name": "minAmountOut",
+						"type": "uint256[3]"
+					}
+				],
+				"name": "remove_liquidity",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amountIn",
+						"type": "uint256"
+					},
+					{
+						"internalType": "int128",
+						"name": "i",
+						"type": "int128"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minAmountOut",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "donateDust",
+						"type": "bool"
+					}
+				],
+				"name": "remove_liquidity_one_coin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/interfaces/curve/ICurveDeposit.sol": "ICurveDeposit"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/interfaces/curve/ICurveDeposit.sol": {
+			"keccak256": "0xd5d97428b1eff7ad7c44ae17a0ab6ecc9432b7563486316e3cf1338aa50826c5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d89a6513889badff6e9b88cfe00c42c29d1465b7e7719901de5c0f6543526ca3",
+				"dweb:/ipfs/QmdREa3tafjDChX4QkoU8UYKuuaAewrdxYUynGJFBX6Xr3"
+			]
+		}
+	},
+	"version": 1
+}

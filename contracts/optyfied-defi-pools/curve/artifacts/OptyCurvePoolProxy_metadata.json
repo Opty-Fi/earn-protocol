@@ -1,0 +1,507 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_holder",
+						"type": "address"
+					}
+				],
+				"name": "balance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_holder",
+						"type": "address"
+					}
+				],
+				"name": "balanceInToken",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_underlyingToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_lendingPool",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "deploy",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPool",
+						"type": "address"
+					}
+				],
+				"name": "getNumberOfTokens",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					}
+				],
+				"name": "getPoolContract",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_underlyingToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "recall",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "recallAllTokens",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPool",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					}
+				],
+				"name": "setLPTokenToPoolContract",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPool",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_numberOfTokens",
+						"type": "uint256"
+					}
+				],
+				"name": "setLendingPoolToNumberOfTokens",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_lendingPoolGauge",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "stakeLPtokens",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_lendingPoolToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_lendingPoolGauge",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "unstakeLPtokens",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"balance(address,address)": {
+					"details": "Returns the amount of _token that _holder has ",
+					"params": {
+						"_holder": "Address of which to know the balance",
+						"_token": "Address of the ERC20 token of which the balance is read"
+					}
+				},
+				"balanceInToken(address,address)": {
+					"details": "Calls the appropriate deploy function depending on N_COINS This function needs an address _underlyingToken argument to get how many _underlyingToken equal      the user's balance in _lendingPoolToken"
+				},
+				"deploy(address,address,address,uint256)": {
+					"details": "Calls the appropriate deploy function depending on N_COINS ",
+					"params": {
+						"_amount": "Quantity of _underlyingToken to deposit",
+						"_lendingPool": "Address of the pool deposit (or swap, in some cases) contract",
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool",
+						"_underlyingToken": "Address of the token that the user wants to deposit"
+					}
+				},
+				"getNumberOfTokens(address)": {
+					"details": "Reads a mapping to get the number of different tokens in _lendingPool ",
+					"params": {
+						"_lendingPool": "Address of the pool deposit (or swap, in some cases) contract "
+					},
+					"returns": {
+						"_0": "Number of different tokens in _lendingPool"
+					}
+				},
+				"getPoolContract(address)": {
+					"details": "Returns the number of different tokens in _lendingPool ",
+					"params": {
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool "
+					},
+					"returns": {
+						"_0": "Address of the pool contract which handles _lendingPoolToken"
+					}
+				},
+				"recall(address,address,uint256)": {
+					"details": "Swaps _amount of _lendingPoolToken for _underlyingToken ",
+					"params": {
+						"_amount": "Quantity of _lendingPoolToken to swap for _underlyingToken",
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool",
+						"_underlyingToken": "Address of the token that the user wants to withdraw"
+					}
+				},
+				"recallAllTokens(address,uint256)": {
+					"details": "Calls the appropriate recallAllTokens function depending on N_COINS ",
+					"params": {
+						"_amount": "Quantity of _lendingPoolToken to swap for underlying tokens",
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool"
+					}
+				},
+				"setLPTokenToPoolContract(address,address)": {
+					"details": "Sets _numberOfTokens in _lendingPool and store the key-value pair in numberOfTokens mapping ",
+					"params": {
+						"_lendingPool": "Address of the pool deposit (or swap, in some cases) contract",
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool"
+					}
+				},
+				"setLendingPoolToNumberOfTokens(address,uint256)": {
+					"details": "Sets _numberOfTokens in _lendingPool and store the key-value pair in numberOfTokens mapping ",
+					"params": {
+						"_lendingPool": "Address of the pool deposit (or swap, in some cases) contract",
+						"_numberOfTokens": "Number of different tokens in the pool"
+					}
+				},
+				"stakeLPtokens(address,address,uint256)": {
+					"details": "Deposits _amount of _lendingPoolToken in _lendingPoolGauge to generate CRV rewards ",
+					"params": {
+						"_amount": "Quantity of _lendingPoolToken to deposit in the gauge",
+						"_lendingPoolGauge": "Address of the gauge associated to the pool",
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool"
+					}
+				},
+				"unstakeLPtokens(address,address,uint256)": {
+					"details": "Withdraws _amount of _lendingPoolToken from _lendingPoolToken and claims CRV rewards ",
+					"params": {
+						"_amount": "Quantity of _lendingPoolToken to withdraw from the gauge",
+						"_lendingPoolGauge": "Address of the gauge associated to the pool",
+						"_lendingPoolToken": "Address of the token that represents users' holdings in the pool"
+					}
+				}
+			},
+			"stateVariables": {
+				"LPToken": {
+					"details": "Mapping that associates LP token address to lendingPool address"
+				},
+				"OptyRegistryAddress": {
+					"details": "Opty Registry contract address must be hard-coded"
+				},
+				"numberOfTokens": {
+					"details": "Mapping to store the number of different tokens that each pool has"
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"localhost/contracts/optyfied-defi-pools/curve/OptyCurvePoolProxy.sol": "OptyCurvePoolProxy"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"localhost/contracts/OptyRegistry.sol": {
+			"keccak256": "0x05276366198400da126bd84c73a78f1adb346a8aaeaa091498c0c1c9268f7630",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://ac1ac59fc7cd08bdeda5ba19d10bc5d8b0299d2eef76dfa18db938c59b877349",
+				"dweb:/ipfs/QmcoT1cfZbBUn7cCHbTC8ViJr5vQoCGvHnzNk8kuTsiBG8"
+			]
+		},
+		"localhost/contracts/interfaces/ERC20/IERC20.sol": {
+			"keccak256": "0xecd45b3be8398bcf3c78df57be78b057b9a9fcfe44aef04cff41f20c13f28617",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8dfd0df6952d684c63fd0ff77992f30fdc1d46e33849525b841484facbd613e8",
+				"dweb:/ipfs/QmVHbFYB1xY3XuAnbkLv2eYjMtZy1r7y7EbDRS5hLfc9XA"
+			]
+		},
+		"localhost/contracts/interfaces/curve/ICurveDAO.sol": {
+			"keccak256": "0xd93e6e0d1d03d9cde913142226b00fc62afd180439d382d39e8c260cbbfd7529",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://320f262ebcae20933dd302837266b95e2f9887cff1b14b2477d6b9fe1d1d9e11",
+				"dweb:/ipfs/QmNPQ8anWoTRxrgxfEc3zLCbHb2NU5nqZS43t1izx7WDXz"
+			]
+		},
+		"localhost/contracts/interfaces/curve/ICurveDeposit.sol": {
+			"keccak256": "0xd5d97428b1eff7ad7c44ae17a0ab6ecc9432b7563486316e3cf1338aa50826c5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d89a6513889badff6e9b88cfe00c42c29d1465b7e7719901de5c0f6543526ca3",
+				"dweb:/ipfs/QmdREa3tafjDChX4QkoU8UYKuuaAewrdxYUynGJFBX6Xr3"
+			]
+		},
+		"localhost/contracts/interfaces/curve/ICurveGauge.sol": {
+			"keccak256": "0xdb4a6a2b2d77c09d28977335283b147372e2e3cd584b24a759fa2d6ce62d59aa",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://577f519b7a9130094a173d8155b009ab5b5f162aee8e21c879a1a2ae1cdb13c7",
+				"dweb:/ipfs/QmXiQw2Zw9krwP4J3ioof8yJg1FhVWQAFxNa1VAFuufTTw"
+			]
+		},
+		"localhost/contracts/interfaces/curve/ICurveSwap.sol": {
+			"keccak256": "0x1a8c3e99ee6e3c7dae502bf20c407b662f93494c5ca4a37c7a5c277768fbc6a1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://237dcbab4384a152c824d94345ca17bce8ad888347282f4733f077a0b98aa0b6",
+				"dweb:/ipfs/QmY6b1EPWvFQNzbrL3zrBxyxzuJEyLqQ6vb7YY7WdEVR3B"
+			]
+		},
+		"localhost/contracts/interfaces/opty/IOptyLiquidityPoolProxy.sol": {
+			"keccak256": "0x84e05d34b2b21fad5cce2abb568f0ef02f30551f72d7a6d99ef55cb27038beb1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6577d4c98a866284f5f8b70641f4b6c2ba08a021aa20ca20e7398bda83a75358",
+				"dweb:/ipfs/QmUt7e2Bu8DRPoCKK7g3XxLA2FSvR676xhxGj5hkHknn2R"
+			]
+		},
+		"localhost/contracts/interfaces/opty/IOptyRegistry.sol": {
+			"keccak256": "0xb6566f1c460089e5087b96e7be779d2f3ba07b51fd276964b7ab76f84e870686",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e71406f4e89b6961cce07bb0d9ff45f2e5cd2058ddbc9f6a438619c3b62e5579",
+				"dweb:/ipfs/QmXMQ6B3TJzT2wiXMB7knVG9qUxn6w55pz6CKA1D6hrtqf"
+			]
+		},
+		"localhost/contracts/libraries/Addresses.sol": {
+			"keccak256": "0x3895eae5a81b89cf23064a6b04371e02d62fbf376ffd088dde709a882868831e",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://5d447aa5060b7769cda39b8066f54f6f6bd25cfbb82e1780e46284530e8f0433",
+				"dweb:/ipfs/QmcibsRN7Jw96BtGVFxGVHktuBSiJgNPBRjRJD3uCFzg6A"
+			]
+		},
+		"localhost/contracts/libraries/SafeERC20.sol": {
+			"keccak256": "0x77a3c5a69490fb33dfb6a1b21bbe90c0a5a3d41e68f4d58bd46a276ddaeda9f6",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a4d6cd2bfaa8dfdd5fcb87a5c00bff37b135a87e86fde7d1af4fc18350806fb1",
+				"dweb:/ipfs/QmTUpLENtmTn8tCmW1Z4awfPBY2zJbwvjupwSV5dt3tRWs"
+			]
+		},
+		"localhost/contracts/libraries/SafeMath.sol": {
+			"keccak256": "0xb46f5b27d7185d586f0aa0f4f128bdba62c69e222776f167db0b6410de90d253",
+			"license": "GPL-3.0",
+			"urls": [
+				"bzz-raw://b7ea1f04b7b620bd1938d360068b7247f9ef7ceb2079b08e2a17f690ca333a8a",
+				"dweb:/ipfs/QmWqimzNPiiVL63XHVDPh1y7MR6xzpjsBjjwgnPM9pHSSQ"
+			]
+		},
+		"localhost/contracts/optyfied-defi-pools/curve/OptyCurvePoolProxy.sol": {
+			"keccak256": "0xcd94c0a05ccc004f6f155baef0637fcd94c472d0fc16436704607fcbf405f107",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8151b4893056d96e1ba3489bf266e75753fea851c70818005a0318e149f7e91b",
+				"dweb:/ipfs/QmNqhzwBsS17SMvTi8hv7mnSumBvVv5ULgNMEuwDMRqTca"
+			]
+		}
+	},
+	"version": 1
+}

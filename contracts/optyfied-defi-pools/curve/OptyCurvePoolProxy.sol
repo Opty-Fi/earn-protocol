@@ -190,7 +190,6 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @dev Swaps _amount of _lendingPoolToken for _underlyingToken
     * 
     * @param _underlyingToken Address of the token that the user wants to withdraw
-    * @param _lendingPool Address of the pool deposit (or swap, in some cases) contract
     * @param _lendingPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _lendingPoolToken to swap for _underlyingToken
     */
@@ -212,7 +211,85 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_underlyingToken).safeTransfer(msg.sender, balance(_underlyingToken,address(this)));
         return true;
     }
+    
+    /**
+    * @dev Calls the appropriate recallAllTokens function depending on N_COINS
+    * 
+    * @param _lendingPoolToken Address of the token that represents users' holdings in the pool
+    * @param _amount Quantity of _lendingPoolToken to swap for underlying tokens
+    */
+    function recallAllTokens(address _lendingPoolToken,uint _amount) public returns(bool){
+        address lendingPool = getPoolContract(_lendingPoolToken);
+        uint N_COINS = getNumberOfTokens(lendingPool);
+        if (N_COINS == uint(2)){
+            recallAllTokens2(lendingPool, _lendingPoolToken, _amount);
+        }
+        else if (N_COINS == uint(3)){
+            recallAllTokens3(lendingPool, _lendingPoolToken, _amount);
+        }
+        else if (N_COINS == uint(4)){
+            recallAllTokens4(lendingPool, _lendingPoolToken, _amount);
+        }
+        return true;
+    }
 
+    /**
+    * @dev Swaps _amount of _lendingPoolToken for a certain quantity of each underlying token
+    * 
+    * @param _lendingPool Address of the pool deposit (or swap, in some cases) contract
+    * @param _lendingPoolToken Address of the token that represents users' holdings in the pool
+    * @param _amount Quantity of _lendingPoolToken to swap for underlying tokens
+    */
+    function recallAllTokens2(address _lendingPool, address _lendingPoolToken, uint _amount) internal returns(bool) {
+        address[] memory tokensList = OptyRegistryContract.getUnderlyingTokens(_lendingPool);
+        uint[2] memory minAmountOut = [uint(0), uint(0)];
+        IERC20(_lendingPoolToken).safeApprove(_lendingPool, uint(0));
+        IERC20(_lendingPoolToken).safeApprove(_lendingPool, uint(_amount));
+        ICurveDeposit(_lendingPool).remove_liquidity(_amount, minAmountOut);
+        for (uint8 i=0; i<2; i++){
+            IERC20(tokensList[i]).safeTransfer(msg.sender, balance(tokensList[i],address(this)));
+        }
+        return true;
+    }
+
+    /**
+    * @dev Swaps _amount of _lendingPoolToken for a certain quantity of each underlying token
+    * 
+    * @param _lendingPool Address of the pool deposit (or swap, in some cases) contract
+    * @param _lendingPoolToken Address of the token that represents users' holdings in the pool
+    * @param _amount Quantity of _lendingPoolToken to swap for underlying tokens
+    */
+    function recallAllTokens3(address _lendingPool, address _lendingPoolToken, uint _amount) internal returns(bool) {
+        address[] memory tokensList = OptyRegistryContract.getUnderlyingTokens(_lendingPool);
+        uint[3] memory minAmountOut = [uint(0), uint(0), uint(0)];
+        IERC20(_lendingPoolToken).safeApprove(_lendingPool, uint(0));
+        IERC20(_lendingPoolToken).safeApprove(_lendingPool, uint(_amount));
+        ICurveDeposit(_lendingPool).remove_liquidity(_amount, minAmountOut);
+        for (uint8 i=0; i<3; i++){
+            IERC20(tokensList[i]).safeTransfer(msg.sender, balance(tokensList[i],address(this)));
+        }
+        return true;
+    }
+    
+    /**
+    * @dev Swaps _amount of _lendingPoolToken for a certain quantity of each underlying token
+    * 
+    * @param _lendingPool Address of the pool deposit (or swap, in some cases) contract
+    * @param _lendingPoolToken Address of the token that represents users' holdings in the pool
+    * @param _amount Quantity of _lendingPoolToken to swap for underlying tokens
+    */
+    function recallAllTokens4(address _lendingPool, address _lendingPoolToken, uint _amount) internal returns(bool) {
+        address[] memory tokensList = OptyRegistryContract.getUnderlyingTokens(_lendingPool);
+        uint[4] memory minAmountOut = [uint(0), uint(0), uint(0), uint(0)];
+        IERC20(_lendingPoolToken).safeApprove(_lendingPool, uint(0));
+        IERC20(_lendingPoolToken).safeApprove(_lendingPool, uint(_amount));
+        ICurveDeposit(_lendingPool).remove_liquidity(_amount, minAmountOut);
+        for (uint8 i=0; i<4; i++){
+            IERC20(tokensList[i]).safeTransfer(msg.sender, balance(tokensList[i],address(this)));
+        }
+        return true;
+    }
+    
     /** 
     * @dev Calls the appropriate deploy function depending on N_COINS
     * 
