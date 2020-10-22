@@ -188,6 +188,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     }
     
     function _withdrawToken(uint _amount) internal {
+        require(_amount > 0,"insufficient funds");
         address lendingPoolToken =
         IOptyStrategy(optyStrategy).getLiquidityPoolToken(strategyHash);
         IERC20(lendingPoolToken).safeTransfer(optyStrategy,_amount);
