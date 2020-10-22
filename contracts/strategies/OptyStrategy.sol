@@ -6,10 +6,12 @@ pragma experimental ABIEncoderV2;
 import "./../libraries/SafeERC20.sol";
 import "./../interfaces/opty/IOptyLiquidityPoolProxy.sol";
 import "./../interfaces/opty/IOptyRegistry.sol";
+import "./../libraries/Addresses.sol";
 
 contract OptyStrategy {
     
     using SafeERC20 for IERC20;
+    using Address for address;
 
     
     address public optyRegistry;
@@ -22,6 +24,7 @@ contract OptyStrategy {
     }
 
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
+        require(_optyRegistry.isContract(),"!_optyRegistry");
         optyRegistry = _optyRegistry;
     }
     
