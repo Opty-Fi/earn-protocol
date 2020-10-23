@@ -64,8 +64,8 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     function setOptyStrategy(address _optyStrategy) public onlyOwner onlyValidAddress returns (bool _success) {
         require(_optyStrategy != address(0),"!_optyStrategy");
         require(_optyStrategy.isContract(),"!_optyStrategy.isContract");
-        optyStrategy = _optyStrategy;
-        _success = true;
+         optyStrategy = _optyStrategy;
+         _success = true;
     }
     
     function supplyToken(uint _amount) public onlyValidAddress {

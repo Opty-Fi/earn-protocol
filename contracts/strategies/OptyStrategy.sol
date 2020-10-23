@@ -12,6 +12,7 @@ contract OptyStrategy {
     
     using SafeERC20 for IERC20;
     using Address for address;
+
     
     address public optyRegistry;
     address public governance;
@@ -141,7 +142,7 @@ contract OptyStrategy {
         require(msg.sender == governance, "!governance");
         _;
     }
-
+    
     /**
      * @dev Modifier to check if the address is zero address or not
      */
