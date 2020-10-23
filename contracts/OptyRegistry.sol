@@ -91,6 +91,7 @@ contract OptyRegistry {
      * Can only be called by the current governance.
      */    
     function transferGovernance(address _governance) public onlyValidAddress onlyGovernance {
+        require(_governance != address(0),"!_governance");
         governance = _governance;
     }
     
@@ -99,6 +100,7 @@ contract OptyRegistry {
      * Can only be called by the current governance.
      */
     function transferStrategist(address _strategist) public onlyValidAddress onlyGovernance {
+        require(_strategist != address(0),"!_governance");
         strategist = _strategist;
     }
     
