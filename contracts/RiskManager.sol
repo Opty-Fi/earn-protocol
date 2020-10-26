@@ -4,8 +4,11 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/opty/IOptyRegistry.sol";
+import "./libraries/Addresses.sol";
 
 contract RiskManager {
+    
+    using Address for address;
 
     address public optyRegistry;
     address   public governance;
@@ -17,12 +20,16 @@ contract RiskManager {
     }
 
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
+        require(_optyRegistry != address(0),"!_optyRegistry");
+        require(_optyRegistry.isContract(),"!_optyRegistry.isContract");
         optyRegistry = _optyRegistry;
     }
 
     function getBestStrategy(string memory _profile, address _underlyingToken) public view returns 
     (bytes32) {
             require(bytes(_profile).length > 0, "empty!");
+            require(_underlyingToken != address(0),"!_underlyingToken");
+            require(_underlyingToken.isContract(),"!_underlyingToken.isContract");
             if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("basic")))){
                 return getBestBasicStrategy(_underlyingToken);
             } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("advance")))){
@@ -34,6 +41,7 @@ contract RiskManager {
     
     function getBestBasicStrategy(address _underlyingToken) public view returns(bytes32){
         require(_underlyingToken != address(0),"!zero");
+        require(_underlyingToken.isContract(),"!_underlyingToken.isContract");
         bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_underlyingToken);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
