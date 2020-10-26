@@ -16,6 +16,11 @@ contract OptyRegistry {
         bool  isLiquidityPool;
     }
     
+    struct CreditPool {
+        uint8 rating;
+        bool isCreditPool;
+    }
+    
     struct StrategyStep {
         address token; 
         address creditPool; 
@@ -44,6 +49,9 @@ contract OptyRegistry {
     mapping(address => LiquidityPool) public liquidityPools;
     mapping(address => address[])     public liquidityPoolToUnderlyingTokens;
     mapping(address => address[])     public liquidityPoolToLPTokens;
+    mapping(address => CreditPool)    public creditPools;
+    mapping(address => address)       public creditPoolToUnderlyingToken;
+    // mapping(address => address)       public creditPoolToBorrowToken;
 
     /**
      * @dev Sets the value for {governance} and {strategist}, 
@@ -65,6 +73,7 @@ contract OptyRegistry {
         address cDAILiquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
         address aaveLendingPoolAddressProvider = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
         address aDAILiquidityPool = address(0x398eC7346DcD622eDc5ae82352F02bE94C62d119);
+        address aaveCreditPool = address(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9);
         approveToken(dai);
         approveToken(usdt);
         approveToken(usdc);
@@ -76,6 +85,7 @@ contract OptyRegistry {
         approveLiquidityPool(cDAILiquidityPool);
         approveLiquidityPool(aDAILiquidityPool);
         approveLiquidityPool(aaveLendingPoolAddressProvider);
+        approveCreditPool(aaveCreditPool);
         address[] memory ts = new address[](1);
         ts[0] = dai;
         setLiquidityPoolToUnderlyingTokens(cDAILiquidityPool,ts);
@@ -165,6 +175,15 @@ contract OptyRegistry {
         require(!liquidityPools[_pool].isLiquidityPool,"!liquidityPools.isLiquidityPool");
         liquidityPools[_pool].isLiquidityPool = true;
         emit LogLiquidityPool(msg.sender,_pool,liquidityPools[_pool].isLiquidityPool);
+        return true;
+    }
+    
+    function approveCreditPool(address _pool) public onlyValidAddress onlyGovernance returns (bool) {
+        require(_pool != address(0), "zero address");
+        require(address(_pool).isContract(), "isContract");
+        require(!creditPools[_pool].isCreditPool, "!creditPools[_pool].isCreditPool");
+        creditPools[_pool].isCreditPool = true;
+        emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isCreditPool);
         return true;
     }
     

@@ -85,14 +85,52 @@ contract OptyStrategy {
     function singleStepDeploy(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public onlyValidAddress returns(bool _success) {
         require(_amount > 0, "!_amount");
         require(_strategySteps.length == 1,"!_strategySteps.length");
-        IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
-        require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
-        deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
-        IERC20(_strategySteps[0].lendingPoolToken).
-        safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
+        
+        
+        if (_strategySteps[0].creditPool != address(0)) {
+            require(_strategySteps[0].borrowToken != address(0), "address(0)");
+            
+            // 1. Transfer all DAI to AavePoolProxy contract
+            IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
+            
+            // 2. Call deploy() of aavePoolProxy and receive aDAI
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
+            // should be this:
+            // require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            // deploy(_strategySteps[0].token, _strategySteps[0].creditPool,_strategySteps[0].creditPoolToken, _amount));
+            
+            // 3. Transfer all aDAI to aavePoolProxy contract
+            IERC20(_strategySteps[0].lendingPoolToken).safeTransfer(_strategySteps[0].poolProxy, IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            balance(_strategySteps[0].lendingPoolToken,address(this)));
+            // should be this
+            // IERC20(_strategySteps[0].creditPoolToken).safeTransfer(_strategySteps[0].poolProxy, IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            // balance(_strategySteps[0].creditPoolToken,address(this)));
+
+            // 4. TODO: Borrow from the creditPool
+            // Call borrow and get BorrowToken address along with amount borrowed
+            uint256 _borrowedAmount;
+            
+            // TODO: Add check for _borrowedAmount > 0
+            // 5. Depositing the borrowed amount into the liquidityPool (Compound or aave) - Call deploy()
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            deploy(_strategySteps[0].borrowToken, _strategySteps[0].liquidityPool, _strategySteps[0].lendingPoolToken, _borrowedAmount), "!deploy");
+            
+            // 6. Transferring the cTokens or aTokens to OptyDAIAdvancePool contract
+            IERC20(_strategySteps[0].lendingPoolToken).safeTransfer(msg.sender, IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            balance(_strategySteps[0].lendingPoolToken,address(this)));
+            _success = true;
+        } else {
+            IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
+            IERC20(_strategySteps[0].lendingPoolToken).
+            safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
             _strategySteps[0].poolProxy).balance(_strategySteps[0].lendingPoolToken,address(this)
             ));
         _success = true;
+        }
+        
     }
     
     function recall(uint _amount, bytes32 _hash) public onlyValidAddress returns(bool _success) {
@@ -151,3 +189,32 @@ contract OptyStrategy {
         _;
     }
 }
+
+// function singleStepAdvanceDeploy(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public 
+// onlyValidAddress returns (bool _success) {
+//     require(_amount > 0, "_amount < 0");
+//     require(_strategySteps.length == 1, "_strategySteps.length != 1");
+//     if (_strategySteps[0].creditPool != address(0)) {
+//         // TODO: Borrow from the creditPool
+//         // Call borrow and get BorrowToken address along with amount borrowed
+//         uint256 _borrowedAmount;
+//         address _borrowToken;
+        
+//         // TODO: Add check for _borrowedAmount > 0 and _borrowToken != address(0)
+//         require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+//         deploy(_borrowToken, _strategySteps[0].liquidityPool, _strategySteps[0].lendingPoolToken, _borrowedAmount), "!deploy");
+        
+//         IERC20(_strategySteps[0].borrowToken).safeTransfer(msg.sender, IOptyLiquidityPoolProxy(_strategySteps[0].creditPool).
+//         balance(_strategySteps[0].borrowToken,address(this)
+//         ));
+//         _success = true;
+//     } 
+// }
+
+//[["0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa",
+// "0x00000000000000000000000000000000000000",
+// "0x00000000000000000000000000000000000000",
+// "0x6D7F0754FFeb405d23C51CE938289d4835bE3b14",
+// "0x256495400569a9DBc1F95Ea72de5b1540b0F4a21",
+// "0x6D7F0754FFeb405d23C51CE938289d4835bE3b14",
+// "0x256495400569a9DBc1F95Ea72de5b1540b0F4a21"]]
