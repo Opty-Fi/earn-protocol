@@ -4,9 +4,6 @@ pragma solidity ^0.6.10;
 
 import "../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
 import "../../interfaces/compound/ICompound.sol";
-import "../../interfaces/ERC20/IERC20.sol";
-import "../../libraries/SafeMath.sol";
-import "../../libraries/Addresses.sol";
 import "../../libraries/SafeERC20.sol";
 
 contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
@@ -43,12 +40,3 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
          return IERC20(_token).balanceOf(_holder);
     } 
 }
-
-// DAI
-// Mainnet
-// address _compoundDAILendingPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
-// address _DAItoken = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-
-// Rinkeby
-// address _compoundDAILendingPool = address(0x6D7F0754FFeb405d23C51CE938289d4835bE3b14);
-// address _DAItoken = address(0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa);

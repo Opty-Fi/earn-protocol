@@ -10,5 +10,4 @@ interface ICurveDeposit {
     function remove_liquidity (uint _amount, uint[2] calldata minAmountOut) external;
     function remove_liquidity (uint _amount, uint[3] calldata minAmountOut) external;
     function remove_liquidity (uint _amount, uint[4] calldata minAmountOut) external;
-
 }
