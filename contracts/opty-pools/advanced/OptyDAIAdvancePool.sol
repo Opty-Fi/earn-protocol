@@ -14,7 +14,7 @@ import "./../../interfaces/opty/IRiskManager.sol";
 import "./../../interfaces/opty/IOptyStrategy.sol";
 
 /**
- * @dev Opty.Fi's Basic Pool contract for DAI token
+ * @dev Opty.Fi's Advance Pool contract for DAI token
  */
 contract OptyDAIAdvancePool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
