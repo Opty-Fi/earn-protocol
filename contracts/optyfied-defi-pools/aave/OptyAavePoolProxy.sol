@@ -8,6 +8,7 @@ import "../../interfaces/aave/IAave.sol";
 import "../../interfaces/aave/IPriceOracle.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../libraries/SafeERC20.sol";
+import "../../utils/ERC20Detailed.sol";
 
 contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     
@@ -65,7 +66,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         require(_userReserveData.enabled,"!_userReserveData.enabled");
         IAave.UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
         uint _borrowTokenPriceInWei = IPriceOracle(_priceOracle).getAssetPrice(_borrowToken);
-        uint _borrowTokenDecimals = 10 ** uint((IERC20(_borrowToken).decimals()));
+        uint _borrowTokenDecimals = 10 ** uint((ERC20Detailed(_borrowToken).decimals()));
         uint _borrowAmount = (_borrowTokenDecimals.mul(_userAccountData.availableBorrowsETH)).div(_borrowTokenPriceInWei);
         IAave(_lendingPool).borrow(_borrowToken, _borrowAmount, 2,  0);
         IERC20(_borrowToken).transfer(msg.sender,_borrowAmount);

@@ -88,11 +88,10 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     }
     }
   
-    function _rebalance(bytes32 _newStrategyHash) internal {
+    function _rebalance() internal {
         if(balance() > 0){
           supplyToken(balance());
         }
-        strategyHash = _newStrategyHash;
     }
     
     /**
@@ -239,11 +238,13 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
       }
        IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
        if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
-           _rebalance(newStrategyHash);
+           strategyHash = newStrategyHash;
+           _rebalance();
       }
       poolValue = calPoolValueInToken();
       return true;
     }
+
     
     /**
      * @dev Modifier to check if the address is zero address or not
