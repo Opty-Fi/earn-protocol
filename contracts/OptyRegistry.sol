@@ -16,14 +16,11 @@ contract OptyRegistry {
         bool  isLiquidityPool;
     }
     
-    struct CreditPool {
-        uint8 rating;
-        bool isCreditPool;
-    }
-    
     struct StrategyStep {
         address token; 
-        address creditPool; 
+        address creditPool;
+        address creditPoolToken;
+        address creditPoolProxy;
         address borrowToken; 
         address liquidityPool; 
         address strategyContract;
@@ -49,9 +46,7 @@ contract OptyRegistry {
     mapping(address => LiquidityPool) public liquidityPools;
     mapping(address => address[])     public liquidityPoolToUnderlyingTokens;
     mapping(address => address[])     public liquidityPoolToLPTokens;
-    mapping(address => CreditPool)    public creditPools;
-    mapping(address => address)       public creditPoolToUnderlyingToken;
-    // mapping(address => address)       public creditPoolToBorrowToken;
+    mapping(address => LiquidityPool)    public creditPools;
 
     /**
      * @dev Sets the value for {governance} and {strategist}, 
@@ -71,9 +66,10 @@ contract OptyRegistry {
         address cDAILPToken = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
         address aDAILPToken = address(0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d);
         address cDAILiquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
+        address cUSDCLPToken = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
+        address cUSDCLiquidityPool = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
         address aaveLendingPoolAddressProvider = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
         address aDAILiquidityPool = address(0x398eC7346DcD622eDc5ae82352F02bE94C62d119);
-        address aaveCreditPool = address(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9);
         approveToken(dai);
         approveToken(usdt);
         approveToken(usdc);
@@ -82,10 +78,12 @@ contract OptyRegistry {
         approveToken(weth);
         approveToken(cDAILPToken);
         approveToken(aDAILPToken);
+        approveToken(cUSDCLPToken);
         approveLiquidityPool(cDAILiquidityPool);
         approveLiquidityPool(aDAILiquidityPool);
+        approveLiquidityPool(cUSDCLiquidityPool);
         approveLiquidityPool(aaveLendingPoolAddressProvider);
-        approveCreditPool(aaveCreditPool);
+        approveCreditPool(aaveLendingPoolAddressProvider);
         address[] memory ts = new address[](1);
         ts[0] = dai;
         setLiquidityPoolToUnderlyingTokens(cDAILiquidityPool,ts);
@@ -183,9 +181,9 @@ contract OptyRegistry {
     function approveCreditPool(address _pool) public onlyValidAddress onlyGovernance returns (bool) {
         require(_pool != address(0), "zero address");
         require(address(_pool).isContract(), "isContract");
-        require(!creditPools[_pool].isCreditPool, "!creditPools[_pool].isCreditPool");
-        creditPools[_pool].isCreditPool = true;
-        emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isCreditPool);
+        require(!creditPools[_pool].isLiquidityPool, "!creditPools[_pool].isLiquidityPool");
+        creditPools[_pool].isLiquidityPool = true;
+        emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isLiquidityPool);
         return true;
     }
     
@@ -229,6 +227,28 @@ contract OptyRegistry {
         require(liquidityPools[_pool].isLiquidityPool,"liquidityPools.isLiquidityPool");
         liquidityPools[_pool].rating = _rate;
         emit LogRateLiquidityPool(msg.sender,_pool,liquidityPools[_pool].rating);
+        return true;
+    }
+    
+    /**
+     * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogRateCreditPool} event.
+     *
+     * Requirements:
+     *
+     * - `_pool` cannot be the zero address or an EOA.
+     * - msg.sender should be governance.
+     * - `_pool` should be approved
+     */
+    function rateCreditPool(address _pool, uint8 _rate) public onlyValidAddress onlyGovernance returns(bool) {
+        require(_pool != address(0), "zero address");
+        require(address(_pool).isContract(), "isContract");
+        require(liquidityPools[_pool].isLiquidityPool,"liquidityPools.isLiquidityPool");
+        creditPools[_pool].rating = _rate;
+        emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
         return true;
     }
     
@@ -316,7 +336,7 @@ contract OptyRegistry {
         require(tokens[_token],"tokens");
         bytes32[] memory hashes = new bytes32[](_strategySteps.length);
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
-            hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken, _strategySteps[i].poolProxy));
+            hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].creditPoolToken,_strategySteps[i].creditPoolProxy,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken, _strategySteps[i].poolProxy));
         }
         bytes32  hash = keccak256(abi.encodePacked(hashes));
         require(_isNewStrategy(hash),"isNewStrategy");
@@ -327,13 +347,23 @@ contract OptyRegistry {
             liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
             tokens[address(_strategySteps[i].token)],"!strategyStep");
                     strategies[hash].strategySteps.push(
-                        StrategyStep(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,
-                        _strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken,
-                        _strategySteps[i].poolProxy)
+                        StrategyStep(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].creditPoolToken,
+                        _strategySteps[i].creditPoolProxy,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,
+                        _strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken,_strategySteps[i].poolProxy)
                         );
             }
-            else if(address(_strategySteps[i].creditPool).isContract() && address(_strategySteps[i].borrowToken).isContract()){
-                revert("!CP-not-implemented");
+            else if(address(_strategySteps[i].creditPool) != address(0) && address(_strategySteps[i].creditPoolToken) != address(0) && address(_strategySteps[i].borrowToken) != address(0)){
+                
+                require(address(_strategySteps[i].token).isContract() && address(_strategySteps[i].creditPool).isContract() && address(_strategySteps[i].liquidityPool).isContract() && 
+            address(_strategySteps[i].strategyContract).isContract() && 
+            liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
+            creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
+            tokens[address(_strategySteps[i].token)],"!strategyStep");
+                    strategies[hash].strategySteps.push(
+                        StrategyStep(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].creditPoolToken,
+                        _strategySteps[i].creditPoolProxy,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,
+                        _strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken,_strategySteps[i].poolProxy)
+                        );
             }
             else {
                 revert("!strategyStep-CP");
@@ -498,6 +528,13 @@ contract OptyRegistry {
      * Note that `pool` cannot be zero address or EOA.
      */
     event LogRateLiquidityPool(address indexed caller,address indexed pool, uint8 indexed rate);
+    
+    /**
+     * @dev Emitted when `pool` is rated.
+     *
+     * Note that `pool` cannot be zero address or EOA.
+     */
+    event LogRateCreditPool(address indexed caller,address indexed pool, uint8 indexed rate);
     
     /**
      * @dev Emitted when `hash` startegy is set.

@@ -12,6 +12,7 @@ import "../../libraries/SafeMath.sol";
 import "../../libraries/Addresses.sol";
 import "../../interfaces/aave/IPriceOracle.sol";
 import "../../libraries/SafeERC20.sol";
+import "../../utils/ERC20Detailed.sol";
 
 contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     
@@ -69,7 +70,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         require(_userReserveData.enabled,"!_userReserveData.enabled");
         IAave.UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
         uint _borrowTokenPriceInWei = IPriceOracle(_priceOracle).getAssetPrice(_borrowToken);
-        uint _borrowTokenDecimals = 10 ** uint((IERC20(_borrowToken).decimals()));
+        uint _borrowTokenDecimals = 10 ** uint((ERC20Detailed(_borrowToken).decimals()));
         uint _borrowAmount = (_borrowTokenDecimals.mul(_userAccountData.availableBorrowsETH)).div(_borrowTokenPriceInWei);
         IAave(_lendingPool).borrow(_borrowToken, _borrowAmount, 2,  0);
         IERC20(_borrowToken).transfer(msg.sender,_borrowAmount);
@@ -87,6 +88,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_lendingPoolToken).transfer(msg.sender,_amount);
         success = true;
     }
+}
 
 // kovan
 // DAI = address(0xff795577d9ac8bd7d90ee22b6c1703490b6512fd)
@@ -111,6 +113,9 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
 // aTUSD lendingPool token = address(0x4c76f1b48316489E8a3304Db21cdAeC271cF6eC3)
 
 // lendingPoolCore = address(0x95d1189ed88b380e319df73ff00e479fcc4cf
+
+//[["0x6B175474E89094C44Da98b954EedeAC495271d0F","0x24a42fD28C976A61Df5D00D0599C34c4f90748c8","0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d","0x52B2c634a931ADd8BA2EF784fB9bC51F46B7eB66","0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48","0x39AA39c021dfbaE8faC545936693aC917d5E7563","0xF961c39815A0Fa3160f201e232E08FbceB30e2a4","0x39AA39c021dfbaE8faC545936693aC917d5E7563","0x27a0585517ad29882Df74962528c26DCF18Cb846"]]
+
 
 
 

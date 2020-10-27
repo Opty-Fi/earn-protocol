@@ -39,4 +39,14 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
     function balance(address _token,address _holder) public override view returns (uint256) {
          return IERC20(_token).balanceOf(_holder);
     } 
+    
+    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken) 
+    override external returns(bool) {
+        
+    }
+    
+    function repay(address _lendingPoolAddressProvider, address _borrowToken,address _lendingPoolToken) 
+    override external returns(bool) {
+        
+    }
 }
