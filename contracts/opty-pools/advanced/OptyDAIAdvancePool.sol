@@ -81,7 +81,7 @@ contract OptyDAIAdvancePool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
         }
     }
   
-    function _rebalance(bytes32 _newStrategyHash) internal {
+    function _rebalance() internal {
         if(balance() > 0){
           supplyToken(balance());
         }
