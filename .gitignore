@@ -1,12 +1,3 @@
 node_modules/
 build/
-contracts/artifacts/
-contracts/interfaces/ERC20/artifacts/
-contracts/interfaces/compound/artifacts/
-contracts/interfaces/opty/artifacts/
-contracts/opty-pools/advanced/artifacts/
-contracts/opty-pools/basic/artifacts/
-contracts/optyfied-defi-pools/aave/artifacts/
-contracts/optyfied-defi-pools/compound/artifacts/
-contracts/strategies/artifacts/
-contracts/utils/artifacts/
+**/artifacts/*
