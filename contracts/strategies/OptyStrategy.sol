@@ -7,6 +7,7 @@ import "./../libraries/SafeERC20.sol";
 import "./../interfaces/opty/IOptyLiquidityPoolProxy.sol";
 import "./../interfaces/opty/IOptyRegistry.sol";
 import "./../libraries/Addresses.sol";
+import "./../utils/ERC20.sol";
 
 contract OptyStrategy {
     
@@ -85,14 +86,51 @@ contract OptyStrategy {
     function singleStepDeploy(uint _amount, IOptyRegistry.StrategyStep[] memory _strategySteps) public onlyValidAddress returns(bool _success) {
         require(_amount > 0, "!_amount");
         require(_strategySteps.length == 1,"!_strategySteps.length");
-        IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
-        require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
-        deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
-        IERC20(_strategySteps[0].lendingPoolToken).
-        safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
+        
+        if (_strategySteps[0].creditPool != address(0)) {
+            require(_strategySteps[0].borrowToken != address(0), "address(0)");
+            
+            // 1. Transfer all DAI to AavePoolProxy contract
+            IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].creditPoolProxy, _amount);
+            
+            // 2. Call deploy() of aavePoolProxy and receive aDAI
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].creditPoolProxy).
+            deploy(_strategySteps[0].token, _strategySteps[0].creditPool,_strategySteps[0].creditPoolToken, _amount));
+            
+            // 3. Transfer all aDAI to aavePoolProxy contract
+            IERC20(_strategySteps[0].creditPoolToken).safeTransfer(_strategySteps[0].creditPoolProxy, 
+            IOptyLiquidityPoolProxy(_strategySteps[0].creditPoolProxy).balance(_strategySteps[0].creditPoolToken,address(this)));
+
+            // 4. TODO: Borrow from the creditPool
+            // Call borrow and get BorrowToken address along with amount borrowed
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].creditPoolProxy).borrow(
+                _strategySteps[0].token, _strategySteps[0].creditPool, _strategySteps[0].borrowToken), "!borrow");
+            
+            uint _borrowedAmount = IERC20(_strategySteps[0].borrowToken).balanceOf(address(this));
+            
+            // 5. Transfer borrowToken to liquidity Pool proxy contract
+            IERC20(_strategySteps[0].borrowToken).safeTransfer(_strategySteps[0].poolProxy, _borrowedAmount);
+            
+            // 6. Depositing the borrowed amount into the liquidityPool (Compound or aave) - Call deploy()
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            deploy(_strategySteps[0].borrowToken, _strategySteps[0].liquidityPool, _strategySteps[0].lendingPoolToken,
+            _borrowedAmount), "!deploy");
+            
+            // 7. Transferring the cTokens or aTokens to OptyDAIAdvancePool contract
+            IERC20(_strategySteps[0].lendingPoolToken).safeTransfer(msg.sender, IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            balance(_strategySteps[0].lendingPoolToken,address(this)));
+            
+        } else {
+            IERC20(_strategySteps[0].token).safeTransfer(_strategySteps[0].poolProxy, _amount);
+            require(IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
+            deploy(_strategySteps[0].token, _strategySteps[0].liquidityPool,_strategySteps[0].lendingPoolToken, _amount));
+            IERC20(_strategySteps[0].lendingPoolToken).
+            safeTransfer(msg.sender, IOptyLiquidityPoolProxy(
             _strategySteps[0].poolProxy).balance(_strategySteps[0].lendingPoolToken,address(this)
             ));
+        }
         _success = true;
+        
     }
     
     function recall(uint _amount, bytes32 _hash) public onlyValidAddress returns(bool _success) {

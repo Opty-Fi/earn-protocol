@@ -32,8 +32,9 @@ contract RiskManager {
             require(_underlyingToken.isContract(),"!_underlyingToken.isContract");
             if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("basic")))){
                 return getBestBasicStrategy(_underlyingToken);
-            }
-            else{
+            } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("advance")))){
+                return getBestAdvanceStrategy(_underlyingToken);
+            } else{
                 revert("not implemented");
             }
     }
@@ -57,6 +58,12 @@ contract RiskManager {
             }
         }
         return bestStrategyHash;
+    }
+    
+    function getBestAdvanceStrategy (address _underlyingToken) public view returns(bytes32) {
+        require(_underlyingToken != address(0),"!zero");
+        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_underlyingToken);
+        return hashes[0];
     }
 
     /**

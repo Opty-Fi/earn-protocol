@@ -9,9 +9,16 @@ interface IOptyRegistry{
         bool  isLiquidityPool;
     }
     
+    struct CreditPool {
+        uint8 rating;
+        bool isCreditPool;
+    }
+    
     struct StrategyStep {
         address token; 
-        address creditPool; 
+        address creditPool;
+        address creditPoolToken;
+        address creditPoolProxy;
         address borrowToken; 
         address liquidityPool; 
         address strategyContract;
@@ -31,4 +38,5 @@ interface IOptyRegistry{
     function getStrategy(bytes32 _hash) external view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps);
     function getTokenStrategies(address _token) external view returns(bytes32[] memory);
     function liquidityPools(address _pool) external view returns(LiquidityPool memory);
+    function creditPools(address _pool) external view returns(CreditPool memory);
 }

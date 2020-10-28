@@ -5,8 +5,12 @@ pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
 import "../../interfaces/aave/IAave.sol";
-import "../../interfaces/aave/IPriceOracle.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
+import "../../interfaces/aave/IAToken.sol";
+import "../../interfaces/ERC20/IERC20.sol";
+import "../../libraries/SafeMath.sol";
+import "../../libraries/Addresses.sol";
+import "../../interfaces/aave/IPriceOracle.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/ERC20Detailed.sol";
 
