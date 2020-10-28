@@ -231,7 +231,8 @@ contract OptyDAIAdvancePool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
       }
        IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
        if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
-           _rebalance(newStrategyHash);
+           strategyHash = _newStrategyHash;
+           _rebalance();
       }
       poolValue = calPoolValueInToken();
       return true;
