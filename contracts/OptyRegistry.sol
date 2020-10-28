@@ -39,8 +39,8 @@ contract OptyRegistry {
     bytes32[] public strategyIndexes;
     
     mapping(address => bool)          public tokens;
-    // mapping(bytes32 => Strategy)      public strategies;
-    // mapping(address => bytes32[])     public tokenToStrategies;
+    mapping(bytes32 => Strategy)      public strategies;
+     mapping(address => bytes32[])     public tokenToStrategies;
     mapping(address => LiquidityPool) public liquidityPools;
     mapping(address => address[])     public liquidityPoolToUnderlyingTokens;
     mapping(address => address[])     public liquidityPoolToLPTokens;
@@ -381,52 +381,52 @@ contract OptyRegistry {
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
      */
-    // function setStrategy(address _token,StrategyStep[] memory _strategySteps) public onlyValidAddress eitherGovernanceOrStrategist returns(bytes32) {
-    //     require(tokens[_token],"tokens");
-    //     bytes32[] memory hashes = new bytes32[](_strategySteps.length);
-    //     for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
-    //         hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken, _strategySteps[i].poolProxy));
-    //     }
-    //     bytes32  hash = keccak256(abi.encodePacked(hashes));
-    //     require(_isNewStrategy(hash),"isNewStrategy");
-    //     for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
-    //         if(address(_strategySteps[i].creditPool) == address(0) && address(_strategySteps[i].borrowToken) == address(0)){
-    //             require(address(_strategySteps[i].token).isContract() && address(_strategySteps[i].liquidityPool).isContract() && 
-    //         address(_strategySteps[i].strategyContract).isContract() && 
-    //         liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
-    //         tokens[address(_strategySteps[i].token)],"!strategyStep");
-    //                 strategies[hash].strategySteps.push(
-    //                     StrategyStep(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,
-    //                     _strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken,
-    //                     _strategySteps[i].poolProxy)
-    //                     );
-    //         }
-    //         else if(address(_strategySteps[i].creditPool).isContract() && address(_strategySteps[i].borrowToken).isContract()){
-    //             revert("!CP-not-implemented");
-    //         }
-    //         else {
-    //             revert("!strategyStep-CP");
-    //         }
-    //     }
-    //     strategyIndexes.push(hash);
-    //     strategies[hash].index = strategyIndexes.length-1;
-    //     strategies[hash].blockNumber = block.number;
-    //     tokenToStrategies[_token].push(hash);
-    //     emit LogSetStrategy(msg.sender,_token,hash);
-    //     return hash;
-    // }
+     function setStrategy(address _token,StrategyStep[] memory _strategySteps) public onlyValidAddress eitherGovernanceOrStrategist returns(bytes32) {
+         require(tokens[_token],"tokens");
+         bytes32[] memory hashes = new bytes32[](_strategySteps.length);
+         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
+             hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,_strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken, _strategySteps[i].poolProxy));
+         }
+         bytes32  hash = keccak256(abi.encodePacked(hashes));
+         require(_isNewStrategy(hash),"isNewStrategy");
+         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
+             if(address(_strategySteps[i].creditPool) == address(0) && address(_strategySteps[i].borrowToken) == address(0)){
+                 require(address(_strategySteps[i].token).isContract() && address(_strategySteps[i].liquidityPool).isContract() && 
+             address(_strategySteps[i].strategyContract).isContract() && 
+             liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
+             tokens[address(_strategySteps[i].token)],"!strategyStep");
+                     strategies[hash].strategySteps.push(
+                         StrategyStep(_strategySteps[i].token,_strategySteps[i].creditPool,_strategySteps[i].borrowToken,
+                         _strategySteps[i].liquidityPool,_strategySteps[i].strategyContract, _strategySteps[i].lendingPoolToken,
+                         _strategySteps[i].poolProxy)
+                         );
+             }
+             else if(address(_strategySteps[i].creditPool).isContract() && address(_strategySteps[i].borrowToken).isContract()){
+                 revert("!CP-not-implemented");
+             }
+             else {
+                 revert("!strategyStep-CP");
+             }
+         }
+         strategyIndexes.push(hash);
+         strategies[hash].index = strategyIndexes.length-1;
+         strategies[hash].blockNumber = block.number;
+         tokenToStrategies[_token].push(hash);
+         emit LogSetStrategy(msg.sender,_token,hash);
+         return hash;
+    }
     
     /**
      * @dev Returns the Strategy by `_hash`.
      */
-    // function getStrategy(bytes32 _hash) public view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps) {
-    //      require(_hash.length > 0 , "empty");
-    //      _score = strategies[_hash].score;
-    //      _isStrategy = strategies[_hash].isStrategy;
-    //      _index = strategies[_hash].index;
-    //      _blockNumber = strategies[_hash].blockNumber;
-    //      _strategySteps = strategies[_hash].strategySteps;
-    // }
+   function getStrategy(bytes32 _hash) public view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps) {	   
+         require(_hash.length > 0 , "empty");	    
+         _score = strategies[_hash].score;	    
+         _isStrategy = strategies[_hash].isStrategy;	    
+         _index = strategies[_hash].index;	    
+         _blockNumber = strategies[_hash].blockNumber;	    
+         _strategySteps = strategies[_hash].strategySteps;	    
+    }
     
     /**
      * @dev Sets `_hash` Startegy from the {strategies} mapping.
@@ -442,14 +442,14 @@ contract OptyRegistry {
      * - `_hash` strategy should not be approved
      * - `_hash` strategy should exist in {strategyIndexes}
      */
-    // function approveStrategy(bytes32 _hash) public onlyValidAddress onlyGovernance returns(bool){
-    //     require(_hash.length > 0 , "empty");
-    //     require(!_isNewStrategy(_hash),"!isNewStrategy");
-    //     require(!strategies[_hash].isStrategy,"!strategies.isStrategy");
-    //     strategies[_hash].isStrategy = true;
-    //     emit LogStrategy(msg.sender,_hash,strategies[_hash].isStrategy);
-    //     return true;
-    // }
+   function approveStrategy(bytes32 _hash) public onlyValidAddress onlyGovernance returns(bool){	    
+        require(_hash.length > 0 , "empty");	    
+        require(!_isNewStrategy(_hash),"!isNewStrategy");	    
+        require(!strategies[_hash].isStrategy,"!strategies.isStrategy");	    
+        strategies[_hash].isStrategy = true;	            
+        emit LogStrategy(msg.sender,_hash,strategies[_hash].isStrategy);	    
+        return true;	    
+    }
     
     /**
      * @dev Revokes `_hash` Startegy from the {strategies} mapping.
@@ -465,14 +465,14 @@ contract OptyRegistry {
      * - `_hash` strategy should not be revoked
      * - `_hash` strategy should exist in {strategyIndexes}
      */
-    // function revokeStrategy(bytes32 _hash) public onlyValidAddress onlyGovernance returns(bool){
-    //     require(_hash.length > 0 , "empty");
-    //     require(!_isNewStrategy(_hash),"!isNewStrategy");
-    //     require(strategies[_hash].isStrategy,"strategies.isStrategy");
-    //     strategies[_hash].isStrategy = false;
-    //     emit LogStrategy(msg.sender,_hash,strategies[_hash].isStrategy);
-    //     return true;
-    // }
+    function revokeStrategy(bytes32 _hash) public onlyValidAddress onlyGovernance returns(bool){	    
+        require(_hash.length > 0 , "empty");	    
+        require(!_isNewStrategy(_hash),"!isNewStrategy");	    
+        require(strategies[_hash].isStrategy,"strategies.isStrategy");	    
+        strategies[_hash].isStrategy = false;	    
+        emit LogStrategy(msg.sender,_hash,strategies[_hash].isStrategy);	    
+        return true;	    
+    }
     
     /**
      * @dev Scores `_hash` Startegy from the {strategies} mapping.
@@ -488,24 +488,24 @@ contract OptyRegistry {
      * - `_hash` strategy should be approved
      * - `_hash` strategy should exist in {strategyIndexes}
      */
-    // function scoreStrategy(bytes32 _hash, uint8 _score) public onlyValidAddress onlyGovernance returns(bool){
-    //     require(_hash.length > 0 , "empty");
-    //     require(!_isNewStrategy(_hash),"!isNewStrategy");
-    //     require(strategies[_hash].isStrategy,"strategies.isStrategy");
-    //     strategies[_hash].score = _score;
-    //     emit LogScoreStrategy(msg.sender,_hash,strategies[_hash].score);
-    //     return true;
-    // }
+    function scoreStrategy(bytes32 _hash, uint8 _score) public onlyValidAddress onlyGovernance returns(bool){
+         require(_hash.length > 0 , "empty");
+         require(!_isNewStrategy(_hash),"!isNewStrategy");
+         require(strategies[_hash].isStrategy,"strategies.isStrategy");
+         strategies[_hash].score = _score;
+         emit LogScoreStrategy(msg.sender,_hash,strategies[_hash].score);
+         return true;
+     }
     
     /**
      * @dev Returns the list of strategy hashes by `_token`.
      */
-    // function getTokenStrategies(address _token) public view returns(bytes32[] memory) {
-    //     require(_token != address(0), "zero address");
-    //     require(address(_token).isContract(), "isContract");
-    //     require(tokens[_token],"!tokens");
-    //     return tokenToStrategies[_token];
-    // }
+    function getTokenStrategies(address _token) public view returns(bytes32[] memory) {
+         require(_token != address(0), "zero address");
+         require(address(_token).isContract(), "isContract");
+         require(tokens[_token],"!tokens");
+         return tokenToStrategies[_token];
+     }
     
     /**
      * @dev Check duplicate `_hash` Startegy from the {strategyIndexes} mapping.
@@ -516,12 +516,12 @@ contract OptyRegistry {
      *
      * - {strategyIndexes} length should be more than zero.
      */
-    // function _isNewStrategy(bytes32 _hash) private view returns(bool) {
-    //     if (strategyIndexes.length == 0) {
-    //         return true;
-    //     }
-    //     return (strategyIndexes[strategies[_hash].index] != _hash);
-    // }
+    function _isNewStrategy(bytes32 _hash) private view returns(bool) {
+         if (strategyIndexes.length == 0) {
+             return true;
+         }
+         return (strategyIndexes[strategies[_hash].index] != _hash);
+     }
     
     /**
      * @dev Modifier to check caller is governance or not
@@ -617,7 +617,6 @@ contract OptyRegistry {
      */
     event LogSetLPTokenToLiquidityPool(address indexed caller, address indexed LPToken, bytes32 indexed tokens);
 }
-
 
 
 
