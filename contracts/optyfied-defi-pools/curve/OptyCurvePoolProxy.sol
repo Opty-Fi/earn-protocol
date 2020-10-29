@@ -8,11 +8,7 @@ import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
-import "../../interfaces/ERC20/IERC20.sol";
-import "../../libraries/SafeMath.sol";
-import "../../libraries/Addresses.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../OptyRegistry.sol";
 
 contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     
@@ -28,7 +24,6 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     */
     mapping (address => address) LPToken;
     
-    OptyRegistry optyRegistryContract;
     address public optyRegistry;
     address public governance;
     
@@ -40,7 +35,6 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     constructor(address _optyRegistry) public {
         governance = msg.sender;
         optyRegistry = _optyRegistry;
-        optyRegistryContract = OptyRegistry(_optyRegistry);
         setOptyRegistry(optyRegistry);
     }
     
