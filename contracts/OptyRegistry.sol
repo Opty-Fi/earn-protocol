@@ -61,47 +61,67 @@ contract OptyRegistry {
     constructor () public {
         governance = msg.sender;
         strategist = msg.sender;
+        
+        // underlying tokens
         address  dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
         address usdt = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
         address usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
         address tusd = address(0x0000000000085d4780B73119b644AE5ecd22b376);
         address wbtc = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
         address weth = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-        address cDAILPToken = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
-        address aDAILPToken = address(0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d);
-        address curveCompoundLPToken = address(0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2);
-        address cDAILiquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
-        address cUSDCLPToken = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
-        address cUSDCLiquidityPool = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
-        address aaveLendingPoolAddressProvider = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
-        address aDAILiquidityPool = address(0x398eC7346DcD622eDc5ae82352F02bE94C62d119);
-        address curveCompoundDeposit = address (0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
+       
+        // activate underlying tokens
         approveToken(dai);
         approveToken(usdt);
         approveToken(usdc);
         approveToken(tusd);
         approveToken(wbtc);
         approveToken(weth);
-        approveToken(cDAILPToken);
+
+        // declare token groups
+        address[] memory tkns = new address[](1);
+        tkns[0] = dai; 
+        
+        // intialized token(dai) hash to dai
+        setTokensHashToTokens(tkns);
+        
+        // activation for aave dai
+        address aaveLendingPoolAddressProvider = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
+        address aDAILPToken = address(0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d);
         approveToken(aDAILPToken);
-        approveToken(cUSDCLPToken);
-        approveToken(curveCompoundLPToken);
-        approveLiquidityPool(cDAILiquidityPool);
-        approveLiquidityPool(aDAILiquidityPool);
-        approveLiquidityPool(cUSDCLiquidityPool);
         approveLiquidityPool(aaveLendingPoolAddressProvider);
         approveCreditPool(aaveLendingPoolAddressProvider);
-        approveLiquidityPool(curveCompoundDeposit);
-        address[] memory tkns;
-        tkns[0] = dai; 
         setLiquidityPoolToLPToken(aaveLendingPoolAddressProvider,tkns,aDAILPToken);
+        
+        // activation for compound dai
+        address cDAILiquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
+        approveToken(cDAILiquidityPool);
+        approveLiquidityPool(cDAILiquidityPool);
+        setLiquidityPoolToLPToken(cDAILiquidityPool,tkns,cDAILiquidityPool);
+        
+        //  activation for compound usdc
+        address cUSDCLiquidityPool = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
+        approveToken(cUSDCLiquidityPool);
+        approveLiquidityPool(cUSDCLiquidityPool);
+        setLiquidityPoolToLPToken(cUSDCLiquidityPool,tkns,cUSDCLiquidityPool);
+        
+        // activate for curve compound (dai + usdc)
+        tkns = new address[](2);
+        tkns[0] = dai;
+        tkns[1] = usdc;
+        setTokensHashToTokens(tkns);
+        address curveCompoundDeposit = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
+        address curveCompoundLPToken = address(0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2);
+        approveLiquidityPool(curveCompoundDeposit);
+        approveToken(curveCompoundLPToken);
+        setLiquidityPoolToLPToken(curveCompoundDeposit,tkns,curveCompoundLPToken);
     }
     
     /**
      * @dev Transfers governance to a new account (`_governance`).
      * Can only be called by the current governance.
      */    
-    function transferGovernance(address _governance) public onlyValidAddress onlyGovernance {
+    function transferGovernance(address _governance) public onlyGovernance {
         require(_governance != address(0),"!address(0)");
         governance = _governance;
     }
@@ -110,7 +130,7 @@ contract OptyRegistry {
      * @dev Transfers strategist to a new account (`_strategist`).
      * Can only be called by the current governance.
      */
-    function transferStrategist(address _strategist) public onlyValidAddress onlyGovernance {
+    function transferStrategist(address _strategist) public onlyGovernance {
         require(_strategist != address(0),"!address(0)");
         strategist = _strategist;
     }
@@ -128,7 +148,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_token` should not be approved
      */
-    function approveToken(address _token) public onlyValidAddress onlyGovernance returns(bool){
+    function approveToken(address _token) public onlyGovernance returns(bool){
         require(_token != address(0), "!address(0)");
         require(address(_token).isContract(), "!isContract");
         require(!tokens[_token],"!tokens");
@@ -150,7 +170,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_token` should be approved
      */
-    function revokeToken(address _token) public onlyValidAddress  onlyGovernance returns(bool) {
+    function revokeToken(address _token) public onlyGovernance returns(bool) {
         require(tokens[_token],"!tokens");
         tokens[_token] = false;
         emit LogToken(msg.sender,_token,tokens[_token]);
@@ -170,7 +190,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function approveLiquidityPool(address _pool) public onlyValidAddress onlyGovernance returns(bool){
+    function approveLiquidityPool(address _pool) public onlyGovernance returns(bool){
         require(_pool != address(0), "!address(0)");
         require(address(_pool).isContract(), "!isContract");
         require(!liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
@@ -192,7 +212,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function revokeLiquidityPool(address _pool) public onlyValidAddress onlyGovernance {
+    function revokeLiquidityPool(address _pool) public onlyGovernance {
         require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
         emit LogLiquidityPool(msg.sender,_pool,liquidityPools[_pool].isLiquidityPool);
         liquidityPools[_pool].isLiquidityPool = false;
@@ -211,7 +231,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function approveCreditPool(address _pool) public onlyValidAddress onlyGovernance returns (bool) {
+    function approveCreditPool(address _pool) public onlyGovernance returns (bool) {
         require(_pool != address(0), "!address(0)");
         require(address(_pool).isContract(), "isContract");
         require(!creditPools[_pool].isLiquidityPool, "!creditPools");
@@ -233,7 +253,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function revokeCreditPool(address _pool) public onlyValidAddress onlyGovernance {
+    function revokeCreditPool(address _pool) public onlyGovernance {
         require(creditPools[_pool].isLiquidityPool,"!creditPools");
         emit LogLiquidityPool(msg.sender,_pool,creditPools[_pool].isLiquidityPool);
         creditPools[_pool].isLiquidityPool = false;
@@ -252,7 +272,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_pool` should be approved
      */
-    function rateLiquidityPool(address _pool, uint8 _rate) public onlyValidAddress onlyGovernance returns(bool) {
+    function rateLiquidityPool(address _pool, uint8 _rate) public onlyGovernance returns(bool) {
         require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
         liquidityPools[_pool].rating = _rate;
         emit LogRateLiquidityPool(msg.sender,_pool,liquidityPools[_pool].rating);
@@ -272,7 +292,7 @@ contract OptyRegistry {
      * - msg.sender should be governance.
      * - `_pool` should be approved
      */
-    function rateCreditPool(address _pool, uint8 _rate) public onlyValidAddress onlyGovernance returns(bool) {
+    function rateCreditPool(address _pool, uint8 _rate) public onlyGovernance returns(bool) {
         require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
         creditPools[_pool].rating = _rate;
         emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
@@ -295,7 +315,7 @@ contract OptyRegistry {
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
      */
-    function setStrategy(bytes32 _tokensHash,StrategyStep[] memory _strategySteps) public onlyValidAddress eitherGovernanceOrStrategist returns(bytes32) {
+    function setStrategy(bytes32 _tokensHash,StrategyStep[] memory _strategySteps) public eitherGovernanceOrStrategist returns(bytes32) {
         require(!_isNewTokensHash(_tokensHash),"_isNewTokensHash");
         bytes32[] memory hashes = new bytes32[](_strategySteps.length);
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
@@ -325,46 +345,46 @@ contract OptyRegistry {
                             tokens[_strategySteps[i].lendingPoolToken] &&
                             _strategySteps[i].poolProxy.isContract()
                         );
-                    strategies[hash].strategySteps.push(
-                                                        StrategyStep(
-                                                            _strategySteps[i].creditPool,
-                                                            _strategySteps[i].creditPoolToken,
-                                                            _strategySteps[i].creditPoolProxy,
-                                                            _strategySteps[i].borrowToken,
-                                                            _strategySteps[i].liquidityPool,
-                                                            _strategySteps[i].lendingPoolToken,
-                                                            _strategySteps[i].poolProxy
-                                                        )
-                                                    );
             }
             else if(
                 address(_strategySteps[i].creditPool) != address(0) && 
                 address(_strategySteps[i].creditPoolToken) != address(0) && 
                 address(_strategySteps[i].creditPoolProxy) != address(0) &&
-                address(_strategySteps[i].borrowToken) != address(0)
+                address(_strategySteps[i].borrowToken) != address(0) &&
+                address(_strategySteps[i].liquidityPool) != address(0) &&
+                address(_strategySteps[i].lendingPoolToken) != address(0) &&
+                address(_strategySteps[i].poolProxy) != address(0)
                 ){
                 require( 
-                    creditPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
+                    creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
                     tokens[_strategySteps[i].borrowToken] &&
                     tokens[_strategySteps[i].creditPoolToken] &&
-                    _strategySteps[i].creditPool.isContract(),
+                    tokens[_strategySteps[i].lendingPoolToken] && 
+                    liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
+                    _strategySteps[i].poolProxy.isContract(),
                     "!strategyStep"
                     );
-                    strategies[hash].strategySteps.push(
-                                                        StrategyStep(
-                                                            _strategySteps[i].creditPool,
-                                                            _strategySteps[i].creditPoolToken,
-                                                            _strategySteps[i].creditPoolProxy,
-                                                            _strategySteps[i].borrowToken,
-                                                            _strategySteps[i].liquidityPool,
-                                                            _strategySteps[i].lendingPoolToken,
-                                                            _strategySteps[i].poolProxy
-                                                        )
-                                                    );
             }
             else {
-                revert("!strategyStep-CP");
+                require( 
+                    creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
+                    tokens[_strategySteps[i].borrowToken] &&
+                    tokens[_strategySteps[i].creditPoolToken] &&
+                    _strategySteps[i].poolProxy.isContract(),
+                    "!strategyStep"
+                    );
             }
+            strategies[hash].strategySteps.push(
+                                            StrategyStep(
+                                                        _strategySteps[i].creditPool,
+                                                        _strategySteps[i].creditPoolToken,
+                                                        _strategySteps[i].creditPoolProxy,
+                                                        _strategySteps[i].borrowToken,
+                                                        _strategySteps[i].liquidityPool,
+                                                        _strategySteps[i].lendingPoolToken,
+                                                        _strategySteps[i].poolProxy
+                                                    )
+                                            );
         }
         strategyHashIndexes.push(hash);
         strategies[hash].index = strategyHashIndexes.length-1;
@@ -378,7 +398,6 @@ contract OptyRegistry {
      * @dev Returns the Strategy by `_hash`.
      */
    function getStrategy(bytes32 _hash) public view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps) {	   
-        //  require(_hash.length > 0 , "empty");	    
          _score = strategies[_hash].score;	    
          _isStrategy = strategies[_hash].isStrategy;	    
          _index = strategies[_hash].index;	    
@@ -400,7 +419,7 @@ contract OptyRegistry {
      * - `_hash` strategy should not be approved
      * - `_hash` strategy should exist in {strategyHashIndexes}
      */
-   function approveStrategy(bytes32 _hash) public onlyValidAddress onlyGovernance returns(bool){	    
+   function approveStrategy(bytes32 _hash) public onlyGovernance returns(bool){	    
         // require(_hash.length > 0 , "empty");	    
         require(!_isNewStrategy(_hash),"!isNewStrategy");	    
         require(!strategies[_hash].isStrategy,"!strategies.isStrategy");	    
@@ -423,7 +442,7 @@ contract OptyRegistry {
      * - `_hash` strategy should not be revoked
      * - `_hash` strategy should exist in {strategyHashIndexes}
      */
-    function revokeStrategy(bytes32 _hash) public onlyValidAddress onlyGovernance returns(bool){	    
+    function revokeStrategy(bytes32 _hash) public onlyGovernance returns(bool){	    
         // require(_hash.length > 0 , "empty");	    
         // require(!_isNewStrategy(_hash),"!isNewStrategy");	    
         require(strategies[_hash].isStrategy,"strategies.isStrategy");	    
@@ -446,7 +465,7 @@ contract OptyRegistry {
      * - `_hash` strategy should be approved
      * - `_hash` strategy should exist in {strategyHashIndexes}
      */
-    function scoreStrategy(bytes32 _hash, uint8 _score) public onlyValidAddress onlyGovernance returns(bool){
+    function scoreStrategy(bytes32 _hash, uint8 _score) public onlyGovernance returns(bool){
         //  require(_hash.length > 0 , "empty");
          require(!_isNewStrategy(_hash),"!isNewStrategy");
          require(strategies[_hash].isStrategy,"strategies.isStrategy");
@@ -567,14 +586,6 @@ contract OptyRegistry {
      */
     modifier onlyGovernance() {
         require(msg.sender == governance, "!governance");
-        _;
-    }
-    
-    /**
-     * @dev Modifier to check if the address is zero address or not
-     */
-    modifier onlyValidAddress(){
-        require(msg.sender != address(0), "zero address");
         _;
     }
     
