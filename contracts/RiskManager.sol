@@ -25,32 +25,36 @@ contract RiskManager {
         optyRegistry = _optyRegistry;
     }
 
-    function getBestStrategy(string memory _profile, address _underlyingToken) public view returns 
+    function getBestStrategy(string memory _profile, address[] memory _underlyingTokens) public view returns 
     (bytes32) {
             require(bytes(_profile).length > 0, "empty!");
-            require(_underlyingToken != address(0),"!_underlyingToken");
-            require(_underlyingToken.isContract(),"!_underlyingToken.isContract");
+            for (uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
+                require(_underlyingTokens[i] != address(0),"!_underlyingTokens");   
+                require(_underlyingTokens[i].isContract(),"!_underlyingTokens");
+            }
+            bytes32 tokensHash = keccak256(abi.encodePacked(_underlyingTokens));
             if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("basic")))){
-                return getBestBasicStrategy(_underlyingToken);
+                return _getBestBasicStrategy(tokensHash);
             } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("advance")))){
-                return getBestAdvanceStrategy(_underlyingToken);
+                return _getBestAdvanceStrategy(tokensHash);
             } else{
                 revert("not implemented");
             }
     }
     
-    function getBestBasicStrategy(address _underlyingToken) public view returns(bytes32){
-        require(_underlyingToken != address(0),"!zero");
-        require(_underlyingToken.isContract(),"!_underlyingToken.isContract");
-        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_underlyingToken);
+    function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32){
+        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_tokensHash);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
         bytes32 bestStrategyHash = hashes[0];
         for(uint8 i = 0; i < hashes.length ; i++) {
             (uint8 score, bool isStrategy,,, IOptyRegistry.StrategyStep[] memory _strategySteps) = 
             IOptyRegistry(optyRegistry).getStrategy(hashes[i]);
-            if(isStrategy && IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool
-            && IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(0)){
+            if(
+                isStrategy && 
+                IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool && 
+                IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(0)
+            ){
                 if(score > maxScore){
                     maxScore = score;
                     bestStrategyHash = hashes[i];
@@ -60,9 +64,8 @@ contract RiskManager {
         return bestStrategyHash;
     }
     
-    function getBestAdvanceStrategy (address _underlyingToken) public view returns(bytes32) {
-        require(_underlyingToken != address(0),"!zero");
-        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_underlyingToken);
+    function _getBestAdvanceStrategy (bytes32 _tokensHash) internal view returns(bytes32) {
+        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_tokensHash);
         return hashes[0];
     }
 
