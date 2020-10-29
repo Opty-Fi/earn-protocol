@@ -11,14 +11,14 @@ interface IOptyLiquidityPoolProxy {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-    function deploy(address underlyingToken,address lendingPool,address lendingPoolToken,uint amount) external returns(bool);
+    function deploy(address[] memory underlyingTokens,address lendingPool,uint[] memory amounts) external returns(bool);
    
     /**
      * @dev Redeem `amount` of `lendingPoolToken` token and sends the `underlyingToken` to the caller`.
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-    function recall(address underlyingToken,address lendingPoolToken,uint amount) external returns(bool);
+    function recall(address[] memory underlyingTokens,address lendingPool,uint amounts) external returns(bool);
     
     /**
      * @dev Borrow `amount` of `_borrowToken` token and sets the `underlyingToken` as collateral`.
@@ -42,7 +42,7 @@ interface IOptyLiquidityPoolProxy {
     /**
      * @dev Returns the equivalent value of {lendingPoolToken} tokens in underlying tokens owned by account.
      */
-    function balanceInToken(address lendingPoolToken, address account) external view returns(uint);
+    function balanceInToken(address[] memory _underlyingTokens,address _underlyingToken, address _lendingPool, address account) external view returns(uint);
 
     // TODO : Dhruvin
     // repay
