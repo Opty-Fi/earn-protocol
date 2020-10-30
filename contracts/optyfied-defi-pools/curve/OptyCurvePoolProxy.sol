@@ -14,16 +14,6 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     
     using SafeERC20 for IERC20;    
     
-    /**
-    * @dev Mapping to store the number of different tokens that each pool has
-    */
-    mapping (address => uint) numberOfTokens;
-    
-    /**
-    * @dev Mapping that associates LP token address to liquidityPool address
-    */
-    mapping (address => address) LPToken;
-    
     address public optyRegistry;
     address public governance;
     
@@ -34,11 +24,10 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     */
     constructor(address _optyRegistry) public {
         governance = msg.sender;
-        optyRegistry = _optyRegistry;
-        setOptyRegistry(optyRegistry);
+        setOptyRegistry(_optyRegistry);
     }
     
-    function setOptyRegistry(address _optyRegistry) public onlyGovernance{
+    function setOptyRegistry(address _optyRegistry) public onlyGovernance {
         optyRegistry = _optyRegistry;
     }
     
@@ -83,19 +72,14 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         ) internal returns(bool){
         uint minAmountOut = uint(0);
         uint[2] memory amountsIn;
-        amountsIn[0] = _amounts[0];
-        amountsIn[1] = _amounts[1];
-        if(amountsIn[0] > 0) {
-            IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),amountsIn[0]);
-            IERC20(_underlyingTokens[0]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[0]).safeApprove(_liquidityPool, amountsIn[0]);
+        for(uint8 i = 0 ; i < 2 ; i++){
+            amountsIn[i] = _amounts[i];
+            if(amountsIn[i] > 0) {
+                IERC20(_underlyingTokens[i]).safeTransferFrom(msg.sender,address(this),amountsIn[i]);
+                IERC20(_underlyingTokens[i]).safeApprove(_liquidityPool, uint(0));
+                IERC20(_underlyingTokens[i]).safeApprove(_liquidityPool, amountsIn[i]);    
+            }
         }
-        if(amountsIn[1] > 0) {
-            IERC20(_underlyingTokens[1]).safeTransferFrom(msg.sender,address(this),amountsIn[1]);
-            IERC20(_underlyingTokens[1]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[1]).safeApprove(_liquidityPool, amountsIn[1]);
-        }
-        
         ICurveDeposit(_liquidityPool).add_liquidity(amountsIn, minAmountOut);
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender,IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
@@ -116,25 +100,14 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         uint[] memory _amounts) internal returns(bool){
         uint minAmountOut = uint(0);
         uint[3] memory amountsIn;
-        amountsIn[0] = _amounts[0];
-        amountsIn[1] = _amounts[1];
-        amountsIn[2] = _amounts[2];
-        if(amountsIn[0] > 0) {
-            IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),amountsIn[0]);
-            IERC20(_underlyingTokens[0]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[0]).safeApprove(_liquidityPool, amountsIn[0]);
+        for(uint8 i = 0 ; i < 3 ; i++){
+            amountsIn[i] = _amounts[i];
+            if(amountsIn[i] > 0) {
+                IERC20(_underlyingTokens[i]).safeTransferFrom(msg.sender,address(this),amountsIn[i]);
+                IERC20(_underlyingTokens[i]).safeApprove(_liquidityPool, uint(0));
+                IERC20(_underlyingTokens[i]).safeApprove(_liquidityPool, amountsIn[i]);    
+            }
         }
-        if(amountsIn[1] > 0) {
-            IERC20(_underlyingTokens[1]).safeTransferFrom(msg.sender,address(this),amountsIn[1]);
-            IERC20(_underlyingTokens[1]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[1]).safeApprove(_liquidityPool, amountsIn[1]);
-        }
-        if(amountsIn[2] > 0) {
-            IERC20(_underlyingTokens[2]).safeTransferFrom(msg.sender,address(this),amountsIn[2]);
-            IERC20(_underlyingTokens[2]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[2]).safeApprove(_liquidityPool, amountsIn[2]);
-        }
-        
         ICurveDeposit(_liquidityPool).add_liquidity(amountsIn, minAmountOut);
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender,IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
@@ -156,29 +129,13 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         ) internal returns(bool){
         uint minAmountOut = uint(0);
         uint[4] memory amountsIn;
-        amountsIn[0] = _amounts[0];
-        amountsIn[1] = _amounts[1];
-        amountsIn[2] = _amounts[2];
-        amountsIn[3] = _amounts[3];
-        if(amountsIn[0] > 0) {
-            IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),amountsIn[0]);
-            IERC20(_underlyingTokens[0]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[0]).safeApprove(_liquidityPool, amountsIn[0]);
-        }
-        if(amountsIn[1] > 0) {
-            IERC20(_underlyingTokens[1]).safeTransferFrom(msg.sender,address(this),amountsIn[1]);
-            IERC20(_underlyingTokens[1]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[1]).safeApprove(_liquidityPool, amountsIn[1]);
-        }
-        if(amountsIn[2] > 0) {
-            IERC20(_underlyingTokens[2]).safeTransferFrom(msg.sender,address(this),amountsIn[2]);
-            IERC20(_underlyingTokens[2]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[2]).safeApprove(_liquidityPool, amountsIn[2]);
-        }
-        if(amountsIn[3] > 0) {
-            IERC20(_underlyingTokens[3]).safeTransferFrom(msg.sender,address(this),amountsIn[3]);
-            IERC20(_underlyingTokens[3]).safeApprove(_liquidityPool, uint(0));
-            IERC20(_underlyingTokens[3]).safeApprove(_liquidityPool, amountsIn[3]);
+        for(uint8 i = 0 ; i < 3 ; i++){
+            amountsIn[i] = _amounts[i];
+            if(amountsIn[i] > 0) {
+                IERC20(_underlyingTokens[i]).safeTransferFrom(msg.sender,address(this),amountsIn[i]);
+                IERC20(_underlyingTokens[i]).safeApprove(_liquidityPool, uint(0));
+                IERC20(_underlyingTokens[i]).safeApprove(_liquidityPool, amountsIn[i]);    
+            }
         }
         ICurveDeposit(_liquidityPool).add_liquidity(amountsIn, minAmountOut);
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender,IERC20(_liquidityPoolToken).balanceOf(address(this)));
@@ -250,8 +207,9 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, balance(_underlyingTokens[0],address(this)));
-        IERC20(_underlyingTokens[1]).safeTransfer(msg.sender, balance(_underlyingTokens[1],address(this)));
+        for(uint8 i = 0 ; i < 2 ; i++) {
+            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, balance(_underlyingTokens[i],address(this)));   
+        }
         return true;
     }
 
@@ -273,9 +231,9 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, balance(_underlyingTokens[0],address(this)));
-        IERC20(_underlyingTokens[1]).safeTransfer(msg.sender, balance(_underlyingTokens[1],address(this)));
-        IERC20(_underlyingTokens[2]).safeTransfer(msg.sender, balance(_underlyingTokens[2],address(this)));
+        for(uint8 i = 0; i < 3 ; i++){
+            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, balance(_underlyingTokens[i],address(this)));
+        }
         return true;
     }
     
@@ -297,10 +255,9 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, balance(_underlyingTokens[0],address(this)));
-        IERC20(_underlyingTokens[1]).safeTransfer(msg.sender, balance(_underlyingTokens[1],address(this)));
-        IERC20(_underlyingTokens[2]).safeTransfer(msg.sender, balance(_underlyingTokens[2],address(this)));
-        IERC20(_underlyingTokens[3]).safeTransfer(msg.sender, balance(_underlyingTokens[3],address(this)));
+        for(uint8 i = 0; i < 4 ; i++){
+            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, balance(_underlyingTokens[i],address(this)));
+        }
         return true;
     }
     
