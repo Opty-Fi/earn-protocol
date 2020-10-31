@@ -11,11 +11,9 @@ interface IOptyRegistry{
     
     struct StrategyStep {
         address creditPool;
-        address creditPoolToken;
         address creditPoolProxy;
         address borrowToken; 
-        address liquidityPool; 
-        address lendingPoolToken;
+        address liquidityPool;
         address poolProxy;
     }
     
