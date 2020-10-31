@@ -25,7 +25,7 @@ interface IOptyLiquidityPoolProxy {
      *
      * Returns a boolean value indicating whether the operation succeeded
      */
-    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken) external returns(bool);
+    function borrow(address[] memory _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken, uint _amount) external returns(bool);
     
     /**
      * @dev Repay `borrowToken` token and free collateral.
@@ -37,7 +37,7 @@ interface IOptyLiquidityPoolProxy {
     /**
      * @dev Returns the amount of {token} tokens owned by account.
      */
-    function balance(address token,address account) external view returns(uint);
+    function balance(address[] memory _underlyingTokens,address _lendingPoolAddressProvider,address _holder) external view returns(uint);
 
     /**
      * @dev Returns the equivalent value of {lendingPoolToken} tokens in underlying tokens owned by account.

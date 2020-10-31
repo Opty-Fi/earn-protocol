@@ -7,12 +7,13 @@ import "../../interfaces/opty/IOptyRegistry.sol";
 import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
-
+import "../../libraries/Addresses.sol";
 
 contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
+    using Address for address;
     address public governance;
     address public optyRegistry;
     
@@ -26,11 +27,11 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
      * Can only be called by the current governance.
      */    
     function transferGovernance(address _governance) public onlyGovernance {
-        require(_governance != address(0),"!address(0)");
         governance = _governance;
     }
     
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
+        require(_optyRegistry.isContract(),"!_optyRegistry");
         optyRegistry = _optyRegistry;
     }
 
@@ -41,7 +42,7 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(_amounts[0]));
         uint result = ICompound(_lendingPool).mint(_amounts[0]);
         require(result == 0);
-        IERC20(_lendingPoolToken).safeTransfer(msg.sender, balance(_lendingPoolToken,address(this)));
+        IERC20(_lendingPoolToken).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -50,25 +51,26 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         uint result = ICompound(_lendingPoolToken).redeem(_amount);
         require(result == 0);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, balance(_underlyingTokens[0],address(this)));
+        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
         return true;
     }
 
     function balanceInToken(address[] memory _underlyingTokens, address _underlyingToken, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
         address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         // Mantisa 1e18 to decimals
-        uint256 b = balance(_lendingPoolToken,_holder);
+        uint256 b = balance(_underlyingTokens,_lendingPoolAddressProvider,_holder);
         if (b > 0) {
             b = b.mul(ICompound(_lendingPoolToken).exchangeRateStored()).div(1e18);
          }
          return b;
     }
     
-    function balance(address _token,address _holder) public override view returns (uint256) {
-         return IERC20(_token).balanceOf(_holder);
+    function balance(address[] memory _underlyingTokens,address _lendingPoolAddressProvider,address _holder) public override view returns (uint256) {
+        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        return IERC20(_lendingPoolToken).balanceOf(_holder);
     } 
     
-    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken) public override returns(bool success) {
+    function borrow(address[] memory _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken,uint _amount) public override returns(bool success) {
         revert("not implemented");
     }
     

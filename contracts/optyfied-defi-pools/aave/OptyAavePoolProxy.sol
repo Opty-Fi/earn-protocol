@@ -11,12 +11,14 @@ import "../../interfaces/opty/IOptyRegistry.sol";
 import "../../interfaces/aave/IPriceOracle.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/ERC20Detailed.sol";
+import "../../libraries/Addresses.sol";
 
 contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     
     using SafeERC20 for IERC20;
     using SafeERC20 for IAToken;
     using SafeMath for uint;
+    using Address for address;
     address public optyRegistry;
     address public governance;
     
@@ -47,7 +49,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_underlyingTokens[0]).safeApprove(lendingPoolCore, uint(_amounts[0]));
         IAave(lendingPool).deposit(_underlyingTokens[0],_amounts[0],0);
         require(_isTransferAllowed(_lendingPoolToken,_amounts[0],address(this)),"!transferAllowed");
-        IAToken(_lendingPoolToken).safeTransfer(msg.sender, balance(_lendingPoolToken,address(this)));
+        IAToken(_lendingPoolToken).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -56,7 +58,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         require(_isTransferAllowed(_lendingPoolToken,_amount,address(this)),"!transferAllowed");
         IAToken(_lendingPoolToken).redeem(_amount);
-        IERC20(_underlyingTokens[0]).transfer(msg.sender, balance(_underlyingTokens[0],address(this)));
+        IERC20(_underlyingTokens[0]).transfer(msg.sender, balance(_underlyingTokens,_lendingPoolAddressProvider,address(this)));
         return true;
     }
     
@@ -77,19 +79,21 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     }
 
     function balanceInToken(address[] memory _underlyingTokens,address _underlyingToken, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
-        return balance(_lendingPoolToken,_holder);
+        return balance(_underlyingTokens,_lendingPoolAddressProvider,_holder);
     }
     
-    function balance(address _token,address _holder) public override view returns (uint256) {
-         return IERC20(_token).balanceOf(_holder);
+    function balance(address[] memory _underlyingTokens,address _lendingPoolAddressProvider,address _holder) public override view returns (uint256) {
+        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+         return IERC20(_lendingPoolToken).balanceOf(_holder);
     } 
     
-    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken) public override returns(bool success) {
+    function borrow(address[] memory _underlyingTokens,address _lendingPoolAddressProvider, address _borrowToken, uint _amount) public override returns(bool success) {
         address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
         address _priceOracle = _getPriceOracle(_lendingPoolAddressProvider);
-        IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingToken,true);
-        IAave.UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingToken, address(this));
+        address _liquidityPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingTokens[0],true);
+        IAave.UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
         require(_userReserveData.enabled,"!_userReserveData.enabled");
         IAave.UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
         uint _borrowTokenPriceInWei = IPriceOracle(_priceOracle).getAssetPrice(_borrowToken);

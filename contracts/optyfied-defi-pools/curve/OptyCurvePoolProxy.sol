@@ -9,10 +9,12 @@ import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
 import "../../libraries/SafeERC20.sol";
+import "../../libraries/Addresses.sol";
 
 contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     
     using SafeERC20 for IERC20;    
+    using Address for address;
     
     address public optyRegistry;
     address public governance;
@@ -28,10 +30,11 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     }
     
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
+        require(_optyRegistry.isContract(),"!_optyRegistry");
         optyRegistry = _optyRegistry;
     }
     
-    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken) public override returns(bool) { return true; }
+    function borrow(address[] memory _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken, uint _amount) public override returns(bool) { return true; }
     function repay(address _lendingPoolAddressProvider, address _borrowToken,address _lendingPoolToken) public override returns(bool) { return true; }
     
     /**
@@ -185,7 +188,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity_one_coin(_amount, 0, minAmountOut, true);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, balance(_underlyingTokens[0],address(this)));
+        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
     }
 
@@ -208,7 +211,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0 ; i < 2 ; i++) {
-            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, balance(_underlyingTokens[i],address(this)));   
+            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));   
         }
         return true;
     }
@@ -232,7 +235,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0; i < 3 ; i++){
-            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, balance(_underlyingTokens[i],address(this)));
+            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));
         }
         return true;
     }
@@ -256,7 +259,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0; i < 4 ; i++){
-            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, balance(_underlyingTokens[i],address(this)));
+            IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));
         }
         return true;
     }
@@ -283,17 +286,18 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         /**
         * TODO: Implement Curve calculations
         */
-        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(balance(_lendingPoolToken, _holder), tokenIndex);
+        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(balance(_underlyingTokens, _liquidityPool,_holder), tokenIndex);
     }
     
     /** 
     * @dev Returns the amount of _token that _holder has
     * 
-    * @param _token Address of the ERC20 token of which the balance is read
+    * @param _underlyingTokens Address of the ERC20 token of which the balance is read
     * @param _holder Address of which to know the balance
     */
-    function balance(address _token,address _holder) public override view returns (uint) {
-         return IERC20(_token).balanceOf(_holder);
+    function balance(address[] memory _underlyingTokens,address _liquidityPool,address _holder) public override view returns (uint) {
+        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
     
     /** 
@@ -323,8 +327,8 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         address tokenMinter = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
         address crvToken = 0xD533a949740bb3306d119CC777fa900bA034cd52;
         ICurveDAO(tokenMinter).mint(_liquidityPoolGauge);
-        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, balance(_liquidityPoolToken,address(this)));
-        IERC20(crvToken).safeTransfer(msg.sender, balance(crvToken,address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
+        IERC20(crvToken).safeTransfer(msg.sender, IERC20(crvToken).balanceOf(address(this)));
         return true;
     }
     
