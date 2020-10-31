@@ -21,6 +21,8 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     using Address for address;
     address public optyRegistry;
     address public governance;
+    uint256 public healthFactor = 4;
+
     
     constructor(address _optyRegistry) public {
         governance = msg.sender;
@@ -38,6 +40,10 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     
     function setOptyRegistry(address _optyRegistry) public onlyGovernance{
         optyRegistry = _optyRegistry;
+    }
+    
+    function setHealthFactor(uint256 _hf) external onlyGovernance {
+        healthFactor = _hf;
     }
     
     function deploy(address[] memory _underlyingTokens, address _lendingPoolAddressProvider, uint[] memory _amounts) public override returns(bool){
@@ -91,12 +97,22 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingTokens[0],true);
         IAave.UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
         require(_userReserveData.enabled,"!_userReserveData.enabled");
+        
         IAave.UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
+        uint256 _maxBorrowETH = (_userAccountData.totalBorrowsETH.add(_userAccountData.availableBorrowsETH));
+        uint256 _maxSafeETH = _maxBorrowETH.div(healthFactor); 
+        _maxSafeETH = _maxSafeETH.mul(95).div(100); // 5% buffer so we don't go into a earn/rebalance loop
         uint _borrowTokenPriceInWei = IPriceOracle(_priceOracle).getAssetPrice(_borrowToken);
-        uint _borrowTokenDecimals = 10 ** uint((ERC20Detailed(_borrowToken).decimals()));
-        uint _borrowAmount = (_borrowTokenDecimals.mul(_userAccountData.availableBorrowsETH)).div(_borrowTokenPriceInWei);
-        IAave(_lendingPool).borrow(_borrowToken, _borrowAmount, 2,  0);
-        IERC20(_borrowToken).transfer(msg.sender,_borrowAmount);
+        if (_maxSafeETH > _userAccountData.totalBorrowsETH) {
+            uint256 _available = _userAccountData.availableBorrowsETH.
+                                    mul(_maxSafeETH.sub(_userAccountData.totalBorrowsETH)).
+                                    div(_userAccountData.availableBorrowsETH);
+            if(_available > 0) {
+                uint256 _borrow = _available.mul(uint256(10)**ERC20Detailed(_borrowToken).decimals()).div(_borrowTokenPriceInWei);
+                IAave(_lendingPool).borrow(_borrowToken, _borrow, 2,  0);
+                IERC20(_borrowToken).transfer(msg.sender,_borrow);
+            }
+        } 
         success = true;
     }
     
