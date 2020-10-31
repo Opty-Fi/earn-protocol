@@ -286,18 +286,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         /**
         * TODO: Implement Curve calculations
         */
-        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(balance(_underlyingTokens, _liquidityPool,_holder), tokenIndex);
-    }
-    
-    /** 
-    * @dev Returns the amount of _token that _holder has
-    * 
-    * @param _underlyingTokens Address of the ERC20 token of which the balance is read
-    * @param _holder Address of which to know the balance
-    */
-    function balance(address[] memory _underlyingTokens,address _liquidityPool,address _holder) public override view returns (uint) {
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
-         return IERC20(_lendingPoolToken).balanceOf(_holder);
+        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(IERC20(_lendingPoolToken).balanceOf(_holder), tokenIndex);
     }
     
     /** 

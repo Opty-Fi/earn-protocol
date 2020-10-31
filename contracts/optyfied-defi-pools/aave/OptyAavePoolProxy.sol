@@ -58,7 +58,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         require(_isTransferAllowed(_lendingPoolToken,_amount,address(this)),"!transferAllowed");
         IAToken(_lendingPoolToken).redeem(_amount);
-        IERC20(_underlyingTokens[0]).transfer(msg.sender, balance(_underlyingTokens,_lendingPoolAddressProvider,address(this)));
+        IERC20(_underlyingTokens[0]).transfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -79,13 +79,9 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
     }
 
     function balanceInToken(address[] memory _underlyingTokens,address _underlyingToken, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
-        return balance(_underlyingTokens,_lendingPoolAddressProvider,_holder);
-    }
-    
-    function balance(address[] memory _underlyingTokens,address _lendingPoolAddressProvider,address _holder) public override view returns (uint256) {
         address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
-         return IERC20(_lendingPoolToken).balanceOf(_holder);
-    } 
+        return IERC20(_lendingPoolToken).balanceOf(_holder);
+    }
     
     function borrow(address[] memory _underlyingTokens,address _lendingPoolAddressProvider, address _borrowToken, uint _amount) public override returns(bool success) {
         address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);

@@ -18,11 +18,9 @@ contract OptyRegistry {
     
     struct StrategyStep {
         address creditPool;
-        address creditPoolToken;
         address creditPoolProxy;
         address borrowToken; 
         address liquidityPool; 
-        address lendingPoolToken;
         address poolProxy;
     }
     
@@ -324,11 +322,9 @@ contract OptyRegistry {
             hashes[i] = keccak256(
                             abi.encodePacked(
                                 _strategySteps[i].creditPool,
-                                _strategySteps[i].creditPoolToken,
                                 _strategySteps[i].creditPoolProxy,
                                 _strategySteps[i].borrowToken,
-                                _strategySteps[i].liquidityPool,
-                                _strategySteps[i].lendingPoolToken, 
+                                _strategySteps[i].liquidityPool, 
                                 _strategySteps[i].poolProxy
                             )
                         );
@@ -338,30 +334,24 @@ contract OptyRegistry {
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
             if(
                 address(_strategySteps[i].creditPool) == address(0) &&
-                address(_strategySteps[i].creditPoolToken) == address(0) &&
                 address(_strategySteps[i].creditPoolProxy) == address(0) &&
                 address(_strategySteps[i].borrowToken) == address(0)
             ){
                     require(
-                            liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool && 
-                            tokens[_strategySteps[i].lendingPoolToken] &&
+                            liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
                             _strategySteps[i].poolProxy.isContract()
                         );
             }
             else if(
                 address(_strategySteps[i].creditPool) != address(0) && 
-                address(_strategySteps[i].creditPoolToken) != address(0) && 
                 address(_strategySteps[i].creditPoolProxy) != address(0) &&
                 address(_strategySteps[i].borrowToken) != address(0) &&
                 address(_strategySteps[i].liquidityPool) != address(0) &&
-                address(_strategySteps[i].lendingPoolToken) != address(0) &&
                 address(_strategySteps[i].poolProxy) != address(0)
                 ){
                 require( 
                     creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
                     tokens[_strategySteps[i].borrowToken] &&
-                    tokens[_strategySteps[i].creditPoolToken] &&
-                    tokens[_strategySteps[i].lendingPoolToken] && 
                     liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
                     _strategySteps[i].poolProxy.isContract(),
                     "!strategyStep"
@@ -371,7 +361,6 @@ contract OptyRegistry {
                 require( 
                     creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
                     tokens[_strategySteps[i].borrowToken] &&
-                    tokens[_strategySteps[i].creditPoolToken] &&
                     _strategySteps[i].poolProxy.isContract(),
                     "!strategyStep"
                     );
@@ -379,11 +368,9 @@ contract OptyRegistry {
             strategies[hash].strategySteps.push(
                                             StrategyStep(
                                                         _strategySteps[i].creditPool,
-                                                        _strategySteps[i].creditPoolToken,
                                                         _strategySteps[i].creditPoolProxy,
                                                         _strategySteps[i].borrowToken,
                                                         _strategySteps[i].liquidityPool,
-                                                        _strategySteps[i].lendingPoolToken,
                                                         _strategySteps[i].poolProxy
                                                     )
                                             );

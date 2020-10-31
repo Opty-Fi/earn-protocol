@@ -58,17 +58,12 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
     function balanceInToken(address[] memory _underlyingTokens, address _underlyingToken, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
         address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         // Mantisa 1e18 to decimals
-        uint256 b = balance(_underlyingTokens,_lendingPoolAddressProvider,_holder);
+        uint256 b = IERC20(_lendingPoolToken).balanceOf(_holder);
         if (b > 0) {
             b = b.mul(ICompound(_lendingPoolToken).exchangeRateStored()).div(1e18);
          }
          return b;
     }
-    
-    function balance(address[] memory _underlyingTokens,address _lendingPoolAddressProvider,address _holder) public override view returns (uint256) {
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
-        return IERC20(_lendingPoolToken).balanceOf(_holder);
-    } 
     
     function borrow(address[] memory _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken,uint _amount) public override returns(bool success) {
         revert("not implemented");
