@@ -84,7 +84,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getPriceOracle();
     }
 
-    function balanceInToken(address[] memory _underlyingTokens,address _underlyingToken, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
+    function balanceInToken(address[] memory _underlyingTokens,address , address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
         address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
