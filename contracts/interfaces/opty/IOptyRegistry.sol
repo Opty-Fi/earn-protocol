@@ -4,28 +4,19 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 interface IOptyRegistry{
-    struct LiquidityPool{
+    struct LiquidityPool {
         uint8 rating;
         bool  isLiquidityPool;
     }
     
-    struct CreditPool {
-        uint8 rating;
-        bool isCreditPool;
-    }
-    
     struct StrategyStep {
-        address token; 
         address creditPool;
-        address creditPoolToken;
         address creditPoolProxy;
         address borrowToken; 
-        address liquidityPool; 
-        address strategyContract;
-        address lendingPoolToken;
+        address liquidityPool;
         address poolProxy;
     }
-
+    
     struct Strategy { 
         uint8          score;
         bool           isStrategy;
@@ -33,10 +24,17 @@ interface IOptyRegistry{
         uint256        blockNumber;
         StrategyStep[] strategySteps;
     }
+    
+    struct Token {
+        uint256   index;
+        address[] tokens;
+    }
 
-    function tokenToStrategies(address _underLyingToken, uint256 index) external view returns(bytes32);
+    function getTokenToStrategies(bytes32 _tokensHash) external view returns(bytes32[] memory);
     function getStrategy(bytes32 _hash) external view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps);
-    function getTokenStrategies(address _token) external view returns(bytes32[] memory);
+    function getTokenStrategies(bytes32 _tokensHash) external view returns(bytes32[] memory);
     function liquidityPools(address _pool) external view returns(LiquidityPool memory);
-    function creditPools(address _pool) external view returns(CreditPool memory);
+    function getLiquidityPoolToken(bytes32 _hash) external view returns(address _lendingPool);
+    function getTokensHashToTokens(bytes32 _tokensHash) external view returns(address[] memory);
+    function getLiquidityPoolToLPToken(address _pool, address[] memory _tokens) external view returns(address);
 }
