@@ -25,6 +25,19 @@ contract RiskManager {
         optyRegistry = _optyRegistry;
     }
 
+    /**
+     * @dev Get the best strategy for the Basic/Advance Pool
+     * 
+     * Returns the hash of the best strategy for Basic or Advance Pool
+     * 
+     * Requirements:
+     * 
+     * - `_profile` should be among these values ["basic"/"advance"/"advance+"]
+     *      - Can not be empty
+     * - `_underlyingTokens` is an array of underlying tokens like dai, usdc and so forth
+     *      - Can not have length 0
+     * 
+     */
     function getBestStrategy(string memory _profile, address[] memory _underlyingTokens) public view returns 
     (bytes32) {
             require(bytes(_profile).length > 0, "empty!");
@@ -42,8 +55,15 @@ contract RiskManager {
             }
     }
     
+    /**
+     * @dev Get the best strategy for the Basic Pool which includes T1 and T2 pools
+     *      Get the best strategy corresponding to _tokenHash 
+     * 
+     * Returns the hash of the best strategy for Basic Pool
+     * 
+     */
     function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32){
-        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_tokensHash);
+        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenToStrategies(_tokensHash);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
         bytes32 bestStrategyHash = hashes[0];
@@ -64,9 +84,35 @@ contract RiskManager {
         return bestStrategyHash;
     }
     
+    /**
+     * @dev Get the best strategy for the Advance Pool which includes T1 and T2 pools
+     *      Get the best strategy corresponding to _tokenHash 
+     * 
+     * Returns the hash of the best strategy for Advance Pool
+     * 
+     */
     function _getBestAdvanceStrategy (bytes32 _tokensHash) internal view returns(bytes32) {
-        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenStrategies(_tokensHash);
-        return hashes[0];
+        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenToStrategies(_tokensHash);
+        require(hashes.length > 0, "!hashes.length");
+        uint8 maxScore = 0;
+        bytes32 bestStrategyHash = hashes[0];
+        for(uint8 i = 0; i < hashes.length; i++) {
+            (uint8 score, bool isStrategy,,, IOptyRegistry.StrategyStep[] memory _strategySteps) = 
+            IOptyRegistry(optyRegistry).getStrategy(hashes[i]);
+            
+            if ((isStrategy && IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool
+            && (IOptyRegistry(optyRegistry).creditPools(_strategySteps[0].creditPool).isLiquidityPool
+            || IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(0)))
+            || (isStrategy && IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool
+            && (IOptyRegistry(optyRegistry).creditPools(_strategySteps[0].creditPool).isLiquidityPool
+            || IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(1)))) {
+                if (score > maxScore) {
+                    maxScore = score;
+                    bestStrategyHash = hashes[i];
+                }
+            }
+        }
+        return bestStrategyHash;
     }
 
     /**
