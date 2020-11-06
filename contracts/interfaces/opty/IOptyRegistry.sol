@@ -33,6 +33,7 @@ interface IOptyRegistry{
     function getTokenToStrategies(bytes32 _tokensHash) external view returns(bytes32[] memory);
     function getStrategy(bytes32 _hash) external view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps);
     function liquidityPools(address _pool) external view returns(LiquidityPool memory);
+    function creditPools(address _pool) external view returns(LiquidityPool memory);
     function getLiquidityPoolToken(bytes32 _hash) external view returns(address _lendingPool);
     function getTokensHashToTokens(bytes32 _tokensHash) external view returns(address[] memory);
     function getLiquidityPoolToLPToken(address _pool, address[] memory _tokens) external view returns(address);
