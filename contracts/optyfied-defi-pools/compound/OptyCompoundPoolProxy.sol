@@ -60,7 +60,9 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(0));
         IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(_amounts[0]));
-        uint result = ICompound(_lendingPool).mint(_amounts[0]);
+        uint result = ICompound(_lendingPoolToken).mint(_amounts[0]);
+        require(result == 0);
+        IERC20(_lendingPoolToken).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
     }
     
     function recall(address[] memory _underlyingTokens, address _lendingPool, uint _amount) public override returns(bool) {
@@ -72,7 +74,7 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         return true;
     }
 
-    function balanceInToken(address[] memory _underlyingTokens, address, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256){
+    function balanceInToken(address[] memory _underlyingTokens, address, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256) {
         address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         // Mantisa 1e18 to decimals
         uint256 b = IERC20(_lendingPoolToken).balanceOf(_holder);
@@ -82,11 +84,6 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
          return b;
     }
             
-    function balance(address _token,address _holder) public override view returns (uint256) {
-         return IERC20(_token).balanceOf(_holder);
-    } 
-
-    
     function getCompBalanceMetadata() public view returns(ICompound.CompBalanceMetadata memory) {
         ICompound.CompBalanceMetadata memory output = ICompound(compoundLens).getCompBalanceMetadata(comp, msg.sender);
         return output;
@@ -97,7 +94,7 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         return output.balance;
     }
     
-    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken) public override returns(bool success) {
+    function borrow(address[] memory ,address , address, uint) public override returns(bool) {
         revert("not implemented");
     }
     
@@ -110,6 +107,7 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
      */
     modifier onlyGovernance() {
         require(msg.sender == governance, "!governance");
+        _;
     }
     
     modifier onlyOwner() {
