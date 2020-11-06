@@ -3,26 +3,24 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/opty/IOptyRegistry.sol";
+import "./OptyRegistry.sol";
 import "./libraries/Addresses.sol";
+import "./utils/Modifiers.sol";
 
-contract RiskManager {
+contract OptyRiskManager is Modifiers{
     
     using Address for address;
 
-    address public optyRegistry;
-    address   public governance;
-
+    OptyRegistry OptyRegistryContract;
 
     constructor(address _optyRegistry) public {
-        governance = msg.sender;
-        optyRegistry = _optyRegistry;
+        setOptyRegistry(_optyRegistry);
     }
 
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
         require(_optyRegistry != address(0),"!_optyRegistry");
         require(_optyRegistry.isContract(),"!_optyRegistry.isContract");
-        optyRegistry = _optyRegistry;
+        OptyRegistryContract = OptyRegistry(_optyRegistry);
     }
 
     /**
@@ -63,17 +61,17 @@ contract RiskManager {
      * 
      */
     function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32){
-        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenToStrategies(_tokensHash);
+        bytes32[] memory hashes = OptyRegistryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
         bytes32 bestStrategyHash = hashes[0];
         for(uint8 i = 0; i < hashes.length ; i++) {
-            (uint8 score, bool isStrategy,,, IOptyRegistry.StrategyStep[] memory _strategySteps) = 
-            IOptyRegistry(optyRegistry).getStrategy(hashes[i]);
+            (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
+            OptyRegistryContract.getStrategy(hashes[i]);
             if(
                 isStrategy && 
-                IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool && 
-                IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(0)
+                OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).isLiquidityPool && 
+                OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).rating == uint8(0)
             ){
                 if(score > maxScore){
                     maxScore = score;
@@ -92,20 +90,20 @@ contract RiskManager {
      * 
      */
     function _getBestAdvanceStrategy (bytes32 _tokensHash) internal view returns(bytes32) {
-        bytes32[] memory hashes = IOptyRegistry(optyRegistry).getTokenToStrategies(_tokensHash);
+        bytes32[] memory hashes = OptyRegistryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0, "!hashes.length");
         uint8 maxScore = 0;
         bytes32 bestStrategyHash = hashes[0];
         for(uint8 i = 0; i < hashes.length; i++) {
-            (uint8 score, bool isStrategy,,, IOptyRegistry.StrategyStep[] memory _strategySteps) = 
-            IOptyRegistry(optyRegistry).getStrategy(hashes[i]);
+            (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
+            OptyRegistryContract.getStrategy(hashes[i]);
             
-            if ((isStrategy && IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool
-            && (IOptyRegistry(optyRegistry).creditPools(_strategySteps[0].creditPool).isLiquidityPool
-            || IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(0)))
-            || (isStrategy && IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).isLiquidityPool
-            && (IOptyRegistry(optyRegistry).creditPools(_strategySteps[0].creditPool).isLiquidityPool
-            || IOptyRegistry(optyRegistry).liquidityPools(_strategySteps[0].liquidityPool).rating == uint8(1)))) {
+            if ((isStrategy && OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).isLiquidityPool
+            && (OptyRegistryContract.getCreditPool(_strategySteps[0].creditPool).isLiquidityPool
+            || OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).rating == uint8(0)))
+            || (isStrategy && OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).isLiquidityPool
+            && (OptyRegistryContract.getCreditPool(_strategySteps[0].creditPool).isLiquidityPool
+            || OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).rating == uint8(1)))) {
                 if (score > maxScore) {
                     maxScore = score;
                     bestStrategyHash = hashes[i];
@@ -113,13 +111,5 @@ contract RiskManager {
             }
         }
         return bestStrategyHash;
-    }
-
-    /**
-     * @dev Modifier to check caller is governance or not
-     */
-    modifier onlyGovernance() {
-        require(msg.sender == governance, "!governance");
-        _;
     }
 } 

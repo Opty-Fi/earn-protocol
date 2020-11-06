@@ -4,25 +4,26 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "./libraries/Addresses.sol";
+import "./utils/Modifiers.sol";
 
-/**
- * @dev Contract for Opty Strategy Registry
- */
-contract OptyRegistry {
-    using Address for address;
-    
-    struct LiquidityPool {
-        uint8 rating;
-        bool  isLiquidityPool;
-    }
-    
-    struct StrategyStep {
+struct StrategyStep {
         address creditPool;
         address creditPoolProxy;
         address borrowToken; 
         address liquidityPool; 
         address poolProxy;
-    }
+}
+
+struct LiquidityPool {
+        uint8 rating;
+        bool  isLiquidityPool;
+}
+
+/**
+ * @dev Contract for Opty Strategy Registry
+ */
+contract OptyRegistry is Modifiers{
+    using Address for address;
     
     struct Strategy { 
         uint8          score;
@@ -36,8 +37,7 @@ contract OptyRegistry {
         uint256   index;
         address[] tokens;
     }
-    
-    address   public governance;
+
     address   public strategist;
     bytes32[] public strategyHashIndexes;
     bytes32[] public tokensHashIndexes;
@@ -57,7 +57,6 @@ contract OptyRegistry {
      * All these tokens can be approved by governance only
      */    
     constructor () public {
-        governance = msg.sender;
         strategist = msg.sender;
         
         // underlying tokens
@@ -115,15 +114,6 @@ contract OptyRegistry {
         approveLiquidityPool(curveCompoundDeposit);
         approveToken(curveCompoundLPToken);
         setLiquidityPoolToLPToken(curveCompoundDeposit,tkns,curveCompoundLPToken);
-    }
-    
-    /**
-     * @dev Transfers governance to a new account (`_governance`).
-     * Can only be called by the current governance.
-     */    
-    function transferGovernance(address _governance) public onlyGovernance {
-        require(_governance != address(0),"!address(0)");
-        governance = _governance;
     }
     
     /**
@@ -280,6 +270,13 @@ contract OptyRegistry {
     }
     
     /**
+     * @dev Returns the liquidity pool by `_pool`.
+     */
+   function getLiquidityPool(address _pool) public view returns(LiquidityPool memory _liquidityPool) {	   
+         _liquidityPool = liquidityPools[_pool];	    
+    }
+    
+    /**
      * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
@@ -297,6 +294,13 @@ contract OptyRegistry {
         creditPools[_pool].rating = _rate;
         emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
         return true;
+    }
+    
+    /**
+     * @dev Returns the credit pool by `_pool`.
+     */
+   function getCreditPool(address _pool) public view returns(LiquidityPool memory _creditPool) {	   
+         _creditPool = creditPools[_pool];	    
     }
     
      /**
@@ -569,14 +573,6 @@ contract OptyRegistry {
          }
          return (tokensHashIndexes[tokensHashToTokens[_hash].index] != _hash);
      }
-    
-    /**
-     * @dev Modifier to check caller is governance or not
-     */
-    modifier onlyGovernance() {
-        require(msg.sender == governance, "!governance");
-        _;
-    }
     
     /**
      * @dev Modifier to check caller is governance or strategist

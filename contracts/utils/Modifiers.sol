@@ -9,17 +9,13 @@ contract Modifiers {
     
     address public owner;
     address public governance;
-    address public strategist;
-    uint256 private _guardCounter;
     
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
      */
     constructor () internal {
-        owner = msg.sender;
-        governance = msg.sender;
-        strategist = msg.sender;
-        _guardCounter = 1;
+               owner = msg.sender;
+          governance = msg.sender;
     }
     
     /**
@@ -31,14 +27,19 @@ contract Modifiers {
     }
     
     /**
-     * @dev Function to check caller is either of owner or governance or strategist
-     */
-    function eitherOwnerGovernanceStrategist() internal view returns(bool) {
-        if (msg.sender == owner || msg.sender == governance || msg.sender == strategist) {
-            return true;
-        } else {
-            return false;
-        }
+     * @dev Transfers governance to a new account (`_governance`).
+     * Can only be called by the current governance.
+     */    
+    function transferGovernance(address _governance) public onlyGovernance {
+        governance = _governance;
+    }
+    
+    /**
+     * @dev Transfers ownership to a new account (`_owner`).
+     * Can only be called by the current owner.
+     */    
+    function transferOwnership(address _owner) public onlyOwner {
+        owner = _owner;
     }
     
     /**
@@ -63,23 +64,5 @@ contract Modifiers {
     modifier onlyGovernance() {
         require(msg.sender == governance, "caller is not having governance");
         _;
-    }
-    
-    /**
-     * @dev Modifier to check caller is strategist or not
-     */
-    modifier onlyStrategist() {
-        require(msg.sender == strategist, "Caller is not strategist");
-        _;
-    }
-
-    /**
-     * @dev Modifier to check re-entrancy issue
-     */
-    modifier nonReentrant() {
-        _guardCounter += 1;
-        uint256 localCounter = _guardCounter;
-        _;
-        require(localCounter == _guardCounter, "ReentrancyGuard: reentrant call");
     }
 }
