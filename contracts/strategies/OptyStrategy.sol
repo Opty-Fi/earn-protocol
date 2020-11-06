@@ -29,27 +29,12 @@ contract OptyStrategy {
         optyRegistry = _optyRegistry;
     }
     
-    function balance(address[] memory _underlyingTokens,bytes32 _hash, address _account) public view returns(uint _balance) {
-        _balance = 0;
-        if(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
-            require(_strategySteps.length > 0,"!_strategySteps.length");
-            if(_strategySteps.length == 1){
-                _balance = singleStepBalance(_underlyingTokens,_strategySteps, _account);
-            }
-            else {
-                revert("not-implemented");
-            }
-        }
-    }
-    
-    function singleStepBalance(address[] memory _underlyingTokens,IOptyRegistry.StrategyStep[] memory _strategySteps, address _account) 
-    public view returns(uint _balance) {
-        _balance = IOptyLiquidityPoolProxy(_strategySteps[0].poolProxy).
-        balance(_underlyingTokens,_strategySteps[0].liquidityPool, _account);
-    }
-    
-    function balanceInToken(bytes32 _hash,address[] memory _underlyingTokens, address _underlyingToken, address _account) public view returns(uint _balance) {
+    function balanceInToken(
+                        bytes32 _hash,
+                        address[] memory _underlyingTokens, 
+                        address _underlyingToken, 
+                        address _account
+                        ) public view returns(uint _balance) {
         _balance = 0;
         if(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
@@ -57,7 +42,7 @@ contract OptyStrategy {
                 _balance = singleStepBalanceInToken(_strategySteps, _underlyingTokens, _underlyingToken, _account);
             }
             else {
-                revert("not-implemented");
+                revert("not-implemented-1");
             }
         }
     }
@@ -69,14 +54,18 @@ contract OptyStrategy {
 
     }
     
-    function deploy(address[] memory _underlyingTokens,uint[] memory _amounts, bytes32 _hash) public onlyValidAddress returns(bool _success) {
+    function deploy(
+        address[] memory _underlyingTokens,
+        uint[] memory _amounts, 
+        bytes32 _hash
+        ) public onlyValidAddress returns(bool _success) {
     require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!_hash");   
     IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         if(_strategySteps.length == 1) {
             require(singleStepDeploy(_underlyingTokens,_amounts,_strategySteps),"!singleStepDeploy()");
         }
         else {
-            revert("not implemented");
+            revert("not-implemented-2");
         }
         _success = true;
     }
@@ -162,7 +151,11 @@ contract OptyStrategy {
         _success = true;
     }
     
-    function recall(address[] memory _underlyingTokens,uint _amount, bytes32 _hash) public onlyValidAddress returns(bool _success) {
+    function recall(
+                address[] memory _underlyingTokens,
+                uint _amount, 
+                bytes32 _hash
+                ) public onlyValidAddress returns(bool _success) {
         require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!_hash"); 
         require(_amount > 0, "!_amount");
         IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
@@ -170,7 +163,7 @@ contract OptyStrategy {
             require(singleStepRecall(_underlyingTokens,_amount,_strategySteps),"!singleStepDeploy()");
         }
         else {
-            revert("not implemented");
+            revert("not-implemented-3");
         }
         _success = true;
     }
@@ -200,19 +193,28 @@ contract OptyStrategy {
         (,,,, _strategySteps) = IOptyRegistry(optyRegistry).getStrategy(_hash);
     }
     
-    // function getLiquidityPoolToken(bytes32 _hash) public view returns(address _lendingPool) {
-    //     IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
-    //     if(_strategySteps.length == 1){
-    //         _lendingPool = getSingleStepLiquidityPoolToken(_strategySteps);
-    //     }
-    //     else{
-    //         revert("not implemented");
-    //     }
-    // }
+    function getLiquidityPoolToken(address[] memory _underlyingTokens, bytes32 _hash) public view returns(address _lendingPool) {
+        IOptyRegistry.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        if(_strategySteps.length == 1){
+            _lendingPool = getSingleStepLiquidityPoolToken(_strategySteps,_underlyingTokens);
+        }
+        else{
+            revert("not-implemented-4");
+        }
+    }
     
-    // function getSingleStepLiquidityPoolToken(IOptyRegistry.StrategyStep[] memory _strategySteps) public pure returns(address) {
-    //     return _strategySteps[0].lendingPoolToken;
-    // }
+    function getSingleStepLiquidityPoolToken(
+                                    IOptyRegistry.StrategyStep[] memory _strategySteps,
+                                    address[] memory _underlyingTokens
+                                    ) public view returns(address) {
+        address _liquidityPool = _strategySteps[0].liquidityPool;
+        address _lendingPoolToken = IOptyRegistry(optyRegistry).
+                                        getLiquidityPoolToLPToken(
+                                            _liquidityPool,
+                                            _underlyingTokens
+                                            );
+        return _lendingPoolToken;
+    }
     
     /**
      * @dev Modifier to check caller is governance or not

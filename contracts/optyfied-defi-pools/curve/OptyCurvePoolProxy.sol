@@ -35,7 +35,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     }
     
     function borrow(address[] memory ,address , address , uint ) public override returns(bool) { revert("Not implemented"); }
-    function repay(address, address,address) public override returns(bool) { revert("Not implemented"); }
+    function repay(address, address,address,uint) public override returns(bool) { revert("Not implemented"); }
     
     /**
     * @dev Calls the appropriate deploy function depending on N_COINS

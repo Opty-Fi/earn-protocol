@@ -69,7 +69,7 @@ contract OptyCompoundPoolProxy is IOptyLiquidityPoolProxy {
         revert("not implemented");
     }
     
-    function repay(address , address ,address ) public override returns(bool ) {
+    function repay(address , address ,address, uint) public override returns(bool ) {
         revert("not implemented");    
     }
     

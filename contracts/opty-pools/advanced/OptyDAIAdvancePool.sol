@@ -33,7 +33,15 @@ contract OptyDAIAdvancePool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for DAI token
      *  - Storing the DAI contract address also in the contract
      */
-    constructor(string memory _profile, address _riskManager, address _underlyingToken, address _optyStrategy) public ERC20Detailed("Opty Fi DAI", "opDai", 18) {
+    constructor(
+        string memory _profile, 
+        address _riskManager, 
+        address _underlyingToken, 
+        address _optyStrategy,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+        ) public ERC20Detailed(_name, _symbol, _decimals) {
         
         setProfile(_profile);
         setRiskManager(_riskManager);
@@ -231,7 +239,7 @@ contract OptyDAIAdvancePool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
       }
        IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
        if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
-           strategyHash = _newStrategyHash;
+           strategyHash = newStrategyHash;
            _rebalance();
       }
       poolValue = calPoolValueInToken();

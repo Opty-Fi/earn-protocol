@@ -32,7 +32,7 @@ interface IOptyLiquidityPoolProxy {
      *
      * Returns a boolean value indicating whether the operation succeeded
      */
-    function repay(address _lendingPoolAddressProvider, address _borrowToken,address _lendingPoolToken) external returns(bool);
+    function repay(address _lendingPoolAddressProvider, address _borrowToken,address _lendingPoolToken, uint _amount) external returns(bool);
 
     /**
      * @dev Returns the equivalent value of {lendingPoolToken} tokens in underlying tokens owned by account.
