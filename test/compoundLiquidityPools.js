@@ -1,0 +1,7 @@
+module.exports = {
+    "optyCompoundPoolProxy":"0x70d71d22Ac28a7F83493F2F1c107B94298e2Fa51",
+    "cdai":"0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+    "cusdc":"0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+    "cusdt":"0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+    "cwbtc":"0xC11b1268C1A384e55C48c2391d8d480264A3A7F4"
+}
