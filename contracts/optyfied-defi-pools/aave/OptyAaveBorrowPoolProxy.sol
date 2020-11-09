@@ -3,77 +3,38 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
+import "../../interfaces/opty/IOptyBorrowPoolProxy.sol";
 import "../../interfaces/aave/IAave.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../interfaces/aave/IAToken.sol";
-import "../../interfaces/opty/IOptyRegistry.sol";
+import "../../OptyRegistry.sol";
 import "../../interfaces/aave/IPriceOracle.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/ERC20Detailed.sol";
 import "../../libraries/Addresses.sol";
+import "../../utils/Modifiers.sol";
 
-contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
+contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeERC20 for IAToken;
     using SafeMath for uint;
     using Address for address;
-    address public optyRegistry;
-    address public governance;
+    
     uint256 public healthFactor = 1;
-
+    
+    OptyRegistry OptyRegistryContract;
     
     constructor(address _optyRegistry) public {
-        governance = msg.sender;
         setOptyRegistry(_optyRegistry);
     }
     
-    /**
-     * @dev Transfers governance to a new account (`_governance`).
-     * Can only be called by the current governance.
-     */    
-    function transferGovernance(address _governance) public onlyGovernance {
-        require(_governance != address(0),"!address(0)");
-        governance = _governance;
-    }
-    
     function setOptyRegistry(address _optyRegistry) public onlyGovernance{
-        optyRegistry = _optyRegistry;
+        OptyRegistryContract = OptyRegistry(_optyRegistry);
     }
     
     function setHealthFactor(uint256 _hf) external onlyGovernance {
         healthFactor = _hf;
-    }
-    
-    function deploy(
-        address[] memory _underlyingTokens, 
-        address _lendingPoolAddressProvider, 
-        uint[] memory _amounts
-        ) public override returns(bool){
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
-        IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
-        address lendingPoolCore = _getLendingPoolCore(_lendingPoolAddressProvider);
-        address lendingPool = _getLendingPool(_lendingPoolAddressProvider);
-        IERC20(_underlyingTokens[0]).safeApprove(lendingPoolCore, uint(0));
-        IERC20(_underlyingTokens[0]).safeApprove(lendingPoolCore, uint(_amounts[0]));
-        IAave(lendingPool).deposit(_underlyingTokens[0],_amounts[0],0);
-        require(_isTransferAllowed(_lendingPoolToken,_amounts[0],address(this)),"!transferAllowed");
-        IAToken(_lendingPoolToken).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
-        return true;
-    }
-    function recall(
-        address[] memory _underlyingTokens, 
-        address _lendingPoolAddressProvider, 
-        uint _amount
-        ) public override returns(bool) {
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).
-        getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
-        IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
-        require(_isTransferAllowed(_lendingPoolToken,_amount,address(this)),"!transferAllowed");
-        IAToken(_lendingPoolToken).redeem(_amount);
-        IERC20(_underlyingTokens[0]).transfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
-        return true;
     }
     
     function _isTransferAllowed(address _lendingPoolToken, uint _amount, address _sender) internal returns(bool transferAllowed) {
@@ -98,7 +59,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         address _lendingPoolAddressProvider, 
         address _holder
         ) public override view returns(uint256){
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
     
@@ -110,7 +71,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         ) public override returns(bool success) {
         address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
         address _priceOracle = _getPriceOracle(_lendingPoolAddressProvider);
-        address _liquidityPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        address _liquidityPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         IAave.UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
         if(!_userReserveData.enabled) {
@@ -190,7 +151,7 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         }
     
     
-    function repay(
+    function repayBorrow(
         address _lendingPoolAddressProvider, 
         address _borrowToken,
         address _lendingPoolToken,
@@ -205,13 +166,5 @@ contract OptyAavePoolProxy is IOptyLiquidityPoolProxy {
         _amount = IERC20(_lendingPoolToken).balanceOf(address(this));
         IERC20(_lendingPoolToken).transfer(msg.sender,_amount);
         success = true;
-    }
-    
-    /**
-     * @dev Modifier to check caller is governance or not
-     */
-    modifier onlyGovernance() {
-        require(msg.sender == governance, "!governance");
-        _;
     }
 }

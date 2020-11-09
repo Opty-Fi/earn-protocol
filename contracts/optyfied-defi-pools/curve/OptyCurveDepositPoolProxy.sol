@@ -2,22 +2,22 @@
 
 pragma solidity ^0.6.10;
 
-import "../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
-import "../../interfaces/opty/IOptyRegistry.sol";
+import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
+import "../../OptyRegistry.sol";
 import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../libraries/Addresses.sol";
+import "../../utils/Modifiers.sol";
 
-contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
+contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;    
     using Address for address;
     
-    address public optyRegistry;
-    address public governance;
+    OptyRegistry OptyRegistryContract;
     
     /**
     * @dev Constructor function to store OptyRegistry contract address
@@ -25,17 +25,13 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _optyRegistry Address of OptyRegistry contract
     */
     constructor(address _optyRegistry) public {
-        governance = msg.sender;
         setOptyRegistry(_optyRegistry);
     }
     
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
         require(_optyRegistry.isContract(),"!_optyRegistry");
-        optyRegistry = _optyRegistry;
+        OptyRegistryContract = OptyRegistry(_optyRegistry);
     }
-    
-    function borrow(address[] memory ,address , address , uint ) public override returns(bool) { revert("Not implemented"); }
-    function repay(address, address,address,uint) public override returns(bool) { revert("Not implemented"); }
     
     /**
     * @dev Calls the appropriate deploy function depending on N_COINS
@@ -44,17 +40,17 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
     * @param _amounts Quantity of _underlyingToken to deposit
     */
-    function deploy(address[] memory _underlyingTokens,address _liquidityPool,uint[] memory _amounts) public override returns(bool){
+    function deposit(address[] memory _underlyingTokens,address _liquidityPool,uint[] memory _amounts) public override returns(bool){
         uint N_COINS = _underlyingTokens.length;
-        address _liquidityPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+        address _liquidityPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
         if (N_COINS == uint(2)){
-            _deploy2(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
+            _deposit2(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
         }
         else if (N_COINS == uint(3)){
-            _deploy3(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
+            _deposit3(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
         }
         else if (N_COINS == uint(4)){
-            _deploy4(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
+            _deposit4(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
         }
         return true;
     }
@@ -67,7 +63,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amounts Quantity of _underlyingToken to deposit
     */
-    function _deploy2(
+    function _deposit2(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -96,7 +92,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amounts Quantity of _underlyingToken to deposit
     */
-    function _deploy3(
+    function _deposit3(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -124,7 +120,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amounts Quantity of _underlyingToken to deposit
     */
-    function _deploy4(
+    function _deposit4(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -152,20 +148,20 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPool Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for _underlyingToken
     */
-    function recall(address[] memory _underlyingTokens,address _liquidityPool,uint _amount) public override returns(bool) {
+    function withdraw(address[] memory _underlyingTokens,address _liquidityPool,uint _amount) public override returns(bool) {
         uint N_COINS = _underlyingTokens.length;
-        address _liquidityPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+        address _liquidityPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
         if (N_COINS == uint(1)){
-            _recall1(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw1(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         else if (N_COINS == uint(2)){
-            _recall2(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw2(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         else if (N_COINS == uint(3)){
-            _recall3(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw3(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         else if (N_COINS == uint(4)){
-            _recall4(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw4(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         return true;
     }
@@ -177,7 +173,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
-    function _recall1(
+    function _withdraw1(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -199,7 +195,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
-    function _recall2(
+    function _withdraw2(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -223,7 +219,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
-    function _recall3(
+    function _withdraw3(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -247,7 +243,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
-    function _recall4(
+    function _withdraw4(
         address[] memory _underlyingTokens,
         address _liquidityPool,
         address _liquidityPoolToken,
@@ -276,7 +272,7 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
         address _liquidityPool, 
         address _holder
         ) public override view returns(uint) {
-        address _lendingPoolToken = IOptyRegistry(optyRegistry).getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
         uint tokenIndex = 0;
         for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
             if(_underlyingTokens[i] == _underlyingToken) {
@@ -295,7 +291,6 @@ contract OptyCurvePoolProxy is IOptyLiquidityPoolProxy {
     * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _liquidityPoolGauge Address of the gauge associated to the pool
     * @param _amount Quantity of _liquidityPoolToken to deposit in the gauge
-
     */
     function stakeLPtokens(address _liquidityPoolToken, address _liquidityPoolGauge, uint _amount) public returns(bool){
         IERC20(_liquidityPoolToken).safeApprove(_liquidityPoolGauge, uint(0));
