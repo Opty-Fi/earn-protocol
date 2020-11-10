@@ -45,5 +45,8 @@
         "prepublishOnly": "yarn test",
         "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol"
     },
-    "license": "GPL-3.0-or-later"
+    "license": "GPL-3.0-or-later",
+    "dependencies": {
+        "@studydefi/money-legos": "^2.4.1"
+    }
 }
