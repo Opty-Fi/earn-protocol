@@ -104,7 +104,7 @@ contract OptyRegistry is Modifiers{
         approveLiquidityPool(cUSDCLiquidityPool);
         setLiquidityPoolToLPToken(cUSDCLiquidityPool,tkns,cUSDCLiquidityPool);
         
-        // activate for curve compound (dai + usdc)
+        // activation for curve compound (dai + usdc)
         tkns = new address[](2);
         tkns[0] = dai;
         tkns[1] = usdc;
@@ -114,6 +114,14 @@ contract OptyRegistry is Modifiers{
         approveLiquidityPool(curveCompoundDeposit);
         approveToken(curveCompoundLPToken);
         setLiquidityPoolToLPToken(curveCompoundDeposit,tkns,curveCompoundLPToken);
+        
+        // activation for yearn dai vault
+        tkns = new address[](1);
+        tkns[0] = dai;
+        address yearnDAIVault = address(0xACd43E627e64355f1861cEC6d3a6688B31a6F952);
+        approveLiquidityPool(yearnDAIVault);
+        approveToken(yearnDAIVault);
+        setLiquidityPoolToLPToken(yearnDAIVault,tkns,yearnDAIVault);
     }
     
     /**
