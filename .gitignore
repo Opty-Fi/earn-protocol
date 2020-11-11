@@ -3,3 +3,4 @@ build/
 **/artifacts/*
 test/SS_CP_strategies.json
 test/SS_NO_CP_strategies.json
+.env

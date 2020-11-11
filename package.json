@@ -40,13 +40,13 @@
         "clean": "rimraf ./build/",
         "precompile": "yarn clean",
         "compile": "waffle .waffle.json",
-        "pretest": "yarn compile",
+        
         "test": "mocha",
         "prepublishOnly": "yarn test",
         "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol"
     },
     "license": "GPL-3.0-or-later",
     "dependencies": {
-        "@studydefi/money-legos": "^2.4.1"
+        "dotenv": "^8.2.0"
     }
 }
