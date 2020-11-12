@@ -26,16 +26,10 @@ async function startChain() {
   const ganache = await Ganache.provider({
     fork: MAINNET_NODE_URL,
     network_id: 1,
-    accounts: [
-      {
-        secretKey: PRIV_KEY,
-        balance: ethers.utils.hexlify(ethers.utils.parseEther("1000")),
-      },
-    ],
+    mnemonic: `${process.env.MY_METAMASK_MNEMONIC}`,
   });
-
   const provider = new ethers.providers.Web3Provider(ganache);
-  const wallet = new ethers.Wallet(PRIV_KEY, provider);
+  const wallet = ethers.Wallet.fromMnemonic(`${process.env.MY_METAMASK_MNEMONIC}`).connect(provider);
 
   return wallet;
 }
@@ -84,11 +78,12 @@ describe('OptyTokenBasicPool for DAI', async () => {
     )
 
     //  Fund the user's wallet with some amount of tokens
-    await fundWallet(underlyingToken, wallet, "5");
+    await fundWallet(underlyingToken, wallet, TEST_AMOUNT.toString());
     // Check Token and opToken balance of User's wallet and OptyTokenBaiscPool Contract
     userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
     userInitialTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
-    expect(userInitialTokenBalance).to.greaterThan(0);
+    // console.log(userTokenBalanceWei.toString());
+    expect(userInitialTokenBalance).to.equal(TEST_AMOUNT_NUM);
     
     contractTokenBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address)
     contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei))
@@ -107,14 +102,15 @@ describe('OptyTokenBasicPool for DAI', async () => {
 
   it ('DAI userDepost()', async () => {
 
-    await tokenContractInstance.approve(optyTokenBasicPool.address, TEST_AMOUNT)
+    await tokenContractInstance.approve(optyTokenBasicPool.address, TEST_AMOUNT);
+    expect(await tokenContractInstance.allowance(wallet.address, optyTokenBasicPool.address)).to.equal(TEST_AMOUNT);
     const userDepositOutput = await optyTokenBasicPool.userDeposit(TEST_AMOUNT);
     assert.isOk(userDepositOutput, "UserDeposit() call failed");
 
     // Check Token and opToken balance after userDeposit() call
     userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
-    const  newUserDaiBalance = parseFloat(fromWei(userTokenBalanceWei))
-    expect(newUserDaiBalance).to.equal(userInitialTokenBalance - TEST_AMOUNT_NUM);
+    const  userNewTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
+    expect(userNewTokenBalance).to.equal(userInitialTokenBalance - TEST_AMOUNT_NUM);
 
     contractTokenBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address);
     contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei));
@@ -126,118 +122,4 @@ describe('OptyTokenBasicPool for DAI', async () => {
 
   })
 
-  // it ('USDC userDepost()', async () => {
-  //   // 1. instantiate contracts
-  //   const daiContract = new ethers.Contract(
-  //     erc20.dai.address,
-  //     erc20.dai.abi,
-  //     wallet,
-  //   )
-  //   const uniswapFactoryContract = new ethers.Contract(
-  //     uniswap.factory.address,
-  //     uniswap.factory.abi,
-  //     wallet,
-  //   )
-  //   const daiExchangeAddress = await uniswapFactoryContract.getExchange(
-  //     erc20.dai.address,
-  //   )
-  //   const daiExchangeContract = new ethers.Contract(
-  //     daiExchangeAddress,
-  //     uniswap.exchange.abi,
-  //     wallet,
-  //   )
-
-  //   // 2. do the actual swapping
-  //   await daiExchangeContract.ethToTokenSwapInput(
-  //     1, // min amount of token retrieved
-  //     2525644800, // random timestamp in the future (year 2050)
-  //     {
-  //       gasLimit: 4000000,
-  //       value: ethers.utils.parseEther("5"),
-  //     },
-  //   )
-
-  //   // util function
-  //   const fromWei = (x: string) => ethers.utils.formatUnits(x, 18)
-
-  //   // 3. check DAI and opDAI balance
-  //   let userTokenBalanceWei = await daiContract.balanceOf(wallet.address)
-  //   let userInitialTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
-  //   expect(userInitialTokenBalance).to.greaterThan(0);
-    
-  //   let contractTokenBalanceWei = await daiContract.balanceOf(optyTokenBasicPool.address)
-  //   let contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei))
-  //   expect(contractTokenBalance).to.equal(0);
-
-  //   let userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
-  //   let userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
-  //   expect(userOptyTokenBalance).to.equal(0);
-  //   // console.log("Dai contract: ", daiContract.address)
-  //   console.log("Contract initial daiBalance", contractTokenBalance)
-  //   console.log("User's initial daiBalance", userInitialTokenBalance)
-  //   console.log("User's initial Opty Dai Balance: ", userOptyTokenBalance);
-
-  //   await daiContract.approve(optyTokenBasicPool.address, TEST_AMOUNT)
-  //   const depositOutput = await optyTokenBasicPool.userDeposit(TEST_AMOUNT);
-  //   // await console.log(depositOutput);
-
-  //   // 3. check DAI and opDAI balance after userDeposit() call
-  //   userTokenBalanceWei = await daiContract.balanceOf(wallet.address)
-  //   const  newUserDaiBalance = parseFloat(fromWei(userTokenBalanceWei))
-  //   expect(newUserDaiBalance).to.equal(userInitialTokenBalance - TEST_AMOUNT_NUM);
-
-  //   contractTokenBalanceWei = await daiContract.balanceOf(optyTokenBasicPool.address);
-  //   contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei));
-  //   expect(contractTokenBalance).to.equal(TEST_AMOUNT_NUM);
-
-  //   userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
-  //   userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
-  //   expect(userOptyTokenBalance).to.equal(TEST_AMOUNT_NUM);
-
-  //   console.log("Contract daiBalance", contractTokenBalance)
-  //   console.log("User balance: ", newUserDaiBalance);
-  //   console.log("User's Opty Dai Balance: ", userOptyTokenBalance);
-
-  // })
-
-  // it('Contract deployed', async () => {
-  //   // test case for reading properties of pool token
-  //   console.log("---- Contract deployed: ", optyTokenBasicPool.address, " ---------\n")
-  //   // console.log("\nprint Test1..");
-  //   // console.log("\noptyTokenBasicPool: " , optyTokenBasicPool.address);
-  //   console.log("\nWallet: ", wallet.address);
-  // })
-  // it("Check initial Contract balance", async () => {
-  //   // console.log("\nprint Test2..");
-  //   // console.log("\noptyTokenBasicPool: " , optyTokenBasicPool.address);
-  //   // console.log("\nWallet: ", wallet.address);
-  //   expect(await optyTokenBasicPool.balance()).to.equal(0);
-  // });
-  // it("Check userDeposit", async () => {
-  //   console.log("\n---- Testing UserDeposit() -------\n");
-  //   // console.log("\noptyTokenBasicPool: " , optyTokenBasicPool.address);
-  //   // console.log("\nWallet: ", wallet.address);
-  //   const execSync = require("child_process").execSync; //  library which helps to run any command from inside the js code
-  //   let runDefiFaucetTransferCmd = "node /Users/guptaji/blockchain_projects/capital_methods_optyfi/defi-faucet/transfer.js -s dai -r " + wallet.address.toString()
-  //   const output = await execSync(runDefiFaucetTransferCmd); //  Running the node transfer.js command from defi-faucet
-
-  //   const daiContract = new ethers.Contract(
-  //     erc20.dai.address,
-  //     erc20.dai.abi,
-  //     wallet,
-  //   )
-  //   const daiBalanceWei = await daiContract.balanceOf(wallet.address);
-  //   console.log("----- DAI BALANCE OF WALLET: ", daiBalanceWei);
-  //   await daiContract.approve(optyTokenBasicPool.address, expandTo18Decimals(12))
-  //   // let contract = new web3.eth.Contract(OptyoptyTokenBasicPoolBasicPool.abi, optyTokenBasicPool.address);
-  //   const depositOutput = await optyTokenBasicPool.userDeposit(expandTo18Decimals(11));
-  //   await console.log(depositOutput);
-
-
-  //   // await expect(optyTokenBasicPool.transfer(other.address, TEST_AMOUNT))
-  //   //   .to.emit(optyTokenBasicPool, 'Transfer')
-  //   //   .withArgs(wallet.address, other.address, TEST_AMOUNT)
-  //   // expect(await optyTokenBasicPool.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-  //   // expect(await optyTokenBasicPool.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-  // });
 })
