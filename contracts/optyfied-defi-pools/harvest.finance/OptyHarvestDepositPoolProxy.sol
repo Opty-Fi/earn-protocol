@@ -84,3 +84,8 @@ contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         return true;
     }
 }
+
+// Harvest DAI vault and token = 0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C;
+// underlyingToken = ["0x6B175474E89094C44Da98b954EedeAC495271d0F"];
+// amounts = ["15000000000000000000"]
+// Harvest DAI farm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
