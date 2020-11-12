@@ -93,7 +93,7 @@ contract OptyStrategy is Modifiers{
             );
             
             address _creditPoolToken = OptyRegistryContract.
-                                        getLiquidityPoolToLPToken(_strategySteps[0].creditPool,_underlyingTokens);
+                                        liquidityPoolToLPTokens(_strategySteps[0].creditPool,keccak256(abi.encodePacked(_underlyingTokens)));
             
             // 3. Approve aavePoolProxy as a spender for all aDAI 
             uint _collateralAmount = IERC20(_creditPoolToken).balanceOf(address(this));
@@ -124,12 +124,12 @@ contract OptyStrategy is Modifiers{
             
             // 7. Transferring the cTokens or aTokens to OptyDAIAdvancePool contract
             address _lendingPoolToken = OptyRegistryContract.
-                                    getLiquidityPoolToLPToken(_strategySteps[0].liquidityPool,_borrowedTokenArr);
+                                    liquidityPoolToLPTokens(_strategySteps[0].liquidityPool,keccak256(abi.encodePacked(_borrowedTokenArr)));
             uint _lpTokenAmount = IERC20(_lendingPoolToken).balanceOf(address(this));
             IERC20(_lendingPoolToken).safeTransfer(msg.sender,_lpTokenAmount);
         } else {
              address _lendingPoolToken = OptyRegistryContract.
-                                    getLiquidityPoolToLPToken(_strategySteps[0].liquidityPool,_underlyingTokens);
+                                    liquidityPoolToLPTokens(_strategySteps[0].liquidityPool,keccak256(abi.encodePacked(_underlyingTokens)));
             for (uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
             IERC20(_underlyingTokens[i]).safeTransferFrom(msg.sender,address(this), _amounts[i]);
             // 1. Approve all DAI to AavePoolProxy contract
@@ -174,7 +174,7 @@ contract OptyStrategy is Modifiers{
         require(_amount > 0, "!_amount");
         require(_strategySteps.length == 1,"!_strategySteps.length");
         address _lendingPoolToken = OptyRegistryContract.
-                                    getLiquidityPoolToLPToken(_strategySteps[0].liquidityPool,_underlyingTokens);
+                                    liquidityPoolToLPTokens(_strategySteps[0].liquidityPool,keccak256(abi.encodePacked(_underlyingTokens)));
         IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         IERC20(_lendingPoolToken).safeApprove(_strategySteps[0].poolProxy,_amount);
         require(
@@ -207,9 +207,9 @@ contract OptyStrategy is Modifiers{
                                     ) public view returns(address) {
         address _liquidityPool = _strategySteps[0].liquidityPool;
         address _lendingPoolToken = OptyRegistryContract.
-                                        getLiquidityPoolToLPToken(
+                                        liquidityPoolToLPTokens(
                                             _liquidityPool,
-                                            _underlyingTokens
+                                            keccak256(abi.encodePacked(_underlyingTokens))
                                             );
         return _lendingPoolToken;
     }

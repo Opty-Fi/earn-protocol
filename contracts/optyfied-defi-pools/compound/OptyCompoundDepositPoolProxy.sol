@@ -48,7 +48,7 @@ contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     }
 
     function deposit(address[] memory _underlyingTokens, address _lendingPool, uint[] memory _amounts) public override returns(bool) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPool,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPool,keccak256(abi.encodePacked(_underlyingTokens)));
         IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(0));
         IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(_amounts[0]));
@@ -59,7 +59,7 @@ contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     }
     
     function withdraw(address[] memory _underlyingTokens, address _lendingPool, uint _amount) public override returns(bool) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPool, _underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPool,keccak256(abi.encodePacked(_underlyingTokens)));
         IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         uint result = ICompound(_lendingPoolToken).redeem(_amount);
         require(result == 0);
@@ -68,7 +68,7 @@ contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     }
 
     function balanceInToken(address[] memory _underlyingTokens, address, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
         // Mantisa 1e18 to decimals
         uint256 b = IERC20(_lendingPoolToken).balanceOf(_holder);
         if (b > 0) {

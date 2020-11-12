@@ -42,7 +42,7 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         address _lendingPoolAddressProvider, 
         uint[] memory _amounts
         ) public override returns(bool){
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
         IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         address lendingPoolCore = _getLendingPoolCore(_lendingPoolAddressProvider);
         address lendingPool = _getLendingPool(_lendingPoolAddressProvider);
@@ -59,7 +59,7 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         uint _amount
         ) public override returns(bool) {
         address _lendingPoolToken = OptyRegistryContract.
-        getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
         IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         require(_isTransferAllowed(_lendingPoolToken,_amount,address(this)),"!transferAllowed");
         IAToken(_lendingPoolToken).redeem(_amount);
@@ -89,7 +89,7 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         address _lendingPoolAddressProvider, 
         address _holder
         ) public override view returns(uint256){
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
 }

@@ -26,6 +26,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     */
     constructor(address _optyRegistry) public {
         setOptyRegistry(_optyRegistry);
+        
     }
     
     function setOptyRegistry(address _optyRegistry) public onlyGovernance {
@@ -37,20 +38,30 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * @dev Calls the appropriate deploy function depending on N_COINS
     * 
     * @param _underlyingTokens Address of the token that the user wants to deposit
-    * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
+    // * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
     * @param _amounts Quantity of _underlyingToken to deposit
     */
     function deposit(address[] memory _underlyingTokens,address _liquidityPool,uint[] memory _amounts) public override returns(bool){
-        uint N_COINS = _underlyingTokens.length;
-        address _liquidityPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+        address _liquidityPoolToken = ICurveDeposit(_liquidityPool).token();
+        bytes32 _tokensHash = OptyRegistryContract.liquidityPoolToTokenHashes(_liquidityPool,_liquidityPoolToken);
+        address[] memory _tokens = OptyRegistryContract.getTokensHashToTokens(_tokensHash);
+        uint N_COINS = _tokens.length;
+        uint[] memory _amountsIn = new uint[](N_COINS);
+        for(uint8 i = 0 ; i < N_COINS ; i++) {
+            for(uint8 j = 0 ; j < _underlyingTokens.length ; j++){        
+                if(_underlyingTokens[j] == _tokens[i]){
+                    _amountsIn[i] = _amounts[j];
+                }   
+            }
+        }
         if (N_COINS == uint(2)){
-            _deposit2(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
+            _deposit2(_tokens, _liquidityPool, _liquidityPoolToken, _amountsIn);
         }
         else if (N_COINS == uint(3)){
-            _deposit3(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
+            _deposit3(_tokens, _liquidityPool, _liquidityPoolToken, _amountsIn);
         }
         else if (N_COINS == uint(4)){
-            _deposit4(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amounts);
+            _deposit4(_tokens, _liquidityPool, _liquidityPoolToken, _amountsIn);
         }
         return true;
     }
@@ -144,24 +155,25 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     /**
     * @dev Swaps _amount of _liquidityPoolToken for _underlyingToken
     * 
-    * @param _underlyingTokens Address of the token that the user wants to withdraw
     * @param _liquidityPool Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for _underlyingToken
     */
-    function withdraw(address[] memory _underlyingTokens,address _liquidityPool,uint _amount) public override returns(bool) {
-        uint N_COINS = _underlyingTokens.length;
-        address _liquidityPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+    function withdraw(address[] memory ,address _liquidityPool,uint _amount) public override returns(bool) {
+        address _liquidityPoolToken = ICurveDeposit(_liquidityPool).token();
+        bytes32 _tokensHash = OptyRegistryContract.liquidityPoolToTokenHashes(_liquidityPool,_liquidityPoolToken);
+        address[] memory _tokens = OptyRegistryContract.getTokensHashToTokens(_tokensHash);
+        uint N_COINS = _tokens.length;
         if (N_COINS == uint(1)){
-            _withdraw1(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw1(_tokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         else if (N_COINS == uint(2)){
-            _withdraw2(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw2(_tokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         else if (N_COINS == uint(3)){
-            _withdraw3(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw3(_tokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         else if (N_COINS == uint(4)){
-            _withdraw4(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+            _withdraw4(_tokens, _liquidityPool, _liquidityPoolToken, _amount);
         }
         return true;
     }
@@ -272,7 +284,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         address _liquidityPool, 
         address _holder
         ) public override view returns(uint) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_liquidityPool,_underlyingTokens);
+        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_liquidityPool,keccak256(abi.encodePacked(_underlyingTokens)));
         uint tokenIndex = 0;
         for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
             if(_underlyingTokens[i] == _underlyingToken) {
@@ -314,14 +326,6 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         IERC20(crvToken).safeTransfer(msg.sender, IERC20(crvToken).balanceOf(address(this)));
         return true;
-    }
-    
-    /**
-     * @dev Modifier to check caller is governance or not
-     */
-    modifier onlyGovernance() {
-        require(msg.sender == governance, "!governance");
-        _;
     }
 }
 

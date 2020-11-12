@@ -49,6 +49,7 @@ contract OptyRegistry is Modifiers{
     mapping(bytes32 => Strategy)                    public strategies;
     mapping(bytes32 => bytes32[])                   public tokenToStrategies;
     mapping(address => mapping(bytes32 => address)) public liquidityPoolToLPTokens;
+    mapping(address => mapping(address => bytes32)) public liquidityPoolToTokenHashes;
     
     /**
      * @dev Sets the value for {governance} and {strategist}, 
@@ -77,9 +78,9 @@ contract OptyRegistry is Modifiers{
 
         // declare token groups
         address[] memory tkns = new address[](1);
-        tkns[0] = dai; 
         
         // intialized token(dai) hash to dai
+        tkns[0] = dai; 
         setTokensHashToTokens(tkns);
         
         // activation for aave dai
@@ -96,19 +97,23 @@ contract OptyRegistry is Modifiers{
         approveLiquidityPool(cDAILiquidityPool);
         setLiquidityPoolToLPToken(cDAILiquidityPool,tkns,cDAILiquidityPool);
         
-        //  activation for compound usdc
-        tkns = new address[](1);
+        // initialized token(usdc) hash  to usdc 
         tkns[0] = usdc;
+        setTokensHashToTokens(tkns);
+        
+        //  activation for compound usdc
         address cUSDCLiquidityPool = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
         approveToken(cUSDCLiquidityPool);
         approveLiquidityPool(cUSDCLiquidityPool);
         setLiquidityPoolToLPToken(cUSDCLiquidityPool,tkns,cUSDCLiquidityPool);
         
-        // activate for curve compound (dai + usdc)
+        // initialized token(dai+usdc) hash  to dai+usdc 
         tkns = new address[](2);
         tkns[0] = dai;
         tkns[1] = usdc;
         setTokensHashToTokens(tkns);
+        
+        // activate for curve compound (dai + usdc)
         address curveCompoundDeposit = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
         address curveCompoundLPToken = address(0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2);
         approveLiquidityPool(curveCompoundDeposit);
@@ -250,6 +255,13 @@ contract OptyRegistry is Modifiers{
     }
     
     /**
+     * @dev Returns the credit pool by `_pool`.
+     */
+   function getCreditPool(address _pool) public view returns(LiquidityPool memory _creditPool) {	   
+         _creditPool = creditPools[_pool];	    
+    }
+    
+    /**
      * @dev Provide `_rate` to `_pool` from the {liquidityPools} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
@@ -295,14 +307,7 @@ contract OptyRegistry is Modifiers{
         emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
         return true;
     }
-    
-    /**
-     * @dev Returns the credit pool by `_pool`.
-     */
-   function getCreditPool(address _pool) public view returns(LiquidityPool memory _creditPool) {	   
-         _creditPool = creditPools[_pool];	    
-    }
-    
+   
      /**
      * @dev Sets `_strategySteps` for `_pool` from the {liquidityPools} mapping.
      *
@@ -494,18 +499,12 @@ contract OptyRegistry is Modifiers{
         for(uint8 i = 0 ; i < _tokens.length ; i++) {
             require(tokens[_tokens[i]],"!_tokens");
         }
-        bytes32 tokensHash = keccak256(abi.encodePacked(_tokens));
-        liquidityPoolToLPTokens[_pool][tokensHash] = _poolToken;
-        LogSetLiquidityPoolToLPTokens(msg.sender,_pool,tokensHash,_poolToken);
+        bytes32 _tokensHash = keccak256(abi.encodePacked(_tokens));
+        require(!_isNewTokensHash(_tokensHash),"_isNewTokensHash");
+        liquidityPoolToLPTokens[_pool][_tokensHash] = _poolToken;
+        liquidityPoolToTokenHashes[_pool][_poolToken] = _tokensHash;
+        LogSetLiquidityPoolToLPTokens(msg.sender,_pool,_tokensHash,_poolToken);
         success = true;
-    }
-    
-    /**
-     * @dev Returns the lpToken given the `_pool` and `_tokens`.
-     */
-    function getLiquidityPoolToLPToken(address _pool, address[] memory _tokens) public view returns(address) {
-        bytes32 tokensHash = keccak256(abi.encodePacked(_tokens));
-        return liquidityPoolToLPTokens[_pool][tokensHash];
     }
     
     /**
