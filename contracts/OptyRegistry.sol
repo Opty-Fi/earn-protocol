@@ -114,6 +114,14 @@ contract OptyRegistry is Modifiers{
         approveLiquidityPool(curveCompoundDeposit);
         approveToken(curveCompoundLPToken);
         setLiquidityPoolToLPToken(curveCompoundDeposit,tkns,curveCompoundLPToken);
+        
+        //  activation for harvest dai vault
+        tkns = new address[](1);
+        tkns[0] = dai;
+        address harvestDAIvault = address(0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C);
+        approveToken(harvestDAIvault);
+        approveLiquidityPool(harvestDAIvault);
+        setLiquidityPoolToLPToken(harvestDAIvault,tkns,harvestDAIvault);
     }
     
     /**
