@@ -1,14 +1,12 @@
 import chai, { assert, expect } from 'chai'
 import { Contract, ethers, utils } from 'ethers'
-import { solidity, MockProvider, deployContract, getWallets } from 'ethereum-waffle'
+import { solidity, deployContract } from 'ethereum-waffle'
 
-import { expandTo18Decimals } from './shared/utilities'
+import { expandTo18Decimals, fundWallet } from './shared/utilities'
 import OptyTokenBasicPool from "../build/OptyTokenBasicPool.json";
 import OptyRegistry from "../build/OptyRegistry.json";
 import RiskManager from "../build/OptyRiskManager.json";
 import OptyStrategy from "../build/OptyStrategy.json";
-import IERC20 from "../build/IERC20.json";
-import { fundWallet } from "./shared/fundWallet";
 import tokenAddresses from "./shared/TokenAddresses.json";
 import addressAbis from "./shared/AddressAbis.json";
 const envConfig = require("dotenv").config(); //  library to import the local ENV variables defined
@@ -23,7 +21,6 @@ const Ganache = require("ganache-core")
 const MAINNET_NODE_URL = process.env.MAINNET_NODE_URL;
 console.log("Mainnet: ", MAINNET_NODE_URL)
 const PRIV_KEY = <string>process.env.MY_PRIV_KEY;
-// console.log("Private key: ", PRIV_KEY);
 
 async function startChain() {
   const ganache = await Ganache.provider({
@@ -42,19 +39,20 @@ async function startChain() {
 
   return wallet;
 }
-// const jest = require("jest");
-// jest.setTimeout(100000);
-// const uniswap = require("@studydefi/money-legos/uniswap")
-// const erc20 = require("@studydefi/money-legos/erc20");
-
 
 describe('OptyTokenBasicPool for DAI', async () => {
   let wallet: ethers.Wallet;
+  let optyTokenBasicPool: Contract
+  let optyRegistry: Contract
+  let riskManager: Contract
+  let optyStrategy: Contract
+  let profile = "basic";
+  let underlyingToken = tokenAddresses.dai;
   let tokenContractInstance: Contract;
   let userTokenBalanceWei
-  let userInitialDaiBalance: number
-  let contractDaiBalanceWei
-  let contractDaiBalance: number
+  let userInitialTokenBalance: number
+  let contractTokenBalanceWei
+  let contractTokenBalance: number
   let userOptyTokenBalanceWei
   let userOptyTokenBalance: number
 
@@ -64,66 +62,63 @@ describe('OptyTokenBasicPool for DAI', async () => {
   before(async () => {
     wallet = await startChain();
 
-    console.log("------ Deploying Contract ---------\n")
+    console.log("\n------ Deploying Contract ---------\n")
     
     optyRegistry = await deployContract(wallet, OptyRegistry);
+    assert.isDefined(optyRegistry, "OptyRegistry contract not deployed");
+    
     riskManager = await deployContract(wallet, RiskManager, [optyRegistry.address]);
+    assert.isDefined(riskManager, "RiskManager contract not deployed");
+    
     optyStrategy = await deployContract(wallet, OptyStrategy, [optyRegistry.address]);
-    optyTokenBasicPool = await deployContract(wallet, OptyTokenBasicPool, [profile, riskManager.address, underlyingToken, optyStrategy.address]);
+    assert.isDefined(optyStrategy, "OptyStrategy contract not deployed");
 
-    // 1. instantiate contract
+    optyTokenBasicPool = await deployContract(wallet, OptyTokenBasicPool, [profile, riskManager.address, underlyingToken, optyStrategy.address]);
+    assert.isDefined(optyTokenBasicPool, "OptyTokenBasicPool contract not deployed");
+
+    // Instantiate token contract
     tokenContractInstance = new ethers.Contract(
-      tokenAddresses.dai,
+      underlyingToken,
       addressAbis.erc20.abi,
       wallet,
     )
-    await fundWallet(tokenAddresses.dai, wallet, "5");
 
-    // 3. check DAI and opDAI balance
+    //  Fund the user's wallet with some amount of tokens
+    await fundWallet(underlyingToken, wallet, "5");
+    // Check Token and opToken balance of User's wallet and OptyTokenBaiscPool Contract
     userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
-    userInitialDaiBalance = parseFloat(fromWei(userTokenBalanceWei))
-    expect(userInitialDaiBalance).to.greaterThan(0);
+    userInitialTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
+    expect(userInitialTokenBalance).to.greaterThan(0);
     
-    contractDaiBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address)
-    contractDaiBalance = parseFloat(fromWei(contractDaiBalanceWei))
-    expect(contractDaiBalance).to.equal(0);
+    contractTokenBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address)
+    contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei))
+    expect(contractTokenBalance).to.equal(0);
 
     userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
     userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
     expect(userOptyTokenBalance).to.equal(0);
-
   })
 
-  let optyTokenBasicPool: Contract
-  let optyRegistry: Contract
-  let riskManager: Contract
-  let optyStrategy: Contract
-  let dai: Contract
-  let profile = "basic";
-  let underlyingToken = "0x6b175474e89094c44da98b954eedeac495271d0f";
-
-  // function fundWallet(tokenAddress, contractAbi, wallet) {
-
-  // }
   it('Contract deployed', async () => {
-    console.log("\n---- Contract deployed: ", optyTokenBasicPool.address, " ---------")
-    console.log("\nWallet: ", wallet.address);
+    assert.isOk(optyTokenBasicPool.address, "Contract is not deployed")
+    console.log("\nDeployed OptyTokenBasicPool Contract address: ", optyTokenBasicPool.address)
+    console.log("\nUser's Wallet address: ", wallet.address);
   })
 
   it ('DAI userDepost()', async () => {
 
     await tokenContractInstance.approve(optyTokenBasicPool.address, TEST_AMOUNT)
-    const depositOutput = await optyTokenBasicPool.userDeposit(TEST_AMOUNT);
-    // await console.log(depositOutput);
+    const userDepositOutput = await optyTokenBasicPool.userDeposit(TEST_AMOUNT);
+    assert.isOk(userDepositOutput, "UserDeposit() call failed");
 
-    // 3. check DAI and opDAI balance after userDeposit() call
+    // Check Token and opToken balance after userDeposit() call
     userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
     const  newUserDaiBalance = parseFloat(fromWei(userTokenBalanceWei))
-    expect(newUserDaiBalance).to.equal(userInitialDaiBalance - TEST_AMOUNT_NUM);
+    expect(newUserDaiBalance).to.equal(userInitialTokenBalance - TEST_AMOUNT_NUM);
 
-    contractDaiBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address);
-    contractDaiBalance = parseFloat(fromWei(contractDaiBalanceWei));
-    expect(contractDaiBalance).to.equal(TEST_AMOUNT_NUM);
+    contractTokenBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address);
+    contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei));
+    expect(contractTokenBalance).to.equal(TEST_AMOUNT_NUM);
 
     userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
     userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
@@ -167,19 +162,19 @@ describe('OptyTokenBasicPool for DAI', async () => {
 
   //   // 3. check DAI and opDAI balance
   //   let userTokenBalanceWei = await daiContract.balanceOf(wallet.address)
-  //   let userInitialDaiBalance = parseFloat(fromWei(userTokenBalanceWei))
-  //   expect(userInitialDaiBalance).to.greaterThan(0);
+  //   let userInitialTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
+  //   expect(userInitialTokenBalance).to.greaterThan(0);
     
-  //   let contractDaiBalanceWei = await daiContract.balanceOf(optyTokenBasicPool.address)
-  //   let contractDaiBalance = parseFloat(fromWei(contractDaiBalanceWei))
-  //   expect(contractDaiBalance).to.equal(0);
+  //   let contractTokenBalanceWei = await daiContract.balanceOf(optyTokenBasicPool.address)
+  //   let contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei))
+  //   expect(contractTokenBalance).to.equal(0);
 
   //   let userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
   //   let userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
   //   expect(userOptyTokenBalance).to.equal(0);
   //   // console.log("Dai contract: ", daiContract.address)
-  //   console.log("Contract initial daiBalance", contractDaiBalance)
-  //   console.log("User's initial daiBalance", userInitialDaiBalance)
+  //   console.log("Contract initial daiBalance", contractTokenBalance)
+  //   console.log("User's initial daiBalance", userInitialTokenBalance)
   //   console.log("User's initial Opty Dai Balance: ", userOptyTokenBalance);
 
   //   await daiContract.approve(optyTokenBasicPool.address, TEST_AMOUNT)
@@ -189,17 +184,17 @@ describe('OptyTokenBasicPool for DAI', async () => {
   //   // 3. check DAI and opDAI balance after userDeposit() call
   //   userTokenBalanceWei = await daiContract.balanceOf(wallet.address)
   //   const  newUserDaiBalance = parseFloat(fromWei(userTokenBalanceWei))
-  //   expect(newUserDaiBalance).to.equal(userInitialDaiBalance - TEST_AMOUNT_NUM);
+  //   expect(newUserDaiBalance).to.equal(userInitialTokenBalance - TEST_AMOUNT_NUM);
 
-  //   contractDaiBalanceWei = await daiContract.balanceOf(optyTokenBasicPool.address);
-  //   contractDaiBalance = parseFloat(fromWei(contractDaiBalanceWei));
-  //   expect(contractDaiBalance).to.equal(TEST_AMOUNT_NUM);
+  //   contractTokenBalanceWei = await daiContract.balanceOf(optyTokenBasicPool.address);
+  //   contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei));
+  //   expect(contractTokenBalance).to.equal(TEST_AMOUNT_NUM);
 
   //   userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
   //   userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
   //   expect(userOptyTokenBalance).to.equal(TEST_AMOUNT_NUM);
 
-  //   console.log("Contract daiBalance", contractDaiBalance)
+  //   console.log("Contract daiBalance", contractTokenBalance)
   //   console.log("User balance: ", newUserDaiBalance);
   //   console.log("User's Opty Dai Balance: ", userOptyTokenBalance);
 
