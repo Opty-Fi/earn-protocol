@@ -1,9 +1,10 @@
 import { BigNumber, bigNumberify } from "ethers/utils";
 import { ethers } from "ethers";
 import exchange from "./exchange.json";
+import tokenAddresses from "./TokenAddresses.json";
 
-export function expandTo18Decimals(n: number): BigNumber {
-    return bigNumberify(n).mul(bigNumberify(10).pow(18));
+export function expandToTokenDecimals(n: number, exponent: number): BigNumber {
+    return bigNumberify(n).mul(bigNumberify(10).pow(exponent));
 }
 
 export async function fundWallet(
@@ -18,7 +19,7 @@ export async function fundWallet(
     );
     await uniswapInstance.swapETHForExactTokens(
         amount,
-        ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", tokenAddress],
+        [tokenAddresses.weth, tokenAddress],
         wallet.address,
         "1000000000000000000",
         { value: ethers.utils.hexlify(ethers.utils.parseEther("90")) }

@@ -22,6 +22,6 @@
       }
     },
     "compilerType": "solcjs",
-    "sourceDirectory": "./contracts/opty-pools/basic/",
+    "sourceDirectory": "./contracts",
     "outputDirectory": "./build"
   }
