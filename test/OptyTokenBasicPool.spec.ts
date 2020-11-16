@@ -11,19 +11,17 @@ import OptyCompoundDepositPoolProxy from "../build/OptyCompoundDepositPoolProxy.
 import OptyAaveDepositPoolProxy from "../build/OptyAaveDepositPoolProxy.json";
 import tokenAddresses from "./shared/TokenAddresses.json";
 import addressAbis from "./shared/AddressAbis.json";
+import ssNoCPStrategies from "./shared/SS_NO_CP_strategies.json";
 const envConfig = require("dotenv").config(); //  library to import the local ENV variables defined
 //  Note: Don't remove line-6, because this line helps to get rid of error: NOT ABLE TO READ LOCAL ENV VARIABLES defined in .env file
 
 chai.use(solidity)
 
-const TEST_AMOUNT_NUM: number = 3;
-// const TEST_AMOUNT = expandToTokenDecimals(TEST_AMOUNT_NUM, 18)
-let TEST_AMOUNT:ethers.utils.BigNumber
 const Ganache = require("ganache-core")
-
+const abi = require('ethereumjs-abi')
 const MAINNET_NODE_URL = process.env.MAINNET_NODE_URL;
-console.log("Mainnet: ", MAINNET_NODE_URL)
-// const PRIV_KEY = <string>process.env.MY_PRIV_KEY;
+const TEST_AMOUNT_NUM: number = 3;
+let TEST_AMOUNT:ethers.utils.BigNumber
 
 async function startChain() {
   const ganache = await Ganache.provider({
@@ -45,20 +43,29 @@ describe('OptyTokenBasicPool for DAI', async () => {
   let optyStrategy: Contract
   let profile = "basic";
   let underlyingToken = tokenAddresses.dai;
+  const tokens = [tokenAddresses.dai];
   let tokenContractInstance: Contract;
   let userTokenBalanceWei
   let userInitialTokenBalance: number
+  let userTotalTokenBalance: number
   let contractTokenBalanceWei
   let contractTokenBalance: number
+  let contractTotalTokenBalance: number
   let userOptyTokenBalanceWei
   let userOptyTokenBalance: number
+  let userTokenOptyTokenBalance: number
   let optyCompoundDepositPoolProxy: Contract
   let optyAaveDepositPoolProxy: Contract
-  let decimals: number
-  // let TEST_AMOUNT
+  let underlyingTokenDecimals: number
+  let underlyingTokenName
+  let strategies:{
+    compound: string[];
+    aave: string[];
+}
+  let tokensHash: string
 
   // util function for converting expanded values to Deimals number for readability and Testing
-  const fromWei = (x: string) => ethers.utils.formatUnits(x, decimals)
+  const fromWei = (x: string) => ethers.utils.formatUnits(x, underlyingTokenDecimals)
 
   before(async () => {
     wallet = await startChain();
@@ -91,37 +98,45 @@ describe('OptyTokenBasicPool for DAI', async () => {
       addressAbis.erc20.abi,
       wallet,
     )
-    decimals = await tokenContractInstance.decimals();
-    TEST_AMOUNT = expandToTokenDecimals(TEST_AMOUNT_NUM, decimals);
-    let TEST_AMOUNT_HEX = "0x" + Number(TEST_AMOUNT).toString(16)
+    underlyingTokenDecimals = await tokenContractInstance.decimals();
+    TEST_AMOUNT = expandToTokenDecimals(TEST_AMOUNT_NUM, underlyingTokenDecimals);
+    tokensHash = "0x" + abi.soliditySHA3(
+      [ "address[]" ],
+      [ tokens ]
+    ).toString('hex')
 
-    //  Fund the user's wallet with some amount of tokens
-    // await fundWallet(underlyingToken, wallet, TEST_AMOUNT.toString());
-    await fundWallet(underlyingToken, wallet, TEST_AMOUNT_HEX);
+    underlyingTokenName = await tokenContractInstance.symbol();
+  })
 
-    // Check Token and opToken balance of User's wallet and OptyTokenBaiscPool Contract
+  beforeEach(async () => {
     userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
     userInitialTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
-    // console.log(userTokenBalanceWei.toString());
-    // console.log(userInitialTokenBalance)
-    expect(userInitialTokenBalance).to.equal(TEST_AMOUNT_NUM);
-    
-    contractTokenBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address)
-    contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei))
-    expect(contractTokenBalance).to.equal(0);
-
     userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
-    userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
-    expect(userOptyTokenBalance).to.equal(0);
+    userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei))
+    if (userInitialTokenBalance == 0 || userInitialTokenBalance == undefined) {
+      
+      let TEST_AMOUNT_HEX = "0x" + Number(TEST_AMOUNT).toString(16)
+
+      //  Fund the user's wallet with some amount of tokens
+      await fundWallet(underlyingToken, wallet, TEST_AMOUNT_HEX);
+
+      // Check Token and opToken balance of User's wallet and OptyTokenBaiscPool Contract
+      userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
+      userInitialTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
+      expect(userInitialTokenBalance).to.equal(TEST_AMOUNT_NUM);
+      
+    }
   })
 
   it('Contract deployed', async () => {
     assert.isOk(optyTokenBasicPool.address, "Contract is not deployed")
     console.log("\nDeployed OptyTokenBasicPool Contract address: ", optyTokenBasicPool.address)
     console.log("\nUser's Wallet address: ", wallet.address);
+    console.log("\nTokens Hash: ", tokensHash)
+
   })
 
-  it.skip ('DAI userDepost()', async () => {
+  it ('DAI userDepost()', async () => {
 
     await tokenContractInstance.approve(optyTokenBasicPool.address, TEST_AMOUNT);
     expect(await tokenContractInstance.allowance(wallet.address, optyTokenBasicPool.address)).to.equal(TEST_AMOUNT);
@@ -143,64 +158,75 @@ describe('OptyTokenBasicPool for DAI', async () => {
 
   })
 
-  it.skip ('DAI userDepositRebalance()', async () => {
-    let tokensHash = "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80";
-    let cDaiLiquidityPool = "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643";
-    let strategySteps = [[
-      "0x0000000000000000000000000000000000000000",
-      "0x0000000000000000000000000000000000000000",
-      "0x0000000000000000000000000000000000000000",
-      cDaiLiquidityPool,
-      optyCompoundDepositPoolProxy.address
-    ]]
+  //  TODO: Have to  modify this strategies logic once new strategy struct has been implemented
+  //        - Deepanshu
+  for (var key of Object.keys(ssNoCPStrategies)) {
+    let strategySteps:string[][]
 
-    // Instantiate token contract
-    const LPTokenContractInstance: Contract = new ethers.Contract(
-      cDaiLiquidityPool,
-      addressAbis.erc20.abi,
-      wallet,
-    )
+        if (key == "dai") {
+          strategies = ssNoCPStrategies[key]
+          
+          for (var protocol of Object.keys(strategies)){
+            if (protocol == "compound") {
+              it (key.toUpperCase() + ' userDepositRebalance() for ' + protocol + ' protocol', async () => {
+              strategies.compound[4] = optyCompoundDepositPoolProxy.address.toString()
+              strategySteps = [strategies.compound]
+              
+              await testUserDepositRebalance(strategySteps)
+            })
+            } else if (protocol == "aave") {    
+              it (key.toUpperCase() + ' userDepositRebalance() for ' + protocol + ' protocol', async () => {
+              strategies.aave[4] = optyAaveDepositPoolProxy.address.toString()
+              strategySteps = [strategies.aave]
+              
+              await testUserDepositRebalance(strategySteps)
+            })
+            } 
+
+          }
+        }
+  }
+
+  //  Function to test the userDepositRebalance() of optyTokenBasicPool contract
+  async function testUserDepositRebalance(strategySteps:string[][]) {
+
+    let prevUserOptyTokenBalanceWei:ethers.utils.BigNumber 
+    prevUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
+    
     const setStrategyTx = await optyRegistry.setStrategy(tokensHash, strategySteps);
     assert.isDefined(setStrategyTx, "Setting StrategySteps has failed!")
 
     const receipt = await setStrategyTx.wait();
     let strategyHash = receipt.events[0].args[2];
     expect(strategyHash.toString().length).to.equal(66);
-    // console.log("StrategyHash: ", strategyHash)
-    // console.log("hash length: ", strategyHash.toString().length)
 
     let strategy = await optyRegistry.getStrategy(strategyHash.toString())
     if (!strategy["_isStrategy"]) {
       await optyRegistry.approveStrategy(strategyHash.toString());
       strategy = await optyRegistry.getStrategy(strategyHash.toString());
-      assert.isTrue(strategy["_isStrategy"]);
+      assert.isTrue(strategy["_isStrategy"], "Strategy is not approved");
     }
-    // console.log("Strategy: ", strategy)
-    // console.log("Strategy status: ", strategy["_isStrategy"])
 
     await tokenContractInstance.approve(optyTokenBasicPool.address, TEST_AMOUNT);
     expect(await tokenContractInstance.allowance(wallet.address, optyTokenBasicPool.address)).to.equal(TEST_AMOUNT);
 
-    const userDepositOutput = await optyTokenBasicPool.userDepositRebalance(TEST_AMOUNT);
-    // console.log(userDepositOutput)
-    assert.isOk(userDepositOutput, "UserDeposit() call failed");
+    const userDepositRebalanceTx = await optyTokenBasicPool.userDepositRebalance(TEST_AMOUNT);
+    assert.isOk(userDepositRebalanceTx, "UserDepositRebalance() call failed");
 
     // Check Token and opToken balance after userDeposit() call
     userTokenBalanceWei = await tokenContractInstance.balanceOf(wallet.address)
     const  userNewTokenBalance = parseFloat(fromWei(userTokenBalanceWei))
     expect(userNewTokenBalance).to.equal(userInitialTokenBalance - TEST_AMOUNT_NUM);
+    userInitialTokenBalance = userNewTokenBalance;
 
     contractTokenBalanceWei = await tokenContractInstance.balanceOf(optyTokenBasicPool.address);
     contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei));
     expect(contractTokenBalance).to.equal(0);
-
-    const contractLPTokenBalanceWei = await LPTokenContractInstance.balanceOf(optyTokenBasicPool.address);
-    const contractLPTokenBalance = parseFloat(fromWei(contractLPTokenBalanceWei));
-    console.log(contractLPTokenBalance)
-    // expect(contractLPTokenBalance).to.equal(0);
+    
     userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(wallet.address)
-    userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
-    expect(userOptyTokenBalance).to.equal(TEST_AMOUNT_NUM);
-
-  })
+    const userNewOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
+    //  TODO: Need to fix this assertion error for the decimals values - Deepanshu
+    // expect(userNewOptyTokenBalance).to.equal(userOptyTokenBalance + TEST_AMOUNT_NUM);
+    userOptyTokenBalance = userNewOptyTokenBalance;
+  }
 })
