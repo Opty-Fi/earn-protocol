@@ -34,12 +34,21 @@ contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         IERC20(_underlyingTokens[0]).safeApprove(_vault, uint(0));
         IERC20(_underlyingTokens[0]).safeApprove(_vault, uint(_amounts[0]));
         IHarvestDeposit(_vault).deposit(_amounts[0]);
+        // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
+        // IERC20(_vaultToken).safeApprove(_vaultFarm, uint(0));
+        // IERC20(_vaultToken).safeApprove(_vaultFarm, IERC20(_vaultToken).balanceOf(address(this)));
+        // IHarvestFarm(_vaultFarm).stake(IERC20(_vaultToken).balanceOf(address(this)));
         IERC20(_vaultToken).safeTransfer(msg.sender, IERC20(_vaultToken).balanceOf(address(this)));
         return true;
     }
 
     function withdraw(address[] memory _underlyingTokens, address _vault, uint _shares) public override returns(bool) {
         address _vaultToken = OptyRegistryContract.getLiquidityPoolToLPToken(_vault, _underlyingTokens);
+        // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
+        // address _farmToken = 0xa0246c9032bC3A600820415aE600c6388619A14D;
+        // IHarvestFarm(_vaultFarm).exit();
+        // IERC20(_farmToken).safeTransfer(msg.sender,IERC20(_farmToken).balanceOf(address(this)));
+        // IHarvestDeposit(_vaultToken).withdraw(IERC20(_vaultToken).balanceOf(address(this)));
         IERC20(_vaultToken).safeTransferFrom(msg.sender,address(this),_shares);
         IHarvestDeposit(_vaultToken).withdraw(_shares);
         IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
@@ -85,7 +94,7 @@ contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     }
 }
 
-// Harvest DAI vault and token = 0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C;
-// underlyingToken = ["0x6B175474E89094C44Da98b954EedeAC495271d0F"];
+// Harvest DAI vault and token = 0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C
+// underlyingToken = ["0x6B175474E89094C44Da98b954EedeAC495271d0F"]
 // amounts = ["15000000000000000000"]
-// Harvest DAI farm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
+// Harvest DAI farm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A
