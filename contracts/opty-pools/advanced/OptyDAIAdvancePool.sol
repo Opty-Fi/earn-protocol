@@ -3,60 +3,29 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./../../libraries/SafeMath.sol";
-import "./../../libraries/Addresses.sol";
 import "./../../libraries/SafeERC20.sol";
 import "./../../utils/Context.sol";
 import "./../../utils/ERC20.sol";
 import "./../../utils/ERC20Detailed.sol";
-import "./../../utils/Modifiers.sol";
-import "./../../interfaces/compound/ICompound.sol";
-//  Deepanshu TODO: Need to change this import for withdraw functionality acc. to new Interface ie IOptyLiquidityPoolProxy
-// import "./../../interfaces/OptyLiquidityPool/IOptyLiquidityPool.sol";
-import "./../../OptyRegistry.sol";
 import "./../../interfaces/opty/IOptyLiquidityPoolProxy.sol";
 import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
-
-interface IOptyRegistry{
-    struct StrategyStep {
-        address token; 
-        address creditPool; 
-        address borrowToken; 
-        address liquidityPool; 
-        address strategyContract;
-        address lendingPoolToken;
-        address poolProxy;
-    }
-
-    struct Strategy { 
-        uint8          score;
-        bool           isStrategy;
-        uint256        index;
-        uint256        blockNumber;
-        StrategyStep[] strategySteps;
-    }
-
-    function tokenToStrategies(address _underLyingToken, uint256 index) external view returns(bytes32);
-    function getStrategy(bytes32 _hash) external view returns(uint8 _score, bool _isStrategy, uint256 _index, uint256 _blockNumber, StrategyStep[] memory _strategySteps);
-}
-
-interface IRiskManager {
-    function getBestStrategy(string memory _profile, address _underlyingToken) external view returns (IOptyRegistry.Strategy memory strategy);
-}
+import "./../../interfaces/opty/IRiskManager.sol";
+import "./../../interfaces/opty/IOptyStrategy.sol";
 
 /**
- * @dev Opty.Fi's Basic Pool contract for DAI token
+ * @dev Opty.Fi's Advance Pool contract for DAI token
  */
-contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
+contract OptyDAIAdvancePool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    IOptyRegistry.Strategy public currentStrategy;
+    bytes32 public strategyHash;
     address public token; //  store the Dai token contract address
-    // uint256 totalsupply;
-    uint256 public poolValue;
     address public riskManager;
-    string public profile;
+    address public optyStrategy;
+    uint256 public poolValue;
+    string  public profile;
+    
     
     
     /**
@@ -64,12 +33,12 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for DAI token
      *  - Storing the DAI contract address also in the contract
      */
-    constructor(string memory _profile, address _riskManager, address _underlyingToken) public ERC20Detailed("Opty Fi DAI", "opDai", 18) {
+    constructor(string memory _profile, address _riskManager, address _underlyingToken, address _optyStrategy) public ERC20Detailed("Opty Fi DAI", "opDai", 18) {
         
         setProfile(_profile);
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  DAI token contract address
-        // provider = Lender.COMPOUND;
+        setOptyStrategy(_optyStrategy);
     }
     
     function setProfile(string memory _profile) public onlyOwner returns (bool _success)  {
@@ -86,6 +55,38 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
          token = _underlyingToken;
          _success = true;
     }
+    
+    function setOptyStrategy(address _optyStrategy) public onlyOwner returns (bool _success) {
+         optyStrategy = _optyStrategy;
+         _success = true;
+    }
+    
+    function supplyToken(uint _amount) public onlyValidAddress {
+        require(_amount > 0,"withdraw must be greater than 0");
+       IERC20(token).safeTransfer(optyStrategy, _amount);
+       IOptyStrategy(optyStrategy).deploy(_amount,strategyHash);
+    }
+    
+    function rebalance() public onlyValidAddress {
+        bytes32 newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
+        
+        if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
+            _withdrawAll();
+        }
+        
+        strategyHash = newStrategyHash;
+        
+        if (balance() > 0) {
+            supplyToken(balance());
+        }
+    }
+  
+    function _rebalance() internal {
+        if(balance() > 0){
+          supplyToken(balance());
+        }
+    }
+    
     /**
      * @dev Function for depositing DAI tokens into the contract and in return giving opDai tokens to the user
      *
@@ -99,20 +100,10 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
 
         poolValue = calPoolValueInToken();
         
-        IOptyRegistry.Strategy memory tempStrategy = IRiskManager(riskManager).getBestStrategy(profile, token);
-        currentStrategy.score = tempStrategy.score;
-        currentStrategy.isStrategy = tempStrategy.isStrategy;
-        currentStrategy.index = tempStrategy.index;
-        currentStrategy.blockNumber = tempStrategy.blockNumber;
-        currentStrategy.strategySteps.push(IOptyRegistry.StrategyStep(tempStrategy.strategySteps[0].token, tempStrategy.strategySteps[0].creditPool,
-        tempStrategy.strategySteps[0].borrowToken, tempStrategy.strategySteps[0].liquidityPool, tempStrategy.strategySteps[0].strategyContract,
-        tempStrategy.strategySteps[0].lendingPoolToken, tempStrategy.strategySteps[0].poolProxy));
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
         
-        IERC20(token).safeTransferFrom(msg.sender, currentStrategy.strategySteps[0].poolProxy, _amount);
-        
-        
-        IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).deploy(currentStrategy.strategySteps[0].token, currentStrategy.strategySteps[0].liquidityPool, 
-        currentStrategy.strategySteps[0].lendingPoolToken, _amount);
+        rebalance();
+
         //  Calculate the shares value for opDai tokens
         uint256 shares = 0;
         if (poolValue == 0) {
@@ -136,16 +127,18 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *    credit pool like compound is added.
      */
     function calPoolValueInToken() internal view returns (uint256) {
-        if (currentStrategy.isStrategy ) {
-            return IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).balanceInToken(currentStrategy.strategySteps[0].lendingPoolToken, address(this)).add(balance());       
-        } 
-        return balance();
+        uint balanceInToken = IOptyStrategy(optyStrategy).balanceInToken(strategyHash,address(this));
+        return balanceInToken.add(balance());
     }
 
     /**
      * @dev Function to get the DAI balance of OptyPool Contract
      */
     function balance() public view returns (uint256) {
+        return IERC20(token).balanceOf(address(this));
+    }
+    
+    function _balance() internal view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
@@ -176,6 +169,31 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
         _success = true;
     }
     
+    function _withdrawAll() internal {
+        uint256 amount = IOptyStrategy(optyStrategy).balance(strategyHash,address(this));
+        if (amount > 0) {
+            _withdrawToken(amount);
+        }
+    }
+    
+    function _withdrawSome(uint _amount) internal {
+        require(_amount > 0,"insufficient funds");
+        uint256 b = IOptyStrategy(optyStrategy).balance(strategyHash,address(this));
+        uint256 bT = IOptyStrategy(optyStrategy).balanceInToken(strategyHash,address(this));
+        require(bT >= _amount, "insufficient funds");
+        // can have unintentional rounding errors
+        uint256 amount = (b.mul(_amount)).div(bT).add(1);
+        _withdrawToken(amount);
+    }
+    
+    function _withdrawToken(uint _amount) internal {
+        require(_amount > 0,"insufficient funds");
+        address lendingPoolToken =
+        IOptyStrategy(optyStrategy).getLiquidityPoolToken(strategyHash);
+        IERC20(lendingPoolToken).safeTransfer(optyStrategy,_amount);
+        require(IOptyStrategy(optyStrategy).recall(_amount,strategyHash));
+    }
+    
     /**
      * @dev Function to withdraw the cDai tokens from the compound dai liquidity pool
      * 
@@ -185,7 +203,7 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
      *  -   _redeemAmount: amount to withdraw from the compound dai's liquidity pool. Its uints are: 
      *      in  weth uints i.e. 1e18
      */
-    function redeem(uint256 _redeemAmount) external nonReentrant returns(bool) {
+    function redeem(uint256 _redeemAmount) external onlyValidAddress nonReentrant returns(bool) {
         require(_redeemAmount > 0, "withdraw must be greater than 0");
         
         uint256 opBalance = balanceOf(msg.sender);
@@ -194,49 +212,37 @@ contract OptyDAIBasicPool is ERC20, ERC20Detailed, Ownable, ReentrancyGuard {
         poolValue = calPoolValueInToken();
         uint256 redeemAmountInToken = (poolValue.mul(_redeemAmount)).div(totalSupply());
         
-        //  Updating the totalSupply of opDai tokens
+        //  Updating the totalSupply of op tokens
         _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
         
         // Check Token balance
       uint256 tokenBalance = IERC20(token).balanceOf(address(this));
-      
+      bytes32 newStrategyHash =  strategyHash;
       if (tokenBalance < redeemAmountInToken) {
-    //       // TODO
-    //       // get the best strategy from RM 
-    //       // withdraw All if newProvider != provider
-          
-    //       // Withdraw some if provider is unchanged
-    
-    // TODO : Include this calculation as a part of Proxy
-    // -------------------------------------------------
-    uint256 _amt =  redeemAmountInToken.sub(tokenBalance);
-    uint256 balComp = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
-    balance(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
-    uint256 balToken = IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
-    balanceInToken(currentStrategy.strategySteps[0].lendingPoolToken, address(this));
-    require(balToken >= _amt, "insufficient funds");
-    // can have unintentional rounding errors
-    uint256 amount = (balComp.mul(_amt)).div(balToken).add(1);
-    // ---------------------------------------------
-        IERC20(currentStrategy.strategySteps[0].lendingPoolToken).
-        safeTransfer(currentStrategy.strategySteps[0].poolProxy, amount);
-        require(IOptyLiquidityPoolProxy(currentStrategy.strategySteps[0].poolProxy).
-        recall(currentStrategy.strategySteps[0].token,currentStrategy.strategySteps[0].lendingPoolToken,amount));
+          newStrategyHash = IRiskManager(riskManager).getBestStrategy(profile,token);
+          if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
+              _withdrawAll();
+          }
+          else {
+              _withdrawSome(redeemAmountInToken.sub(tokenBalance));
+          }
       }
-
-      IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-       // TODO: redeploy if provider is changes 
-       
-        //  Get the liquidityPool's address from the getStrategy()
-        // address _liquidityPool = getStrategy(token, "basic", 0)[0].liquidityPool;
-        // address _liquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
-        
-        //  Calling the withdraw function  from the IOptyLiquidityPool interface for cDai tokens
-        // optyCompoundDaiLiquidityPool is the address the OptyFi's Compound Dai Interaction contract
-        // _withdrawStatus = IOptyLiquidityPool(optyCompoundDaiLiquidityPool).withdraw(_liquidityPool, redeemOpDaiInDai);
-       poolValue = calPoolValueInToken();
-       return true;
+       IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
+       if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
+           strategyHash = _newStrategyHash;
+           _rebalance();
+      }
+      poolValue = calPoolValueInToken();
+      return true;
+    }
+    
+    /**
+     * @dev Modifier to check if the address is zero address or not
+     */
+    modifier onlyValidAddress(){
+        require(msg.sender != address(0), "zero address");
+        _;
     }
 }
