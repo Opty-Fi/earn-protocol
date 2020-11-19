@@ -3,19 +3,16 @@
 pragma solidity ^0.6.10;
 
 import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
-import "../../OptyRegistry.sol";
 import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
 contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     
-    using SafeERC20 for IERC20;    
-    using Address for address;
+    using SafeERC20 for IERC20;  
     
     mapping(address => address[]) public lendingPoolToUnderlyingTokens;
     
@@ -69,13 +66,13 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * 
     * @param _underlyingTokens Address of the token that the user wants to deposit
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amounts Quantity of _underlyingToken to deposit
     */
     function _deposit2(
         address[] memory _underlyingTokens,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint[] memory _amounts
         ) internal returns(bool){
         uint minAmountOut = uint(0);
@@ -89,7 +86,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
             }
         }
         ICurveDeposit(_liquidityPool).add_liquidity(amountsIn, minAmountOut);
-        IERC20(_lpToken).safeTransfer(msg.sender,IERC20(_lpToken).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender,IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -98,13 +95,13 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * 
     * @param _underlyingTokens Address of the token that the user wants to deposit
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amounts Quantity of _underlyingToken to deposit
     */
     function _deposit3(
         address[] memory _underlyingTokens,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint[] memory _amounts) internal returns(bool){
         uint minAmountOut = uint(0);
         uint[3] memory amountsIn;
@@ -117,7 +114,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
             }
         }
         ICurveDeposit(_liquidityPool).add_liquidity(amountsIn, minAmountOut);
-        IERC20(_lpToken).safeTransfer(msg.sender,IERC20(_lpToken).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender,IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -126,13 +123,13 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * 
     * @param _underlyingTokens Address of the token that the user wants to deposit
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amounts Quantity of _underlyingToken to deposit
     */
     function _deposit4(
         address[] memory _underlyingTokens,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint[] memory _amounts
         ) internal returns(bool){
         uint minAmountOut = uint(0);
@@ -146,7 +143,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
             }
         }
         ICurveDeposit(_liquidityPool).add_liquidity(amountsIn, minAmountOut);
-        IERC20(_lpToken).safeTransfer(msg.sender,IERC20(_lpToken).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender,IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -177,13 +174,13 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
     * 
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
     function _withdraw1(
         address _underlyingToken,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint _amount
         ) internal returns(bool) {
         address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
@@ -194,9 +191,9 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
             }
         }
         uint minAmountOut = 0;
-        IERC20(_lpToken).safeTransferFrom(msg.sender,address(this),_amount);
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(0));
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(_amount));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity_one_coin(_amount, i, minAmountOut, true);
         IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
@@ -206,19 +203,19 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
     * 
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
     function _withdraw2(
         address[] memory _underlyingTokens,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint  _amount
         ) internal returns(bool) {
         uint[2] memory minAmountOut = [uint(0), uint(0)];
-        IERC20(_lpToken).safeTransferFrom(msg.sender,address(this),_amount);
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(0));
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(_amount));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0 ; i < 2 ; i++) {
             IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));   
@@ -230,19 +227,19 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
     * 
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
     function _withdraw3(
         address[] memory _underlyingTokens,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint _amount
         ) internal returns(bool) {
         uint[3] memory minAmountOut = [uint(0), uint(0), uint(0)];
-        IERC20(_lpToken).safeTransferFrom(msg.sender,address(this),_amount);
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(0));
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(_amount));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0; i < 3 ; i++){
             IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));
@@ -254,19 +251,19 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
     * 
     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-    * @param _lpToken Address of the token that represents users' holdings in the pool
+    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
     */
     function _withdraw4(
         address[] memory _underlyingTokens,
         address _liquidityPool,
-        address _lpToken,
+        address _liquidityPoolToken,
         uint _amount
         ) internal returns(bool) {
         uint[4] memory minAmountOut = [uint(0), uint(0), uint(0), uint(0)];
-        IERC20(_lpToken).safeTransferFrom(msg.sender,address(this),_amount);
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(0));
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(_amount));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0; i < 4 ; i++){
             IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));
@@ -274,7 +271,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function getLendingPoolToken(address _lendingPool) public override view returns(address) {
+    function getLiquidityPoolToken(address _lendingPool) public override view returns(address) {
         return ICurveDeposit(_lendingPool).token();
     }
     
@@ -294,11 +291,11 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     */
     function balanceInToken(
         address _underlyingToken,  
-        address _lendingPool, 
+        address _liquidityPool, 
         address _holder
         ) public override view returns(uint) {
-        address[] memory _underlyingTokens = _getUnderlyingTokens(_lendingPool);
-        address _lpToken = getLendingPoolToken(_lendingPool);
+        address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
+        address _liquidityPoolToken = getLiquidityPoolToken(_liquidityPool);
         int128 tokenIndex = 0;
         for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
             if(_underlyingTokens[i] == _underlyingToken) {
@@ -308,7 +305,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         /**
         * TODO: Implement Curve calculations
         */
-        return ICurveDeposit(_lendingPool).calc_withdraw_one_coin(IERC20(_lpToken).balanceOf(_holder), tokenIndex);
+        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(IERC20(_liquidityPoolToken).balanceOf(_holder), tokenIndex);
     }
     
     /** 

@@ -1,56 +1,50 @@
 // SPDX-License-Identifier:MIT
 
 pragma solidity ^0.6.10;
-pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
-import "../../OptyRegistry.sol";
 import "../../interfaces/fulcrum/IFulcrum.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
-import "../../utils/Modifiers.sol";
 
-contract OptyFulcrumDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
+contract OptyFulcrumDepositPoolProxy is IOptyDepositPoolProxy {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint;
-    using Address for address;
 
-    OptyRegistry OptyRegistryContract;
-   
-    constructor(address _optyRegistry) public {
-        setOptyRegistry(_optyRegistry);
-    }
-    
-    function setOptyRegistry(address _optyRegistry) public onlyGovernance {
-        require(_optyRegistry.isContract(),"!_optyRegistry");
-        OptyRegistryContract = OptyRegistry(_optyRegistry);
-    }
-
-    function deposit(address[] memory _underlyingTokens, address _lendingPool, uint[] memory _amounts) public override returns(bool) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPool,_underlyingTokens);
-        IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
-        IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(0));
-        IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(_amounts[0]));
-        IFulcrum(_lendingPool).mint(msg.sender, _amounts[0]);
-        IERC20(_lendingPoolToken).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
+    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
+        address _underlyingToken = _getUnderlyingToken(_liquidityPool);
+        IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
+        IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(_amounts[0]));
+        IFulcrum(_liquidityPoolToken).mint(msg.sender, _amounts[0]);
         return true;
     }
     
-    function withdraw(address[] memory _underlyingTokens, address _lendingPool, uint _burnAmount) public override returns(bool) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPool, _underlyingTokens);
-        IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_burnAmount);
-        IFulcrum(_lendingPoolToken).burn(msg.sender, _burnAmount);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
+    function withdraw(address[] memory, address, address _liquidityPoolToken, uint _burnAmount) public override returns(bool) {
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_burnAmount);
+        IFulcrum(_liquidityPoolToken).burn(msg.sender, _burnAmount);
         return true;
     }
 
-    function balanceInToken(address[] memory _underlyingTokens, address, address _lendingPool, address _holder) public override view returns(uint) {
-        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPool,_underlyingTokens);
-        uint b = IERC20(_lendingPoolToken).balanceOf(_holder);
+    function balanceInToken(address , address _liquidityPool, address _holder) public override view returns(uint) {
+        address _liquidityPoolToken = getLiquidityPoolToken(_liquidityPool);
+        uint b = IERC20(_liquidityPoolToken).balanceOf(_holder);
         if (b > 0) {
-            b = b.mul(IFulcrum(_lendingPool).tokenPrice()).div(1e18);
+            b = b.mul(IFulcrum(_liquidityPool).tokenPrice()).div(1e18);
         }
         return b;
+    }
+    
+    function getUnderlyingTokens(address _liquidityPool, address) public override view returns(address[] memory _underlyingTokens) {
+        _underlyingTokens = new address[](1);
+        _underlyingTokens[0] = IFulcrum(_liquidityPool).loanTokenAddress();
+    }
+    
+    function _getUnderlyingToken(address _liquidityPoolToken) internal view returns(address) {
+        return IFulcrum(_liquidityPoolToken).loanTokenAddress();
+    }
+    
+    function getLiquidityPoolToken(address _liquidityPool) public override view returns(address) {
+        return _liquidityPool;
     }
 }

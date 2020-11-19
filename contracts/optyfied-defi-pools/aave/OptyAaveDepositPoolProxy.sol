@@ -1,34 +1,16 @@
 // SPDX-License-Identifier:MIT
 
 pragma solidity ^0.6.10;
-pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
 import "../../interfaces/aave/IAave.sol";
-import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../interfaces/aave/IAToken.sol";
-import "../../interfaces/aave/IPriceOracle.sol";
+import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../utils/ERC20Detailed.sol";
-import "../../libraries/Addresses.sol";
-import "../../utils/Modifiers.sol";
 
-contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
+contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy {
     
     using SafeERC20 for IERC20;
-    using SafeERC20 for IAToken;
-    using SafeMath for uint;
-    using Address for address;
-
-    ILendingPoolAddressesProvider LendingPoolAddressesProvider;
-
-    constructor() public {
-        setLendingPoolAddressProvider(address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8));
-    }
-    
-    function setLendingPoolAddressProvider(address _lendingPoolAddressProvider) public onlyGovernance {
-        LendingPoolAddressesProvider = ILendingPoolAddressesProvider(_lendingPoolAddressProvider);
-    }
     
     function deposit(address _liquidityPoolAddressProvider, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool){
         address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
@@ -39,7 +21,7 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         IERC20(_underlyingToken).safeApprove(_lendingPoolCore, uint(_amounts[0]));
         IAave(_lendingPool).deposit(_underlyingToken,_amounts[0],0);
         require(_isTransferAllowed(_liquidityPoolToken,_amounts[0],address(this)),"!transferAllowed");
-        IAToken(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
     
@@ -51,21 +33,21 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function getLendingPoolToken(address _lendingPoolToken) public override view returns(address) {
-        return _lendingPoolToken;
+    function getLiquidityPoolToken(address _liquidityPoolToken) public override view returns(address) {
+        return _liquidityPoolToken;
     }
     
-    function getUnderlyingTokens(address ,address _lendingPoolToken) public override view returns(address[] memory _underlyingTokens) {
+    function getUnderlyingTokens(address ,address _liquidityPoolToken) public override view returns(address[] memory _underlyingTokens) {
         _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = IAToken(_lendingPoolToken).underlyingAssetAddress();
+        _underlyingTokens[0] = IAToken(_liquidityPoolToken).underlyingAssetAddress();
     }
     
-    function _getUnderlyingTokens(address _lendingPoolToken) internal view returns(address) {
-        return IAToken(_lendingPoolToken).underlyingAssetAddress();
+    function _getUnderlyingTokens(address _liquidityPoolToken) internal view returns(address) {
+        return IAToken(_liquidityPoolToken).underlyingAssetAddress();
     }
     
-    function _isTransferAllowed(address _lendingPoolToken, uint _amount, address _sender) internal view returns(bool transferAllowed) {
-        transferAllowed = IAToken(_lendingPoolToken).isTransferAllowed(_sender, _amount);
+    function _isTransferAllowed(address _liquidityPoolToken, uint _amount, address _sender) internal view returns(bool transferAllowed) {
+        transferAllowed = IAToken(_liquidityPoolToken).isTransferAllowed(_sender, _amount);
     }
 
     function _getLendingPoolCore(address _lendingPoolAddressProvider) internal view returns (address) {
@@ -76,11 +58,7 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPool();
     }
     
-    function _getPriceOracle(address _lendingPoolAddressProvider) internal view returns (address) {
-        return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getPriceOracle();
-    }
-
-    function balanceInToken(address , address _lpToken, address _holder) public override view returns(uint256) {
-        return IERC20(_lpToken).balanceOf(_holder);
+    function balanceInToken(address , address _liquidityPoolToken, address _holder) public override view returns(uint256) {
+        return IERC20(_liquidityPoolToken).balanceOf(_holder);
     }
 }

@@ -6,14 +6,12 @@ pragma experimental ABIEncoderV2;
 import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
 import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
 contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
-    using Address for address;
 
     address public compoundLens;
     address public comptroller;
@@ -65,7 +63,7 @@ contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         return ICompound(_liquidityPoolToken).underlying();
     }
     
-    function getLendingPoolToken(address _lendingPool) public override view returns(address) {
+    function getLiquidityPoolToken(address _lendingPool) public override view returns(address) {
         return _lendingPool;
     }
 
