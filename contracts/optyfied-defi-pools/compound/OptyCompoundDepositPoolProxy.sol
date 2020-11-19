@@ -4,7 +4,6 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
-import "../../OptyRegistry.sol";
 import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../libraries/Addresses.sol";
@@ -19,20 +18,11 @@ contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
     address public compoundLens;
     address public comptroller;
     address public comp;
-
-    OptyRegistry OptyRegistryContract;
-
     
-    constructor(address _optyRegistry) public {
-        setOptyRegistry(_optyRegistry);
+    constructor() public {
         setCompoundLens(address(0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074));
         setComptroller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
         setComp((0xc00e94Cb662C3520282E6f5717214004A7f26888));
-    }
-    
-    function setOptyRegistry(address _optyRegistry) public onlyGovernance {
-        require(_optyRegistry.isContract(),"!_optyRegistry");
-        OptyRegistryContract = OptyRegistry(_optyRegistry);
     }
 
     function setCompoundLens(address _compoundLens) public onlyOwner {
@@ -47,32 +37,43 @@ contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         comp = _comp;
     }
 
-    function deposit(address[] memory _underlyingTokens, address _lendingPool, uint[] memory _amounts) public override returns(bool) {
-        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPool,keccak256(abi.encodePacked(_underlyingTokens)));
-        IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
-        IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(0));
-        IERC20(_underlyingTokens[0]).safeApprove(_lendingPool, uint(_amounts[0]));
-        uint result = ICompound(_lendingPoolToken).mint(_amounts[0]);
+    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
+        address _underlyingToken = _getUnderlyingTokens(_liquidityPoolToken);
+        IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
+        IERC20(_underlyingToken).safeApprove(_liquidityPoolToken, uint(0));
+        IERC20(_underlyingToken).safeApprove(_liquidityPoolToken, uint(_amounts[0]));
+        uint result = ICompound(_liquidityPool).mint(_amounts[0]);
         require(result == 0);
-        IERC20(_lendingPoolToken).safeTransfer(msg.sender, IERC20(_lendingPoolToken).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
     
-    function withdraw(address[] memory _underlyingTokens, address _lendingPool, uint _amount) public override returns(bool) {
-        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPool,keccak256(abi.encodePacked(_underlyingTokens)));
-        IERC20(_lendingPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
-        uint result = ICompound(_lendingPoolToken).redeem(_amount);
+    function withdraw(address[] memory _underlyingTokens,address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        uint result = ICompound(_liquidityPool).redeem(_amount);
         require(result == 0);
         IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
     }
+    
+    function getUnderlyingTokens(address _liquidityPool, address) public override view returns(address[] memory _underlyingTokens) {
+        _underlyingTokens = new address[](1);
+        _underlyingTokens[0] = ICompound(_liquidityPool).underlying();
+    }
+    
+    function _getUnderlyingTokens(address _liquidityPoolToken) internal view returns(address) {
+        return ICompound(_liquidityPoolToken).underlying();
+    }
+    
+    function getLendingPoolToken(address _lendingPool) public override view returns(address) {
+        return _lendingPool;
+    }
 
-    function balanceInToken(address[] memory _underlyingTokens, address, address _lendingPoolAddressProvider, address _holder) public override view returns(uint256) {
-        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
+    function balanceInToken(address , address _lpToken, address _holder) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
-        uint256 b = IERC20(_lendingPoolToken).balanceOf(_holder);
+        uint256 b = IERC20(_lpToken).balanceOf(_holder);
         if (b > 0) {
-            b = b.mul(ICompound(_lendingPoolToken).exchangeRateStored()).div(1e18);
+            b = b.mul(ICompound(_lpToken).exchangeRateStored()).div(1e18);
          }
          return b;
     }

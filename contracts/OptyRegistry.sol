@@ -7,11 +7,9 @@ import "./libraries/Addresses.sol";
 import "./utils/Modifiers.sol";
 
 struct StrategyStep {
-        address creditPool;
-        address creditPoolProxy;
-        address borrowToken; 
-        address liquidityPool; 
-        address poolProxy;
+    address pool;
+    address outputToken;
+       bool isBorrow;
 }
 
 struct LiquidityPool {
@@ -50,6 +48,8 @@ contract OptyRegistry is Modifiers{
     mapping(bytes32 => bytes32[])                   public tokenToStrategies;
     mapping(address => mapping(bytes32 => address)) public liquidityPoolToLPTokens;
     mapping(address => mapping(address => bytes32)) public liquidityPoolToTokenHashes;
+    mapping(address => address)                     public liquidityPoolToDepositPoolProxy;
+    mapping(address => address)                     public liquidityPoolToBorrowPoolProxy;
     
     /**
      * @dev Sets the value for {governance} and {strategist}, 
@@ -214,6 +214,33 @@ contract OptyRegistry is Modifiers{
     }
     
     /**
+     * @dev Returns the liquidity pool by `_pool`.
+     */
+   function getLiquidityPool(address _pool) public view returns(LiquidityPool memory _liquidityPool) {	   
+         _liquidityPool = liquidityPools[_pool];	    
+    }
+    
+    /**
+     * @dev Provide `_rate` to `_pool` from the {liquidityPools} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogRateLiquidityPool} event.
+     *
+     * Requirements:
+     *
+     * - `_pool` cannot be the zero address or an EOA.
+     * - msg.sender should be governance.
+     * - `_pool` should be approved
+     */
+    function rateLiquidityPool(address _pool, uint8 _rate) public onlyGovernance returns(bool) {
+        require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
+        liquidityPools[_pool].rating = _rate;
+        emit LogRateLiquidityPool(msg.sender,_pool,liquidityPools[_pool].rating);
+        return true;
+    }
+    
+    /**
      * @dev Sets `_pool` from the {creditPools} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
@@ -262,33 +289,6 @@ contract OptyRegistry is Modifiers{
     }
     
     /**
-     * @dev Provide `_rate` to `_pool` from the {liquidityPools} mapping.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {LogRateLiquidityPool} event.
-     *
-     * Requirements:
-     *
-     * - `_pool` cannot be the zero address or an EOA.
-     * - msg.sender should be governance.
-     * - `_pool` should be approved
-     */
-    function rateLiquidityPool(address _pool, uint8 _rate) public onlyGovernance returns(bool) {
-        require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
-        liquidityPools[_pool].rating = _rate;
-        emit LogRateLiquidityPool(msg.sender,_pool,liquidityPools[_pool].rating);
-        return true;
-    }
-    
-    /**
-     * @dev Returns the liquidity pool by `_pool`.
-     */
-   function getLiquidityPool(address _pool) public view returns(LiquidityPool memory _liquidityPool) {	   
-         _liquidityPool = liquidityPools[_pool];	    
-    }
-    
-    /**
      * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
@@ -305,6 +305,48 @@ contract OptyRegistry is Modifiers{
         require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
         creditPools[_pool].rating = _rate;
         emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
+        return true;
+    }
+    
+    /**
+     * @dev Sets liquidity `_pool` to the opty pool proxy `_poolProxy` from the {liquidityPoolToBorrowPoolProxy} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogLiquidityPoolToBorrowToken} event.
+     *
+     * Requirements:
+     *
+     * - `_pool`should be approved.
+     * - msg.sender should be governance.
+     * - `_poolProxy` should be contract
+     */
+    function setLiquidityPoolToBorrowPoolProxy(address _pool, address _poolProxy) public onlyGovernance returns(bool) {
+        require(_poolProxy.isContract(),"!_poolProxy.isContract()");
+        require(creditPools[_pool].isLiquidityPool,"!liquidityPools");
+        liquidityPoolToBorrowPoolProxy[_pool] = _poolProxy;
+        emit LogLiquidityPoolToBorrowToken(msg.sender, _pool, _poolProxy);
+        return true;
+    }
+    
+    /**
+     * @dev Sets liquidity `_pool` to the opty pool proxy `_poolProxy` from the {liquidityPoolToDepositPoolProxy} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogLiquidityPoolToDepositToken} event.
+     *
+     * Requirements:
+     *
+     * - `_pool`should be approved.
+     * - msg.sender should be governance.
+     * - `_poolProxy` should be contract
+     */
+    function setLiquidityPoolToDepositPoolProxy(address _pool, address _poolProxy) public onlyGovernance returns(bool) {
+        require(_poolProxy.isContract(),"!_poolProxy.isContract()");
+        require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
+        liquidityPoolToDepositPoolProxy[_pool] = _poolProxy;
+        emit LogLiquidityPoolToDepositToken(msg.sender, _pool, _poolProxy);
         return true;
     }
    
@@ -330,57 +372,28 @@ contract OptyRegistry is Modifiers{
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
             hashes[i] = keccak256(
                             abi.encodePacked(
-                                _strategySteps[i].creditPool,
-                                _strategySteps[i].creditPoolProxy,
-                                _strategySteps[i].borrowToken,
-                                _strategySteps[i].liquidityPool, 
-                                _strategySteps[i].poolProxy
+                                _strategySteps[i].pool,
+                                _strategySteps[i].outputToken,
+                                _strategySteps[i].isBorrow
                             )
                         );
         }
         bytes32  hash = keccak256(abi.encodePacked(hashes));
         require(_isNewStrategy(hash),"isNewStrategy");
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
-            if(
-                address(_strategySteps[i].creditPool) == address(0) &&
-                address(_strategySteps[i].creditPoolProxy) == address(0) &&
-                address(_strategySteps[i].borrowToken) == address(0)
-            ){
-                    require(
-                            liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
-                            _strategySteps[i].poolProxy.isContract()
-                        );
-            }
-            else if(
-                address(_strategySteps[i].creditPool) != address(0) && 
-                address(_strategySteps[i].creditPoolProxy) != address(0) &&
-                address(_strategySteps[i].borrowToken) != address(0) &&
-                address(_strategySteps[i].liquidityPool) != address(0) &&
-                address(_strategySteps[i].poolProxy) != address(0)
-                ){
-                require( 
-                    creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
-                    tokens[_strategySteps[i].borrowToken] &&
-                    liquidityPools[address(_strategySteps[i].liquidityPool)].isLiquidityPool &&
-                    _strategySteps[i].poolProxy.isContract(),
-                    "!strategyStep"
-                    );
+            if(_strategySteps[i].isBorrow) {
+                require(creditPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
+                require(tokens[_strategySteps[i].outputToken],"!borrowToken");
             }
             else {
-                require( 
-                    creditPools[address(_strategySteps[i].creditPool)].isLiquidityPool &&
-                    tokens[_strategySteps[i].borrowToken] &&
-                    _strategySteps[i].poolProxy.isContract(),
-                    "!strategyStep"
-                    );
+                require(liquidityPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
+                require(liquidityPoolToLPTokens[_strategySteps[i].pool][_tokensHash] == _strategySteps[i].outputToken,"!liquidityPoolToLPTokens");   
             }
             strategies[hash].strategySteps.push(
                                             StrategyStep(
-                                                        _strategySteps[i].creditPool,
-                                                        _strategySteps[i].creditPoolProxy,
-                                                        _strategySteps[i].borrowToken,
-                                                        _strategySteps[i].liquidityPool,
-                                                        _strategySteps[i].poolProxy
+                                                        _strategySteps[i].pool,
+                                                        _strategySteps[i].outputToken,
+                                                        _strategySteps[i].isBorrow
                                                     )
                                             );
         }
@@ -417,8 +430,7 @@ contract OptyRegistry is Modifiers{
      * - `_hash` strategy should not be approved
      * - `_hash` strategy should exist in {strategyHashIndexes}
      */
-   function approveStrategy(bytes32 _hash) public onlyGovernance returns(bool){	    
-        // require(_hash.length > 0 , "empty");	    
+   function approveStrategy(bytes32 _hash) public onlyGovernance returns(bool){
         require(!_isNewStrategy(_hash),"!isNewStrategy");	    
         require(!strategies[_hash].isStrategy,"!strategies.isStrategy");	    
         strategies[_hash].isStrategy = true;	            
@@ -435,14 +447,11 @@ contract OptyRegistry is Modifiers{
      *
      * Requirements:
      *
-     * - `_hash`'s lengt hshould be more than zero.
      * - msg.sender should be governance.
      * - `_hash` strategy should not be revoked
      * - `_hash` strategy should exist in {strategyHashIndexes}
      */
     function revokeStrategy(bytes32 _hash) public onlyGovernance returns(bool){	    
-        // require(_hash.length > 0 , "empty");	    
-        // require(!_isNewStrategy(_hash),"!isNewStrategy");	    
         require(strategies[_hash].isStrategy,"strategies.isStrategy");	    
         strategies[_hash].isStrategy = false;	    
         emit LogStrategy(msg.sender,_hash,strategies[_hash].isStrategy);	    
@@ -458,13 +467,11 @@ contract OptyRegistry is Modifiers{
      *
      * Requirements:
      *
-     * - `_hash`'s length hshould be more than zero.
      * - msg.sender should be governance.
      * - `_hash` strategy should be approved
      * - `_hash` strategy should exist in {strategyHashIndexes}
      */
     function scoreStrategy(bytes32 _hash, uint8 _score) public onlyGovernance returns(bool){
-        //  require(_hash.length > 0 , "empty");
          require(!_isNewStrategy(_hash),"!isNewStrategy");
          require(strategies[_hash].isStrategy,"strategies.isStrategy");
          strategies[_hash].score = _score;
@@ -636,4 +643,18 @@ contract OptyRegistry is Modifiers{
      * Note that `pool` and `tokens` should be approved in {liquidityPools} and {tokens} respectively.
      */
     event LogSetLiquidityPoolToLPTokens(address indexed caller, address indexed pool, bytes32 indexed tokens, address poolToken);
+    
+    /**
+     * @dev Emitted when liquidity pool `pool` is assigned to `poolProxy`.
+     *
+     * Note that `pool` should be approved in {liquidityPools}.
+     */
+    event LogLiquidityPoolToDepositToken(address indexed caller, address indexed pool, address indexed poolProxy);
+    
+    /**
+     * @dev Emitted when liquidity pool `pool` is assigned to `poolProxy`.
+     *
+     * Note that `pool` should be approved in {creditPools}.
+     */
+    event LogLiquidityPoolToBorrowToken(address indexed caller, address indexed pool, address indexed poolProxy);
 }
