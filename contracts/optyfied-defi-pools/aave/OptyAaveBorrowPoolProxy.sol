@@ -59,7 +59,7 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
         address _lendingPoolAddressProvider, 
         address _holder
         ) public override view returns(uint256){
-        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
+        address _lendingPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
     
@@ -69,21 +69,15 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
         address _borrowToken, 
         uint _amount
         ) public override returns(bool success) {
-        // get variables from address provider
         address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
         address _priceOracle = _getPriceOracle(_lendingPoolAddressProvider);
-        address _liquidityPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
-        
-        // transfer underlying token to this contract
-        // IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
-        
-        // transfer liquidity pool token
-        // IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
-        UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
+        address _liquidityPoolToken = OptyRegistryContract.getLiquidityPoolToLPToken(_lendingPoolAddressProvider,_underlyingTokens);
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IAave.UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
         if(!_userReserveData.enabled) {
             IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingTokens[0],true);        
         }
-        UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
+        IAave.UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
         uint256 _maxBorrowETH = (_userAccountData.totalBorrowsETH.add(_userAccountData.availableBorrowsETH));
         uint256 _maxSafeETH = _maxBorrowETH.div(healthFactor); 
         _maxSafeETH = _maxSafeETH.mul(95).div(100); // 5% buffer so we don't go into a earn/rebalance loop
@@ -118,7 +112,7 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
         bool _enabled
             ) {
                 address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
-                UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_reserve, _user);
+                IAave.UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_reserve, _user);
                 _currentATokenBalance = _userReserveData.currentATokenBalance;
                 _currentBorrowBalance = _userReserveData.currentBorrowBalance;
                 _principalBorrowBalance = _userReserveData.principalBorrowBalance;
@@ -145,7 +139,7 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
             uint _healthFactor
         ) {
             address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
-            UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(_user);
+            IAave.UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(_user);
             _totalLiquidityETH = _userAccountData.totalLiquidityETH;
             _totalCollateralETH = _userAccountData.totalCollateralETH;
             _totalBorrowsETH = _userAccountData.totalBorrowsETH;
