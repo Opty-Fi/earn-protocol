@@ -79,11 +79,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     function supplyToken(uint _amount) public onlyValidAddress {
        require(_amount > 0,"withdraw must be greater than 0");
        IERC20(token).safeApprove(address(OptyStrategyContract), _amount);
-       address[] memory _underlyingTokens = new address[](1);
-       _underlyingTokens[0] = token;
-       uint[] memory _amounts = new uint[](1);
-       _amounts[0] = _amount;
-       OptyStrategyContract.poolDeposit(_underlyingTokens,_amounts,strategyHash);
+       OptyStrategyContract.poolDeposit(token,_amount,strategyHash);
     }
     
     function rebalance() public onlyValidAddress {
@@ -122,7 +118,6 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
         uint balanceInToken = OptyStrategyContract.
                                     balanceInToken(
                                         strategyHash,
-                                        _underlyingTokens,
                                         token,
                                         address(this)
                                     );
@@ -141,12 +136,8 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     }
     
     function _withdrawAll() internal {
-        address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = token;
-        address _lendingPoolToken = OptyStrategyContract.
-                                        getLiquidityPoolToken(_underlyingTokens,strategyHash);
-        uint256 _amount = IERC20(_lendingPoolToken).
-                                    balanceOf(address(this));
+        address _lendingPoolToken = OptyStrategyContract.getOutputToken(strategyHash);
+        uint256 _amount = IERC20(_lendingPoolToken).balanceOf(address(this));
         if (_amount > 0) {
             _withdrawToken(_amount);
         }
@@ -154,17 +145,9 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     
     function _withdrawSome(uint _amount) internal {
         require(_amount > 0,"insufficient funds");
-        address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = token;
-        address _lendingPoolToken = OptyStrategyContract.
-                                        getLiquidityPoolToken(_underlyingTokens,strategyHash);
+        address _lendingPoolToken = OptyStrategyContract.getOutputToken(strategyHash);
         uint256 b = IERC20(_lendingPoolToken).balanceOf(address(this));
-        uint256 bT = OptyStrategyContract.balanceInToken(
-                                                        strategyHash,
-                                                        _underlyingTokens,
-                                                        token,
-                                                        address(this)
-                                                    );
+        uint256 bT = OptyStrategyContract.balanceInToken(strategyHash,token,address(this));
         require(bT >= _amount, "insufficient funds");
         // can have unintentional rounding errors
         uint256 amount = (b.mul(_amount)).div(bT).add(1);
@@ -173,16 +156,9 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     
     function _withdrawToken(uint _amount) internal {
         require(_amount > 0,"insufficient funds");
-        address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = token;
-        address _lendingPoolToken =
-        OptyStrategyContract.getLiquidityPoolToken(_underlyingTokens,strategyHash);
+        address _lendingPoolToken = OptyStrategyContract.getOutputToken(strategyHash);
         IERC20(_lendingPoolToken).safeApprove(address(OptyStrategyContract),_amount);
-        require(OptyStrategyContract.poolWithdraw(
-                                                _underlyingTokens,
-                                                _amount,
-                                                strategyHash
-                                                ));
+        require(OptyStrategyContract.poolWithdraw(token,_amount,strategyHash));
     }
     
     /**

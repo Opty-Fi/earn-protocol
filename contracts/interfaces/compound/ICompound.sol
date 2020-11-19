@@ -24,4 +24,5 @@ interface ICompound {
     function redeem(uint256 redeemTokens) external returns (uint256);
     function exchangeRateStored() external view returns (uint);
     function claimComp(address holder) external;
+    function underlying() external view returns(address);
 }
