@@ -96,6 +96,24 @@ contract OptyRegistry is Modifiers{
         approveToken(cDAILiquidityPool);
         approveLiquidityPool(cDAILiquidityPool);
         setLiquidityPoolToLPToken(cDAILiquidityPool,tkns,cDAILiquidityPool);
+
+        // activation for yearn dai vault
+        address yearnDAIVault = address(0xACd43E627e64355f1861cEC6d3a6688B31a6F952);
+        approveLiquidityPool(yearnDAIVault);
+        approveToken(yearnDAIVault);
+        setLiquidityPoolToLPToken(yearnDAIVault,tkns,yearnDAIVault);
+        
+        //  activation for harvest dai vault
+        address harvestDAIvault = address(0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C);
+        approveToken(harvestDAIvault);
+        approveLiquidityPool(harvestDAIvault);
+        setLiquidityPoolToLPToken(harvestDAIvault,tkns,harvestDAIvault);
+        
+        // activation for fulcrum dai
+        address fulcrumDAILendingPool = address(0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0);
+        approveLiquidityPool(fulcrumDAILendingPool);
+        approveToken(fulcrumDAILendingPool);
+        setLiquidityPoolToLPToken(fulcrumDAILendingPool,tkns,fulcrumDAILendingPool);
         
         // initialized token(usdc) hash  to usdc 
         tkns[0] = usdc;
@@ -107,7 +125,7 @@ contract OptyRegistry is Modifiers{
         approveLiquidityPool(cUSDCLiquidityPool);
         setLiquidityPoolToLPToken(cUSDCLiquidityPool,tkns,cUSDCLiquidityPool);
         
-        // initialized token(dai+usdc) hash  to dai+usdc 
+        // activation for curve compound (dai + usdc)
         tkns = new address[](2);
         tkns[0] = dai;
         tkns[1] = usdc;

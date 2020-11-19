@@ -20,5 +20,8 @@
         "enabled": true,
         "runs": 999999
       }
-    }
+    },
+    "compilerType": "solcjs",
+    "sourceDirectory": "./contracts",
+    "outputDirectory": "./build"
   }
