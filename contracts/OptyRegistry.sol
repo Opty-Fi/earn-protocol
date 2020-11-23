@@ -396,7 +396,7 @@ contract OptyRegistry is Modifiers{
                             )
                         );
         }
-        bytes32  hash = keccak256(abi.encodePacked(hashes));
+        bytes32  hash = keccak256(abi.encodePacked(_tokensHash,hashes));
         require(_isNewStrategy(hash),"isNewStrategy");
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
             if(_strategySteps[i].isBorrow) {
