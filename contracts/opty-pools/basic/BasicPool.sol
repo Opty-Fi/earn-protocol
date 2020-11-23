@@ -8,14 +8,14 @@ import "./../../utils/ERC20.sol";
 import "./../../utils/ERC20Detailed.sol";
 import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
-import "./../../OptyRiskManager.sol";
-import "./../../strategies/OptyStrategy.sol";
+import "./../../RiskManager.sol";
+import "./../../StrategyManager.sol";
 import "./../../utils/Modifiers.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
+contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -24,8 +24,8 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     uint256 public poolValue;
     string  public profile;
     
-    OptyStrategy OptyStrategyContract;
-    OptyRiskManager OptyRiskManagerContract;
+    StrategyManager StrategyManagerContract;
+    RiskManager RiskManagerContract;
     
     /**
      * @dev
@@ -36,7 +36,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
         string memory _profile, 
         address _riskManager, 
         address _underlyingToken, 
-        address _optyStrategy
+        address _strategyManager
         ) public ERC20Detailed(
                                 string(abi.encodePacked("opty ",ERC20Detailed(_underlyingToken).name()," ",_profile)),
                                 string(abi.encodePacked("op", ERC20Detailed(_underlyingToken).symbol(),_profile)),
@@ -46,7 +46,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
         setProfile(_profile);
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        setOptyStrategy(_optyStrategy);
+        setStrategyManager(_strategyManager);
     }
     
     function setProfile(string memory _profile) public onlyOwner onlyValidAddress returns (bool _success)  {
@@ -58,7 +58,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     function setRiskManager(address _riskManager) public onlyOwner onlyValidAddress returns (bool _success) {
         require(_riskManager != address(0),"!_riskManager");
         require(_riskManager.isContract(),"!_riskManager.isContract");
-        OptyRiskManagerContract = OptyRiskManager(_riskManager);
+        RiskManagerContract = RiskManager(_riskManager);
         _success = true;
     }
 
@@ -69,23 +69,23 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
          _success = true;
     }
     
-    function setOptyStrategy(address _optyStrategy) public onlyOwner onlyValidAddress returns (bool _success) {
-        require(_optyStrategy != address(0),"!_optyStrategy");
-        require(_optyStrategy.isContract(),"!_optyStrategy.isContract");
-         OptyStrategyContract = OptyStrategy(_optyStrategy);
+    function setStrategyManager(address _strategyManager) public onlyOwner onlyValidAddress returns (bool _success) {
+        require(_strategyManager != address(0),"!_strategyManager");
+        require(_strategyManager.isContract(),"!_strategyManager.isContract");
+         StrategyManagerContract = StrategyManager(_strategyManager);
          _success = true;
     }
     
     function supplyToken(uint _amount) public onlyValidAddress {
        require(_amount > 0,"withdraw must be greater than 0");
-       IERC20(token).safeApprove(address(OptyStrategyContract), _amount);
-       OptyStrategyContract.poolDeposit(token,_amount,strategyHash);
+       IERC20(token).safeApprove(address(StrategyManagerContract), _amount);
+       StrategyManagerContract.poolDeposit(token,_amount,strategyHash);
     }
     
     function rebalance() public onlyValidAddress {
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
-        bytes32 newStrategyHash = OptyRiskManagerContract.getBestStrategy(profile,_underlyingTokens);
+        bytes32 newStrategyHash = RiskManagerContract.getBestStrategy(profile,_underlyingTokens);
     
         if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))
             && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
@@ -115,7 +115,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     function calPoolValueInToken() internal view returns (uint256) {
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
-        uint balanceInToken = OptyStrategyContract.
+        uint balanceInToken = StrategyManagerContract.
                                     balanceInToken(
                                         strategyHash,
                                         token,
@@ -136,7 +136,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     }
     
     function _withdrawAll() internal {
-        address _lendingPoolToken = OptyStrategyContract.getOutputToken(strategyHash);
+        address _lendingPoolToken = StrategyManagerContract.getOutputToken(strategyHash);
         uint256 _amount = IERC20(_lendingPoolToken).balanceOf(address(this));
         if (_amount > 0) {
             _withdrawToken(_amount);
@@ -145,9 +145,9 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     
     function _withdrawSome(uint _amount) internal {
         require(_amount > 0,"insufficient funds");
-        address _lendingPoolToken = OptyStrategyContract.getOutputToken(strategyHash);
+        address _lendingPoolToken = StrategyManagerContract.getOutputToken(strategyHash);
         uint256 b = IERC20(_lendingPoolToken).balanceOf(address(this));
-        uint256 bT = OptyStrategyContract.balanceInToken(strategyHash,token,address(this));
+        uint256 bT = StrategyManagerContract.balanceInToken(strategyHash,token,address(this));
         require(bT >= _amount, "insufficient funds");
         // can have unintentional rounding errors
         uint256 amount = (b.mul(_amount)).div(bT).add(1);
@@ -156,9 +156,9 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
     
     function _withdrawToken(uint _amount) internal {
         require(_amount > 0,"insufficient funds");
-        address _lendingPoolToken = OptyStrategyContract.getOutputToken(strategyHash);
-        IERC20(_lendingPoolToken).safeApprove(address(OptyStrategyContract),_amount);
-        require(OptyStrategyContract.poolWithdraw(token,_amount,strategyHash));
+        address _lendingPoolToken = StrategyManagerContract.getOutputToken(strategyHash);
+        IERC20(_lendingPoolToken).safeApprove(address(StrategyManagerContract),_amount);
+        require(StrategyManagerContract.poolWithdraw(token,_amount,strategyHash));
     }
     
     /**
@@ -284,7 +284,7 @@ contract OptyTokenBasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard 
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
         if (tokenBalance < redeemAmountInToken) {
-          newStrategyHash = OptyRiskManagerContract.getBestStrategy(profile,_underlyingTokens);
+          newStrategyHash = RiskManagerContract.getBestStrategy(profile,_underlyingTokens);
           if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))) {
               _withdrawAll();
           }

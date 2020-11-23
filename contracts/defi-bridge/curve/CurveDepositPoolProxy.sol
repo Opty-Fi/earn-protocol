@@ -2,20 +2,17 @@
 
 pragma solidity ^0.6.10;
 
-import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
-import "../../OptyRegistry.sol";
+import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
-contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
+contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     
-    using SafeERC20 for IERC20;    
-    using Address for address;
+    using SafeERC20 for IERC20;  
     
     mapping(address => address[]) public lendingPoolToUnderlyingTokens;
     
@@ -194,9 +191,9 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
             }
         }
         uint minAmountOut = 0;
-        IERC20(_lpToken).safeTransferFrom(msg.sender,address(this),_amount);
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(0));
-        IERC20(_lpToken).safeApprove(_liquidityPool, uint(_amount));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity_one_coin(_amount, i, minAmountOut, true);
         IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
@@ -274,7 +271,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function getLendingPoolToken(address _lendingPool) public override view returns(address) {
+    function getLiquidityPoolToken(address _lendingPool) public override view returns(address) {
         return ICurveDeposit(_lendingPool).token();
     }
     
@@ -297,8 +294,8 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         address _lendingPool, 
         address _holder
         ) public override view returns(uint) {
-        address[] memory _underlyingTokens = _getUnderlyingTokens(_lendingPool);
-        address _lpToken = getLendingPoolToken(_lendingPool);
+        address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
+        address _liquidityPoolToken = getLiquidityPoolToken(_liquidityPool);
         int128 tokenIndex = 0;
         for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
             if(_underlyingTokens[i] == _underlyingToken) {
@@ -308,7 +305,7 @@ contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         /**
         * TODO: Implement Curve calculations
         */
-        return ICurveDeposit(_lendingPool).calc_withdraw_one_coin(IERC20(_lpToken).balanceOf(_holder), tokenIndex);
+        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(IERC20(_liquidityPoolToken).balanceOf(_holder), tokenIndex);
     }
     
     /** 

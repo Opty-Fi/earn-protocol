@@ -3,18 +3,18 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IOptyBorrowPoolProxy.sol";
+import "../../interfaces/opty/IBorrowPoolProxy.sol";
 import "../../interfaces/aave/IAave.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../interfaces/aave/IAToken.sol";
-import "../../OptyRegistry.sol";
+import "../../Registry.sol";
 import "../../interfaces/aave/IPriceOracle.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/ERC20Detailed.sol";
 import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
-contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
+contract AaveBorrowPoolProxy is IBorrowPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeERC20 for IAToken;
@@ -23,14 +23,14 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
     
     uint256 public healthFactor = 1;
     
-    OptyRegistry OptyRegistryContract;
+    Registry RegistryContract;
     
-    constructor(address _optyRegistry) public {
-        setOptyRegistry(_optyRegistry);
+    constructor(address _registry) public {
+        setRegistry(_registry);
     }
     
-    function setOptyRegistry(address _optyRegistry) public onlyGovernance{
-        OptyRegistryContract = OptyRegistry(_optyRegistry);
+    function setRegistry(address _registry) public onlyGovernance{
+        RegistryContract = Registry(_registry);
     }
     
     function setHealthFactor(uint256 _hf) external onlyGovernance {
@@ -59,7 +59,7 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
         address _lendingPoolAddressProvider, 
         address _holder
         ) public override view returns(uint256){
-        address _lendingPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
+        address _lendingPoolToken = RegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
     
@@ -72,13 +72,8 @@ contract OptyAaveBorrowPoolProxy is IOptyBorrowPoolProxy,Modifiers {
         // get variables from address provider
         address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
         address _priceOracle = _getPriceOracle(_lendingPoolAddressProvider);
-        address _liquidityPoolToken = OptyRegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
-        
-        // transfer underlying token to this contract
-        // IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
-        
-        // transfer liquidity pool token
-        // IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        address _liquidityPoolToken = RegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
         if(!_userReserveData.enabled) {
             IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingTokens[0],true);        
