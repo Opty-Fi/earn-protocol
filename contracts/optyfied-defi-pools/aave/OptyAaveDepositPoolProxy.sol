@@ -58,7 +58,7 @@ contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPool();
     }
     
-    function balanceInToken(address , address _liquidityPoolToken, address _holder) public override view returns(uint256) {
+    function balanceInToken(address, address _liquidityPoolToken, address _holder) public override view returns(uint256) {
         return IERC20(_liquidityPoolToken).balanceOf(_holder);
     }
 }
