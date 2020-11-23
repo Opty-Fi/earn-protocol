@@ -2,13 +2,13 @@
 
 pragma solidity ^0.6.10;
 
-import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
+import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/aave/IAave.sol";
 import "../../interfaces/aave/IAToken.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../libraries/SafeERC20.sol";
 
-contract OptyAaveDepositPoolProxy is IOptyDepositPoolProxy {
+contract AaveDepositPoolProxy is IDepositPoolProxy {
     
     using SafeERC20 for IERC20;
     

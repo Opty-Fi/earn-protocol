@@ -3,12 +3,12 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
+import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
 
-contract OptyCompoundDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
+contract CompoundDepositPoolProxy is IDepositPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint256;

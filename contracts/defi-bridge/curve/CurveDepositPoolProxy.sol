@@ -2,7 +2,7 @@
 
 pragma solidity ^0.6.10;
 
-import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
+import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
@@ -10,7 +10,7 @@ import "../../interfaces/curve/ICurveDAO.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
 
-contract OptyCurveDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
+contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;  
     

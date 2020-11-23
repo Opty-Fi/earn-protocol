@@ -3,9 +3,9 @@
 pragma solidity ^0.6.10;
 
 /**
- * @dev Interface of the OptyDepositPoolProxy.
+ * @dev Interface of the DepositPoolProxy.
  */
-interface IOptyDepositPoolProxy {
+interface IDepositPoolProxy {
     /**
      * @dev Supply `liquidityPool` for Curve,Compound `liquidityPoolAddressProvider` for Aave 
      * and returns liquidityPoolToken to the caller`.

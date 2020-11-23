@@ -20,7 +20,7 @@ struct LiquidityPool {
 /**
  * @dev Contract for Opty Strategy Registry
  */
-contract OptyRegistry is Modifiers{
+contract Registry is Modifiers{
     using Address for address;
     
     struct Strategy { 

@@ -2,12 +2,12 @@
 
 pragma solidity ^0.6.10;
 
-import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
+import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/harvest.finance/IHarvestDeposit.sol";
 import "../../interfaces/harvest.finance/IHarvestFarm.sol";
 import "../../libraries/SafeERC20.sol";
 
-contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy {
+contract HarvestDepositPoolProxy is IDepositPoolProxy {
 
     using SafeERC20 for IERC20;
     using SafeMath for uint;
