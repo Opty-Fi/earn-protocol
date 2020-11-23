@@ -114,9 +114,16 @@ contract OptyRegistry is Modifiers{
         approveToken(fulcrumDAILendingPool);
         setLiquidityPoolToLPToken(fulcrumDAILendingPool,tkns,fulcrumDAILendingPool);
         
+        // activation for dforce dai
+        address dforceDAILiquidityPool = address(0x02285AcaafEB533e03A7306C55EC031297df9224);
+        approveLiquidityPool(dforceDAILiquidityPool);
+        approveToken(dforceDAILiquidityPool);
+        setLiquidityPoolToLPToken(dforceDAILiquidityPool,tkns,dforceDAILiquidityPool);
+        
         //  activation for compound usdc
         tkns = new address[](1);
         tkns[0] = usdc;
+        setTokensHashToTokens(tkns);
         address cUSDCLiquidityPool = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
         approveToken(cUSDCLiquidityPool);
         approveLiquidityPool(cUSDCLiquidityPool);
