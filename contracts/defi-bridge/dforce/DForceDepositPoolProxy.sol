@@ -11,7 +11,7 @@ import "../../libraries/SafeERC20.sol";
 import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
-contract OptyDForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
+contract DForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint;
