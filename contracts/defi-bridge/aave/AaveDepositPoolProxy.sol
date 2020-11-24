@@ -58,7 +58,9 @@ contract AaveDepositPoolProxy is IDepositPoolProxy {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPool();
     }
     
-    function balanceInToken(address, address _liquidityPoolToken, address _holder) public override view returns(uint256) {
-        return IERC20(_liquidityPoolToken).balanceOf(_holder);
+    function balanceInToken(address _underlyingToken, address _liquidityPoolAddressProvider, address _holder) public override view returns(uint256) {
+        address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
+        (,,,,,,,,,,,address aTokenAddress,) = IAave(_lendingPool).getReserveData(_underlyingToken);
+        return IERC20(aTokenAddress).balanceOf(_holder);        
     }
 }

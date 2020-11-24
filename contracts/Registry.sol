@@ -115,7 +115,14 @@ contract Registry is Modifiers{
         approveToken(fulcrumDAILendingPool);
         setLiquidityPoolToLPToken(fulcrumDAILendingPool,tkns,fulcrumDAILendingPool);
         
-        // initialized token(usdc) hash  to usdc 
+        // activation for dforce dai
+        address dforceDAILiquidityPool = address(0x02285AcaafEB533e03A7306C55EC031297df9224);
+        approveLiquidityPool(dforceDAILiquidityPool);
+        approveToken(dforceDAILiquidityPool);
+        setLiquidityPoolToLPToken(dforceDAILiquidityPool,tkns,dforceDAILiquidityPool);
+        
+        //  activation for compound usdc
+        tkns = new address[](1);
         tkns[0] = usdc;
         setTokensHashToTokens(tkns);
         
@@ -124,6 +131,12 @@ contract Registry is Modifiers{
         approveToken(cUSDCLiquidityPool);
         approveLiquidityPool(cUSDCLiquidityPool);
         setLiquidityPoolToLPToken(cUSDCLiquidityPool,tkns,cUSDCLiquidityPool);
+        
+        // activation for cream usdc
+        address crUSDCLendingPool = address(0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322);
+        approveLiquidityPool(crUSDCLendingPool);
+        approveToken(crUSDCLendingPool);
+        setLiquidityPoolToLPToken(crUSDCLendingPool,tkns,crUSDCLendingPool);
         
         // activation for curve compound (dai + usdc)
         tkns = new address[](2);
