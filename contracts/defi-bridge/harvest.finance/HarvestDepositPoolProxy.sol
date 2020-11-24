@@ -1,54 +1,37 @@
 // SPDX-License-Identifier:MIT
 
 pragma solidity ^0.6.10;
-pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IOptyDepositPoolProxy.sol";
-import "../../OptyRegistry.sol";
+import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/harvest.finance/IHarvestDeposit.sol";
 import "../../interfaces/harvest.finance/IHarvestFarm.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
-import "../../utils/Modifiers.sol";
 
-contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
+contract HarvestDepositPoolProxy is IDepositPoolProxy {
 
     using SafeERC20 for IERC20;
     using SafeMath for uint;
-    using Address for address;
 
-    OptyRegistry OptyRegistryContract;
-
-    constructor(address _optyRegistry) public {
-        setOptyRegistry(_optyRegistry);
-    }
-
-    function setOptyRegistry(address _optyRegistry) public onlyGovernance {
-        require(_optyRegistry.isContract(),"!_optyRegistry");
-        OptyRegistryContract = OptyRegistry(_optyRegistry);
-    }
-
-    function deposit(address[] memory _underlyingTokens, address _vault, uint[] memory _amounts) public override returns(bool) {
-        address _vaultToken = OptyRegistryContract.getLiquidityPoolToLPToken(_vault,_underlyingTokens);
-        IERC20(_underlyingTokens[0]).safeTransferFrom(msg.sender,address(this),_amounts[0]);
-        IERC20(_underlyingTokens[0]).safeApprove(_vault, uint(0));
-        IERC20(_underlyingTokens[0]).safeApprove(_vault, uint(_amounts[0]));
-        IHarvestDeposit(_vault).deposit(_amounts[0]);
+    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
+        address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
+        IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
+        IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(_amounts[0]));
+        IHarvestDeposit(_liquidityPoolToken).deposit(_amounts[0]);
 
         // This commented code corresponds to including staking feature inside deposit function:
 
         // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
-        // IERC20(_vaultToken).safeApprove(_vaultFarm, uint(0));
-        // IERC20(_vaultToken).safeApprove(_vaultFarm, IERC20(_vaultToken).balanceOf(address(this)));
+        // IERC20(_liquidityPoolToken).safeApprove(_vaultFarm, uint(0));
+        // IERC20(_liquidityPoolToken).safeApprove(_vaultFarm, IERC20(_vaultToken).balanceOf(address(this)));
         // IHarvestFarm(_vaultFarm).stake(IERC20(_vaultToken).balanceOf(address(this)));
 
-        IERC20(_vaultToken).safeTransfer(msg.sender, IERC20(_vaultToken).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
 
-    function withdraw(address[] memory _underlyingTokens, address _vault, uint _shares) public override returns(bool) {
-        address _vaultToken = OptyRegistryContract.getLiquidityPoolToLPToken(_vault, _underlyingTokens);
-
+    function withdraw(address[] memory, address _liquidityPool, address _liquidityPoolToken, uint _shares) public override returns(bool) {
+        address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
         // This commented code corresponds to including unstaking and getting rewards features inside withdraw function:
 
         // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
@@ -57,17 +40,16 @@ contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         // IERC20(_farmToken).safeTransfer(msg.sender,IERC20(_farmToken).balanceOf(address(this)));
         // IHarvestDeposit(_vaultToken).withdraw(IERC20(_vaultToken).balanceOf(address(this)));
 
-        IERC20(_vaultToken).safeTransferFrom(msg.sender,address(this),_shares);
-        IHarvestDeposit(_vaultToken).withdraw(_shares);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
+        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_shares);
+        IHarvestDeposit(_liquidityPool).withdraw(_shares);
+        IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
         return true;
     }
 
-    function balanceInToken(address[] memory _underlyingTokens, address, address _vault, address _holder) public override view returns(uint) {
-        address _vaultToken = OptyRegistryContract.getLiquidityPoolToLPToken(_vault,_underlyingTokens);
-        uint b = IERC20(_vaultToken).balanceOf(_holder);
+    function balanceInToken(address , address _liquidityPool, address _holder) public override view returns(uint) {
+        uint b = IERC20(_liquidityPool).balanceOf(_holder);
         if (b > 0) {
-            b = b.mul(IHarvestDeposit(_vault).getPricePerFullShare()).div(1e18);
+            b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(1e18);
         }
         return b;
     }
@@ -99,6 +81,19 @@ contract OptyHarvestDepositPoolProxy is IOptyDepositPoolProxy,Modifiers {
         IERC20(_vaultToken).safeTransfer(msg.sender, IERC20(_vaultToken).balanceOf(address(this)));
         IERC20(farmToken).safeTransfer(msg.sender, IERC20(farmToken).balanceOf(address(this)));
         return true;
+    }
+    
+    function getUnderlyingTokens(address _liquidityPool, address) public override view returns(address[] memory _underlyingTokens) {
+        _underlyingTokens = new address[](1);
+        _underlyingTokens[0] = IHarvestDeposit(_liquidityPool).underlying();
+    }
+    
+    function _getUnderlyingToken(address _liquidityPoolToken) internal view returns(address) {
+        return IHarvestDeposit(_liquidityPoolToken).underlying();
+    }
+    
+    function getLiquidityPoolToken(address _liquidityPool) public override view returns(address) {
+        return _liquidityPool;
     }
 }
 
