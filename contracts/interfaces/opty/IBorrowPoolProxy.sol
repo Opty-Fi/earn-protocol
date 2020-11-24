@@ -3,9 +3,9 @@
 pragma solidity ^0.6.10;
 
 /**
- * @dev Interface of the OptyBorrowPoolProxy.
+ * @dev Interface of the BorrowPoolProxy.
  */
-interface IOptyBorrowPoolProxy {
+interface IBorrowPoolProxy {
     /**
      * @dev Borrow `amount` of `_borrowToken` token and sets the `underlyingToken` as collateral`.
      *
