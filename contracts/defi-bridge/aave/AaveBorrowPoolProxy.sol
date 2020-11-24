@@ -23,16 +23,6 @@ contract AaveBorrowPoolProxy is IBorrowPoolProxy,Modifiers {
     
     uint256 public healthFactor = 1;
     
-    Registry RegistryContract;
-    
-    constructor(address _registry) public {
-        setRegistry(_registry);
-    }
-    
-    function setRegistry(address _registry) public onlyGovernance{
-        RegistryContract = Registry(_registry);
-    }
-    
     function setHealthFactor(uint256 _hf) external onlyGovernance {
         healthFactor = _hf;
     }
@@ -56,27 +46,33 @@ contract AaveBorrowPoolProxy is IBorrowPoolProxy,Modifiers {
     function balanceInToken(
         address[] memory _underlyingTokens,
         address , 
-        address _lendingPoolAddressProvider, 
+        address _liquidityPool, 
         address _holder
         ) public override view returns(uint256){
-        address _lendingPoolToken = RegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
+        address _lendingPoolToken = IAave(_liquidityPool).getReserveData(_underlyingTokens[0]).aTokenAddress;
         return IERC20(_lendingPoolToken).balanceOf(_holder);
     }
     
     function borrow(
-        address[] memory _underlyingTokens,
+        address _underlyingToken,
         address _lendingPoolAddressProvider, 
         address _borrowToken, 
         uint _amount
         ) public override returns(bool success) {
         // get variables from address provider
         address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
+        address _lendingPoolCore = _getLendingPoolCore(_lendingPoolAddressProvider);
         address _priceOracle = _getPriceOracle(_lendingPoolAddressProvider);
-        address _liquidityPoolToken = RegistryContract.liquidityPoolToLPTokens(_lendingPoolAddressProvider,keccak256(abi.encodePacked(_underlyingTokens)));
-        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
-        UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], address(this));
+
+        UserReserveData memory _userReserveData = IAave(_lendingPool).getUserReserveData(_underlyingToken, address(this));
+        
+        IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_underlyingToken).safeApprove(_lendingPoolCore, uint(0));
+        IERC20(_underlyingToken).safeApprove(_lendingPoolCore, uint(_amount));
+        IAave(_lendingPool).deposit(_underlyingToken,_amount,0);
+        
         if(!_userReserveData.enabled) {
-            IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingTokens[0],true);        
+            IAave(_lendingPool).setUserUseReserveAsCollateral(_underlyingToken,true);        
         }
         UserAccountData memory _userAccountData = IAave(_lendingPool).getUserAccountData(address(this));
         uint256 _maxBorrowETH = (_userAccountData.totalBorrowsETH.add(_userAccountData.availableBorrowsETH));
@@ -151,11 +147,10 @@ contract AaveBorrowPoolProxy is IBorrowPoolProxy,Modifiers {
             _healthFactor =_userAccountData.healthFactor;
         }
     
-    
     function repayBorrow(
+        address _underlyingToken,
         address _lendingPoolAddressProvider, 
         address _borrowToken,
-        address _lendingPoolToken,
         uint _amount
         ) public override returns(bool success) {
         address _lendingPoolCore = _getLendingPoolCore(_lendingPoolAddressProvider);
@@ -164,8 +159,66 @@ contract AaveBorrowPoolProxy is IBorrowPoolProxy,Modifiers {
         IERC20(_borrowToken).safeApprove(_lendingPoolCore, 0);
         IERC20(_borrowToken).safeApprove(_lendingPoolCore, _amount);
         IAave(_lendingPool).repay(_borrowToken,_amount,address(uint160(address(this))));
-        _amount = IERC20(_lendingPoolToken).balanceOf(address(this));
-        IERC20(_lendingPoolToken).transfer(msg.sender,_amount);
+        address _lendingPoolToken = IAave(_lendingPool).getReserveData(_underlyingToken).aTokenAddress;
+        uint _lpamount = IERC20(_lendingPoolToken).balanceOf(address(this));
+        require(isTransferAllowed(_lendingPoolToken,address(this), _lpamount),"!isTransferAllowed");
+        // IAToken(_lendingPoolToken).redeem(_lpamount);
+        // IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
         success = true;
+    }
+    
+    function repayBorrow1(
+        address _underlyingToken,
+        address _lendingPoolAddressProvider, 
+        address _borrowToken,
+        uint _amount
+        ) public returns(bool success) {
+        address _lendingPoolCore = _getLendingPoolCore(_lendingPoolAddressProvider);
+        address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
+        address _lendingPoolToken = IAave(_lendingPool).getReserveData(_underlyingToken).aTokenAddress;
+        IERC20(_borrowToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_borrowToken).safeApprove(_lendingPoolCore, 0);
+        IERC20(_borrowToken).safeApprove(_lendingPoolCore, _amount);
+        IAave(_lendingPool).repay(_borrowToken,_amount,address(uint160(address(this))));
+        uint _lpamount = IERC20(_lendingPoolToken).balanceOf(address(this));
+        IAToken(_lendingPoolToken).redeem(_lpamount);
+        // IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
+        success = true;
+    }
+    
+    function repayBorrow2(
+        address _underlyingToken,
+        address _lendingPoolAddressProvider, 
+        address _borrowToken,
+        uint _amount
+        ) public returns(bool success) {
+        address _lendingPoolCore = _getLendingPoolCore(_lendingPoolAddressProvider);
+        address _lendingPool = _getLendingPool(_lendingPoolAddressProvider);
+        address _lendingPoolToken = IAave(_lendingPool).getReserveData(_underlyingToken).aTokenAddress;
+        IERC20(_borrowToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_borrowToken).safeApprove(_lendingPoolCore, 0);
+        IERC20(_borrowToken).safeApprove(_lendingPoolCore, _amount);
+        IAave(_lendingPool).repay(_borrowToken,_amount,address(uint160(address(this))));
+        uint _lpamount = IERC20(_lendingPoolToken).balanceOf(address(this));
+        // IAToken(_lendingPoolToken).redeem(_amount);
+        // IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
+        success = true;
+    }
+    
+    function redeem(address _underlyingToken, address _aToken, uint _amount) public {
+        IAToken(_aToken).redeem(_amount);
+        IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
+    }
+    
+    function transferToken(address _underlyingToken) public {
+        IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
+    }
+    
+    function price(address _lendingPoolAddressProvider, address _borrowToken) public view returns(uint) {
+        return IPriceOracle(_getPriceOracle(_lendingPoolAddressProvider)).getAssetPrice(_borrowToken);
+    }
+    
+    function isTransferAllowed(address _aToken, address _user, uint _amount) public view returns(bool) {
+        return IAToken(_aToken).isTransferAllowed(_user, _amount);
     }
 }

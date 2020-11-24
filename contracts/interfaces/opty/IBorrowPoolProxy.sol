@@ -11,14 +11,14 @@ interface IBorrowPoolProxy {
      *
      * Returns a boolean value indicating whether the operation succeeded
      */
-    function borrow(address[] memory _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken, uint _amount) external returns(bool);
+    function borrow(address _underlyingToken,address _lendingPoolAddressProvider, address _borrowToken, uint _amount) external returns(bool);
     
     /**
      * @dev Repay `borrowToken` token and free collateral.
      *
      * Returns a boolean value indicating whether the operation succeeded
      */
-    function repayBorrow(address _lendingPoolAddressProvider, address _borrowToken,address _lendingPoolToken, uint _amount) external returns(bool);
+    function repayBorrow(address underlyingToken, address _lendingPoolAddressProvider, address _borrowToken, uint _amount) external returns(bool);
 
     /**
      * @dev Returns the equivalent value of {lendingPoolToken} tokens in underlying tokens owned by account.

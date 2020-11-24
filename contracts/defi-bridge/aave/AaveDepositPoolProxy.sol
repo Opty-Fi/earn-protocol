@@ -29,7 +29,7 @@ contract AaveDepositPoolProxy is IDepositPoolProxy {
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         require(_isTransferAllowed(_liquidityPoolToken,_amount,address(this)),"!transferAllowed");
         IAToken(_liquidityPoolToken).redeem(_amount);
-        IERC20(_underlyingTokens[0]).transfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
+        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
     }
     
