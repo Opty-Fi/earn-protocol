@@ -113,8 +113,6 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *    credit pool like compound is added.
      */
     function calPoolValueInToken() internal view returns (uint256) {
-        address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = token;
         uint balanceInToken = StrategyManagerContract.
                                     balanceInToken(
                                         strategyHash,
