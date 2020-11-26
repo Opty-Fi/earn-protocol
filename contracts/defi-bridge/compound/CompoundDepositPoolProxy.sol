@@ -67,7 +67,7 @@ contract CompoundDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return _lendingPool;
     }
 
-    function balanceInToken(address , address _lpToken, address _holder) public override view returns(uint256) {
+    function balanceInToken(address ,address, address _lpToken, address _holder) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
         uint256 b = IERC20(_lpToken).balanceOf(_holder);
         if (b > 0) {

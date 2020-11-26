@@ -46,7 +46,7 @@ contract HarvestDepositPoolProxy is IDepositPoolProxy {
         return true;
     }
 
-    function balanceInToken(address , address _liquidityPool, address _holder) public override view returns(uint) {
+    function balanceInToken(address , address _liquidityPool, address , address _holder) public override view returns(uint) {
         uint b = IERC20(_liquidityPool).balanceOf(_holder);
         if (b > 0) {
             b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(1e18);

@@ -26,7 +26,7 @@ contract FulcrumDepositPoolProxy is IDepositPoolProxy {
         return true;
     }
 
-    function balanceInToken(address , address _liquidityPool, address _holder) public override view returns(uint) {
+    function balanceInToken(address ,address _liquidityPool, address, address _holder) public override view returns(uint) {
         address _liquidityPoolToken = getLiquidityPoolToken(_liquidityPool);
         uint b = IERC20(_liquidityPoolToken).balanceOf(_holder);
         if (b > 0) {

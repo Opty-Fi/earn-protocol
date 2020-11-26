@@ -57,7 +57,7 @@ contract CreamDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
 
-    function balanceInToken(address, address _liquidityPoolToken, address _holder) public override view returns(uint256) {
+    function balanceInToken(address,address, address _liquidityPoolToken, address _holder) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
         uint256 b = IERC20(_liquidityPoolToken).balanceOf(_holder);
         if (b > 0) {

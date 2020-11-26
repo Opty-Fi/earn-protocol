@@ -42,7 +42,7 @@ contract StrategyManager is Modifiers{
             } else {
                 address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_strategySteps[index].pool);
                 _balance = IDepositPoolProxy(_optyPoolProxy).
-                            balanceInToken(_underlyingToken,_strategySteps[index].pool, _account);
+                            balanceInToken(_underlyingToken,_strategySteps[index].pool,_strategySteps[index].outputToken, _account);
             }
         }
     }

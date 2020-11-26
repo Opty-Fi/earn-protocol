@@ -15,23 +15,41 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     using SafeERC20 for IERC20;  
     
     mapping(address => address[]) public lendingPoolToUnderlyingTokens;
+    mapping(address => bool) public pools;
+    mapping(address => bool) public swaps;
     
     /**
     * @dev mapp coins and tokens to curve deposit pool
     */
     constructor() public {
+        address _cDAIcUSDC = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
+        address _cDAIcUSDCUSDT = address(0xac795D2c97e60DF6a99ff1c814727302fD747a80);
+        
+        pools[_cDAIcUSDC] = true;
+        pools[_cDAIcUSDCUSDT] = true;
+        
         // cDAI + cUSDC
-        address[] memory cDAIcUSDCUnderTokens = new address[](2);
-        cDAIcUSDCUnderTokens[0] = address(0x6B175474E89094C44Da98b954EedeAC495271d0F); // DAI
-        cDAIcUSDCUnderTokens[1] = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // USDC
-        setLendingPoolToUnderlyingTokens(address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06),cDAIcUSDCUnderTokens);
+        address[] memory _cDAIcUSDCUnderTokens = new address[](2);
+        _cDAIcUSDCUnderTokens[0] = address(0x6B175474E89094C44Da98b954EedeAC495271d0F); // DAI
+        _cDAIcUSDCUnderTokens[1] = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // USDC
+        setLendingPoolToUnderlyingTokens(_cDAIcUSDC,_cDAIcUSDCUnderTokens);
         
         // cDAI+cUSDC+USDT
         address[] memory cDAIcUSDCUSDTUnderTokens = new address[](3);
         cDAIcUSDCUSDTUnderTokens[0] = address(0x6B175474E89094C44Da98b954EedeAC495271d0F); // DAI
         cDAIcUSDCUSDTUnderTokens[1] = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // USDC
         cDAIcUSDCUSDTUnderTokens[2] = address(0xdAC17F958D2ee523a2206206994597C13D831ec7); // USDT
-        setLendingPoolToUnderlyingTokens(address(0xac795D2c97e60DF6a99ff1c814727302fD747a80),cDAIcUSDCUSDTUnderTokens);
+        setLendingPoolToUnderlyingTokens(_cDAIcUSDCUSDT,cDAIcUSDCUSDTUnderTokens);
+        
+        address _crvRenWBTC = address(0x93054188d876f558f4a66B2EF1d97d16eDf0895B);
+        
+        swaps[_crvRenWBTC] = true;
+        
+        // crvRenWBTC
+        address[] memory crvRenWBTCUnderTokens = new address[](2);
+        crvRenWBTCUnderTokens[0] = address(0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D); // renWBTC
+        crvRenWBTCUnderTokens[1] = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599); // WBTC
+        setLendingPoolToUnderlyingTokens(_crvRenWBTC,crvRenWBTCUnderTokens);
     }
     
     function setLendingPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
@@ -170,6 +188,8 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
     
+    event MM(int128 indexed i);
+    
     /**
     * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
     * 
@@ -191,11 +211,17 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
             }
         }
         uint minAmountOut = 0;
-        IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
-        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
-        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
-        ICurveDeposit(_liquidityPool).remove_liquidity_one_coin(_amount, i, minAmountOut, true);
-        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
+        IERC20(_lpToken).safeTransferFrom(msg.sender,address(this),_amount);
+        emit MM(i);
+        // IERC20(_lpToken).safeApprove(_liquidityPool, uint(0));
+        // IERC20(_lpToken).safeApprove(_liquidityPool, uint(_amount));
+        if(pools[_liquidityPool]) {
+            ICurveDeposit(_liquidityPool).remove_liquidity_one_coin(_amount, i, minAmountOut, true);   
+        }
+        if(swaps[_liquidityPool]) {
+            ICurveSwap(_liquidityPool).remove_liquidity_one_coin(_amount, i, minAmountOut);   
+        }
+        // IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
         return true;
     }
 
@@ -291,21 +317,22 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     */
     function balanceInToken(
         address _underlyingToken,  
-        address _lendingPool, 
+        address _liquidityPool, 
+        address _liquidityPoolToken,
         address _holder
         ) public override view returns(uint) {
         address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
-        address _liquidityPoolToken = getLiquidityPoolToken(_liquidityPool);
         int128 tokenIndex = 0;
         for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
             if(_underlyingTokens[i] == _underlyingToken) {
                 tokenIndex = i;
             }
         }
-        /**
-        * TODO: Implement Curve calculations
-        */
-        return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(IERC20(_liquidityPoolToken).balanceOf(_holder), tokenIndex);
+        uint _lpTokenAmount = IERC20(_liquidityPoolToken).balanceOf(_holder);
+        if(_lpTokenAmount > 0) {
+            return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_lpTokenAmount, tokenIndex);
+        }
+        return 0;
     }
     
     /** 

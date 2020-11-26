@@ -33,7 +33,7 @@ contract DForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
 
-    function balanceInToken(address, address _liquidityPoolToken, address _holder) public override view returns(uint) {
+    function balanceInToken(address,address, address _liquidityPoolToken, address _holder) public override view returns(uint) {
         uint b = IERC20(_liquidityPoolToken).balanceOf(_holder);
         if (b > 0) {
             b = b.mul(IDForceDeposit(_liquidityPoolToken).getExchangeRate()).div(1e18);

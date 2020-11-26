@@ -24,7 +24,7 @@ interface IDepositPoolProxy {
     /**
      * @dev Returns the equivalent value of {liquidityPoolToken} tokens in underlying tokens owned by account.
      */
-    function balanceInToken(address _token, address _liquidityPool, address account) external view returns(uint);
+    function balanceInToken(address _token, address _liquidityPool, address _liquidityPoolToken, address account) external view returns(uint);
     
     /**
      * @dev Returns the lending pool token given lending pool for Curve, lendingPoolToken for Aave,Compound.
