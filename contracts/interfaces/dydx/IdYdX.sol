@@ -51,5 +51,4 @@ struct ActionArgs {
 interface IdYdX {
     function operate(AccountInfo[] memory _accountInfo, ActionArgs[] memory _actionArgs) external;
     function getAccountWei(AccountInfo calldata _accountInfo, uint marketId) external view returns (bool, uint);
-    function getIsLocalOperator(address owner, address operator) external view returns(bool);
 }

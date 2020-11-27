@@ -12,7 +12,7 @@ interface IDepositPoolProxy {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-    function deposit(address liquidityPool, address liquidityPoolToken, uint[] memory amounts) external returns(bool);
+    function deposit(address underlyingToken, address liquidityPool, address liquidityPoolToken, uint[] memory amounts) external returns(bool);
    
     /**
      * @dev Redeem `amount` of `liquidityPoolToken` token and sends the `underlyingToken` to the caller`.
