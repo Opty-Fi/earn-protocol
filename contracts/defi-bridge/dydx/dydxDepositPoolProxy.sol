@@ -18,24 +18,28 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
     
     address public liquidityPool;
     mapping(address => uint8) public marketToIndexes;
+    mapping(address => uint) public optyPoolToAccount;
+    mapping(uint => bool) public accountNumbers;
     
     
     constructor() public{
         liquidityPool = 0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e;
-        markets[address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)] = 0;
-        markets[address(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359)] = 1;
-        markets[address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)] = 2;
-        markets[address((0x6B175474E89094C44Da98b954EedeAC495271d0F)] = 3;
+        marketToIndexes[address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)] = 0;
+        marketToIndexes[address(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359)] = 1;
+        marketToIndexes[address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)] = 2;
+        marketToIndexes[address(0x6B175474E89094C44Da98b954EedeAC495271d0F)] = 3;
     }
 
-    function deposit(address _underlyingToken, address _liquidityPool, address, uint[] memory _amounts) public override returns(bool) {
-        uint _underlyingTokenIndex = marketsToIndexes[_underlyingToken];
+    function deposit(address _optyPool, address _underlyingToken, address _liquidityPool, address, uint[] memory _amounts) public override returns(bool) {
+        require(optyPoolToAccount[_optyPool] != 0, "optyPool not found");
+        uint _optyPoolAccountNumber = optyPoolToAccount[_optyPool];
+        uint _underlyingTokenIndex = marketToIndexes[_underlyingToken];
         AccountInfo[] memory _accountInfo = new AccountInfo[](1);
-        _accountInfo[0] = AccountInfo(address(this), 0);
+        _accountInfo[0] = AccountInfo(address(this), _optyPoolAccountNumber);
         AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _amounts[0]);
         ActionArgs memory _act;
         _act.actionType = ActionType.Deposit;
-        _act.accountId = 0;
+        _act.accountId = _optyPoolAccountNumber;
         _act.amount = _amt;
         _act.primaryMarketId = _underlyingTokenIndex;
         _act.otherAddress = address(this);
@@ -48,14 +52,16 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function withdraw(address[] memory _underlyingTokens, address _liquidityPool, address, uint) public override returns(bool) {
-        uint _underlyingTokenIndex = _getUnderlyingTokenIndex(_underlyingTokens[0]);
+    function withdraw(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, address, uint) public override returns(bool) {
+        require(optyPoolToAccount[_optyPool] != 0, "optyPool not found");
+        uint _optyPoolAccountNumber = optyPoolToAccount[_optyPool];
+        uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
         AccountInfo[] memory _accountInfo = new AccountInfo[](1);
-        _accountInfo[0] = AccountInfo(address(this), 0);
-        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, balanceInToken(_underlyingTokens[0],liquidityPool,address(0),address(this)));
+        _accountInfo[0] = AccountInfo(address(this), _optyPoolAccountNumber);
+        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, balanceInToken(_optyPool,_underlyingTokens[0],liquidityPool,address(0),address(this)));
         ActionArgs memory _act;
         _act.actionType = ActionType.Withdraw;
-        _act.accountId = 0;
+        _act.accountId = _optyPoolAccountNumber;
         _act.amount = _amt;
         _act.primaryMarketId = _underlyingTokenIndex;
         _act.otherAddress = address(this);
@@ -71,16 +77,18 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return (sign, value);
     }
     
-    function balanceInToken(address _underlyingToken, address _liquidityPool, address, address _holder) public override view returns(uint) {
-        uint _underlyingTokenIndex = marketsToIndexes[_underlyingToken];
-        AccountInfo memory _accountInfo = AccountInfo(_holder, 0);
+    function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool, address, address _holder) public override view returns(uint) {
+        require(optyPoolToAccount[_optyPool] != 0, "optyPool not found");
+        uint _optyPoolAccountNumber = optyPoolToAccount[_optyPool];
+        uint _underlyingTokenIndex = marketToIndexes[_underlyingToken];
+        AccountInfo memory _accountInfo = AccountInfo(_holder, _optyPoolAccountNumber);
         (, uint value) = IdYdX(_liquidityPool).getAccountWei(_accountInfo, _underlyingTokenIndex);
         return value;
     }
 
     
-    function addMarket(address _underlyingToken) public onlyGovernance {
-        markets.push(_underlyingToken);
+    function addMarket(address _underlyingToken, uint8 _marketIndex) public onlyGovernance {
+        marketToIndexes[_underlyingToken] = _marketIndex;
     }
     
     function getLiquidityPoolToken(address _liquidityPool) public override view returns(address) {
@@ -93,5 +101,12 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
 
     function setLiquidityPool(address _liquidityPool) public onlyGovernance {
         liquidityPool = _liquidityPool;
+    }
+    
+    function setOptyPoolToAccount(address _optyPool, uint _accountNumber) public onlyGovernance {
+        require(optyPoolToAccount[_optyPool] == 0, "optyPool has already been added");
+        require(accountNumbers[_accountNumber] == false, "Account number already in use");
+        optyPoolToAccount[_optyPool] == _accountNumber;
+        accountNumbers[_accountNumber] == true;
     }
 }
