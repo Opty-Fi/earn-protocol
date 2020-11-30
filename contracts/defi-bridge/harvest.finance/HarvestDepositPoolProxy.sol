@@ -12,8 +12,7 @@ contract HarvestDepositPoolProxy is IDepositPoolProxy {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
-    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
-        address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
+    function deposit(address, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
         IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(_amounts[0]));
@@ -30,8 +29,7 @@ contract HarvestDepositPoolProxy is IDepositPoolProxy {
         return true;
     }
 
-    function withdraw(address[] memory, address _liquidityPool, address _liquidityPoolToken, uint _shares) public override returns(bool) {
-        address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
+    function withdraw(address, address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _shares) public override returns(bool) {
         // This commented code corresponds to including unstaking and getting rewards features inside withdraw function:
 
         // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
@@ -42,11 +40,11 @@ contract HarvestDepositPoolProxy is IDepositPoolProxy {
 
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_shares);
         IHarvestDeposit(_liquidityPool).withdraw(_shares);
-        IERC20(_underlyingToken).safeTransfer(msg.sender, IERC20(_underlyingToken).balanceOf(address(this)));
+        IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
     }
 
-    function balanceInToken(address , address _liquidityPool, address , address _holder) public override view returns(uint) {
+    function balanceInToken(address, address, address _liquidityPool, address , address _holder) public override view returns(uint) {
         uint b = IERC20(_liquidityPool).balanceOf(_holder);
         if (b > 0) {
             b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(1e18);

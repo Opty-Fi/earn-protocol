@@ -42,7 +42,7 @@ contract StrategyManager is Modifiers{
             } else {
                 address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_strategySteps[index].pool);
                 _balance = IDepositPoolProxy(_optyPoolProxy).
-                            balanceInToken(_underlyingToken,_strategySteps[index].pool,_strategySteps[index].outputToken, _account);
+                            balanceInToken(msg.sender, _underlyingToken,_strategySteps[index].pool,_strategySteps[index].outputToken, _account);
             }
         }
     }
@@ -73,7 +73,7 @@ contract StrategyManager is Modifiers{
                             IERC20(_underlyingTokens[j]).safeApprove(_optyPoolProxy,_amounts[j]);
                         }
                     }
-                    require(IDepositPoolProxy(_optyPoolProxy).deposit(_strategySteps[i].pool,_strategySteps[i].outputToken,_amounts));
+                    require(IDepositPoolProxy(_optyPoolProxy).deposit(msg.sender, _underlyingToken, _strategySteps[i].pool,_strategySteps[i].outputToken,_amounts));
                     _underlyingToken = _strategySteps[i].outputToken;
                 }
             }
@@ -100,7 +100,7 @@ contract StrategyManager is Modifiers{
                     _underlyingTokens[0] = _strategySteps[i-1].outputToken;
                 }
                 IERC20(_strategySteps[steps-i-1].outputToken).safeApprove(_optyPoolProxy,IERC20(_strategySteps[steps-i-1].outputToken).balanceOf(address(this)));
-                require(IDepositPoolProxy(_optyPoolProxy).withdraw(_underlyingTokens,_strategySteps[steps-i-1].pool,_strategySteps[steps-i-1].outputToken,_amount));
+                require(IDepositPoolProxy(_optyPoolProxy).withdraw(msg.sender, _underlyingTokens,_strategySteps[steps-i-1].pool,_strategySteps[steps-i-1].outputToken,_amount));
             }
         }
         IERC20(_underlyingToken).safeTransfer(msg.sender,IERC20(_underlyingToken).balanceOf(address(this)));

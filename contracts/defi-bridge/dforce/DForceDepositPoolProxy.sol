@@ -17,8 +17,7 @@ contract DForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
     using SafeMath for uint;
     using Address for address;
 
-    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
-        address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
+    function deposit(address, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
         IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(_amounts[0]));
@@ -26,14 +25,14 @@ contract DForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function withdraw(address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _redeemAmount) public override returns(bool) {
+    function withdraw(address, address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _redeemAmount) public override returns(bool) {
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_redeemAmount);
         IDForceDeposit(_liquidityPool).redeem(address(this), _redeemAmount);
         IERC20(_underlyingTokens[0]).safeTransfer(msg.sender, IERC20(_underlyingTokens[0]).balanceOf(address(this)));
         return true;
     }
 
-    function balanceInToken(address,address, address _liquidityPoolToken, address _holder) public override view returns(uint) {
+    function balanceInToken(address, address, address, address _liquidityPoolToken, address _holder) public override view returns(uint) {
         uint b = IERC20(_liquidityPoolToken).balanceOf(_holder);
         if (b > 0) {
             b = b.mul(IDForceDeposit(_liquidityPoolToken).getExchangeRate()).div(1e18);
@@ -55,10 +54,6 @@ contract DForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         IERC20(DFToken).safeTransfer(msg.sender, IERC20(DFToken).balanceOf(address(this)));
         return true;
-    }
-    
-    function _getUnderlyingToken(address _liquidityPoolToken) internal view returns(address) {
-        return IDForceDeposit(_liquidityPoolToken).token();
     }
     
     function getLiquidityPoolToken(address _liquidityPool) public override view returns(address){
