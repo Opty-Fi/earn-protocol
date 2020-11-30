@@ -16,21 +16,20 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
     using SafeMath for uint;
     using Address for address;
     
-    address liquidityPool;
-    address[] markets;
+    address public liquidityPool;
+    mapping(address => uint8) public marketToIndexes;
     
-    event Alert(string);
     
     constructor() public{
         liquidityPool = 0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e;
-        markets.push(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-        markets.push(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359);
-        markets.push(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-        markets.push(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        markets[address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)] = 0;
+        markets[address(0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359)] = 1;
+        markets[address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)] = 2;
+        markets[address((0x6B175474E89094C44Da98b954EedeAC495271d0F)] = 3;
     }
 
     function deposit(address _underlyingToken, address _liquidityPool, address, uint[] memory _amounts) public override returns(bool) {
-        uint _underlyingTokenIndex = _getUnderlyingTokenIndex(_underlyingToken);
+        uint _underlyingTokenIndex = marketsToIndexes[_underlyingToken];
         AccountInfo[] memory _accountInfo = new AccountInfo[](1);
         _accountInfo[0] = AccountInfo(address(this), 0);
         AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _amounts[0]);
@@ -73,19 +72,12 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
     }
     
     function balanceInToken(address _underlyingToken, address _liquidityPool, address, address _holder) public override view returns(uint) {
-        uint _underlyingTokenIndex = _getUnderlyingTokenIndex(_underlyingToken);
+        uint _underlyingTokenIndex = marketsToIndexes[_underlyingToken];
         AccountInfo memory _accountInfo = AccountInfo(_holder, 0);
         (, uint value) = IdYdX(_liquidityPool).getAccountWei(_accountInfo, _underlyingTokenIndex);
         return value;
     }
 
-    function _getUnderlyingTokenIndex(address _underlyingToken) internal view returns(uint) {
-        for(uint i; i < markets.length; i++){
-            if (_underlyingToken == markets[i]){
-                return i;
-            }
-        }
-    }
     
     function addMarket(address _underlyingToken) public onlyGovernance {
         markets.push(_underlyingToken);
