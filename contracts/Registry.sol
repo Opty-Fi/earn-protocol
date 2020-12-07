@@ -533,7 +533,7 @@ contract Registry is Modifiers{
      */
      function setLiquidityPoolToLPToken(address _pool, address[] memory _tokens, address _poolToken) public onlyGovernance returns(bool success){
         require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools.isLiquidityPool");
-        require(tokens[_poolToken],"!tokens");
+        // require(tokens[_poolToken],"!tokens");
         for(uint8 i = 0 ; i < _tokens.length ; i++) {
             require(tokens[_tokens[i]],"!_tokens");
         }

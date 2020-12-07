@@ -48,7 +48,13 @@ struct ActionArgs {
     bytes data;
 }
 
+struct OperatorArg {
+    address operator;
+    bool trusted;
+}
+    
 interface IdYdX {
     function operate(AccountInfo[] memory _accountInfo, ActionArgs[] memory _actionArgs) external;
+    function setOperators(OperatorArg[] memory args) external;
     function getAccountWei(AccountInfo calldata _accountInfo, uint marketId) external view returns (bool, uint);
 }
