@@ -12,19 +12,19 @@ interface IDepositPoolProxy {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-    function deposit(address liquidityPool, address liquidityPoolToken, uint[] memory amounts) external returns(bool);
+    function deposit(address optyPool, address underlyingToken, address liquidityPool, address liquidityPoolToken, uint[] memory amounts) external returns(bool);
    
     /**
      * @dev Redeem `amount` of `liquidityPoolToken` token and sends the `underlyingToken` to the caller`.
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-    function withdraw(address[] memory _underlyingTokens, address liquidityPool, address liquidityPoolToken, uint amount) external returns(bool);
+    function withdraw(address optyPool, address[] memory _underlyingTokens, address liquidityPool, address liquidityPoolToken, uint amount) external returns(bool);
 
     /**
      * @dev Returns the equivalent value of {liquidityPoolToken} tokens in underlying tokens owned by account.
      */
-    function balanceInToken(address _token, address _liquidityPool, address _liquidityPoolToken, address account) external view returns(uint);
+    function balanceInToken(address optyPool, address _token, address _liquidityPool, address _liquidityPoolToken, address account) external view returns(uint);
     
     /**
      * @dev Returns the lending pool token given lending pool for Curve, lendingPoolToken for Aave,Compound.

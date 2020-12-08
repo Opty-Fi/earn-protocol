@@ -418,7 +418,13 @@ contract Registry is Modifiers{
             }
             else {
                 require(liquidityPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
-                require(liquidityPoolToLPTokens[_strategySteps[i].pool][_tokensHash] == _strategySteps[i].outputToken,"!liquidityPoolToLPTokens");   
+                if (i == 0){
+                    require(liquidityPoolToLPTokens[_strategySteps[i].pool][_tokensHash] == _strategySteps[i].outputToken,"!liquidityPoolToLPTokens");   
+                } else {
+                    address[] memory _tokenArr = new address[](1);
+                    _tokenArr[0] = _strategySteps[i-1].outputToken;
+                    require(liquidityPoolToLPTokens[_strategySteps[i].pool][keccak256(abi.encodePacked(_tokenArr))] == _strategySteps[i].outputToken,"!liquidityPoolToLPTokens");      
+                }
             }
             strategies[hash].strategySteps.push(
                                             StrategyStep(
@@ -533,7 +539,7 @@ contract Registry is Modifiers{
      */
      function setLiquidityPoolToLPToken(address _pool, address[] memory _tokens, address _poolToken) public onlyGovernance returns(bool success){
         require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools.isLiquidityPool");
-        require(tokens[_poolToken],"!tokens");
+        // require(tokens[_poolToken],"!tokens");
         for(uint8 i = 0 ; i < _tokens.length ; i++) {
             require(tokens[_tokens[i]],"!_tokens");
         }

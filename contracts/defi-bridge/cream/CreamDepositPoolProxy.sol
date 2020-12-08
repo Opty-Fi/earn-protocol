@@ -38,8 +38,7 @@ contract CreamDepositPoolProxy is IDepositPoolProxy,Modifiers {
         cream = _cream;
     }
 
-    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
-        address _underlyingToken = _getUnderlyingToken(_liquidityPool);
+    function deposit(address, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
         IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(_amounts[0]));
@@ -49,7 +48,7 @@ contract CreamDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function withdraw(address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
+    function withdraw(address, address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         uint result = ICream(_liquidityPool).redeem(_amount);
         require(result == 0);
@@ -57,7 +56,7 @@ contract CreamDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
 
-    function balanceInToken(address,address, address _liquidityPoolToken, address _holder) public override view returns(uint256) {
+    function balanceInToken(address, address, address, address _liquidityPoolToken, address _holder) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
         uint256 b = IERC20(_liquidityPoolToken).balanceOf(_holder);
         if (b > 0) {
@@ -79,10 +78,6 @@ contract CreamDepositPoolProxy is IDepositPoolProxy,Modifiers {
     function getUnderlyingTokens(address _liquidityPool, address) public override view returns(address[] memory _underlyingTokens) {
         _underlyingTokens = new address[](1);
         _underlyingTokens[0] = ICream(_liquidityPool).underlying();
-    }
-    
-    function _getUnderlyingToken(address _liquidityPoolToken) internal view returns(address) {
-        return ICream(_liquidityPoolToken).underlying();
     }
     
     function getLiquidityPoolToken(address _lendingPool) public override view returns(address) {

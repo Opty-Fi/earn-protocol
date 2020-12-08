@@ -11,6 +11,7 @@ import "./../../utils/ReentrancyGuard.sol";
 import "./../../RiskManager.sol";
 import "./../../StrategyManager.sol";
 import "./../../utils/Modifiers.sol";
+import "./../../interfaces//dydx/IdYdX.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
@@ -23,6 +24,8 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     address public token; //  store the underlying token contract address (for example DAI)
     uint256 public poolValue;
     string  public profile;
+    address public dydxSolo;
+    address public dydxPoolProxy;
     
     StrategyManager StrategyManagerContract;
     RiskManager RiskManagerContract;
@@ -36,17 +39,38 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         string memory _profile, 
         address _riskManager, 
         address _underlyingToken, 
-        address _strategyManager
+        address _strategyManager,
+        address _dydxSolo,
+        address _dydxPoolProxy
         ) public ERC20Detailed(
                                 string(abi.encodePacked("opty ",ERC20Detailed(_underlyingToken).name()," ",_profile)),
                                 string(abi.encodePacked("op", ERC20Detailed(_underlyingToken).symbol(),_profile)),
                                 ERC20Detailed(_underlyingToken).decimals()
                             ) {
-        
+        setDYDXPoolProxy(_dydxPoolProxy);                        
+        setDYDXSolo(_dydxSolo);
         setProfile(_profile);
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyManager(_strategyManager);
+        OperatorArg[] memory _operator = new OperatorArg[](1);
+        _operator[0] = OperatorArg(dydxPoolProxy,true);
+        IdYdX(dydxSolo).setOperators(_operator);
+        
+    }
+    
+    function setDYDXPoolProxy(address _dydxPoolProxy) public onlyOwner onlyValidAddress returns (bool _success) {
+        require(_dydxPoolProxy != address(0),"!_dydxPoolProxy");
+        require(_dydxPoolProxy.isContract(),"!_dydxPoolProxy.isContract");
+        dydxPoolProxy = _dydxPoolProxy;
+        _success = true;
+    }
+    
+    function setDYDXSolo(address _dydxSolo) public onlyOwner onlyValidAddress returns (bool _success) {
+        require(_dydxSolo != address(0),"!_dydxSolo");
+        require(_dydxSolo.isContract(),"!_dydxSolo.isContract");
+        dydxSolo = _dydxSolo;
+        _success = true;
     }
     
     function setProfile(string memory _profile) public onlyOwner onlyValidAddress returns (bool _success)  {
@@ -135,9 +159,14 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     
     function _withdrawAll() internal {
         address _lendingPoolToken = StrategyManagerContract.getOutputToken(strategyHash);
-        uint256 _amount = IERC20(_lendingPoolToken).balanceOf(address(this));
-        if (_amount > 0) {
-            _withdrawToken(_amount);
+        if(_lendingPoolToken != address(0)){
+            uint256 _amount = IERC20(_lendingPoolToken).balanceOf(address(this));
+            if (_amount > 0) {
+                _withdrawToken(_amount);
+            }
+        }
+        else{
+            _withdrawNoLP();
         }
     }
     
@@ -159,6 +188,9 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         require(StrategyManagerContract.poolWithdraw(token,_amount,strategyHash));
     }
     
+    function _withdrawNoLP() internal {
+        require(StrategyManagerContract.poolWithdraw(token,uint(-1),strategyHash));
+    }
     /**
      * @dev Function for depositing underlying tokens (for example DAI) into the contract and in return giving op tokens to the user
      *
