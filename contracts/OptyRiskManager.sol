@@ -3,24 +3,26 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./OptyRegistry.sol";
+import "./Registry.sol";
 import "./libraries/Addresses.sol";
 import "./utils/Modifiers.sol";
 
-contract OptyRiskManager is Modifiers{
+contract RiskManager is Modifiers{
     
     using Address for address;
+    string public constant BASIC = "basic";
+    string public constant ADVANCE = "advance";
 
-    OptyRegistry OptyRegistryContract;
+    Registry RegistryContract;
 
     constructor(address _optyRegistry) public {
         setOptyRegistry(_optyRegistry);
     }
 
-    function setOptyRegistry(address _optyRegistry) public onlyGovernance {
-        require(_optyRegistry != address(0),"!_optyRegistry");
-        require(_optyRegistry.isContract(),"!_optyRegistry.isContract");
-        OptyRegistryContract = OptyRegistry(_optyRegistry);
+    function setOptyRegistry(address _registry) public onlyGovernance {
+        require(_registry != address(0),"!_registry");
+        require(_registry.isContract(),"!_registry.isContract");
+        RegistryContract = Registry(_registry);
     }
 
     /**
@@ -44,9 +46,9 @@ contract OptyRiskManager is Modifiers{
                 require(_underlyingTokens[i].isContract(),"!_underlyingTokens");
             }
             bytes32 tokensHash = keccak256(abi.encodePacked(_underlyingTokens));
-            if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("basic")))){
+            if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((BASIC)))){
                 return _getBestBasicStrategy(tokensHash);
-            } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked(("advance")))){
+            } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((ADVANCE)))){
                 return _getBestAdvanceStrategy(tokensHash);
             } else{
                 revert("not implemented");
@@ -61,17 +63,17 @@ contract OptyRiskManager is Modifiers{
      * 
      */
     function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32){
-        bytes32[] memory hashes = OptyRegistryContract.getTokenToStrategies(_tokensHash);
+        bytes32[] memory hashes = RegistryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
-        bytes32 bestStrategyHash = hashes[0];
+        bytes32 bestStrategyHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
         for(uint8 i = 0; i < hashes.length ; i++) {
             (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
-            OptyRegistryContract.getStrategy(hashes[i]);
+            RegistryContract.getStrategy(hashes[i]);
             if(
                 isStrategy && 
-                OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).isLiquidityPool && 
-                OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).rating == uint8(0)
+                RegistryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && 
+                RegistryContract.getLiquidityPool(_strategySteps[0].pool).rating == uint8(0)
             ){
                 if(score > maxScore){
                     maxScore = score;
@@ -79,6 +81,7 @@ contract OptyRiskManager is Modifiers{
                 }
             }
         }
+        require(bestStrategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!bestStrategyHash");
         return bestStrategyHash;
     }
     
@@ -90,26 +93,35 @@ contract OptyRiskManager is Modifiers{
      * 
      */
     function _getBestAdvanceStrategy (bytes32 _tokensHash) internal view returns(bytes32) {
-        bytes32[] memory hashes = OptyRegistryContract.getTokenToStrategies(_tokensHash);
+        bytes32[] memory hashes = RegistryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0, "!hashes.length");
         uint8 maxScore = 0;
-        bytes32 bestStrategyHash = hashes[0];
+        bytes32 bestStrategyHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
         for(uint8 i = 0; i < hashes.length; i++) {
             (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
-            OptyRegistryContract.getStrategy(hashes[i]);
-            
-            if ((isStrategy && OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).isLiquidityPool
-            && (OptyRegistryContract.getCreditPool(_strategySteps[0].creditPool).isLiquidityPool
-            || OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).rating == uint8(0)))
-            || (isStrategy && OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).isLiquidityPool
-            && (OptyRegistryContract.getCreditPool(_strategySteps[0].creditPool).isLiquidityPool
-            || OptyRegistryContract.getLiquidityPool(_strategySteps[0].liquidityPool).rating == uint8(1)))) {
-                if (score > maxScore) {
+            RegistryContract.getStrategy(hashes[i]);
+            if(isStrategy){
+                if((_strategySteps[0].isBorrow && RegistryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool 
+                && (
+                    RegistryContract.getCreditPool(_strategySteps[0].pool).rating == uint8(0) || 
+                    RegistryContract.getCreditPool(_strategySteps[0].pool).rating == uint8(1)
+                    )
+                ) || 
+                (!_strategySteps[0].isBorrow && RegistryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool 
+                && (
+                    RegistryContract.getLiquidityPool(_strategySteps[0].pool).rating == uint8(0) || 
+                    RegistryContract.getLiquidityPool(_strategySteps[0].pool).rating == uint8(1)
+                    )
+                )) {
+                    if (score > maxScore) {
                     maxScore = score;
                     bestStrategyHash = hashes[i];
+                    }
                 }
+                
             }
         }
+        require(bestStrategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!bestStrategyHash");
         return bestStrategyHash;
     }
 } 

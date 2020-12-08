@@ -2,6 +2,8 @@
 
 pragma solidity ^0.6.10;
 
+import "./../libraries/Addresses.sol";
+
 /**
  * @dev Contract used to keep all the modifiers at one place
  */
@@ -9,6 +11,9 @@ contract Modifiers {
     
     address public owner;
     address public governance;
+    address public controller;
+    
+    using Address for address;
     
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
@@ -32,6 +37,15 @@ contract Modifiers {
      */    
     function transferGovernance(address _governance) public onlyGovernance {
         governance = _governance;
+    }
+    
+    /**
+     * @dev Transfers controller to a new account (`_governance`).
+     * Can only be called by the governance.
+     */    
+    function setController(address _controller) public onlyGovernance {
+        require(_controller.isContract(),"!isContract");
+        controller = _controller;
     }
     
     /**
@@ -63,6 +77,14 @@ contract Modifiers {
      */
     modifier onlyGovernance() {
         require(msg.sender == governance, "caller is not having governance");
+        _;
+    }
+    
+    /**
+     * @dev Modifier to check caller is controller or not
+     */
+    modifier onlyController() {
+        require(msg.sender == controller, "caller is not constructor");
         _;
     }
 }
