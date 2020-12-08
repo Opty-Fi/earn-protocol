@@ -6,12 +6,26 @@ import "../../interfaces/opty/IDepositPoolProxy.sol";
 import "../../interfaces/harvest.finance/IHarvestDeposit.sol";
 import "../../interfaces/harvest.finance/IHarvestFarm.sol";
 import "../../libraries/SafeERC20.sol";
+import "../../utils/Modifiers.sol";
+import "../../Gatherer.sol";
 
-contract HarvestDepositPoolProxy is IDepositPoolProxy {
+contract HarvestDepositPoolProxy is IDepositPoolProxy,Modifiers {
 
     using SafeERC20 for IERC20;
     using SafeMath for uint;
+    
+    address public gatherer;
+    
+    Gatherer gathererContract;
 
+    constructor(address _gatherer) public {
+        setGatherer(_gatherer);
+        gathererContract = Gatherer(gatherer);
+    }
+    
+    function setGatherer(address _gatherer) public onlyGovernance{
+        gatherer = _gatherer;
+    }
     function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
         address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
         IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
@@ -20,25 +34,25 @@ contract HarvestDepositPoolProxy is IDepositPoolProxy {
         IHarvestDeposit(_liquidityPoolToken).deposit(_amounts[0]);
 
         // This commented code corresponds to including staking feature inside deposit function:
+        address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
+        IERC20(_liquidityPoolToken).safeApprove(_vaultFarm, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_vaultFarm, IERC20(_liquidityPoolToken).balanceOf(address(this)));
+        IHarvestFarm(_vaultFarm).stake(IERC20(_liquidityPoolToken).balanceOf(address(this)));
 
-        // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
-        // IERC20(_liquidityPoolToken).safeApprove(_vaultFarm, uint(0));
-        // IERC20(_liquidityPoolToken).safeApprove(_vaultFarm, IERC20(_vaultToken).balanceOf(address(this)));
-        // IHarvestFarm(_vaultFarm).stake(IERC20(_vaultToken).balanceOf(address(this)));
-
-        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
+        // IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         return true;
     }
 
     function withdraw(address[] memory, address _liquidityPool, address _liquidityPoolToken, uint _shares) public override returns(bool) {
         address _underlyingToken = _getUnderlyingToken(_liquidityPoolToken);
+        
         // This commented code corresponds to including unstaking and getting rewards features inside withdraw function:
-
-        // address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
-        // address _farmToken = 0xa0246c9032bC3A600820415aE600c6388619A14D;
-        // IHarvestFarm(_vaultFarm).exit();
-        // IERC20(_farmToken).safeTransfer(msg.sender,IERC20(_farmToken).balanceOf(address(this)));
-        // IHarvestDeposit(_vaultToken).withdraw(IERC20(_vaultToken).balanceOf(address(this)));
+        address _vaultFarm = 0x15d3A64B2d5ab9E152F16593Cdebc4bB165B5B4A;
+        address _farmToken = 0xa0246c9032bC3A600820415aE600c6388619A14D;
+        IHarvestFarm(_vaultFarm).exit();
+        gathererContract.harvest(_farmToken,_underlyingToken);
+        IERC20(_farmToken).safeTransferFrom(address(this),gatherer,IERC20(_farmToken).balanceOf(address(this)));
+        IHarvestDeposit(_liquidityPoolToken).withdraw(IERC20(_liquidityPoolToken).balanceOf(address(this)));
 
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_shares);
         IHarvestDeposit(_liquidityPool).withdraw(_shares);
