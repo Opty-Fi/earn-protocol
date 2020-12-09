@@ -23,12 +23,15 @@ contract Gatherer is Modifiers{
         path[2] = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
         setPath(path);
         path[0] = address(0xa0246c9032bC3A600820415aE600c6388619A14D);
-        path[1] = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-        path[2] = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        setPath(path);
+        path[0] = address(0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0);
+        setPath(path);
+        path[0] = address(0xc00e94Cb662C3520282E6f5717214004A7f26888);
         setPath(path);
     }
     
     function harvest(address _rewardToken, address _underlyingToken) public returns(bool){
+        IERC20(_rewardToken).safeTransferFrom(msg.sender,address(this),IERC20(_rewardToken).balanceOf(msg.sender));
         IERC20(_rewardToken).safeApprove(router, uint(0));
         IERC20(_rewardToken).safeApprove(router, IERC20(_rewardToken).balanceOf(address(this)));
         IUniswap(router).swapExactTokensForTokens(IERC20(_rewardToken).balanceOf(address(this)), uint(0), rewardToUnderlyingToPaths[_rewardToken][_underlyingToken], msg.sender,uint(2606938117));
