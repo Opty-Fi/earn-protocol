@@ -35,8 +35,7 @@ contract CompoundDepositPoolProxy is IDepositPoolProxy,Modifiers {
         comp = _comp;
     }
 
-    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
-        address _underlyingToken = _getUnderlyingTokens(_liquidityPoolToken);
+    function deposit(address, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
         IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingToken).safeApprove(_liquidityPoolToken, uint(0));
         IERC20(_underlyingToken).safeApprove(_liquidityPoolToken, uint(_amounts[0]));
@@ -46,7 +45,7 @@ contract CompoundDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function withdraw(address[] memory _underlyingTokens,address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
+    function withdraw(address, address[] memory _underlyingTokens,address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         uint result = ICompound(_liquidityPool).redeem(_amount);
         require(result == 0);
@@ -59,15 +58,11 @@ contract CompoundDepositPoolProxy is IDepositPoolProxy,Modifiers {
         _underlyingTokens[0] = ICompound(_liquidityPool).underlying();
     }
     
-    function _getUnderlyingTokens(address _liquidityPoolToken) internal view returns(address) {
-        return ICompound(_liquidityPoolToken).underlying();
-    }
-    
     function getLiquidityPoolToken(address _lendingPool) public override view returns(address) {
         return _lendingPool;
     }
 
-    function balanceInToken(address ,address, address _lpToken, address _holder) public override view returns(uint256) {
+    function balanceInToken(address, address, address, address _lpToken, address _holder) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
         uint256 b = IERC20(_lpToken).balanceOf(_holder);
         if (b > 0) {

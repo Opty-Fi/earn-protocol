@@ -62,7 +62,7 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     // * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
     * @param _amounts Quantity of _underlyingToken to deposit
     */
-    function deposit(address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
+    function deposit(address, address, address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
         address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
         uint N_COINS = _underlyingTokens.length;
         require (_amounts.length == N_COINS, "!_amounts.length");
@@ -171,7 +171,7 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     * @param _liquidityPool Address of the token that represents users' holdings in the pool
     * @param _amount Quantity of _liquidityPoolToken to swap for _underlyingToken
     */
-    function withdraw(address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
+    function withdraw(address, address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _amount) public override returns(bool) {
         uint N_COINS = _underlyingTokens.length;
         if (N_COINS == uint(1)){
             _withdraw1(_underlyingTokens[0], _liquidityPool, _liquidityPoolToken, _amount);
@@ -211,6 +211,8 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
         uint minAmountOut = 0;
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
         if(pools[_liquidityPool]) {
+            IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+            IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
             ICurveDeposit(_liquidityPool).remove_liquidity_one_coin(_amount, i, minAmountOut, true);   
         }
         if(swaps[_liquidityPool]) {
@@ -235,6 +237,8 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
         ) internal returns(bool) {
         uint[2] memory minAmountOut = [uint(0), uint(0)];
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0 ; i < 2 ; i++) {
             IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));   
@@ -257,6 +261,8 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
         ) internal returns(bool) {
         uint[3] memory minAmountOut = [uint(0), uint(0), uint(0)];
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0; i < 3 ; i++){
             IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));
@@ -279,6 +285,8 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
         ) internal returns(bool) {
         uint[4] memory minAmountOut = [uint(0), uint(0), uint(0), uint(0)];
         IERC20(_liquidityPoolToken).safeTransferFrom(msg.sender,address(this),_amount);
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(0));
+        IERC20(_liquidityPoolToken).safeApprove(_liquidityPool, uint(_amount));
         ICurveDeposit(_liquidityPool).remove_liquidity(_amount, minAmountOut);
         for(uint8 i = 0; i < 4 ; i++){
             IERC20(_underlyingTokens[i]).safeTransfer(msg.sender, IERC20(_underlyingTokens[i]).balanceOf(address(this)));
@@ -305,6 +313,7 @@ contract CurveDepositPoolProxy is IDepositPoolProxy,Modifiers {
     *      the user's balance in _liquidityPoolToken
     */
     function balanceInToken(
+        address,
         address _underlyingToken,  
         address _liquidityPool, 
         address _liquidityPoolToken,
