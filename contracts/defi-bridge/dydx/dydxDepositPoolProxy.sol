@@ -49,12 +49,12 @@ contract dYdXDepositPoolProxy is IDepositPoolProxy,Modifiers {
         return true;
     }
     
-    function withdraw(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, address, uint) public override returns(bool) {
+    function withdraw(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, address, uint _amount) public override returns(bool) {
         uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
         AccountInfo[] memory _accountInfo = new AccountInfo[](2);
         _accountInfo[0] = AccountInfo(address(this), uint(0));
         _accountInfo[1] = AccountInfo(_optyPool, uint(0));
-        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, balanceInToken(_optyPool,_underlyingTokens[0],liquidityPool,address(0),address(0)));
+        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, _amount);
         ActionArgs memory _act;
         _act.actionType = ActionType.Withdraw;
         _act.accountId = uint(1);
