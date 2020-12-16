@@ -17,7 +17,7 @@ contract DForceDepositPoolProxy is IDepositPoolProxy,Modifiers {
     using SafeMath for uint;
     using Address for address;
 
-    function deposit(address, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint[] memory _amounts) public override returns(bool) {
+    function deposit(address, address _underlyingToken, address _liquidityPool, address , uint[] memory _amounts) public override returns(bool) {
         IERC20(_underlyingToken).safeTransferFrom(msg.sender,address(this),_amounts[0]);
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(0));
         IERC20(_underlyingToken).safeApprove(_liquidityPool, uint(_amounts[0]));

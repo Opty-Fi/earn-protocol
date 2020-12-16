@@ -1,0 +1,344 @@
+{
+    "CompoundDepositPoolProxy": {
+        "dai": {
+            "pool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+            "lpToken": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc": {
+            "pool": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            "lpToken": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt": {
+            "pool": "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+            "lpToken": "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "wbtc": {
+            "pool": "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
+            "lpToken": "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
+            "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
+        }
+    },
+    "AaveDepositPoolProxy": {
+        "dai": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0x9bA00D6856a4eDF4665BcA2C2309936572473B7E",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0x71fc860F7D3A592A4a98740e39dB31d25db65ae8",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "tusd": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0x4DA9b813057D04BAef4e5800E36083717b4a0341",
+            "tokens": ["0x0000000000085d4780B73119b644AE5ecd22b376"]
+        },
+        "wbtc": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0xFC4B8ED459e00e5400be803A9BB3954234FD50e3",
+            "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
+        },
+        "susd": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0x625aE63000f46200499120B906716420bd059240",
+            "tokens": ["0x57ab1ec28d129707052df4df418d58a2d46d5f51"]
+        }
+    },
+    "DForceDepositPoolProxy": {
+        "dai": {
+            "pool": "0x02285AcaafEB533e03A7306C55EC031297df9224",
+            "lpToken": "0x02285AcaafEB533e03A7306C55EC031297df9224",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc": {
+            "pool": "0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179",
+            "lpToken": "0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt": {
+            "pool": "0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8",
+            "lpToken": "0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "tusd": {
+            "pool": "0x55BCf7173C8840d5517424eD19b7bbF11CFb9F2B",
+            "lpToken": "0x55bcf7173c8840d5517424ed19b7bbf11cfb9f2b",
+            "tokens": ["0x0000000000085d4780B73119b644AE5ecd22b376"]
+        }
+    },
+    "FulcrumDepositPoolProxy": {
+        "dai": {
+            "pool": "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
+            "lpToken": "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        }
+    },
+    "HarvestDepositPoolProxy": {
+        "dai": {
+            "pool": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
+            "lpToken": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc": {
+            "pool": "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+            "lpToken": "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt": {
+            "pool": "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
+            "lpToken": "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "wbtc": {
+            "pool": "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB",
+            "lpToken": "0x5d9d25c7C457dD82fc8668FFC6B9746b674d4EcB",
+            "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
+        },
+        "tusd": {
+            "pool": "0x7674622c63Bee7F46E86a4A5A18976693D54441b",
+            "lpToken": "0x7674622c63Bee7F46E86a4A5A18976693D54441b",
+            "tokens": ["0x0000000000085d4780B73119b644AE5ecd22b376"]
+        },
+        "weth": {
+            "pool": "0xFE09e53A81Fe2808bc493ea64319109B5bAa573e",
+            "lpToken": "0xFE09e53A81Fe2808bc493ea64319109B5bAa573e",
+            "tokens": ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"]
+        }
+    },
+    "YearnDepositPoolProxy": {
+        "dai": {
+            "pool": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
+            "lpToken": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc": {
+            "pool": "0x597aD1e0c13Bfe8025993D9e79C69E1c0233522e",
+            "lpToken": "0x597aD1e0c13Bfe8025993D9e79C69E1c0233522e",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt": {
+            "pool": "0x2f08119C6f07c006695E079AAFc638b8789FAf18",
+            "lpToken": "0x2f08119C6f07c006695E079AAFc638b8789FAf18",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "3crv": {
+            "pool": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
+            "lpToken": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
+            "tokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        "tusd": {
+            "pool": "0x37d19d1c4E1fa9DC47bD1eA12f742a0887eDa74a",
+            "lpToken": "0x37d19d1c4E1fa9DC47bD1eA12f742a0887eDa74a",
+            "tokens": ["0x0000000000085d4780B73119b644AE5ecd22b376"]
+        },
+        "weth": {
+            "pool": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
+            "lpToken": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
+            "tokens": ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"]
+        }
+    },
+    "CurveDepositPoolProxy": {
+        "dai_dai+usdc": {
+            "pool": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+            "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_dai+usdc": {
+            "pool": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+            "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "dai+usdc": {
+            "pool": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+            "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+            "tokens": [
+                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            ]
+        },
+        "dai_dai+usdc+usdt": {
+            "pool": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+            "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_dai+usdc+usdt": {
+            "pool": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+            "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt_dai+usdc+usdt": {
+            "pool": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+            "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "dai+usdc+usdt": {
+            "pool": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+            "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
+            "tokens": [
+                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "0xdac17f958d2ee523a2206206994597c13d831ec7"
+            ]
+        },
+        "dai_ypaxCrv": {
+            "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
+            "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_ypaxCrv": {
+            "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
+            "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt_ypaxCrv": {
+            "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
+            "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "dai_dai+usdc+usdt+tusd": {
+            "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+            "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_dai+usdc+usdt+tusd": {
+            "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+            "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt_dai+usdc+usdt+tusd": {
+            "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+            "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "tusd_dai+usdc+usdt+tusd": {
+            "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+            "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+            "tokens": ["0x0000000000085d4780B73119b644AE5ecd22b376"]
+        },
+        "dai+usdc+usdt+tusd": {
+            "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+            "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+            "tokens": [
+                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "0x0000000000085d4780B73119b644AE5ecd22b376"
+            ]
+        },
+        "dai_crvPlain3andSUSD": {
+            "pool": "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+            "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_crvPlain3andSUSD": {
+            "pool": "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+            "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt_crvPlain3andSUSD": {
+            "pool": "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+            "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "susd_crvPlain3andSUSD": {
+            "pool": "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+            "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
+            "tokens": ["0x57ab1ec28d129707052df4df418d58a2d46d5f51"]
+        },
+        "dai_3crv": {
+            "pool": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_3crv": {
+            "pool": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt_3crv": {
+            "pool": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "dai_dai+usdc+usdt+busd": {
+            "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+            "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        },
+        "usdc_dai+usdc+usdt+busd": {
+            "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+            "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt_dai+usdc+usdt+busd": {
+            "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+            "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        },
+        "busd_dai+usdc+usdt+busd": {
+            "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+            "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+            "tokens": ["0x4Fabb145d64652a948d72533023f6E7A623C7C53"]
+        },
+        "dai+usdc+usdt+busd": {
+            "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+            "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+            "tokens": [
+                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "0x4Fabb145d64652a948d72533023f6E7A623C7C53"
+            ]
+        },
+        "wbtc_crvRenWBTC": {
+            "pool": "0x93054188d876f558f4a66B2EF1d97d16eDf0895B",
+            "lpToken": "0x49849C98ae39Fff122806C06791Fa73784FB3675",
+            "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
+        },
+        "wbtc_crvRenWSBTC": {
+            "pool": "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714",
+            "lpToken": "0x075b1bb99792c9E1041bA13afEf80C91a1e70fB3",
+            "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
+        },
+        "wbtc_hCRV": {
+            "pool": "0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F",
+            "lpToken": "0xb19059ebb43466C323583928285a49f558E572Fd",
+            "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
+        }
+    },
+    "dYdXDepositPoolProxy": {
+        "dai": {
+            "pool": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+            "lpToken": "0x0000000000000000000000000000000000000000",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        }
+    },
+    "CreamDepositPoolProxy": {
+        "usdc": {
+            "pool": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
+            "lpToken": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
+            "tokens": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+        },
+        "usdt": {
+            "pool": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+            "lpToken": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
+        }
+    },
+    "AaveBorrowPoolProxy": {
+        "dai": {
+            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "lpToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+        }
+    }
+}

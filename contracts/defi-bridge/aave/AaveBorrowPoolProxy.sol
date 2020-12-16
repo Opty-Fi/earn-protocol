@@ -37,7 +37,7 @@ contract AaveBorrowPoolProxy is IBorrowPoolProxy,Modifiers {
         healthFactor = _hf;
     }
     
-    function _isTransferAllowed(address _lendingPoolToken, uint _amount, address _sender) internal returns(bool transferAllowed) {
+    function _isTransferAllowed(address _lendingPoolToken, uint _amount, address _sender) internal view returns(bool transferAllowed) {
         (transferAllowed) = IAToken(_lendingPoolToken).isTransferAllowed(_sender, _amount);
     }
 

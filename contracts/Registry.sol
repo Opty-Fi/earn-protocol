@@ -137,6 +137,7 @@ contract Registry is Modifiers{
         approveLiquidityPool(crUSDCLendingPool);
         approveToken(crUSDCLendingPool);
         setLiquidityPoolToLPToken(crUSDCLendingPool,tkns,crUSDCLendingPool);
+
         
         // activation for curve compound (dai + usdc)
         tkns = new address[](2);

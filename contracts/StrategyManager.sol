@@ -52,7 +52,7 @@ contract StrategyManager is Modifiers{
         uint _amount, 
         bytes32 _hash
         ) public onlyValidAddress returns(bool _success) {
-            require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!_hash-3");   
+            require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!_hash");   
             require(_amount > 0 , "!_amount");
             StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
             uint8 steps = uint8(_strategySteps.length);
@@ -84,7 +84,7 @@ contract StrategyManager is Modifiers{
     }
     
     function poolWithdraw(address _underlyingToken, uint _amount, bytes32 _hash) public onlyValidAddress returns(bool _success) {
-        require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!_hash-1");   
+        require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!_hash");   
         require(_amount > 0 , "!_amount");
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 steps = uint8(_strategySteps.length);

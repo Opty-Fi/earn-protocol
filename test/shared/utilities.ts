@@ -17,11 +17,24 @@ export async function fundWallet(
         exchange.uniswap.abi,
         wallet
     );
-    await uniswapInstance.swapETHForExactTokens(
-        amount,
-        [tokenAddresses.weth, tokenAddress],
-        wallet.address,
-        "1000000000000000000",
-        { value: ethers.utils.hexlify(ethers.utils.parseEther("90")) }
-    );
+    if (tokenAddresses.weth.toLowerCase() == tokenAddress.toLowerCase()) {
+        // console.log("COMING TO FUND WALLET FOR WETH")
+        const wEthInstance = new ethers.Contract(
+            exchange.weth.address,
+            exchange.weth.abi,
+            wallet
+        )
+        await wEthInstance.deposit(
+            { value: amount }
+        );
+    } else {
+        // console.log("FUND WALLET WITH TOKENS EXCEPT WETH")
+        await uniswapInstance.swapETHForExactTokens(
+            amount,
+            [tokenAddresses.weth, tokenAddress],
+            wallet.address,
+            "1000000000000000000",
+            { value: ethers.utils.hexlify(ethers.utils.parseEther("90")) }
+        );
+    }
 }
