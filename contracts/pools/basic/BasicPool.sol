@@ -195,6 +195,9 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         require(StrategyManagerContract.poolWithdraw(token,_amount,strategyHash));
     }
     
+    function _withdrawNoLP() internal {
+        require(StrategyManagerContract.poolWithdraw(token,uint(-1),strategyHash));
+    }
     /**
      * @dev Function for depositing underlying tokens (for example DAI) into the contract and in return giving op tokens to the user
      *
