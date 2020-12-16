@@ -4,13 +4,13 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "./libraries/SafeERC20.sol";
-import "./interfaces/opty/IDepositDataProvider.sol";
+import "./interfaces/opty/ICodeProvider.sol";
 import "./Registry.sol";
 import "./libraries/Addresses.sol";
 import "./utils/ERC20.sol";
 import "./utils/Modifiers.sol";
 
-contract StrategyDataProvider is Modifiers{
+contract StrategyCodeProvider is Modifiers{
     
     using SafeERC20 for IERC20;
     using Address for address;
@@ -32,11 +32,10 @@ contract StrategyDataProvider is Modifiers{
     
     function getPoolDepositCodes(address _optyPool, address _underlyingToken, bytes32 _hash, uint _depositAmount, uint _stepIndex) public view 
     returns(bytes[] memory _codes) {
-        // returns(address,address[] memory,address,uint[] memory) {
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         if(!_strategySteps[_stepIndex].isBorrow) {
             address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_strategySteps[_stepIndex].pool);
-            address[] memory _underlyingTokens = IDepositDataProvider(_optyPoolProxy).getUnderlyingTokens(_strategySteps[_stepIndex].pool, _strategySteps[_stepIndex].outputToken);
+            address[] memory _underlyingTokens = ICodeProvider(_optyPoolProxy).getUnderlyingTokens(_strategySteps[_stepIndex].pool, _strategySteps[_stepIndex].outputToken);
             uint[] memory _amounts = new uint[](_underlyingTokens.length);
             if(_stepIndex != 0) {
                 _underlyingToken = _strategySteps[_stepIndex - 1].outputToken;
@@ -51,7 +50,7 @@ contract StrategyDataProvider is Modifiers{
                 }
             }
             // return (_optyPoolProxy,_underlyingTokens,_strategySteps[_stepIndex].outputToken,_amounts);
-            _codes = IDepositDataProvider(_optyPoolProxy).getDepositCodes(_optyPool,_underlyingTokens,_strategySteps[_stepIndex].pool,_strategySteps[_stepIndex].outputToken,_amounts);
+            _codes = ICodeProvider(_optyPoolProxy).getDepositCodes(_optyPool,_underlyingTokens,_strategySteps[_stepIndex].pool,_strategySteps[_stepIndex].outputToken,_amounts);
         } else {
             // borrow
         }
@@ -69,7 +68,7 @@ contract StrategyDataProvider is Modifiers{
             if(_stepIndex != 0 && _stepIndex < (_strategySteps.length - 1)) {
                 _redeemAmount = IERC20(_underlyingToken).balanceOf(_optyPool);
             }
-            _codes = IDepositDataProvider(_optyPoolProxy).getWithdrawCodes(_optyPool,_underlyingTokens,_strategySteps[_stepIndex].pool,_strategySteps[_stepIndex].outputToken,_redeemAmount);
+            _codes = ICodeProvider(_optyPoolProxy).getWithdrawCodes(_optyPool,_underlyingTokens,_strategySteps[_stepIndex].pool,_strategySteps[_stepIndex].outputToken,_redeemAmount);
         } else {
             //borrow
         }
@@ -92,9 +91,9 @@ contract StrategyDataProvider is Modifiers{
                 }
                 if(_iterator == (_steps - 1)) {
                     _outputTokenAmount = IERC20(_liquidityPoolToken).balanceOf(_optyPool);
-                    _balance = IDepositDataProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _liquidityPoolToken, _outputTokenAmount);
+                    _balance = ICodeProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _liquidityPoolToken, _outputTokenAmount);
                 } else {
-                    _balance = IDepositDataProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _liquidityPoolToken, _outputTokenAmount);
+                    _balance = ICodeProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _liquidityPoolToken, _outputTokenAmount);
                 }        
             } else {
                 // borrow

@@ -3,19 +3,22 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IDepositDataProvider.sol";
+import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/curve/ICurveSwap.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
 
-contract CurveDepositDataProvider is IDepositDataProvider,Modifiers {
+contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
     
     using SafeERC20 for IERC20;  
     
     mapping(address => address[]) public swapPoolToUnderlyingTokens;
     mapping(address => address) public swapPoolToLiquidityPoolToken;
+    
+    // reward token
+    address public crv = address(0xD533a949740bb3306d119CC777fa900bA034cd52);
     
     // underlying token
     address public constant DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -500,6 +503,14 @@ contract CurveDepositDataProvider is IDepositDataProvider,Modifiers {
         IERC20(crvToken).safeTransfer(msg.sender, IERC20(crvToken).balanceOf(address(this)));
         return true;
     }
+    
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return false;
+    }
+    
+     function getRewardToken(address , address , address , address ) public override view returns(address) {
+         return crv;
+     }
 }
 
 // Curve Compound useful addresses:

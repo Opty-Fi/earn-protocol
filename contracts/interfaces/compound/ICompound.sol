@@ -31,4 +31,5 @@ interface ICompound {
     function claimComp(address holder) external;
     function underlying() external view returns(address);
     function decimals() external view returns(uint8);
+    function compAccrued(address holder) external view returns(uint256);
 }

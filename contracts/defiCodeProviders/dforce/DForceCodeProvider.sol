@@ -3,7 +3,7 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IDepositDataProvider.sol";
+import "../../interfaces/opty/ICodeProvider.sol";
 import "../../Registry.sol";
 import "../../interfaces/dforce/IDForceDeposit.sol";
 import "../../interfaces/dforce/IDForceStake.sol";
@@ -11,7 +11,7 @@ import "../../libraries/SafeERC20.sol";
 import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
-contract DForceDepositDataProvider is IDepositDataProvider,Modifiers {
+contract DForceCodeProvider is ICodeProvider,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -71,4 +71,11 @@ contract DForceDepositDataProvider is IDepositDataProvider,Modifiers {
         _underlyingTokens[0] = IDForceDeposit(_liquidityPool).token();
     }
 
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return false;
+    }
+    
+    function getRewardToken(address , address , address , address ) public override view returns(address) {
+        return address(0);
+    }
 }

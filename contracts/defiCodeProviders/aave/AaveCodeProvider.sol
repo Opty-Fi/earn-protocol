@@ -3,13 +3,13 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IDepositDataProvider.sol";
+import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/aave/IAave.sol";
 import "../../interfaces/aave/IAToken.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../libraries/SafeERC20.sol";
 
-contract AaveDepositDataProvider is IDepositDataProvider {
+contract AaveCodeProvider is ICodeProvider {
     
     using SafeERC20 for IERC20;
     
@@ -61,5 +61,20 @@ contract AaveDepositDataProvider is IDepositDataProvider {
     function balanceInToken(address _optyPool, address ,address , address _liquidityPoolToken) public override view returns(uint256) {
         return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
     }
-
+    
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return false;
+    }
+    
+    function getRewardToken(address , address , address , address ) public override view returns(address) {
+        return address(0);
+    }
+    
+    function getUnclaimedRewardTokenAmount(address , address , address , address) public override view returns(uint256){
+        revert("!rewards");
+    }
+    
+    function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
+        revert("!rewards");
+    }
 }

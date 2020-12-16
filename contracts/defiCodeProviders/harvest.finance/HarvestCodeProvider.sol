@@ -3,12 +3,12 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IDepositDataProvider.sol";
+import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/harvest.finance/IHarvestDeposit.sol";
 import "../../interfaces/harvest.finance/IHarvestFarm.sol";
 import "../../libraries/SafeERC20.sol";
 
-contract HarvestDepositDataProvider is IDepositDataProvider {
+contract HarvestCodeProvider is ICodeProvider {
 
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -95,6 +95,14 @@ contract HarvestDepositDataProvider is IDepositDataProvider {
     function getLiquidityPoolToken(address, address _liquidityPool) public override view returns(address) {
         return _liquidityPool;
     }
+    
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return false;
+    }
+    
+     function getRewardToken(address , address , address , address ) public override view returns(address) {
+         return address(0);
+     }
 }
 
 // Harvest DAI vault and token = 0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C

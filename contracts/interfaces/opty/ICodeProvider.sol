@@ -4,9 +4,9 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2; 
 
 /**
- * @dev Interface of the DepositDataProvider.
+ * @dev Interface of the Defi protocol code provider.
  */
-interface IDepositDataProvider {
+interface ICodeProvider {
     /**
      * @dev Supply `liquidityPool` for Curve,Compound `liquidityPoolAddressProvider` for Aave 
      * and returns liquidityPoolToken to the caller`.
@@ -46,4 +46,24 @@ interface IDepositDataProvider {
      * @dev Returns the underlying token given the lendingPoolToken for Aave,Compound & lending pool for Curve.
      */
     function getUnderlyingTokens(address liquidityPool, address _liquidityPoolToken) external view returns(address[] memory);
+    
+    /**
+     * @dev Returns whether the protocol can stake 
+     */
+    function canStake(address _optyPool, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint _stakingAmount) external view returns(bool);
+     
+     /**
+      * @dev Returns reward token address
+      */
+    function getRewardToken(address _optyPool, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken) external view returns(address);
+    
+     /**
+      * @dev Returns the amount of accrued reward tokens
+      */
+    function getUnclaimedRewardTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken) external view returns(uint256);
+    
+     /**
+      * @dev Returns code for claiming the tokens
+      */
+    function getClaimRewardTokenCode(address _optyPool, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken) external view returns(bytes[] memory);
 }

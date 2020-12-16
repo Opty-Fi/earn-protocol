@@ -3,18 +3,24 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IDepositDataProvider.sol";
+import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ICurveDAO.sol";
+import "../../interfaces/curve/ITokenMinter.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
 
-contract CurveDepositDataProvider is IDepositDataProvider,Modifiers {
+contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
     
     using SafeERC20 for IERC20;  
     
     mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
+    mapping(address => address) public liquidityPoolToGauges;
+    
+    // reward token
+    address public crv = address(0xD533a949740bb3306d119CC777fa900bA034cd52);
+    address public tokenMinter = address(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
     
     // underlying token
     address public constant DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -34,7 +40,7 @@ contract CurveDepositDataProvider is IDepositDataProvider,Modifiers {
     address public constant susdDepositPool = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
 
     /**
-    * @dev mapp coins and tokens to curve deposit pool
+    * @dev map coins and tokens to curve deposit pool
     */
     constructor() public {
         
@@ -42,45 +48,57 @@ contract CurveDepositDataProvider is IDepositDataProvider,Modifiers {
         address[] memory _compoundUnderlyingTokens = new address[](2);
         _compoundUnderlyingTokens[0] = DAI;
         _compoundUnderlyingTokens[1] = USDC;
-        setLendingPoolToUnderlyingTokens(compoundDepositPool,_compoundUnderlyingTokens);
+        setLiquidityPoolToUnderlyingTokens(compoundDepositPool,_compoundUnderlyingTokens);
         
         address[] memory _usdtUnderlyingTokens = new address[](3);
         _usdtUnderlyingTokens[0] = DAI;
         _usdtUnderlyingTokens[1] = USDC;
         _usdtUnderlyingTokens[2] = USDT;
-        setLendingPoolToUnderlyingTokens(usdtDepositPool,_usdtUnderlyingTokens);
+        setLiquidityPoolToUnderlyingTokens(usdtDepositPool,_usdtUnderlyingTokens);
         
         address[] memory _paxUnderlyingTokens = new address[](4);
         _paxUnderlyingTokens[0] = DAI;
         _paxUnderlyingTokens[1] = USDC;
         _paxUnderlyingTokens[2] = USDT;
         _paxUnderlyingTokens[3] = PAX;
-        setLendingPoolToUnderlyingTokens(paxDepositPool,_paxUnderlyingTokens);
+        setLiquidityPoolToUnderlyingTokens(paxDepositPool,_paxUnderlyingTokens);
         
         address[] memory _yUnderlyingTokens = new address[](4);
         _yUnderlyingTokens[0] = DAI;
         _yUnderlyingTokens[1] = USDC;
         _yUnderlyingTokens[2] = USDT;
         _yUnderlyingTokens[3] = TUSD;
-        setLendingPoolToUnderlyingTokens(yDepositPool,_yUnderlyingTokens);
+        setLiquidityPoolToUnderlyingTokens(yDepositPool,_yUnderlyingTokens);
         
         address[] memory _busdUnderlyingTokens = new address[](4);
         _busdUnderlyingTokens[0] = DAI;
         _busdUnderlyingTokens[1] = USDC;
         _busdUnderlyingTokens[2] = USDT;
         _busdUnderlyingTokens[3] = BUSD;
-        setLendingPoolToUnderlyingTokens(busdDepositPool,_busdUnderlyingTokens);
+        setLiquidityPoolToUnderlyingTokens(busdDepositPool,_busdUnderlyingTokens);
         
         address[] memory _susdUnderlyingTokens = new address[](4);
         _susdUnderlyingTokens[0] = DAI;
         _susdUnderlyingTokens[1] = USDC;
         _susdUnderlyingTokens[2] = USDT;
         _susdUnderlyingTokens[3] = SUSD;
-        setLendingPoolToUnderlyingTokens(susdDepositPool,_susdUnderlyingTokens);
+        setLiquidityPoolToUnderlyingTokens(susdDepositPool,_susdUnderlyingTokens);
+        
+        // set liquidity pool to gauges
+        setLiquiidtyPoolToGauges(compoundDepositPool,address(0x7ca5b0a2910B33e9759DC7dDB0413949071D7575));
+        setLiquiidtyPoolToGauges(usdtDepositPool,address(0xBC89cd85491d81C6AD2954E6d0362Ee29fCa8F53));
+        setLiquiidtyPoolToGauges(paxDepositPool,address(0x64E3C23bfc40722d3B649844055F1D51c1ac041d));
+        setLiquiidtyPoolToGauges(yDepositPool,address(0xFA712EE4788C042e2B7BB55E6cb8ec569C4530c1));
+        setLiquiidtyPoolToGauges(busdDepositPool,address(0x69Fb7c45726cfE2baDeE8317005d3F94bE838840));
+        setLiquiidtyPoolToGauges(susdDepositPool,address(0xA90996896660DEcC6E997655E065b23788857849));
     }
     
-    function setLendingPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
+    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
         liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
+    }
+    
+    function setLiquiidtyPoolToGauges(address _pool, address _gauge) public onlyGovernance {
+        liquidityPoolToGauges[_pool] = _gauge;
     }
     
     /**
@@ -355,21 +373,37 @@ contract CurveDepositDataProvider is IDepositDataProvider,Modifiers {
     */
     function unstakeLPtokens(address _liquidityPoolToken, address _liquidityPoolGauge, uint _amount) public returns(bool){
         ICurveGauge(_liquidityPoolGauge).withdraw(_amount);
-        address tokenMinter = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0;
-        address crvToken = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+        address crvToken = ITokenMinter(tokenMinter).token();
         ICurveDAO(tokenMinter).mint(_liquidityPoolGauge);
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         IERC20(crvToken).safeTransfer(msg.sender, IERC20(crvToken).balanceOf(address(this)));
         return true;
     }
+    
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return true;
+    }
+    
+    function getRewardToken(address , address , address _liquidityPool, address) public override view returns(address) {
+        if(liquidityPoolToGauges[_liquidityPool] != address(0)) {
+            return ITokenMinter(getMinter(liquidityPoolToGauges[_liquidityPool])).token();
+        }
+        return address(0);
+    }
+    
+    function getUnclaimedRewardTokenAmount(address _optyPool, address , address _liquidityPool, address) public override view returns(uint256){
+        if(liquidityPoolToGauges[_liquidityPool] != address(0)) {
+            return ITokenMinter(getMinter(liquidityPoolToGauges[_liquidityPool])).minted(_optyPool,liquidityPoolToGauges[_liquidityPool]);
+        }
+        return uint(0);
+    }
+    
+    function getClaimRewardTokenCode(address, address, address _liquidityPool, address) public override view returns(bytes[] memory _codes) {
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(getMinter(liquidityPoolToGauges[_liquidityPool]),abi.encodeWithSignature("mint(address)",liquidityPoolToGauges[_liquidityPool]));
+    }
+    
+    function getMinter(address _gauge) public view returns(address) {
+        return ICurveGauge(_gauge).minter();
+    }
 }
-
-// Curve Compound useful addresses:
-
-// address _DAItoken = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-// address _USDCtoken = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-// address _CurveCompoundLPToken = address(0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2);
-// address _CurveCompoundDepositContract = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
-// address _CurveCompoundGaugeContract = address(0x7ca5b0a2910B33e9759DC7dDB0413949071D7575);
-
-// array dai-usdc = ["0x6B175474E89094C44Da98b954EedeAC495271d0F","0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]

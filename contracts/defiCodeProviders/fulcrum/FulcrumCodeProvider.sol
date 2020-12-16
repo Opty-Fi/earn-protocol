@@ -3,11 +3,11 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IDepositDataProvider.sol";
+import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/fulcrum/IFulcrum.sol";
 import "../../libraries/SafeERC20.sol";
 
-contract FulcrumDepositDataprovider is IDepositDataProvider {
+contract FulcrumCodeprovider is ICodeProvider {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -50,4 +50,12 @@ contract FulcrumDepositDataprovider is IDepositDataProvider {
     function getLiquidityPoolToken(address , address _liquidityPool) public override view returns(address) {
         return _liquidityPool;
     }
+    
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return false;
+    }
+    
+     function getRewardToken(address , address , address , address ) public override view returns(address) {
+         return address(0);
+     }
 }
