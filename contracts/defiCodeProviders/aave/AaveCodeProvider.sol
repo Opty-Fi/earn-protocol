@@ -71,10 +71,10 @@ contract AaveCodeProvider is ICodeProvider {
     }
     
     function getUnclaimedRewardTokenAmount(address , address , address , address) public override view returns(uint256){
-        revert("!rewards");
+        revert("!empty");
     }
     
     function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
-        revert("!rewards");
+        revert("!empty");
     }
 }

@@ -49,7 +49,6 @@ contract StrategyCodeProvider is Modifiers{
                     }
                 }
             }
-            // return (_optyPoolProxy,_underlyingTokens,_strategySteps[_stepIndex].outputToken,_amounts);
             _codes = ICodeProvider(_optyPoolProxy).getDepositCodes(_optyPool,_underlyingTokens,_strategySteps[_stepIndex].pool,_strategySteps[_stepIndex].outputToken,_amounts);
         } else {
             // borrow
@@ -86,12 +85,11 @@ contract StrategyCodeProvider is Modifiers{
                 address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_liquidityPool);
                 address _liquidityPoolToken = _strategySteps[_iterator].outputToken;
                 address _inputToken = _underlyingToken;
-                if(_iterator != 0){
+                if(_iterator != 0) {
                     _inputToken = _strategySteps[_iterator - 1].outputToken;
                 }
                 if(_iterator == (_steps - 1)) {
-                    _outputTokenAmount = IERC20(_liquidityPoolToken).balanceOf(_optyPool);
-                    _balance = ICodeProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _liquidityPoolToken, _outputTokenAmount);
+                    _balance = ICodeProvider(_optyPoolProxy).balanceInToken(_optyPool,_inputToken, _liquidityPool, _liquidityPoolToken);
                 } else {
                     _balance = ICodeProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _liquidityPoolToken, _outputTokenAmount);
                 }        

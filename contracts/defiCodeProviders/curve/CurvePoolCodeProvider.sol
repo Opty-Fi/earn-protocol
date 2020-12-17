@@ -391,16 +391,18 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
         return address(0);
     }
     
-    function getUnclaimedRewardTokenAmount(address _optyPool, address , address _liquidityPool, address) public override view returns(uint256){
+    function getUnclaimedRewardTokenAmount(address , address , address _liquidityPool, address) public override view returns(uint256){
         if(liquidityPoolToGauges[_liquidityPool] != address(0)) {
-            return ITokenMinter(getMinter(liquidityPoolToGauges[_liquidityPool])).minted(_optyPool,liquidityPoolToGauges[_liquidityPool]);
+            // TODO : get the amount of unclaimed CRV tokens
         }
         return uint(0);
     }
     
     function getClaimRewardTokenCode(address, address, address _liquidityPool, address) public override view returns(bytes[] memory _codes) {
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(getMinter(liquidityPoolToGauges[_liquidityPool]),abi.encodeWithSignature("mint(address)",liquidityPoolToGauges[_liquidityPool]));
+        if(liquidityPoolToGauges[_liquidityPool] != address(0)) {
+            _codes = new bytes[](1);
+            _codes[0] = abi.encode(getMinter(liquidityPoolToGauges[_liquidityPool]),abi.encodeWithSignature("mint(address)",liquidityPoolToGauges[_liquidityPool]));
+        }
     }
     
     function getMinter(address _gauge) public view returns(address) {
