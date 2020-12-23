@@ -6,4 +6,5 @@ interface ICurveGauge {
     function deposit (uint _value) external;
     function withdraw (uint _value) external;
     function minter() external view returns(address);
+    function balanceOf(address _holder) external view returns(uint);
 }

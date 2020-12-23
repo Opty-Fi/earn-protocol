@@ -14,6 +14,7 @@ import "../../utils/Modifiers.sol";
 contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
     
     using SafeERC20 for IERC20;  
+    using SafeMath for uint;
     
     mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
     mapping(address => address) public liquidityPoolToGauges;
@@ -30,20 +31,37 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
     address public constant TUSD = address(0x0000000000085d4780B73119b644AE5ecd22b376);
     address public constant BUSD = address(0x4Fabb145d64652a948d72533023f6E7A623C7C53);
     address public constant SUSD = address(0x57Ab1ec28D129707052df4dF418D58a2D46d5f51);
+    address public constant GUSD = address(0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd);
+    address public constant HUSD = address(0xdF574c24545E5FfEcb9a659c229253D4111d87e1);
+    address public constant USDK = address(0x1c48f86ae57291F7686349F12601910BD8D470bb);
+    address public constant USDN = address(0x674C6Ad92Fd080e4004b2312b45f796a192D27a0);
+    address public constant LINKUSD = address(0x0E2EC54fC0B509F445631Bf4b91AB8168230C752);
+    address public constant MUSD = address(0xe2f2a5C287993345a840Db3B0845fbC70f5935a5);
+    address public constant RSV = address(0x196f4727526eA7FB1e17b2071B3d8eAA38486988);
+    address public constant TBTC = address(0x8dAEBADE922dF735c38C80C7eBD708Af50815fAa);
+    address public constant DUSD = address(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831);
     
     // deposit pool
     address public constant compoundDepositPool = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06); 
     address public constant usdtDepositPool = address(0xac795D2c97e60DF6a99ff1c814727302fD747a80);
     address public constant paxDepositPool = address(0xA50cCc70b6a011CffDdf45057E39679379187287);
     address public constant yDepositPool = address(0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3);
-    address public constant busdDepositPool = address(0x0000000000085d4780B73119b644AE5ecd22b376);
-    address public constant susdDepositPool = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
+    address public constant busdDepositPool = address(0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB);
+    address public constant susdDepositPool = address(0xFCBa3E75865d2d561BE8D220616520c171F12851);
+    address public constant gusdDepositPool = address(0x0aE274c98c0415C0651AF8cF52b010136E4a0082);
+    address public constant husdDepositPool = address(0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E);
+    address public constant usdkDepositPool = address(0x6600e98b71dabfD4A8Cac03b302B0189Adb86Afb);
+    address public constant usdnDepositPool = address(0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39);
+    address public constant linkusdDepositPool = address(0xF6bDc2619FFDA72c537Cd9605e0A274Dc48cB1C9);
+    address public constant musdDepositPool = address(0x78CF256256C8089d68Cde634Cf7cDEFb39286470);
+    address public constant rsvDepositPool = address(0x459eAA680b47D27c8561708C96c949e0018dF5d9);
+    address public constant tbtcDepositPool = address(0xaa82ca713D94bBA7A89CEAB55314F9EfFEdDc78c);
+    address public constant dusdDepositPool = address(0x61E10659fe3aa93d036d099405224E4Ac24996d0);
 
     /**
     * @dev map coins and tokens to curve deposit pool
     */
     constructor() public {
-        
         // deposit pool
         address[] memory _compoundUnderlyingTokens = new address[](2);
         _compoundUnderlyingTokens[0] = DAI;
@@ -84,6 +102,69 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
         _susdUnderlyingTokens[3] = SUSD;
         setLiquidityPoolToUnderlyingTokens(susdDepositPool,_susdUnderlyingTokens);
         
+        address[] memory _gusdUnderlyingTokens = new address[](4);
+        _gusdUnderlyingTokens[0] = GUSD;
+        _gusdUnderlyingTokens[1] = DAI;
+        _gusdUnderlyingTokens[2] = USDC;
+        _gusdUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(gusdDepositPool,_gusdUnderlyingTokens); // GUSD,DAI,USDC,USDT
+        
+        address[] memory _husdUnderlyingTokens = new address[](4);
+        _gusdUnderlyingTokens[0] = HUSD;
+        _gusdUnderlyingTokens[1] = DAI;
+        _gusdUnderlyingTokens[2] = USDC;
+        _gusdUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(husdDepositPool,_husdUnderlyingTokens); // HUSD, DAI,USDC,USDT
+        
+        address[] memory _usdkUnderlyingTokens = new address[](4);
+        _usdkUnderlyingTokens[0] = USDK;
+        _usdkUnderlyingTokens[1] = DAI;
+        _usdkUnderlyingTokens[2] = USDC;
+        _usdkUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(usdkDepositPool,_usdkUnderlyingTokens); // USDK, DAI.USDC,USDT
+        
+        address[] memory _usdnUnderlyingTokens = new address[](4);
+        _usdnUnderlyingTokens[0] = USDN;
+        _usdnUnderlyingTokens[1] = DAI;
+        _usdnUnderlyingTokens[2] = USDC;
+        _usdnUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(usdnDepositPool,_usdnUnderlyingTokens); // USDN, DAI, USDC, USDT
+        
+        address[] memory _linkusdUnderlyingTokens = new address[](4);
+        _linkusdUnderlyingTokens[0] = LINKUSD;
+        _linkusdUnderlyingTokens[1] = DAI;
+        _linkusdUnderlyingTokens[2] = USDC;
+        _linkusdUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(linkusdDepositPool,_linkusdUnderlyingTokens); // LINKUSD, DAI, USDC, USDT
+        
+        address[] memory _musdUnderlyingTokens = new address[](4);
+        _musdUnderlyingTokens[0] = MUSD;
+        _musdUnderlyingTokens[1] = DAI;
+        _musdUnderlyingTokens[2] = USDC;
+        _musdUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(musdDepositPool,_musdUnderlyingTokens); // MUSD, DAI, USDC, USDT
+        
+        address[] memory _rsvUnderlyingTokens = new address[](4);
+        _rsvUnderlyingTokens[0] = RSV;
+        _rsvUnderlyingTokens[1] = DAI;
+        _rsvUnderlyingTokens[2] = USDC;
+        _rsvUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(rsvDepositPool,_rsvUnderlyingTokens); // RSV, DAI, USDC, USDT
+        
+        address[] memory _tbtcUnderlyingTokens = new address[](4);
+        _tbtcUnderlyingTokens[0] = TBTC;
+        _tbtcUnderlyingTokens[1] = DAI;
+        _tbtcUnderlyingTokens[2] = USDC;
+        _tbtcUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(tbtcDepositPool,_tbtcUnderlyingTokens); // TBTC, DAI, USDC, USDT
+        
+        address[] memory _dusdUnderlyingTokens = new address[](4);
+        _dusdUnderlyingTokens[0] = DUSD;
+        _dusdUnderlyingTokens[1] = DAI;
+        _dusdUnderlyingTokens[2] = USDC;
+        _dusdUnderlyingTokens[3] = USDT;
+        setLiquidityPoolToUnderlyingTokens(dusdDepositPool,_dusdUnderlyingTokens); // DUSD, DAI, USDC, USDT
+        
         // set liquidity pool to gauges
         setLiquiidtyPoolToGauges(compoundDepositPool,address(0x7ca5b0a2910B33e9759DC7dDB0413949071D7575));
         setLiquiidtyPoolToGauges(usdtDepositPool,address(0xBC89cd85491d81C6AD2954E6d0362Ee29fCa8F53));
@@ -91,6 +172,14 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
         setLiquiidtyPoolToGauges(yDepositPool,address(0xFA712EE4788C042e2B7BB55E6cb8ec569C4530c1));
         setLiquiidtyPoolToGauges(busdDepositPool,address(0x69Fb7c45726cfE2baDeE8317005d3F94bE838840));
         setLiquiidtyPoolToGauges(susdDepositPool,address(0xA90996896660DEcC6E997655E065b23788857849));
+        setLiquiidtyPoolToGauges(gusdDepositPool,address(0xC5cfaDA84E902aD92DD40194f0883ad49639b023));
+        setLiquiidtyPoolToGauges(husdDepositPool,address(0x2db0E83599a91b508Ac268a6197b8B14F5e72840));
+        setLiquiidtyPoolToGauges(usdkDepositPool,address(0xC2b1DF84112619D190193E48148000e3990Bf627));
+        setLiquiidtyPoolToGauges(usdnDepositPool,address(0xF98450B5602fa59CC66e1379DFfB6FDDc724CfC4));
+        setLiquiidtyPoolToGauges(musdDepositPool,address(0x5f626c30EC1215f4EdCc9982265E8b1F411D1352));
+        setLiquiidtyPoolToGauges(rsvDepositPool,address(0x4dC4A289a8E33600D8bD4cf5F6313E43a37adec7));
+        setLiquiidtyPoolToGauges(tbtcDepositPool,address(0x6828bcF74279eE32f2723eC536c22c51Eed383C6));
+        setLiquiidtyPoolToGauges(dusdDepositPool,address(0xAEA6c312f4b3E04D752946d329693F7293bC2e6D));
     }
     
     function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
@@ -339,6 +428,33 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
     * @dev Calls the appropriate deploy function depending on N_COINS
     * 
     * @dev This function needs an address _underlyingToken argument to get how many _underlyingToken equal
+    *      the user's balance in _liquidityPoolToken in staking pool(gauge)
+    */
+    function balanceInTokenStake(
+        address _underlyingToken,
+        address _liquidityPool, 
+        address , 
+        address _holder
+        ) public override view returns(uint) {
+        address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
+        int128 tokenIndex = 0;
+        for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
+            if(_underlyingTokens[i] == _underlyingToken) {
+                tokenIndex = i;
+            }
+        }
+        address _gauge = liquidityPoolToGauges[_liquidityPool];
+        uint _liquidityPoolTokenAmount = ICurveGauge(_gauge).balanceOf(_holder);
+        if(_liquidityPoolTokenAmount > 0) {
+            return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
+        }
+        return 0;
+    }
+    
+    /** 
+    * @dev Calls the appropriate deploy function depending on N_COINS
+    * 
+    * @dev This function needs an address _underlyingToken argument to get how many _underlyingToken equal
     *      the user's balance in _liquidityPoolToken
     */
     function calculateAmountInLPToken(
@@ -364,6 +480,11 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
         return true;
     }
     
+    function getStakeCodes(address , address _liquidityPool, address , uint _stakeAmount) public view override returns(bytes[] memory _codes) {
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(liquidityPoolToGauges[_liquidityPool],abi.encodeWithSignature("deposit(uint256)",_stakeAmount));
+    }
+    
     /** 
     * @dev Withdraws _amount of _liquidityPoolToken from _liquidityPoolToken and claims CRV rewards
     * 
@@ -378,6 +499,44 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
         IERC20(crvToken).safeTransfer(msg.sender, IERC20(crvToken).balanceOf(address(this)));
         return true;
+    }
+    
+    function getUnstakeCodes(address , address _liquidityPool, address , uint _unstakeAmount) public view override returns(bytes[] memory _codes) {
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(liquidityPoolToGauges[_liquidityPool],abi.encodeWithSignature("withdraw(uint256)",_unstakeAmount));
+    }
+    
+    function getLiquidityPoolTokenBalance(address _optyPool, address ,address , address _liquidityPoolToken) public view override returns(uint) {
+        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+    }
+    
+    function getLiquidityPoolTokenBalanceStake(address _optyPool, address, address _liquidityPool, address ) public view override returns(uint) {
+        return IERC20(liquidityPoolToGauges[_liquidityPool]).balanceOf(_optyPool);
+    }
+    
+    function calculateRedeemableLPTokenAmount(address _optyPool, address , address, address _liquidityPoolToken, uint _redeemAmount) public override view returns(uint _amount) {
+        uint256 _liquidityPoolTokenBalance = IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),_liquidityPoolToken);
+        // can have unintentional rounding errors
+        _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
+    }
+    
+    function isRedeemableAmountSufficient(address _optyPool, address,address, address _liquidityPoolToken, uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),_liquidityPoolToken);
+        return _balanceInToken >= _redeemAmount;
+    }
+ 
+    function calculateRedeemableLPTokenAmountStake(address _optyPool, address , address _liquidityPool, address , uint _redeemAmount) public override view returns(uint _amount) {
+        address _gauge = liquidityPoolToGauges[_liquidityPool];
+        uint256 _liquidityPoolTokenBalance = ICurveGauge(_gauge).balanceOf(_optyPool);
+        uint256 _balanceInToken = balanceInTokenStake(_optyPool,address(0),address(0),address(0));
+        // can have unintentional rounding errors
+        _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
+    }
+    
+    function isRedeemableAmountSufficientStake(address _optyPool, address ,address , address, uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInTokenStake(_optyPool,address(0),address(0),address(0));
+        return _balanceInToken >= _redeemAmount;
     }
     
     function canStake(address , address , address , address , uint ) public override view returns(bool) {
