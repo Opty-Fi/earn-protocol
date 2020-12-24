@@ -6,7 +6,6 @@ pragma experimental ABIEncoderV2;
 import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/curve/ICurveDeposit.sol";
 import "../../interfaces/curve/ICurveGauge.sol";
-import "../../interfaces/curve/ICurveDAO.sol";
 import "../../interfaces/curve/ITokenMinter.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
@@ -466,39 +465,9 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
         revert("not-implemented");
     }
     
-    /** 
-    * @dev Deposits _amount of _liquidityPoolToken in _liquidityPoolGauge to generate CRV rewards
-    * 
-    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
-    * @param _liquidityPoolGauge Address of the gauge associated to the pool
-    * @param _amount Quantity of _liquidityPoolToken to deposit in the gauge
-    */
-    function stakeLPtokens(address _liquidityPoolToken, address _liquidityPoolGauge, uint _amount) public returns(bool){
-        IERC20(_liquidityPoolToken).safeApprove(_liquidityPoolGauge, uint(0));
-        IERC20(_liquidityPoolToken).safeApprove(_liquidityPoolGauge, uint(_amount));
-        ICurveGauge(_liquidityPoolGauge).deposit(_amount);
-        return true;
-    }
-    
     function getStakeCodes(address , address _liquidityPool, address , uint _stakeAmount) public view override returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(liquidityPoolToGauges[_liquidityPool],abi.encodeWithSignature("deposit(uint256)",_stakeAmount));
-    }
-    
-    /** 
-    * @dev Withdraws _amount of _liquidityPoolToken from _liquidityPoolToken and claims CRV rewards
-    * 
-    * @param _liquidityPoolToken Address of the token that represents users' holdings in the pool
-    * @param _liquidityPoolGauge Address of the gauge associated to the pool
-    * @param _amount Quantity of _liquidityPoolToken to withdraw from the gauge
-    */
-    function unstakeLPtokens(address _liquidityPoolToken, address _liquidityPoolGauge, uint _amount) public returns(bool){
-        ICurveGauge(_liquidityPoolGauge).withdraw(_amount);
-        address crvToken = ITokenMinter(tokenMinter).token();
-        ICurveDAO(tokenMinter).mint(_liquidityPoolGauge);
-        IERC20(_liquidityPoolToken).safeTransfer(msg.sender, IERC20(_liquidityPoolToken).balanceOf(address(this)));
-        IERC20(crvToken).safeTransfer(msg.sender, IERC20(crvToken).balanceOf(address(this)));
-        return true;
     }
     
     function getUnstakeCodes(address , address _liquidityPool, address , uint _unstakeAmount) public view override returns(bytes[] memory _codes) {

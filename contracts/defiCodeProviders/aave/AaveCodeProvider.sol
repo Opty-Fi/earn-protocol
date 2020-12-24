@@ -12,6 +12,7 @@ import "../../libraries/SafeERC20.sol";
 contract AaveCodeProvider is ICodeProvider {
     
     using SafeERC20 for IERC20;
+    using SafeMath for uint;
     
     function getDepositCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider, address , uint[] memory _amounts) public override view returns(bytes[] memory _codes){
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
@@ -34,18 +35,6 @@ contract AaveCodeProvider is ICodeProvider {
         _underlyingTokens[0] = IAToken(_liquidityPoolToken).underlyingAssetAddress();
     }
     
-    function _getUnderlyingTokens(address ,address _liquidityPoolToken) internal view returns(address) {
-        return IAToken(_liquidityPoolToken).underlyingAssetAddress();
-    }
-    
-    function _isTransferAllowed(address _liquidityPoolToken, uint _amount, address _sender) internal view returns(bool transferAllowed) {
-        transferAllowed = IAToken(_liquidityPoolToken).isTransferAllowed(_sender, _amount);
-    }
-
-    function _getLendingPoolCore(address _lendingPoolAddressProvider) internal view returns (address) {
-        return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPoolCore();
-    }
-    
     function _getLendingPool(address _lendingPoolAddressProvider) internal view returns (address) {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPool();
     }
@@ -62,6 +51,23 @@ contract AaveCodeProvider is ICodeProvider {
         return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
     }
     
+    function calculateRedeemableLPTokenAmount(address , address , address, address , uint _redeemAmount) public override view returns(uint) {
+        return _redeemAmount;
+    }
+    
+    function isRedeemableAmountSufficient(address _optyPool, address,address, address _liquidityPoolToken, uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),_liquidityPoolToken);
+        return _balanceInToken >= _redeemAmount;
+    }
+    
+    function calculateRedeemableLPTokenAmountStake(address , address , address, address , uint ) public override view returns(uint) {
+        revert("!empty");
+    }
+    
+    function isRedeemableAmountSufficientStake(address , address,address, address , uint) public view override returns(bool) {
+        revert("!empty");
+    }
+    
     function canStake(address , address , address , address , uint ) public override view returns(bool) {
         return false;
     }
@@ -75,6 +81,26 @@ contract AaveCodeProvider is ICodeProvider {
     }
     
     function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function balanceInTokenStake(address, address, address, address) public view override returns(uint256) {
+        revert("!empty");
+    }
+    
+    function getLiquidityPoolTokenBalance(address _optyPool, address , address , address _liquidityPoolToken) public view override returns(uint){
+        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+    }
+    
+    function getLiquidityPoolTokenBalanceStake(address , address , address , address ) public view override returns(uint){
+        revert("!empty");
+    }
+
+    function getStakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+
+    function getUnstakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
         revert("!empty");
     }
 }

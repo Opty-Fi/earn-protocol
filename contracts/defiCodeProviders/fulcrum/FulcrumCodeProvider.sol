@@ -22,8 +22,7 @@ contract FulcrumCodeprovider is ICodeProvider {
         _codes[0] = abi.encode(_liquidityPoolToken,abi.encodeWithSignature("burn(address,uint256)",_optyPool,_burnAmount));
     }
 
-    function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPool, address) public override view returns(uint) {
-        address _liquidityPoolToken = getLiquidityPoolToken(_underlyingToken,_liquidityPool);
+    function balanceInToken(address _optyPool, address ,address _liquidityPool, address _liquidityPoolToken) public override view returns(uint) {
         uint b = IERC20(_liquidityPoolToken).balanceOf(_optyPool);
         if (b > 0) {
             b = b.mul(IFulcrum(_liquidityPool).tokenPrice()).div(1e18);
@@ -51,11 +50,60 @@ contract FulcrumCodeprovider is ICodeProvider {
         return _liquidityPool;
     }
     
+    function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint _redeemAmount) public override view returns(uint _amount) {
+        uint256 _liquidityPoolTokenBalance = IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool,_liquidityPoolToken);
+        // can have unintentional rounding errors
+        _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
+    }
+    
+    function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool, address , uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool,address(0));
+        return _balanceInToken >= _redeemAmount;
+    }
+
+    
+    function calculateRedeemableLPTokenAmountStake(address , address , address, address , uint ) public override view returns(uint) {
+        revert("!empty");
+    }
+    
+    function isRedeemableAmountSufficientStake(address , address,address, address , uint) public view override returns(bool) {
+        revert("!empty");
+    }
+    
     function canStake(address , address , address , address , uint ) public override view returns(bool) {
         return false;
     }
     
-     function getRewardToken(address , address , address , address ) public override view returns(address) {
-         return address(0);
-     }
+    function getRewardToken(address , address , address , address ) public override view returns(address) {
+        return address(0);
+    }
+    
+    function getUnclaimedRewardTokenAmount(address , address , address , address) public override view returns(uint256){
+        revert("!empty");
+    }
+    
+    function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function balanceInTokenStake(address, address, address, address) public view override returns(uint256) {
+        revert("!empty");
+    }
+    
+    function getLiquidityPoolTokenBalance(address _optyPool, address , address , address _liquidityPoolToken) public view override returns(uint){
+        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+    }
+    
+    function getLiquidityPoolTokenBalanceStake(address , address , address , address ) public view override returns(uint){
+        revert("!empty");
+    }
+
+    function getStakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+
+    function getUnstakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
 }

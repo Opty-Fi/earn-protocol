@@ -119,4 +119,41 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
         revert("!empty");
     }
+    
+    function calculateRedeemableLPTokenAmountStake(address , address , address, address , uint ) public override view returns(uint) {
+        revert("!empty");
+    }
+    
+    function isRedeemableAmountSufficientStake(address , address,address, address , uint) public view override returns(bool) {
+        revert("!empty");
+    }
+    
+    function calculateRedeemableLPTokenAmount(address , address , address, address , uint _redeemAmount) public override view returns(uint _amount) {
+        return _redeemAmount;
+    }
+    
+    function isRedeemableAmountSufficient(address _optyPool, address,address, address , uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),address(0));
+        return _balanceInToken >= _redeemAmount;
+    }
+    
+    function balanceInTokenStake(address, address, address, address) public view override returns(uint256) {
+        revert("!empty");
+    }
+    
+    function getLiquidityPoolTokenBalance(address _optyPool, address , address , address _liquidityPoolToken) public view override returns(uint){
+        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+    }
+    
+    function getLiquidityPoolTokenBalanceStake(address , address , address , address ) public view override returns(uint){
+        revert("!empty");
+    }
+
+    function getStakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+
+    function getUnstakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
 }

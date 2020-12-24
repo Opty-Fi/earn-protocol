@@ -85,7 +85,7 @@ interface ICodeProvider {
     /**
      * @dev Returns code for unstaking staking liquidityPool token 
      */ 
-    function getUnstakeCodes(address , address _liquidityPool, address , uint _unstakeAmount) external view returns(bytes[] memory); 
+    function getUnstakeCodes(address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, uint _unstakeAmount) external view returns(bytes[] memory); 
     
     /**
      * @dev get liquidity pool token balance
