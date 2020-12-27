@@ -39,14 +39,6 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         addMarket(DAI,uint8(0));
     }
     
-    function addMarket(address _underlyingToken, uint8 _marketIndex) public onlyGovernance {
-        marketToIndexes[_underlyingToken] = _marketIndex;
-    }
-    
-    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
-        liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
-    }
-    
     function getDepositCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, address , uint[] memory _amounts) public view override returns(bytes[] memory _codes) {
         uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
         AccountInfo[] memory _accountInfos = new AccountInfo[](1);
@@ -81,6 +73,14 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
     }
     
+    function getLiquidityPoolToken(address , address) public override view returns(address) {
+        revert("!lptoken");
+    }
+    
+    function getUnderlyingTokens(address _liquidityPool, address) public view override returns(address[] memory _underlyingTokens) {
+        _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
+    }
+    
     function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPool, address) public override view returns(uint) {
         uint _underlyingTokenIndex = marketToIndexes[_underlyingToken];
         AccountInfo memory _accountInfo = AccountInfo(_optyPool, uint(0));
@@ -88,12 +88,8 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         return value;
     }
     
-    function getLiquidityPoolToken(address , address) public override view returns(address) {
-        return address(0);
-    }
-    
-    function getUnderlyingTokens(address _liquidityPool, address) public view override returns(address[] memory _underlyingTokens) {
-        _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
+    function getLiquidityPoolTokenBalance(address , address , address , address ) public view override returns(uint){
+        revert("!lptoken");
     }
     
     function calculateAmountInToken(address , address , address , uint ) public override view returns(uint) {
@@ -104,8 +100,13 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function canStake(address , address , address , address , uint ) public override view returns(bool) {
-        return false;
+    function calculateRedeemableLPTokenAmount(address , address , address, address , uint _redeemAmount) public override view returns(uint _amount) {
+        return _redeemAmount;
+    }
+    
+    function isRedeemableAmountSufficient(address _optyPool, address,address, address , uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),address(0));
+        return _balanceInToken >= _redeemAmount;
     }
     
     function getRewardToken(address , address , address , address ) public override view returns(address) {
@@ -120,6 +121,26 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return false;
+    }
+    
+    function getStakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+
+    function getUnstakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+    
+    function balanceInTokenStake(address, address, address, address) public view override returns(uint256) {
+        revert("!empty");
+    }
+    
+    function getLiquidityPoolTokenBalanceStake(address , address , address , address ) public view override returns(uint){
+        revert("!empty");
+    }
+    
     function calculateRedeemableLPTokenAmountStake(address , address , address, address , uint ) public override view returns(uint) {
         revert("!empty");
     }
@@ -128,32 +149,11 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function calculateRedeemableLPTokenAmount(address , address , address, address , uint _redeemAmount) public override view returns(uint _amount) {
-        return _redeemAmount;
+    function addMarket(address _underlyingToken, uint8 _marketIndex) public onlyGovernance {
+        marketToIndexes[_underlyingToken] = _marketIndex;
     }
     
-    function isRedeemableAmountSufficient(address _optyPool, address,address, address , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),address(0));
-        return _balanceInToken >= _redeemAmount;
-    }
-    
-    function balanceInTokenStake(address, address, address, address) public view override returns(uint256) {
-        revert("!empty");
-    }
-    
-    function getLiquidityPoolTokenBalance(address _optyPool, address , address , address _liquidityPoolToken) public view override returns(uint){
-        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
-    }
-    
-    function getLiquidityPoolTokenBalanceStake(address , address , address , address ) public view override returns(uint){
-        revert("!empty");
-    }
-
-    function getStakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
-        revert("!empty");
-    }
-
-    function getUnstakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
-        revert("!empty");
+    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
+        liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
     }
 }
