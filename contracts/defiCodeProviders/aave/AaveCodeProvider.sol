@@ -13,16 +13,16 @@ contract AaveCodeProvider is ICodeProvider {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
     
-    function getDepositCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider, address , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
+    function getDepositCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_lendingPool,abi.encodeWithSignature("deposit(address,uint256,uint16)",_underlyingTokens[0],_amounts[0],uint16(0)));
     }
     
-    function getWithdrawCodes(address, address[] memory ,address, address _liquidityPoolToken, uint _amount) 
+    function getWithdrawCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider , uint _amount) 
     public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
-        _codes[0] = abi.encode(_liquidityPoolToken,abi.encodeWithSignature("redeem(uint256)",_amount));
+        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPoolAddressProvider),abi.encodeWithSignature("redeem(uint256)",_amount));
     }
     
     function getLiquidityPoolToken(address _underlyingToken, address _liquidityPoolAddressProvider) public override view returns(address) {
@@ -36,68 +36,68 @@ contract AaveCodeProvider is ICodeProvider {
         _underlyingTokens[0] = IAToken(_liquidityPoolToken).underlyingAssetAddress();
     }
     
-    function balanceInToken(address _optyPool, address ,address , address _liquidityPoolToken) public override view returns(uint256) {
-        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+    function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPoolAddressProvider) public override view returns(uint256) {
+        return getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPoolAddressProvider);
     }
     
-    function getLiquidityPoolTokenBalance(address _optyPool, address , address , address _liquidityPoolToken) public view override returns(uint){
-        return IERC20(_liquidityPoolToken).balanceOf(_optyPool);
+    function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider) public view override returns(uint){
+        return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPoolAddressProvider)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address , address , address , uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function calculateAmountInToken(address , address , uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         return _liquidityPoolTokenAmount;        
     }
     
-    function calculateAmountInLPToken(address , address , address , uint _underlyingTokenAmount) public override view returns(uint256) {
+    function calculateAmountInLPToken(address, address, uint _underlyingTokenAmount) public override view returns(uint256) {
         return _underlyingTokenAmount;        
     }
     
-    function calculateRedeemableLPTokenAmount(address , address , address, address , uint _redeemAmount) public override view returns(uint) {
+    function calculateRedeemableLPTokenAmount(address , address , address , uint _redeemAmount) public override view returns(uint) {
         return _redeemAmount;
     }
     
-    function isRedeemableAmountSufficient(address _optyPool, address,address, address _liquidityPoolToken, uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,address(0),address(0),_liquidityPoolToken);
+    function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
+        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
-    function getRewardToken(address , address , address , address ) public override view returns(address) {
+    function getRewardToken(address) public override view returns(address) {
         return address(0);
     }
     
-    function getUnclaimedRewardTokenAmount(address , address , address , address) public override view returns(uint256){
+    function getUnclaimedRewardTokenAmount(address , address) public override view returns(uint256){
         revert("!empty");
     }
     
-    function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
+    function getClaimRewardTokenCode(address , address) public override view returns(bytes[] memory) {
         revert("!empty");
     }
     
-    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+    function canStake(address) public override view returns(bool) {
         return false;
     }
     
-    function getStakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+    function getStakeCodes(address , uint ) public view override returns(bytes[] memory){
         revert("!empty");
     }
 
-    function getUnstakeCodes(address , address , address , uint ) public view override returns(bytes[] memory){
+    function getUnstakeCodes(address , uint ) public view override returns(bytes[] memory){
         revert("!empty");
     }
     
-    function balanceInTokenStake(address, address, address, address) public view override returns(uint256) {
+    function balanceInTokenStake(address, address, address) public view override returns(uint256) {
         revert("!empty");
     }
     
-    function getLiquidityPoolTokenBalanceStake(address , address , address , address ) public view override returns(uint){
+    function getLiquidityPoolTokenBalanceStake(address , address) public view override returns(uint){
         revert("!empty");
     }
     
-    function calculateRedeemableLPTokenAmountStake(address , address , address, address , uint ) public override view returns(uint) {
+    function calculateRedeemableLPTokenAmountStake(address , address , address , uint ) public override view returns(uint) {
         revert("!empty");
     }
     
-    function isRedeemableAmountSufficientStake(address , address,address, address , uint) public view override returns(bool) {
+    function isRedeemableAmountSufficientStake(address , address,address , uint) public view override returns(bool) {
         revert("!empty");
     }
     
