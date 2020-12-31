@@ -26,7 +26,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     mapping(address => uint8) public marketToIndexes;
     mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
     
-    constructor() public{
+    constructor(address _registry) public Modifiers(_registry){
         address[] memory _dYdXUnderlyingTokens = new address[](4);
         _dYdXUnderlyingTokens[0] = WETH;
         _dYdXUnderlyingTokens[1] = SAI;
@@ -39,7 +39,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         addMarket(DAI,uint8(0));
     }
     
-    function getDepositCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool , uint[] memory _amounts) public view override returns(bytes[] memory _codes) {
+    function getDepositSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool , uint[] memory _amounts) public view override returns(bytes[] memory _codes) {
         uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
         AccountInfo[] memory _accountInfos = new AccountInfo[](1);
         _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
@@ -56,11 +56,47 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
     }
     
-    function getWithdrawCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _amount) public view override returns(bytes[] memory _codes) {
+    function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
+        AccountInfo[] memory _accountInfos = new AccountInfo[](1);
+        _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
+        AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _depositAmount);
+        ActionArgs memory _actionArg;
+        _actionArg.actionType = ActionType.Deposit;
+        _actionArg.accountId = 0;
+        _actionArg.amount = _amt;
+        _actionArg.primaryMarketId = _underlyingTokenIndex;
+        _actionArg.otherAddress = _optyPool;
+        ActionArgs[] memory _actionArgs = new ActionArgs[](1);
+        _actionArgs[0] = _actionArg;
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+    }
+    
+    function getWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _amount) public view override returns(bytes[] memory _codes) {
         uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
         AccountInfo[] memory _accountInfos = new AccountInfo[](1);
         _accountInfos[0] = AccountInfo(_optyPool, uint(0));
         AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, _amount);
+        ActionArgs memory _actionArg;
+        _actionArg.actionType = ActionType.Withdraw;
+        _actionArg.accountId = 0;
+        _actionArg.amount = _amt;
+        _actionArg.primaryMarketId = _underlyingTokenIndex;
+        _actionArg.otherAddress = _optyPool;
+        ActionArgs[] memory _actionArgs = new ActionArgs[](1);
+        _actionArgs[0] = _actionArg;
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+    }
+    
+    function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+       uint _redeemAmount = balanceInToken(_optyPool,_underlyingTokens[0],_liquidityPool);
+        uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
+        AccountInfo[] memory _accountInfos = new AccountInfo[](1);
+        _accountInfos[0] = AccountInfo(_optyPool, uint(0));
+        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, _redeemAmount);
         ActionArgs memory _actionArg;
         _actionArg.actionType = ActionType.Withdraw;
         _actionArg.accountId = 0;
@@ -125,11 +161,19 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         return false;
     }
     
-    function getStakeCodes(address , uint ) public view override returns(bytes[] memory){
+    function getStakeSomeCodes(address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+    
+    function getStakeAllCodes(address , address[] memory , address ) public view override returns(bytes[] memory ) {
         revert("!empty");
     }
 
-    function getUnstakeCodes(address , uint ) public view override returns(bytes[] memory){
+    function getUnstakeSomeCodes(address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+    
+    function getUnstakeAllCodes(address , address ) public view override returns(bytes[] memory) {
         revert("!empty");
     }
     
@@ -149,11 +193,19 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function addMarket(address _underlyingToken, uint8 _marketIndex) public onlyGovernance {
+    function getUnstakeAndWithdrawSomeCodes(address, address[] memory , address , uint ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getUnstakeAndWithdrawAllCodes(address , address[] memory , address ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function addMarket(address _underlyingToken, uint8 _marketIndex) public onlyOperator {
         marketToIndexes[_underlyingToken] = _marketIndex;
     }
     
-    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyGovernance {
+    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyOperator {
         liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
     }
 }

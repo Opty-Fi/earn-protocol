@@ -14,17 +14,42 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    address public constant comptroller = address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B);
-    address public constant rewardToken = address(0xc00e94Cb662C3520282E6f5717214004A7f26888);
+    address public comptroller;
+    address public rewardToken;
     
-    function getDepositCodes(address , address[] memory,address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
+    constructor(address _registry) public Modifiers(_registry) {
+        setRewardToken(address(0xc00e94Cb662C3520282E6f5717214004A7f26888));
+        setComptoller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
+    }
+    
+    function setRewardToken(address _rewardToken) public onlyOperator {
+        rewardToken = _rewardToken;
+    }
+    
+    function setComptoller(address _comptroller) public onlyOperator {
+        comptroller = _comptroller;
+    }
+    
+    function getDepositSomeCodes(address , address[] memory,address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(uint256)",uint256(_amounts[0])));
     }
     
-    function getWithdrawCodes(address ,address[] memory _underlyingTokens, address _liquidityPool , uint _amount) public override view returns(bytes[] memory _codes) {
+    function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(uint256)",_depositAmount));
+    }
+    
+    function getWithdrawSomeCodes(address ,address[] memory _underlyingTokens, address _liquidityPool , uint _amount) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("redeem(uint256)",uint256(_amount)));
+    }
+    
+    function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _redeemAmount = getLiquidityPoolTokenBalance(_optyPool,_underlyingTokens[0],_liquidityPool);
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("redeem(uint256)",_redeemAmount));
     }
     
     function getLiquidityPoolToken(address , address _liquidityPool) public override view returns(address) {
@@ -89,11 +114,19 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
         return false;
     }
     
-    function getStakeCodes(address , uint ) public view override returns(bytes[] memory){
+    function getStakeSomeCodes(address , uint ) public view override returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getStakeAllCodes(address , address[] memory , address ) public view override returns(bytes[] memory) {
         revert("!empty");
     }
 
-    function getUnstakeCodes(address , uint ) public view override returns(bytes[] memory){
+    function getUnstakeSomeCodes(address , uint ) public view override returns(bytes[] memory){
+        revert("!empty");
+    }
+    
+    function getUnstakeAllCodes(address , address ) public view override returns(bytes[] memory) {
         revert("!empty");
     }
     
@@ -110,6 +143,14 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     }
     
     function isRedeemableAmountSufficientStake(address , address, address , uint) public view override returns(bool) {
+        revert("!empty");
+    }
+    
+    function getUnstakeAndWithdrawSomeCodes(address , address[] memory , address , uint ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getUnstakeAndWithdrawAllCodes(address , address[] memory , address) public view override returns (bytes[] memory) {
         revert("!empty");
     }
 }

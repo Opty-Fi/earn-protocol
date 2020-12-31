@@ -54,7 +54,7 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
     address public constant fusdn3CrvStakePool = address(0xef4Da1CE3f487DA2Ed0BE23173F76274E0D47579);
     address public constant fyDAIyUSDCyUSDTyBUSDStakePool = address(0x093C2ae5E6F3D2A897459aa24551289D462449AD);
     
-    constructor(Gatherer _gatherer) public {
+    constructor(Gatherer _gatherer, address _registry) public Modifiers(_registry) {
         setGatherer(_gatherer);
         setLiquidityPoolToStakingPool(tBTCsBTCCrvDepositPool,tBTCsBTCCrvStakePool);
         setLiquidityPoolToStakingPool(threeCrvDepositPool,threeCrvStakePool);
@@ -72,14 +72,26 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         setLiquidityPoolToStakingPool(fyDAIyUSDCyUSDTyBUSDDepositPool,fyDAIyUSDCyUSDTyBUSDStakePool);
     }
 
-    function getDepositCodes(address, address[] memory, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
+    function getDepositSomeCodes(address, address[] memory, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("deposit(uint256)",_amounts[0]));
     }
+    
+    function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("deposit(uint256)",_depositAmount));
+    }
 
-    function getWithdrawCodes(address, address[] memory _underlyingTokens, address _liquidityPool, uint _shares) public override view returns(bytes[] memory _codes) {
+    function getWithdrawSomeCodes(address, address[] memory _underlyingTokens, address _liquidityPool, uint _shares) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("withdraw(uint256)",_shares));
+    }
+    
+    function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public override view returns(bytes[] memory _codes) {
+        uint _redeemAmount = getLiquidityPoolTokenBalance(_optyPool,_underlyingTokens[0],_liquidityPool);
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("withdraw(uint256)",_redeemAmount));
     }
     
     function getLiquidityPoolToken(address, address _liquidityPool) public override view returns(address) {
@@ -144,16 +156,30 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         return true;
     }
     
-    function getStakeCodes(address _liquidityPool, uint _shares) public view override returns(bytes[] memory _codes){
+    function getStakeSomeCodes(address _liquidityPool, uint _shares) public view override returns(bytes[] memory _codes){
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("stake(uint256)",_shares));
     }
+    
+    function getStakeAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _depositAmount = getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0],_liquidityPool);
+        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("stake(uint256)",_depositAmount));
+    }
 
-    function getUnstakeCodes(address _liquidityPool, uint _shares) public view override returns(bytes[] memory _codes){
+    function getUnstakeSomeCodes(address _liquidityPool, uint _shares) public view override returns(bytes[] memory _codes){
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("withdraw(uint256)",_shares));
+    }
+    
+    function getUnstakeAllCodes(address _optyPool, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _redeemAmount = getLiquidityPoolTokenBalanceStake(_optyPool, _liquidityPool);
+        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("withdraw(uint256)",_redeemAmount));
     }
     
     function balanceInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) public view override returns(uint256) {
@@ -186,11 +212,23 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         return _balanceInTokenStake >= _redeemAmount;
     }
     
+    function getUnstakeAndWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _redeemAmount) public view override returns (bytes[] memory _codes) {
+        _codes = new bytes[](2);
+        _codes[0] = getUnstakeSomeCodes(_liquidityPool, _redeemAmount)[0];
+        _codes[1] = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _redeemAmount)[0];
+    }
+    
+    function getUnstakeAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+        _codes = new bytes[](2);
+        _codes[0] = getUnstakeAllCodes(_optyPool, _liquidityPool)[0];
+        _codes[1] = getWithdrawAllCodes(_optyPool, _underlyingTokens, _liquidityPool)[0];
+    }
+    
     function setGatherer(Gatherer _gatherer) onlyGovernance public {
         gathererContract = _gatherer;
     }
     
-    function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyGovernance {
+    function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyOperator {
         require(liquidityPoolToStakingPool[_liquidityPool] != _stakingPool, "liquidityPoolToStakingPool already set");
         liquidityPoolToStakingPool[_liquidityPool] = _stakingPool;
     }

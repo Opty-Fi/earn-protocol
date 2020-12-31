@@ -31,20 +31,31 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     address public constant usdcStakingPool = address(0xB71dEFDd6240c45746EC58314a01dd6D833fD3b5);
     address public constant daiStakingPool = address(0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B);
     
-    constructor() public {
+    constructor(address _registry) public Modifiers(_registry){
         setLiquidityPoolToStakingPool(usdtDepositPool, usdtStakingPool);
         setLiquidityPoolToStakingPool(usdcDepositPool, usdcStakingPool);
         setLiquidityPoolToStakingPool(daiDepositPool, daiStakingPool);
     }
     
-    function getDepositCodes(address _optyPool, address[] memory, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
+    function getDepositSomeCodes(address _optyPool, address[] memory, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(address,uint256)",_optyPool,_amounts[0]));
     }
     
-    function getWithdrawCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool , uint _redeemAmount) public override view returns(bytes[] memory _codes) {
+    function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public override view returns(bytes[] memory _codes) {
+        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(address,uint256)",_optyPool, _depositAmount));
+    }
+    
+    function getWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool , uint _redeemAmount) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("redeem(address,uint256)",_optyPool, _redeemAmount));
+    }
+    
+    function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public override view returns(bytes[] memory _codes) {
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("redeem(address,uint256)",_optyPool, getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPool)));
     }
     
     function getLiquidityPoolToken(address ,address _liquidityPool) public override view returns(address){
@@ -109,16 +120,28 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         return true;
     }
     
-    function getStakeCodes(address _liquidityPool, uint _shares) public view override returns(bytes[] memory _codes){
+    function getStakeSomeCodes(address _liquidityPool, uint _shares) public view override returns(bytes[] memory _codes){
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("stake(uint256)",_shares));
     }
+    
+    function getStakeAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes){
+        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("stake(uint256)",getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPool)));
+    }
 
-    function getUnstakeCodes(address _liquidityPool,uint _shares) public view override returns(bytes[] memory _codes) {
+    function getUnstakeSomeCodes(address _liquidityPool,uint _shares) public view override returns(bytes[] memory _codes) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("withdraw(uint256)",_shares));
+    }
+    
+    function getUnstakeAllCodes(address _optyPool, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("withdraw(uint256)",getLiquidityPoolTokenBalanceStake(_optyPool,_liquidityPool)));
     }
     
     function balanceInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) public view override returns(uint256) {
@@ -148,7 +171,17 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         return _balanceInTokenStake >= _redeemAmount;
     }
     
-    function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyGovernance {
+    function getUnstakeAndWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _redeemAmount) public view override returns (bytes[] memory _codes) {
+        _codes[0] = getUnstakeSomeCodes(_liquidityPool,_redeemAmount)[0];
+        _codes[1] = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool , _redeemAmount)[0];
+    }
+    
+    function getUnstakeAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns (bytes[] memory _codes){
+        _codes[0] = getUnstakeAllCodes(_optyPool, _liquidityPool)[0];
+        _codes[1] = getWithdrawAllCodes(_optyPool, _underlyingTokens, _liquidityPool)[0];
+    }
+    
+    function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyOperator {
         require(liquidityPoolToStakingPool[_liquidityPool] != _stakingPool, "liquidityPoolToStakingPool already set");
         liquidityPoolToStakingPool[_liquidityPool] = _stakingPool;
     }

@@ -13,14 +13,28 @@ interface ICodeProvider {
      *
      * Returns a bytes value to be executed.
      */
-    function getDepositCodes(address _optyPool, address[] memory _underlyingTokens, address liquidityPool, uint[] memory amounts) external view returns(bytes[] memory);
+    function getDepositSomeCodes(address _optyPool, address[] memory _underlyingTokens, address liquidityPool, uint[] memory amounts) external view returns(bytes[] memory);
+   
+    /**
+     * @dev Deposit full `amount` of `underlyingToken` and sends the  `liquidityPoolToken` token to the caller`.
+     *
+     * Returns a bytes value to be executed.
+     */   
+    function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) external view returns(bytes[] memory _codes);
    
     /**
      * @dev Redeem `amount` of `liquidityPoolToken` token and sends the `underlyingToken` to the caller`.
      *
      * Returns a bytes value to be executed.
      */
-    function getWithdrawCodes(address _optyPool, address[] memory _underlyingTokens, address liquidityPool, uint amount) external view returns(bytes[] memory);
+    function getWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address liquidityPool, uint amount) external view returns(bytes[] memory);
+    
+    /**
+     * @dev Redeem full `amount` of `liquidityPoolToken` token and sends the `underlyingToken` to the caller`.
+     *
+     * Returns a bytes value to be executed.
+     */
+    function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) external view returns(bytes[] memory _codes);
     
     /**
      * @dev Returns the lending pool token given lending pool for Curve, lendingPoolToken for Aave,Compound.
@@ -85,12 +99,22 @@ interface ICodeProvider {
     /**
      * @dev Returns code for staking liquidityPool token 
      */
-    function getStakeCodes(address _liquidityPool, uint _stakeAmount) external view returns(bytes[] memory);
+    function getStakeSomeCodes(address _liquidityPool, uint _stakeAmount) external view returns(bytes[] memory);
+    
+    /**
+     * @dev Returns code for staking  liquidityPool token 
+     */
+    function getStakeAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) external view returns(bytes[] memory _codes);
      
     /**
      * @dev Returns code for unstaking staking liquidityPool token 
      */ 
-    function getUnstakeCodes(address _liquidityPool, uint _unstakeAmount) external view returns(bytes[] memory); 
+    function getUnstakeSomeCodes(address _liquidityPool, uint _unstakeAmount) external view returns(bytes[] memory); 
+    
+    /**
+     * @dev Returns code for unstaking liquidityPool token 
+     */
+    function getUnstakeAllCodes(address _optyPool, address _liquidityPool) external view returns(bytes[] memory _codes);
     
     /**
      * @dev Returns the balance in underlying for staked liquidityPoolToken balance of holder
@@ -111,4 +135,14 @@ interface ICodeProvider {
      * @dev Returns whether the share amount is redeemable      
      */
     function isRedeemableAmountSufficientStake(address _optyPool, address _underlyingToken,address _liquidityPool, uint _redeemAmount) external view returns(bool);
+    
+    /**
+     * @dev Returns the code for unstake and withdraw of liquidty pool tokens
+    */
+    function getUnstakeAndWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _redeemAmount) external view returns (bytes[] memory _codes);
+    
+    /**
+     * @dev Returns the code for unstake and withdraw of liquidty pool tokens
+    */
+    function getUnstakeAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) external view returns (bytes[] memory _codes);
 }
