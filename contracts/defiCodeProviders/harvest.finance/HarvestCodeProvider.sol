@@ -106,7 +106,7 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
     function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
         uint b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
         if (b > 0) {
-            b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(1e18);
+            b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(10**(IHarvestDeposit(_liquidityPool).decimals()));
         }
         return b;
     }

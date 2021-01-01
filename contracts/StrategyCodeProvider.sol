@@ -10,7 +10,7 @@ import "./libraries/Addresses.sol";
 import "./utils/ERC20.sol";
 import "./utils/Modifiers.sol";
 
-contract StrategyCodeProvider is Modifiers{
+contract StrategyCodeProvider is Modifiers {
     
     using SafeERC20 for IERC20;
     using Address for address;

@@ -7,6 +7,7 @@ import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../interfaces/aave/IAave.sol";
 import "../../libraries/SafeERC20.sol";
+import "../../libraries/Addresses.sol";
 
 contract AaveCodeProvider is ICodeProvider {
     
@@ -43,9 +44,8 @@ contract AaveCodeProvider is ICodeProvider {
         return _reserveData.aTokenAddress;
     }
     
-    function getUnderlyingTokens(address ,address _liquidityPoolToken) public override view returns(address[] memory _underlyingTokens) {
-        _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = IAToken(_liquidityPoolToken).underlyingAssetAddress();
+    function calculateAmountInLPToken(address , address , address , uint _underlyingTokenAmount) public override view returns(uint256) {
+        return _underlyingTokenAmount;        
     }
     
     function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPoolAddressProvider) public override view returns(uint256) {

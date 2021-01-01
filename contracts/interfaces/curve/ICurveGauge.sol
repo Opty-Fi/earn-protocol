@@ -7,4 +7,5 @@ interface ICurveGauge {
     function withdraw (uint _value) external;
     function minter() external view returns(address);
     function balanceOf(address _holder) external view returns(uint);
+    function claimable_tokens(address _holder) external view returns (uint);
 }

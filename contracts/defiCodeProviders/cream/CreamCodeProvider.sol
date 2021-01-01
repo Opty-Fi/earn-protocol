@@ -4,13 +4,12 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/ICodeProvider.sol";
-import "../../Registry.sol";
 import "../../interfaces/cream/ICream.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
-contract CreamCodeProvider is ICodeProvider,Modifiers {
+contract CreamCodeProvider is ICodeProvider, Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
@@ -61,6 +60,13 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
     function getUnderlyingTokens(address _liquidityPool, address) public override view returns(address[] memory _underlyingTokens) {
         _underlyingTokens = new address[](1);
         _underlyingTokens[0] = ICream(_liquidityPool).underlying();
+    }
+    
+    function calculateAmountInToken(address ,address, address _liquidityPoolToken, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+        if (_liquidityPoolTokenAmount > 0) {
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICream(_liquidityPoolToken).exchangeRateStored()).div(1e18);
+         }
+         return _liquidityPoolTokenAmount;
     }
 
     function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint256) {

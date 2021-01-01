@@ -7,5 +7,6 @@ interface IDForceStake {
     function withdraw (uint _value) external;
     function exit () external;
     function earned(address _holder) external view returns(uint);
-
+    function balanceOf(address _account) external view returns(uint);
+    function getReward() external;
 }

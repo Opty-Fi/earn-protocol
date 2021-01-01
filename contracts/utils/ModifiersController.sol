@@ -44,9 +44,9 @@ contract ModifiersController {
     /**
      * @dev Transfers strategist to a new account (`_strategist`).
      * Can only be called by the current governance.
-     */
+     */   
     function setStrategist(address _strategist) public onlyGovernance {
-        require(_strategist != address(0),"!address(0)");
+        require(_strategist.isContract(),"!isContract");
         strategist = _strategist;
     }
     

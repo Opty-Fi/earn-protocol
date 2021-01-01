@@ -18,15 +18,10 @@ contract StrategyManager is Modifiers{
 
     Registry RegistryContract;
 
-    constructor(address _registry) public {
+    constructor(address _registry) public Modifiers(_registry) {
         setRegistry(_registry);
     }
 
-    function setRegistry(address _registry) public onlyGovernance {
-        require(_registry.isContract(),"!_registry");
-        RegistryContract = Registry(_registry);
-    }
-    
     function balanceInToken(
                         bytes32 _hash,
                         address _underlyingToken, 
@@ -40,7 +35,7 @@ contract StrategyManager is Modifiers{
             if(_strategySteps[index].isBorrow) {
                 // TODO: Return the marke t value of underlying token
             } else {
-                address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_strategySteps[index].pool);
+                address _optyPoolProxy = RegistryContract.liquidityPoolToCodeProvider(_strategySteps[index].pool);
                 _balance = IDepositPoolProxy(_optyPoolProxy).
                             balanceInToken(msg.sender, _underlyingToken,_strategySteps[index].pool,_strategySteps[index].outputToken, _account);
             }
@@ -64,7 +59,7 @@ contract StrategyManager is Modifiers{
                     // _poolDepositAndBorrow();
                 }
                 else {
-                    address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_strategySteps[i].pool);
+                    address _optyPoolProxy = RegistryContract.liquidityPoolToCodeProvider(_strategySteps[i].pool);
                     address[] memory _underlyingTokens = IDepositPoolProxy(_optyPoolProxy).getUnderlyingTokens(_strategySteps[i].pool, _strategySteps[i].outputToken);
                     uint[] memory _amounts = new uint[](_underlyingTokens.length);
                     for (uint8 j = 0 ; j < _underlyingTokens.length ; j++) {
@@ -96,7 +91,7 @@ contract StrategyManager is Modifiers{
             if(_strategySteps[i].isBorrow){
                 // TODO : borrow
             } else {
-                address _optyPoolProxy = RegistryContract.liquidityPoolToDepositPoolProxy(_strategySteps[steps-i-1].pool);
+                address _optyPoolProxy = RegistryContract.liquidityPoolToCodeProvider(_strategySteps[steps-i-1].pool);
                 address[] memory _underlyingTokens = new address[](1);
                 if((steps-i-1) == 0){
                     _underlyingTokens[0] = _underlyingToken;

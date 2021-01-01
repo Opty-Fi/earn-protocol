@@ -9,8 +9,9 @@ import "../../interfaces/curve/ICurveGauge.sol";
 import "../../interfaces/curve/ITokenMinter.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
+import "../../Gatherer.sol";
 
-contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
+contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     
     using SafeERC20 for IERC20;  
     using SafeMath for uint;
@@ -217,7 +218,148 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
             _codes[0] = _getDeposit4Code(_liquidityPool, _amounts);
         }
     }
+
+    /**
+    * @dev Swaps _amount of _liquidityPoolToken for _underlyingToken
+    * 
+    * @param _liquidityPool Address of the token that represents users' holdings in the pool
+    * @param _amount Quantity of _liquidityPoolToken to swap for _underlyingToken
+    */
+    function getWithdrawCodes(address, address[] memory _underlyingTokens, address _liquidityPool, address _liquidityPoolToken, uint _amount) public override view returns(bytes[] memory _codes) {
+        uint N_COINS = _underlyingTokens.length;
+        _codes = new bytes[](1);
+        if (N_COINS == uint(1)){
+            _codes[0] = _getWithdraw1Code(_underlyingTokens[0], _liquidityPool, _liquidityPoolToken, _amount);
+        }
+        else if (N_COINS == uint(2)){
+            _codes[0] = _getWithdraw2Code(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+        }
+        else if (N_COINS == uint(3)){
+            _codes[0] = _getWithdraw3Code(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+        }
+        else if (N_COINS == uint(4)){
+            _codes[0] = _getWithdraw4Code(_underlyingTokens, _liquidityPool, _liquidityPoolToken, _amount);
+        }
+    }
     
+    /** 
+    * @dev Calls the appropriate deploy function depending on N_COINS
+    * 
+    * @dev This function needs an address _underlyingToken argument to get how many _underlyingToken equal
+    *      the user's balance in _liquidityPoolToken
+    */
+    function calculateAmountInToken(address _underlyingToken, address _liquidityPool, address , uint _liquidityPoolTokenAmount) public override view returns(uint) {
+        address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
+        int128 tokenIndex = 0;
+        for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
+            if(_underlyingTokens[i] == _underlyingToken) {
+                tokenIndex = i;
+            }
+        }
+        if(_liquidityPoolTokenAmount > 0) {
+            return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
+        }
+        return 0;
+    }
+    
+    /** 
+    * @dev Calls the appropriate deploy function depending on N_COINS
+    * 
+    * @dev This function needs an address _underlyingToken argument to get how many _underlyingToken equal
+    *      the user's balance in _liquidityPoolToken
+    */
+    function calculateAmountInLPToken(address , address , address , uint ) public override view returns(uint) {
+        revert("not-implemented");
+    }
+
+    /** 
+    * @dev Calls the appropriate deploy function depending on N_COINS
+    * 
+    * @dev This function needs an address _underlyingToken argument to get how many _underlyingToken equal
+    *      the user's balance in _liquidityPoolToken
+    */
+    function balanceInToken(address _underlyingToken, address _liquidityPool, address _liquidityPoolToken, address _holder) public override view returns(uint) {
+        address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
+        int128 tokenIndex = 0;
+        for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
+            if(_underlyingTokens[i] == _underlyingToken) {
+                tokenIndex = i;
+            }
+        }
+        uint _liquidityPoolTokenAmount = IERC20(_liquidityPoolToken).balanceOf(_holder);
+        if(_liquidityPoolTokenAmount > 0) {
+            return ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
+        }
+        return 0;
+    }
+
+    function balanceInTokenStaked(address _underlyingToken, address _liquidityPool, address , address _holder) public override view returns(uint) {
+        address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
+        int128 tokenIndex = 0;
+        address[] memory _targetToken = new address[](1);
+        _targetToken[0] = _underlyingToken;
+        address _gauge = liquidityPoolToGauges[_liquidityPool];
+        for(uint8 i = 0 ; i < _underlyingTokens.length ; i++) {
+            if(_underlyingTokens[i] == _underlyingToken) {
+                tokenIndex = i;
+            }
+        }
+        uint _liquidityPoolTokenAmount = ICurveGauge(_gauge).balanceOf(_holder);
+        if(_liquidityPoolTokenAmount > 0) {
+            uint b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
+            
+            // TODO : get the amount of unclaimed CRV tokens (claimable_tokens is not a read function)
+            // if (ICurveGauge(_gauge).claimable_tokens(_holder)>uint(0)){
+            //     b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(crv, _targetToken[0], ICurveGauge(_gauge).claimable_tokens(_holder)));
+            // }
+            
+            return b;
+        }
+        return 0;
+    }
+    
+    function getLiquidityPoolToken(address, address _liquidityPool) public override view returns(address) {
+        return ICurveDeposit(_liquidityPool).token();
+    }
+    
+    function getUnderlyingTokens(address _liquidityPool , address) public override view returns(address[] memory _underlyingTokens) {
+        _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
+    }
+
+    function canStake(address , address , address , address , uint ) public override view returns(bool) {
+        return true;
+    }
+
+    function getStakeCodes(address , address , address _liquidityPool, address , uint _stakingAmount) public override view returns(bytes[] memory _codes){
+        address _gauge = liquidityPoolToGauges[_liquidityPool];
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_gauge,abi.encodeWithSignature("deposit(uint256)",_stakingAmount));
+    }
+    
+    function getUnstakeCodes(address , address , address _liquidityPool, address , uint _stakingAmount) public override view returns(bytes[] memory _codes){
+        address _gauge = liquidityPoolToGauges[_liquidityPool];
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(_gauge,abi.encodeWithSignature("withdraw(uint256)",_stakingAmount));
+    }
+    
+    function getRewardToken(address , address , address , address) public override view returns(address) {
+        return rewardToken;
+    }
+    
+    function getUnclaimedRewardTokenAmount(address , address , address _liquidityPool, address) public override view returns(uint256){
+        if(liquidityPoolToGauges[_liquidityPool] != address(0)) {
+            // TODO : get the amount of unclaimed CRV tokens
+        }
+        return uint(0);
+    }
+    
+    function getClaimRewardTokenCode(address, address, address _liquidityPool, address) public override view returns(bytes[] memory _codes) {
+        if(liquidityPoolToGauges[_liquidityPool] != address(0)) {
+            _codes = new bytes[](1);
+            _codes[0] = abi.encode(getMinter(liquidityPoolToGauges[_liquidityPool]),abi.encodeWithSignature("mint(address)",liquidityPoolToGauges[_liquidityPool]));
+        }
+    }
+        
     /**
     * @dev Swaps _amount of _liquidityPoolToken for _underlyingToken
     * 
