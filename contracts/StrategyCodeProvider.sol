@@ -27,7 +27,7 @@ contract StrategyCodeProvider is Modifiers{
         uint _strategyStepCount = _strategySteps.length;
         uint _lastStepIndex = _strategyStepCount - 1;
         address _liquidityPool = _strategySteps[_lastStepIndex].pool;
-        address _optyPoolProxy = registryContract.liquidityPoolToDepositPoolProxy(_liquidityPool);
+        address _optyPoolProxy = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
         if (ICodeProvider(_optyPoolProxy).canStake(_liquidityPool)) {
             return (_strategyStepCount + 1);
         }
@@ -41,7 +41,7 @@ contract StrategyCodeProvider is Modifiers{
             _actualStepIndex = _stepIndex - 1;
         }
         if(!_strategySteps[_actualStepIndex].isBorrow) {
-            address _optyCodeProvider = registryContract.liquidityPoolToDepositPoolProxy(_strategySteps[_actualStepIndex].pool);
+            address _optyCodeProvider = registryContract.liquidityPoolToCodeProvider(_strategySteps[_actualStepIndex].pool);
             address _liquidityPool = _strategySteps[_actualStepIndex].pool;
             address _outputToken = _strategySteps[_actualStepIndex].outputToken;
             address[] memory _underlyingTokens = ICodeProvider(_optyCodeProvider).getUnderlyingTokens(_liquidityPool, _outputToken);
@@ -68,7 +68,7 @@ contract StrategyCodeProvider is Modifiers{
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = _underlyingToken;
             address _liquidityPool = _strategySteps[_stepIndex].pool;
-            address _optyPoolProxy = registryContract.liquidityPoolToDepositPoolProxy(_liquidityPool);
+            address _optyPoolProxy = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
             if(_stepIndex == (_strategySteps.length - 1) && ICodeProvider(_optyPoolProxy).canStake(_liquidityPool)) {
                 _codes = ICodeProvider(_optyPoolProxy).getUnstakeAndWithdrawAllCodes(_optyPool,_underlyingTokens,_liquidityPool);
             } else {
@@ -88,7 +88,7 @@ contract StrategyCodeProvider is Modifiers{
             uint _iterator = _steps - 1 - _i;
             if(!_strategySteps[_iterator].isBorrow) {
                 address _liquidityPool = _strategySteps[_iterator].pool;
-                address _optyPoolProxy = registryContract.liquidityPoolToDepositPoolProxy(_liquidityPool);
+                address _optyPoolProxy = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
                 address _inputToken = _underlyingToken;
                 if(_iterator != 0) {
                     _inputToken = _strategySteps[_iterator - 1].outputToken;

@@ -6,7 +6,7 @@ import "./interfaces/opty/IUniswap.sol";
 import "./libraries/SafeERC20.sol";
 import "./utils/Modifiers.sol";
 
-contract Gatherer is Modifiers{
+contract Gatherer is Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint;
@@ -15,31 +15,52 @@ contract Gatherer is Modifiers{
     
     mapping(address => mapping(address => address[])) public rewardToUnderlyingToPaths;
     
-    constructor() public {
-        router = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+    address public constant CRV = address(0xD533a949740bb3306d119CC777fa900bA034cd52);
+    address public constant DF = address(0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0);
+    address public constant COMP = address(0xc00e94Cb662C3520282E6f5717214004A7f26888);
+    address public constant FARM = address(0xa0246c9032bC3A600820415aE600c6388619A14D);
+    
+    address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    address public constant DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    address public constant USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    address public constant USDT = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    address public constant WBTC = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
+    address public constant TUSD = address(0x0000000000085d4780B73119b644AE5ecd22b376);
+    
+    constructor(address _registry) public Modifiers(_registry) {
+        setRouter(address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D));
+        
         address[] memory path = new address[](3);
-        path[0] = address(0xD533a949740bb3306d119CC777fa900bA034cd52);
-        path[1] = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-        path[2] = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        path[0] = CRV;
+        path[1] = WETH;
+        path[2] = DAI;
         setPath(path);
-        path[0] = address(0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0);
+        
+        path[0] = DF;
         setPath(path);
-        path[0] = address(0xc00e94Cb662C3520282E6f5717214004A7f26888);
+        
+        path[0] = COMP;
         setPath(path);
-        path[0] = address(0xa0246c9032bC3A600820415aE600c6388619A14D);
+        
+        path[0] = FARM;
         setPath(path);
-        path[1] = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-        path[2] = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+        
+        path[1] = USDC;
+        path[2] = USDT;
         setPath(path);
-        path[2] = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
+        
+        path[2] = WBTC;
         setPath(path);
-        path[2] = address(0x0000000000085d4780B73119b644AE5ecd22b376);
+        
+        path[2] = TUSD;
         setPath(path);
-        path[2] = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+        
+        path[2] = WETH;
         setPath(path);
+        
         path = new address[](2);
-        path[0] = address(0xa0246c9032bC3A600820415aE600c6388619A14D);
-        path[1] = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+        path[0] = FARM;
+        path[1] = USDC;
         setPath(path);
     }
     
@@ -51,7 +72,7 @@ contract Gatherer is Modifiers{
         return true;
     }
     
-    function setPath(address[] memory _path) public onlyGovernance {
+    function setPath(address[] memory _path) public onlyOperator {
         rewardToUnderlyingToPaths[_path[0]][_path[_path.length-1]] = _path;
     }
     
@@ -61,7 +82,7 @@ contract Gatherer is Modifiers{
         return amounts[rewardToUnderlyingToPaths[_rewardToken][_underlyingToken].length - 1];
     }
     
-    function setRouter(address _router) public onlyGovernance {
+    function setRouter(address _router) public onlyOperator {
         router = _router;
     }
 }
