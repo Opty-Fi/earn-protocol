@@ -133,12 +133,4 @@ contract YearnCodeProvider is ICodeProvider {
     function getUnstakeAndWithdrawAllCodes(address , address[] memory , address ) public view override returns (bytes[] memory ) {
         revert("!empty");
     }
-    
-    function getUnclaimedRewardTokenAmount(address , address , address , address ) public override view returns(uint) {
-        revert("!empty");
-    }
-    
-    function getClaimRewardTokenCode(address , address , address , address ) public override view returns(bytes[] memory) {
-        revert("!empty");
-    }
 }

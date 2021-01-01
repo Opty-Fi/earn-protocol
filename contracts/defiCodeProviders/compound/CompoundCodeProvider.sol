@@ -6,14 +6,13 @@ pragma experimental ABIEncoderV2;
 import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
+import "./../../utils/ERC20Detailed.sol";
 
-contract CompoundCodeProvider is ICodeProvider, Modifiers {
+contract CompoundCodeProvider is ICodeProvider,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
-    using Address for address;
 
     address public comptroller;
     address public rewardToken;
@@ -69,10 +68,6 @@ contract CompoundCodeProvider is ICodeProvider, Modifiers {
             b = b.mul(ICompound(_liquidityPool).exchangeRateStored()).div(1e18);
          }
          return b;
-    }
-
-    function balanceInTokenStaked(address , address ,address , address ) public override view returns(uint256) {
-        revert("!empty");
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){

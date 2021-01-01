@@ -47,7 +47,7 @@ interface ICodeProvider {
     function getUnderlyingTokens(address liquidityPool, address _liquidityPoolToken) external view returns(address[] memory);
     
     /**
-     * @dev Returns the balance in underlying for liquidityPoolToken and claimable rewardToken balance of holder
+     * @dev Returns the balance in underlying for liquidityPoolToken balance of holder
      */
     function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPool) external view returns(uint256);
     

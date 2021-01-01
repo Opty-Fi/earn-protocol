@@ -78,9 +78,7 @@ contract Gatherer is Modifiers {
         path[1] = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
         setPath(path);
     }
-    function setRouter(address _router) public onlyOperator {
-                   router = _router;
-    }
+
     function harvest(address _rewardToken, address _underlyingToken) public returns(bool){
         IERC20(_rewardToken).safeTransferFrom(msg.sender,address(this),IERC20(_rewardToken).balanceOf(msg.sender));
         IERC20(_rewardToken).safeApprove(router, uint(0));

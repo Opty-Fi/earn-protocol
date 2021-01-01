@@ -46,7 +46,7 @@ contract FulcrumCodeprovider is ICodeProvider {
     function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPool) public override view returns(uint) {
         uint b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
         if (b > 0) {
-            b = b.mul(IFulcrum(_liquidityPool).tokenPrice()).div(10**(IFulcrum(_liquidityPoolToken).decimals()));
+            b = b.mul(IFulcrum(_liquidityPool).tokenPrice()).div(1e18);
         }
         return b;
     }

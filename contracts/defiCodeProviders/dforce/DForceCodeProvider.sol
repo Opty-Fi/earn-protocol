@@ -10,9 +10,8 @@ import "../../interfaces/dforce/IDForceStake.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
-import "../../Gatherer.sol";
 
-contract DForceCodeProvider is ICodeProvider, Modifiers {
+contract DForceCodeProvider is ICodeProvider,Modifiers {
     
     using SafeERC20 for IERC20;
     using SafeMath for uint;
