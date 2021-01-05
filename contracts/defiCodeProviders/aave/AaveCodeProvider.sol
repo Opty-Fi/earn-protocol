@@ -6,24 +6,28 @@ pragma experimental ABIEncoderV2;
 import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/aave/ILendingPoolAddressesProvider.sol";
 import "../../interfaces/aave/IAave.sol";
-import "../../libraries/SafeERC20.sol";
+import "../../interfaces/aave/IAToken.sol";
+import "../../interfaces/ERC20/IERC20.sol";
 
 contract AaveCodeProvider is ICodeProvider {
-    
-    using SafeERC20 for IERC20;
-    using SafeMath for uint;
-    
+
     function getDepositSomeCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(_lendingPool,abi.encodeWithSignature("deposit(address,uint256,uint16)",_underlyingTokens[0],_amounts[0],uint16(0)));
+        address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
+        _codes = new bytes[](3);
+        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_lendingPoolCore,uint(0)));
+        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_lendingPoolCore,_amounts[0]));
+        _codes[2] = abi.encode(_lendingPool,abi.encodeWithSignature("deposit(address,uint256,uint16)",_underlyingTokens[0],_amounts[0],uint16(0)));
     }
     
     function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPoolAddressProvider) public view override returns(bytes[] memory _codes) {
         uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(_lendingPool,abi.encodeWithSignature("deposit(address,uint256,uint16)",_underlyingTokens[0],_depositAmount,uint16(0)));
+        address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
+        _codes = new bytes[](3);
+        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_lendingPoolCore,uint(0)));
+        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_lendingPoolCore,_depositAmount));
+        _codes[2] = abi.encode(_lendingPool,abi.encodeWithSignature("deposit(address,uint256,uint16)",_underlyingTokens[0],_depositAmount,uint16(0)));
     }
     
     function getWithdrawSomeCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider , uint _amount) public override view returns(bytes[] memory _codes) {
@@ -131,5 +135,9 @@ contract AaveCodeProvider is ICodeProvider {
     
     function _getLendingPool(address _lendingPoolAddressProvider) internal view returns (address) {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPool();
+    }
+    
+    function _getLendingPoolCore(address _lendingPoolAddressProvider) internal view returns (address) {
+        return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPoolCore();
     }
 }
