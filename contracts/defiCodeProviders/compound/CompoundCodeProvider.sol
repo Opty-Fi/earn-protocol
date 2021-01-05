@@ -7,7 +7,6 @@ import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../utils/Modifiers.sol";
-import "./../../utils/ERC20Detailed.sol";
 
 contract CompoundCodeProvider is ICodeProvider,Modifiers {
     

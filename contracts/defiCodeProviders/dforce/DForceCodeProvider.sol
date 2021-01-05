@@ -172,13 +172,16 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getUnstakeAndWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _redeemAmount) public view override returns (bytes[] memory _codes) {
+        _codes = new bytes[](2);
         _codes[0] = getUnstakeSomeCodes(_liquidityPool,_redeemAmount)[0];
         _codes[1] = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool , _redeemAmount)[0];
     }
     
     function getUnstakeAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns (bytes[] memory _codes){
-        _codes[0] = getUnstakeAllCodes(_optyPool, _liquidityPool)[0];
-        _codes[1] = getWithdrawAllCodes(_optyPool, _underlyingTokens, _liquidityPool)[0];
+        uint _liquidityPoolTokenStakeBalance = getLiquidityPoolTokenBalanceStake(_optyPool,_liquidityPool);
+        _codes = new bytes[](2);
+        _codes[0] = getUnstakeSomeCodes(_liquidityPool,_liquidityPoolTokenStakeBalance)[0];
+        _codes[1] = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool,_liquidityPoolTokenStakeBalance)[0];
     }
     
     function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyOperator {

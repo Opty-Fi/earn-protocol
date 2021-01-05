@@ -271,7 +271,7 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
         uint N_COINS = _underlyingTokens.length;
         uint[] memory _amounts = new uint[](4);
         for (uint i = 0 ; i < N_COINS ; i++) {
-            _amounts[0] = IERC20(_underlyingTokens[i]).balanceOf(_optyPool);
+            _amounts[i] = IERC20(_underlyingTokens[i]).balanceOf(_optyPool);
         }
         _codes = new bytes[](1);
         if (N_COINS == uint(2)) {
@@ -515,9 +515,10 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getUnstakeAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+        uint _liquidityPoolTokenStakeBalance = getLiquidityPoolTokenBalanceStake(_optyPool, _liquidityPool);
         _codes = new bytes[](2);
-        _codes[0] = getUnstakeAllCodes(_optyPool, _liquidityPool)[0];
-        _codes[1] = getWithdrawAllCodes(_optyPool, _underlyingTokens, _liquidityPool)[0];
+        _codes[0] = getUnstakeSomeCodes(_liquidityPool,_liquidityPoolTokenStakeBalance)[0];
+        _codes[1] = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool,_liquidityPoolTokenStakeBalance)[0];
     }
     
     function getMinter(address _gauge) public view returns(address) {

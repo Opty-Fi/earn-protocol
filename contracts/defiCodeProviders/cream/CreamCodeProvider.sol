@@ -4,10 +4,8 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/ICodeProvider.sol";
-import "../../Registry.sol";
 import "../../interfaces/cream/ICream.sol";
 import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
 import "../../utils/Modifiers.sol";
 
 contract CreamCodeProvider is ICodeProvider,Modifiers {
