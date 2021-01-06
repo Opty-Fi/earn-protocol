@@ -18,11 +18,11 @@ contract StrategyCodeProvider is Modifiers {
     constructor(address _registry) public Modifiers(_registry) {
     }
     
-    function getStrategyStepsCount(bytes32 _hash) public view returns(uint) {
+    function getWithdrawAllStepsCount(bytes32 _hash) public view returns(uint) {
         return _getStrategySteps(_hash).length;
     }
     
-    function getDepositStepCount(bytes32 _hash) public view returns(uint) {
+    function getDepositAllStepCount(bytes32 _hash) public view returns(uint) {
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint _strategyStepCount = _strategySteps.length;
         uint _lastStepIndex = _strategyStepCount - 1;

@@ -82,7 +82,7 @@ contract RiskManager is Modifiers {
                 isStrategy && 
                 !_strategySteps[0].isBorrow &&
                 registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && 
-                registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T1_limit
+                registryContract.getLiquidityPool(_strategySteps[0].pool).rating <= T1_limit
             ){
                 if(score > maxScore){
                     maxScore = score;
@@ -110,14 +110,7 @@ contract RiskManager is Modifiers {
             (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
             registryContract.getStrategy(hashes[i]);
             if(isStrategy){
-                if((_strategySteps[0].isBorrow && registryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool 
-                && registryContract.getCreditPool(_strategySteps[0].pool).rating >= T2_limit 
-                ) || 
-                (!_strategySteps[0].isBorrow && registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool 
-                && (
-                    registryContract.getCreditPool(_strategySteps[0].pool).rating >= T2_limit
-                    )
-                )) {
+                if(_strategySteps[0].isBorrow && registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && registryContract.getLiquidityPool(_strategySteps[0].pool).rating <= T2_limit) {
                     if (score > maxScore) {
                     maxScore = score;
                     bestStrategyHash = hashes[i];

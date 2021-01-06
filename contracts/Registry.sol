@@ -42,7 +42,6 @@ contract Registry is ModifiersController {
     mapping(address => bool)                        public tokens;
     mapping(bytes32 => Token)                       public tokensHashToTokens;
     mapping(address => LiquidityPool)               public liquidityPools;
-    mapping(address => LiquidityPool)               public creditPools;
     mapping(bytes32 => Strategy)                    public strategies;
     mapping(bytes32 => bytes32[])                   public tokenToStrategies;
     mapping(address => mapping(bytes32 => address)) public liquidityPoolToLPTokens;
@@ -85,7 +84,6 @@ contract Registry is ModifiersController {
         address aDAILPToken = address(0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d);
         approveToken(aDAILPToken);
         approveLiquidityPool(aaveLendingPoolAddressProvider);
-        approveCreditPool(aaveLendingPoolAddressProvider);
         setLiquidityPoolToLPToken(aaveLendingPoolAddressProvider,tkns,aDAILPToken);
         
         // activation for compound dai
@@ -261,75 +259,7 @@ contract Registry is ModifiersController {
     }
     
     /**
-     * @dev Sets `_pool` from the {creditPools} mapping.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {LogLiquidityPool} event.
-     *
-     * Requirements:
-     *
-     * - `_pool` cannot be the zero address or an EOA.
-     * - msg.sender should be governance.
-     * - `_pool` should not be approved
-     */
-    function approveCreditPool(address _pool) public onlyGovernance returns (bool) {
-        require(_pool != address(0), "!address(0)");
-        require(address(_pool).isContract(), "isContract");
-        require(!creditPools[_pool].isLiquidityPool, "!creditPools");
-        creditPools[_pool].isLiquidityPool = true;
-        emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isLiquidityPool);
-        return true;
-    }
-    
-    /**
-     * @dev Revokes `_pool` from the {creditPools} mapping.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {LogLiquidityPool} event.
-     *
-     * Requirements:
-     *
-     * - `_pool` cannot be the zero address or an EOA.
-     * - msg.sender should be governance.
-     * - `_pool` should not be approved
-     */
-    function revokeCreditPool(address _pool) public onlyGovernance {
-        require(creditPools[_pool].isLiquidityPool,"!creditPools");
-        emit LogLiquidityPool(msg.sender,_pool,creditPools[_pool].isLiquidityPool);
-        creditPools[_pool].isLiquidityPool = false;
-    }
-    
-    /**
-     * @dev Returns the credit pool by `_pool`.
-     */
-    function getCreditPool(address _pool) public view returns(LiquidityPool memory _creditPool) {	   
-        _creditPool = creditPools[_pool];	    
-    }
-    
-    /**
-     * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {LogRateCreditPool} event.
-     *
-     * Requirements:
-     *
-     * - `_pool` cannot be the zero address or an EOA.
-     * - msg.sender should be governance.
-     * - `_pool` should be approved
-     */
-    function rateCreditPool(address _pool, uint8 _rate) public onlyGovernance returns(bool) {
-        require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
-        creditPools[_pool].rating = _rate;
-        emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
-        return true;
-    }
-    
-    /**
-     * @dev Sets liquidity `_pool` to the opty pool proxy `_poolProxy` from the {liquidityPoolToDepositPoolProxy} mapping.
+     * @dev Sets liquidity `_pool` to the protocol code provider `_codeProvider` from the {liquidityPoolToCodeProvider} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
@@ -339,7 +269,7 @@ contract Registry is ModifiersController {
      *
      * - `_pool`should be approved.
      * - msg.sender should be governance.
-     * - `_poolProxy` should be contract
+     * - `_codeProvider` should be contract
      */
     function setLiquidityPoolToCodeProvider(address _pool, address _codeProvider) public onlyOperator returns(bool) {
         require(_codeProvider.isContract(),"!_codeProvider.isContract()");
@@ -368,7 +298,7 @@ contract Registry is ModifiersController {
     function setStrategy(bytes32 _tokensHash,StrategyStep[] memory _strategySteps) public onlyOperator returns(bytes32) {
         require(!_isNewTokensHash(_tokensHash),"_isNewTokensHash");
         for(uint8 i = 0 ; i < _strategySteps.length ; i++){
-            require(liquidityPoolToCodeProvider[_strategySteps[i].pool] != address(0), "Invalid deposit pool proxy.");
+            require(liquidityPoolToCodeProvider[_strategySteps[i].pool] != address(0), "!codeProvider.");
         }
         bytes32[] memory hashes = new bytes32[](_strategySteps.length);
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
@@ -384,7 +314,7 @@ contract Registry is ModifiersController {
         require(_isNewStrategy(hash),"isNewStrategy");
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
             if(_strategySteps[i].isBorrow) {
-                require(creditPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
+                require(liquidityPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
                 require(tokens[_strategySteps[i].outputToken],"!borrowToken");
             }
             else {
@@ -523,30 +453,27 @@ contract Registry is ModifiersController {
     }
     
     /**
-     * @dev Sets `_poolToken` to the `_pool` from the {liquidityPoolToLPTokens} mapping.
+     * @dev Sets `_tokens` to keccak256 hash the {tokensHashToTokens} mapping.
      *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {LogSetLiquidityPoolToLPTokens} event.
+     * Emits a {LogSetTokensHashToTokens} event.
      *
      * Requirements:
      *
-     * - `_pool`should be approved.
-     * - msg.sender should be governance.
+     * - msg.sender should be operator.
      * - `_tokens` should be approved
-     * - `_poolToken` should be approved
      */
     function setTokensHashToTokens(address[] memory _tokens) public onlyOperator {
         for(uint8 i = 0 ;i < _tokens.length ; i++) {
             require(tokens[_tokens[i]],"!tokens");
         }
-        bytes32 tokensHash = keccak256(abi.encodePacked(_tokens));
-        require(_isNewTokensHash(tokensHash),"!_isNewTokensHash");
-        tokensHashIndexes.push(tokensHash);
-        tokensHashToTokens[tokensHash].index = tokensHashIndexes.length - 1;
+        bytes32 _tokensHash = keccak256(abi.encodePacked(_tokens));
+        require(_isNewTokensHash(_tokensHash),"!_isNewTokensHash");
+        tokensHashIndexes.push(_tokensHash);
+        tokensHashToTokens[_tokensHash].index = tokensHashIndexes.length - 1;
         for(uint8 i = 0 ; i < _tokens.length ;  i++) {
-                 tokensHashToTokens[tokensHash].tokens.push(_tokens[i]);   
+                 tokensHashToTokens[_tokensHash].tokens.push(_tokens[i]);   
         }
+        emit LogTokensToTokensHash(msg.sender,_tokensHash);
     }
     
     /**
@@ -589,14 +516,6 @@ contract Registry is ModifiersController {
     }
     
     /**
-     * @dev Modifier to check caller is governance or strategist
-     */
-    modifier eitherGovernanceOrStrategist() {
-        require(msg.sender == strategist || msg.sender == governance, "!governance!strategist");
-        _;
-    }
-    
-    /**
      * @dev Emitted when `token` is approved or revoked.
      *
      * Note that `token` cannot be zero address or EOA.
@@ -616,13 +535,6 @@ contract Registry is ModifiersController {
      * Note that `pool` cannot be zero address or EOA.
      */
     event LogRateLiquidityPool(address indexed caller,address indexed pool, uint8 indexed rate);
-    
-    /**
-     * @dev Emitted when `pool` is rated.
-     *
-     * Note that `pool` cannot be zero address or EOA.
-     */
-    event LogRateCreditPool(address indexed caller,address indexed pool, uint8 indexed rate);
     
     /**
      * @dev Emitted when `hash` strategy is set.
@@ -653,16 +565,16 @@ contract Registry is ModifiersController {
     event LogSetLiquidityPoolToLPTokens(address indexed caller, address indexed pool, bytes32 indexed tokens, address poolToken);
     
     /**
-     * @dev Emitted when liquidity pool `pool` is assigned to `poolProxy`.
+     * @dev Emitted when liquidity pool `pool` is assigned to `codeProvider`.
      *
      * Note that `pool` should be approved in {liquidityPools}.
      */
-    event LogLiquidityPoolToDepositToken(address indexed caller, address indexed pool, address indexed poolProxy);
+    event LogLiquidityPoolToDepositToken(address indexed caller, address indexed pool, address indexed codeProvider);
     
     /**
-     * @dev Emitted when liquidity pool `pool` is assigned to `poolProxy`.
-     *
-     * Note that `pool` should be approved in {creditPools}.
+     * @dev Emitted when tokens are assigned to `_tokensHash`.
+     * 
+     * Note that tokens should be approved
      */
-    event LogLiquidityPoolToBorrowToken(address indexed caller, address indexed pool, address indexed poolProxy);
+     event LogTokensToTokensHash(address indexed caller, bytes32 indexed _tokensHash);
 }
