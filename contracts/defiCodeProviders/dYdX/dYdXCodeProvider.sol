@@ -4,17 +4,11 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/opty/ICodeProvider.sol";
-import "../../Registry.sol";
 import "../../interfaces/dydx/IdYdX.sol";
-import "../../libraries/SafeERC20.sol";
-import "../../libraries/Addresses.sol";
+import "../../interfaces/ERC20/IERC20.sol";
 import "../../utils/Modifiers.sol";
 
 contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
-    
-    using SafeERC20 for IERC20;
-    using SafeMath for uint;
-    using Address for address;
     
     address public dYdXLiquidityPool = address(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
     
@@ -52,26 +46,16 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         _actionArg.otherAddress = _optyPool;
         ActionArgs[] memory _actionArgs = new ActionArgs[](1);
         _actionArgs[0] = _actionArg;
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+        _codes = new bytes[](3);
+        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,uint(0)));
+        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_amounts[0]));
+        _codes[2] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
     }
     
     function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
-        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
-        uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
-        AccountInfo[] memory _accountInfos = new AccountInfo[](1);
-        _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
-        AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _depositAmount);
-        ActionArgs memory _actionArg;
-        _actionArg.actionType = ActionType.Deposit;
-        _actionArg.accountId = 0;
-        _actionArg.amount = _amt;
-        _actionArg.primaryMarketId = _underlyingTokenIndex;
-        _actionArg.otherAddress = _optyPool;
-        ActionArgs[] memory _actionArgs = new ActionArgs[](1);
-        _actionArgs[0] = _actionArg;
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+        uint[] memory _amounts = new uint[](1);
+        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amounts);
     }
     
     function getWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _amount) public view override returns(bytes[] memory _codes) {
@@ -93,20 +77,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
        uint _redeemAmount = balanceInToken(_optyPool,_underlyingTokens[0],_liquidityPool);
-        uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
-        AccountInfo[] memory _accountInfos = new AccountInfo[](1);
-        _accountInfos[0] = AccountInfo(_optyPool, uint(0));
-        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, _redeemAmount);
-        ActionArgs memory _actionArg;
-        _actionArg.actionType = ActionType.Withdraw;
-        _actionArg.accountId = 0;
-        _actionArg.amount = _amt;
-        _actionArg.primaryMarketId = _underlyingTokenIndex;
-        _actionArg.otherAddress = _optyPool;
-        ActionArgs[] memory _actionArgs = new ActionArgs[](1);
-        _actionArgs[0] = _actionArg;
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+       return getWithdrawSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_redeemAmount);
     }
     
     function getLiquidityPoolToken(address , address) public override view returns(address) {

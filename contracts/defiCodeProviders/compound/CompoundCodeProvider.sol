@@ -29,11 +29,9 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
-        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
-        _codes = new bytes[](3);
-        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,uint(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_depositAmount));
-        _codes[2] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(uint256)",_depositAmount));
+        uint[] memory _amounts = new uint[](1);
+        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amounts);
     }
     
     function getWithdrawSomeCodes(address ,address[] memory _underlyingTokens, address _liquidityPool , uint _amount) public override view returns(bytes[] memory _codes) {
@@ -43,8 +41,7 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
         uint _redeemAmount = getLiquidityPoolTokenBalance(_optyPool,_underlyingTokens[0],_liquidityPool);
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("redeem(uint256)",_redeemAmount));
+        return getWithdrawSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_redeemAmount);
     }
     
     function getLiquidityPoolToken(address , address _liquidityPool) public override view returns(address) {

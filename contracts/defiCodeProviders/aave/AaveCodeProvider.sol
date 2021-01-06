@@ -21,13 +21,9 @@ contract AaveCodeProvider is ICodeProvider {
     }
     
     function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPoolAddressProvider) public view override returns(bytes[] memory _codes) {
-        uint _depositAmount = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
-        address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
-        _codes = new bytes[](3);
-        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_lendingPoolCore,uint(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_lendingPoolCore,_depositAmount));
-        _codes[2] = abi.encode(_lendingPool,abi.encodeWithSignature("deposit(address,uint256,uint16)",_underlyingTokens[0],_depositAmount,uint16(0)));
+        uint[] memory _amounts = new uint[](1);
+        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPoolAddressProvider,_amounts);
     }
     
     function getWithdrawSomeCodes(address, address[] memory _underlyingTokens,address _liquidityPoolAddressProvider , uint _amount) public override view returns(bytes[] memory _codes) {
@@ -37,8 +33,7 @@ contract AaveCodeProvider is ICodeProvider {
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPoolAddressProvider) public view override returns(bytes[] memory _codes) {
         uint _redeemAmount = getLiquidityPoolTokenBalance(_optyPool,_underlyingTokens[0],_liquidityPoolAddressProvider);
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPoolAddressProvider),abi.encodeWithSignature("redeem(uint256)",_redeemAmount));
+        return getWithdrawSomeCodes(_optyPool,_underlyingTokens,_liquidityPoolAddressProvider,_redeemAmount);
     }
     
     function getLiquidityPoolToken(address _underlyingToken, address _liquidityPoolAddressProvider) public override view returns(address) {

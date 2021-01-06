@@ -267,20 +267,11 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
     function getDepositAllCodes(address _optyPool, address[] memory, address _liquidityPool) public override view returns(bytes[] memory _codes) {
         address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
         uint N_COINS = _underlyingTokens.length;
-        uint[] memory _amounts = new uint[](4);
+        uint[] memory _amounts = new uint[](N_COINS);
         for (uint i = 0 ; i < N_COINS ; i++) {
             _amounts[i] = IERC20(_underlyingTokens[i]).balanceOf(_optyPool);
         }
-        _codes = new bytes[](1);
-        if (N_COINS == uint(2)) {
-            _codes = _getDeposit2Code(_underlyingTokens,_liquidityPool, _amounts);
-        }
-        else if (N_COINS == uint(3)){
-            _codes = _getDeposit3Code(_underlyingTokens,_liquidityPool, _amounts);
-        }
-        else if (N_COINS == uint(4)){
-            _codes = _getDeposit4Code(_underlyingTokens,_liquidityPool, _amounts);
-        }
+        return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amounts);
     }
     
     /**
@@ -306,20 +297,8 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public override view returns(bytes[] memory _codes) {
-        uint N_COINS = _underlyingTokens.length;
         uint _amount = getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPool);
-        if (N_COINS == uint(1)) {
-            _codes = _getWithdraw1Code(_underlyingTokens[0], _liquidityPool, _amount);
-        }
-        else if (N_COINS == uint(2)) {
-            _codes = _getWithdraw2Code(_liquidityPool, _amount);
-        }
-        else if (N_COINS == uint(3)) {
-            _codes = _getWithdraw3Code(_liquidityPool, _amount);
-        }
-        else if (N_COINS == uint(4)) {
-            _codes = _getWithdraw4Code(_liquidityPool, _amount);
-        }
+        return getWithdrawSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amount);
     }
     
     function getLiquidityPoolToken(address, address _liquidityPool) public override view returns(address) {
@@ -509,8 +488,8 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
     
     function getUnstakeAndWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, uint _redeemAmount) public view override returns (bytes[] memory _codes) {
         _codes = new bytes[](4);
-        bytes[] memory _withdrawCodes = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _redeemAmount);
         _codes[0] = getUnstakeSomeCodes(_liquidityPool, _redeemAmount)[0];
+        bytes[] memory _withdrawCodes = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _redeemAmount);
         _codes[1] = _withdrawCodes[0];
         _codes[2] = _withdrawCodes[1];
         _codes[3] = _withdrawCodes[2];
