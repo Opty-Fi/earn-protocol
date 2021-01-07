@@ -16,6 +16,8 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
     address public comptroller;
     address public rewardToken;
     
+    address public constant HBTC = address(0x0316EB71485b0Ab14103307bf65a021042c6d380);
+    
     constructor(address _registry) public Modifiers(_registry) {
         setComptroller(address(0x3d5BC3c8d13dcB8bF317092d84783c2697AE9258));
         setRewardToken(address(0x2ba592F78dB6436527729929AAf6c908497cB200));
@@ -30,10 +32,16 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getDepositSomeCodes(address, address[] memory _underlyingTokens, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
-        _codes = new bytes[](3);
-        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,uint(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_amounts[0]));
-        _codes[2] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(uint256)",_amounts[0]));
+        if (_underlyingTokens[0] == HBTC) {
+            _codes = new bytes[](2);
+            _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_amounts[0]));
+            _codes[1] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(uint256)",_amounts[0]));
+        } else {
+            _codes = new bytes[](3);
+            _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,uint(0)));
+            _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_amounts[0]));
+            _codes[2] = abi.encode(_liquidityPool,abi.encodeWithSignature("mint(uint256)",_amounts[0]));
+        }
     }
     
     function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
