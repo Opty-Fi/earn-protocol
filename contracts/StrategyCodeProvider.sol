@@ -94,9 +94,13 @@ contract StrategyCodeProvider is Modifiers {
                     _inputToken = _strategySteps[_iterator - 1].outputToken;
                 }
                 if(_iterator == (_steps - 1)) {
-                    _balance = ICodeProvider(_optyPoolProxy).balanceInToken(_optyPool,_inputToken, _liquidityPool);
+                    if(ICodeProvider(_optyPoolProxy).canStake(_liquidityPool)) {
+                        _balance = ICodeProvider(_optyPoolProxy).getAllAmountInTokenStake(_optyPool,_inputToken, _liquidityPool);
+                    } else {
+                        _balance = ICodeProvider(_optyPoolProxy).getAllAmountInToken(_optyPool,_inputToken, _liquidityPool);
+                    }
                 } else {
-                    _balance = ICodeProvider(_optyPoolProxy).calculateAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
+                    _balance = ICodeProvider(_optyPoolProxy).getSomeAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
                 }        
             } else {
                 // borrow

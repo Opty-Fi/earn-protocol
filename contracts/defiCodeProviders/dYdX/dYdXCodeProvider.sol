@@ -76,7 +76,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     }
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
-       uint _redeemAmount = balanceInToken(_optyPool,_underlyingTokens[0],_liquidityPool);
+       uint _redeemAmount = getAllAmountInToken(_optyPool,_underlyingTokens[0],_liquidityPool);
        return getWithdrawSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_redeemAmount);
     }
     
@@ -88,7 +88,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
     }
     
-    function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPool) public override view returns(uint) {
+    function getAllAmountInToken(address _optyPool, address _underlyingToken,address _liquidityPool) public override view returns(uint) {
         uint _underlyingTokenIndex = marketToIndexes[_underlyingToken];
         AccountInfo memory _accountInfo = AccountInfo(_optyPool, uint(0));
         (, uint value) = IdYdX(_liquidityPool).getAccountWei(_accountInfo, _underlyingTokenIndex);
@@ -96,10 +96,10 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
-        return balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        return getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
     }
     
-    function calculateAmountInToken(address , address  , uint ) public override view returns(uint) {
+    function getSomeAmountInToken(address , address  , uint ) public override view returns(uint) {
         revert("!empty");   
     }
     
@@ -112,7 +112,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     }
     
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
@@ -125,6 +125,14 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     }
     
     function getClaimRewardTokenCode(address , address) public override view returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getHarvestSomeCodes(address , address , address , uint ) public view override returns(bytes[] memory ) {
+        revert("!empty");
+    }
+    
+    function getHarvestAllCodes(address , address , address ) public view override returns(bytes[] memory ) {
         revert("!empty");
     }
     
@@ -148,7 +156,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function balanceInTokenStake(address, address, address) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address, address, address) public view override returns(uint256) {
         revert("!empty");
     }
     

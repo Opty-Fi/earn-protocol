@@ -47,7 +47,7 @@ contract AaveCodeProvider is ICodeProvider {
         _underlyingTokens[0] = IAToken(_liquidityPoolToken).underlyingAssetAddress();
     }
     
-    function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPoolAddressProvider) public override view returns(uint256) {
+    function getAllAmountInToken(address _optyPool, address _underlyingToken,address _liquidityPoolAddressProvider) public override view returns(uint256) {
         return getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPoolAddressProvider);
     }
     
@@ -55,7 +55,7 @@ contract AaveCodeProvider is ICodeProvider {
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPoolAddressProvider)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address , address , uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address , address , uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         return _liquidityPoolTokenAmount;        
     }
     
@@ -68,7 +68,7 @@ contract AaveCodeProvider is ICodeProvider {
     }
     
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
@@ -81,6 +81,14 @@ contract AaveCodeProvider is ICodeProvider {
     }
     
     function getClaimRewardTokenCode(address , address) public override view returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getHarvestSomeCodes(address , address , address , uint) public view override returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getHarvestAllCodes(address , address , address ) public view override returns(bytes[] memory) {
         revert("!empty");
     }
     
@@ -104,7 +112,7 @@ contract AaveCodeProvider is ICodeProvider {
         revert("!empty");
     }
     
-    function balanceInTokenStake(address, address, address) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address, address, address) public view override returns(uint256) {
         revert("!empty");
     }
     

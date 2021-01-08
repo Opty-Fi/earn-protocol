@@ -103,19 +103,15 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         _underlyingTokens[0] = IHarvestDeposit(_liquidityPool).underlying();
     }
 
-    function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
-        uint b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        if (b > 0) {
-            b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(10**(IHarvestDeposit(_liquidityPool).decimals()));
-        }
-        return b;
+    function getAllAmountInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
+        return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
             _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IHarvestDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getPricePerFullShare()).div(1e18);
          }
@@ -128,13 +124,13 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool , uint _redeemAmount) public override view returns(uint _amount) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
     
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
@@ -150,6 +146,15 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("getReward()"));
+    }
+    
+    function getHarvestSomeCodes(address _optyPool, address _underlyingToken, address _liquidityPool, uint _rewardTokenAmount) public view override returns(bytes[] memory _codes) {
+        return gathererContract.getHarvestCodes(_optyPool, getRewardToken(_liquidityPool), _underlyingToken, _rewardTokenAmount);
+    }
+    
+    function getHarvestAllCodes(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _rewardTokenAmount = IERC20(getRewardToken(_liquidityPool)).balanceOf(address(this));
+        return getHarvestSomeCodes(_optyPool, _underlyingToken,_liquidityPool,_rewardTokenAmount);
     }
     
     function canStake(address) public override view returns(bool) {
@@ -181,15 +186,15 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         return getUnstakeSomeCodes(_liquidityPool,_redeemAmount);
     }
     
-    function balanceInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) public view override returns(uint256) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         uint b = IHarvestFarm(_stakingPool).balanceOf(_optyPool);
         if (b > 0) {
             b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(1e18);
         }
-        if (IHarvestFarm(liquidityPoolToStakingPool[_liquidityPool]).earned(_optyPool)>0){
-                b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, getUnclaimedRewardTokenAmount(_optyPool, _liquidityPool)));
-            }
+        if (IHarvestFarm(liquidityPoolToStakingPool[_liquidityPool]).earned(_optyPool)>0) {
+            b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, getUnclaimedRewardTokenAmount(_optyPool, _liquidityPool)));
+        }
         return b;
     }
     
@@ -201,13 +206,13 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
     function calculateRedeemableLPTokenAmountStake(address _optyPool, address _underlyingToken, address _liquidityPool , uint _redeemAmount) public override view returns(uint _amount) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         uint256 _liquidityPoolTokenBalance = IHarvestFarm(_stakingPool).balanceOf(_optyPool);
-        uint256 _balanceInToken = balanceInTokenStake(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInTokenStake(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
     
     function isRedeemableAmountSufficientStake(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInTokenStake = balanceInTokenStake(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInTokenStake >= _redeemAmount;
     }
     

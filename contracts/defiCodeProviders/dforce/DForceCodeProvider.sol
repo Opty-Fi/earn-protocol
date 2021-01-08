@@ -9,12 +9,14 @@ import "../../interfaces/dforce/IDForceStake.sol";
 import "../../interfaces/ERC20/IERC20.sol";
 import "../../libraries/SafeMath.sol";
 import "../../utils/Modifiers.sol";
+import "../../Gatherer.sol";
 
 contract DForceCodeProvider is ICodeProvider,Modifiers {
     
     using SafeMath for uint;
     
     mapping(address => address) public liquidityPoolToStakingPool;
+    Gatherer public gathererContract;
     
     address public constant rewardToken = address(0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0);
     
@@ -28,7 +30,8 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     address public constant usdcStakingPool = address(0xB71dEFDd6240c45746EC58314a01dd6D833fD3b5);
     address public constant daiStakingPool = address(0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B);
     
-    constructor(address _registry) public Modifiers(_registry){
+    constructor(address _registry, address _gatherer) public Modifiers(_registry){
+        setGatherer(_gatherer);
         setLiquidityPoolToStakingPool(usdtDepositPool, usdtStakingPool);
         setLiquidityPoolToStakingPool(usdcDepositPool, usdcStakingPool);
         setLiquidityPoolToStakingPool(daiDepositPool, daiStakingPool);
@@ -66,19 +69,15 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         _underlyingTokens[0] = IDForceDeposit(_liquidityPool).token();
     }
     
-    function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
-        uint b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        if (b > 0) {
-            b = b.mul(IDForceDeposit(_liquidityPool).getExchangeRate()).div(1e18);
-        }
-        return b;
+    function getAllAmountInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
+        return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
             _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IDForceDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getExchangeRate()).div(1e18);
          }
@@ -91,13 +90,13 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public view override returns(uint _amount) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
      
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool, uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;   
     }
     
@@ -113,6 +112,15 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool,abi.encodeWithSignature("getReward()"));
+    }
+    
+    function getHarvestSomeCodes(address _optyPool, address _underlyingToken, address _liquidityPool, uint _rewardTokenAmount) public view override returns(bytes[] memory _codes) {
+        return gathererContract.getHarvestCodes(_optyPool, getRewardToken(_liquidityPool), _underlyingToken, _rewardTokenAmount);
+    }
+    
+    function getHarvestAllCodes(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _rewardTokenAmount = IERC20(getRewardToken(_liquidityPool)).balanceOf(address(this));
+        return getHarvestSomeCodes(_optyPool, _underlyingToken,_liquidityPool,_rewardTokenAmount);
     }
 
     function canStake(address) public override view returns(bool) {
@@ -144,11 +152,15 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         return getUnstakeSomeCodes(_liquidityPool,_unstakeAmount);
     }
     
-    function balanceInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) public view override returns(uint256) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         uint b = IERC20(_stakingPool).balanceOf(_optyPool);
         if (b > 0) {
             b = b.mul(IDForceDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getExchangeRate()).div(1e18);
+            uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool,_liquidityPool);
+            if (_unclaimedReward > 0) {
+                b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
+            }
         }
         return b;
     }
@@ -161,13 +173,13 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     function calculateRedeemableLPTokenAmountStake(address _optyPool, address, address _liquidityPool , uint _redeemAmount) public view override returns(uint _amount) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         uint256 _liquidityPoolTokenBalance = IERC20(_stakingPool).balanceOf(_optyPool);
-        uint256 _balanceInTokenStake = balanceInTokenStake(_optyPool,address(0),_liquidityPool);
+        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_optyPool,address(0),_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInTokenStake).add(1);
     }
      
     function isRedeemableAmountSufficientStake(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInTokenStake = balanceInTokenStake(_optyPool, _underlyingToken,_liquidityPool);
+        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_optyPool, _underlyingToken,_liquidityPool);
         return _balanceInTokenStake >= _redeemAmount;
     }
     
@@ -185,5 +197,9 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyOperator {
         require(liquidityPoolToStakingPool[_liquidityPool] != _stakingPool, "liquidityPoolToStakingPool already set");
         liquidityPoolToStakingPool[_liquidityPool] = _stakingPool;
+    }
+    
+    function setGatherer(address _gatherer) public onlyOperator {
+        gathererContract = Gatherer(_gatherer);
     }
 }

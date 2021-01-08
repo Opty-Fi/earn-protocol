@@ -44,19 +44,15 @@ contract YearnCodeProvider is ICodeProvider {
         _underlyingTokens[0] = IYearn(_liquidityPool).token();
     }
     
-    function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
-        uint b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        if (b > 0) {
-            b = b.mul(IYearn(_liquidityPool).getPricePerFullShare()).div(1e18);
-        }
-        return b;
+    function getAllAmountInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
+        return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
             _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IYearn(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getPricePerFullShare()).div(1e18);
          }
@@ -69,13 +65,13 @@ contract YearnCodeProvider is ICodeProvider {
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public override view returns(uint _amount) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
     
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool, uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
@@ -88,6 +84,14 @@ contract YearnCodeProvider is ICodeProvider {
     }
     
     function getClaimRewardTokenCode(address , address) public override view returns(bytes[] memory) {
+        revert("!empty");
+    }
+    
+    function getHarvestSomeCodes(address , address , address , uint ) public view override returns(bytes[] memory ) {
+        revert("!empty");
+    }
+    
+    function getHarvestAllCodes(address , address , address ) public view override returns(bytes[] memory ) {
         revert("!empty");
     }
     
@@ -111,7 +115,7 @@ contract YearnCodeProvider is ICodeProvider {
         revert("!empty");
     }
     
-    function balanceInTokenStake(address, address, address) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address, address, address) public view override returns(uint256) {
         revert("!empty");
     }
     

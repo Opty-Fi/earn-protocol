@@ -49,7 +49,7 @@ interface ICodeProvider {
     /**
      * @dev Returns the balance in underlying for liquidityPoolToken balance of holder
      */
-    function balanceInToken(address _optyPool, address _underlyingToken,address _liquidityPool) external view returns(uint256);
+    function getAllAmountInToken(address _optyPool, address _underlyingToken,address _liquidityPool) external view returns(uint256);
     
     /**
      * @dev get liquidity pool token balance
@@ -59,7 +59,7 @@ interface ICodeProvider {
     /**
      * @dev Returns the equivalent value of underlying token for given {liquiidityPoolTokenAmount}.
      */
-    function calculateAmountInToken(address _underlyingToken, address _liquidityPool, uint _liquidityPoolTokenAmount) external view returns(uint);
+    function getSomeAmountInToken(address _underlyingToken, address _liquidityPool, uint _liquidityPoolTokenAmount) external view returns(uint);
     
     /**
      * @dev Returns the equivalent value of _liquidityPoolToken got given {underlyingTokenAmount}
@@ -92,6 +92,16 @@ interface ICodeProvider {
     function getClaimRewardTokenCode(address _optyPool, address _liquidityPool) external view returns(bytes[] memory);
     
     /**
+     * @dev Returns the code for harvesting some rewards
+     */ 
+    function getHarvestSomeCodes(address _optyPool, address _underlyingToken, address _liquidityPool, uint _rewardTokenAmount) external view returns(bytes[] memory);
+    
+    /**
+     * @dev Returns the code for harvesting all reward
+     */ 
+    function getHarvestAllCodes(address _optyPool, address _underlyingToken, address _liquidityPool) external view returns(bytes[] memory);
+    
+    /**
      * @dev Returns whether the protocol can stake 
      */
     function canStake(address _liquidityPool) external view returns(bool);
@@ -119,7 +129,7 @@ interface ICodeProvider {
     /**
      * @dev Returns the balance in underlying for staked liquidityPoolToken balance of holder
      */
-    function balanceInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) external view returns(uint256);
+    function getAllAmountInTokenStake(address _optyPool, address _underlyingToken,address _liquidityPool) external view returns(uint256);
     
     /**
      * @dev get liquidity pool token staked balance

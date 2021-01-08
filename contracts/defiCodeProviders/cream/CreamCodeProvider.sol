@@ -8,6 +8,7 @@ import "../../interfaces/cream/ICream.sol";
 import "../../interfaces/ERC20/IERC20.sol";
 import "../../libraries/SafeMath.sol";
 import "../../utils/Modifiers.sol";
+import "../../Gatherer.sol";
 
 contract CreamCodeProvider is ICodeProvider,Modifiers {
     
@@ -15,20 +16,14 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
 
     address public comptroller;
     address public rewardToken;
+    Gatherer public gathererContract;
     
     address public constant HBTC = address(0x0316EB71485b0Ab14103307bf65a021042c6d380);
     
-    constructor(address _registry) public Modifiers(_registry) {
+    constructor(address _registry, address _gatherer) public Modifiers(_registry) {
         setComptroller(address(0x3d5BC3c8d13dcB8bF317092d84783c2697AE9258));
         setRewardToken(address(0x2ba592F78dB6436527729929AAf6c908497cB200));
-    }
-    
-    function setComptroller(address _comptroller) public onlyOperator {
-        comptroller = _comptroller;
-    }
-    
-    function setRewardToken(address _rewardToken) public onlyOperator {
-        rewardToken = _rewardToken;
+        setGatherer(_gatherer);
     }
     
     function getDepositSomeCodes(address, address[] memory _underlyingTokens, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
@@ -69,12 +64,13 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
         _underlyingTokens[0] = ICream(_liquidityPool).underlying();
     }
 
-    function balanceInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint256) {
+    function getAllAmountInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
-        uint256 b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        if (b > 0) {
-            b = b.mul(ICream(_liquidityPool).exchangeRateStored()).div(1e18);
-         }
+        uint256 b = getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
+        uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool,_liquidityPool);
+        if (_unclaimedReward > 0) {
+            b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
+        }
          return b;
     }
     
@@ -82,7 +78,7 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
             _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICream(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).exchangeRateStored()).div(1e18);
          }
@@ -95,13 +91,13 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public override view returns(uint _amount) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
     
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool, uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
@@ -116,6 +112,15 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
     function getClaimRewardTokenCode(address _optyPool, address) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(comptroller,abi.encodeWithSignature("claimComp(address)",_optyPool));
+    }
+    
+    function getHarvestSomeCodes(address _optyPool, address _underlyingToken, address _liquidityPool, uint _rewardTokenAmount) public view override returns(bytes[] memory _codes) {
+        return gathererContract.getHarvestCodes(_optyPool, getRewardToken(_liquidityPool), _underlyingToken, _rewardTokenAmount);
+    }
+    
+    function getHarvestAllCodes(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _rewardTokenAmount = IERC20(getRewardToken(_liquidityPool)).balanceOf(address(this));
+        return getHarvestSomeCodes(_optyPool, _underlyingToken,_liquidityPool,_rewardTokenAmount);
     }
     
     function canStake(address) public override view returns(bool) {
@@ -138,7 +143,7 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function balanceInTokenStake(address, address, address) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address, address, address) public view override returns(uint256) {
         revert("!empty");
     }
     
@@ -160,5 +165,17 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
     
     function getUnstakeAndWithdrawAllCodes(address , address[] memory , address ) public view override returns (bytes[] memory) {
         revert("!empty");
+    }
+    
+    function setComptroller(address _comptroller) public onlyOperator {
+        comptroller = _comptroller;
+    }
+    
+    function setRewardToken(address _rewardToken) public onlyOperator {
+        rewardToken = _rewardToken;
+    }
+    
+    function setGatherer(address _gatherer) public onlyOperator {
+        gathererContract = Gatherer(_gatherer);
     }
 }

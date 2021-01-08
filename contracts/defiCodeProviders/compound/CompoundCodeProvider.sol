@@ -8,17 +8,23 @@ import "../../interfaces/compound/ICompound.sol";
 import "../../libraries/SafeMath.sol";
 import "../../interfaces/ERC20/IERC20.sol";
 import "../../utils/Modifiers.sol";
+import "../../Gatherer.sol";
 
 contract CompoundCodeProvider is ICodeProvider,Modifiers {
     
     using SafeMath for uint256;
 
+    Gatherer public gathererContract;
+    
     address public comptroller;
     address public rewardToken;
     
-    constructor(address _registry) public Modifiers(_registry) {
+    address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    
+    constructor(address _registry, address _gatherer) public Modifiers(_registry) {
         setRewardToken(address(0xc00e94Cb662C3520282E6f5717214004A7f26888));
         setComptoller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
+        setGatherer(_gatherer);
     }
     
     function getDepositSomeCodes(address , address[] memory _underlyingTokens, address _liquidityPool , uint[] memory _amounts) public override view returns(bytes[] memory _codes) {
@@ -53,20 +59,23 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
         _underlyingTokens[0] = ICompound(_liquidityPool).underlying();
     }
     
-    function balanceInToken(address _optyPool,address _underlyingToken,address _liquidityPool) public override view returns(uint256) {
+    function getAllAmountInToken(address _optyPool,address _underlyingToken,address _liquidityPool) public override view returns(uint256) {
         // Mantisa 1e18 to decimals
-        uint256 b = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 b = getSomeAmountInToken(_underlyingToken,_liquidityPool,getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
+        uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool,_liquidityPool);
         if (b > 0) {
-            b = b.mul(ICompound(_liquidityPool).exchangeRateStored()).div(1e18);
-         }
-         return b;
+            if (_unclaimedReward > 0) {
+                b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
+            }
+        }
+        return b;
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function calculateAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
             _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICompound(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).exchangeRateStored()).div(1e18);
          }
@@ -79,13 +88,13 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool , uint _redeemAmount) public override view returns(uint _amount) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
     
     function isRedeemableAmountSufficient(address _optyPool, address _underlyingToken,address _liquidityPool , uint _redeemAmount) public view override returns(bool) {
-        uint256 _balanceInToken = balanceInToken(_optyPool,_underlyingToken,_liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
     
@@ -100,6 +109,15 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     function getClaimRewardTokenCode(address _optyPool, address) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(comptroller,abi.encodeWithSignature("claimComp(address)",_optyPool));
+    }
+    
+    function getHarvestSomeCodes(address _optyPool, address _underlyingToken, address _liquidityPool, uint _rewardTokenAmount) public view override returns(bytes[] memory _codes) {
+        return gathererContract.getHarvestCodes(_optyPool, getRewardToken(_liquidityPool), _underlyingToken, _rewardTokenAmount);
+    }
+    
+    function getHarvestAllCodes(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(bytes[] memory _codes) {
+        uint _rewardTokenAmount = IERC20(getRewardToken(_liquidityPool)).balanceOf(address(this));
+        return getHarvestSomeCodes(_optyPool, _underlyingToken,_liquidityPool,_rewardTokenAmount);
     }
     
     function canStake(address) public override view returns(bool) {
@@ -122,7 +140,7 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function balanceInTokenStake(address, address, address) public view override returns(uint256) {
+    function getAllAmountInTokenStake(address, address, address) public view override returns(uint256) {
         revert("!empty");
     }
     
@@ -152,5 +170,9 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     
     function setComptoller(address _comptroller) public onlyOperator {
         comptroller = _comptroller;
+    }
+    
+    function setGatherer(address _gatherer) public onlyOperator {
+        gathererContract = Gatherer(_gatherer);
     }
 }

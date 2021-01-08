@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.10;
+pragma experimental ABIEncoderV2;
 
 import "./interfaces/opty/IUniswap.sol";
 import "./libraries/SafeERC20.sol";
@@ -41,6 +42,15 @@ contract Gatherer is Modifiers {
         path[2] = _underlyingToken;
         IUniswap(router).swapExactTokensForTokens(IERC20(_rewardToken).balanceOf(address(this)), uint(0), path, msg.sender,uint(-1));
         return true;
+    }
+    
+    function getHarvestCodes(address _optyPool, address _rewardToken, address _underlyingToken, uint _rewardTokenAmount) public view returns(bytes[] memory _codes) {
+        address[] memory path = new address[](3);
+        path[0] = _rewardToken;
+        path[1] = WETH;
+        path[2] = _underlyingToken;
+        _codes = new bytes[](1);
+        _codes[0] = abi.encode(router,abi.encodeWithSignature("swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",_rewardTokenAmount,uint(0),path,_optyPool,uint(-1)));
     }
 
     function rewardBalanceInUnderlyingTokens(address _rewardToken, address _underlyingToken, uint _amount) public view returns(uint){
