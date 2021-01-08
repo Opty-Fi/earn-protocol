@@ -42,6 +42,7 @@ contract Registry is ModifiersController {
     mapping(address => bool)                        public tokens;
     mapping(bytes32 => Token)                       public tokensHashToTokens;
     mapping(address => LiquidityPool)               public liquidityPools;
+    mapping(address => LiquidityPool)               public creditPools;
     mapping(bytes32 => Strategy)                    public strategies;
     mapping(bytes32 => bytes32[])                   public tokenToStrategies;
     mapping(address => mapping(bytes32 => address)) public liquidityPoolToLPTokens;
@@ -259,6 +260,74 @@ contract Registry is ModifiersController {
     }
     
     /**
+     * @dev Sets `_pool` from the {creditPools} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogLiquidityPool} event.
+     *
+     * Requirements:
+     *
+     * - `_pool` cannot be the zero address or an EOA.
+     * - msg.sender should be governance.
+     * - `_pool` should not be approved
+     */
+    function approveCreditPool(address _pool) public onlyGovernance returns (bool) {
+        require(_pool != address(0), "!address(0)");
+        require(address(_pool).isContract(), "isContract");
+        require(!creditPools[_pool].isLiquidityPool, "!creditPools");
+        creditPools[_pool].isLiquidityPool = true;
+        emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isLiquidityPool);
+        return true;
+    }
+    
+    /**
+     * @dev Revokes `_pool` from the {creditPools} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogLiquidityPool} event.
+     *
+     * Requirements:
+     *
+     * - `_pool` cannot be the zero address or an EOA.
+     * - msg.sender should be governance.
+     * - `_pool` should not be approved
+     */
+    function revokeCreditPool(address _pool) public onlyGovernance {
+        require(creditPools[_pool].isLiquidityPool,"!creditPools");
+        emit LogLiquidityPool(msg.sender,_pool,creditPools[_pool].isLiquidityPool);
+        creditPools[_pool].isLiquidityPool = false;
+    }
+    
+    /**
+     * @dev Returns the credit pool by `_pool`.
+     */
+    function getCreditPool(address _pool) public view returns(LiquidityPool memory _creditPool) {	   
+        _creditPool = creditPools[_pool];	    
+    }
+    
+    /**
+     * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {LogRateCreditPool} event.
+     *
+     * Requirements:
+     *
+     * - `_pool` cannot be the zero address or an EOA.
+     * - msg.sender should be governance.
+     * - `_pool` should be approved
+     */
+    function rateCreditPool(address _pool, uint8 _rate) public onlyGovernance returns(bool) {
+        require(liquidityPools[_pool].isLiquidityPool,"!liquidityPools");
+        creditPools[_pool].rating = _rate;
+        emit LogRateCreditPool(msg.sender,_pool,creditPools[_pool].rating);
+        return true;
+    }
+    
+    /**
      * @dev Sets liquidity `_pool` to the protocol code provider `_codeProvider` from the {liquidityPoolToCodeProvider} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
@@ -314,7 +383,7 @@ contract Registry is ModifiersController {
         require(_isNewStrategy(hash),"isNewStrategy");
         for(uint8 i = 0 ; i < _strategySteps.length ; i++) {
             if(_strategySteps[i].isBorrow) {
-                require(liquidityPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
+                require(creditPools[_strategySteps[i].pool].isLiquidityPool,"!isLiquidityPool");
                 require(tokens[_strategySteps[i].outputToken],"!borrowToken");
             }
             else {
@@ -535,6 +604,13 @@ contract Registry is ModifiersController {
      * Note that `pool` cannot be zero address or EOA.
      */
     event LogRateLiquidityPool(address indexed caller,address indexed pool, uint8 indexed rate);
+    
+    /**
+     * @dev Emitted when `pool` is rated.
+     *
+     * Note that `pool` cannot be zero address or EOA.
+     */
+    event LogRateCreditPool(address indexed caller,address indexed pool, uint8 indexed rate);
     
     /**
      * @dev Emitted when `hash` strategy is set.

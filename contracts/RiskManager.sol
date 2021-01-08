@@ -70,7 +70,7 @@ contract RiskManager is Modifiers {
      * Returns the hash of the best strategy for Basic Pool
      * 
      */
-    function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32){
+    function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32) {
         bytes32[] memory hashes = registryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
@@ -82,7 +82,7 @@ contract RiskManager is Modifiers {
                 isStrategy && 
                 !_strategySteps[0].isBorrow &&
                 registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && 
-                registryContract.getLiquidityPool(_strategySteps[0].pool).rating <= T1_limit
+                registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T1_limit
             ){
                 if(score > maxScore){
                     maxScore = score;
@@ -109,14 +109,20 @@ contract RiskManager is Modifiers {
         for(uint8 i = 0; i < hashes.length; i++) {
             (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
             registryContract.getStrategy(hashes[i]);
-            if(isStrategy){
-                if(_strategySteps[0].isBorrow && registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && registryContract.getLiquidityPool(_strategySteps[0].pool).rating <= T2_limit) {
+            if(isStrategy) {
+                if((_strategySteps[0].isBorrow && registryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool 
+                && registryContract.getCreditPool(_strategySteps[0].pool).rating >= T2_limit 
+                ) || 
+                (!_strategySteps[0].isBorrow && registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool 
+                && (
+                    registryContract.getCreditPool(_strategySteps[0].pool).rating >= T2_limit
+                    )
+                )) {
                     if (score > maxScore) {
                     maxScore = score;
                     bestStrategyHash = hashes[i];
                     }
                 }
-                
             }
         }
         require(bestStrategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!bestStrategyHash");
