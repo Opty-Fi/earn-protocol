@@ -49,8 +49,10 @@ contract Gatherer is Modifiers {
         path[0] = _rewardToken;
         path[1] = WETH;
         path[2] = _underlyingToken;
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(router,abi.encodeWithSignature("swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",_rewardTokenAmount,uint(0),path,_optyPool,uint(-1)));
+        _codes = new bytes[](3);
+        _codes[0] = abi.encode(_rewardToken,abi.encodeWithSignature("approve(address,uint256)",router,uint(0)));
+        _codes[1] = abi.encode(_rewardToken,abi.encodeWithSignature("approve(address,uint256)",router,_rewardTokenAmount));
+        _codes[2] = abi.encode(router,abi.encodeWithSignature("swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",_rewardTokenAmount,uint(0),path,_optyPool,uint(-1)));
     }
 
     function rewardBalanceInUnderlyingTokens(address _rewardToken, address _underlyingToken, uint _amount) public view returns(uint){

@@ -25,13 +25,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     
     StrategyCodeProvider strategyCodeProviderContract;
     RiskManager RiskManagerContract;
-    
-    
-    address public constant aaveLendingPoolCore = address(0x3dfd23A6c5E8BbcFc9581d2E864a68feb6a076d3);
-    address public constant cDAI = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
-    address public constant curveCompoundDepositPool = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
-    address public constant cDAIcUSDC = address(0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2);
-    address public constant curveCompoundGaugeContract = address(0x7ca5b0a2910B33e9759DC7dDB0413949071D7575);
+
     /**
      * @dev
      *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for token (for example DAI)
@@ -51,28 +45,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
-        
-        // // aDAI
-        // setApprove(token,0x3dfd23A6c5E8BbcFc9581d2E864a68feb6a076d3,uint(0));
-        // setApprove(token,0x3dfd23A6c5E8BbcFc9581d2E864a68feb6a076d3,uint(-1));
-        
-        // //cDAI
-        // setApprove(token,cDAI,uint(0));
-        // setApprove(token,cDAI,uint(-1));
-        
-        // //curveCompound
-        // setApprove(token,curveCompoundDepositPool,uint(0));
-        // setApprove(token,curveCompoundDepositPool,uint(-1));
-        // setApprove(cDAIcUSDC,curveCompoundDepositPool,uint(0));
-        // setApprove(cDAIcUSDC,curveCompoundDepositPool,uint(-1));
-        // setApprove(cDAIcUSDC,curveCompoundGaugeContract,uint(0));
-        // setApprove(cDAIcUSDC,curveCompoundGaugeContract,uint(-1));
     }
-    
-    // function setApprove(address _token, address _pool, uint _amount) public onlyOperator returns (bool _success) {
-    //     IERC20(_token).safeApprove(_pool,_amount);
-    //     _success = true;
-    // }
     
     function setProfile(string memory _profile) public onlyOperator returns (bool _success)  {
         require(bytes(_profile).length > 0, "empty!");
@@ -126,7 +99,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         if (keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(strategyHash))
             && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
                 _withdrawAll();
-                harvest();
+                harvest(strategyHash);
         }
     
         strategyHash = newStrategyHash;
@@ -160,22 +133,38 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
     
     function _withdrawAll() internal {
-        if(strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            uint _steps = strategyCodeProviderContract.getWithdrawAllStepsCount(strategyHash);
-            for(uint _i = 0 ; _i < _steps ; _i++) {
-                uint _iterator = _steps - 1 - _i;
-                bytes[] memory _codes = strategyCodeProviderContract.getPoolWithdrawAllCodes(address(this), token, strategyHash, _iterator);
-                for(uint _j = 0 ; _j < _codes.length ; _j++) {
-                    (address pool, bytes memory data) = abi.decode(_codes[_j],(address,bytes));
-                    (bool _success,) = pool.call(data);
-                    require(_success);
-                }
-            }   
-        }
+        uint _steps = strategyCodeProviderContract.getWithdrawAllStepsCount(strategyHash);
+        for(uint _i = 0 ; _i < _steps ; _i++) {
+            uint _iterator = _steps - 1 - _i;
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolWithdrawAllCodes(address(this), token, strategyHash, _iterator);
+            for(uint _j = 0 ; _j < _codes.length ; _j++) {
+                (address pool, bytes memory data) = abi.decode(_codes[_j],(address,bytes));
+                (bool _success,) = pool.call(data);
+                require(_success);
+            }
+        }   
     }
     
-    function harvest() public {
-        // harvest the reward token
+    function harvest(bytes32 _hash) public {
+        require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!invalidHash");
+        uint _claimRewardSteps = strategyCodeProviderContract.getClaimRewardStepsCount(_hash);
+        for (uint _i = 0 ; _i < _claimRewardSteps ; _i++) {
+        bytes[] memory _codes = strategyCodeProviderContract.getPoolClaimAllRewardCodes(address(this), _hash, _i);
+            for(uint _j = 0 ; _j < _codes.length ; _j++) {
+                (address pool, bytes memory data) = abi.decode(_codes[_j],(address,bytes));
+                (bool success,) = pool.call(data);
+                require(success);
+            }
+        }
+        uint _harvestSteps = strategyCodeProviderContract.getHarvestRewardStepsCount(_hash);
+        for (uint _i = 0 ; _i < _harvestSteps ; _i++) {
+        bytes[] memory _codes = strategyCodeProviderContract.getPoolHarvestAllRewardCodes(address(this),token, _hash, _i);
+            for(uint _j = 0 ; _j < _codes.length ; _j++) {
+                (address pool, bytes memory data) = abi.decode(_codes[_j],(address,bytes));
+                (bool success,) = pool.call(data);
+                require(success);
+            }
+        }
     }
     
     function userDepositAllRebalance() external {
@@ -194,8 +183,10 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         require(_amount > 0,"!(_amount>0)");
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
         
-        _withdrawAll();
-        harvest();
+        if(strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            _withdrawAll();
+            harvest(strategyHash);
+        }
         
         uint _tokenBalance = balance();
         uint256 shares = 0;
@@ -230,6 +221,8 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         require(_redeemAmount <= opBalance, "Insufficient balance");
         
         _withdrawAll();
+        harvest(strategyHash);
+
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         
         //  Updating the totalSupply of op tokens
