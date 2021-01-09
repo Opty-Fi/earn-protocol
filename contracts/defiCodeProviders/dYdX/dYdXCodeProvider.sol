@@ -17,7 +17,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
     address public USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     address public DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     
-    mapping(address => uint8) public marketToIndexes;
+    mapping(address => uint) public marketToIndexes;
     mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
     
     constructor(address _registry) public Modifiers(_registry){
@@ -27,14 +27,19 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         _dYdXUnderlyingTokens[2] = USDC;
         _dYdXUnderlyingTokens[3] = DAI;
         setLiquidityPoolToUnderlyingTokens(dYdXLiquidityPool,_dYdXUnderlyingTokens);
-        addMarket(WETH,uint8(0));
-        addMarket(SAI,uint8(0));
-        addMarket(USDC,uint8(0));
-        addMarket(DAI,uint8(0));
+        addMarket(WETH,0);
+        addMarket(SAI,1);
+        addMarket(USDC,2);
+        addMarket(DAI,3);
     }
     
     function getDepositSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool , uint[] memory _amounts) public view override returns(bytes[] memory _codes) {
-        uint _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
+        uint _underlyingTokenIndex;
+        for(uint i = 0 ; i < _amounts.length ; i++) {
+            if(_amounts[i] > 0) {
+                _underlyingTokenIndex = marketToIndexes[_underlyingTokens[i]];
+            }
+        }
         AccountInfo[] memory _accountInfos = new AccountInfo[](1);
         _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
         AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _amounts[_underlyingTokenIndex]);
@@ -47,14 +52,16 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         ActionArgs[] memory _actionArgs = new ActionArgs[](1);
         _actionArgs[0] = _actionArg;
         _codes = new bytes[](3);
-        _codes[0] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,uint(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_amounts[0]));
-        _codes[2] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+        _codes[0] = abi.encode(_underlyingTokens[_underlyingTokenIndex],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,uint(0)));
+        _codes[1] = abi.encode(_underlyingTokens[_underlyingTokenIndex],abi.encodeWithSignature("approve(address,uint256)",_liquidityPool,_amounts[_underlyingTokenIndex]));
+        _codes[2] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,(bool,uint8,uint8,uint256),uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
     }
     
     function getDepositAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
-        uint[] memory _amounts = new uint[](1);
-        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+        uint[] memory _amounts = new uint[](_underlyingTokens.length);
+        for(uint i = 0 ; i < _underlyingTokens.length ; i++) {
+            _amounts[i] = IERC20(_underlyingTokens[i]).balanceOf(_optyPool);   
+        }
         return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amounts);
     }
     
@@ -72,7 +79,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         ActionArgs[] memory _actionArgs = new ActionArgs[](1);
         _actionArgs[0] = _actionArg;
         _codes = new bytes[](1);
-        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,tuple,uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("operate((address,uint256)[],(uint8,uint256,(bool,uint8,uint8,uint256),uint256,uint256,address,uint256,bytes)[])",_accountInfos,_actionArgs));
     }
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
@@ -180,7 +187,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function addMarket(address _underlyingToken, uint8 _marketIndex) public onlyOperator {
+    function addMarket(address _underlyingToken, uint _marketIndex) public onlyOperator {
         marketToIndexes[_underlyingToken] = _marketIndex;
     }
     
