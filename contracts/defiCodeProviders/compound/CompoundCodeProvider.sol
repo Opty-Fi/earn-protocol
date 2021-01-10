@@ -23,7 +23,7 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
     
     constructor(address _registry, address _gatherer) public Modifiers(_registry) {
         setRewardToken(address(0xc00e94Cb662C3520282E6f5717214004A7f26888));
-        setComptoller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
+        setComptroller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
         setGatherer(_gatherer);
     }
     
@@ -168,7 +168,7 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
         rewardToken = _rewardToken;
     }
     
-    function setComptoller(address _comptroller) public onlyOperator {
+    function setComptroller(address _comptroller) public onlyOperator {
         comptroller = _comptroller;
     }
     
