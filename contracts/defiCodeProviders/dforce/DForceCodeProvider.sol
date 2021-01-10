@@ -69,23 +69,23 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         _underlyingTokens[0] = IDForceDeposit(_liquidityPool).token();
     }
     
-    function getAllAmountInToken(address _optyPool, address _underlyingToken, address _liquidityPool) public override view returns(uint) {
-        return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
+    function getAllAmountInToken(address _optyPool, address, address _liquidityPool) public override view returns(uint) {
+        return IDForceDeposit(_liquidityPool).getTokenBalance(_optyPool);
     }
     
-    function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
-        return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
+    function getLiquidityPoolTokenBalance(address _optyPool, address, address _liquidityPool) public view override returns(uint){
+        return IERC20(_liquidityPool).balanceOf(_optyPool);
     }
     
-    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address, address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IDForceDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getExchangeRate()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IDForceDeposit(_liquidityPool).getExchangeRate()).div(1e18);
          }
          return _liquidityPoolTokenAmount;
     }
     
-    function calculateAmountInLPToken(address _underlyingToken, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
-        return _depositAmount.mul(1e18).div(IDForceDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getExchangeRate());
+    function calculateAmountInLPToken(address, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
+        return _depositAmount.mul(10**(IDForceDeposit(_liquidityPool).decimals())).div(IDForceDeposit(_liquidityPool).getExchangeRate());
     }
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public view override returns(uint _amount) {
