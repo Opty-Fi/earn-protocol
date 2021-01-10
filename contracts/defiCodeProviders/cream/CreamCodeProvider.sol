@@ -78,9 +78,9 @@ contract CreamCodeProvider is ICodeProvider,Modifiers {
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address, address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICream(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).exchangeRateStored()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICream(_liquidityPool).exchangeRateStored()).div(1e18);
          }
          return _liquidityPoolTokenAmount;
     }

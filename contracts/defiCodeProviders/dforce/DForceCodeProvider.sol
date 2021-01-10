@@ -79,7 +79,7 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
     
     function getSomeAmountInToken(address, address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IDForceDeposit(_liquidityPool).getExchangeRate()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IDForceDeposit(_liquidityPool).getExchangeRate()).div(10**IDForceDeposit(_liquidityPool).decimals());
          }
          return _liquidityPoolTokenAmount;
     }
@@ -157,10 +157,10 @@ contract DForceCodeProvider is ICodeProvider,Modifiers {
         uint b = IERC20(_stakingPool).balanceOf(_optyPool);
         if (b > 0) {
             b = b.mul(IDForceDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getExchangeRate()).div(1e18);
-            uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool,_liquidityPool);
-            if (_unclaimedReward > 0) {
-                b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
-            }
+        }
+        uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool,_liquidityPool);
+        if (_unclaimedReward > 0) {
+            b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
         }
         return b;
     }

@@ -9,4 +9,5 @@ interface IDForceStake {
     function earned(address _holder) external view returns(uint);
     function balanceOf(address _account) external view returns(uint);
     function getReward() external;
+    function decimals() external view returns(uint);
 }

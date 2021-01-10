@@ -107,19 +107,19 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
     }
     
-    function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
-        return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
+    function getLiquidityPoolTokenBalance(address _optyPool, address, address _liquidityPool) public view override returns(uint){
+        return IERC20(_liquidityPool).balanceOf(_optyPool);
     }
     
-    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IHarvestDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getPricePerFullShare()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(10**IHarvestDeposit(_liquidityPool).decimals());
          }
          return _liquidityPoolTokenAmount;
     }
     
-    function calculateAmountInLPToken(address _underlyingToken, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
-        return _depositAmount.mul(1e18).div(IHarvestDeposit(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getPricePerFullShare());
+    function calculateAmountInLPToken(address, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
+        return _depositAmount.mul(10**IHarvestDeposit(_liquidityPool).decimals()).div(IHarvestDeposit(_liquidityPool).getPricePerFullShare());
     }
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool , uint _redeemAmount) public override view returns(uint _amount) {
@@ -192,8 +192,9 @@ contract HarvestCodeProvider is ICodeProvider,Modifiers {
         if (b > 0) {
             b = b.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(1e18);
         }
-        if (IHarvestFarm(liquidityPoolToStakingPool[_liquidityPool]).earned(_optyPool)>0) {
-            b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, getUnclaimedRewardTokenAmount(_optyPool, _liquidityPool)));
+        uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool, _liquidityPool);
+        if (_unclaimedReward > 0) {
+            b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
         }
         return b;
     }

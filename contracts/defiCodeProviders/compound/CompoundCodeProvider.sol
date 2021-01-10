@@ -63,21 +63,19 @@ contract CompoundCodeProvider is ICodeProvider,Modifiers {
         // Mantisa 1e18 to decimals
         uint256 b = getSomeAmountInToken(_underlyingToken,_liquidityPool,getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
         uint _unclaimedReward = getUnclaimedRewardTokenAmount(_optyPool,_liquidityPool);
-        if (b > 0) {
-            if (_unclaimedReward > 0) {
-                b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
-            }
+        if (_unclaimedReward > 0) {
+            b = b.add(gathererContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
         }
         return b;
     }
     
-    function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
-        return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
+    function getLiquidityPoolTokenBalance(address _optyPool, address , address _liquidityPool) public view override returns(uint){
+        return IERC20(_liquidityPool).balanceOf(_optyPool);
     }
     
-    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address ,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICompound(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).exchangeRateStored()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(ICompound(_liquidityPool).exchangeRateStored()).div(1e18);
          }
          return _liquidityPoolTokenAmount;
     }

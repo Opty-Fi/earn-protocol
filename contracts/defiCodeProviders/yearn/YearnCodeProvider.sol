@@ -25,9 +25,9 @@ contract YearnCodeProvider is ICodeProvider {
         return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amounts);
     }
     
-    function getWithdrawSomeCodes(address, address[] memory _underlyingTokens, address _liquidityPool, uint _shares) public override view returns(bytes[] memory _codes) {
+    function getWithdrawSomeCodes(address, address[] memory, address _liquidityPool, uint _shares) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
-        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("withdraw(uint256)",_shares));
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("withdraw(uint256)",_shares));
     }
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
@@ -52,15 +52,15 @@ contract YearnCodeProvider is ICodeProvider {
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address, address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IYearn(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getPricePerFullShare()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IYearn(_liquidityPool).getPricePerFullShare()).div(10**IYearn(_liquidityPool).decimals());
          }
          return _liquidityPoolTokenAmount;
     }
     
-    function calculateAmountInLPToken(address _underlyingToken, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
-        return _depositAmount.mul(1e18).div(IYearn(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).getPricePerFullShare());
+    function calculateAmountInLPToken(address, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
+        return _depositAmount.mul(10**IYearn(_liquidityPool).decimals()).div(IYearn(_liquidityPool).getPricePerFullShare());
     }
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public override view returns(uint _amount) {

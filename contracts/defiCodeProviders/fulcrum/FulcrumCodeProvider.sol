@@ -25,9 +25,9 @@ contract FulcrumCodeprovider is ICodeProvider {
         return getDepositSomeCodes(_optyPool,_underlyingTokens,_liquidityPool,_amounts);
     }
     
-    function getWithdrawSomeCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool , uint _burnAmount) public override view returns(bytes[] memory _codes) {
+    function getWithdrawSomeCodes(address _optyPool, address[] memory , address _liquidityPool , uint _burnAmount) public override view returns(bytes[] memory _codes) {
         _codes = new bytes[](1);
-        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0],_liquidityPool),abi.encodeWithSignature("burn(address,uint256)",_optyPool,_burnAmount));
+        _codes[0] = abi.encode(_liquidityPool,abi.encodeWithSignature("burn(address,uint256)",_optyPool,_burnAmount));
     }
     
     function getWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool) public view override returns(bytes[] memory _codes) {
@@ -52,8 +52,8 @@ contract FulcrumCodeprovider is ICodeProvider {
         return _liquidityPoolTokenBalance;
     }
     
-    function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
-        return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
+    function getLiquidityPoolTokenBalance(address _optyPool, address, address _liquidityPool) public view override returns(uint){
+        return IERC20(_liquidityPool).balanceOf(_optyPool);
     }
     
     function getSomeAmountInToken(address, address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {

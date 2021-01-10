@@ -449,14 +449,12 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
             }
         }
         uint _liquidityPoolTokenAmount = getLiquidityPoolTokenBalanceStake(_optyPool,_liquidityPool);
+        uint _b = 0;
         if(_liquidityPoolTokenAmount > 0) {
-            uint _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
-            if (_b > 0) {
-                _b = _b.add(gathererContract.rewardBalanceInUnderlyingTokens(getRewardToken(_liquidityPool), _underlyingToken, getUnclaimedRewardTokenAmount(_optyPool, _liquidityPool)));
-            }
-            return _b;
+            _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
         }
-        return 0;
+        _b = _b.add(gathererContract.rewardBalanceInUnderlyingTokens(getRewardToken(_liquidityPool), _underlyingToken, getUnclaimedRewardTokenAmount(_optyPool, _liquidityPool)));
+        return _b;
     }
     
     function getLiquidityPoolTokenBalanceStake(address _optyPool,address _liquidityPool) public view override returns(uint) {
