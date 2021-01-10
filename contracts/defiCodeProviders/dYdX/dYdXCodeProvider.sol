@@ -114,7 +114,7 @@ contract dYdXDepositPoolProxy is ICodeProvider,Modifiers {
         revert("!empty");
     }
     
-    function calculateRedeemableLPTokenAmount(address , address , address , uint _redeemAmount) public override view returns(uint _amount) {
+    function calculateRedeemableLPTokenAmount(address , address , address , uint _redeemAmount) public override view returns(uint) {
         return _redeemAmount;
     }
     
