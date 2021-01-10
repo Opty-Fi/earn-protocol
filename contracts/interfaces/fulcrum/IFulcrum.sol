@@ -8,4 +8,5 @@ interface IFulcrum {
     function tokenPrice() external view returns (uint);
     function loanTokenAddress() external view returns(address);
     function decimals() external view returns (uint);
+    function assetBalanceOf(address holder) external view returns(uint);
 }

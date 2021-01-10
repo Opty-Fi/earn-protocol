@@ -45,22 +45,26 @@ contract FulcrumCodeprovider is ICodeProvider {
     }
 
     function getAllAmountInToken(address _optyPool, address _underlyingToken,address _liquidityPool) public override view returns(uint) {
-        return getSomeAmountInToken(_underlyingToken,_liquidityPool,getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool));
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool,_underlyingToken,_liquidityPool);
+        if (_liquidityPoolTokenBalance > 0) {
+            _liquidityPoolTokenBalance = IFulcrum(_liquidityPool).assetBalanceOf(_optyPool);
+        }
+        return _liquidityPoolTokenBalance;
     }
     
     function getLiquidityPoolTokenBalance(address _optyPool, address _underlyingToken, address _liquidityPool) public view override returns(uint){
         return IERC20(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).balanceOf(_optyPool);
     }
     
-    function getSomeAmountInToken(address _underlyingToken,address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
+    function getSomeAmountInToken(address, address _liquidityPool, uint _liquidityPoolTokenAmount) public override view returns(uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IFulcrum(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).tokenPrice()).div(1e18);
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IFulcrum(_liquidityPool).tokenPrice()).div(10**IFulcrum(_liquidityPool).decimals());
          }
          return _liquidityPoolTokenAmount;
     }
     
-    function calculateAmountInLPToken(address _underlyingToken, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
-        return _depositAmount.mul(1e18).div(IFulcrum(getLiquidityPoolToken(_underlyingToken,_liquidityPool)).tokenPrice());
+    function calculateAmountInLPToken(address, address _liquidityPool,uint _depositAmount) public override view returns(uint256) {
+        return _depositAmount.mul(10**(IFulcrum(_liquidityPool).decimals())).div(IFulcrum(_liquidityPool).tokenPrice());
     }
     
     function calculateRedeemableLPTokenAmount(address _optyPool, address _underlyingToken, address _liquidityPool , uint _redeemAmount) public override view returns(uint _amount) {
