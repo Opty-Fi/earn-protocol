@@ -448,8 +448,7 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
                 tokenIndex = i;
             }
         }
-        address _gauge = swapPoolToGauges[_liquidityPool];
-        uint _liquidityPoolTokenAmount = ICurveGauge(_gauge).balanceOf(_optyPool);
+        uint _liquidityPoolTokenAmount = getLiquidityPoolTokenBalanceStake(_optyPool,_liquidityPool);
         if(_liquidityPoolTokenAmount > 0) {
             uint _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
             if (_b > 0) {
@@ -461,21 +460,18 @@ contract CurveSwapCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getLiquidityPoolTokenBalanceStake(address _optyPool,address _liquidityPool) public view override returns(uint) {
-        return IERC20(swapPoolToGauges[_liquidityPool]).balanceOf(_optyPool);
+        return ICurveGauge(swapPoolToGauges[_liquidityPool]).balanceOf(_optyPool);
     }
     
     function calculateRedeemableLPTokenAmountStake(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public override view returns(uint _amount) {
-        address _gauge = swapPoolToGauges[_liquidityPool];
-        uint256 _stakedLiquidityPoolTokenBalance = IERC20(_gauge).balanceOf(_optyPool);
-        uint256 _balanceInTokenStaked = getSomeAmountInToken(_underlyingToken, _liquidityPool,_stakedLiquidityPoolTokenBalance);
+        uint256 _stakedLiquidityPoolTokenBalance = getLiquidityPoolTokenBalanceStake(_optyPool,_liquidityPool);
+        uint256 _balanceInTokenStaked = getAllAmountInTokenStake(_optyPool, _underlyingToken, _liquidityPool);
         // can have unintentional rounding errors
         _amount = (_stakedLiquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInTokenStaked).add(1);
     }
     
     function isRedeemableAmountSufficientStake(address _optyPool, address _underlyingToken,address _liquidityPool, uint _redeemAmount) public view override returns(bool) {
-        address _gauge = swapPoolToGauges[_liquidityPool];
-        uint256 _stakedLiquidityPoolTokenBalance = IERC20(_gauge).balanceOf(_optyPool);
-        uint256 _balanceInTokenStaked = getSomeAmountInToken(_underlyingToken, _liquidityPool,_stakedLiquidityPoolTokenBalance);
+        uint256 _balanceInTokenStaked = getAllAmountInTokenStake(_optyPool,_underlyingToken,_liquidityPool);
         return _balanceInTokenStaked >= _redeemAmount;
     }
     

@@ -395,12 +395,11 @@ contract CurvePoolCodeProvider is ICodeProvider,Modifiers {
     }
     
     function getLiquidityPoolTokenBalanceStake(address _optyPool, address _liquidityPool) public view override returns(uint) {
-        return IERC20(liquidityPoolToGauges[_liquidityPool]).balanceOf(_optyPool);
+        return ICurveGauge(liquidityPoolToGauges[_liquidityPool]).balanceOf(_optyPool);
     }
  
     function calculateRedeemableLPTokenAmountStake(address _optyPool, address _underlyingToken, address _liquidityPool, uint _redeemAmount) public override view returns(uint _amount) {
-        address _gauge = liquidityPoolToGauges[_liquidityPool];
-        uint256 _liquidityPoolTokenBalance = ICurveGauge(_gauge).balanceOf(_optyPool);
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalanceStake(_optyPool, _liquidityPool);
         uint256 _balanceInToken = getAllAmountInTokenStake(_optyPool,_underlyingToken,_liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
