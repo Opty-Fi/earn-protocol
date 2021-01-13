@@ -8,4 +8,5 @@ interface IHarvestDeposit {
     function getPricePerFullShare() external view returns (uint);
     function underlying() external view returns(address);
     function decimals() external view returns(uint);
+    function underlyingBalanceWithInvestment() external view returns (uint256);
 } 
