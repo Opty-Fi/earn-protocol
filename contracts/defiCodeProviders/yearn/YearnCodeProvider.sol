@@ -7,9 +7,16 @@ import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/yearn/IYearn.sol";
 import "../../interfaces/ERC20/IERC20.sol";
 import "../../libraries/SafeMath.sol";
+import "../../utils/Modifiers.sol";
 
-contract YearnCodeProvider is ICodeProvider {
+contract YearnCodeProvider is ICodeProvider,Modifiers {
     using SafeMath for uint256;
+    
+    uint256 public maxExposure; // basis points
+    
+    constructor(address _registry) public Modifiers(_registry) {
+        setMaxExposure(uint(5000)); // 50%
+    }
 
     function getDepositSomeCodes(
         address,
@@ -17,10 +24,11 @@ contract YearnCodeProvider is ICodeProvider {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
+        uint _depositAmount = _getDepositAmount(_liquidityPool,_amounts[0]);
         _codes = new bytes[](3);
         _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("deposit(uint256)", _amounts[0]));
+        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("deposit(uint256)", _depositAmount));
     }
 
     function getDepositAllCodes(
@@ -218,5 +226,19 @@ contract YearnCodeProvider is ICodeProvider {
         address
     ) public view override returns (bytes[] memory) {
         revert("!empty");
+    }
+    
+    function setMaxExposure(uint _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
+    }
+    
+    function _getDepositAmount(address _liquidityPool, uint _amount) internal view returns(uint _depositAmount) {
+        _depositAmount = _amount;
+        uint _poolValue = IYearn(_liquidityPool).calcPoolValueInToken();
+        require((_poolValue.div(uint(10000))).mul(uint(10000)) == _poolValue,"!to small");
+        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
+        if (_depositAmount >  _limit) {
+            _depositAmount = _limit;
+        }
     }
 }

@@ -8,4 +8,6 @@ interface IYearn {
     function getPricePerFullShare() external view returns (uint);
     function token() external view returns(address);
     function decimals() external view returns (uint);
+    function calcPoolValueInToken() external view returns (uint);
+    function balance() external view returns (uint);
 }
