@@ -26,4 +26,5 @@ interface ICream {
     function claimComp(address holder) external;
     function underlying() external view returns(address);
     function compAccrued(address holder) external view returns(uint256);
+    function getCash() external view returns(uint);
 }
