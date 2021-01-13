@@ -52,9 +52,15 @@ struct OperatorArg {
     address operator;
     bool trusted;
 }
+
+struct TotalPar {
+        uint128 borrow;
+        uint128 supply;
+}
     
 interface IdYdX {
     function operate(AccountInfo[] memory _accountInfo, ActionArgs[] memory _actionArgs) external;
     function setOperators(OperatorArg[] memory args) external;
     function getAccountWei(AccountInfo calldata _accountInfo, uint marketId) external view returns (bool, uint);
+    function getMarketTotalPar(uint256 marketId) external view returns (TotalPar memory);
 }
