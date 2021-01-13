@@ -9,4 +9,6 @@ interface IDForceDeposit {
     function token() external view returns(address);
     function decimals() external view returns(uint);
     function getTokenBalance(address _holder) external view returns(uint);
-}
+    function getTotalBalance() external view returns(uint);
+    function getLiquidity() external view returns(uint);
+} 
