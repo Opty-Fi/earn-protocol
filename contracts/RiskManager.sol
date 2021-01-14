@@ -7,22 +7,30 @@ import "./Registry.sol";
 import "./libraries/Addresses.sol";
 import "./utils/Modifiers.sol";
 
-contract RiskManager is Modifiers{
+contract RiskManager is Modifiers {
     
     using Address for address;
     string public constant BASIC = "basic";
     string public constant ADVANCE = "advance";
+    uint public T1_limit;
+    uint public T2_limit;
+    uint public T3_limit;
 
-    Registry RegistryContract;
-
-    constructor(address _optyRegistry) public {
-        setOptyRegistry(_optyRegistry);
+    constructor(address _registry) public Modifiers(_registry) {
     }
-
-    function setOptyRegistry(address _registry) public onlyGovernance {
-        require(_registry != address(0),"!_registry");
-        require(_registry.isContract(),"!_registry.isContract");
-        RegistryContract = Registry(_registry);
+    
+    /**
+     * @dev Set limit values for T1, T2 and T3 ranges  
+     * 
+     * Returns the hash of the best strategy for Basic Pool
+     * 
+     */
+    function setLimits(uint _T1_limit, uint _T2_limit, uint _T3_limit) public onlyGovernance returns(bool) {
+        require(_T1_limit > _T2_limit && _T2_limit > _T3_limit && _T3_limit > uint(0), "Invalid values for score limits.");
+        T1_limit = _T1_limit;
+        T2_limit = _T2_limit;
+        T3_limit = _T3_limit;
+        return true;
     }
 
     /**
@@ -62,18 +70,19 @@ contract RiskManager is Modifiers{
      * Returns the hash of the best strategy for Basic Pool
      * 
      */
-    function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32){
-        bytes32[] memory hashes = RegistryContract.getTokenToStrategies(_tokensHash);
+    function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns(bytes32) {
+        bytes32[] memory hashes = registryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0,"!hashes.length");
         uint8 maxScore = 0;
         bytes32 bestStrategyHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
         for(uint8 i = 0; i < hashes.length ; i++) {
             (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
-            RegistryContract.getStrategy(hashes[i]);
+            registryContract.getStrategy(hashes[i]);
             if(
                 isStrategy && 
-                RegistryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && 
-                RegistryContract.getLiquidityPool(_strategySteps[0].pool).rating == uint8(0)
+                !_strategySteps[0].isBorrow &&
+                registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool && 
+                registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T1_limit
             ){
                 if(score > maxScore){
                     maxScore = score;
@@ -93,24 +102,20 @@ contract RiskManager is Modifiers{
      * 
      */
     function _getBestAdvanceStrategy (bytes32 _tokensHash) internal view returns(bytes32) {
-        bytes32[] memory hashes = RegistryContract.getTokenToStrategies(_tokensHash);
+        bytes32[] memory hashes = registryContract.getTokenToStrategies(_tokensHash);
         require(hashes.length > 0, "!hashes.length");
         uint8 maxScore = 0;
         bytes32 bestStrategyHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
         for(uint8 i = 0; i < hashes.length; i++) {
             (uint8 score, bool isStrategy,,,StrategyStep[] memory _strategySteps) = 
-            RegistryContract.getStrategy(hashes[i]);
-            if(isStrategy){
-                if((_strategySteps[0].isBorrow && RegistryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool 
-                && (
-                    RegistryContract.getCreditPool(_strategySteps[0].pool).rating == uint8(0) || 
-                    RegistryContract.getCreditPool(_strategySteps[0].pool).rating == uint8(1)
-                    )
+            registryContract.getStrategy(hashes[i]);
+            if(isStrategy) {
+                if((_strategySteps[0].isBorrow && registryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool 
+                && registryContract.getCreditPool(_strategySteps[0].pool).rating >= T2_limit 
                 ) || 
-                (!_strategySteps[0].isBorrow && RegistryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool 
+                (!_strategySteps[0].isBorrow && registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool 
                 && (
-                    RegistryContract.getLiquidityPool(_strategySteps[0].pool).rating == uint8(0) || 
-                    RegistryContract.getLiquidityPool(_strategySteps[0].pool).rating == uint8(1)
+                    registryContract.getCreditPool(_strategySteps[0].pool).rating >= T2_limit
                     )
                 )) {
                     if (score > maxScore) {
@@ -118,7 +123,6 @@ contract RiskManager is Modifiers{
                     bestStrategyHash = hashes[i];
                     }
                 }
-                
             }
         }
         require(bestStrategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000,"!bestStrategyHash");

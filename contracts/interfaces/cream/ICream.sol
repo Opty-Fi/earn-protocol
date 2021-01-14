@@ -25,4 +25,5 @@ interface ICream {
     function exchangeRateStored() external view returns (uint);
     function claimComp(address holder) external;
     function underlying() external view returns(address);
+    function compAccrued(address holder) external view returns(uint256);
 }

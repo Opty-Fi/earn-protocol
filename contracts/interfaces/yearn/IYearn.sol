@@ -7,4 +7,5 @@ interface IYearn {
     function withdraw(uint _shares) external;
     function getPricePerFullShare() external view returns (uint);
     function token() external view returns(address);
+    function decimals() external view returns (uint);
 }

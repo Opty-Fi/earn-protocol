@@ -23,6 +23,13 @@ interface ICompound {
     function mint ( uint256 mintAmount ) external returns ( uint256 );
     function redeem(uint256 redeemTokens) external returns (uint256);
     function exchangeRateStored() external view returns (uint);
+    function exchangeRateCurrent() external returns (uint);
+    function totalBorrows() external view returns(uint);
+    function totalReserves() external view returns(uint);
+    function getCash() external view returns(uint);
+    function totalSupply() external view returns(uint);
     function claimComp(address holder) external;
     function underlying() external view returns(address);
+    function decimals() external view returns(uint8);
+    function compAccrued(address holder) external view returns(uint256);
 }

@@ -1,0 +1,112 @@
+{
+    "opDAIBsc": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "FulcrumDepositPoolProxy",
+        "DForceDepositPoolProxy",
+        "HarvestDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "dYdXDepositPoolProxy",
+        "CreamDepositPoolProxy"
+    ],
+    "opDAIAdv": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy"
+    ],
+    "opDAIAdv+": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy",
+        "CreamDepositPoolProxy",
+        "DForceDepositPoolProxy",
+        "HarvestDepositPoolProxy"
+    ],
+    "opUSDCBsc": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy"
+    ],
+    "opUSDCAdv": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy"
+    ],
+    "opUSDCAdv+": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy",
+        "CreamDepositPoolProxy",
+        "DForceDepositPoolProxy",
+        "HarvestDepositPoolProxy"
+    ],
+    "opUSDTBsc": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy"
+    ],
+    "opUSDTAdv": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy"
+    ],
+    "opUSDTAdv+": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy",
+        "CreamDepositPoolProxy",
+        "DForceDepositPoolProxy",
+        "HarvestDepositPoolProxy"
+    ],
+    "opTUSDBsc": ["AaveDepositPoolProxy", "CurveDepositPoolProxy"],
+    "opTUSDAdv": [
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy"
+    ],
+    "opTUSDAdv+": [
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy",
+        "CreamDepositPoolProxy",
+        "DForceDepositPoolProxy",
+        "HarvestDepositPoolProxy"
+    ],
+    "opWBTCBsc": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy"
+    ],
+    "opWBTCAdv": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy"
+    ],
+    "opWBTCAdv+": [
+        "CompoundDepositPoolProxy",
+        "AaveDepositPoolProxy",
+        "CurveDepositPoolProxy",
+        "YearnDepositPoolProxy",
+        "FulcrumDepositPoolProxy",
+        "CreamDepositPoolProxy",
+        "DForceDepositPoolProxy",
+        "HarvestDepositPoolProxy"
+    ]
+}

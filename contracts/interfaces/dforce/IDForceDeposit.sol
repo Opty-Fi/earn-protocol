@@ -7,4 +7,6 @@ interface IDForceDeposit {
     function redeem(address receiver, uint redeemAmount) external;
     function getExchangeRate() external view returns (uint);
     function token() external view returns(address);
+    function decimals() external view returns(uint);
+    function getTokenBalance(address _holder) external view returns(uint);
 }

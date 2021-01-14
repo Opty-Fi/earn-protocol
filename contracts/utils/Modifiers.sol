@@ -3,24 +3,22 @@
 pragma solidity ^0.6.10;
 
 import "./../libraries/Addresses.sol";
+import "../Registry.sol";
 
 /**
  * @dev Contract used to keep all the modifiers at one place
  */
 contract Modifiers {
     
-    address public owner;
-    address public governance;
-    address public controller;
+    Registry public registryContract;
     
     using Address for address;
     
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
      */
-    constructor () internal {
-               owner = msg.sender;
-          governance = msg.sender;
+    constructor (address _registry) internal {
+        registryContract = Registry(_registry);
     }
     
     /**
@@ -31,29 +29,8 @@ contract Modifiers {
         return true;
     }
     
-    /**
-     * @dev Transfers governance to a new account (`_governance`).
-     * Can only be called by the current governance.
-     */    
-    function transferGovernance(address _governance) public onlyGovernance {
-        governance = _governance;
-    }
-    
-    /**
-     * @dev Transfers controller to a new account (`_governance`).
-     * Can only be called by the governance.
-     */    
-    function setController(address _controller) public onlyGovernance {
-        require(_controller.isContract(),"!isContract");
-        controller = _controller;
-    }
-    
-    /**
-     * @dev Transfers ownership to a new account (`_owner`).
-     * Can only be called by the current owner.
-     */    
-    function transferOwnership(address _owner) public onlyOwner {
-        owner = _owner;
+    function setRegistry(address _registry) onlyOperator public {
+        registryContract = Registry(_registry);
     }
     
     /**
@@ -63,28 +40,28 @@ contract Modifiers {
         require(msg.sender != address(0), "caller is zero address");
         _;
     }
-    
-    /**
-     * @dev Modifier to check caller is owner or not
-     */
-    modifier onlyOwner() {
-        require(msg.sender == owner, "caller is not owner");
-        _;
-    }
-    
+
     /**
      * @dev Modifier to check caller is governance or not
      */
     modifier onlyGovernance() {
-        require(msg.sender == governance, "caller is not having governance");
+        require(msg.sender == registryContract.governance(), "caller is not having governance");
         _;
     }
     
     /**
-     * @dev Modifier to check caller is controller or not
+     * @dev Modifier to check caller is operator or not
      */
-    modifier onlyController() {
-        require(msg.sender == controller, "caller is not constructor");
+    modifier onlyOperator() {
+        require(msg.sender == registryContract.operator(), "caller is not the operator");
+        _;
+    }
+    
+    /**
+     * @dev Modifier to check caller is operator or not
+     */
+    modifier onlyStrategist() {
+        require(msg.sender == registryContract.strategist(), "caller is not the strategist");
         _;
     }
 }
