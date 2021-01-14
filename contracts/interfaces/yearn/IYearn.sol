@@ -3,9 +3,17 @@
 pragma solidity ^0.6.10;
 
 interface IYearn {
-    function deposit(uint _amount) external;
-    function withdraw(uint _shares) external;
-    function getPricePerFullShare() external view returns (uint);
-    function token() external view returns(address);
-    function decimals() external view returns (uint);
+    function deposit(uint256 _amount) external;
+
+    function withdraw(uint256 _shares) external;
+
+    function getPricePerFullShare() external view returns (uint256);
+
+    function token() external view returns (address);
+
+    function decimals() external view returns (uint256);
+
+    function calcPoolValueInToken() external view returns (uint256);
+
+    function balance() external view returns (uint256);
 }

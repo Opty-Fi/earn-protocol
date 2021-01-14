@@ -7,9 +7,20 @@ import "../../interfaces/opty/ICodeProvider.sol";
 import "../../interfaces/fulcrum/IFulcrum.sol";
 import "../../libraries/SafeMath.sol";
 import "../../interfaces/ERC20/IERC20.sol";
+import "../../utils/Modifiers.sol";
 
-contract FulcrumCodeprovider is ICodeProvider {
+contract FulcrumCodeprovider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
+
+    uint256 public maxExposure; // basis points
+
+    constructor(address _registry) public Modifiers(_registry) {
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
+        return IFulcrum(_liquidityPool).marketLiquidity();
+    }
 
     function getDepositSomeCodes(
         address _optyPool,
@@ -17,10 +28,11 @@ contract FulcrumCodeprovider is ICodeProvider {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
+        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
         _codes = new bytes[](3);
         _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(address,uint256)", _optyPool, _amounts[0]));
+        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(address,uint256)", _optyPool, _depositAmount));
     }
 
     function getDepositAllCodes(
@@ -222,5 +234,18 @@ contract FulcrumCodeprovider is ICodeProvider {
         address
     ) public view override returns (bytes[] memory) {
         revert("!empty");
+    }
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
+    }
+
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+        _depositAmount = _amount;
+        uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
+            _depositAmount = _limit;
+        }
     }
 }

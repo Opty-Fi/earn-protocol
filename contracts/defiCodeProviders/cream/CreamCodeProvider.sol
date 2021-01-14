@@ -16,6 +16,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     address public comptroller;
     address public rewardToken;
     Gatherer public gathererContract;
+    uint256 public maxExposure; // basis points
 
     address public constant HBTC = address(0x0316EB71485b0Ab14103307bf65a021042c6d380);
 
@@ -23,6 +24,11 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         setComptroller(address(0x3d5BC3c8d13dcB8bF317092d84783c2697AE9258));
         setRewardToken(address(0x2ba592F78dB6436527729929AAf6c908497cB200));
         setGatherer(_gatherer);
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
+        return ICream(_liquidityPool).getCash();
     }
 
     function getDepositSomeCodes(
@@ -31,15 +37,16 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
+        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
         if (_underlyingTokens[0] == HBTC) {
             _codes = new bytes[](2);
             _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-            _codes[1] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _amounts[0]));
+            _codes[1] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
         } else {
             _codes = new bytes[](3);
             _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-            _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-            _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _amounts[0]));
+            _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+            _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
         }
     }
 
@@ -257,5 +264,18 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
 
     function setGatherer(address _gatherer) public onlyOperator {
         gathererContract = Gatherer(_gatherer);
+    }
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
+    }
+
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+        _depositAmount = _amount;
+        uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
+            _depositAmount = _limit;
+        }
     }
 }

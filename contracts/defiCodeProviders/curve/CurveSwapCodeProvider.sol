@@ -19,6 +19,7 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
     mapping(address => address) public swapPoolToGauges;
     mapping(address => bool) public noRemoveLiquidityOneCoin;
     Gatherer public gathererContract;
+    uint256 public maxExposure; // basis points
 
     // reward token
     address public rewardToken;
@@ -246,6 +247,12 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
         setSwapPoolToGauges(RSV_SWAP_POOL, address(0x4dC4A289a8E33600D8bD4cf5F6313E43a37adec7));
         setSwapPoolToGauges(TBTC_SWAP_POOL, address(0x6828bcF74279eE32f2723eC536c22c51Eed383C6));
         setSwapPoolToGauges(DUSD_SWAP_POOL, address(0xAEA6c312f4b3E04D752946d329693F7293bC2e6D));
+        
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address, address) public view override returns (uint256) {
+        revert("!empty");
     }
 
     /**
@@ -826,5 +833,9 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
 
     function setGatherer(address _gatherer) public onlyOperator {
         gathererContract = Gatherer(_gatherer);
+    }
+    
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
     }
 }

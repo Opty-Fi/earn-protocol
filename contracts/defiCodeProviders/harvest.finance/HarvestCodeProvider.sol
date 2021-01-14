@@ -16,6 +16,8 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     Gatherer public gathererContract;
     mapping(address => address) public liquidityPoolToStakingPool;
     address public rewardToken;
+    uint256 public maxExposure; // basis points
+
 
     // deposit pool
     address public constant TBTC_SBTC_CRV_DEPOSIT_POOL = address(0x640704D106E79e105FDA424f05467F005418F1B5);
@@ -66,6 +68,12 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         setLiquidityPoolToStakingPool(F_CDAI_CUSDC_DEPOSIT_POOL, F_CDAI_CUSDC_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_USDN_THREE_CRV_DEPOSIT_POOL, F_USDN_THREE_CRV_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_YDAI_YUSDC_YUSDT_YBUSD_DEPOSIT_POOL, F_YDAI_YUSDC_YUSDT_YBUSD_STAKE_POOL);
+        
+        setMaxExposure(uint(5000)); // 50%
+    }
+    
+    function getPoolValue(address _liquidityPool, address) public view override returns(uint) {
+        return IHarvestDeposit(_liquidityPool).underlyingBalanceWithInvestment();
     }
 
     function getDepositSomeCodes(
@@ -74,10 +82,11 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
+        uint _depositAmount = _getDepositAmount(_liquidityPool,_amounts[0]);
         _codes = new bytes[](3);
         _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("deposit(uint256)", _amounts[0]));
+        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("deposit(uint256)", _depositAmount));
     }
 
     function getDepositAllCodes(
@@ -325,5 +334,18 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
 
     function setRewardToken(address _rewardToken) public onlyOperator {
         rewardToken = _rewardToken;
+    }
+    
+    function setMaxExposure(uint _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
+    }
+    
+    function _getDepositAmount(address _liquidityPool, uint _amount) internal view returns(uint _depositAmount) {
+        _depositAmount = _amount;
+        uint _poolValue = getPoolValue(_liquidityPool, address(0));
+        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
+        if (_depositAmount >  _limit) {
+            _depositAmount = _limit;
+        }
     }
 }

@@ -18,6 +18,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
     mapping(address => address) public liquidityPoolToGauges;
     Gatherer public gathererContract;
+    uint256 public maxExposure; // basis points
 
     // underlying token
     address public constant DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -178,6 +179,12 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
         setLiquiidtyPoolToGauges(RSV_DEPOSIT_POOL, address(0x4dC4A289a8E33600D8bD4cf5F6313E43a37adec7));
         setLiquiidtyPoolToGauges(TBTC_DEPOSIT_POOL, address(0x6828bcF74279eE32f2723eC536c22c51Eed383C6));
         setLiquiidtyPoolToGauges(DUSD_DEPOSIT_POOL, address(0xAEA6c312f4b3E04D752946d329693F7293bC2e6D));
+
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address, address) public view override returns (uint256) {
+        revert("!empty");
     }
 
     /**
@@ -738,5 +745,9 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
 
     function setGatherer(address _gatherer) public onlyOperator {
         gathererContract = Gatherer(_gatherer);
+    }
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
     }
 }

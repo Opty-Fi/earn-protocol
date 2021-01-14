@@ -17,6 +17,7 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
     mapping(address => address) public liquidityPoolToStakingPool;
     address public rewardToken;
     Gatherer public gathererContract;
+    uint256 public maxExposure; // basis points
 
     // deposit pools
     address public constant USDT_DEPOSIT_POOL = address(0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8);
@@ -34,6 +35,11 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
         setLiquidityPoolToStakingPool(USDT_DEPOSIT_POOL, USDT_STAKING_POOL);
         setLiquidityPoolToStakingPool(USDC_DEPOSIT_POOL, USDC_STAKING_POOL);
         setLiquidityPoolToStakingPool(DAI_DEPOSIT_POOL, DAI_STAKING_POOL);
+        setMaxExposure(uint256(5000)); // 50%
+    }
+    
+    function getPoolValue(address _liquidityPool, address) public view override returns(uint) {
+        return IDForceDeposit(_liquidityPool).getLiquidity();
     }
 
     function getDepositSomeCodes(
@@ -42,10 +48,11 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
+        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
         _codes = new bytes[](3);
         _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(address,uint256)", _optyPool, _amounts[0]));
+        _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+        _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(address,uint256)", _optyPool, _depositAmount));
     }
 
     function getDepositAllCodes(
@@ -289,5 +296,18 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
 
     function setRewardToken(address _rewardToken) public onlyOperator {
         rewardToken = _rewardToken;
+    }
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
+        maxExposure = _maxExposure;
+    }
+
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+        _depositAmount = _amount;
+        uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
+            _depositAmount = _limit;
+        }
     }
 }

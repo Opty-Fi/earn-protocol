@@ -4,20 +4,20 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 enum ActionType {
-    Deposit,   // supply tokens
-    Withdraw,  // borrow tokens
-    Transfer,  // transfer balance between accounts
-    Buy,       // buy an amount of some token (externally)
-    Sell,      // sell an amount of some token (externally)
-    Trade,     // trade tokens against another account
+    Deposit, // supply tokens
+    Withdraw, // borrow tokens
+    Transfer, // transfer balance between accounts
+    Buy, // buy an amount of some token (externally)
+    Sell, // sell an amount of some token (externally)
+    Trade, // trade tokens against another account
     Liquidate, // liquidate an undercollateralized or expiring account
-    Vaporize,  // use excess tokens to zero-out a completely negative account
-    Call       // send arbitrary data to an address
+    Vaporize, // use excess tokens to zero-out a completely negative account
+    Call // send arbitrary data to an address
 }
 
 enum AssetDenomination {
     Wei, // the amount is denominated in wei
-    Par  // the amount is denominated in par
+    Par // the amount is denominated in par
 }
 
 enum AssetReference {
@@ -52,9 +52,18 @@ struct OperatorArg {
     address operator;
     bool trusted;
 }
-    
+
+struct TotalPar {
+    uint128 borrow;
+    uint128 supply;
+}
+
 interface IdYdX {
     function operate(AccountInfo[] memory _accountInfo, ActionArgs[] memory _actionArgs) external;
+
     function setOperators(OperatorArg[] memory args) external;
-    function getAccountWei(AccountInfo calldata _accountInfo, uint marketId) external view returns (bool, uint);
+
+    function getAccountWei(AccountInfo calldata _accountInfo, uint256 marketId) external view returns (bool, uint256);
+
+    function getMarketTotalPar(uint256 marketId) external view returns (TotalPar memory);
 }
