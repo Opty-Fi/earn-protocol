@@ -3,8 +3,11 @@
 pragma solidity ^0.6.10;
 
 interface IHarvestFarm {
-    function stake (uint _value) external;
-    function exit () external;
-    function earned (address _holder) external view returns(uint);
-    function balanceOf(address _holder) external view returns(uint);
+    function stake(uint256 _value) external;
+
+    function exit() external;
+
+    function earned(address _holder) external view returns (uint256);
+
+    function balanceOf(address _holder) external view returns (uint256);
 }
