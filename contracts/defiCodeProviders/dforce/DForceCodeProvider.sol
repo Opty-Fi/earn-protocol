@@ -37,8 +37,8 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
         setLiquidityPoolToStakingPool(DAI_DEPOSIT_POOL, DAI_STAKING_POOL);
         setMaxExposure(uint256(5000)); // 50%
     }
-
-    function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
+    
+    function getPoolValue(address _liquidityPool, address) public view override returns(uint) {
         return IDForceDeposit(_liquidityPool).getLiquidity();
     }
 
