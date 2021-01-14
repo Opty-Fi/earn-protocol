@@ -71,6 +71,10 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         
         setMaxExposure(uint(5000)); // 50%
     }
+    
+    function getPoolValue(address _liquidityPool, address) public view override returns(uint) {
+        return IHarvestDeposit(_liquidityPool).underlyingBalanceWithInvestment();
+    }
 
     function getDepositSomeCodes(
         address,
@@ -338,7 +342,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     
     function _getDepositAmount(address _liquidityPool, uint _amount) internal view returns(uint _depositAmount) {
         _depositAmount = _amount;
-        uint _poolValue = IHarvestDeposit(_liquidityPool).underlyingBalanceWithInvestment();
+        uint _poolValue = getPoolValue(_liquidityPool, address(0));
         require((_poolValue.div(uint(10000))).mul(uint(10000)) == _poolValue,"!to small");
         uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
         if (_depositAmount >  _limit) {

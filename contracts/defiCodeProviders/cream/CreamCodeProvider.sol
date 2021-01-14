@@ -24,7 +24,11 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         setComptroller(address(0x3d5BC3c8d13dcB8bF317092d84783c2697AE9258));
         setRewardToken(address(0x2ba592F78dB6436527729929AAf6c908497cB200));
         setGatherer(_gatherer);
-        setMaxExposure(uint(5000)); // 50%
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
+        return ICream(_liquidityPool).getCash();
     }
 
     function getDepositSomeCodes(
@@ -33,7 +37,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
-        uint _depositAmount = _getDepositAmount(_liquidityPool,_amounts[0]);
+        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
         if (_underlyingTokens[0] == HBTC) {
             _codes = new bytes[](2);
             _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
@@ -261,17 +265,17 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     function setGatherer(address _gatherer) public onlyOperator {
         gathererContract = Gatherer(_gatherer);
     }
-    
-    function setMaxExposure(uint _maxExposure) public onlyOperator {
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
     }
-    
-    function _getDepositAmount(address _liquidityPool, uint _amount) internal view returns(uint _depositAmount) {
+
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint _poolValue = ICream(_liquidityPool).getCash();
-        require((_poolValue.div(uint(10000))).mul(uint(10000)) == _poolValue,"!to small");
-        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
-        if (_depositAmount >  _limit) {
+        uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
+        require((_poolValue.div(uint256(10000))).mul(uint256(10000)) == _poolValue, "!to small");
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }

@@ -35,7 +35,11 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
         setLiquidityPoolToStakingPool(USDT_DEPOSIT_POOL, USDT_STAKING_POOL);
         setLiquidityPoolToStakingPool(USDC_DEPOSIT_POOL, USDC_STAKING_POOL);
         setLiquidityPoolToStakingPool(DAI_DEPOSIT_POOL, DAI_STAKING_POOL);
-        setMaxExposure(uint(5000)); // 50%
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
+        return IDForceDeposit(_liquidityPool).getLiquidity();
     }
 
     function getDepositSomeCodes(
@@ -44,7 +48,7 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
-        uint _depositAmount = _getDepositAmount(_liquidityPool,_amounts[0]);
+        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
         _codes = new bytes[](3);
         _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
         _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
@@ -293,17 +297,17 @@ contract DForceCodeProvider is ICodeProvider, Modifiers {
     function setRewardToken(address _rewardToken) public onlyOperator {
         rewardToken = _rewardToken;
     }
-    
-    function setMaxExposure(uint _maxExposure) public onlyOperator {
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
     }
-    
-    function _getDepositAmount(address _liquidityPool, uint _amount) internal view returns(uint _depositAmount) {
+
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint _poolValue = IDForceDeposit(_liquidityPool).getLiquidity();
-        require((_poolValue.div(uint(10000))).mul(uint(10000)) == _poolValue,"!to small");
-        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
-        if (_depositAmount >  _limit) {
+        uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
+        require((_poolValue.div(uint256(10000))).mul(uint256(10000)) == _poolValue, "!to small");
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }

@@ -10,11 +10,10 @@ import "../../utils/Modifiers.sol";
 import "../../libraries/SafeMath.sol";
 
 contract dYdXDepositPoolProxy is ICodeProvider, Modifiers {
-    
     using SafeMath for uint256;
-    
+
     uint256 public maxExposure; // basis points
-    
+
     address public constant DYDX_LIQUIIDTY_POOL = address(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
 
     address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
@@ -36,7 +35,11 @@ contract dYdXDepositPoolProxy is ICodeProvider, Modifiers {
         addMarket(SAI, 1);
         addMarket(USDC, 2);
         addMarket(DAI, 3);
-        setMaxExposure(uint(5000)); // 50%
+        setMaxExposure(uint256(5000)); // 50%
+    }
+
+    function getPoolValue(address _liquidityPool, address _underlyingToken) public view override returns (uint256) {
+        return uint256(IdYdX(_liquidityPool).getMarketTotalPar(marketToIndexes[_underlyingToken]).supply);
     }
 
     function getDepositSomeCodes(
@@ -51,7 +54,7 @@ contract dYdXDepositPoolProxy is ICodeProvider, Modifiers {
                 _underlyingTokenIndex = marketToIndexes[_underlyingTokens[i]];
             }
         }
-        uint _depositAmount = _getDepositAmount(_liquidityPool,_underlyingTokenIndex,_amounts[_underlyingTokenIndex]);
+        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _underlyingTokens[_underlyingTokenIndex], _amounts[_underlyingTokenIndex]);
         AccountInfo[] memory _accountInfos = new AccountInfo[](1);
         _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
         AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _depositAmount);
@@ -301,17 +304,21 @@ contract dYdXDepositPoolProxy is ICodeProvider, Modifiers {
     function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyOperator {
         liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
     }
-    
-    function setMaxExposure(uint _maxExposure) public onlyOperator {
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
     }
-    
-    function _getDepositAmount(address _liquidityPool, uint _marketId, uint _amount) internal view returns(uint _depositAmount) {
+
+    function _getDepositAmount(
+        address _liquidityPool,
+        address _underlyingToken,
+        uint256 _amount
+    ) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint _poolValue = uint(IdYdX(_liquidityPool).getMarketTotalPar(_marketId).supply);
-        require((_poolValue.div(uint(10000))).mul(uint(10000)) == _poolValue,"!to small");
-        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
-        if (_depositAmount >  _limit) {
+        uint256 _poolValue = getPoolValue(_liquidityPool, _underlyingToken);
+        require((_poolValue.div(uint256(10000))).mul(uint256(10000)) == _poolValue, "!to small");
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }

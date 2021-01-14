@@ -11,16 +11,19 @@ import "../../interfaces/ERC20/IERC20.sol";
 import "../../libraries/SafeMath.sol";
 import "../../utils/Modifiers.sol";
 
-contract AaveCodeProvider is ICodeProvider,Modifiers {
-    
+contract AaveCodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
-    
+
     uint256 public maxExposure; // basis points
-    
+
     constructor(address _registry) public Modifiers(_registry) {
-        setMaxExposure(uint(5000)); // 50%
+        setMaxExposure(uint256(5000)); // 50%
     }
-    
+
+    function getPoolValue(address _liquidityPoolAddressProvider, address _underlyingToken) public view override returns (uint256) {
+        return IAave(_getLendingPool(_liquidityPoolAddressProvider)).getReserveData(_underlyingToken).availableLiquidity;
+    }
+
     function getDepositSomeCodes(
         address,
         address[] memory _underlyingTokens,
@@ -29,7 +32,7 @@ contract AaveCodeProvider is ICodeProvider,Modifiers {
     ) public view override returns (bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
         address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
-        uint _depositAmount = _getDepositAmount(_liquidityPoolAddressProvider,_underlyingTokens[0],_amounts[0]);
+        uint256 _depositAmount = _getDepositAmount(_liquidityPoolAddressProvider, _underlyingTokens[0], _amounts[0]);
         _codes = new bytes[](3);
         _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, uint256(0)));
         _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _depositAmount));
@@ -232,8 +235,8 @@ contract AaveCodeProvider is ICodeProvider,Modifiers {
     ) public view override returns (bytes[] memory) {
         revert("!empty");
     }
-    
-    function setMaxExposure(uint _maxExposure) public onlyOperator {
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
     }
 
@@ -244,13 +247,17 @@ contract AaveCodeProvider is ICodeProvider,Modifiers {
     function _getLendingPoolCore(address _lendingPoolAddressProvider) internal view returns (address) {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPoolCore();
     }
-    
-    function _getDepositAmount(address _liquidityPoolAddressProvider, address _underlyingToken, uint _amount) internal view returns(uint _depositAmount) {
+
+    function _getDepositAmount(
+        address _liquidityPoolAddressProvider,
+        address _underlyingToken,
+        uint256 _amount
+    ) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint _poolValue = IAave(_getLendingPool(_liquidityPoolAddressProvider)).getReserveData(_underlyingToken).availableLiquidity;
-        require((_poolValue.div(uint(10000))).mul(uint(10000)) == _poolValue,"!to small");
-        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
-        if (_depositAmount >  _limit) {
+        uint256 _poolValue = getPoolValue(_liquidityPoolAddressProvider, _underlyingToken);
+        require((_poolValue.div(uint256(10000))).mul(uint256(10000)) == _poolValue, "!to small");
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }

@@ -248,6 +248,10 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
         setSwapPoolToGauges(DUSD_SWAP_POOL, address(0xAEA6c312f4b3E04D752946d329693F7293bC2e6D));
     }
 
+    function getPoolValue(address, address) public view override returns (uint256) {
+        revert("!empty");
+    }
+
     /**
     * @dev Calls the appropriate deploy function depending on N_COINS
     * 
