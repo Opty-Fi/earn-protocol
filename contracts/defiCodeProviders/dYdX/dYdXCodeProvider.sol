@@ -316,7 +316,6 @@ contract dYdXDepositPoolProxy is ICodeProvider, Modifiers {
     ) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, _underlyingToken);
-        require((_poolValue.div(uint256(10000))).mul(uint256(10000)) == _poolValue, "!to small");
         uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
