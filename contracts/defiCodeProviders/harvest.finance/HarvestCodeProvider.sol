@@ -51,7 +51,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     address public constant F_USDN_THREE_CRV_STAKE_POOL = address(0xef4Da1CE3f487DA2Ed0BE23173F76274E0D47579);
     address public constant F_YDAI_YUSDC_YUSDT_YBUSD_STAKE_POOL = address(0x093C2ae5E6F3D2A897459aa24551289D462449AD);
 
-    constructor(Gatherer _gatherer, address _registry) public Modifiers(_registry) {
+    constructor(address _registry, Gatherer _gatherer) public Modifiers(_registry) {
         setGatherer(_gatherer);
         setRewardToken(address(0xa0246c9032bC3A600820415aE600c6388619A14D));
         setLiquidityPoolToStakingPool(TBTC_SBTC_CRV_DEPOSIT_POOL, TBTC_SBTC_CRV_STAKE_POOL);

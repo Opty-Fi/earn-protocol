@@ -9,7 +9,7 @@ import "../../interfaces/ERC20/IERC20.sol";
 import "../../utils/Modifiers.sol";
 import "../../libraries/SafeMath.sol";
 
-contract dYdXDepositPoolProxy is ICodeProvider, Modifiers {
+contract dYdXCodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
 
     uint256 public maxExposure; // basis points

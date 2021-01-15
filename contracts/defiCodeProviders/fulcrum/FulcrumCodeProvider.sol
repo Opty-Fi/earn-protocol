@@ -9,7 +9,7 @@ import "../../libraries/SafeMath.sol";
 import "../../interfaces/ERC20/IERC20.sol";
 import "../../utils/Modifiers.sol";
 
-contract FulcrumCodeprovider is ICodeProvider, Modifiers {
+contract FulcrumCodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
 
     uint256 public maxExposure; // basis points
