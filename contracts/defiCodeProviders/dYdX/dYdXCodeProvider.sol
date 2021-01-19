@@ -49,40 +49,44 @@ contract dYdXCodeProvider is ICodeProvider, Modifiers {
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
         uint256 _underlyingTokenIndex;
+        bool _IsAmount = false;
         for (uint256 i = 0; i < _amounts.length; i++) {
             if (_amounts[i] > 0) {
+                _IsAmount = true;
                 _underlyingTokenIndex = marketToIndexes[_underlyingTokens[i]];
             }
         }
-        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _underlyingTokens[_underlyingTokenIndex], _amounts[_underlyingTokenIndex]);
-        AccountInfo[] memory _accountInfos = new AccountInfo[](1);
-        _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
-        AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _depositAmount);
-        ActionArgs memory _actionArg;
-        _actionArg.actionType = ActionType.Deposit;
-        _actionArg.accountId = 0;
-        _actionArg.amount = _amt;
-        _actionArg.primaryMarketId = _underlyingTokenIndex;
-        _actionArg.otherAddress = _optyPool;
-        ActionArgs[] memory _actionArgs = new ActionArgs[](1);
-        _actionArgs[0] = _actionArg;
-        _codes = new bytes[](3);
-        _codes[0] = abi.encode(
-            _underlyingTokens[_underlyingTokenIndex],
-            abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0))
-        );
-        _codes[1] = abi.encode(
-            _underlyingTokens[_underlyingTokenIndex],
-            abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[_underlyingTokenIndex])
-        );
-        _codes[2] = abi.encode(
-            _liquidityPool,
-            abi.encodeWithSignature(
-                "operate((address,uint256)[],(uint8,uint256,(bool,uint8,uint8,uint256),uint256,uint256,address,uint256,bytes)[])",
-                _accountInfos,
-                _actionArgs
-            )
-        );
+        if(_IsAmount) {
+            uint256 _depositAmount = _getDepositAmount(_liquidityPool, _underlyingTokens[_underlyingTokenIndex], _amounts[_underlyingTokenIndex]);
+            AccountInfo[] memory _accountInfos = new AccountInfo[](1);
+            _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
+            AssetAmount memory _amt = AssetAmount(true, AssetDenomination.Wei, AssetReference.Delta, _depositAmount);
+            ActionArgs memory _actionArg;
+            _actionArg.actionType = ActionType.Deposit;
+            _actionArg.accountId = 0;
+            _actionArg.amount = _amt;
+            _actionArg.primaryMarketId = _underlyingTokenIndex;
+            _actionArg.otherAddress = _optyPool;
+            ActionArgs[] memory _actionArgs = new ActionArgs[](1);
+            _actionArgs[0] = _actionArg;
+            _codes = new bytes[](3);
+            _codes[0] = abi.encode(
+                _underlyingTokens[_underlyingTokenIndex],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _underlyingTokens[_underlyingTokenIndex],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[_underlyingTokenIndex])
+            );
+            _codes[2] = abi.encode(
+                _liquidityPool,
+                abi.encodeWithSignature(
+                    "operate((address,uint256)[],(uint8,uint256,(bool,uint8,uint8,uint256),uint256,uint256,address,uint256,bytes)[])",
+                    _accountInfos,
+                    _actionArgs
+                )
+            );
+        }
     }
 
     function getDepositAllCodes(
@@ -103,27 +107,29 @@ contract dYdXCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
-        AccountInfo[] memory _accountInfos = new AccountInfo[](1);
-        _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
-        AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, _amount);
-        ActionArgs memory _actionArg;
-        _actionArg.actionType = ActionType.Withdraw;
-        _actionArg.accountId = 0;
-        _actionArg.amount = _amt;
-        _actionArg.primaryMarketId = _underlyingTokenIndex;
-        _actionArg.otherAddress = _optyPool;
-        ActionArgs[] memory _actionArgs = new ActionArgs[](1);
-        _actionArgs[0] = _actionArg;
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(
-            _liquidityPool,
-            abi.encodeWithSignature(
-                "operate((address,uint256)[],(uint8,uint256,(bool,uint8,uint8,uint256),uint256,uint256,address,uint256,bytes)[])",
-                _accountInfos,
-                _actionArgs
-            )
-        );
+        if (_amount > 0) {
+            uint256 _underlyingTokenIndex = marketToIndexes[_underlyingTokens[0]];
+            AccountInfo[] memory _accountInfos = new AccountInfo[](1);
+            _accountInfos[0] = AccountInfo(_optyPool, uint256(0));
+            AssetAmount memory _amt = AssetAmount(false, AssetDenomination.Wei, AssetReference.Delta, _amount);
+            ActionArgs memory _actionArg;
+            _actionArg.actionType = ActionType.Withdraw;
+            _actionArg.accountId = 0;
+            _actionArg.amount = _amt;
+            _actionArg.primaryMarketId = _underlyingTokenIndex;
+            _actionArg.otherAddress = _optyPool;
+            ActionArgs[] memory _actionArgs = new ActionArgs[](1);
+            _actionArgs[0] = _actionArg;
+            _codes = new bytes[](1);
+            _codes[0] = abi.encode(
+                _liquidityPool,
+                abi.encodeWithSignature(
+                    "operate((address,uint256)[],(uint8,uint256,(bool,uint8,uint8,uint256),uint256,uint256,address,uint256,bytes)[])",
+                    _accountInfos,
+                    _actionArgs
+                )
+            );
+        }
     }
 
     function getWithdrawAllCodes(

@@ -37,16 +37,18 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
-        if (_underlyingTokens[0] == HBTC) {
-            _codes = new bytes[](2);
-            _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
-            _codes[1] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
-        } else {
-            _codes = new bytes[](3);
-            _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-            _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
-            _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
+        if(_amounts[0] > 0) {
+            uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
+            if (_underlyingTokens[0] == HBTC) {
+                _codes = new bytes[](2);
+                _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amounts[0]));
+                _codes[1] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
+            } else {
+                _codes = new bytes[](3);
+                _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
+                _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+                _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
+            }
         }
     }
 
@@ -66,8 +68,10 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
-        _codes = new bytes[](1);
-        _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0], _liquidityPool), abi.encodeWithSignature("redeem(uint256)", _amount));
+        if(_amount > 0) {
+            _codes = new bytes[](1);
+            _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0], _liquidityPool), abi.encodeWithSignature("redeem(uint256)", _amount));
+        }
     }
 
     function getWithdrawAllCodes(
