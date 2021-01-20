@@ -39,6 +39,20 @@ interface ICodeProvider {
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) external view returns (bytes[] memory _codes);
+    
+    /**
+     * @dev Borrow full `amount` of `_outputToken` and sends the  `_outputToken` token to the caller`.
+     *
+     * Returns a bytes value to be executed.
+     */
+    function getBorrowAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPool, address _outputToken) external view returns(bytes[] memory _codes);
+    
+    /**
+     * @dev Repay full amount of  `_outputToken` and sends the  `_underlyingTokens` token to the caller`.
+     *
+     * Returns a bytes value to be executed.
+     */
+    function getRepayAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPoolAddressProvider, address _outputToken) external view returns(bytes[] memory);
 
     /**
      * @dev Redeem `amount` of `liquidityPoolToken` token and sends the `underlyingToken` to the caller`.
