@@ -17,8 +17,8 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
 
     uint256 public maxExposure; // basis points
-    
-    uint256 public healthFactor = 4;
+
+    uint256 public healthFactor = 2;
     uint256 public ltv = 65;
     uint256 public max = 100;
 
@@ -36,7 +36,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPoolAddressProvider,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
-        if(_amounts[0] > 0) {
+        if (_amounts[0] > 0) {
             address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
             address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
             uint256 _depositAmount = _getDepositAmount(_liquidityPoolAddressProvider, _underlyingTokens[0], _amounts[0]);
@@ -59,36 +59,81 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
         return getDepositSomeCodes(_optyPool, _underlyingTokens, _liquidityPoolAddressProvider, _amounts);
     }
-    
-    function getBorrowAllCodes(address _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider, address _outputToken) public view returns(bytes[] memory _codes) {
+
+    function getBorrowAllCodes(
+        address _optyPool,
+        address[] memory _underlyingTokens,
+        address _liquidityPoolAddressProvider,
+        address _outputToken
+    ) public view override returns (bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        ReserveConfigurationData memory _reserveConfigurationData = IAave(_lendingPool).getReserveConfigurationData(_underlyingToken);
-        if(_reserveConfigurationData.usageAsCollateralEnabled && _reserveConfigurationData.stableBorrowRateEnabled) {
-        uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProvider, _outputToken);
-        if (_borrow > 0) {
-            bool _isUserCollateralEnabled = IAave(_lendingPool).getUserReserveData(_underlyingToken,_optyPool).enabled;
-            if(_isUserCollateralEnabled) {
-                _codes = new bytes[](1);
-                _codes[0] = abi.encode(_lendingPool,abi.encodeWithSignature("borrow(address, uint256, uint256, uint16)", _outputToken, _borrow, 1, 0));   
-            } else {
-                _codes = new bytes[](2);
-                _codes[0] = abi.encode(_lendingPool,abi.encodeWithSignature("setUserUseReserveAsCollateral(address, bool)",_underlyingToken, true));
-                _codes[1] = abi.encode(_lendingPool,abi.encodeWithSignature("borrow(address, uint256, uint256, uint16)", _outputToken, _borrow, 1, 0));
+        ReserveConfigurationData memory _reserveConfigurationData = IAave(_lendingPool).getReserveConfigurationData(_underlyingTokens[0]);
+        if (_reserveConfigurationData.usageAsCollateralEnabled && _reserveConfigurationData.stableBorrowRateEnabled) {
+            uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProvider, _outputToken);
+            if (_borrow > 0) {
+                bool _isUserCollateralEnabled = IAave(_lendingPool).getUserReserveData(_underlyingTokens[0], _optyPool).enabled;
+                if (_isUserCollateralEnabled) {
+                    _codes = new bytes[](1);
+                    _codes[0] = abi.encode(
+                        _lendingPool,
+                        abi.encodeWithSignature("borrow(address,uint256,uint256,uint16)", _outputToken, _borrow, uint256(1), uint16(0))
+                    );
+                } else {
+                    _codes = new bytes[](2);
+                    _codes[0] = abi.encode(
+                        _lendingPool,
+                        abi.encodeWithSignature("setUserUseReserveAsCollateral(address,bool)", _underlyingTokens[0], true)
+                    );
+                    _codes[1] = abi.encode(
+                        _lendingPool,
+                        abi.encodeWithSignature("borrow(address,uint256,uint256,uint16)", _outputToken, _borrow, uint256(1), uint16(0))
+                    );
+                }
             }
-        }
         } else {
             revert("!borrow");
         }
     }
-    
-    function getRepayAllCodes(address _optyPool, address _liquidityPoolAddressProvider, address _outputToken) public view returns(bytes[] memory _codes) {
+
+    function getRepayAndWithdrawAllCodes(
+        address _optyPool,
+        address[] memory _underlyingTokens,
+        address _liquidityPoolAddressProvider,
+        address _outputToken
+    ) public view override returns (bytes[] memory _codes) {
         address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        uint _amount = IERC20(_outputToken).balanceOf(_optyPool);
-        _codes = new bytes[](3);
-        _codes[0] = abi.encode(_outputToken, abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, uint256(0)));
-        _codes[1] = abi.encode(_outputToken, abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _amount));
-        _codes[2] = abi.encode(_lendingPool, abi.encodeWithSignature("repay(address, address, address)",_outputToken, _amount, address(uint160(_optyPool))));
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider);
+        uint256 _credit = IERC20(_outputToken).balanceOf(_optyPool);
+        uint256 _lockedAmount = _credit.mul(1e18).div(_debt(_optyPool, _liquidityPoolAddressProvider, _outputToken));
+        uint256 _safeWithdrawAmount = _liquidityPoolTokenBalance.mul(_lockedAmount).div(1e18);
+        if (_safeWithdrawAmount <= _liquidityPoolTokenBalance) {
+            uint256 _diff = _liquidityPoolTokenBalance.sub(_safeWithdrawAmount);
+            _liquidityPoolTokenBalance = _liquidityPoolTokenBalance.sub(_diff.mul(healthFactor)); // technically 150%, not 200%, but adding buffer
+        }
+        uint256 _outputTokenRepayable =
+            _over(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider, _outputToken, _liquidityPoolTokenBalance);
+        if (_outputTokenRepayable > 0) {
+            if (_outputTokenRepayable > _credit) {
+                _outputTokenRepayable = _credit;
+            }
+            if (_outputTokenRepayable > 0) {
+                _codes = new bytes[](4);
+                _codes[0] = abi.encode(_outputToken, abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, uint256(0)));
+                _codes[1] = abi.encode(
+                    _outputToken,
+                    abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _outputTokenRepayable)
+                );
+                _codes[2] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature("repay(address,uint256,address)", _outputToken, _outputTokenRepayable, address(uint160(_optyPool)))
+                );
+                _codes[3] = abi.encode(
+                    getLiquidityPoolToken(_underlyingTokens[0], _liquidityPoolAddressProvider),
+                    abi.encodeWithSignature("redeem(uint256)", _liquidityPoolTokenBalance)
+                );
+            }
+        }
     }
 
     function getWithdrawSomeCodes(
@@ -97,7 +142,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPoolAddressProvider,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
-        if(_amount > 0) {
+        if (_amount > 0) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
                 getLiquidityPoolToken(_underlyingTokens[0], _liquidityPoolAddressProvider),
@@ -288,7 +333,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     function _getLendingPoolCore(address _lendingPoolAddressProvider) internal view returns (address) {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPoolCore();
     }
-    
+
     function _getPriceOracle(address _lendingPoolAddressProvider) internal view returns (address) {
         return ILendingPoolAddressesProvider(_lendingPoolAddressProvider).getPriceOracle();
     }
@@ -305,16 +350,23 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
             _depositAmount = _limit;
         }
     }
-    
-    function _maxSafeETH(address _optyPool, address _liquidityPoolAddressProvider) public view returns (uint256 maxBorrowsETH, uint256 totalBorrowsETH, uint256 availableBorrowsETH) {
+
+    function _maxSafeETH(address _optyPool, address _liquidityPoolAddressProvider)
+        public
+        view
+        returns (
+            uint256 maxBorrowsETH,
+            uint256 totalBorrowsETH,
+            uint256 availableBorrowsETH
+        )
+    {
         UserAccountData memory _userAccountData = IAave(_getLendingPool(_liquidityPoolAddressProvider)).getUserAccountData(_optyPool);
         uint256 _totalBorrowsETH = _userAccountData.totalBorrowsETH;
         uint256 _availableBorrowsETH = _userAccountData.availableBorrowsETH;
         uint256 _maxBorrowETH = (_totalBorrowsETH.add(_availableBorrowsETH));
         return (_maxBorrowETH.div(healthFactor), _totalBorrowsETH, _availableBorrowsETH);
     }
-    
-    
+
     function _availableToBorrowETH(address _optyPool, address _liquidityPoolAddressProvider) public view returns (uint256) {
         (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, uint256 _availableBorrowsETH) = _maxSafeETH(_optyPool, _liquidityPoolAddressProvider);
         _maxSafeETH_ = _maxSafeETH_.mul(95).div(100); // 5% buffer so we don't go into a earn/rebalance loop
@@ -324,35 +376,54 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
             return 0;
         }
     }
-    
+
     function _getReservePrice(address _liquidityPoolAddressProvider, address _token) public view returns (uint256) {
         return _getReservePriceETH(_liquidityPoolAddressProvider, _token);
     }
-    
+
     function _getReservePriceETH(address _liquidityPoolAddressProvider, address _token) public view returns (uint256) {
         return IPriceOracle(_getPriceOracle(_liquidityPoolAddressProvider)).getAssetPrice(_token);
     }
-    
-    function _availableToBorrowReserve(address _optyPool, address _liquidityPoolAddressProvider, address _outputToken) public view returns (uint256) {
+
+    function _availableToBorrowReserve(
+        address _optyPool,
+        address _liquidityPoolAddressProvider,
+        address _outputToken
+    ) public view returns (uint256) {
         uint256 _available = _availableToBorrowETH(_optyPool, _liquidityPoolAddressProvider);
         if (_available > 0) {
-            return _available.mul(uint256(10)**ERC20Detailed(_outputToken).decimals()).div(_getReservePrice(_liquidityPoolAddressProvider, _outputToken));
+            return
+                _available.mul(uint256(10)**ERC20Detailed(_outputToken).decimals()).div(
+                    _getReservePrice(_liquidityPoolAddressProvider, _outputToken)
+                );
         } else {
             return 0;
         }
     }
-    
+
     function _getUnderlyingPrice(address _liquidityPoolAddressProvider, address _underlyingToken) public view returns (uint256) {
         return _getReservePriceETH(_liquidityPoolAddressProvider, _underlyingToken);
     }
-    
-    function _getUnderlyingPriceETH(address _underlyingToken, address _liquidityPoolAddressProvider, uint256 _amount) public view returns (uint256) {
+
+    function _getUnderlyingPriceETH(
+        address _underlyingToken,
+        address _liquidityPoolAddressProvider,
+        uint256 _amount
+    ) public view returns (uint256) {
         address _liquidityPoolToken = getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProvider);
-        _amount = _amount.mul(_getUnderlyingPrice(_liquidityPoolAddressProvider,_underlyingToken)).div(uint256(10)**ERC20Detailed(address(_liquidityPoolToken)).decimals()); // Calculate the amount we are withdrawing in ETH
+        _amount = _amount.mul(_getUnderlyingPrice(_liquidityPoolAddressProvider, _underlyingToken)).div(
+            uint256(10)**ERC20Detailed(address(_liquidityPoolToken)).decimals()
+        ); // Calculate the amount we are withdrawing in ETH
         return _amount.mul(ltv).div(max).div(healthFactor);
     }
-    
-    function _over(address _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider, address _outputToken, uint256 _amount) public view returns (uint256) {
+
+    function _over(
+        address _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProvider,
+        address _outputToken,
+        uint256 _amount
+    ) public view returns (uint256) {
         uint256 _eth = _getUnderlyingPriceETH(_underlyingToken, _liquidityPoolAddressProvider, _amount);
         (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, ) = _maxSafeETH(_optyPool, _liquidityPoolAddressProvider);
         _maxSafeETH_ = _maxSafeETH_.mul(105).div(100); // 5% buffer so we don't go into a earn/rebalance loop
@@ -363,10 +434,28 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         }
         if (_maxSafeETH_ < _totalBorrowsETH) {
             uint256 _over_ = _totalBorrowsETH.mul(_totalBorrowsETH.sub(_maxSafeETH_)).div(_totalBorrowsETH);
-            _over_ = _over_.mul(uint256(10)**ERC20Detailed(_outputToken).decimals()).div(_getReservePrice(_liquidityPoolAddressProvider, _outputToken));
+            _over_ = _over_.mul(uint256(10)**ERC20Detailed(_outputToken).decimals()).div(
+                _getReservePrice(_liquidityPoolAddressProvider, _outputToken)
+            );
             return _over_;
         } else {
             return 0;
         }
+    }
+
+    function _debt(
+        address _optyPool,
+        address _liquidityPoolAddressProvider,
+        address _outputToken
+    ) public view returns (uint256) {
+        return IAave(_getLendingPool(_liquidityPoolAddressProvider)).getUserReserveData(_outputToken, _optyPool).currentBorrowBalance;
+    }
+
+    function _getUserReserveData(
+        address _lendingPool,
+        address _underlyingToken,
+        address _optyPool
+    ) public view returns (UserReserveData memory) {
+        return IAave(_lendingPool).getUserReserveData(_underlyingToken, _optyPool);
     }
 }
