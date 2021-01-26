@@ -194,7 +194,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     * @param _amounts Quantity of _underlyingToken to deposit
     */
     function getDepositSomeCodes(
-        address,
+        address payable,
         address[] memory,
         address _liquidityPool,
         uint256[] memory _amounts
@@ -212,7 +212,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -225,6 +225,24 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
         return getDepositSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _amounts);
     }
 
+    function getBorrowAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getRepayAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
     /**
      * @dev Swaps _amount of _liquidityPoolToken for _underlyingToken
      *
@@ -232,7 +250,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
      * @param _amount Quantity of _liquidityPoolToken to swap for _underlyingToken
      */
     function getWithdrawSomeCodes(
-        address,
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _amount
@@ -250,7 +268,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -273,7 +291,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
      *      the user's balance in _liquidityPoolToken
      */
     function getAllAmountInToken(
-        address _holder,
+        address payable _holder,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -282,7 +300,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getLiquidityPoolTokenBalance(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -328,7 +346,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function calculateRedeemableLPTokenAmount(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -340,7 +358,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficient(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -356,14 +374,14 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
         return address(0);
     }
 
-    function getUnclaimedRewardTokenAmount(address, address _liquidityPool) public view override returns (uint256) {
+    function getUnclaimedRewardTokenAmount(address payable, address _liquidityPool) public view override returns (uint256) {
         if (liquidityPoolToGauges[_liquidityPool] != address(0)) {
             // TODO : get the amount of unclaimed CRV tokens
         }
         return uint256(0);
     }
 
-    function getClaimRewardTokenCode(address, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+    function getClaimRewardTokenCode(address payable, address _liquidityPool) public view override returns (bytes[] memory _codes) {
         if (liquidityPoolToGauges[_liquidityPool] != address(0)) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
@@ -374,7 +392,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getHarvestSomeCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _rewardTokenAmount
@@ -383,7 +401,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getHarvestAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -399,7 +417,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getStakeSomeCodes(address _liquidityPool, uint256 _stakeAmount) public view override returns (bytes[] memory _codes) {
-        if(_stakeAmount > 0) {
+        if (_stakeAmount > 0) {
             address _gauge = liquidityPoolToGauges[_liquidityPool];
             address _liquidityPoolToken = getLiquidityPoolToken(address(0), _liquidityPool);
             _codes = new bytes[](3);
@@ -410,7 +428,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getStakeAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -419,14 +437,14 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeSomeCodes(address _liquidityPool, uint256 _unstakeAmount) public view override returns (bytes[] memory _codes) {
-        if(_unstakeAmount > 0) {
+        if (_unstakeAmount > 0) {
             address _gauge = liquidityPoolToGauges[_liquidityPool];
             _codes = new bytes[](1);
             _codes[0] = abi.encode(_gauge, abi.encodeWithSignature("withdraw(uint256)", _unstakeAmount));
         }
     }
 
-    function getUnstakeAllCodes(address _optyPool, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+    function getUnstakeAllCodes(address payable _optyPool, address _liquidityPool) public view override returns (bytes[] memory _codes) {
         uint256 _unstakeAmount = getLiquidityPoolTokenBalanceStake(_optyPool, _liquidityPool);
         return getUnstakeSomeCodes(_liquidityPool, _unstakeAmount);
     }
@@ -438,7 +456,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
      *      the user's balance in _liquidityPoolToken in staking pool(gauge)
      */
     function getAllAmountInTokenStake(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -465,12 +483,12 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
         return _b;
     }
 
-    function getLiquidityPoolTokenBalanceStake(address _optyPool, address _liquidityPool) public view override returns (uint256) {
+    function getLiquidityPoolTokenBalanceStake(address payable _optyPool, address _liquidityPool) public view override returns (uint256) {
         return ICurveGauge(liquidityPoolToGauges[_liquidityPool]).balanceOf(_optyPool);
     }
 
     function calculateRedeemableLPTokenAmountStake(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -482,7 +500,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficientStake(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -492,12 +510,12 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawSomeCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (bytes[] memory _codes) {
-        if(_redeemAmount > 0) {
+        if (_redeemAmount > 0) {
             _codes = new bytes[](4);
             _codes[0] = getUnstakeSomeCodes(_liquidityPool, _redeemAmount)[0];
             bytes[] memory _withdrawCodes = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _redeemAmount);
@@ -508,7 +526,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -695,7 +713,7 @@ contract CurvePoolCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPool,
         uint256 _amount
     ) internal view returns (bytes[] memory _codes) {
-        if(_amount > 0) {
+        if (_amount > 0) {
             address[] memory _underlyingTokens = _getUnderlyingTokens(_liquidityPool);
             int128 i = 0;
             for (uint8 j = 0; j < _underlyingTokens.length; j++) {

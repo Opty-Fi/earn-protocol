@@ -23,12 +23,12 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositSomeCodes(
-        address,
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
-        if(_amounts[0] > 0) {
+        if (_amounts[0] > 0) {
             uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
             _codes = new bytes[](3);
             _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
@@ -38,7 +38,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -47,20 +47,38 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
         return getDepositSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _amounts);
     }
 
-    function getWithdrawSomeCodes(
+    function getBorrowAllCodes(
+        address payable,
+        address[] memory,
         address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getRepayAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getWithdrawSomeCodes(
+        address payable,
         address[] memory,
         address _liquidityPool,
         uint256 _shares
     ) public view override returns (bytes[] memory _codes) {
-        if(_shares > 0) {
+        if (_shares > 0) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(_liquidityPool, abi.encodeWithSignature("withdraw(uint256)", _shares));
         }
     }
 
     function getWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -78,7 +96,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getAllAmountInToken(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -86,7 +104,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getLiquidityPoolTokenBalance(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -115,7 +133,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function calculateRedeemableLPTokenAmount(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -127,7 +145,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficient(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -140,16 +158,16 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
         return address(0);
     }
 
-    function getUnclaimedRewardTokenAmount(address, address) public view override returns (uint256) {
+    function getUnclaimedRewardTokenAmount(address payable, address) public view override returns (uint256) {
         revert("!empty");
     }
 
-    function getClaimRewardTokenCode(address, address) public view override returns (bytes[] memory) {
+    function getClaimRewardTokenCode(address payable, address) public view override returns (bytes[] memory) {
         revert("!empty");
     }
 
     function getHarvestSomeCodes(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -158,7 +176,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getHarvestAllCodes(
-        address,
+        address payable,
         address,
         address
     ) public view override returns (bytes[] memory) {
@@ -174,7 +192,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getStakeAllCodes(
-        address,
+        address payable,
         address[] memory,
         address
     ) public view override returns (bytes[] memory) {
@@ -185,24 +203,24 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
         revert("!empty");
     }
 
-    function getUnstakeAllCodes(address, address) public view override returns (bytes[] memory) {
+    function getUnstakeAllCodes(address payable, address) public view override returns (bytes[] memory) {
         revert("!empty");
     }
 
     function getAllAmountInTokenStake(
-        address,
+        address payable,
         address,
         address
     ) public view override returns (uint256) {
         revert("!empty");
     }
 
-    function getLiquidityPoolTokenBalanceStake(address, address) public view override returns (uint256) {
+    function getLiquidityPoolTokenBalanceStake(address payable, address) public view override returns (uint256) {
         revert("!empty");
     }
 
     function calculateRedeemableLPTokenAmountStake(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -211,7 +229,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficientStake(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -220,7 +238,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawSomeCodes(
-        address,
+        address payable,
         address[] memory,
         address,
         uint256
@@ -229,7 +247,7 @@ contract YVaultCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawAllCodes(
-        address,
+        address payable,
         address[] memory,
         address
     ) public view override returns (bytes[] memory) {

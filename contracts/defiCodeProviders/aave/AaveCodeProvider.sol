@@ -31,7 +31,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositSomeCodes(
-        address,
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProvider,
         uint256[] memory _amounts
@@ -51,7 +51,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProvider
     ) public view override returns (bytes[] memory _codes) {
@@ -61,7 +61,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getBorrowAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProvider,
         address _outputToken
@@ -94,31 +94,6 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
             revert("!borrow");
         }
     }
-    
-    function _debt(
-        address _optyPool,
-        address _lendingPool,
-        address _outputToken
-    ) public view returns (uint256) {
-        return IAave(_lendingPool).getUserReserveData(_outputToken, _optyPool).currentBorrowBalance;
-    }
-    
-    // % of tokens locked and cannot be withdrawn per user
-    // this is impermanent locked, unless the debt out accrues the strategy
-    function _locked(address _optyPool, address _lendingPool, address _borrowToken, uint _borrowAmount) public view returns (uint) {
-        return _borrowAmount.mul(1e18).div(_debt(_optyPool,_lendingPool,_borrowToken));
-    }
-    
-    // Calculates in impermanent lock due to debt
-    function _maxWithdrawal(address _optyPool, address _lendingPool, uint _aTokenAmount,address _borrowToken, uint _borrowAmount) public view returns (uint) {
-        uint _safeWithdraw = _aTokenAmount.mul(_locked(_optyPool, _lendingPool,_borrowToken,_borrowAmount)).div(1e18);
-        if (_safeWithdraw > _aTokenAmount) {
-            return _aTokenAmount;
-        } else {
-            uint _diff = _aTokenAmount.sub(_safeWithdraw);
-            return _aTokenAmount.sub(_diff.mul(healthFactor)); // technically 150%, not 200%, but adding buffer
-        }
-    }
 
     function getRepayAndWithdrawAllCodes(
         address payable _optyPool,
@@ -129,15 +104,14 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider);
-        
+
         // // borrow token amount
         uint256 _borrowAmount = IERC20(_outputToken).balanceOf(_optyPool);
 
         uint256 _aTokenAmount = _maxWithdrawal(_optyPool, _lendingPool, _liquidityPoolTokenBalance, _outputToken, _borrowAmount);
-        
-        uint256 _outputTokenRepayable =
-            _over(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider, _outputToken, _aTokenAmount);
-        
+
+        uint256 _outputTokenRepayable = _over(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider, _outputToken, _aTokenAmount);
+
         if (_outputTokenRepayable > 0) {
             if (_outputTokenRepayable > _borrowAmount) {
                 _outputTokenRepayable = _borrowAmount;
@@ -145,10 +119,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
             if (_outputTokenRepayable > 0) {
                 _codes = new bytes[](4);
                 _codes[0] = abi.encode(_outputToken, abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, uint256(0)));
-                _codes[1] = abi.encode(
-                    _outputToken,
-                    abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _borrowAmount)
-                );
+                _codes[1] = abi.encode(_outputToken, abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _borrowAmount));
                 _codes[2] = abi.encode(
                     _lendingPool,
                     abi.encodeWithSignature("repay(address,uint256,address)", _outputToken, _borrowAmount, _optyPool)
@@ -162,7 +133,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getWithdrawSomeCodes(
-        address,
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProvider,
         uint256 _amount
@@ -177,7 +148,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProvider
     ) public view override returns (bytes[] memory _codes) {
@@ -197,7 +168,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getAllAmountInToken(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPoolAddressProvider
     ) public view override returns (uint256) {
@@ -205,7 +176,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getLiquidityPoolTokenBalance(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPoolAddressProvider
     ) public view override returns (uint256) {
@@ -229,7 +200,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function calculateRedeemableLPTokenAmount(
-        address,
+        address payable,
         address,
         address,
         uint256 _redeemAmount
@@ -238,7 +209,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficient(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -251,16 +222,16 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         return address(0);
     }
 
-    function getUnclaimedRewardTokenAmount(address, address) public view override returns (uint256) {
+    function getUnclaimedRewardTokenAmount(address payable, address) public view override returns (uint256) {
         revert("!empty");
     }
 
-    function getClaimRewardTokenCode(address, address) public view override returns (bytes[] memory) {
+    function getClaimRewardTokenCode(address payable, address) public view override returns (bytes[] memory) {
         revert("!empty");
     }
 
     function getHarvestSomeCodes(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -269,7 +240,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getHarvestAllCodes(
-        address,
+        address payable,
         address,
         address
     ) public view override returns (bytes[] memory) {
@@ -285,7 +256,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getStakeAllCodes(
-        address,
+        address payable,
         address[] memory,
         address
     ) public view override returns (bytes[] memory) {
@@ -296,24 +267,24 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         revert("!empty");
     }
 
-    function getUnstakeAllCodes(address, address) public view override returns (bytes[] memory) {
+    function getUnstakeAllCodes(address payable, address) public view override returns (bytes[] memory) {
         revert("!empty");
     }
 
     function getAllAmountInTokenStake(
-        address,
+        address payable,
         address,
         address
     ) public view override returns (uint256) {
         revert("!empty");
     }
 
-    function getLiquidityPoolTokenBalanceStake(address, address) public view override returns (uint256) {
+    function getLiquidityPoolTokenBalanceStake(address payable, address) public view override returns (uint256) {
         revert("!empty");
     }
 
     function calculateRedeemableLPTokenAmountStake(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -322,7 +293,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficientStake(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -331,7 +302,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawSomeCodes(
-        address,
+        address payable,
         address[] memory,
         address,
         uint256
@@ -340,7 +311,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawAllCodes(
-        address,
+        address payable,
         address[] memory,
         address
     ) public view override returns (bytes[] memory) {
@@ -377,7 +348,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
     }
 
     function _maxSafeETH(address _optyPool, address _liquidityPoolAddressProvider)
-        public
+        internal
         view
         returns (
             uint256 maxBorrowsETH,
@@ -392,7 +363,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         return (_maxBorrowETH.div(healthFactor), _totalBorrowsETH, _availableBorrowsETH);
     }
 
-    function _availableToBorrowETH(address _optyPool, address _liquidityPoolAddressProvider) public view returns (uint256) {
+    function _availableToBorrowETH(address _optyPool, address _liquidityPoolAddressProvider) internal view returns (uint256) {
         (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, uint256 _availableBorrowsETH) = _maxSafeETH(_optyPool, _liquidityPoolAddressProvider);
         _maxSafeETH_ = _maxSafeETH_.mul(95).div(100); // 5% buffer so we don't go into a earn/rebalance loop
         if (_maxSafeETH_ > _totalBorrowsETH) {
@@ -402,11 +373,11 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         }
     }
 
-    function _getReservePrice(address _liquidityPoolAddressProvider, address _token) public view returns (uint256) {
+    function _getReservePrice(address _liquidityPoolAddressProvider, address _token) internal view returns (uint256) {
         return _getReservePriceETH(_liquidityPoolAddressProvider, _token);
     }
 
-    function _getReservePriceETH(address _liquidityPoolAddressProvider, address _token) public view returns (uint256) {
+    function _getReservePriceETH(address _liquidityPoolAddressProvider, address _token) internal view returns (uint256) {
         return IPriceOracle(_getPriceOracle(_liquidityPoolAddressProvider)).getAssetPrice(_token);
     }
 
@@ -414,7 +385,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _optyPool,
         address _liquidityPoolAddressProvider,
         address _outputToken
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         uint256 _available = _availableToBorrowETH(_optyPool, _liquidityPoolAddressProvider);
         if (_available > 0) {
             return
@@ -426,7 +397,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         }
     }
 
-    function _getUnderlyingPrice(address _liquidityPoolAddressProvider, address _underlyingToken) public view returns (uint256) {
+    function _getUnderlyingPrice(address _liquidityPoolAddressProvider, address _underlyingToken) internal view returns (uint256) {
         return _getReservePriceETH(_liquidityPoolAddressProvider, _underlyingToken);
     }
 
@@ -434,7 +405,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _underlyingToken,
         address _liquidityPoolAddressProvider,
         uint256 _amount
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         address _liquidityPoolToken = getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProvider);
         _amount = _amount.mul(_getUnderlyingPrice(_liquidityPoolAddressProvider, _underlyingToken)).div(
             uint256(10)**ERC20Detailed(address(_liquidityPoolToken)).decimals()
@@ -448,7 +419,7 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _liquidityPoolAddressProvider,
         address _outputToken,
         uint256 _amount
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         uint256 _eth = _getUnderlyingPriceETH(_underlyingToken, _liquidityPoolAddressProvider, _amount);
         (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, ) = _maxSafeETH(_optyPool, _liquidityPoolAddressProvider);
         _maxSafeETH_ = _maxSafeETH_.mul(105).div(100); // 5% buffer so we don't go into a earn/rebalance loop
@@ -472,7 +443,43 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _lendingPool,
         address _underlyingToken,
         address _optyPool
-    ) public view returns (UserReserveData memory) {
+    ) internal view returns (UserReserveData memory) {
         return IAave(_lendingPool).getUserReserveData(_underlyingToken, _optyPool);
+    }
+
+    function _debt(
+        address _optyPool,
+        address _lendingPool,
+        address _outputToken
+    ) public view returns (uint256) {
+        return IAave(_lendingPool).getUserReserveData(_outputToken, _optyPool).currentBorrowBalance;
+    }
+
+    // % of tokens locked and cannot be withdrawn per user
+    // this is impermanent locked, unless the debt out accrues the strategy
+    function _locked(
+        address _optyPool,
+        address _lendingPool,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) internal view returns (uint256) {
+        return _borrowAmount.mul(1e18).div(_debt(_optyPool, _lendingPool, _borrowToken));
+    }
+
+    // Calculates in impermanent lock due to debt
+    function _maxWithdrawal(
+        address _optyPool,
+        address _lendingPool,
+        uint256 _aTokenAmount,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) internal view returns (uint256) {
+        uint256 _safeWithdraw = _aTokenAmount.mul(_locked(_optyPool, _lendingPool, _borrowToken, _borrowAmount)).div(1e18);
+        if (_safeWithdraw > _aTokenAmount) {
+            return _aTokenAmount;
+        } else {
+            uint256 _diff = _aTokenAmount.sub(_safeWithdraw);
+            return _aTokenAmount.sub(_diff.mul(healthFactor)); // technically 150%, not 200%, but adding buffer
+        }
     }
 }

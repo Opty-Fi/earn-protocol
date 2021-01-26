@@ -32,12 +32,12 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositSomeCodes(
-        address,
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
-        if(_amounts[0] > 0) {
+        if (_amounts[0] > 0) {
             uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
             if (_underlyingTokens[0] == HBTC) {
                 _codes = new bytes[](2);
@@ -46,14 +46,17 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
             } else {
                 _codes = new bytes[](3);
                 _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-                _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+                _codes[1] = abi.encode(
+                    _underlyingTokens[0],
+                    abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount)
+                );
                 _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
             }
         }
     }
 
     function getDepositAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -62,20 +65,41 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         return getDepositSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _amounts);
     }
 
-    function getWithdrawSomeCodes(
+    function getBorrowAllCodes(
+        address payable,
+        address[] memory,
         address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getRepayAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getWithdrawSomeCodes(
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
-        if(_amount > 0) {
+        if (_amount > 0) {
             _codes = new bytes[](1);
-            _codes[0] = abi.encode(getLiquidityPoolToken(_underlyingTokens[0], _liquidityPool), abi.encodeWithSignature("redeem(uint256)", _amount));
+            _codes[0] = abi.encode(
+                getLiquidityPoolToken(_underlyingTokens[0], _liquidityPool),
+                abi.encodeWithSignature("redeem(uint256)", _amount)
+            );
         }
     }
 
     function getWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -93,7 +117,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getAllAmountInToken(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -108,7 +132,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getLiquidityPoolTokenBalance(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -135,7 +159,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function calculateRedeemableLPTokenAmount(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -147,7 +171,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficient(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -160,17 +184,17 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         return rewardToken;
     }
 
-    function getUnclaimedRewardTokenAmount(address _optyPool, address) public view override returns (uint256) {
+    function getUnclaimedRewardTokenAmount(address payable _optyPool, address) public view override returns (uint256) {
         return ICream(comptroller).compAccrued(_optyPool);
     }
 
-    function getClaimRewardTokenCode(address _optyPool, address) public view override returns (bytes[] memory _codes) {
+    function getClaimRewardTokenCode(address payable _optyPool, address) public view override returns (bytes[] memory _codes) {
         _codes = new bytes[](1);
         _codes[0] = abi.encode(comptroller, abi.encodeWithSignature("claimComp(address)", _optyPool));
     }
 
     function getHarvestSomeCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _rewardTokenAmount
@@ -179,7 +203,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getHarvestAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -196,7 +220,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getStakeAllCodes(
-        address,
+        address payable,
         address[] memory,
         address
     ) public view override returns (bytes[] memory) {
@@ -207,24 +231,24 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
         revert("!empty");
     }
 
-    function getUnstakeAllCodes(address, address) public view override returns (bytes[] memory) {
+    function getUnstakeAllCodes(address payable, address) public view override returns (bytes[] memory) {
         revert("!empty");
     }
 
     function getAllAmountInTokenStake(
-        address,
+        address payable,
         address,
         address
     ) public view override returns (uint256) {
         revert("!empty");
     }
 
-    function getLiquidityPoolTokenBalanceStake(address, address) public view override returns (uint256) {
+    function getLiquidityPoolTokenBalanceStake(address payable, address) public view override returns (uint256) {
         revert("!empty");
     }
 
     function calculateRedeemableLPTokenAmountStake(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -233,7 +257,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficientStake(
-        address,
+        address payable,
         address,
         address,
         uint256
@@ -242,7 +266,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawSomeCodes(
-        address,
+        address payable,
         address[] memory,
         address,
         uint256
@@ -251,7 +275,7 @@ contract CreamCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawAllCodes(
-        address,
+        address payable,
         address[] memory,
         address
     ) public view override returns (bytes[] memory) {

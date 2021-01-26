@@ -18,7 +18,6 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     address public rewardToken;
     uint256 public maxExposure; // basis points
 
-
     // deposit pool
     address public constant TBTC_SBTC_CRV_DEPOSIT_POOL = address(0x640704D106E79e105FDA424f05467F005418F1B5);
     address public constant THREE_CRV_DEPOSIT_POOL = address(0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5);
@@ -68,22 +67,22 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         setLiquidityPoolToStakingPool(F_CDAI_CUSDC_DEPOSIT_POOL, F_CDAI_CUSDC_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_USDN_THREE_CRV_DEPOSIT_POOL, F_USDN_THREE_CRV_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_YDAI_YUSDC_YUSDT_YBUSD_DEPOSIT_POOL, F_YDAI_YUSDC_YUSDT_YBUSD_STAKE_POOL);
-        
-        setMaxExposure(uint(5000)); // 50%
+
+        setMaxExposure(uint256(5000)); // 50%
     }
-    
-    function getPoolValue(address _liquidityPool, address) public view override returns(uint) {
+
+    function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
         return IHarvestDeposit(_liquidityPool).underlyingBalanceWithInvestment();
     }
 
     function getDepositSomeCodes(
-        address,
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256[] memory _amounts
     ) public view override returns (bytes[] memory _codes) {
         if (_amounts[0] > 0) {
-            uint _depositAmount = _getDepositAmount(_liquidityPool,_amounts[0]);
+            uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
             _codes = new bytes[](3);
             _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
             _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
@@ -92,7 +91,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getDepositAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -101,13 +100,31 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         return getDepositSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _amounts);
     }
 
-    function getWithdrawSomeCodes(
+    function getBorrowAllCodes(
+        address payable,
+        address[] memory,
         address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getRepayAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) public view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getWithdrawSomeCodes(
+        address payable,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _shares
     ) public view override returns (bytes[] memory _codes) {
-        if(_shares > 0) {
+        if (_shares > 0) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
                 getLiquidityPoolToken(_underlyingTokens[0], _liquidityPool),
@@ -117,7 +134,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -135,7 +152,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getAllAmountInToken(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -143,7 +160,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getLiquidityPoolTokenBalance(
-        address _optyPool,
+        address payable _optyPool,
         address,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -172,7 +189,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function calculateRedeemableLPTokenAmount(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -184,7 +201,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficient(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -197,18 +214,18 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         return rewardToken;
     }
 
-    function getUnclaimedRewardTokenAmount(address _optyPool, address _liquidityPool) public view override returns (uint256) {
+    function getUnclaimedRewardTokenAmount(address payable _optyPool, address _liquidityPool) public view override returns (uint256) {
         return IHarvestFarm(liquidityPoolToStakingPool[_liquidityPool]).earned(_optyPool);
     }
 
-    function getClaimRewardTokenCode(address, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+    function getClaimRewardTokenCode(address payable, address _liquidityPool) public view override returns (bytes[] memory _codes) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool, abi.encodeWithSignature("getReward()"));
     }
 
     function getHarvestSomeCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _rewardTokenAmount
@@ -217,7 +234,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getHarvestAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -241,7 +258,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getStakeAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -250,20 +267,20 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeSomeCodes(address _liquidityPool, uint256 _shares) public view override returns (bytes[] memory _codes) {
-        if(_shares > 0) {
+        if (_shares > 0) {
             address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
             _codes = new bytes[](1);
             _codes[0] = abi.encode(_stakingPool, abi.encodeWithSignature("withdraw(uint256)", _shares));
         }
     }
 
-    function getUnstakeAllCodes(address _optyPool, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+    function getUnstakeAllCodes(address payable _optyPool, address _liquidityPool) public view override returns (bytes[] memory _codes) {
         uint256 _redeemAmount = getLiquidityPoolTokenBalanceStake(_optyPool, _liquidityPool);
         return getUnstakeSomeCodes(_liquidityPool, _redeemAmount);
     }
 
     function getAllAmountInTokenStake(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
@@ -279,13 +296,13 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         return b;
     }
 
-    function getLiquidityPoolTokenBalanceStake(address _optyPool, address _liquidityPool) public view override returns (uint256) {
+    function getLiquidityPoolTokenBalanceStake(address payable _optyPool, address _liquidityPool) public view override returns (uint256) {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         return IHarvestFarm(_stakingPool).balanceOf(_optyPool);
     }
 
     function calculateRedeemableLPTokenAmountStake(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -298,7 +315,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function isRedeemableAmountSufficientStake(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -308,12 +325,12 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawSomeCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (bytes[] memory _codes) {
-        if(_redeemAmount > 0) {
+        if (_redeemAmount > 0) {
             _codes = new bytes[](2);
             _codes[0] = getUnstakeSomeCodes(_liquidityPool, _redeemAmount)[0];
             _codes[1] = getWithdrawSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _redeemAmount)[0];
@@ -321,7 +338,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     }
 
     function getUnstakeAndWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
@@ -345,16 +362,16 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
     function setRewardToken(address _rewardToken) public onlyOperator {
         rewardToken = _rewardToken;
     }
-    
-    function setMaxExposure(uint _maxExposure) public onlyOperator {
+
+    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
     }
-    
-    function _getDepositAmount(address _liquidityPool, uint _amount) internal view returns(uint _depositAmount) {
+
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint _poolValue = getPoolValue(_liquidityPool, address(0));
-        uint _limit = (_poolValue.mul(maxExposure)).div(uint(10000));
-        if (_depositAmount >  _limit) {
+        uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }
