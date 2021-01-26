@@ -64,7 +64,7 @@ contract HarvestCodeProvider is ICodeProvider, Modifiers {
         setLiquidityPoolToStakingPool(F_CRV_REN_WBTC_DEPOSIT_POOL, F_CRV_RENBTC_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_WBTC_DEPOSIT_POOL, F_WBTC_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_RENBTC_DEPOSIT_POOL, F_RENBTC_STAKE_POOL);
-        setLiquidityPoolToStakingPool(F_WETH_DEPOSIT_POOL, F_WETH_DEPOSIT_POOL);
+        setLiquidityPoolToStakingPool(F_WETH_DEPOSIT_POOL, F_WETH_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_CDAI_CUSDC_DEPOSIT_POOL, F_CDAI_CUSDC_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_USDN_THREE_CRV_DEPOSIT_POOL, F_USDN_THREE_CRV_STAKE_POOL);
         setLiquidityPoolToStakingPool(F_YDAI_YUSDC_YUSDT_YBUSD_DEPOSIT_POOL, F_YDAI_YUSDC_YUSDT_YBUSD_STAKE_POOL);

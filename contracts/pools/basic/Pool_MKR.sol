@@ -92,6 +92,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function rebalance() public {
+        require(totalSupply() > 0,"!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
         bytes32 newStrategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);

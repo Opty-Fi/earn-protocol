@@ -34,14 +34,27 @@ contract Gatherer is Modifiers {
     
     function getHarvestCodes(address _optyPool, address _rewardToken, address _underlyingToken, uint _rewardTokenAmount) public view returns(bytes[] memory _codes) {
         if (_rewardTokenAmount > 0) {
-            address[] memory path = new address[](3);
-            path[0] = _rewardToken;
-            path[1] = WETH;
-            path[2] = _underlyingToken;
-            _codes = new bytes[](3);
-            _codes[0] = abi.encode(_rewardToken,abi.encodeWithSignature("approve(address,uint256)",router,uint(0)));
-            _codes[1] = abi.encode(_rewardToken,abi.encodeWithSignature("approve(address,uint256)",router,_rewardTokenAmount));
-            _codes[2] = abi.encode(router,abi.encodeWithSignature("swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",_rewardTokenAmount,uint(0),path,_optyPool,uint(-1)));
+            address[] memory _path;
+            uint256[] memory _amounts;
+            if (_underlyingToken == WETH) {
+                _path = new address[](2);
+                _path[0] = _rewardToken;
+                _path[1] = WETH;
+                _amounts = IUniswap(router).getAmountsOut(_rewardTokenAmount,_path);
+            } 
+            else {
+                _path = new address[](3);
+                _path[0] = _rewardToken;
+                _path[1] = WETH;
+                _path[2] = _underlyingToken;
+                _amounts = IUniswap(router).getAmountsOut(_rewardTokenAmount,_path);
+            }
+            if(_amounts[_path.length - 1] > 0) {
+                    _codes = new bytes[](3);
+                    _codes[0] = abi.encode(_rewardToken,abi.encodeWithSignature("approve(address,uint256)",router,uint(0)));
+                    _codes[1] = abi.encode(_rewardToken,abi.encodeWithSignature("approve(address,uint256)",router,_rewardTokenAmount));
+                    _codes[2] = abi.encode(router,abi.encodeWithSignature("swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",_rewardTokenAmount,uint(0),_path,_optyPool,uint(-1)));
+            }
         }
     }
 
