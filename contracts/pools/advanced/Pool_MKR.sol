@@ -13,7 +13,7 @@ import "./../../StrategyCodeProvider.sol";
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract AdvancedPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
+contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -38,8 +38,8 @@ contract AdvancedPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     )
         public
         ERC20Detailed(
-            string(abi.encodePacked("op ", ERC20Detailed(_underlyingToken).name(), " Advance Pool")),
-            string(abi.encodePacked("op", ERC20Detailed(_underlyingToken).symbol(), "AdvPool")),
+            string(abi.encodePacked("op ", "Maker", " advance", " pool")),
+            string(abi.encodePacked("op", "MKR", "AdvPool")),
             ERC20Detailed(_underlyingToken).decimals()
         )
         Modifiers(_registry)
@@ -80,9 +80,6 @@ contract AdvancedPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     function supplyAll() public onlyValidAddress {
         uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
-        address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = token;
-        strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
         uint256 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
         for (uint256 _i = 0; _i < _steps; _i++) {
             bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i);
@@ -111,6 +108,7 @@ contract AdvancedPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         strategyHash = newStrategyHash;
 
         if (balance() > 0) {
+            strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             supplyAll();
         }
     }
@@ -203,6 +201,9 @@ contract AdvancedPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance.sub(_amount)));
         }
         if (balance() > 0) {
+            address[] memory _underlyingTokens = new address[](1);
+            _underlyingTokens[0] = token;
+            strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             supplyAll();
         }
         _mint(msg.sender, shares);
@@ -238,6 +239,9 @@ contract AdvancedPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
         if (balance() > 0) {
+            address[] memory _underlyingTokens = new address[](1);
+            _underlyingTokens[0] = token;
+            strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             supplyAll();
         }
         return true;

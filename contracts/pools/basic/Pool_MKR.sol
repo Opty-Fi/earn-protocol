@@ -82,7 +82,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         require(_tokenBalance > 0, "!amount>0");
         uint256 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
         for (uint256 _i = 0; _i < _steps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(address(this), token, strategyHash, _i);
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i);
             for (uint256 _j = 0; _j < _codes.length; _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
@@ -92,7 +92,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function rebalance() public {
-        require(totalSupply() > 0,"!totalSupply()>0");
+        require(totalSupply() > 0, "!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
         bytes32 newStrategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
@@ -121,7 +121,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *    credit pool like compound is added.
      */
     function _calPoolValueInToken() internal view returns (uint256) {
-        uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(address(this), token, strategyHash);
+        uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(payable(address(this)), token, strategyHash);
         return balanceInToken.add(balance());
     }
 
@@ -140,7 +140,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         uint256 _steps = strategyCodeProviderContract.getWithdrawAllStepsCount(strategyHash);
         for (uint256 _i = 0; _i < _steps; _i++) {
             uint256 _iterator = _steps - 1 - _i;
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolWithdrawAllCodes(address(this), token, strategyHash, _iterator);
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolWithdrawAllCodes(payable(address(this)), token, strategyHash, _iterator);
             for (uint256 _j = 0; _j < _codes.length; _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool _success, ) = pool.call(data);
@@ -153,7 +153,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!invalidHash");
         uint256 _claimRewardSteps = strategyCodeProviderContract.getClaimRewardStepsCount(_hash);
         for (uint256 _i = 0; _i < _claimRewardSteps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolClaimAllRewardCodes(address(this), _hash, _i);
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolClaimAllRewardCodes(payable(address(this)), _hash, _i);
             for (uint256 _j = 0; _j < _codes.length; _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
@@ -162,7 +162,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
         uint256 _harvestSteps = strategyCodeProviderContract.getHarvestRewardStepsCount(_hash);
         for (uint256 _i = 0; _i < _harvestSteps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolHarvestAllRewardCodes(address(this), token, _hash, _i);
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolHarvestAllRewardCodes(payable(address(this)), token, _hash, _i);
             for (uint256 _j = 0; _j < _codes.length; _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);

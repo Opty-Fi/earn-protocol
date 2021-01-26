@@ -60,7 +60,7 @@ contract StrategyCodeProvider is Modifiers {
     }
 
     function getBalanceInToken(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         bytes32 _hash
     ) public view returns (uint256 _balance) {
@@ -94,7 +94,7 @@ contract StrategyCodeProvider is Modifiers {
     }
 
     function getPoolDepositAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         bytes32 _hash,
         uint256 _stepIndex
@@ -188,7 +188,7 @@ contract StrategyCodeProvider is Modifiers {
     }
 
     function getPoolClaimAllRewardCodes(
-        address _optyPool,
+        address payable _optyPool,
         bytes32 _hash,
         uint256
     ) public view returns (bytes[] memory _codes) {
@@ -199,7 +199,7 @@ contract StrategyCodeProvider is Modifiers {
     }
 
     function getPoolHarvestAllRewardCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         bytes32 _hash,
         uint256
