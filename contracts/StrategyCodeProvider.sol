@@ -155,7 +155,7 @@ contract StrategyCodeProvider is Modifiers {
     }
 
     function getPoolWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address _underlyingToken,
         bytes32 _hash,
         uint256 _stepIndex

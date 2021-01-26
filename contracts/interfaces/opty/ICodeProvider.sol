@@ -52,7 +52,7 @@ interface ICodeProvider {
      *
      * Returns a bytes value to be executed.
      */
-    function getRepayAndWithdrawAllCodes(address _optyPool, address[] memory _underlyingTokens, address _liquidityPoolAddressProvider, address _outputToken) external view returns(bytes[] memory);
+    function getRepayAndWithdrawAllCodes(address payable _optyPool, address[] memory _underlyingTokens, address _liquidityPoolAddressProvider, address _outputToken) external view returns(bytes[] memory);
 
     /**
      * @dev Redeem `amount` of `liquidityPoolToken` token and sends the `underlyingToken` to the caller`.

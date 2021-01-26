@@ -94,9 +94,34 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
             revert("!borrow");
         }
     }
+    
+    function _debt(
+        address _optyPool,
+        address _lendingPool,
+        address _outputToken
+    ) public view returns (uint256) {
+        return IAave(_lendingPool).getUserReserveData(_outputToken, _optyPool).currentBorrowBalance;
+    }
+    
+    // % of tokens locked and cannot be withdrawn per user
+    // this is impermanent locked, unless the debt out accrues the strategy
+    function _locked(address _optyPool, address _lendingPool, address _borrowToken, uint _borrowAmount) public view returns (uint) {
+        return _borrowAmount.mul(1e18).div(_debt(_optyPool,_lendingPool,_borrowToken));
+    }
+    
+    // Calculates in impermanent lock due to debt
+    function _maxWithdrawal(address _optyPool, address _lendingPool, uint _aTokenAmount,address _borrowToken, uint _borrowAmount) public view returns (uint) {
+        uint _safeWithdraw = _aTokenAmount.mul(_locked(_optyPool, _lendingPool,_borrowToken,_borrowAmount)).div(1e18);
+        if (_safeWithdraw > _aTokenAmount) {
+            return _aTokenAmount;
+        } else {
+            uint _diff = _aTokenAmount.sub(_safeWithdraw);
+            return _aTokenAmount.sub(_diff.mul(healthFactor)); // technically 150%, not 200%, but adding buffer
+        }
+    }
 
     function getRepayAndWithdrawAllCodes(
-        address _optyPool,
+        address payable _optyPool,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProvider,
         address _outputToken
@@ -104,33 +129,33 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider);
-        uint256 _credit = IERC20(_outputToken).balanceOf(_optyPool);
-        uint256 _lockedAmount = _credit.mul(1e18).div(_debt(_optyPool, _liquidityPoolAddressProvider, _outputToken));
-        uint256 _safeWithdrawAmount = _liquidityPoolTokenBalance.mul(_lockedAmount).div(1e18);
-        if (_safeWithdrawAmount <= _liquidityPoolTokenBalance) {
-            uint256 _diff = _liquidityPoolTokenBalance.sub(_safeWithdrawAmount);
-            _liquidityPoolTokenBalance = _liquidityPoolTokenBalance.sub(_diff.mul(healthFactor)); // technically 150%, not 200%, but adding buffer
-        }
+        
+        // // borrow token amount
+        uint256 _borrowAmount = IERC20(_outputToken).balanceOf(_optyPool);
+
+        uint256 _aTokenAmount = _maxWithdrawal(_optyPool, _lendingPool, _liquidityPoolTokenBalance, _outputToken, _borrowAmount);
+        
         uint256 _outputTokenRepayable =
-            _over(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider, _outputToken, _liquidityPoolTokenBalance);
+            _over(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProvider, _outputToken, _aTokenAmount);
+        
         if (_outputTokenRepayable > 0) {
-            if (_outputTokenRepayable > _credit) {
-                _outputTokenRepayable = _credit;
+            if (_outputTokenRepayable > _borrowAmount) {
+                _outputTokenRepayable = _borrowAmount;
             }
             if (_outputTokenRepayable > 0) {
                 _codes = new bytes[](4);
                 _codes[0] = abi.encode(_outputToken, abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, uint256(0)));
                 _codes[1] = abi.encode(
                     _outputToken,
-                    abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _outputTokenRepayable)
+                    abi.encodeWithSignature("approve(address,uint256)", _lendingPoolCore, _borrowAmount)
                 );
                 _codes[2] = abi.encode(
                     _lendingPool,
-                    abi.encodeWithSignature("repay(address,uint256,address)", _outputToken, _outputTokenRepayable, address(uint160(_optyPool)))
+                    abi.encodeWithSignature("repay(address,uint256,address)", _outputToken, _borrowAmount, _optyPool)
                 );
                 _codes[3] = abi.encode(
                     getLiquidityPoolToken(_underlyingTokens[0], _liquidityPoolAddressProvider),
-                    abi.encodeWithSignature("redeem(uint256)", _liquidityPoolTokenBalance)
+                    abi.encodeWithSignature("redeem(uint256)", _aTokenAmount)
                 );
             }
         }
@@ -441,14 +466,6 @@ contract AaveCodeProvider is ICodeProvider, Modifiers {
         } else {
             return 0;
         }
-    }
-
-    function _debt(
-        address _optyPool,
-        address _liquidityPoolAddressProvider,
-        address _outputToken
-    ) public view returns (uint256) {
-        return IAave(_getLendingPool(_liquidityPoolAddressProvider)).getUserReserveData(_outputToken, _optyPool).currentBorrowBalance;
     }
 
     function _getUserReserveData(
