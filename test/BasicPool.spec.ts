@@ -72,7 +72,7 @@ program
     .option(
         "-v, --runTimeversion <string>",
         "version of the gasUsed records stored",
-        "0.0.0"
+        "0.0.1"
     )
     .option(
         "-cp, --codeProvider <string>",
@@ -1343,8 +1343,6 @@ program
                                                     //  Also, it works if we are only testing this strategy alone.
                                                     if (
                                                         strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-cDAI+cUSDC+USDT" ||
-                                                        strategies.strategyName.toString() ==
                                                             "USDC-deposit-CURVE-cDAI+cUSDC" ||
                                                         strategies.strategyName.toString() ==
                                                             "USDC-deposit-DFORCE-dUSDC" ||
@@ -1357,15 +1355,28 @@ program
                                                         strategies.strategyName.toString() ==
                                                             "USDC-deposit-CURVE-crvPlain3andSUSD" ||
                                                         strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-3Crv"
+                                                            "USDC-deposit-CURVE-3Crv" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-CURVE-cDAI+cUSDC+USDT" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-CURVE-ypaxCrv" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-CURVE-crvPlain3andSUSD" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-CURVE-3Crv"
                                                     ) {
                                                         try {
                                                             console.log(
                                                                 "special if condition for usdc"
                                                             );
-                                                            //  Note: roundingDelta = 0,1,2 - It works for all these 3 values
-                                                            // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals); - also works
-                                                            let roundingDelta = 0;
+                                                            //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
+                                                            //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
+                                                            // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                            let roundingDelta = 1;
                                                             console.log(
                                                                 "Started waiting"
                                                             );
@@ -1386,22 +1397,56 @@ program
                                                         strategies.strategyName.toString() ==
                                                             "USDC-deposit-HARVEST-fUSDC" ||
                                                         strategies.strategyName.toString() ==
-                                                            "USDC-deposit-COMPOUND-cUSDC"
+                                                            "USDT-deposit-HARVEST-fUSDT"
                                                     ) {
                                                         //  Note: 1. For "USDC-deposit-HARVEST-fUSDC" and roundingDelta = 1, sleep should be minimum
                                                         //  105 sec. to make it work for the first time else it work when withdraw will happen 2nd time
                                                         //  2. "USDC-deposit-COMPOUND-cUSDC" doesn't work even after apply sleep of 2 min. Created Bug ticket OP-331
-                                                        //  for it
+                                                        //  for it - resolved and working (NO need of wait period for this strategy)
+                                                        //  3. "USDT-deposit-COMPOUND-cUSDT" - worked after OP-331 fix and "USDT-deposit-DFORCE-dUSDT" doesn't work even after apply sleep of 2 min.
                                                         try {
                                                             console.log(
                                                                 "special if condition for usdc harvest"
                                                             );
-                                                            // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals); - also works
+                                                            // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                             let roundingDelta = 0;
                                                             console.log(
                                                                 "Started waiting"
                                                             );
                                                             await sleep(120 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                            console.log("waiting over");
+                                                            // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
+                                                            await testUserWithdrawRebalance(
+                                                                initialUserOptyTokenBalanceWei,
+                                                                roundingDelta
+                                                            );
+                                                        } catch (error) {
+                                                            console.log(
+                                                                "Error occured: ",
+                                                                error.message
+                                                            );
+                                                        }
+                                                    } else if (
+                                                        strategies.strategyName.toString() ==
+                                                            "USDC-deposit-CURVE-cDAI+cUSDC+USDT" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "USDT-deposit-DFORCE-dUSDT"
+                                                    ) {
+                                                        try {
+                                                            //  Note: 1. USDT-deposit-DFORCE-dUSDT will work for all 0,2,3 roundingDelta w/o wait period
+                                                            //  2. USDT-deposit-DFORCE-dUSDT => For roundingDelta = 1, wait period is required
+                                                            //  3. USDT-deposit-DFORCE-dUSDT => Works for any other amounts apart from the  sept-2 w/o wait period
+                                                            //  4. USDC-deposit-CURVE-cDAI+cUSDC+USDT => works fine if run alone with 60 sec. wait period and works fine with
+                                                            //  180  sec or more wait period if tested altogether with other strategies for USDC.
+                                                            console.log(
+                                                                "special if condition for usdc and usdt curve and dforce"
+                                                            );
+                                                            // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                            let roundingDelta = 0;
+                                                            console.log(
+                                                                "Started waiting"
+                                                            );
+                                                            await sleep(180 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
                                                             console.log("waiting over");
                                                             // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                             await testUserWithdrawRebalance(

@@ -8868,12 +8868,12 @@
                 ]
             },
             {
-                "strategyName": "USDC-deposit-CURVE-cDAI+cUSDC",
+                "strategyName": "USDC-deposit-CURVE-cDAI+cUSDC+USDT",
                 "strategy": [
                     {
-                        "contract": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
-                        "outputTokenSymbol": "cDAI+cUSDC",
-                        "outputToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+                        "contract": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+                        "outputTokenSymbol": "cDAI+cUSDC+USDT",
+                        "outputToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
                         "isBorrow": false
                     }
                 ]
@@ -17750,17 +17750,6 @@
                 ]
             },
             {
-                "strategyName": "USDT-deposit-HARVEST-fUSDT",
-                "strategy": [
-                    {
-                        "contract": "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
-                        "outputTokenSymbol": "fUSDT",
-                        "outputToken": "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
-                        "isBorrow": false
-                    }
-                ]
-            },
-            {
                 "strategyName": "USDT-deposit-BZX-iUSDT",
                 "strategy": [
                     {
@@ -17838,6 +17827,17 @@
                 ]
             },
             {
+                "strategyName": "USDT-deposit-BZX-iUSDT",
+                "strategy": [
+                    {
+                        "contract": "0x7e9997a38A439b2be7ed9c9C4628391d3e055D48",
+                        "outputTokenSymbol": "iUSDT",
+                        "outputToken": "0x7e9997a38A439b2be7ed9c9C4628391d3e055D48",
+                        "isBorrow": false
+                    }
+                ]
+            },
+            {
                 "strategyName": "USDT-deposit-HARVEST-fUSDT",
                 "strategy": [
                     {
@@ -17849,12 +17849,12 @@
                 ]
             },
             {
-                "strategyName": "USDT-deposit-BZX-iUSDT",
+                "strategyName": "USDT-deposit-HARVEST-fUSDT",
                 "strategy": [
                     {
-                        "contract": "0x7e9997a38A439b2be7ed9c9C4628391d3e055D48",
-                        "outputTokenSymbol": "iUSDT",
-                        "outputToken": "0x7e9997a38A439b2be7ed9c9C4628391d3e055D48",
+                        "contract": "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
+                        "outputTokenSymbol": "fUSDT",
+                        "outputToken": "0x053c80eA73Dc6941F518a68E2FC52Ac45BDE7c9C",
                         "isBorrow": false
                     }
                 ]
