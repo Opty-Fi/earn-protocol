@@ -24,9 +24,9 @@ contract StrategyCodeProvider is Modifiers {
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint256 _strategyStepCount = _strategySteps.length;
         uint256 _lastStepIndex = _strategyStepCount - 1;
-        address _liquidityPool = _strategySteps[_lastStepIndex].pool;
-        address _optyCodeProvider = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
-        if (ICodeProvider(_optyCodeProvider).canStake(_liquidityPool)) {
+        address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
+        address _lastStepOptyCodeProvider = registryContract.liquidityPoolToCodeProvider(_lastStepLiquidityPool);
+        if (ICodeProvider(_lastStepOptyCodeProvider).canStake(_lastStepLiquidityPool)) {
             return (_strategyStepCount + 1);
         }
         for (uint8 i = 0; i < uint8(_strategySteps.length); i++) {
@@ -40,9 +40,9 @@ contract StrategyCodeProvider is Modifiers {
     function getClaimRewardStepsCount(bytes32 _hash) public view returns (uint256) {
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint256 _lastStepIndex = _strategySteps.length - 1;
-        address _liquidityPool = _strategySteps[_lastStepIndex].pool;
-        address _optyCodeProvider = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
-        if (ICodeProvider(_optyCodeProvider).getRewardToken(_liquidityPool) != address(0)) {
+        address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
+        address _lastStepOptyCodeProvider = registryContract.liquidityPoolToCodeProvider(_lastStepLiquidityPool);
+        if (ICodeProvider(_lastStepOptyCodeProvider).getRewardToken(_lastStepLiquidityPool) != address(0)) {
             return uint256(1);
         }
         return uint256(0);
@@ -51,9 +51,9 @@ contract StrategyCodeProvider is Modifiers {
     function getHarvestRewardStepsCount(bytes32 _hash) public view returns (uint256) {
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint256 _lastStepIndex = _strategySteps.length - 1;
-        address _liquidityPool = _strategySteps[_lastStepIndex].pool;
-        address _optyCodeProvider = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
-        if (ICodeProvider(_optyCodeProvider).getRewardToken(_liquidityPool) != address(0)) {
+        address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
+        address _lastStepOptyCodeProvider = registryContract.liquidityPoolToCodeProvider(_lastStepLiquidityPool);
+        if (ICodeProvider(_lastStepOptyCodeProvider).getRewardToken(_lastStepLiquidityPool) != address(0)) {
             return uint256(1);
         }
         return uint256(0);
