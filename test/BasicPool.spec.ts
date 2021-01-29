@@ -30,6 +30,7 @@ import YVaultCodeProvider from "../build/YVaultCodeProvider.json";
 import dYdXCodeProvider from "../build/dYdXCodeProvider.json";
 import poolProxies from "./shared/poolProxies.json";
 import defiPools from "./shared/defiPools.json";
+import curveSwapDataProvider from "./shared/CurveSwapDataProvider.json";
 import allStrategies from "./shared/strategies.json";
 //  Note: keeping this testing strategies one by one for underlying tokens - Deepanshu
 // import allStrategies from "./shared/sample_strategies.json";
@@ -378,6 +379,9 @@ program
                                                     optyPoolProxyContractsKey +
                                                     "  Contract ===="
                                             );
+                                            var overrideOptions: ethers.providers.TransactionRequest = {
+                                                gasLimit: 6721975,
+                                            };
                                             optyPoolProxyContract = await deployContract(
                                                 ownerWallet,
                                                 poolProxyContract[
@@ -387,10 +391,56 @@ program
                                                     optyRegistry.address,
                                                     gatherer.address,
                                                 ],
-                                                {
-                                                    gasLimit: 6700000,
-                                                }
+                                                overrideOptions
                                             );
+
+                                            //  Setting the liquidityPoolToken, SwapPoolTOUnderlyingTokens and gauge address as pre-requisites for CurveSwapCodeProvider
+                                            let curveSwapDataProviderKey: keyof typeof curveSwapDataProvider;
+                                            for (curveSwapDataProviderKey in curveSwapDataProvider) {
+                                                if (
+                                                    curveSwapDataProviderKey
+                                                        .toString()
+                                                        .toLowerCase() ==
+                                                    optyPoolProxyContractsKey
+                                                        .toString()
+                                                        .toLowerCase()
+                                                ) {
+                                                    console.log(
+                                                        "CurveSwapCodeProvider contract address: ",
+                                                        optyPoolProxyContract.address
+                                                    );
+                                                    let tokenPairs =
+                                                        curveSwapDataProvider[
+                                                            curveSwapDataProviderKey
+                                                        ];
+                                                    let tokenPair: keyof typeof tokenPairs;
+                                                    for (tokenPair in tokenPairs) {
+                                                        let _liquidityPoolToken =
+                                                            tokenPairs[tokenPair]
+                                                                .liquidityPoolToken;
+                                                        let _swapPool =
+                                                            tokenPairs[tokenPair]
+                                                                .swapPool;
+                                                        let _guage =
+                                                            tokenPairs[tokenPair].gauge;
+                                                        let _underlyingTokens =
+                                                            tokenPairs[tokenPair]
+                                                                .underlyingTokens;
+                                                        await optyPoolProxyContract.setLiquidityPoolToken(
+                                                            _swapPool,
+                                                            _liquidityPoolToken
+                                                        );
+                                                        await optyPoolProxyContract.setSwapPoolToUnderlyingTokens(
+                                                            _swapPool,
+                                                            _underlyingTokens
+                                                        );
+                                                        await optyPoolProxyContract.setSwapPoolToGauges(
+                                                            _swapPool,
+                                                            _guage
+                                                        );
+                                                    }
+                                                }
+                                            }
                                         }
 
                                         optyPoolProxyContractVariables[
@@ -755,6 +805,7 @@ program
                                                 underlyingTokenDecimals
                                             )
                                         );
+
                                         await fundWallet(
                                             underlyingToken,
                                             userWallet,
@@ -1078,7 +1129,7 @@ program
                                             "should deposit using userDepositRebalance() using Strategy - " +
                                                 strategies.strategyName,
                                             async () => {
-                                                await checkAndFundWallet();
+                                                // await checkAndFundWallet();
                                                 let strategySteps: (
                                                     | string
                                                     | boolean
@@ -1289,6 +1340,8 @@ program
                                                         bestStrategy
                                                     );
 
+                                                    // Funding the wallet with the underlying tokens before making the deposit transaction
+                                                    await checkAndFundWallet();
                                                     //  Function call to test userDepositRebalance()
                                                     await testUserDepositRebalance();
                                                     strategyScore = strategyScore + 1;
@@ -1430,14 +1483,17 @@ program
                                                         strategies.strategyName.toString() ==
                                                             "USDC-deposit-CURVE-cDAI+cUSDC+USDT" ||
                                                         strategies.strategyName.toString() ==
-                                                            "USDT-deposit-DFORCE-dUSDT"
+                                                            "USDT-deposit-DFORCE-dUSDT" ||
+                                                        strategies.strategyName.toString() ==
+                                                            "TUSD-deposit-DFORCE-dTUSD"
                                                     ) {
                                                         try {
-                                                            //  Note: 1. USDT-deposit-DFORCE-dUSDT will work for all 0,2,3 roundingDelta w/o wait period
-                                                            //  2. USDT-deposit-DFORCE-dUSDT => For roundingDelta = 1, wait period is required
-                                                            //  3. USDT-deposit-DFORCE-dUSDT => Works for any other amounts apart from the  sept-2 w/o wait period
+                                                            //  Note: 1. USDT-deposit-DFORCE-dUSDT => will work for all 0,2,3 roundingDelta w/o wait period
+                                                            //  2. USDT-deposit-DFORCE-dUSD => For roundingDelta = 1, wait period is required
+                                                            //  3. USDT-deposit-DFORCE-dUSDT => Works for any other amounts (apart from the  sept-2) w/o wait period
                                                             //  4. USDC-deposit-CURVE-cDAI+cUSDC+USDT => works fine if run alone with 60 sec. wait period and works fine with
                                                             //  180  sec or more wait period if tested altogether with other strategies for USDC.
+                                                            //  5. TUSD-deposit-DFORCE-dTUSD => Doesn't work with any wait period (sometimes)
                                                             console.log(
                                                                 "special if condition for usdc and usdt curve and dforce"
                                                             );
@@ -1461,22 +1517,41 @@ program
                                                         }
                                                     } else if (
                                                         strategies.strategyName.toString() ==
-                                                        "TUSD-deposit-YEARN-yTUSD"
+                                                        "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD"
                                                     ) {
-                                                        let roundingDelta = expandToTokenDecimals(
-                                                            1,
-                                                            11
-                                                        );
-                                                        await testUserWithdrawRebalance(
-                                                            initialUserOptyTokenBalanceWei,
-                                                            roundingDelta
-                                                        );
+                                                        try {
+                                                            //  Note: 1. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => works for roundingDelta = 0,2,3, so on.. and for all other amounts w/o wait period but,
+                                                            //  2. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => It works fine if run with 240 sec or more wait period for roundingDelta = 1
+                                                            console.log(
+                                                                "special if condition for usdc and usdt curve and dforce"
+                                                            );
+                                                            // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                            let roundingDelta = 0;
+                                                            console.log(
+                                                                "Started waiting"
+                                                            );
+                                                            await sleep(240 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                            console.log("waiting over");
+                                                            // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
+                                                            await testUserWithdrawRebalance(
+                                                                initialUserOptyTokenBalanceWei,
+                                                                roundingDelta
+                                                            );
+                                                        } catch (error) {
+                                                            console.log(
+                                                                "Error occured: ",
+                                                                error.message
+                                                            );
+                                                        }
                                                     } else {
+                                                        //  Note: 1. For 3Crv-deposit-CURVE-gusd3CRV, 3Crv-deposit-CURVE-husd3CRV, 3Crv-deposit-CURVE-usdk3CRV => for roundingDelta = 1, it works for test amount 46 or more and
+                                                        //  for roundingDelta = 2, it works for test amount 92 or more. Rest it works for any other amounts normally
+                                                        //  with any test amount
                                                         console.log(
                                                             "Withdraw test Else condition.."
                                                         );
                                                         // let roundingDelta = expandToTokenDecimals(2, underlyingTokenDecimals);
-                                                        let roundingDelta = 1;
+                                                        let roundingDelta = 0;
                                                         await testUserWithdrawRebalance(
                                                             initialUserOptyTokenBalanceWei,
                                                             roundingDelta

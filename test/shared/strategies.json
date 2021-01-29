@@ -51845,7 +51845,7 @@
                 "strategyName": "3Crv-deposit-CURVE-gusd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x0aE274c98c0415C0651AF8cF52b010136E4a0082",
+                        "contract": "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
                         "outputTokenSymbol": "gusd3CRV",
                         "outputToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
                         "isBorrow": false
@@ -51856,7 +51856,7 @@
                 "strategyName": "3Crv-deposit-CURVE-husd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E",
+                        "contract": "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604",
                         "outputTokenSymbol": "husd3CRV",
                         "outputToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
                         "isBorrow": false
@@ -51867,7 +51867,7 @@
                 "strategyName": "3Crv-deposit-CURVE-usdk3CRV",
                 "strategy": [
                     {
-                        "contract": "0x6600e98b71dabfD4A8Cac03b302B0189Adb86Afb",
+                        "contract": "0x3E01dD8a5E1fb3481F0F589056b428Fc308AF0Fb",
                         "outputTokenSymbol": "usdk3CRV",
                         "outputToken": "0x97E2768e8E73511cA874545DC5Ff8067eB19B787",
                         "isBorrow": false
@@ -51878,7 +51878,7 @@
                 "strategyName": "3Crv-deposit-CURVE-usdn3CRV",
                 "strategy": [
                     {
-                        "contract": "0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39",
+                        "contract": "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
                         "outputTokenSymbol": "usdn3CRV",
                         "outputToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
                         "isBorrow": false
@@ -51889,7 +51889,7 @@
                 "strategyName": "3Crv-deposit-CURVE-LinkUSD3CRV",
                 "strategy": [
                     {
-                        "contract": "0xF6bDc2619FFDA72c537Cd9605e0A274Dc48cB1C9",
+                        "contract": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
                         "outputTokenSymbol": "LinkUSD3CRV",
                         "outputToken": "0x6D65b498cb23deAba52db31c93Da9BFFb340FB8F",
                         "isBorrow": false
@@ -51900,7 +51900,7 @@
                 "strategyName": "3Crv-deposit-CURVE-musd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x78CF256256C8089d68Cde634Cf7cDEFb39286470",
+                        "contract": "0x8474DdbE98F5aA3179B3B3F5942D724aFcdec9f6",
                         "outputTokenSymbol": "musd3CRV",
                         "outputToken": "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6",
                         "isBorrow": false
@@ -51911,7 +51911,7 @@
                 "strategyName": "3Crv-deposit-CURVE-rsv3CRV",
                 "strategy": [
                     {
-                        "contract": "0x459eAA680b47D27c8561708C96c949e0018dF5d9",
+                        "contract": "0xC18cC39da8b11dA8c3541C598eE022258F9744da",
                         "outputTokenSymbol": "rsv3CRV",
                         "outputToken": "0xC2Ee6b0334C261ED60C72f6054450b61B8f18E35",
                         "isBorrow": false
@@ -51922,7 +51922,7 @@
                 "strategyName": "3Crv-deposit-CURVE-dusd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x61E10659fe3aa93d036d099405224E4Ac24996d0",
+                        "contract": "0x8038C01A0390a8c547446a0b2c18fc9aEFEcc10c",
                         "outputTokenSymbol": "dusd3CRV",
                         "outputToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
                         "isBorrow": false
@@ -51955,7 +51955,7 @@
                 "strategyName": "3Crv-deposit-CURVE-gusd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x0aE274c98c0415C0651AF8cF52b010136E4a0082",
+                        "contract": "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
                         "outputTokenSymbol": "gusd3CRV",
                         "outputToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
                         "isBorrow": false
@@ -51966,7 +51966,7 @@
                 "strategyName": "3Crv-deposit-CURVE-husd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E",
+                        "contract": "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604",
                         "outputTokenSymbol": "husd3CRV",
                         "outputToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
                         "isBorrow": false
@@ -51977,7 +51977,7 @@
                 "strategyName": "3Crv-deposit-CURVE-usdk3CRV",
                 "strategy": [
                     {
-                        "contract": "0x6600e98b71dabfD4A8Cac03b302B0189Adb86Afb",
+                        "contract": "0x3E01dD8a5E1fb3481F0F589056b428Fc308AF0Fb",
                         "outputTokenSymbol": "usdk3CRV",
                         "outputToken": "0x97E2768e8E73511cA874545DC5Ff8067eB19B787",
                         "isBorrow": false
@@ -51988,7 +51988,7 @@
                 "strategyName": "3Crv-deposit-CURVE-LinkUSD3CRV",
                 "strategy": [
                     {
-                        "contract": "0xF6bDc2619FFDA72c537Cd9605e0A274Dc48cB1C9",
+                        "contract": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
                         "outputTokenSymbol": "LinkUSD3CRV",
                         "outputToken": "0x6D65b498cb23deAba52db31c93Da9BFFb340FB8F",
                         "isBorrow": false
@@ -51999,7 +51999,7 @@
                 "strategyName": "3Crv-deposit-CURVE-musd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x78CF256256C8089d68Cde634Cf7cDEFb39286470",
+                        "contract": "0x8474DdbE98F5aA3179B3B3F5942D724aFcdec9f6",
                         "outputTokenSymbol": "musd3CRV",
                         "outputToken": "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6",
                         "isBorrow": false
@@ -52010,7 +52010,7 @@
                 "strategyName": "3Crv-deposit-CURVE-rsv3CRV",
                 "strategy": [
                     {
-                        "contract": "0x459eAA680b47D27c8561708C96c949e0018dF5d9",
+                        "contract": "0xC18cC39da8b11dA8c3541C598eE022258F9744da",
                         "outputTokenSymbol": "rsv3CRV",
                         "outputToken": "0xC2Ee6b0334C261ED60C72f6054450b61B8f18E35",
                         "isBorrow": false
@@ -52021,7 +52021,7 @@
                 "strategyName": "3Crv-deposit-CURVE-dusd3CRV",
                 "strategy": [
                     {
-                        "contract": "0x61E10659fe3aa93d036d099405224E4Ac24996d0",
+                        "contract": "0x8038C01A0390a8c547446a0b2c18fc9aEFEcc10c",
                         "outputTokenSymbol": "dusd3CRV",
                         "outputToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
                         "isBorrow": false

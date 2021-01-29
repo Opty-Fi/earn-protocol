@@ -52,6 +52,7 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
     address public constant YUSDT = address(0xE6354ed5bC4b393a5Aad09f21c46E101e692d447);
     address public constant YTUSD = address(0x73a052500105205d34Daf004eAb301916DA8190f);
     address public constant YBUSD = address(0x04bC0Ab673d88aE9dbC9DA2380cB6B79C4BCa9aE);
+    address public constant DUSD = address(0x5BC25f649fc4e26069dDF4cF4010F9f706c23831);
 
     // swap pool
     address public constant COMPOUND_SWAP_POOL = address(0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56);
@@ -202,31 +203,31 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
         address[] memory _usdnUnderlyingTokens = new address[](2);
         _usdnUnderlyingTokens[0] = USDN;
         _usdnUnderlyingTokens[1] = THREE_CRV;
-        setLiquidityPoolToken(USDN_SWAP_POOL, LINKUSD_THREE_CRV);
-        setSwapPoolToUnderlyingTokens(USDK_SWAP_POOL, _usdnUnderlyingTokens);
+        setLiquidityPoolToken(USDN_SWAP_POOL, USDN_THREE_CRV);
+        setSwapPoolToUnderlyingTokens(USDN_SWAP_POOL, _usdnUnderlyingTokens);
 
         address[] memory _linkusdUnderlyingTokens = new address[](2);
         _linkusdUnderlyingTokens[0] = LINKUSD;
         _linkusdUnderlyingTokens[1] = THREE_CRV;
-        setLiquidityPoolToken(LINKUSD_SWAP_POOL, MUSD_THREE_CRV);
+        setLiquidityPoolToken(LINKUSD_SWAP_POOL, LINKUSD_THREE_CRV);
         setSwapPoolToUnderlyingTokens(LINKUSD_SWAP_POOL, _linkusdUnderlyingTokens);
 
         address[] memory _musdUnderlyingTokens = new address[](2);
         _musdUnderlyingTokens[0] = MUSD;
         _musdUnderlyingTokens[1] = THREE_CRV;
-        setLiquidityPoolToken(MUSD_SWAP_POOL, RSV_THREE_CRV);
+        setLiquidityPoolToken(MUSD_SWAP_POOL, MUSD_THREE_CRV);
         setSwapPoolToUnderlyingTokens(MUSD_SWAP_POOL, _musdUnderlyingTokens);
 
         address[] memory _rsvUnderlyingTokens = new address[](2);
         _rsvUnderlyingTokens[0] = RSV;
         _rsvUnderlyingTokens[1] = THREE_CRV;
-        setLiquidityPoolToken(RSV_SWAP_POOL, TBTC_SBTC_CRV);
+        setLiquidityPoolToken(RSV_SWAP_POOL, RSV_THREE_CRV);
         setSwapPoolToUnderlyingTokens(RSV_SWAP_POOL, _rsvUnderlyingTokens);
 
         address[] memory _tbtcUnderlyingTokens = new address[](2);
         _tbtcUnderlyingTokens[0] = TBTC;
-        _tbtcUnderlyingTokens[1] = THREE_CRV;
-        setLiquidityPoolToken(TBTC_SWAP_POOL, DUSD_THREE_CRV);
+        _tbtcUnderlyingTokens[1] = CRV_REN_BTC_WBTC_SBTC;
+        setLiquidityPoolToken(TBTC_SWAP_POOL, TBTC_SBTC_CRV);
         setSwapPoolToUnderlyingTokens(TBTC_SWAP_POOL, _tbtcUnderlyingTokens);
 
         setSwapPoolToGauges(COMPOUND_SWAP_POOL, address(0x7ca5b0a2910B33e9759DC7dDB0413949071D7575));
