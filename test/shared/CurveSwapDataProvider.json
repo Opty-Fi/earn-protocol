@@ -1,0 +1,13 @@
+{
+    "CurveSwapCodeProvider": {
+        "3crv_dusd3CRV": {
+            "swapPool": "0x8038C01A0390a8c547446a0b2c18fc9aEFEcc10c",
+            "liquidityPoolToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
+            "gauge": "0xAEA6c312f4b3E04D752946d329693F7293bC2e6D",
+            "underlyingTokens": [
+                "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831",
+                "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"
+            ]
+        }
+    }
+}
