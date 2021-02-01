@@ -77,7 +77,7 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         _success = true;
     }
 
-    function supplyAll() public onlyValidAddress {
+    function supplyAll() public ifNotDiscontinued {
         uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
         uint256 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
@@ -91,7 +91,7 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
     }
 
-    function rebalance() public {
+    function rebalance() public ifNotDiscontinued {
         require(totalSupply() > 0, "!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
@@ -183,7 +183,7 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userDepositRebalance(uint256 _amount) public nonReentrant returns (bool _success) {
+    function userDepositRebalance(uint256 _amount) public nonReentrant ifNotDiscontinued returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -227,8 +227,10 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "Insufficient balance");
 
-        _withdrawAll();
-        harvest(strategyHash);
+        if (!isDiscontinue) {
+            _withdrawAll();
+            harvest(strategyHash);
+        }
 
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
 
@@ -238,7 +240,7 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         emit Transfer(msg.sender, address(0), _redeemAmount);
 
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-        if (balance() > 0) {
+        if (!isDiscontinue && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
@@ -249,5 +251,11 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
     function getPricePerFullShare() public view returns (uint256) {
         return _calPoolValueInToken().div(totalSupply());
+    }
+
+    function discontinue() public onlyOperator {
+        isDiscontinue = true;
+        _withdrawAll();
+        harvest(strategyHash);
     }
 }

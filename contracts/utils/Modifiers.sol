@@ -9,30 +9,31 @@ import "../Registry.sol";
  * @dev Contract used to keep all the modifiers at one place
  */
 contract Modifiers {
-    
     Registry public registryContract;
-    
+
     using Address for address;
-    
+
+    bool public isDiscontinue;
+
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
      */
-    constructor (address _registry) internal {
+    constructor(address _registry) internal {
         registryContract = Registry(_registry);
     }
-    
+
     /**
      * @dev Function to check if the address is zero address or not
      */
-    function isZeroAddress(address _address) internal pure returns(bool) {
+    function isZeroAddress(address _address) internal pure returns (bool) {
         require(_address != address(0), "Modifiers: caller is zero address");
         return true;
     }
-    
-    function setRegistry(address _registry) onlyOperator public {
+
+    function setRegistry(address _registry) public onlyOperator {
         registryContract = Registry(_registry);
     }
-    
+
     /**
      * @dev Modifier to check if the address is zero address or not
      */
@@ -48,7 +49,7 @@ contract Modifiers {
         require(msg.sender == registryContract.governance(), "caller is not having governance");
         _;
     }
-    
+
     /**
      * @dev Modifier to check caller is operator or not
      */
@@ -56,12 +57,17 @@ contract Modifiers {
         require(msg.sender == registryContract.operator(), "caller is not the operator");
         _;
     }
-    
+
     /**
      * @dev Modifier to check caller is operator or not
      */
     modifier onlyStrategist() {
         require(msg.sender == registryContract.strategist(), "caller is not the strategist");
+        _;
+    }
+
+    modifier ifNotDiscontinued() {
+        require(!isDiscontinue, "discontinued");
         _;
     }
 }
