@@ -13,7 +13,8 @@ contract Modifiers {
 
     using Address for address;
 
-    bool public isDiscontinue;
+    bool public discontinued;
+    bool public paused;
 
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
@@ -67,7 +68,12 @@ contract Modifiers {
     }
 
     modifier ifNotDiscontinued() {
-        require(!isDiscontinue, "discontinued");
+        require(!discontinued, "discontinued");
+        _;
+    }
+
+    modifier ifNotPaused() {
+        require(!paused, "paused");
         _;
     }
 }
