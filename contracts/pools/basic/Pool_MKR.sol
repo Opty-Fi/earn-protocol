@@ -255,13 +255,15 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
     function discontinue() public onlyOperator {
         discontinued = true;
-        _withdrawAll();
-        harvest(strategyHash);
+        if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            _withdrawAll();
+            harvest(strategyHash);
+        }
     }
 
     function setPaused(bool _paused) public onlyOperator {
         paused = _paused;
-        if (paused) {
+        if (paused && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();
             harvest(strategyHash);
         }
