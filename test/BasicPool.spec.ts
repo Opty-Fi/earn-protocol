@@ -914,7 +914,7 @@ program
                                 }
                             }
 
-                            it.skip(
+                            it(
                                 "should check OptyTokenBasicPool contract is deployed for " +
                                     strategiesTokenKey,
                                 async () => {
@@ -923,208 +923,6 @@ program
                                         "BasicPool Contract for " +
                                             strategiesTokenKey +
                                             "is not deployed"
-                                    );
-                                }
-                            );
-
-                            it.skip(
-                                "should deposit using userDeposit() for " +
-                                    strategiesTokenKey,
-                                async () => {
-                                    await checkAndFundWallet();
-                                    let userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                        userWallet.address
-                                    );
-                                    console.log("DEPOSIT TEST-1");
-                                    //  Getting the underlying token contract instance for user's wallet and approving
-                                    //  BasicPool contract for spending underlying token on behalf of user
-                                    let tokenContractInstanceAsSignerUser = tokenContractInstance.connect(
-                                        userWallet
-                                    );
-                                    console.log("DEPOSIT TEST-2");
-                                    await tokenContractInstanceAsSignerUser.approve(
-                                        optyTokenBasicPool.address,
-                                        TEST_AMOUNT
-                                    );
-                                    expect(
-                                        await tokenContractInstance.allowance(
-                                            userWallet.address,
-                                            optyTokenBasicPool.address
-                                        )
-                                    ).to.equal(TEST_AMOUNT);
-
-                                    //  Connect the BasicPool Contract with the user's Wallet for making userDeposit()
-                                    let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
-                                        userWallet
-                                    );
-                                    console.log("DEPOSIT TEST-3");
-                                    const userDepositOutput = await optyTokenBasicPoolAsSignerUser.userDeposit(
-                                        TEST_AMOUNT
-                                    );
-                                    // const newBalance = await tokenContractInstance.balanceOf(userWallet.address)
-                                    // const userDepositOutput = await optyTokenBasicPoolAsSignerUser.userDeposit(
-                                    //     newBalance
-                                    // );
-                                    assert.isOk(
-                                        userDepositOutput,
-                                        "UserDeposit() call failed"
-                                    );
-                                    console.log("DEPOSIT TEST-4");
-                                    // Check Token and opToken balance after userDeposit() call
-                                    userTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                        userWallet.address
-                                    );
-                                    // const userNewTokenBalance = parseFloat(
-                                    //     fromWei(userTokenBalanceWei)
-                                    // );
-                                    // expect(userNewTokenBalance).to.equal(
-                                    //     userInitialTokenBalance - TEST_AMOUNT_NUM
-                                    // );
-                                    expect(userTokenBalanceWei).to.equal(
-                                        userInitialTokenBalanceWei.sub(TEST_AMOUNT)
-                                    );
-                                    console.log("DEPOSIT TEST-5");
-                                    contractTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                        optyTokenBasicPool.address
-                                    );
-                                    // contractTokenBalance = parseFloat(fromWei(contractTokenBalanceWei));
-                                    // expect(contractTokenBalance).to.equal(TEST_AMOUNT_NUM);
-                                    expect(contractTokenBalanceWei).to.equal(
-                                        TEST_AMOUNT
-                                    );
-                                    console.log("DEPOSIT TEST-6");
-                                    userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
-                                        userWallet.address
-                                    );
-                                    // userOptyTokenBalance = parseFloat(fromWei(userOptyTokenBalanceWei));
-                                    // expect(userOptyTokenBalance).to.equal(TEST_AMOUNT_NUM);
-                                    expect(userOptyTokenBalanceWei).to.equal(
-                                        TEST_AMOUNT
-                                    );
-                                }
-                            );
-
-                            it.skip(
-                                "should withdraw using userWithdraw() for " +
-                                    strategiesTokenKey,
-                                async () => {
-                                    let initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
-                                        userWallet.address
-                                    );
-                                    let initialUserTokenBalanceInWei = await tokenContractInstance.balanceOf(
-                                        userWallet.address
-                                    );
-                                    let initialContractTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                        optyTokenBasicPool.address
-                                    );
-
-                                    let totalSupply = await optyTokenBasicPool.totalSupply();
-
-                                    let poolValue = await optyTokenBasicPool.poolValue();
-
-                                    //  Connect the BasicPool Contract with the user's Wallet for making userWithdraw()
-                                    let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
-                                        userWallet
-                                    );
-                                    console.log("STEP-1");
-                                    const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdraw(
-                                        TEST_AMOUNT
-                                    );
-                                    assert.isOk(
-                                        userWithdrawTxOutput,
-                                        "UserWithdraw() call failed"
-                                    );
-
-                                    let afterUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
-                                        userWallet.address
-                                    );
-
-                                    let afterUserTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                        userWallet.address
-                                    );
-
-                                    console.log(
-                                        "User's initial Opty  token balance: ",
-                                        ethers.utils.formatUnits(
-                                            initialUserOptyTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    console.log(
-                                        "User's after Opty Token Balance: ",
-                                        ethers.utils.formatUnits(
-                                            afterUserOptyTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    let noOfTokensReceivedFromFormula = poolValue
-                                        .mul(TEST_AMOUNT)
-                                        .div(totalSupply);
-                                    console.log(
-                                        "noOfTokensReceived from formula: ",
-                                        ethers.utils.formatUnits(
-                                            noOfTokensReceivedFromFormula,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    expect(afterUserOptyTokenBalanceWei).to.equal(
-                                        initialUserOptyTokenBalanceWei.sub(
-                                            noOfTokensReceivedFromFormula
-                                        )
-                                    );
-
-                                    console.log("STEP-2");
-                                    console.log(
-                                        "Before withdraw, User's " +
-                                            strategiesTokenKey +
-                                            " Balance: ",
-                                        ethers.utils.formatUnits(
-                                            initialUserTokenBalanceInWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    console.log(
-                                        "After withdraw, User's " +
-                                            strategiesTokenKey +
-                                            " balance: ",
-                                        ethers.utils.formatUnits(
-                                            afterUserTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    expect(afterUserTokenBalanceWei).to.equal(
-                                        initialUserTokenBalanceInWei.add(
-                                            noOfTokensReceivedFromFormula
-                                        )
-                                    );
-
-                                    let afterContractTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                        optyTokenBasicPool.address
-                                    );
-
-                                    console.log("STEP-3");
-                                    console.log(
-                                        "Before withdraw, contract " +
-                                            strategiesTokenKey +
-                                            " balance: ",
-                                        ethers.utils.formatUnits(
-                                            initialContractTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    console.log(
-                                        "After withdraw contracts " +
-                                            strategiesTokenKey +
-                                            " balance when there is no left over: ",
-                                        ethers.utils.formatUnits(
-                                            afterContractTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    expect(afterContractTokenBalanceWei).to.equal(
-                                        initialContractTokenBalanceWei.sub(
-                                            noOfTokensReceivedFromFormula
-                                        )
                                     );
                                 }
                             );
@@ -1845,11 +1643,13 @@ program
                                             console.log(
                                                 "Minor decimals Value difference -- need to be checked"
                                             );
-                                            expect(
-                                                userOptyTokenBalanceWei.lte(
-                                                    userExpectedOptyTokenBalance
-                                                )
-                                            ).to.be.true;
+                                            // expect(
+                                            //     userOptyTokenBalanceWei.lte(
+                                            //         userExpectedOptyTokenBalance
+                                            //     )
+                                            // ).to.be.true;
+                                            expect(userOptyTokenBalanceWei).to.not.equal(userExpectedOptyTokenBalance)
+                                            
                                         }
 
                                         //  Storing the user's New Opty tokens balance in number format
@@ -1864,7 +1664,7 @@ program
                                     }
 
                                     async function testUserWithdrawRebalance(
-                                        initialUserOptyTokenBalanceWei: any,
+                                        withdrawAmount: any,
                                         roundingDelta: any
                                     ) {
                                         let initialUserTokenBalanceInWei = await tokenContractInstance.balanceOf(
@@ -1881,7 +1681,7 @@ program
                                         console.log(
                                             "Before: User's Opty  token balance: ",
                                             ethers.utils.formatUnits(
-                                                initialUserOptyTokenBalanceWei,
+                                                withdrawAmount,
                                                 underlyingTokenDecimals
                                             )
                                         );
@@ -1897,7 +1697,7 @@ program
                                         console.log(
                                             "---- Actual amount less than rounding delta: ",
                                             ethers.utils.formatUnits(
-                                                initialUserOptyTokenBalanceWei.sub(
+                                                withdrawAmount.sub(
                                                     roundingDelta
                                                 ),
                                                 underlyingTokenDecimals
@@ -1907,14 +1707,14 @@ program
                                         console.log(
                                             "---- Manual withdrawal amount: ",
                                             ethers.utils.formatUnits(
-                                                initialUserOptyTokenBalanceWei,
+                                                withdrawAmount,
                                                 underlyingTokenDecimals
                                             )
                                         );
                                         console.log(
                                             "****  BEFORE WITHDRAW TXN, Actual withdrawal amount: ",
                                             ethers.utils.formatUnits(
-                                                initialUserOptyTokenBalanceWei,
+                                                withdrawAmount,
                                                 underlyingTokenDecimals
                                             )
                                         );
@@ -1930,7 +1730,7 @@ program
                                         // (initialUserOptyTokenBalanceWei.sub(expandToTokenDecimals(1,18))).sub(1)
                                         // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
                                         const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.functions.userWithdrawRebalance(
-                                            initialUserOptyTokenBalanceWei.sub(
+                                            withdrawAmount.sub(
                                                 roundingDelta
                                             ),
                                             {
@@ -1962,7 +1762,7 @@ program
                                         console.log(
                                             "User's initial Opty  token balance: ",
                                             ethers.utils.formatUnits(
-                                                initialUserOptyTokenBalanceWei,
+                                                withdrawAmount,
                                                 underlyingTokenDecimals
                                             )
                                         );
@@ -1998,7 +1798,7 @@ program
                                                     )
                                         );
                                         let noOfTokensReceivedFromFormula = poolValue
-                                            .mul(initialUserOptyTokenBalanceWei.sub(1))
+                                            .mul(withdrawAmount.sub(1))
                                             .div(totalSupply);
                                         console.log(
                                             "noOfTokensReceived from formula: ",
