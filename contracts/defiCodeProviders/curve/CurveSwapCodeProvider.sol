@@ -229,6 +229,12 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
         _tbtcUnderlyingTokens[1] = CRV_REN_BTC_WBTC_SBTC;
         setLiquidityPoolToken(TBTC_SWAP_POOL, TBTC_SBTC_CRV);
         setSwapPoolToUnderlyingTokens(TBTC_SWAP_POOL, _tbtcUnderlyingTokens);
+        
+        address[] memory _dusdUnderlyingTokens = new address[](2);
+        _dusdUnderlyingTokens[0] = DUSD;
+        _dusdUnderlyingTokens[1] = THREE_CRV;
+        setLiquidityPoolToken(DUSD_SWAP_POOL, DUSD_THREE_CRV);
+        setSwapPoolToUnderlyingTokens(DUSD_SWAP_POOL, _dusdUnderlyingTokens);
 
         setSwapPoolToGauges(COMPOUND_SWAP_POOL, address(0x7ca5b0a2910B33e9759DC7dDB0413949071D7575));
         setSwapPoolToGauges(USDT_SWAP_POOL, address(0xBC89cd85491d81C6AD2954E6d0362Ee29fCa8F53));

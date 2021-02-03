@@ -195,7 +195,7 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
 
-        if (_tokenBalance.sub(_amount) == 0) {
+        if (_tokenBalance.sub(_amount) == 0 || totalSupply() == 0) {
             shares = _amount;
         } else {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance.sub(_amount)));
