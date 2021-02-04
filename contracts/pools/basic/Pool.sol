@@ -77,7 +77,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         _success = true;
     }
 
-    function supplyAll() public ifNotDiscontinued {
+    function supplyAll() public ifNotDiscontinued ifNotPaused {
         uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
         uint256 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
@@ -91,7 +91,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
     }
 
-    function rebalance() public ifNotDiscontinued {
+    function rebalance() public ifNotDiscontinued ifNotPaused {
         require(totalSupply() > 0, "!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
@@ -183,7 +183,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userDepositRebalance(uint256 _amount) public nonReentrant ifNotDiscontinued returns (bool _success) {
+    function userDepositRebalance(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -195,7 +195,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
 
-        if (_tokenBalance.sub(_amount) == 0) {
+        if (_tokenBalance.sub(_amount) == 0 || totalSupply() == 0) {
             shares = _amount;
         } else {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance.sub(_amount)));
@@ -222,25 +222,24 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *  -   _redeemAmount: amount to withdraw from the  liquidity pool. Its uints are:
      *      in  weth uints i.e. 1e18
      */
-    function userWithdrawRebalance(uint256 _redeemAmount) public nonReentrant returns (bool) {
+    function userWithdrawRebalance(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool) {
         require(_redeemAmount > 0, "withdraw must be greater than 0");
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "Insufficient balance");
 
-        if (!isDiscontinue) {
+        if (!discontinued) {
             _withdrawAll();
             harvest(strategyHash);
         }
 
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
-
         //  Updating the totalSupply of op tokens
         _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
 
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-        if (!isDiscontinue && (balance() > 0)) {
+        if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
@@ -254,8 +253,18 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function discontinue() public onlyOperator {
-        isDiscontinue = true;
-        _withdrawAll();
-        harvest(strategyHash);
+        discontinued = true;
+        if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            _withdrawAll();
+            harvest(strategyHash);
+        }
+    }
+
+    function setPaused(bool _paused) public onlyOperator {
+        paused = _paused;
+        if (paused && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            _withdrawAll();
+            harvest(strategyHash);
+        }
     }
 }

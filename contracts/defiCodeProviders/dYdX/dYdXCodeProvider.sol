@@ -95,11 +95,13 @@ contract dYdXCodeProvider is ICodeProvider, Modifiers {
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
-        uint256[] memory _amounts = new uint256[](_underlyingTokens.length);
-        for (uint256 i = 0; i < _underlyingTokens.length; i++) {
-            _amounts[i] = IERC20(_underlyingTokens[i]).balanceOf(_optyPool);
+        uint256[] memory _amounts = new uint256[](liquidityPoolToUnderlyingTokens[_liquidityPool].length);
+        for (uint256 i = 0; i < liquidityPoolToUnderlyingTokens[_liquidityPool].length; i++) {
+            if (liquidityPoolToUnderlyingTokens[_liquidityPool][i] == _underlyingTokens[0]){
+                _amounts[i] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
+            }
         }
-        return getDepositSomeCodes(_optyPool, _underlyingTokens, _liquidityPool, _amounts);
+        return getDepositSomeCodes(_optyPool, liquidityPoolToUnderlyingTokens[_liquidityPool], _liquidityPool, _amounts);
     }
 
     function getBorrowAllCodes(
