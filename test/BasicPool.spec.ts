@@ -69,24 +69,20 @@ program
 
             //  Creatubg the file name based on underlying token passed or not
             if (command.symbol == null) {
-                console.log("NO TOKEN PASSED FROM CMD..");
+                
                 testScriptRunTimeDateAndTime = Date.now();
                 gasRecordsFileName =
                     "AllTokenStrategiesGasRecords_" +
                     testScriptRunTimeDateAndTime.toString();
             } else {
                 underlyingTokenSymbol = command.symbol.toString().toUpperCase();
-                console.log(
-                    "Underlying token Symbol from CMD: ",
-                    underlyingTokenSymbol
-                );
+                
                 testScriptRunTimeDateAndTime = Date.now();
                 gasRecordsFileName =
                     underlyingTokenSymbol +
                     "_" +
                     testScriptRunTimeDateAndTime.toString();
             }
-            console.log("Test Amount from CMD: ", command.testAmount);
 
             const abi = require("ethereumjs-abi");
 
@@ -184,11 +180,6 @@ program
                     ownerWallet = <ethers.Wallet>allParams[0];
                     userWallet = <ethers.Wallet>allParams[1];
 
-                    console.log(
-                        "\n" +
-                            `------ Deploying Registry, RiskManager, Gatherer and StrategyCodeProvider Contracts` +
-                            "\n"
-                    );
                     //  Deploying Registry, RiskManager, Gatherer and StrategyCodeProvider Contracts
                     optyRegistry = await deployContract(
                         ownerWallet,
@@ -202,7 +193,6 @@ program
                         optyRegistry,
                         "OptyRegistry contract not deployed"
                     );
-                    console.log("Registry: ", optyRegistry.address);
 
                     riskManager = await deployContract(
                         ownerWallet,
@@ -210,7 +200,6 @@ program
                         [optyRegistry.address]
                     );
                     assert.isDefined(riskManager, "RiskManager contract not deployed");
-                    console.log("RiskManager: ", riskManager.address);
 
                     gatherer = await deployContract(
                         ownerWallet,
@@ -218,7 +207,6 @@ program
                         [optyRegistry.address]
                     );
                     assert.isDefined(gatherer, "Gatherer contract not deployed");
-                    console.log("Gatherer: ", gatherer.address);
 
                     optyStrategyCodeProvider = await deployContract(
                         ownerWallet,
@@ -228,10 +216,6 @@ program
                     assert.isDefined(
                         optyStrategyCodeProvider,
                         "OptyStrategyCodeProvider contract not deployed"
-                    );
-                    console.log(
-                        "StrategyCodeProvider: ",
-                        optyStrategyCodeProvider.address
                     );
 
                     /*
@@ -258,13 +242,10 @@ program
                     for (let optyCodeProviderContractsKey of optyCodeProviderContracts) {
                         let flag: boolean;
                         if (optyCodeProviderContractsKey == command.codeProvider) {
-                            console.log("matched");
                             flag = true;
                         } else if (command.codeProvider == null) {
-                            console.log("all");
                             flag = true;
                         } else {
-                            console.log("not matched");
                             flag = false;
                         }
 
@@ -429,7 +410,6 @@ program
                 for (strategiesTokenKey in OtherImports.allStrategies) {
                     //  If: Executes test suite for all the underlying tokens, Else: Executes test suite for token symbol passed from command line
                     if (command.symbol == null) {
-                        console.log("coming in when no symbol is passed!");
                         if (strategiesTokenKey.toUpperCase() != "REP") {
                             await runTokenTestSuite(strategiesTokenKey);
                         }
@@ -542,9 +522,6 @@ program
                                 assert.isDefined(
                                     optyTokenBasicPool,
                                     "OptyTokenBasicPool contract not deployed"
-                                );
-                                console.log(
-                                    "** OPTY BASIC POOL CONTRACT DEPLOYED.. **"
                                 );
                             });
 
@@ -839,9 +816,6 @@ program
                                                     "isNewStrategy"
                                                 );
                                             } else {
-                                                console.log(
-                                                    "SETTING THE STRATEGY LOOP"
-                                                );
                                                 let gasEstimatedBefore = await optyRegistry.estimateGas.setStrategy(
                                                     tokensHash,
                                                     strategySteps
@@ -860,10 +834,6 @@ program
                                                 const setStrategyReceipt = await setStrategyTx.wait();
                                                 setStrategyTxGasUsed = setStrategyReceipt.gasUsed.toNumber();
 
-                                                console.log(
-                                                    "SetStrategy Gas used: ",
-                                                    setStrategyTxGasUsed
-                                                );
                                                 let strategyHash =
                                                     setStrategyReceipt.events[0]
                                                         .args[2];
@@ -886,29 +856,14 @@ program
                                                         strategy["_isStrategy"],
                                                         "Strategy is not approved"
                                                     );
-                                                    console.log(
-                                                        "** Strategy Score: ",
-                                                        index + 1
-                                                    );
+                                                    
                                                     let scoreStrategyTx = await optyRegistry.scoreStrategy(
                                                         strategyHash.toString(),
                                                         index + 1
                                                     );
                                                     let scoreStrategyReceipt = await scoreStrategyTx.wait();
                                                     scoreStrategyTxGasUsed = scoreStrategyReceipt.gasUsed.toNumber();
-                                                    console.log(
-                                                        "GAS USED for scoring: ",
-                                                        scoreStrategyTxGasUsed
-                                                    );
-
-                                                    console.log(
-                                                        "Total gas used for setting and scoring strategy: ",
-                                                        setStrategyReceipt.gasUsed
-                                                            .add(
-                                                                scoreStrategyReceipt.gasUsed
-                                                            )
-                                                            .toNumber()
-                                                    );
+                                                    
                                                     setAndScoreStrategyTotalGasUsed = setStrategyReceipt.gasUsed
                                                         .add(
                                                             scoreStrategyReceipt.gasUsed
@@ -919,19 +874,8 @@ program
                                                         strategyHash.toString(),
                                                         index + 1
                                                     );
-                                                    let scoreStrategyReceipt = scoreStrategyTx.wait();
-                                                    console.log(
-                                                        "GAS USED for scoring in else: ",
-                                                        scoreStrategyReceipt.gasUsed.toNumber()
-                                                    );
-                                                    console.log(
-                                                        "Total gas used for setting and scoring strategy: ",
-                                                        setStrategyReceipt.gasUsed
-                                                            .add(
-                                                                scoreStrategyReceipt.gasUsed
-                                                            )
-                                                            .toNumber()
-                                                    );
+                                                    await scoreStrategyTx.wait();
+                                                    
                                                 }
 
                                                 //  Fetching best strategy
@@ -940,12 +884,9 @@ program
                                                     [underlyingToken]
                                                 );
 
+                                                //  Getting the best strategy
                                                 let bestStrategy = await optyRegistry.getStrategy(
                                                     bestStrategyHash.toString()
-                                                );
-                                                console.log(
-                                                    "Best strategy: ",
-                                                    bestStrategy
                                                 );
 
                                                 // Funding the wallet with the underlying tokens before making the deposit transaction
@@ -961,23 +902,16 @@ program
                                         "should withdraw using userWithdrawRebalance() using Strategy - " +
                                             strategies.strategyName,
                                         async () => {
-                                            console.log("STEP-1");
+                                            
                                             //  Connect the BasicPool Contract with the user's Wallet for making userDeposit()
                                             let initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
                                                 userWallet.address
-                                            );
-                                            console.log(
-                                                "Prior Balance: ",
-                                                ethers.utils.formatUnits(
-                                                    initialUserOptyTokenBalanceWei,
-                                                    underlyingTokenDecimals
-                                                )
                                             );
 
                                             //  If condition is checking if the withdrawal is 0 or not. This can happen when
                                             //  depositRebalance() is called after setting up the same strategy. This can happen
                                             //  user doesn't have any Op<Token>Bsc tokens.
-                                            if (
+                                            if (!(
                                                 initialUserOptyTokenBalanceWei
                                                     .sub(1)
                                                     .eq(0) ||
@@ -990,10 +924,10 @@ program
                                                         )
                                                     )
                                                     .eq(0)
-                                            ) {
-                                                console.log("Withdrawal amount = 0");
-                                            } else {
-                                                console.log("Withdrawal amount > 0");
+                                            )) {
+                                                
+                                            // } else {
+                                                
                                                 //  This is the edge when running all the test cases together and it sometimes fails
                                                 //  (because of timing issues) for the first but works it same strategy is used again.
                                                 //  Also, it works if we are only testing this strategy alone.
@@ -1001,18 +935,16 @@ program
                                                 EdgeCaseStrategiesKeys = <keyof typeof OtherImports.EdgeCaseStrategies>strategies.strategyName.toString()
                                                 let sleepTimeInSec = OtherImports.EdgeCaseStrategies[EdgeCaseStrategiesKeys] ? OtherImports.EdgeCaseStrategies[EdgeCaseStrategiesKeys].sleepTimeInSec : 0
                                                 try {
-                                                    console.log(
-                                                        "special if condition for usdc"
-                                                    );
+                                                    
                                                     //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
                                                     //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
                                                     // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                     let roundingDelta = 0;
-                                                    console.log("Started waiting");
+                                                    
                                                     await utilities.sleep(
                                                         sleepTimeInSec * 1000
                                                     ); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
-                                                    console.log("waiting over");
+                                                    
                                                     // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                     await testUserWithdrawRebalance(
                                                         initialUserOptyTokenBalanceWei,
@@ -1031,7 +963,7 @@ program
 
                                 //  Function to deposit the underlying tokens into Opty<XXX>Pool and test the userDepositRebalance()
                                 async function testUserDepositRebalance() {
-                                    console.log("TEsting userDeposit Rebalance() ");
+                                    
                                     let userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         userWallet.address
                                     );
@@ -1045,7 +977,7 @@ program
                                             gasLimit: 1000000,
                                         }
                                     );
-                                    console.log("CHECK-1");
+                                    
                                     expect(
                                         await tokenContractInstance.allowance(
                                             userWallet.address,
@@ -1057,7 +989,7 @@ program
                                     let userOptyTokenBalanceBefore = await optyTokenBasicPool.balanceOf(
                                         userWallet.address
                                     );
-                                    console.log("CHECK-2");
+                                    
                                     //  Promises for getting totalSupply, poolValue and making userDepositRebalance() in parallel
                                     //  for getting latest values of totalSuppy and poolValue while Deposit txn is made
                                     let totalSupplyPromise = new Promise(
@@ -1067,7 +999,7 @@ program
                                             );
                                         }
                                     );
-                                    console.log("CHECK-2a");
+                                    
                                     let poolValuePromise = new Promise(
                                         async (resolve) => {
                                             resolve(
@@ -1075,11 +1007,11 @@ program
                                             );
                                         }
                                     );
-                                    console.log("CHECK-2b");
+                                    
                                     let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
                                         userWallet
                                     );
-                                    console.log("CHECK-2c");
+                                    
                                     let userDepositRebalanceTxPromise = new Promise(
                                         async (resolve) => {
                                             resolve(
@@ -1092,7 +1024,7 @@ program
                                             );
                                         }
                                     );
-                                    console.log("CHECK-3");
+                                    
                                     let allPromiseResponses: [
                                         any,
                                         any,
@@ -1103,16 +1035,11 @@ program
                                         userDepositRebalanceTxPromise,
                                     ]);
 
-                                    console.log("User deposit rebalance successful");
                                     let totalSupply = 0;
                                     let poolValue = "";
-                                    // let shares: ethers.utils.BigNumber;
                                     let shares: ethers.BigNumber;
                                     let userDepositRebalanceTx;
-                                    // let userDepositRebalanceTxGasUsed;
-                                    console.log("CHECK-4");
-                                    // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
-                                    // console.log("Withdraw txn output: ", userWithdrawTxOutput)
+                                    
                                     allPromiseResponses.forEach(
                                         async (promiseResponse, index) => {
                                             if (index == 0) {
@@ -1124,10 +1051,6 @@ program
                                                 let userDepositTxReceipt = await userDepositRebalanceTx.wait();
                                                 userDepositRebalanceTxGasUsed = userDepositTxReceipt.gasUsed.toNumber();
 
-                                                console.log(
-                                                    "Gas used for user depsoit rebalance txn: ",
-                                                    userDepositRebalanceTxGasUsed
-                                                );
                                             }
                                         }
                                     );
@@ -1144,30 +1067,13 @@ program
                                     const userNewTokenBalance = parseFloat(
                                         fromWei(userTokenBalanceWei)
                                     );
-                                    console.log("STEP-2");
-                                    console.log(
-                                        "DEPOSIT: user's " +
-                                            strategiesTokenKey +
-                                            " balance before: ",
-                                        ethers.utils.formatEther(
-                                            userInitialTokenBalanceWei
-                                        )
-                                    );
-                                    console.log(
-                                        "DEPOSIT: user's " +
-                                            strategiesTokenKey +
-                                            " balance after: ",
-                                        ethers.utils.formatEther(userTokenBalanceWei)
-                                    );
+                                    
                                     expect(
                                         userTokenBalanceWei.eq(
                                             userInitialTokenBalanceWei.sub(TEST_AMOUNT)
                                         )
                                     ).to.be.true;
-                                    // expect(userNewTokenBalance).to.equal(
-                                    //     userInitialTokenBalance - TEST_AMOUNT_NUM
-                                    // );
-                                    console.log("STEP-3");
+                                    
                                     userInitialTokenBalance = userNewTokenBalance;
 
                                     //  Check Token balance of OptyPool contract after userDepositRabalance() call
@@ -1177,10 +1083,9 @@ program
                                     contractTokenBalance = parseFloat(
                                         fromWei(contractTokenBalanceWei)
                                     );
-                                    //  Commeting this check for checking the contract balance in underlying tokens
+                                    //  Commeting this check for checking the contract balance in underlying tokens - Deepanshu
                                     // expect(contractTokenBalance).to.equal(0);
 
-                                    console.log("NEXT step");
                                     //  Amount of OPTY token shares user received as per contract logic
                                     if (parseFloat(fromWei(poolValue)) == 0) {
                                         shares = TEST_AMOUNT;
@@ -1192,20 +1097,12 @@ program
                                     let userExpectedOptyTokenBalance = userOptyTokenBalanceBefore.add(
                                         shares
                                     );
-                                    console.log(
-                                        "Expected amount: ",
-                                        userExpectedOptyTokenBalance
-                                    );
 
                                     userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
                                         userWallet.address
                                     );
-                                    console.log(
-                                        "User's actual opty Token balance: ",
-                                        userOptyTokenBalanceWei
-                                    );
-                                    //  TODO: Need to fix this assertion error for minor decimals difference for DAI-deposit-DFORCE-dDAI
-                                    //        and DAI-deposit-CURVE-cDAI+cUSDC+USDT - Deepanshu
+                                    //  There is an assertion error for minor decimals difference for DAI-deposit-DFORCE-dDAI
+                                    //        and DAI-deposit-CURVE-cDAI+cUSDC+USDT (can be random strategies)
                                     //  Note: It is a small difference of decimals and it is for randomly any 2 strategies based on the
                                     //        sequence of the strategies. It is not necessarily that it will have decimals issue for the
                                     //        above mentioned 2 strategies only. It can any other also based upon the sequence of strategies.
@@ -1218,9 +1115,7 @@ program
                                             userExpectedOptyTokenBalance
                                         );
                                     } else {
-                                        console.log(
-                                            "Minor decimals Value difference -- need to be checked"
-                                        );
+                                        //  Kept this code in case if all the special cases has less value then we can  keep this assertion - Deepanshu
                                         // expect(
                                         //     userOptyTokenBalanceWei.lte(
                                         //         userExpectedOptyTokenBalance
@@ -1235,10 +1130,7 @@ program
                                     const userNewOptyTokenBalance = parseFloat(
                                         fromWei(userOptyTokenBalanceWei)
                                     );
-                                    console.log(
-                                        "User's Opty token balance: ",
-                                        userNewOptyTokenBalance
-                                    );
+                                    
                                     userOptyTokenBalance = userNewOptyTokenBalance;
                                 }
 
@@ -1257,69 +1149,19 @@ program
 
                                     let poolValue = await optyTokenBasicPool.poolValue();
 
-                                    console.log(
-                                        "Before: User's Opty  token balance: ",
-                                        ethers.utils.formatUnits(
-                                            withdrawAmount,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
                                     let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
                                         userWallet
                                     );
-                                    console.log(
-                                        "Underlying token decimals: ",
-                                        underlyingTokenDecimals
-                                    );
-                                    console.log("STEP-2");
-                                    console.log("Rounding delta: ", roundingDelta);
-                                    console.log(
-                                        "---- Actual amount less than rounding delta: ",
-                                        ethers.utils.formatUnits(
-                                            withdrawAmount.sub(roundingDelta),
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    // console.log("---- Manual withdrawal amount: ", ethers.utils.formatUnits(utilities.expandToTokenDecimals(5999999999,9),underlyingTokenDecimals))
-                                    console.log(
-                                        "---- Manual withdrawal amount: ",
-                                        ethers.utils.formatUnits(
-                                            withdrawAmount,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    console.log(
-                                        "****  BEFORE WITHDRAW TXN, Actual withdrawal amount: ",
-                                        ethers.utils.formatUnits(
-                                            withdrawAmount,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawRebalance(
-                                    //     initialUserOptyTokenBalanceWei.sub(
-                                    //         roundingDelta
-                                    //     ),
-                                    //     {
-                                    //         gasLimit: 4590162,
-                                    //     }
-                                    // );
-                                    // utilities.expandToTokenDecimals(5999999999,9) -- working
-                                    // (initialUserOptyTokenBalanceWei.sub(utilities.expandToTokenDecimals(1,18))).sub(1)
-                                    // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
+                                    
                                     const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.functions.userWithdrawRebalance(
                                         withdrawAmount.sub(roundingDelta),
                                         {
                                             gasLimit: 5141327,
                                         }
                                     );
-                                    console.log("withdrawal txn. successful");
+                                    
                                     let receipt = await userWithdrawTxOutput.wait();
                                     userWithdrawRebalanceTxGasUsed = receipt.gasUsed.toNumber();
-                                    console.log(
-                                        "Gas used for user withdraw rebalance: ",
-                                        userWithdrawRebalanceTxGasUsed
-                                    );
-                                    // console.log("User withdraw txn Receipt: ", receipt);
 
                                     assert.isOk(
                                         userWithdrawTxOutput,
@@ -1334,32 +1176,6 @@ program
                                         userWallet.address
                                     );
 
-                                    console.log(
-                                        "User's initial Opty  token balance: ",
-                                        ethers.utils.formatUnits(
-                                            withdrawAmount,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    console.log(
-                                        "User's after Opty Token Balance: ",
-                                        ethers.utils.formatUnits(
-                                            afterUserOptyTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
-                                    // let noOfTokensReceived = ethers.utils.bigNumberify(
-                                    //     "0x" +
-                                    //         receipt.events[
-                                    //             receipt.events.length - 1
-                                    //         ].data
-                                    //             .toString()
-                                    //             .substr(
-                                    //                 receipt.events[
-                                    //                     receipt.events.length - 1
-                                    //                 ].data.length - 16
-                                    //             )
-                                    // );
                                     let noOfTokensReceived = ethers.BigNumber.from(
                                         "0x" +
                                             receipt.events[
@@ -1375,60 +1191,19 @@ program
                                     let noOfTokensReceivedFromFormula = poolValue
                                         .mul(withdrawAmount.sub(1))
                                         .div(totalSupply);
-                                    console.log(
-                                        "noOfTokensReceived from formula: ",
-                                        ethers.utils.formatEther(
-                                            noOfTokensReceivedFromFormula
-                                        )
-                                    );
-                                    console.log(
-                                        "noOfTokensReceived from receipt: ",
-                                        ethers.utils.formatEther(noOfTokensReceived)
-                                    );
-                                    console.log(
-                                        "** Withdraw worked for whole balance **"
-                                    );
+                                    
                                     expect(
                                         afterUserOptyTokenBalanceWei.eq(roundingDelta)
                                     ).to.be.true;
-                                    // expect(afterUserOptyTokenBalanceWei.eq(0)).to.be
-                                    //    .true;
 
-                                    console.log("STEP-3");
-                                    console.log(
-                                        "Before withdraw, User's " +
-                                            strategiesTokenKey +
-                                            " Balance: ",
-                                        ethers.utils.formatEther(
-                                            initialUserTokenBalanceInWei
-                                        )
-                                    );
-                                    console.log(
-                                        "After withdraw, User's " +
-                                            strategiesTokenKey +
-                                            " balance: ",
-                                        ethers.utils.formatEther(
-                                            afterUserTokenBalanceWei
-                                        )
-                                    );
-
-                                    console.log(
-                                        "Left over: ",
-                                        noOfTokensReceived.sub(
-                                            noOfTokensReceivedFromFormula
-                                        )
-                                    );
                                     //  User's TOKEN (like DAI etc.) balance should be equal to no. of tokens
                                     //  calculated from formula but sometimes, it is not equal like in case of AAVE
-                                    //  where the token and lpToken ratio is 1:1
+                                    //  where the token and lpToken ratio is 1:1 (Sometimes) - Deepanshu
                                     if (
                                         afterUserTokenBalanceWei.eq(
                                             noOfTokensReceivedFromFormula
                                         )
                                     ) {
-                                        console.log(
-                                            "After token balance matched with tokens calculated from formula...."
-                                        );
                                         expect(afterUserTokenBalanceWei).to.equal(
                                             noOfTokensReceivedFromFormula
                                         );
@@ -1437,18 +1212,12 @@ program
                                             noOfTokensReceivedFromFormula
                                         )
                                     ) {
-                                        console.log(
-                                            "Token balance of User less than the formula value"
-                                        );
                                         expect(
                                             afterUserTokenBalanceWei.lte(
                                                 noOfTokensReceivedFromFormula
                                             )
                                         ).to.be.true;
                                     } else {
-                                        console.log(
-                                            "Token balance of User greater than the formula value"
-                                        );
                                         expect(
                                             afterUserTokenBalanceWei.gte(
                                                 noOfTokensReceivedFromFormula
@@ -1460,46 +1229,18 @@ program
                                         optyTokenBasicPool.address
                                     );
 
-                                    console.log("STEP-4");
-                                    console.log(
-                                        "Before withdraw, contract " +
-                                            strategiesTokenKey +
-                                            " balance: ",
-                                        ethers.utils.formatEther(
-                                            initialContractTokenBalanceWei
-                                        )
-                                    );
                                     //  Sometimes, Contract has left with some small fraction of Token like DAI etc.
                                     if (
                                         afterContractTokenBalanceWei.eq(
                                             initialContractTokenBalanceWei
                                         )
                                     ) {
-                                        console.log(
-                                            "After withdraw contracts " +
-                                                strategiesTokenKey +
-                                                " balance when there is no left over: ",
-                                            ethers.utils.formatEther(
-                                                afterContractTokenBalanceWei
-                                            )
-                                        );
-                                        // expect(afterContractTokenBalanceWei).to.equal(
-                                        //     initialContractTokenBalanceWei
-                                        // );
                                         expect(afterContractTokenBalanceWei.eq(0)).to.be
                                             .true;
                                         expect(initialContractTokenBalanceWei.eq(0)).to
                                             .be.true;
                                     } else {
-                                        console.log(
-                                            "After withdraw contracts " +
-                                                strategiesTokenKey +
-                                                " balance when there is some tokens left over: ",
-                                            ethers.utils.formatEther(
-                                                afterContractTokenBalanceWei
-                                            )
-                                        );
-                                        // Note: Commented while testing USDC token strategies
+                                        // Note: Commented while testing USDC token strategies - Deepanshu
                                         // expect(
                                         //     afterContractTokenBalanceWei.gte(
                                         //         initialContractTokenBalanceWei.add(
@@ -1551,24 +1292,10 @@ program
                                 tokenStrategyGasUsedRecord[strategiesTokenKey] = {
                                     GasRecords: allStrategiesGasUsedRecords,
                                 };
-                                console.log(
-                                    "Strategy Gas Records: ",
-                                    allStrategiesGasUsedRecords
-                                );
-                                console.log(
-                                    "token-vise gas used token list: ",
-                                    tokenStrategyGasUsedRecord
-                                );
-                                console.log(
-                                    "FROM INSIDE: ",
-                                    tokenStrategyGasUsedRecord[strategiesTokenKey]
-                                        .GasRecords
-                                );
 
+                                //  Pushing data to DB
                                 if (command.insertGasRecordsInDB) {
-                                    console.log(
-                                        "****    Coming INTO PUTTING THE DATA INTO DB    ****"
-                                    );
+                                    
                                     allStrategiesGasUsedRecords.forEach(
                                         async (gasRecordItem) => {
                                             const inserQueryResponse: number = await utilities.insertGasUsedRecordsIntoDB(
@@ -1582,9 +1309,7 @@ program
                                                 gasRecordItem.userWithdrawRebalanceTx,
                                                 command.runTimeversion
                                             );
-                                            console.log(
-                                                "Checking row is inserted or not...."
-                                            );
+                                            
                                             expect(inserQueryResponse).to.equal(
                                                 1,
                                                 "All records for gas used are not entered into DB!"
@@ -1593,10 +1318,9 @@ program
                                     );
                                 }
 
+                                //  Writing data into file
                                 if (command.writeGasRecordsInFile) {
-                                    console.log(
-                                        "****    Coming into putting records into FILE    ****"
-                                    );
+                                    
                                     let path = process.env.PWD;
                                     if (path?.endsWith("earn-protocol")) {
                                         path = path + "/test/gasRecordFiles/";
@@ -1612,27 +1336,22 @@ program
                                         err: { code: string } | null,
                                         stat: any
                                     ) {
+                                        //  if file exists, then appending data to the file
                                         if (err == null) {
-                                            console.log(
-                                                "File exists, therefore appending.."
-                                            );
+                                            
                                             await utilities.appendInFile(
                                                 fileName,
                                                 tokenStrategyGasUsedRecord
                                             );
-                                            console.log("appending done..");
-                                            // await formatFile(fileName);
+                                            
                                         } else if (err.code === "ENOENT") {
-                                            // file does not exist
-                                            console.log(
-                                                "File doesn't exists.. therefore writing.."
-                                            );
+                                            // file does not exist, therefore creating new one and writing into it
                                             await utilities.writeInFile(
                                                 fileName,
                                                 tokenStrategyGasUsedRecord
                                             );
                                         } else {
-                                            console.log("Some other error: ", err.code);
+                                            console.log("Error occured while writing into file: ", err.code);
                                         }
                                     });
                                 }
