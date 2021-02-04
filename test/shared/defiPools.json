@@ -647,12 +647,5 @@
             "lpToken": "0x5165d24277cD063F5ac44Efd447B27025e888f37",
             "tokens": ["0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e"]
         }
-    },
-    "AaveBorrowPoolProxy": {
-        "dai": {
-            "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
-            "lpToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
-            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
-        }
     }
 }

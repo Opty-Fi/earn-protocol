@@ -17,6 +17,42 @@ const pool = new Pool({
     port: process.env.DB_PORT,
 });
 
+const Ganache = require("ganache-core");
+let provider: ethers.providers.Web3Provider;
+const MAINNET_NODE_URL = process.env.MAINNET_NODE_URL;
+
+//  Function to start the Ganache provider with forked mainnet using chainstack's network URL
+//  Getting 2 Wallets in return - one acting as Owner and another one acting as user
+export async function startChain() {
+    const ganache = await Ganache.provider({
+        fork: MAINNET_NODE_URL,
+        network_id: 1,
+        mnemonic: `${process.env.MY_METAMASK_MNEMONIC}`,
+        default_balance_ether: 200000,
+        total_accounts: 21,
+        locked: false,
+    });
+    provider = new ethers.providers.Web3Provider(ganache);
+    const ownerWallet = ethers.Wallet.fromMnemonic(
+        `${process.env.MY_METAMASK_MNEMONIC}`
+    ).connect(provider);
+    let ownerWalletBalance = await provider.getBalance(ownerWallet.address);
+    console.log(
+        "OWNER'S ETHER BALANCE BEFORE STARTING TEST SUITE: ",
+        ethers.utils.formatEther(ownerWalletBalance)
+    );
+    const userWallet = ethers.Wallet.fromMnemonic(
+        `${process.env.MY_METAMASK_MNEMONIC}`,
+        `m/44'/60'/0'/0/1`
+    ).connect(provider);
+    let userWalletBalance = await provider.getBalance(ownerWallet.address);
+    console.log(
+        "USER'S ETHER BALANCE BEFORE STARTING TEST SUITE: ",
+        ethers.utils.formatEther(userWalletBalance)
+    );
+    return [ownerWallet, userWallet, provider];
+}
+
 export function expandToTokenDecimals(n: number, exponent: number): ethers.BigNumber {
     // bigNumberify(n).mul(bigNumberify(10).pow(exponent)); -> ethers_V4.0.48 working code (kept until testing gets completed)
     return ethers.BigNumber.from(n).mul(

@@ -8,6 +8,7 @@ import {
     fundWallet,
     insertGasUsedRecordsIntoDB,
     writeInFile,
+    startChain,
 } from "./shared/utilities";
 import OptyTokenBasicPool from "../build/BasicPool.json";
 import OptyTokenBasicPoolMkr from "../build/BasicPoolMkr.json";
@@ -20,13 +21,14 @@ import AaveV1CodeProvider from "../build/AaveV1CodeProvider.json";
 import AaveV2CodeProvider from "../build/AaveV2CodeProvider.json";
 import CurvePoolCodeProvider from "../build/CurvePoolCodeProvider.json";
 import CurveSwapCodeProvider from "../build/CurveSwapCodeProvider.json";
-import ByteCodes from "./shared/Bytecodes.json";
 import CreamCodeProvider from "../build/CreamCodeProvider.json";
 import DForceCodeProvider from "../build/DForceCodeProvider.json";
 import FulcrumCodeProvider from "../build/FulcrumCodeProvider.json";
 import HarvestCodeProvider from "../build/HarvestCodeProvider.json";
 import YVaultCodeProvider from "../build/YVaultCodeProvider.json";
+import YearnCodeProvider from "../build/YearnCodeProvider.json";
 import dYdXCodeProvider from "../build/dYdXCodeProvider.json";
+import ByteCodes from "./shared/Bytecodes.json";
 import codeProviders from "./shared/codeProviders.json";
 import defiPools from "./shared/defiPools.json";
 import curveSwapDataProvider from "./shared/CurveSwapDataProvider.json";
@@ -179,44 +181,13 @@ program
                 dYdXCodeProvider,
                 CreamCodeProvider,
                 AaveV2CodeProvider,
+                YearnCodeProvider,
             };
 
             let optyCodeProviderContractVariables: OptyCodeProviderContractVariables = {};
             let codeProvidersKey: keyof typeof codeProviders; //  Getting the op<XXX>Pool contracts as key corresponding to the CodeProvider Contracts
             let defiPoolsKey: keyof typeof defiPools; //  Keys of defiPools.json corresponding to CodeProvider Contracts
             let provider: ethers.providers.Web3Provider;
-
-            //  Function to start the Ganache provider with forked mainnet using chainstack's network URL
-            //  Getting 2 Wallets in return - one acting as Owner and another one acting as user
-            async function startChain() {
-                const ganache = await Ganache.provider({
-                    fork: MAINNET_NODE_URL,
-                    network_id: 1,
-                    mnemonic: `${process.env.MY_METAMASK_MNEMONIC}`,
-                    default_balance_ether: 200000,
-                    total_accounts: 21,
-                    locked: false,
-                });
-                provider = new ethers.providers.Web3Provider(ganache);
-                const ownerWallet = ethers.Wallet.fromMnemonic(
-                    `${process.env.MY_METAMASK_MNEMONIC}`
-                ).connect(provider);
-                let ownerWalletBalance = await provider.getBalance(ownerWallet.address);
-                console.log(
-                    "OWNER'S ETHER BALANCE BEFORE STARTING TEST SUITE: ",
-                    ethers.utils.formatEther(ownerWalletBalance)
-                );
-                const userWallet = ethers.Wallet.fromMnemonic(
-                    `${process.env.MY_METAMASK_MNEMONIC}`,
-                    `m/44'/60'/0'/0/1`
-                ).connect(provider);
-                let userWalletBalance = await provider.getBalance(ownerWallet.address);
-                console.log(
-                    "USER'S ETHER BALANCE BEFORE STARTING TEST SUITE: ",
-                    ethers.utils.formatEther(userWalletBalance)
-                );
-                return [ownerWallet, userWallet];
-            }
 
             describe("OptyTokenBasicPool", async () => {
                 //  local variables used throughout the testing
@@ -237,9 +208,10 @@ program
                 let optyCodeProviderContract: any;
 
                 before(async () => {
-                    let allWallets = await startChain();
-                    ownerWallet = allWallets[0];
-                    userWallet = allWallets[1];
+                    let allParams = await startChain();
+                    provider = <ethers.providers.Web3Provider>allParams[2];
+                    ownerWallet = <ethers.Wallet>allParams[0];
+                    userWallet = <ethers.Wallet>allParams[1];
 
                     console.log(
                         "\n" +
@@ -307,7 +279,8 @@ program
                                 "CodeProvider contracts: ",
                                 codeProviders[codeProvidersKey]
                             );
-                            let optyCodeProviderContracts = codeProviders[codeProvidersKey];
+                            let optyCodeProviderContracts =
+                                codeProviders[codeProvidersKey];
 
                             /*  
                                 Iterating through the list of CodeProvider Contracts for deploying them
@@ -315,7 +288,9 @@ program
                             let count = 1;
                             for (let optyCodeProviderContractsKey of optyCodeProviderContracts) {
                                 let flag: boolean;
-                                if (optyCodeProviderContractsKey == command.codeProvider) {
+                                if (
+                                    optyCodeProviderContractsKey == command.codeProvider
+                                ) {
                                     console.log("matched");
                                     flag = true;
                                 } else if (command.codeProvider == null) {
@@ -326,7 +301,7 @@ program
                                     flag = false;
                                 }
 
-                                if (flag && count <= 11) {
+                                if (flag && count <= optyCodeProviderContracts.length) {
                                     if (
                                         codeProviderContract.hasOwnProperty(
                                             optyCodeProviderContractsKey.toString()
@@ -352,7 +327,11 @@ program
                                                 "yvaultcodeprovider" ||
                                             optyCodeProviderContractsKey
                                                 .toString()
-                                                .toLowerCase() == "aavev2codeprovider"
+                                                .toLowerCase() ==
+                                                "aavev2codeprovider" ||
+                                            optyCodeProviderContractsKey
+                                                .toString()
+                                                .toLowerCase() == "yearncodeprovider"
                                         ) {
                                             console.log(
                                                 "==== 1. Depoying " +
