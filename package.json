@@ -40,7 +40,6 @@
         "clean": "rimraf ./build/",
         "precompile": "yarn clean",
         "compile": "waffle .waffle.json",
-        
         "test": "mocha",
         "prepublishOnly": "yarn test",
         "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol"

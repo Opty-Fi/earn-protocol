@@ -55,7 +55,7 @@ contract Registry is ModifiersController {
      * 
      * All these tokens can be approved by governance only
      */    
-    constructor () public ModifiersController(msg.sender, msg.sender, msg.sender) {
+    constructor () public ModifiersController(msg.sender, msg.sender, msg.sender, msg.sender) {
         
         // underlying tokens
         address  dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
