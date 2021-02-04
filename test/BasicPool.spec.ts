@@ -1054,7 +1054,7 @@ program
                                                     tokenToStrategyStepsHash
                                                 )
                                             ) {
-                                                await expectRevert(
+                                                await utilities.expectRevert(
                                                     optyRegistry.setStrategy(
                                                         tokensHash,
                                                         strategySteps
@@ -1258,7 +1258,9 @@ program
                                                         // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                         let roundingDelta = 1;
                                                         console.log("Started waiting");
-                                                        await sleep(60 * 1000); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
+                                                        await utilities.sleep(
+                                                            60 * 1000
+                                                        ); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
                                                         console.log("waiting over");
                                                         // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                         await testUserWithdrawRebalance(
@@ -1289,7 +1291,9 @@ program
                                                         // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                         let roundingDelta = 0;
                                                         console.log("Started waiting");
-                                                        await sleep(120 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                        await utilities.sleep(
+                                                            120 * 1000
+                                                        ); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
                                                         console.log("waiting over");
                                                         // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                         await testUserWithdrawRebalance(
@@ -1323,7 +1327,9 @@ program
                                                         // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                         let roundingDelta = 0;
                                                         console.log("Started waiting");
-                                                        await sleep(180 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                        await utilities.sleep(
+                                                            180 * 1000
+                                                        ); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
                                                         console.log("waiting over");
                                                         // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                         await testUserWithdrawRebalance(
@@ -1349,7 +1355,9 @@ program
                                                         // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                         let roundingDelta = 0;
                                                         console.log("Started waiting");
-                                                        await sleep(240 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                        await utilities.sleep(
+                                                            240 * 1000
+                                                        ); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
                                                         console.log("waiting over");
                                                         // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                         await testUserWithdrawRebalance(
@@ -2076,53 +2084,6 @@ program
                             codeProvider
                         );
                     }
-                }
-
-                // Handle revert exception occured further..
-                async function expectException(
-                    promise: Promise<any>,
-                    expectedError: any
-                ) {
-                    try {
-                        await promise;
-                    } catch (error) {
-                        if (error.message.indexOf(expectedError) === -1) {
-                            // When the exception was a revert, the resulting string will include only
-                            // the revert reason, otherwise it will be the type of exception (e.g. 'invalid opcode')
-                            const actualError = error.message.replace(
-                                /Returned error: VM Exception while processing transaction: (revert )?/,
-                                ""
-                            );
-                            expect(actualError).to.equal(
-                                expectedError,
-                                "Wrong kind of exception received"
-                            );
-                        }
-                        return;
-                    }
-                    expect.fail("Expected an exception but none was received");
-                }
-
-                // function for checking the revert conditions
-                const expectRevert = async function (
-                    promise: Promise<any>,
-                    expectedError: any
-                ) {
-                    promise.catch(() => {}); // Avoids uncaught promise rejections in case an input validation causes us to return early
-
-                    if (!expectedError) {
-                        throw Error(
-                            "No revert reason specified: call expectRevert with the reason string, or use expectRevert.unspecified \
-        if your 'require' statement doesn't have one."
-                        );
-                    }
-
-                    let status = await expectException(promise, expectedError);
-                    console.log("REVERT STATUS: ", status);
-                };
-
-                async function sleep(ms: number) {
-                    return new Promise((resolve) => setTimeout(resolve, ms));
                 }
             });
         }

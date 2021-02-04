@@ -3,6 +3,7 @@ import { Contract, ethers } from "ethers";
 import exchange from "./exchange.json";
 import addressAbis from "./AddressAbis.json";
 import tokenAddresses from "./TokenAddresses.json";
+import { expect } from "chai";
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -221,4 +222,46 @@ async function formatFile(fileName: string) {
         // console.log("loop-4")
         await writeInFile(fileName, final_data);
     });
+}
+
+// Handle revert exception occured further..
+export async function expectException(promise: Promise<any>, expectedError: any) {
+    try {
+        await promise;
+    } catch (error) {
+        if (error.message.indexOf(expectedError) === -1) {
+            // When the exception was a revert, the resulting string will include only
+            // the revert reason, otherwise it will be the type of exception (e.g. 'invalid opcode')
+            const actualError = error.message.replace(
+                /Returned error: VM Exception while processing transaction: (revert )?/,
+                ""
+            );
+            expect(actualError).to.equal(
+                expectedError,
+                "Wrong kind of exception received"
+            );
+        }
+        return;
+    }
+    expect.fail("Expected an exception but none was received");
+}
+
+// function for checking the revert conditions
+export async function expectRevert(promise: Promise<any>, expectedError: any) {
+    promise.catch(() => {}); // Avoids uncaught promise rejections in case an input validation causes us to return early
+
+    if (!expectedError) {
+        throw Error(
+            "No revert reason specified: call expectRevert with the reason string, or use expectRevert.unspecified \
+if your 'require' statement doesn't have one."
+        );
+    }
+
+    let status = await expectException(promise, expectedError);
+    console.log("REVERT STATUS: ", status);
+}
+
+//  sleep function
+export async function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
