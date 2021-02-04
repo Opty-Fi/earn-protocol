@@ -143,7 +143,6 @@ export async function fundWallet(
             0,
         ]);
     } else {
-        // console.log("FUND WALLET WITH TOKENS EXCEPT WETH")
         await uniswapInstance.swapETHForExactTokens(
             amount,
             [tokenAddresses.weth, tokenAddress],
@@ -184,45 +183,41 @@ export async function insertGasUsedRecordsIntoDB(
 export async function writeInFile(fileName: string, data: any) {
     await fs.writeFile(fileName, JSON.stringify(data), "utf8", function (err: any) {
         if (err) {
-            console.log("An error occured while writing JSON Object to File.");
+            //  Handling error occured while writing JSON Object to File
             return console.log(err);
         }
-        console.log(fileName, " file has been saved. --Write-1");
     });
 }
 
 export async function appendInFile(fileName: string, data: any) {
     await fs.appendFileSync(fileName, JSON.stringify(","), "utf8", function (err: any) {
         if (err) {
-            console.log("An error occured while appending JSON Object to File.");
+            //  Handling error occured while appending JSON Object to File
             return console.log(err);
         }
-        console.log(fileName, " file has been saved.-- Append-1");
     });
     await fs.appendFileSync(fileName, JSON.stringify(data), "utf8", function (
         err: any
     ) {
         if (err) {
-            console.log("An error occured while appending JSON Object to File.");
+            //  Handling error occured while appending JSON Object to File
             return console.log(err);
         }
-        console.log(fileName, " file has been saved.-- Append-2");
     });
-    console.log("last STEP..");
     await formatFile(fileName);
 }
 
 async function formatFile(fileName: string) {
     await fs.readFile(fileName, "utf8", async function (err: any, data: string) {
-        // console.log("ENTERED loop-3")
+        
         if (err) {
             return console.log(err);
         }
-        // console.log("Data: ", data)
+        //  refactoring text data of string format into json
         var result = data.replace(/}","{/g, ",");
         var final_data = JSON.parse(result);
-        // console.log("Result: ", final_data)
-        // console.log("loop-4")
+        
+        //  writing into file
         await writeInFile(fileName, final_data);
     });
 }
@@ -261,7 +256,6 @@ if your 'require' statement doesn't have one."
     }
 
     let status = await expectException(promise, expectedError);
-    console.log("REVERT STATUS: ", status);
 }
 
 //  sleep function
@@ -286,22 +280,14 @@ export async function deployCodeProviderContracts(
         optyCodeProviderContractsKey.toString().toLowerCase() == "aavev2codeprovider" ||
         optyCodeProviderContractsKey.toString().toLowerCase() == "yearncodeprovider"
     ) {
-        console.log(
-            "==== 1. Depoying " + optyCodeProviderContractsKey + "  Contract ===="
-        );
 
         //  Deploying the code provider contracts
         optyCodeProviderContract = await deployContract(ownerWallet, codeProviderAbi, [
             OptyRegistryAddress,
         ]);
-        console.log(
-            "Printing " + optyCodeProviderContractsKey + "'s address: ",
-            optyCodeProviderContract.address
-        );
+
     } else {
-        console.log(
-            "==== 2. Depoying " + optyCodeProviderContractsKey + "  Contract ===="
-        );
+
         var overrideOptions: ethers.providers.TransactionRequest = {
             gasLimit: 6721975,
         };
@@ -311,29 +297,21 @@ export async function deployCodeProviderContracts(
             var overrideOptions: ethers.providers.TransactionRequest = {
                 gasLimit: 6721975,
             };
-            console.log("Deploy in IF condition..");
             let factory = new ethers.ContractFactory(
                 codeProviderAbi.abi,
                 OtherImports.ByteCodes.CurveSwapCodeProvider,
                 ownerWallet
             );
-            console.log("deploying curveSwap contract");
             //  Deploying the curveSwap code provider contract
             optyCodeProviderContract = await factory.deploy(
                 OptyRegistryAddress,
                 GathererAddress,
                 overrideOptions
             );
-            console.log("deployed curve swap.....");
-            // console.log("deploying txn: ", optyCodeProviderContract.deployTransaction)
+
             let curveSwapDeployReceipt = await optyCodeProviderContract.deployTransaction.wait();
-            // console.log("Curve swap deployed receipt:  ", curveSwapDeployReceipt)
-            console.log(
-                "Printing " + optyCodeProviderContractsKey + "'s address: ",
-                optyCodeProviderContract.address
-            );
         } else {
-            console.log("Deploy in else condition");
+
             var overrideOptions: ethers.providers.TransactionRequest = {
                 gasLimit: 6721975,
             };
@@ -345,10 +323,6 @@ export async function deployCodeProviderContracts(
                 [OptyRegistryAddress, GathererAddress],
                 overrideOptions
             );
-            console.log(
-                "Printing " + optyCodeProviderContractsKey + "'s address: ",
-                optyCodeProviderContract.address
-            );
         }
 
         //  Setting/Mapping the liquidityPoolToken, SwapPoolTOUnderlyingTokens and gauge address as pre-requisites in CurveSwapCodeProvider
@@ -358,10 +332,7 @@ export async function deployCodeProviderContracts(
                 curveSwapDataProviderKey.toString().toLowerCase() ==
                 optyCodeProviderContractsKey.toString().toLowerCase()
             ) {
-                console.log(
-                    "CurveSwapCodeProvider contract address: ",
-                    optyCodeProviderContract.address
-                );
+                
                 let tokenPairs =
                     OtherImports.curveSwapDataProvider[curveSwapDataProviderKey];
                 let tokenPair: keyof typeof tokenPairs;
@@ -375,12 +346,11 @@ export async function deployCodeProviderContracts(
                         value: 0,
                         gasLimit: 6721970,
                     };
-                    console.log("step-1");
+
                     let optyCodeProviderContractOwnerSigner = optyCodeProviderContract.connect(
                         ownerWallet
                     );
 
-                    console.log("step-1a");
                     //  Mapping lpToken to swapPool contract
                     await optyCodeProviderContractOwnerSigner.functions.setLiquidityPoolToken(
                         _swapPool,
@@ -390,14 +360,12 @@ export async function deployCodeProviderContracts(
                         }
                     );
 
-                    console.log("step-2");
                     //  Mapping UnderlyingTokens to SwapPool Contract
                     await optyCodeProviderContract.setSwapPoolToUnderlyingTokens(
                         _swapPool,
                         _underlyingTokens
                     );
 
-                    console.log("step-3");
                     //  Mapping Gauge contract to the SwapPool Contract
                     await optyCodeProviderContract.setSwapPoolToGauges(
                         _swapPool,

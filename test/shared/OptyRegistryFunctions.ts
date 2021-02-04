@@ -11,20 +11,16 @@ export async function approveTokenLpToken(
     // if (!!lpToken || lpToken.length > 0) {
     if (lpToken != "0x0000000000000000000000000000000000000000") {
         let lpTokenApproveStatus = await optyRegistry.tokens(lpToken);
+        
         if (!lpTokenApproveStatus) {
-            console.log("Approving LpToken: ", lpToken);
             await optyRegistry.approveToken(lpToken);
         }
     }
 
-    console.log("STep-1 approve");
     if (tokens.length > 0) {
-        console.log("step2 approve");
         tokens.forEach(async (token) => {
-            console.log("step3 approve");
             let tokenApproveStatus = await optyRegistry.tokens(token);
             if (!tokenApproveStatus) {
-                console.log("Approving token: ", token);
                 await optyRegistry.approveToken(token);
             }
         });
@@ -45,10 +41,8 @@ export async function setTokensHashToTokens(tokens: string[], optyRegistry: Cont
         tokensHash !==
             "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
     ) {
-        console.log("Tokens Hash generated from SHA3 lib: ", tokensHash);
         const setTokensHashTx = await optyRegistry.setTokensHashToTokens(tokens);
         const setTokensHashTxOutput = await setTokensHashTx.wait();
-        console.log("set Tokens hash output from contract: ", setTokensHashTxOutput);
     }
 }
 
@@ -71,7 +65,6 @@ export async function approveLpCpAndMapLpToCodeProvider(
     if (isBorrow) {
         await optyRegistry.setLiquidityPoolToBorrowPoolProxy(pool, codeProvider);
     } else {
-        console.log("Mapping code provider to lp");
         await optyRegistry.setLiquidityPoolToCodeProvider(pool, codeProvider);
     }
 }
