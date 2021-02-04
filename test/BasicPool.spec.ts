@@ -239,146 +239,147 @@ program
                     */
                     let token: keyof typeof OtherImports.tokenAddresses;
                     for (token in OtherImports.tokenAddresses) {
-                            let tokenStatus = await optyRegistry.tokens(
+                        let tokenStatus = await optyRegistry.tokens(
+                            OtherImports.tokenAddresses[token]
+                        );
+                        if (!tokenStatus) {
+                            await optyRegistry.approveToken(
                                 OtherImports.tokenAddresses[token]
                             );
-                            if (!tokenStatus) {
-                                await optyRegistry.approveToken(
-                                    OtherImports.tokenAddresses[token]
-                                );
-                            }
+                        }
                     }
-                            
-                            /*  
+
+                    /*  
                                 Iterating through the list of CodeProvider Contracts for deploying them
                             */
-                            let count = 1;
-                            let optyCodeProviderContracts = OtherImports.ProtocolCodeProviderNames.BasicPool;
-                            for (let optyCodeProviderContractsKey of optyCodeProviderContracts) {
-                                let flag: boolean;
-                                if (
-                                    optyCodeProviderContractsKey == command.codeProvider
-                                ) {
-                                    console.log("matched");
-                                    flag = true;
-                                } else if (command.codeProvider == null) {
-                                    console.log("all");
-                                    flag = true;
-                                } else {
-                                    console.log("not matched");
-                                    flag = false;
-                                }
+                    let count = 1;
+                    let optyCodeProviderContracts =
+                        OtherImports.ProtocolCodeProviderNames.BasicPool;
+                    for (let optyCodeProviderContractsKey of optyCodeProviderContracts) {
+                        let flag: boolean;
+                        if (optyCodeProviderContractsKey == command.codeProvider) {
+                            console.log("matched");
+                            flag = true;
+                        } else if (command.codeProvider == null) {
+                            console.log("all");
+                            flag = true;
+                        } else {
+                            console.log("not matched");
+                            flag = false;
+                        }
 
-                                if (flag && count <= optyCodeProviderContracts.length) {
+                        if (flag && count <= optyCodeProviderContracts.length) {
+                            if (
+                                codeProviderContract.hasOwnProperty(
+                                    optyCodeProviderContractsKey.toString()
+                                )
+                            ) {
+                                //  Deploying  the  code provider contracts
+                                optyCodeProviderContract = await utilities.deployCodeProviderContracts(
+                                    optyCodeProviderContractsKey,
+                                    ownerWallet,
+                                    codeProviderContract[optyCodeProviderContractsKey],
+                                    optyRegistry.address,
+                                    gatherer.address
+                                );
+
+                                //  Mapping CodeProvider contracts deployed to their variable names
+                                optyCodeProviderContractVariables[
+                                    optyCodeProviderContractsKey
+                                ] = optyCodeProviderContract;
+
+                                assert.isDefined(
+                                    optyCodeProviderContractVariables[
+                                        optyCodeProviderContractsKey
+                                    ],
+                                    "optyCodeProviderContract contract not deployed"
+                                );
+                                //  Iterating through defiPools.json to approve LpTokens/Tokens, set Tokens hash
+                                //  mapping to tokens, approve LP/CP, map Lp to CodeProvider Contract and setting the
+                                //  Lp to LpToken
+                                for (defiPoolsKey in OtherImports.defiPools) {
                                     if (
-                                        codeProviderContract.hasOwnProperty(
-                                            optyCodeProviderContractsKey.toString()
-                                        )
+                                        defiPoolsKey.toString() ==
+                                        optyCodeProviderContractsKey.toString()
                                     ) {
-                                        //  Deploying  the  code provider contracts
-                                        optyCodeProviderContract = await utilities.deployCodeProviderContracts(optyCodeProviderContractsKey, ownerWallet, codeProviderContract[
-                                            optyCodeProviderContractsKey
-                                        ], optyRegistry.address, gatherer.address)
-                                        
-                                        //  Mapping CodeProvider contracts deployed to their variable names
-                                        optyCodeProviderContractVariables[
-                                            optyCodeProviderContractsKey
-                                        ] = optyCodeProviderContract;
+                                        let defiPoolsUnderlyingTokens: DefiPools =
+                                            OtherImports.defiPools[defiPoolsKey];
+                                        //  Iteracting through all the underlying tokens available corresponding to this
+                                        //  current CodeProvider Contract Key
+                                        for (let defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
+                                            //  Approving tokens, lpTokens
+                                            await RegistryFunctions.approveTokenLpToken(
+                                                defiPoolsUnderlyingTokens[
+                                                    defiPoolsUnderlyingTokensKey
+                                                ].lpToken,
+                                                defiPoolsUnderlyingTokens[
+                                                    defiPoolsUnderlyingTokensKey
+                                                ].tokens,
+                                                optyRegistry
+                                            );
+                                            // Mapping tokensHash to token
+                                            await RegistryFunctions.setTokensHashToTokens(
+                                                defiPoolsUnderlyingTokens[
+                                                    defiPoolsUnderlyingTokensKey
+                                                ].tokens,
+                                                optyRegistry
+                                            );
 
-                                        assert.isDefined(
-                                            optyCodeProviderContractVariables[
-                                                optyCodeProviderContractsKey
-                                            ],
-                                            "optyCodeProviderContract contract not deployed"
-                                        );
-                                        //  Iterating through defiPools.json to approve LpTokens/Tokens, set Tokens hash
-                                        //  mapping to tokens, approve LP/CP, map Lp to CodeProvider Contract and setting the
-                                        //  Lp to LpToken
-                                        for (defiPoolsKey in OtherImports.defiPools) {
+                                            // Approving pool as Liquidity pool and mapping it to the CodeProvider
+                                            await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
+                                                defiPoolsUnderlyingTokens[
+                                                    defiPoolsUnderlyingTokensKey
+                                                ].pool,
+                                                optyCodeProviderContractVariables[
+                                                    optyCodeProviderContractsKey
+                                                ].address,
+                                                false,
+                                                optyRegistry
+                                            );
+
                                             if (
-                                                defiPoolsKey.toString() ==
-                                                optyCodeProviderContractsKey.toString()
+                                                defiPoolsUnderlyingTokens[
+                                                    defiPoolsUnderlyingTokensKey
+                                                ].lpToken !=
+                                                "0x0000000000000000000000000000000000000000"
                                             ) {
-                                                let defiPoolsUnderlyingTokens: DefiPools =
-                                                    OtherImports.defiPools[
-                                                        defiPoolsKey
-                                                    ];
-                                                //  Iteracting through all the underlying tokens available corresponding to this
-                                                //  current CodeProvider Contract Key
-                                                for (let defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
-                                                    //  Approving tokens, lpTokens
-                                                    await RegistryFunctions.approveTokenLpToken(
-                                                        defiPoolsUnderlyingTokens[
-                                                            defiPoolsUnderlyingTokensKey
-                                                        ].lpToken,
-                                                        defiPoolsUnderlyingTokens[
-                                                            defiPoolsUnderlyingTokensKey
-                                                        ].tokens,
-                                                        optyRegistry
-                                                    );
-                                                    // Mapping tokensHash to token
-                                                    await RegistryFunctions.setTokensHashToTokens(
-                                                        defiPoolsUnderlyingTokens[
-                                                            defiPoolsUnderlyingTokensKey
-                                                        ].tokens,
-                                                        optyRegistry
-                                                    );
-                                                    
-                                                    // Approving pool as Liquidity pool and mapping it to the CodeProvider
-                                                    await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
-                                                        defiPoolsUnderlyingTokens[
-                                                            defiPoolsUnderlyingTokensKey
-                                                        ].pool,
-                                                        optyCodeProviderContractVariables[
-                                                            optyCodeProviderContractsKey
-                                                        ].address,
-                                                        false,
-                                                        optyRegistry
-                                                    );
-
-                                                    if (
-                                                        defiPoolsUnderlyingTokens[
-                                                            defiPoolsUnderlyingTokensKey
-                                                        ].lpToken !=
-                                                        "0x0000000000000000000000000000000000000000"
-                                                    ) {
-                                                        // Mapping LiquidityPool to lpToken
-                                                        await optyRegistry.setLiquidityPoolToLPToken(
-                                                            defiPoolsUnderlyingTokens[
-                                                                defiPoolsUnderlyingTokensKey
-                                                            ].pool,
-                                                            defiPoolsUnderlyingTokens[
-                                                                defiPoolsUnderlyingTokensKey
-                                                            ].tokens,
-                                                            defiPoolsUnderlyingTokens[
-                                                                defiPoolsUnderlyingTokensKey
-                                                            ].lpToken
-                                                        );
-                                                    }
-                                                    // Fetching the lpToken corresponding to the liquidity pool and underlying token
-                                                    let mapResult = await optyRegistry.liquidityPoolToLPTokens(
-                                                        defiPoolsUnderlyingTokens[
-                                                            defiPoolsUnderlyingTokensKey
-                                                        ].pool,
-                                                        "0x" +
-                                                            abi
-                                                                .soliditySHA3(
-                                                                    ["address[]"],
-                                                                    [
-                                                                        defiPoolsUnderlyingTokens[
-                                                                            defiPoolsUnderlyingTokensKey
-                                                                        ].tokens,
-                                                                    ]
-                                                                )
-                                                                .toString("hex")
-                                                    );
-                                                }
+                                                // Mapping LiquidityPool to lpToken
+                                                await optyRegistry.setLiquidityPoolToLPToken(
+                                                    defiPoolsUnderlyingTokens[
+                                                        defiPoolsUnderlyingTokensKey
+                                                    ].pool,
+                                                    defiPoolsUnderlyingTokens[
+                                                        defiPoolsUnderlyingTokensKey
+                                                    ].tokens,
+                                                    defiPoolsUnderlyingTokens[
+                                                        defiPoolsUnderlyingTokensKey
+                                                    ].lpToken
+                                                );
                                             }
+                                            // Fetching the lpToken corresponding to the liquidity pool and underlying token
+                                            let mapResult = await optyRegistry.liquidityPoolToLPTokens(
+                                                defiPoolsUnderlyingTokens[
+                                                    defiPoolsUnderlyingTokensKey
+                                                ].pool,
+                                                "0x" +
+                                                    abi
+                                                        .soliditySHA3(
+                                                            ["address[]"],
+                                                            [
+                                                                defiPoolsUnderlyingTokens[
+                                                                    defiPoolsUnderlyingTokensKey
+                                                                ].tokens,
+                                                            ]
+                                                        )
+                                                        .toString("hex")
+                                            );
                                         }
                                     }
                                 }
-                                count++;
                             }
+                        }
+                        count++;
+                    }
                 });
 
                 after(async () => {
