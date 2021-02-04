@@ -88,9 +88,8 @@ program
             }
             console.log("Test Amount from CMD: ", command.testAmount);
 
-            const Ganache = require("ganache-core");
             const abi = require("ethereumjs-abi");
-            const MAINNET_NODE_URL = process.env.MAINNET_NODE_URL;
+
             let TEST_AMOUNT_NUM: number;
 
             //  Fetch the test amount from command line and if not found, then  use the default one
@@ -240,7 +239,6 @@ program
                     */
                     let token: keyof typeof OtherImports.tokenAddresses;
                     for (token in OtherImports.tokenAddresses) {
-                        if (token != "uniswapFactory") {
                             let tokenStatus = await optyRegistry.tokens(
                                 OtherImports.tokenAddresses[token]
                             );
@@ -249,30 +247,13 @@ program
                                     OtherImports.tokenAddresses[token]
                                 );
                             }
-                        }
                     }
-
-                    /*  
-                        Iterating through ProtocolCodeProviderNames.json and getting the corresponding CodeProvider Contracts mapped to
-                        respective op<XXX><Profile> Pool    
-                    */
-                    for (ProtocolCodeProviderNamesKey in OtherImports.ProtocolCodeProviderNames) {
-                        if (ProtocolCodeProviderNamesKey == "opDAIBsc") {
-                            console.log(
-                                "CodeProvider contracts: ",
-                                OtherImports.ProtocolCodeProviderNames[
-                                    ProtocolCodeProviderNamesKey
-                                ]
-                            );
-                            let optyCodeProviderContracts =
-                                OtherImports.ProtocolCodeProviderNames[
-                                    ProtocolCodeProviderNamesKey
-                                ];
-
+                            
                             /*  
                                 Iterating through the list of CodeProvider Contracts for deploying them
                             */
                             let count = 1;
+                            let optyCodeProviderContracts = OtherImports.ProtocolCodeProviderNames.BasicPool;
                             for (let optyCodeProviderContractsKey of optyCodeProviderContracts) {
                                 let flag: boolean;
                                 if (
@@ -598,8 +579,6 @@ program
                                 }
                                 count++;
                             }
-                        }
-                    }
                 });
 
                 after(async () => {
