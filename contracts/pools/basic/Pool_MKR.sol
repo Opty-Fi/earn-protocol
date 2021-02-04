@@ -80,10 +80,10 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     function supplyAll() public ifNotDiscontinued ifNotPaused {
         uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
-        uint256 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
-        for (uint256 _i = 0; _i < _steps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i);
-            for (uint256 _j = 0; _j < _codes.length; _j++) {
+        uint8 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
+        for (uint8 _i = 0; _i < _steps; _i++) {
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i, _steps);
+            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
                 require(success);
@@ -137,11 +137,12 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function _withdrawAll() internal {
-        uint256 _steps = strategyCodeProviderContract.getWithdrawAllStepsCount(strategyHash);
-        for (uint256 _i = 0; _i < _steps; _i++) {
-            uint256 _iterator = _steps - 1 - _i;
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolWithdrawAllCodes(payable(address(this)), token, strategyHash, _iterator);
-            for (uint256 _j = 0; _j < _codes.length; _j++) {
+        uint8 _steps = strategyCodeProviderContract.getWithdrawAllStepsCount(strategyHash);
+        for (uint8 _i = 0; _i < _steps; _i++) {
+            uint8 _iterator = _steps - 1 - _i;
+            bytes[] memory _codes =
+                strategyCodeProviderContract.getPoolWithdrawAllCodes(payable(address(this)), token, strategyHash, _iterator, _steps);
+            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool _success, ) = pool.call(data);
                 require(_success);
@@ -151,19 +152,21 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
     function harvest(bytes32 _hash) public {
         require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!invalidHash");
-        uint256 _claimRewardSteps = strategyCodeProviderContract.getClaimRewardStepsCount(_hash);
-        for (uint256 _i = 0; _i < _claimRewardSteps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolClaimAllRewardCodes(payable(address(this)), _hash, _i);
-            for (uint256 _j = 0; _j < _codes.length; _j++) {
+        uint8 _claimRewardSteps = strategyCodeProviderContract.getClaimRewardStepsCount(_hash);
+        for (uint8 _i = 0; _i < _claimRewardSteps; _i++) {
+            bytes[] memory _codes =
+                strategyCodeProviderContract.getPoolClaimAllRewardCodes(payable(address(this)), _hash, _i, _claimRewardSteps);
+            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
                 require(success);
             }
         }
-        uint256 _harvestSteps = strategyCodeProviderContract.getHarvestRewardStepsCount(_hash);
-        for (uint256 _i = 0; _i < _harvestSteps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolHarvestAllRewardCodes(payable(address(this)), token, _hash, _i);
-            for (uint256 _j = 0; _j < _codes.length; _j++) {
+        uint8 _harvestSteps = strategyCodeProviderContract.getHarvestRewardStepsCount(_hash);
+        for (uint8 _i = 0; _i < _harvestSteps; _i++) {
+            bytes[] memory _codes =
+                strategyCodeProviderContract.getPoolHarvestAllRewardCodes(payable(address(this)), token, _hash, _i, _harvestSteps);
+            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
                 require(success);
