@@ -244,7 +244,9 @@ program
                                 OtherImports.tokenAddresses[token]
                             );
                             if (!tokenStatus) {
-                                await optyRegistry.approveToken(OtherImports.tokenAddresses[token]);
+                                await optyRegistry.approveToken(
+                                    OtherImports.tokenAddresses[token]
+                                );
                             }
                         }
                     }
@@ -257,10 +259,14 @@ program
                         if (ProtocolCodeProviderNamesKey == "opDAIBsc") {
                             console.log(
                                 "CodeProvider contracts: ",
-                                OtherImports.ProtocolCodeProviderNames[ProtocolCodeProviderNamesKey]
+                                OtherImports.ProtocolCodeProviderNames[
+                                    ProtocolCodeProviderNamesKey
+                                ]
                             );
                             let optyCodeProviderContracts =
-                            OtherImports.ProtocolCodeProviderNames[ProtocolCodeProviderNamesKey];
+                                OtherImports.ProtocolCodeProviderNames[
+                                    ProtocolCodeProviderNamesKey
+                                ];
 
                             /*  
                                 Iterating through the list of CodeProvider Contracts for deploying them
@@ -421,7 +427,8 @@ program
                                                         optyCodeProviderContract.address
                                                     );
                                                     let tokenPairs =
-                                                        OtherImports.curveSwapDataProvider[
+                                                        OtherImports
+                                                            .curveSwapDataProvider[
                                                             curveSwapDataProviderKey
                                                         ];
                                                     let tokenPair: keyof typeof tokenPairs;
@@ -495,7 +502,9 @@ program
                                                 optyCodeProviderContractsKey.toString()
                                             ) {
                                                 let defiPoolsUnderlyingTokens: DefiPools =
-                                                OtherImports.defiPools[defiPoolsKey];
+                                                    OtherImports.defiPools[
+                                                        defiPoolsKey
+                                                    ];
                                                 //  Iteracting through all the underlying tokens available corresponding to this
                                                 //  current CodeProvider Contract Key
                                                 for (let defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
@@ -637,9 +646,9 @@ program
 
                 //  Iterating through all the strategies by picking underlyingTokens as key
                 let strategiesTokenKey: keyof typeof OtherImports.allStrategies;
-                let allStrategiesTokenKeys = Object.keys(OtherImports.allStrategies).map((item) =>
-                    item.toUpperCase()
-                );
+                let allStrategiesTokenKeys = Object.keys(
+                    OtherImports.allStrategies
+                ).map((item) => item.toUpperCase());
                 for (strategiesTokenKey in OtherImports.allStrategies) {
                     //  If: Executes test suite for all the underlying tokens, Else: Executes test suite for token symbol passed from command line
                     if (command.symbol == null) {
@@ -687,7 +696,7 @@ program
                             before(async () => {
                                 //  Getting the underlying token's contract instance
                                 underlyingToken =
-                                OtherImports.tokenAddresses[
+                                    OtherImports.tokenAddresses[
                                         <keyof typeof OtherImports.tokenAddresses>(
                                             strategiesTokenKey.toLowerCase()
                                         )
@@ -892,1015 +901,986 @@ program
                                 Iterating through each strategy one by one, setting, approving and scroing the each 
                                 strategy and then making userDepositRebalance() call 
                             */
-                           OtherImports.allStrategies[strategiesTokenKey].basic.forEach(
-                                async (strategies, index) => {
-                                    let setStrategyTxGasUsed: number = 0;
-                                    let scoreStrategyTxGasUsed: number = 0;
-                                    let setAndScoreStrategyTotalGasUsed: number = 0;
-                                    let userDepositRebalanceTxGasUsed: number = 0;
-                                    let userWithdrawRebalanceTxGasUsed: number = 0;
+                            OtherImports.allStrategies[
+                                strategiesTokenKey
+                            ].basic.forEach(async (strategies, index) => {
+                                let setStrategyTxGasUsed: number = 0;
+                                let scoreStrategyTxGasUsed: number = 0;
+                                let setAndScoreStrategyTotalGasUsed: number = 0;
+                                let userDepositRebalanceTxGasUsed: number = 0;
+                                let userWithdrawRebalanceTxGasUsed: number = 0;
 
-                                    //  Run for either specific strategy passed from command line or run it for all the strategies
-                                    //  If any wrong strategy is passed from command line, then error will be thrown and testing will be stopped.
-                                    if (command.strategyName == null) {
-                                        if (command.strategiesCount < 0) {
-                                            console.error(
-                                                "ERROR: Invalid Number of Strategies Count: ",
-                                                command.strategiesCount
-                                            );
-                                            process.exit(3);
-                                        } else {
-                                            if (command.strategiesCount == 0) {
-                                                if (
-                                                    index <
-                                                    OtherImports.allStrategies[strategiesTokenKey]
-                                                        .basic.length
-                                                ) {
-                                                    //  Run the test cases for depositRebalance and withdrawRebalance
-                                                    await runDepositWithdrawTestCases();
-                                                } else {
-                                                    console.error(
-                                                        "ERROR: Invalid Number of existing strategies length"
-                                                    );
-                                                    process.exit(4);
-                                                }
+                                //  Run for either specific strategy passed from command line or run it for all the strategies
+                                //  If any wrong strategy is passed from command line, then error will be thrown and testing will be stopped.
+                                if (command.strategyName == null) {
+                                    if (command.strategiesCount < 0) {
+                                        console.error(
+                                            "ERROR: Invalid Number of Strategies Count: ",
+                                            command.strategiesCount
+                                        );
+                                        process.exit(3);
+                                    } else {
+                                        if (command.strategiesCount == 0) {
+                                            if (
+                                                index <
+                                                OtherImports.allStrategies[
+                                                    strategiesTokenKey
+                                                ].basic.length
+                                            ) {
+                                                //  Run the test cases for depositRebalance and withdrawRebalance
+                                                await runDepositWithdrawTestCases();
                                             } else {
-                                                if (index < command.strategiesCount) {
-                                                    //  Run the test cases for depositRebalance and withdrawRebalance
-                                                    await runDepositWithdrawTestCases();
-                                                }
+                                                console.error(
+                                                    "ERROR: Invalid Number of existing strategies length"
+                                                );
+                                                process.exit(4);
+                                            }
+                                        } else {
+                                            if (index < command.strategiesCount) {
+                                                //  Run the test cases for depositRebalance and withdrawRebalance
+                                                await runDepositWithdrawTestCases();
                                             }
                                         }
-                                    } else {
-                                        if (
-                                            !allStrategyNames.includes(
-                                                command.strategyName.toLowerCase()
-                                            )
-                                        ) {
-                                            console.error(
-                                                "ERROR: Invalid Strategy Name: ",
-                                                command.strategyName
-                                            );
-                                            process.exit(5);
-                                        } else if (
-                                            OtherImports.allStrategies[strategiesTokenKey].basic[
-                                                index
-                                            ].strategyName.toLowerCase() ==
-                                            command.strategyName.toLowerCase()
-                                        ) {
-                                            //  Run the test cases for depositRebalance and withdrawRebalance
-                                            await runDepositWithdrawTestCases();
-                                        }
                                     }
+                                } else {
+                                    if (
+                                        !allStrategyNames.includes(
+                                            command.strategyName.toLowerCase()
+                                        )
+                                    ) {
+                                        console.error(
+                                            "ERROR: Invalid Strategy Name: ",
+                                            command.strategyName
+                                        );
+                                        process.exit(5);
+                                    } else if (
+                                        OtherImports.allStrategies[
+                                            strategiesTokenKey
+                                        ].basic[index].strategyName.toLowerCase() ==
+                                        command.strategyName.toLowerCase()
+                                    ) {
+                                        //  Run the test cases for depositRebalance and withdrawRebalance
+                                        await runDepositWithdrawTestCases();
+                                    }
+                                }
 
-                                    //  Function to run all the test case for depositRebalance and withdrawRebalance functions
-                                    async function runDepositWithdrawTestCases() {
-                                        it(
-                                            "should deposit using userDepositRebalance() using Strategy - " +
-                                                strategies.strategyName,
-                                            async () => {
-                                                //  Setting the strategy and making it the best strategy so that each strategy can be tested
-                                                //  before testing depositRebalance() and withdrawRebalance()
-                                                let strategySteps: (
-                                                    | string
-                                                    | boolean
-                                                )[][] = [];
-                                                let previousStepOutputToken = "";
-                                                for (
-                                                    let index = 0;
-                                                    index < strategies.strategy.length;
-                                                    index++
+                                //  Function to run all the test case for depositRebalance and withdrawRebalance functions
+                                async function runDepositWithdrawTestCases() {
+                                    it(
+                                        "should deposit using userDepositRebalance() using Strategy - " +
+                                            strategies.strategyName,
+                                        async () => {
+                                            //  Setting the strategy and making it the best strategy so that each strategy can be tested
+                                            //  before testing depositRebalance() and withdrawRebalance()
+                                            let strategySteps: (
+                                                | string
+                                                | boolean
+                                            )[][] = [];
+                                            let previousStepOutputToken = "";
+                                            for (
+                                                let index = 0;
+                                                index < strategies.strategy.length;
+                                                index++
+                                            ) {
+                                                let tempArr: (string | boolean)[] = [];
+                                                //  If condition For 2 step strategies
+                                                if (
+                                                    previousStepOutputToken.length > 0
                                                 ) {
-                                                    let tempArr: (
-                                                        | string
-                                                        | boolean
-                                                    )[] = [];
-                                                    //  If condition For 2 step strategies
-                                                    if (
-                                                        previousStepOutputToken.length >
-                                                        0
-                                                    ) {
-                                                        await optyRegistry.setTokensHashToTokens(
-                                                            [previousStepOutputToken]
-                                                        );
-                                                        // Note: May need this step for 2 step  strategies - Deepanshu
-                                                        // await optyRegistry.approveToken(previousStepOutputToken);
-                                                        await optyRegistry.setLiquidityPoolToLPToken(
-                                                            strategies.strategy[index]
-                                                                .contract,
-                                                            [previousStepOutputToken],
-                                                            strategies.strategy[index]
-                                                                .outputToken
-                                                        );
-                                                    }
-                                                    tempArr.push(
+                                                    await optyRegistry.setTokensHashToTokens(
+                                                        [previousStepOutputToken]
+                                                    );
+                                                    // Note: May need this step for 2 step  strategies - Deepanshu
+                                                    // await optyRegistry.approveToken(previousStepOutputToken);
+                                                    await optyRegistry.setLiquidityPoolToLPToken(
                                                         strategies.strategy[index]
                                                             .contract,
+                                                        [previousStepOutputToken],
                                                         strategies.strategy[index]
-                                                            .outputToken,
-                                                        strategies.strategy[index]
-                                                            .isBorrow
+                                                            .outputToken
                                                     );
-                                                    previousStepOutputToken =
-                                                        strategies.strategy[index]
-                                                            .outputToken;
-
-                                                    strategySteps.push(tempArr);
                                                 }
-
-                                                //  Iterating through each strategy step and generate the strategy Hash
-                                                let strategyStepHash: string[] = [];
-                                                strategySteps.forEach(
-                                                    (tempStrategyStep, index) => {
-                                                        strategyStepHash[index] =
-                                                            "0x" +
-                                                            abi
-                                                                .soliditySHA3(
-                                                                    [
-                                                                        "address",
-                                                                        "address",
-                                                                        "bool",
-                                                                    ],
-                                                                    [
-                                                                        tempStrategyStep[0],
-                                                                        tempStrategyStep[1],
-                                                                        tempStrategyStep[2],
-                                                                    ]
-                                                                )
-                                                                .toString("hex");
-                                                    }
+                                                tempArr.push(
+                                                    strategies.strategy[index].contract,
+                                                    strategies.strategy[index]
+                                                        .outputToken,
+                                                    strategies.strategy[index].isBorrow
                                                 );
-                                                let tokenToStrategyStepsHash =
-                                                    "0x" +
-                                                    abi
-                                                        .soliditySHA3(
-                                                            ["bytes32", "bytes32[]"],
-                                                            [
-                                                                tokensHash,
-                                                                strategyStepHash,
-                                                            ]
-                                                        )
-                                                        .toString("hex");
+                                                previousStepOutputToken =
+                                                    strategies.strategy[index]
+                                                        .outputToken;
 
-                                                //  Getting the strategy hash corresponding to underlying token
-                                                let tokenToStrategyHashes = await optyRegistry.getTokenToStrategies(
-                                                    tokensHash
-                                                );
-                                                //  If strategyHash is already set then check revert error message from the Contract
-                                                if (
-                                                    tokenToStrategyHashes.includes(
-                                                        tokenToStrategyStepsHash
+                                                strategySteps.push(tempArr);
+                                            }
+
+                                            //  Iterating through each strategy step and generate the strategy Hash
+                                            let strategyStepHash: string[] = [];
+                                            strategySteps.forEach(
+                                                (tempStrategyStep, index) => {
+                                                    strategyStepHash[index] =
+                                                        "0x" +
+                                                        abi
+                                                            .soliditySHA3(
+                                                                [
+                                                                    "address",
+                                                                    "address",
+                                                                    "bool",
+                                                                ],
+                                                                [
+                                                                    tempStrategyStep[0],
+                                                                    tempStrategyStep[1],
+                                                                    tempStrategyStep[2],
+                                                                ]
+                                                            )
+                                                            .toString("hex");
+                                                }
+                                            );
+                                            let tokenToStrategyStepsHash =
+                                                "0x" +
+                                                abi
+                                                    .soliditySHA3(
+                                                        ["bytes32", "bytes32[]"],
+                                                        [tokensHash, strategyStepHash]
                                                     )
-                                                ) {
-                                                    await expectRevert(
-                                                        optyRegistry.setStrategy(
-                                                            tokensHash,
-                                                            strategySteps
-                                                        ),
-                                                        "isNewStrategy"
-                                                    );
-                                                } else {
-                                                    console.log(
-                                                        "SETTING THE STRATEGY LOOP"
-                                                    );
-                                                    let gasEstimatedBefore = await optyRegistry.estimateGas.setStrategy(
+                                                    .toString("hex");
+
+                                            //  Getting the strategy hash corresponding to underlying token
+                                            let tokenToStrategyHashes = await optyRegistry.getTokenToStrategies(
+                                                tokensHash
+                                            );
+                                            //  If strategyHash is already set then check revert error message from the Contract
+                                            if (
+                                                tokenToStrategyHashes.includes(
+                                                    tokenToStrategyStepsHash
+                                                )
+                                            ) {
+                                                await expectRevert(
+                                                    optyRegistry.setStrategy(
                                                         tokensHash,
                                                         strategySteps
-                                                    );
+                                                    ),
+                                                    "isNewStrategy"
+                                                );
+                                            } else {
+                                                console.log(
+                                                    "SETTING THE STRATEGY LOOP"
+                                                );
+                                                let gasEstimatedBefore = await optyRegistry.estimateGas.setStrategy(
+                                                    tokensHash,
+                                                    strategySteps
+                                                );
 
-                                                    //  Setting the strategy
-                                                    const setStrategyTx = await optyRegistry.setStrategy(
-                                                        tokensHash,
-                                                        strategySteps
-                                                    );
-                                                    assert.isDefined(
-                                                        setStrategyTx,
-                                                        "Setting StrategySteps has failed!"
-                                                    );
+                                                //  Setting the strategy
+                                                const setStrategyTx = await optyRegistry.setStrategy(
+                                                    tokensHash,
+                                                    strategySteps
+                                                );
+                                                assert.isDefined(
+                                                    setStrategyTx,
+                                                    "Setting StrategySteps has failed!"
+                                                );
 
-                                                    const setStrategyReceipt = await setStrategyTx.wait();
-                                                    setStrategyTxGasUsed = setStrategyReceipt.gasUsed.toNumber();
+                                                const setStrategyReceipt = await setStrategyTx.wait();
+                                                setStrategyTxGasUsed = setStrategyReceipt.gasUsed.toNumber();
 
-                                                    console.log(
-                                                        "SetStrategy Gas used: ",
-                                                        setStrategyTxGasUsed
-                                                    );
-                                                    let strategyHash =
-                                                        setStrategyReceipt.events[0]
-                                                            .args[2];
-                                                    expect(
-                                                        strategyHash.toString().length
-                                                    ).to.equal(66);
+                                                console.log(
+                                                    "SetStrategy Gas used: ",
+                                                    setStrategyTxGasUsed
+                                                );
+                                                let strategyHash =
+                                                    setStrategyReceipt.events[0]
+                                                        .args[2];
+                                                expect(
+                                                    strategyHash.toString().length
+                                                ).to.equal(66);
 
-                                                    let strategy = await optyRegistry.getStrategy(
+                                                let strategy = await optyRegistry.getStrategy(
+                                                    strategyHash.toString()
+                                                );
+                                                //  Approving and scoring the strategy
+                                                if (!strategy["_isStrategy"]) {
+                                                    await optyRegistry.approveStrategy(
                                                         strategyHash.toString()
                                                     );
-                                                    //  Approving and scoring the strategy
-                                                    if (!strategy["_isStrategy"]) {
-                                                        await optyRegistry.approveStrategy(
-                                                            strategyHash.toString()
-                                                        );
-                                                        strategy = await optyRegistry.getStrategy(
-                                                            strategyHash.toString()
-                                                        );
-                                                        assert.isTrue(
-                                                            strategy["_isStrategy"],
-                                                            "Strategy is not approved"
-                                                        );
-                                                        console.log(
-                                                            "** Strategy Score: ",
-                                                            index + 1
-                                                        );
-                                                        let scoreStrategyTx = await optyRegistry.scoreStrategy(
-                                                            strategyHash.toString(),
-                                                            index + 1
-                                                        );
-                                                        let scoreStrategyReceipt = await scoreStrategyTx.wait();
-                                                        scoreStrategyTxGasUsed = scoreStrategyReceipt.gasUsed.toNumber();
-                                                        console.log(
-                                                            "GAS USED for scoring: ",
-                                                            scoreStrategyTxGasUsed
-                                                        );
+                                                    strategy = await optyRegistry.getStrategy(
+                                                        strategyHash.toString()
+                                                    );
+                                                    assert.isTrue(
+                                                        strategy["_isStrategy"],
+                                                        "Strategy is not approved"
+                                                    );
+                                                    console.log(
+                                                        "** Strategy Score: ",
+                                                        index + 1
+                                                    );
+                                                    let scoreStrategyTx = await optyRegistry.scoreStrategy(
+                                                        strategyHash.toString(),
+                                                        index + 1
+                                                    );
+                                                    let scoreStrategyReceipt = await scoreStrategyTx.wait();
+                                                    scoreStrategyTxGasUsed = scoreStrategyReceipt.gasUsed.toNumber();
+                                                    console.log(
+                                                        "GAS USED for scoring: ",
+                                                        scoreStrategyTxGasUsed
+                                                    );
 
-                                                        console.log(
-                                                            "Total gas used for setting and scoring strategy: ",
-                                                            setStrategyReceipt.gasUsed
-                                                                .add(
-                                                                    scoreStrategyReceipt.gasUsed
-                                                                )
-                                                                .toNumber()
-                                                        );
-                                                        setAndScoreStrategyTotalGasUsed = setStrategyReceipt.gasUsed
+                                                    console.log(
+                                                        "Total gas used for setting and scoring strategy: ",
+                                                        setStrategyReceipt.gasUsed
                                                             .add(
                                                                 scoreStrategyReceipt.gasUsed
                                                             )
-                                                            .toNumber();
-                                                    } else {
-                                                        let scoreStrategyTx = await optyRegistry.scoreStrategy(
-                                                            strategyHash.toString(),
-                                                            index + 1
-                                                        );
-                                                        let scoreStrategyReceipt = scoreStrategyTx.wait();
-                                                        console.log(
-                                                            "GAS USED for scoring in else: ",
-                                                            scoreStrategyReceipt.gasUsed.toNumber()
-                                                        );
-                                                        console.log(
-                                                            "Total gas used for setting and scoring strategy: ",
-                                                            setStrategyReceipt.gasUsed
-                                                                .add(
-                                                                    scoreStrategyReceipt.gasUsed
-                                                                )
-                                                                .toNumber()
-                                                        );
-                                                    }
-
-                                                    //  Fetching best strategy
-                                                    let bestStrategyHash = await riskManager.getBestStrategy(
-                                                        profile,
-                                                        [underlyingToken]
+                                                            .toNumber()
                                                     );
-
-                                                    let bestStrategy = await optyRegistry.getStrategy(
-                                                        bestStrategyHash.toString()
+                                                    setAndScoreStrategyTotalGasUsed = setStrategyReceipt.gasUsed
+                                                        .add(
+                                                            scoreStrategyReceipt.gasUsed
+                                                        )
+                                                        .toNumber();
+                                                } else {
+                                                    let scoreStrategyTx = await optyRegistry.scoreStrategy(
+                                                        strategyHash.toString(),
+                                                        index + 1
+                                                    );
+                                                    let scoreStrategyReceipt = scoreStrategyTx.wait();
+                                                    console.log(
+                                                        "GAS USED for scoring in else: ",
+                                                        scoreStrategyReceipt.gasUsed.toNumber()
                                                     );
                                                     console.log(
-                                                        "Best strategy: ",
-                                                        bestStrategy
+                                                        "Total gas used for setting and scoring strategy: ",
+                                                        setStrategyReceipt.gasUsed
+                                                            .add(
+                                                                scoreStrategyReceipt.gasUsed
+                                                            )
+                                                            .toNumber()
                                                     );
-
-                                                    // Funding the wallet with the underlying tokens before making the deposit transaction
-                                                    await checkAndFundWallet();
-                                                    //  Function call to test userDepositRebalance()
-                                                    await testUserDepositRebalance();
-                                                    strategyScore = strategyScore + 1;
                                                 }
-                                            }
-                                        );
 
-                                        it(
-                                            "should withdraw using userWithdrawRebalance() using Strategy - " +
-                                                strategies.strategyName,
-                                            async () => {
-                                                console.log("STEP-1");
-                                                //  Connect the BasicPool Contract with the user's Wallet for making userDeposit()
-                                                let initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
-                                                    userWallet.address
+                                                //  Fetching best strategy
+                                                let bestStrategyHash = await riskManager.getBestStrategy(
+                                                    profile,
+                                                    [underlyingToken]
+                                                );
+
+                                                let bestStrategy = await optyRegistry.getStrategy(
+                                                    bestStrategyHash.toString()
                                                 );
                                                 console.log(
-                                                    "Prior Balance: ",
-                                                    ethers.utils.formatUnits(
-                                                        initialUserOptyTokenBalanceWei,
-                                                        underlyingTokenDecimals
-                                                    )
+                                                    "Best strategy: ",
+                                                    bestStrategy
                                                 );
 
-                                                //  If condition is checking if the withdrawal is 0 or not. This can happen when
-                                                //  depositRebalance() is called after setting up the same strategy. This can happen
-                                                //  user doesn't have any Op<Token>Bsc tokens.
-                                                if (
-                                                    initialUserOptyTokenBalanceWei
-                                                        .sub(1)
-                                                        .eq(0) ||
-                                                    initialUserOptyTokenBalanceWei.eq(
-                                                        0
-                                                    ) ||
-                                                    initialUserOptyTokenBalanceWei
-                                                        .sub(
-                                                            utilities.expandToTokenDecimals(1, 11)
+                                                // Funding the wallet with the underlying tokens before making the deposit transaction
+                                                await checkAndFundWallet();
+                                                //  Function call to test userDepositRebalance()
+                                                await testUserDepositRebalance();
+                                                strategyScore = strategyScore + 1;
+                                            }
+                                        }
+                                    );
+
+                                    it(
+                                        "should withdraw using userWithdrawRebalance() using Strategy - " +
+                                            strategies.strategyName,
+                                        async () => {
+                                            console.log("STEP-1");
+                                            //  Connect the BasicPool Contract with the user's Wallet for making userDeposit()
+                                            let initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
+                                                userWallet.address
+                                            );
+                                            console.log(
+                                                "Prior Balance: ",
+                                                ethers.utils.formatUnits(
+                                                    initialUserOptyTokenBalanceWei,
+                                                    underlyingTokenDecimals
+                                                )
+                                            );
+
+                                            //  If condition is checking if the withdrawal is 0 or not. This can happen when
+                                            //  depositRebalance() is called after setting up the same strategy. This can happen
+                                            //  user doesn't have any Op<Token>Bsc tokens.
+                                            if (
+                                                initialUserOptyTokenBalanceWei
+                                                    .sub(1)
+                                                    .eq(0) ||
+                                                initialUserOptyTokenBalanceWei.eq(0) ||
+                                                initialUserOptyTokenBalanceWei
+                                                    .sub(
+                                                        utilities.expandToTokenDecimals(
+                                                            1,
+                                                            11
                                                         )
-                                                        .eq(0)
+                                                    )
+                                                    .eq(0)
+                                            ) {
+                                                //TUSD-deposit-YEARN-yTUSD
+                                                console.log("Withdrawal amount = 0");
+                                            } else {
+                                                console.log("Withdrawal amount > 0");
+                                                //  This is the edge when running all the test cases together and it sometimes fails
+                                                //  (because of timing issues) for the first but works it same strategy is used again.
+                                                //  Also, it works if we are only testing this strategy alone.
+                                                if (
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-cDAI+cUSDC" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-DFORCE-dUSDC" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-ypaxCrv" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-crvPlain3andSUSD" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-3Crv" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-CURVE-cDAI+cUSDC+USDT" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-CURVE-ypaxCrv" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-CURVE-crvPlain3andSUSD" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-CURVE-3Crv"
                                                 ) {
-                                                    //TUSD-deposit-YEARN-yTUSD
-                                                    console.log(
-                                                        "Withdrawal amount = 0"
-                                                    );
-                                                } else {
-                                                    console.log(
-                                                        "Withdrawal amount > 0"
-                                                    );
-                                                    //  This is the edge when running all the test cases together and it sometimes fails
-                                                    //  (because of timing issues) for the first but works it same strategy is used again.
-                                                    //  Also, it works if we are only testing this strategy alone.
-                                                    if (
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-cDAI+cUSDC" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-DFORCE-dUSDC" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-ypaxCrv" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-crvPlain3andSUSD" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-3Crv" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-CURVE-cDAI+cUSDC+USDT" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-CURVE-ypaxCrv" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-CURVE-crvPlain3andSUSD" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-CURVE-3Crv"
-                                                    ) {
-                                                        try {
-                                                            console.log(
-                                                                "special if condition for usdc"
-                                                            );
-                                                            //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
-                                                            //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
-                                                            // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                            let roundingDelta = 1;
-                                                            console.log(
-                                                                "Started waiting"
-                                                            );
-                                                            await sleep(60 * 1000); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
-                                                            console.log("waiting over");
-                                                            // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                            await testUserWithdrawRebalance(
-                                                                initialUserOptyTokenBalanceWei,
-                                                                roundingDelta
-                                                            );
-                                                        } catch (error) {
-                                                            console.log(
-                                                                "Error occured: ",
-                                                                error.message
-                                                            );
-                                                        }
-                                                    } else if (
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-HARVEST-fUSDC" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-HARVEST-fUSDT"
-                                                    ) {
-                                                        //  Note: 1. For "USDC-deposit-HARVEST-fUSDC" and roundingDelta = 1, sleep should be minimum
-                                                        //  105 sec. to make it work for the first time else it work when withdraw will happen 2nd time
-                                                        //  2. "USDC-deposit-COMPOUND-cUSDC" doesn't work even after apply sleep of 2 min. Created Bug ticket OP-331
-                                                        //  for it - resolved and working (NO need of wait period for this strategy)
-                                                        //  3. "USDT-deposit-COMPOUND-cUSDT" - worked after OP-331 fix and "USDT-deposit-DFORCE-dUSDT" doesn't work even after apply sleep of 2 min.
-                                                        try {
-                                                            console.log(
-                                                                "special if condition for usdc harvest"
-                                                            );
-                                                            // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                            let roundingDelta = 0;
-                                                            console.log(
-                                                                "Started waiting"
-                                                            );
-                                                            await sleep(120 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
-                                                            console.log("waiting over");
-                                                            // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                            await testUserWithdrawRebalance(
-                                                                initialUserOptyTokenBalanceWei,
-                                                                roundingDelta
-                                                            );
-                                                        } catch (error) {
-                                                            console.log(
-                                                                "Error occured: ",
-                                                                error.message
-                                                            );
-                                                        }
-                                                    } else if (
-                                                        strategies.strategyName.toString() ==
-                                                            "USDC-deposit-CURVE-cDAI+cUSDC+USDT" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "USDT-deposit-DFORCE-dUSDT" ||
-                                                        strategies.strategyName.toString() ==
-                                                            "TUSD-deposit-DFORCE-dTUSD"
-                                                    ) {
-                                                        try {
-                                                            //  Note: 1. USDT-deposit-DFORCE-dUSDT => will work for all 0,2,3 roundingDelta w/o wait period
-                                                            //  2. USDT-deposit-DFORCE-dUSD => For roundingDelta = 1, wait period is required
-                                                            //  3. USDT-deposit-DFORCE-dUSDT => Works for any other amounts (apart from the  sept-2) w/o wait period
-                                                            //  4. USDC-deposit-CURVE-cDAI+cUSDC+USDT => works fine if run alone with 60 sec. wait period and works fine with
-                                                            //  180  sec or more wait period if tested altogether with other strategies for USDC.
-                                                            //  5. TUSD-deposit-DFORCE-dTUSD => Doesn't work with any wait period (sometimes)
-                                                            console.log(
-                                                                "special if condition for usdc and usdt curve and dforce"
-                                                            );
-                                                            // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                            let roundingDelta = 0;
-                                                            console.log(
-                                                                "Started waiting"
-                                                            );
-                                                            await sleep(180 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
-                                                            console.log("waiting over");
-                                                            // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                            await testUserWithdrawRebalance(
-                                                                initialUserOptyTokenBalanceWei,
-                                                                roundingDelta
-                                                            );
-                                                        } catch (error) {
-                                                            console.log(
-                                                                "Error occured: ",
-                                                                error.message
-                                                            );
-                                                        }
-                                                    } else if (
-                                                        strategies.strategyName.toString() ==
-                                                        "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD"
-                                                    ) {
-                                                        try {
-                                                            //  Note: 1. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => works for roundingDelta = 0,2,3, so on.. and for all other amounts w/o wait period but,
-                                                            //  2. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => It works fine if run with 240 sec or more wait period for roundingDelta = 1
-                                                            console.log(
-                                                                "special if condition for usdc and usdt curve and dforce"
-                                                            );
-                                                            // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                            let roundingDelta = 0;
-                                                            console.log(
-                                                                "Started waiting"
-                                                            );
-                                                            await sleep(240 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
-                                                            console.log("waiting over");
-                                                            // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                            await testUserWithdrawRebalance(
-                                                                initialUserOptyTokenBalanceWei,
-                                                                roundingDelta
-                                                            );
-                                                        } catch (error) {
-                                                            console.log(
-                                                                "Error occured: ",
-                                                                error.message
-                                                            );
-                                                        }
-                                                    } else {
-                                                        //  Note: 1. For 3Crv-deposit-CURVE-gusd3CRV, 3Crv-deposit-CURVE-husd3CRV, 3Crv-deposit-CURVE-usdk3CRV => for roundingDelta = 1, it works for test amount 46 or more and
-                                                        //  for roundingDelta = 2, it works for test amount 92 or more. Rest it works for any other amounts normally
-                                                        //  with any test amount
+                                                    try {
                                                         console.log(
-                                                            "Withdraw test Else condition.."
+                                                            "special if condition for usdc"
                                                         );
-                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals);
-                                                        let roundingDelta = 0;
+                                                        //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
+                                                        //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
+                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                        let roundingDelta = 1;
+                                                        console.log("Started waiting");
+                                                        await sleep(60 * 1000); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
+                                                        console.log("waiting over");
+                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                         await testUserWithdrawRebalance(
                                                             initialUserOptyTokenBalanceWei,
                                                             roundingDelta
                                                         );
+                                                    } catch (error) {
+                                                        console.log(
+                                                            "Error occured: ",
+                                                            error.message
+                                                        );
                                                     }
-                                                }
-                                            }
-                                        );
-                                    }
-
-                                    //  Function to deposit the underlying tokens into Opty<XXX>Pool and test the userDepositRebalance()
-                                    async function testUserDepositRebalance() {
-                                        console.log("TEsting userDeposit Rebalance() ");
-                                        let userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                            userWallet.address
-                                        );
-                                        let tokenContractInstanceAsSignerUser = tokenContractInstance.connect(
-                                            userWallet
-                                        );
-                                        await tokenContractInstanceAsSignerUser.approve(
-                                            optyTokenBasicPool.address,
-                                            TEST_AMOUNT,
-                                            {
-                                                gasLimit: 1000000,
-                                            }
-                                        );
-                                        console.log("CHECK-1");
-                                        expect(
-                                            await tokenContractInstance.allowance(
-                                                userWallet.address,
-                                                optyTokenBasicPool.address
-                                            )
-                                        ).to.equal(TEST_AMOUNT);
-
-                                        //  Getting initial balance of OptyBasicTokens for user
-                                        let userOptyTokenBalanceBefore = await optyTokenBasicPool.balanceOf(
-                                            userWallet.address
-                                        );
-                                        console.log("CHECK-2");
-                                        //  Promises for getting totalSupply, poolValue and making userDepositRebalance() in parallel
-                                        //  for getting latest values of totalSuppy and poolValue while Deposit txn is made
-                                        let totalSupplyPromise = new Promise(
-                                            async (resolve) => {
-                                                resolve(
-                                                    await optyTokenBasicPool.totalSupply()
-                                                );
-                                            }
-                                        );
-                                        console.log("CHECK-2a");
-                                        let poolValuePromise = new Promise(
-                                            async (resolve) => {
-                                                resolve(
-                                                    await optyTokenBasicPool.poolValue()
-                                                );
-                                            }
-                                        );
-                                        console.log("CHECK-2b");
-                                        let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
-                                            userWallet
-                                        );
-                                        console.log("CHECK-2c");
-                                        let userDepositRebalanceTxPromise = new Promise(
-                                            async (resolve) => {
-                                                resolve(
-                                                    await optyTokenBasicPoolAsSignerUser.userDepositRebalance(
-                                                        TEST_AMOUNT,
-                                                        {
-                                                            gasLimit: 5141327,
-                                                        }
-                                                    )
-                                                );
-                                            }
-                                        );
-                                        console.log("CHECK-3");
-                                        let allPromiseResponses: [
-                                            any,
-                                            any,
-                                            any
-                                        ] = await Promise.all([
-                                            totalSupplyPromise,
-                                            poolValuePromise,
-                                            userDepositRebalanceTxPromise,
-                                        ]);
-
-                                        console.log(
-                                            "User deposit rebalance successful"
-                                        );
-                                        let totalSupply = 0;
-                                        let poolValue = "";
-                                        // let shares: ethers.utils.BigNumber;
-                                        let shares: ethers.BigNumber;
-                                        let userDepositRebalanceTx;
-                                        // let userDepositRebalanceTxGasUsed;
-                                        console.log("CHECK-4");
-                                        // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
-                                        // console.log("Withdraw txn output: ", userWithdrawTxOutput)
-                                        allPromiseResponses.forEach(
-                                            async (promiseResponse, index) => {
-                                                if (index == 0) {
-                                                    totalSupply = promiseResponse;
-                                                } else if (index == 1) {
-                                                    poolValue = promiseResponse;
-                                                } else if (index == 2) {
-                                                    userDepositRebalanceTx = promiseResponse;
-                                                    let userDepositTxReceipt = await userDepositRebalanceTx.wait();
-                                                    userDepositRebalanceTxGasUsed = userDepositTxReceipt.gasUsed.toNumber();
-
+                                                } else if (
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-HARVEST-fUSDC" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-HARVEST-fUSDT"
+                                                ) {
+                                                    //  Note: 1. For "USDC-deposit-HARVEST-fUSDC" and roundingDelta = 1, sleep should be minimum
+                                                    //  105 sec. to make it work for the first time else it work when withdraw will happen 2nd time
+                                                    //  2. "USDC-deposit-COMPOUND-cUSDC" doesn't work even after apply sleep of 2 min. Created Bug ticket OP-331
+                                                    //  for it - resolved and working (NO need of wait period for this strategy)
+                                                    //  3. "USDT-deposit-COMPOUND-cUSDT" - worked after OP-331 fix and "USDT-deposit-DFORCE-dUSDT" doesn't work even after apply sleep of 2 min.
+                                                    try {
+                                                        console.log(
+                                                            "special if condition for usdc harvest"
+                                                        );
+                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                        let roundingDelta = 0;
+                                                        console.log("Started waiting");
+                                                        await sleep(120 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                        console.log("waiting over");
+                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
+                                                        await testUserWithdrawRebalance(
+                                                            initialUserOptyTokenBalanceWei,
+                                                            roundingDelta
+                                                        );
+                                                    } catch (error) {
+                                                        console.log(
+                                                            "Error occured: ",
+                                                            error.message
+                                                        );
+                                                    }
+                                                } else if (
+                                                    strategies.strategyName.toString() ==
+                                                        "USDC-deposit-CURVE-cDAI+cUSDC+USDT" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "USDT-deposit-DFORCE-dUSDT" ||
+                                                    strategies.strategyName.toString() ==
+                                                        "TUSD-deposit-DFORCE-dTUSD"
+                                                ) {
+                                                    try {
+                                                        //  Note: 1. USDT-deposit-DFORCE-dUSDT => will work for all 0,2,3 roundingDelta w/o wait period
+                                                        //  2. USDT-deposit-DFORCE-dUSD => For roundingDelta = 1, wait period is required
+                                                        //  3. USDT-deposit-DFORCE-dUSDT => Works for any other amounts (apart from the  sept-2) w/o wait period
+                                                        //  4. USDC-deposit-CURVE-cDAI+cUSDC+USDT => works fine if run alone with 60 sec. wait period and works fine with
+                                                        //  180  sec or more wait period if tested altogether with other strategies for USDC.
+                                                        //  5. TUSD-deposit-DFORCE-dTUSD => Doesn't work with any wait period (sometimes)
+                                                        console.log(
+                                                            "special if condition for usdc and usdt curve and dforce"
+                                                        );
+                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                        let roundingDelta = 0;
+                                                        console.log("Started waiting");
+                                                        await sleep(180 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                        console.log("waiting over");
+                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
+                                                        await testUserWithdrawRebalance(
+                                                            initialUserOptyTokenBalanceWei,
+                                                            roundingDelta
+                                                        );
+                                                    } catch (error) {
+                                                        console.log(
+                                                            "Error occured: ",
+                                                            error.message
+                                                        );
+                                                    }
+                                                } else if (
+                                                    strategies.strategyName.toString() ==
+                                                    "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD"
+                                                ) {
+                                                    try {
+                                                        //  Note: 1. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => works for roundingDelta = 0,2,3, so on.. and for all other amounts w/o wait period but,
+                                                        //  2. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => It works fine if run with 240 sec or more wait period for roundingDelta = 1
+                                                        console.log(
+                                                            "special if condition for usdc and usdt curve and dforce"
+                                                        );
+                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                        let roundingDelta = 0;
+                                                        console.log("Started waiting");
+                                                        await sleep(240 * 1000); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
+                                                        console.log("waiting over");
+                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
+                                                        await testUserWithdrawRebalance(
+                                                            initialUserOptyTokenBalanceWei,
+                                                            roundingDelta
+                                                        );
+                                                    } catch (error) {
+                                                        console.log(
+                                                            "Error occured: ",
+                                                            error.message
+                                                        );
+                                                    }
+                                                } else {
+                                                    //  Note: 1. For 3Crv-deposit-CURVE-gusd3CRV, 3Crv-deposit-CURVE-husd3CRV, 3Crv-deposit-CURVE-usdk3CRV => for roundingDelta = 1, it works for test amount 46 or more and
+                                                    //  for roundingDelta = 2, it works for test amount 92 or more. Rest it works for any other amounts normally
+                                                    //  with any test amount
                                                     console.log(
-                                                        "Gas used for user depsoit rebalance txn: ",
-                                                        userDepositRebalanceTxGasUsed
+                                                        "Withdraw test Else condition.."
+                                                    );
+                                                    // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals);
+                                                    let roundingDelta = 0;
+                                                    await testUserWithdrawRebalance(
+                                                        initialUserOptyTokenBalanceWei,
+                                                        roundingDelta
                                                     );
                                                 }
                                             }
-                                        );
+                                        }
+                                    );
+                                }
 
-                                        assert.isOk(
-                                            userDepositRebalanceTx,
-                                            "UserDepositRebalance() call failed"
-                                        );
-
-                                        // Check Token balance of user after userDepositRebalance() call
-                                        userTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                            userWallet.address
-                                        );
-                                        const userNewTokenBalance = parseFloat(
-                                            fromWei(userTokenBalanceWei)
-                                        );
-                                        console.log("STEP-2");
-                                        console.log(
-                                            "DEPOSIT: user's " +
-                                                strategiesTokenKey +
-                                                " balance before: ",
-                                            ethers.utils.formatEther(
-                                                userInitialTokenBalanceWei
-                                            )
-                                        );
-                                        console.log(
-                                            "DEPOSIT: user's " +
-                                                strategiesTokenKey +
-                                                " balance after: ",
-                                            ethers.utils.formatEther(
-                                                userTokenBalanceWei
-                                            )
-                                        );
-                                        expect(
-                                            userTokenBalanceWei.eq(
-                                                userInitialTokenBalanceWei.sub(
-                                                    TEST_AMOUNT
-                                                )
-                                            )
-                                        ).to.be.true;
-                                        // expect(userNewTokenBalance).to.equal(
-                                        //     userInitialTokenBalance - TEST_AMOUNT_NUM
-                                        // );
-                                        console.log("STEP-3");
-                                        userInitialTokenBalance = userNewTokenBalance;
-
-                                        //  Check Token balance of OptyPool contract after userDepositRabalance() call
-                                        contractTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                //  Function to deposit the underlying tokens into Opty<XXX>Pool and test the userDepositRebalance()
+                                async function testUserDepositRebalance() {
+                                    console.log("TEsting userDeposit Rebalance() ");
+                                    let userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                        userWallet.address
+                                    );
+                                    let tokenContractInstanceAsSignerUser = tokenContractInstance.connect(
+                                        userWallet
+                                    );
+                                    await tokenContractInstanceAsSignerUser.approve(
+                                        optyTokenBasicPool.address,
+                                        TEST_AMOUNT,
+                                        {
+                                            gasLimit: 1000000,
+                                        }
+                                    );
+                                    console.log("CHECK-1");
+                                    expect(
+                                        await tokenContractInstance.allowance(
+                                            userWallet.address,
                                             optyTokenBasicPool.address
-                                        );
-                                        contractTokenBalance = parseFloat(
-                                            fromWei(contractTokenBalanceWei)
-                                        );
-                                        //  Commeting this check for checking the contract balance in underlying tokens
-                                        // expect(contractTokenBalance).to.equal(0);
+                                        )
+                                    ).to.equal(TEST_AMOUNT);
 
-                                        console.log("NEXT step");
-                                        //  Amount of OPTY token shares user received as per contract logic
-                                        if (parseFloat(fromWei(poolValue)) == 0) {
-                                            shares = TEST_AMOUNT;
-                                        } else {
-                                            shares = TEST_AMOUNT.mul(totalSupply).div(
-                                                poolValue
+                                    //  Getting initial balance of OptyBasicTokens for user
+                                    let userOptyTokenBalanceBefore = await optyTokenBasicPool.balanceOf(
+                                        userWallet.address
+                                    );
+                                    console.log("CHECK-2");
+                                    //  Promises for getting totalSupply, poolValue and making userDepositRebalance() in parallel
+                                    //  for getting latest values of totalSuppy and poolValue while Deposit txn is made
+                                    let totalSupplyPromise = new Promise(
+                                        async (resolve) => {
+                                            resolve(
+                                                await optyTokenBasicPool.totalSupply()
                                             );
                                         }
-                                        let userExpectedOptyTokenBalance = userOptyTokenBalanceBefore.add(
-                                            shares
+                                    );
+                                    console.log("CHECK-2a");
+                                    let poolValuePromise = new Promise(
+                                        async (resolve) => {
+                                            resolve(
+                                                await optyTokenBasicPool.poolValue()
+                                            );
+                                        }
+                                    );
+                                    console.log("CHECK-2b");
+                                    let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
+                                        userWallet
+                                    );
+                                    console.log("CHECK-2c");
+                                    let userDepositRebalanceTxPromise = new Promise(
+                                        async (resolve) => {
+                                            resolve(
+                                                await optyTokenBasicPoolAsSignerUser.userDepositRebalance(
+                                                    TEST_AMOUNT,
+                                                    {
+                                                        gasLimit: 5141327,
+                                                    }
+                                                )
+                                            );
+                                        }
+                                    );
+                                    console.log("CHECK-3");
+                                    let allPromiseResponses: [
+                                        any,
+                                        any,
+                                        any
+                                    ] = await Promise.all([
+                                        totalSupplyPromise,
+                                        poolValuePromise,
+                                        userDepositRebalanceTxPromise,
+                                    ]);
+
+                                    console.log("User deposit rebalance successful");
+                                    let totalSupply = 0;
+                                    let poolValue = "";
+                                    // let shares: ethers.utils.BigNumber;
+                                    let shares: ethers.BigNumber;
+                                    let userDepositRebalanceTx;
+                                    // let userDepositRebalanceTxGasUsed;
+                                    console.log("CHECK-4");
+                                    // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
+                                    // console.log("Withdraw txn output: ", userWithdrawTxOutput)
+                                    allPromiseResponses.forEach(
+                                        async (promiseResponse, index) => {
+                                            if (index == 0) {
+                                                totalSupply = promiseResponse;
+                                            } else if (index == 1) {
+                                                poolValue = promiseResponse;
+                                            } else if (index == 2) {
+                                                userDepositRebalanceTx = promiseResponse;
+                                                let userDepositTxReceipt = await userDepositRebalanceTx.wait();
+                                                userDepositRebalanceTxGasUsed = userDepositTxReceipt.gasUsed.toNumber();
+
+                                                console.log(
+                                                    "Gas used for user depsoit rebalance txn: ",
+                                                    userDepositRebalanceTxGasUsed
+                                                );
+                                            }
+                                        }
+                                    );
+
+                                    assert.isOk(
+                                        userDepositRebalanceTx,
+                                        "UserDepositRebalance() call failed"
+                                    );
+
+                                    // Check Token balance of user after userDepositRebalance() call
+                                    userTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                        userWallet.address
+                                    );
+                                    const userNewTokenBalance = parseFloat(
+                                        fromWei(userTokenBalanceWei)
+                                    );
+                                    console.log("STEP-2");
+                                    console.log(
+                                        "DEPOSIT: user's " +
+                                            strategiesTokenKey +
+                                            " balance before: ",
+                                        ethers.utils.formatEther(
+                                            userInitialTokenBalanceWei
+                                        )
+                                    );
+                                    console.log(
+                                        "DEPOSIT: user's " +
+                                            strategiesTokenKey +
+                                            " balance after: ",
+                                        ethers.utils.formatEther(userTokenBalanceWei)
+                                    );
+                                    expect(
+                                        userTokenBalanceWei.eq(
+                                            userInitialTokenBalanceWei.sub(TEST_AMOUNT)
+                                        )
+                                    ).to.be.true;
+                                    // expect(userNewTokenBalance).to.equal(
+                                    //     userInitialTokenBalance - TEST_AMOUNT_NUM
+                                    // );
+                                    console.log("STEP-3");
+                                    userInitialTokenBalance = userNewTokenBalance;
+
+                                    //  Check Token balance of OptyPool contract after userDepositRabalance() call
+                                    contractTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                        optyTokenBasicPool.address
+                                    );
+                                    contractTokenBalance = parseFloat(
+                                        fromWei(contractTokenBalanceWei)
+                                    );
+                                    //  Commeting this check for checking the contract balance in underlying tokens
+                                    // expect(contractTokenBalance).to.equal(0);
+
+                                    console.log("NEXT step");
+                                    //  Amount of OPTY token shares user received as per contract logic
+                                    if (parseFloat(fromWei(poolValue)) == 0) {
+                                        shares = TEST_AMOUNT;
+                                    } else {
+                                        shares = TEST_AMOUNT.mul(totalSupply).div(
+                                            poolValue
                                         );
-                                        console.log(
-                                            "Expected amount: ",
+                                    }
+                                    let userExpectedOptyTokenBalance = userOptyTokenBalanceBefore.add(
+                                        shares
+                                    );
+                                    console.log(
+                                        "Expected amount: ",
+                                        userExpectedOptyTokenBalance
+                                    );
+
+                                    userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
+                                        userWallet.address
+                                    );
+                                    console.log(
+                                        "User's actual opty Token balance: ",
+                                        userOptyTokenBalanceWei
+                                    );
+                                    //  TODO: Need to fix this assertion error for minor decimals difference for DAI-deposit-DFORCE-dDAI
+                                    //        and DAI-deposit-CURVE-cDAI+cUSDC+USDT - Deepanshu
+                                    //  Note: It is a small difference of decimals and it is for randomly any 2 strategies based on the
+                                    //        sequence of the strategies. It is not necessarily that it will have decimals issue for the
+                                    //        above mentioned 2 strategies only. It can any other also based upon the sequence of strategies.
+                                    if (
+                                        userOptyTokenBalanceWei.eq(
+                                            userExpectedOptyTokenBalance
+                                        )
+                                    ) {
+                                        expect(userOptyTokenBalanceWei).to.equal(
                                             userExpectedOptyTokenBalance
                                         );
-
-                                        userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
-                                            userWallet.address
-                                        );
+                                    } else {
                                         console.log(
-                                            "User's actual opty Token balance: ",
-                                            userOptyTokenBalanceWei
+                                            "Minor decimals Value difference -- need to be checked"
                                         );
-                                        //  TODO: Need to fix this assertion error for minor decimals difference for DAI-deposit-DFORCE-dDAI
-                                        //        and DAI-deposit-CURVE-cDAI+cUSDC+USDT - Deepanshu
-                                        //  Note: It is a small difference of decimals and it is for randomly any 2 strategies based on the
-                                        //        sequence of the strategies. It is not necessarily that it will have decimals issue for the
-                                        //        above mentioned 2 strategies only. It can any other also based upon the sequence of strategies.
-                                        if (
-                                            userOptyTokenBalanceWei.eq(
-                                                userExpectedOptyTokenBalance
-                                            )
-                                        ) {
-                                            expect(userOptyTokenBalanceWei).to.equal(
-                                                userExpectedOptyTokenBalance
-                                            );
-                                        } else {
-                                            console.log(
-                                                "Minor decimals Value difference -- need to be checked"
-                                            );
-                                            // expect(
-                                            //     userOptyTokenBalanceWei.lte(
-                                            //         userExpectedOptyTokenBalance
-                                            //     )
-                                            // ).to.be.true;
-                                            expect(
-                                                userOptyTokenBalanceWei
-                                            ).to.not.equal(
-                                                userExpectedOptyTokenBalance
-                                            );
-                                        }
-
-                                        //  Storing the user's New Opty tokens balance in number format
-                                        const userNewOptyTokenBalance = parseFloat(
-                                            fromWei(userOptyTokenBalanceWei)
+                                        // expect(
+                                        //     userOptyTokenBalanceWei.lte(
+                                        //         userExpectedOptyTokenBalance
+                                        //     )
+                                        // ).to.be.true;
+                                        expect(userOptyTokenBalanceWei).to.not.equal(
+                                            userExpectedOptyTokenBalance
                                         );
-                                        console.log(
-                                            "User's Opty token balance: ",
-                                            userNewOptyTokenBalance
-                                        );
-                                        userOptyTokenBalance = userNewOptyTokenBalance;
                                     }
 
-                                    async function testUserWithdrawRebalance(
-                                        withdrawAmount: any,
-                                        roundingDelta: any
-                                    ) {
-                                        let initialUserTokenBalanceInWei = await tokenContractInstance.balanceOf(
-                                            userWallet.address
-                                        );
-                                        let initialContractTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                            optyTokenBasicPool.address
-                                        );
+                                    //  Storing the user's New Opty tokens balance in number format
+                                    const userNewOptyTokenBalance = parseFloat(
+                                        fromWei(userOptyTokenBalanceWei)
+                                    );
+                                    console.log(
+                                        "User's Opty token balance: ",
+                                        userNewOptyTokenBalance
+                                    );
+                                    userOptyTokenBalance = userNewOptyTokenBalance;
+                                }
 
-                                        let totalSupply = await optyTokenBasicPool.totalSupply();
+                                async function testUserWithdrawRebalance(
+                                    withdrawAmount: any,
+                                    roundingDelta: any
+                                ) {
+                                    let initialUserTokenBalanceInWei = await tokenContractInstance.balanceOf(
+                                        userWallet.address
+                                    );
+                                    let initialContractTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                        optyTokenBasicPool.address
+                                    );
 
-                                        let poolValue = await optyTokenBasicPool.poolValue();
+                                    let totalSupply = await optyTokenBasicPool.totalSupply();
 
-                                        console.log(
-                                            "Before: User's Opty  token balance: ",
-                                            ethers.utils.formatUnits(
-                                                withdrawAmount,
-                                                underlyingTokenDecimals
-                                            )
-                                        );
-                                        let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
-                                            userWallet
-                                        );
-                                        console.log(
-                                            "Underlying token decimals: ",
+                                    let poolValue = await optyTokenBasicPool.poolValue();
+
+                                    console.log(
+                                        "Before: User's Opty  token balance: ",
+                                        ethers.utils.formatUnits(
+                                            withdrawAmount,
                                             underlyingTokenDecimals
-                                        );
-                                        console.log("STEP-2");
-                                        console.log("Rounding delta: ", roundingDelta);
-                                        console.log(
-                                            "---- Actual amount less than rounding delta: ",
-                                            ethers.utils.formatUnits(
-                                                withdrawAmount.sub(roundingDelta),
-                                                underlyingTokenDecimals
-                                            )
-                                        );
-                                        // console.log("---- Manual withdrawal amount: ", ethers.utils.formatUnits(utilities.expandToTokenDecimals(5999999999,9),underlyingTokenDecimals))
-                                        console.log(
-                                            "---- Manual withdrawal amount: ",
-                                            ethers.utils.formatUnits(
-                                                withdrawAmount,
-                                                underlyingTokenDecimals
-                                            )
-                                        );
-                                        console.log(
-                                            "****  BEFORE WITHDRAW TXN, Actual withdrawal amount: ",
-                                            ethers.utils.formatUnits(
-                                                withdrawAmount,
-                                                underlyingTokenDecimals
-                                            )
-                                        );
-                                        // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawRebalance(
-                                        //     initialUserOptyTokenBalanceWei.sub(
-                                        //         roundingDelta
-                                        //     ),
-                                        //     {
-                                        //         gasLimit: 4590162,
-                                        //     }
-                                        // );
-                                        // utilities.expandToTokenDecimals(5999999999,9) -- working
-                                        // (initialUserOptyTokenBalanceWei.sub(utilities.expandToTokenDecimals(1,18))).sub(1)
-                                        // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
-                                        const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.functions.userWithdrawRebalance(
+                                        )
+                                    );
+                                    let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
+                                        userWallet
+                                    );
+                                    console.log(
+                                        "Underlying token decimals: ",
+                                        underlyingTokenDecimals
+                                    );
+                                    console.log("STEP-2");
+                                    console.log("Rounding delta: ", roundingDelta);
+                                    console.log(
+                                        "---- Actual amount less than rounding delta: ",
+                                        ethers.utils.formatUnits(
                                             withdrawAmount.sub(roundingDelta),
-                                            {
-                                                gasLimit: 5141327,
-                                            }
-                                        );
-                                        console.log("withdrawal txn. successful");
-                                        let receipt = await userWithdrawTxOutput.wait();
-                                        userWithdrawRebalanceTxGasUsed = receipt.gasUsed.toNumber();
-                                        console.log(
-                                            "Gas used for user withdraw rebalance: ",
-                                            userWithdrawRebalanceTxGasUsed
-                                        );
-                                        // console.log("User withdraw txn Receipt: ", receipt);
+                                            underlyingTokenDecimals
+                                        )
+                                    );
+                                    // console.log("---- Manual withdrawal amount: ", ethers.utils.formatUnits(utilities.expandToTokenDecimals(5999999999,9),underlyingTokenDecimals))
+                                    console.log(
+                                        "---- Manual withdrawal amount: ",
+                                        ethers.utils.formatUnits(
+                                            withdrawAmount,
+                                            underlyingTokenDecimals
+                                        )
+                                    );
+                                    console.log(
+                                        "****  BEFORE WITHDRAW TXN, Actual withdrawal amount: ",
+                                        ethers.utils.formatUnits(
+                                            withdrawAmount,
+                                            underlyingTokenDecimals
+                                        )
+                                    );
+                                    // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawRebalance(
+                                    //     initialUserOptyTokenBalanceWei.sub(
+                                    //         roundingDelta
+                                    //     ),
+                                    //     {
+                                    //         gasLimit: 4590162,
+                                    //     }
+                                    // );
+                                    // utilities.expandToTokenDecimals(5999999999,9) -- working
+                                    // (initialUserOptyTokenBalanceWei.sub(utilities.expandToTokenDecimals(1,18))).sub(1)
+                                    // const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.userWithdrawAllRebalance()
+                                    const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.functions.userWithdrawRebalance(
+                                        withdrawAmount.sub(roundingDelta),
+                                        {
+                                            gasLimit: 5141327,
+                                        }
+                                    );
+                                    console.log("withdrawal txn. successful");
+                                    let receipt = await userWithdrawTxOutput.wait();
+                                    userWithdrawRebalanceTxGasUsed = receipt.gasUsed.toNumber();
+                                    console.log(
+                                        "Gas used for user withdraw rebalance: ",
+                                        userWithdrawRebalanceTxGasUsed
+                                    );
+                                    // console.log("User withdraw txn Receipt: ", receipt);
 
-                                        assert.isOk(
-                                            userWithdrawTxOutput,
-                                            "UserWithdraw() call failed"
-                                        );
+                                    assert.isOk(
+                                        userWithdrawTxOutput,
+                                        "UserWithdraw() call failed"
+                                    );
 
-                                        let afterUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
-                                            userWallet.address
-                                        );
+                                    let afterUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
+                                        userWallet.address
+                                    );
 
-                                        let afterUserTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                            userWallet.address
-                                        );
+                                    let afterUserTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                        userWallet.address
+                                    );
 
+                                    console.log(
+                                        "User's initial Opty  token balance: ",
+                                        ethers.utils.formatUnits(
+                                            withdrawAmount,
+                                            underlyingTokenDecimals
+                                        )
+                                    );
+                                    console.log(
+                                        "User's after Opty Token Balance: ",
+                                        ethers.utils.formatUnits(
+                                            afterUserOptyTokenBalanceWei,
+                                            underlyingTokenDecimals
+                                        )
+                                    );
+                                    // let noOfTokensReceived = ethers.utils.bigNumberify(
+                                    //     "0x" +
+                                    //         receipt.events[
+                                    //             receipt.events.length - 1
+                                    //         ].data
+                                    //             .toString()
+                                    //             .substr(
+                                    //                 receipt.events[
+                                    //                     receipt.events.length - 1
+                                    //                 ].data.length - 16
+                                    //             )
+                                    // );
+                                    let noOfTokensReceived = ethers.BigNumber.from(
+                                        "0x" +
+                                            receipt.events[
+                                                receipt.events.length - 1
+                                            ].data
+                                                .toString()
+                                                .substr(
+                                                    receipt.events[
+                                                        receipt.events.length - 1
+                                                    ].data.length - 16
+                                                )
+                                    );
+                                    let noOfTokensReceivedFromFormula = poolValue
+                                        .mul(withdrawAmount.sub(1))
+                                        .div(totalSupply);
+                                    console.log(
+                                        "noOfTokensReceived from formula: ",
+                                        ethers.utils.formatEther(
+                                            noOfTokensReceivedFromFormula
+                                        )
+                                    );
+                                    console.log(
+                                        "noOfTokensReceived from receipt: ",
+                                        ethers.utils.formatEther(noOfTokensReceived)
+                                    );
+                                    console.log(
+                                        "** Withdraw worked for whole balance **"
+                                    );
+                                    expect(
+                                        afterUserOptyTokenBalanceWei.eq(roundingDelta)
+                                    ).to.be.true;
+                                    // expect(afterUserOptyTokenBalanceWei.eq(0)).to.be
+                                    //    .true;
+
+                                    console.log("STEP-3");
+                                    console.log(
+                                        "Before withdraw, User's " +
+                                            strategiesTokenKey +
+                                            " Balance: ",
+                                        ethers.utils.formatEther(
+                                            initialUserTokenBalanceInWei
+                                        )
+                                    );
+                                    console.log(
+                                        "After withdraw, User's " +
+                                            strategiesTokenKey +
+                                            " balance: ",
+                                        ethers.utils.formatEther(
+                                            afterUserTokenBalanceWei
+                                        )
+                                    );
+
+                                    console.log(
+                                        "Left over: ",
+                                        noOfTokensReceived.sub(
+                                            noOfTokensReceivedFromFormula
+                                        )
+                                    );
+                                    //  User's TOKEN (like DAI etc.) balance should be equal to no. of tokens
+                                    //  calculated from formula but sometimes, it is not equal like in case of AAVE
+                                    //  where the token and lpToken ratio is 1:1
+                                    if (
+                                        afterUserTokenBalanceWei.eq(
+                                            noOfTokensReceivedFromFormula
+                                        )
+                                    ) {
                                         console.log(
-                                            "User's initial Opty  token balance: ",
-                                            ethers.utils.formatUnits(
-                                                withdrawAmount,
-                                                underlyingTokenDecimals
-                                            )
+                                            "After token balance matched with tokens calculated from formula...."
                                         );
+                                        expect(afterUserTokenBalanceWei).to.equal(
+                                            noOfTokensReceivedFromFormula
+                                        );
+                                    } else if (
+                                        afterUserTokenBalanceWei.lte(
+                                            noOfTokensReceivedFromFormula
+                                        )
+                                    ) {
                                         console.log(
-                                            "User's after Opty Token Balance: ",
-                                            ethers.utils.formatUnits(
-                                                afterUserOptyTokenBalanceWei,
-                                                underlyingTokenDecimals
-                                            )
-                                        );
-                                        // let noOfTokensReceived = ethers.utils.bigNumberify(
-                                        //     "0x" +
-                                        //         receipt.events[
-                                        //             receipt.events.length - 1
-                                        //         ].data
-                                        //             .toString()
-                                        //             .substr(
-                                        //                 receipt.events[
-                                        //                     receipt.events.length - 1
-                                        //                 ].data.length - 16
-                                        //             )
-                                        // );
-                                        let noOfTokensReceived = ethers.BigNumber.from(
-                                            "0x" +
-                                                receipt.events[
-                                                    receipt.events.length - 1
-                                                ].data
-                                                    .toString()
-                                                    .substr(
-                                                        receipt.events[
-                                                            receipt.events.length - 1
-                                                        ].data.length - 16
-                                                    )
-                                        );
-                                        let noOfTokensReceivedFromFormula = poolValue
-                                            .mul(withdrawAmount.sub(1))
-                                            .div(totalSupply);
-                                        console.log(
-                                            "noOfTokensReceived from formula: ",
-                                            ethers.utils.formatEther(
-                                                noOfTokensReceivedFromFormula
-                                            )
-                                        );
-                                        console.log(
-                                            "noOfTokensReceived from receipt: ",
-                                            ethers.utils.formatEther(noOfTokensReceived)
-                                        );
-                                        console.log(
-                                            "** Withdraw worked for whole balance **"
+                                            "Token balance of User less than the formula value"
                                         );
                                         expect(
-                                            afterUserOptyTokenBalanceWei.eq(
-                                                roundingDelta
-                                            )
-                                        ).to.be.true;
-                                        // expect(afterUserOptyTokenBalanceWei.eq(0)).to.be
-                                        //    .true;
-
-                                        console.log("STEP-3");
-                                        console.log(
-                                            "Before withdraw, User's " +
-                                                strategiesTokenKey +
-                                                " Balance: ",
-                                            ethers.utils.formatEther(
-                                                initialUserTokenBalanceInWei
-                                            )
-                                        );
-                                        console.log(
-                                            "After withdraw, User's " +
-                                                strategiesTokenKey +
-                                                " balance: ",
-                                            ethers.utils.formatEther(
-                                                afterUserTokenBalanceWei
-                                            )
-                                        );
-
-                                        console.log(
-                                            "Left over: ",
-                                            noOfTokensReceived.sub(
-                                                noOfTokensReceivedFromFormula
-                                            )
-                                        );
-                                        //  User's TOKEN (like DAI etc.) balance should be equal to no. of tokens
-                                        //  calculated from formula but sometimes, it is not equal like in case of AAVE
-                                        //  where the token and lpToken ratio is 1:1
-                                        if (
-                                            afterUserTokenBalanceWei.eq(
-                                                noOfTokensReceivedFromFormula
-                                            )
-                                        ) {
-                                            console.log(
-                                                "After token balance matched with tokens calculated from formula...."
-                                            );
-                                            expect(afterUserTokenBalanceWei).to.equal(
-                                                noOfTokensReceivedFromFormula
-                                            );
-                                        } else if (
                                             afterUserTokenBalanceWei.lte(
                                                 noOfTokensReceivedFromFormula
                                             )
-                                        ) {
-                                            console.log(
-                                                "Token balance of User less than the formula value"
-                                            );
-                                            expect(
-                                                afterUserTokenBalanceWei.lte(
-                                                    noOfTokensReceivedFromFormula
-                                                )
-                                            ).to.be.true;
-                                        } else {
-                                            console.log(
-                                                "Token balance of User greater than the formula value"
-                                            );
-                                            expect(
-                                                afterUserTokenBalanceWei.gte(
-                                                    noOfTokensReceivedFromFormula
-                                                )
-                                            ).to.be.true;
-                                        }
-
-                                        let afterContractTokenBalanceWei = await tokenContractInstance.balanceOf(
-                                            optyTokenBasicPool.address
-                                        );
-
-                                        console.log("STEP-4");
+                                        ).to.be.true;
+                                    } else {
                                         console.log(
-                                            "Before withdraw, contract " +
+                                            "Token balance of User greater than the formula value"
+                                        );
+                                        expect(
+                                            afterUserTokenBalanceWei.gte(
+                                                noOfTokensReceivedFromFormula
+                                            )
+                                        ).to.be.true;
+                                    }
+
+                                    let afterContractTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                        optyTokenBasicPool.address
+                                    );
+
+                                    console.log("STEP-4");
+                                    console.log(
+                                        "Before withdraw, contract " +
+                                            strategiesTokenKey +
+                                            " balance: ",
+                                        ethers.utils.formatEther(
+                                            initialContractTokenBalanceWei
+                                        )
+                                    );
+                                    //  Sometimes, Contract has left with some small fraction of Token like DAI etc.
+                                    if (
+                                        afterContractTokenBalanceWei.eq(
+                                            initialContractTokenBalanceWei
+                                        )
+                                    ) {
+                                        console.log(
+                                            "After withdraw contracts " +
                                                 strategiesTokenKey +
-                                                " balance: ",
+                                                " balance when there is no left over: ",
                                             ethers.utils.formatEther(
-                                                initialContractTokenBalanceWei
+                                                afterContractTokenBalanceWei
                                             )
                                         );
-                                        //  Sometimes, Contract has left with some small fraction of Token like DAI etc.
-                                        if (
-                                            afterContractTokenBalanceWei.eq(
-                                                initialContractTokenBalanceWei
-                                            )
-                                        ) {
-                                            console.log(
-                                                "After withdraw contracts " +
-                                                    strategiesTokenKey +
-                                                    " balance when there is no left over: ",
-                                                ethers.utils.formatEther(
-                                                    afterContractTokenBalanceWei
-                                                )
-                                            );
-                                            // expect(afterContractTokenBalanceWei).to.equal(
-                                            //     initialContractTokenBalanceWei
-                                            // );
-                                            expect(afterContractTokenBalanceWei.eq(0))
-                                                .to.be.true;
-                                            expect(initialContractTokenBalanceWei.eq(0))
-                                                .to.be.true;
-                                        } else {
-                                            console.log(
-                                                "After withdraw contracts " +
-                                                    strategiesTokenKey +
-                                                    " balance when there is some tokens left over: ",
-                                                ethers.utils.formatEther(
-                                                    afterContractTokenBalanceWei
-                                                )
-                                            );
-                                            // Note: Commented while testing USDC token strategies
-                                            // expect(
-                                            //     afterContractTokenBalanceWei.gte(
-                                            //         initialContractTokenBalanceWei.add(
-                                            //             1
-                                            //         )
-                                            //     )
-                                            // ).to.be.true;
-                                            expect(
+                                        // expect(afterContractTokenBalanceWei).to.equal(
+                                        //     initialContractTokenBalanceWei
+                                        // );
+                                        expect(afterContractTokenBalanceWei.eq(0)).to.be
+                                            .true;
+                                        expect(initialContractTokenBalanceWei.eq(0)).to
+                                            .be.true;
+                                    } else {
+                                        console.log(
+                                            "After withdraw contracts " +
+                                                strategiesTokenKey +
+                                                " balance when there is some tokens left over: ",
+                                            ethers.utils.formatEther(
                                                 afterContractTokenBalanceWei
-                                            ).to.equal(0);
-                                        }
-
-                                        // TODO: Add POOL NAME, OUTPUT TOKEN, isBORROW - Deepanshu
-                                        let strategyGasUsedJson = {
-                                            testScriptRunDateAndTime: testScriptRunTimeDateAndTime,
-                                            strategyRunDateAndTime: Date.now(),
-                                            strategyName: strategies.strategyName,
-                                            setStrategy: setStrategyTxGasUsed,
-                                            scoreStrategy: scoreStrategyTxGasUsed,
-                                            setAndScoreStrategy: setAndScoreStrategyTotalGasUsed,
-                                            userDepositRebalanceTx: userDepositRebalanceTxGasUsed,
-                                            userWithdrawRebalanceTx: userWithdrawRebalanceTxGasUsed,
-                                        };
-
-                                        allStrategiesGasUsedRecords.push(
-                                            strategyGasUsedJson
+                                            )
+                                        );
+                                        // Note: Commented while testing USDC token strategies
+                                        // expect(
+                                        //     afterContractTokenBalanceWei.gte(
+                                        //         initialContractTokenBalanceWei.add(
+                                        //             1
+                                        //         )
+                                        //     )
+                                        // ).to.be.true;
+                                        expect(afterContractTokenBalanceWei).to.equal(
+                                            0
                                         );
                                     }
+
+                                    // TODO: Add POOL NAME, OUTPUT TOKEN, isBORROW - Deepanshu
+                                    let strategyGasUsedJson = {
+                                        testScriptRunDateAndTime: testScriptRunTimeDateAndTime,
+                                        strategyRunDateAndTime: Date.now(),
+                                        strategyName: strategies.strategyName,
+                                        setStrategy: setStrategyTxGasUsed,
+                                        scoreStrategy: scoreStrategyTxGasUsed,
+                                        setAndScoreStrategy: setAndScoreStrategyTotalGasUsed,
+                                        userDepositRebalanceTx: userDepositRebalanceTxGasUsed,
+                                        userWithdrawRebalanceTx: userWithdrawRebalanceTxGasUsed,
+                                    };
+
+                                    allStrategiesGasUsedRecords.push(
+                                        strategyGasUsedJson
+                                    );
                                 }
-                            );
+                            });
 
                             after(async () => {
                                 //  Checking Owner and User's Ether balance left after all the transactions
