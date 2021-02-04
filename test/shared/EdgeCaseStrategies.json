@@ -1,0 +1,59 @@
+{
+    "USDC-deposit-CURVE-cDAI+cUSDC": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-DFORCE-dUSDC": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-CURVE-ypaxCrv": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-CURVE-crvPlain3andSUSD": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-CURVE-3Crv": {
+        "sleepTimeInSec": 60
+    },
+    "USDT-deposit-CURVE-cDAI+cUSDC+USDT": {
+        "sleepTimeInSec": 60
+    },
+    "USDT-deposit-CURVE-ypaxCrv": {
+        "sleepTimeInSec": 60
+    },
+    "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD": {
+        "sleepTimeInSec": 60
+    },
+    "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD": {
+        "sleepTimeInSec": 60
+    },
+    "USDT-deposit-CURVE-crvPlain3andSUSD": {
+        "sleepTimeInSec": 60
+    },
+    "USDT-deposit-CURVE-3Crv": {
+        "sleepTimeInSec": 60
+    },
+    "USDC-deposit-HARVEST-fUSDC": {
+        "sleepTimeInSec": 180
+    },
+    "USDT-deposit-HARVEST-fUSDT": {
+        "sleepTimeInSec": 180
+    },
+    "USDC-deposit-CURVE-cDAI+cUSDC+USDT": {
+        "sleepTimeInSec": 240
+    },
+    "USDT-deposit-DFORCE-dUSDT": {
+        "sleepTimeInSec": 240
+    },
+    "TUSD-deposit-DFORCE-dTUSD": {
+        "sleepTimeInSec": 240
+    },
+    "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD": {
+        "sleepTimeInSec": 300
+    }
+}

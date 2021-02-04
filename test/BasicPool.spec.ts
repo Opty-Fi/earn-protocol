@@ -356,23 +356,7 @@ program
                                                     ].lpToken
                                                 );
                                             }
-                                            // Fetching the lpToken corresponding to the liquidity pool and underlying token
-                                            let mapResult = await optyRegistry.liquidityPoolToLPTokens(
-                                                defiPoolsUnderlyingTokens[
-                                                    defiPoolsUnderlyingTokensKey
-                                                ].pool,
-                                                "0x" +
-                                                    abi
-                                                        .soliditySHA3(
-                                                            ["address[]"],
-                                                            [
-                                                                defiPoolsUnderlyingTokens[
-                                                                    defiPoolsUnderlyingTokensKey
-                                                                ].tokens,
-                                                            ]
-                                                        )
-                                                        .toString("hex")
-                                            );
+                                            
                                         }
                                     }
                                 }
@@ -396,6 +380,10 @@ program
                         "AaveV1CodeProvider Contract is not deployed"
                     );
                     assert.isOk(
+                        optyCodeProviderContractVariables.AaveV2CodeProvider.address,
+                        "AaveV2CodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
                         optyCodeProviderContractVariables.FulcrumCodeProvider.address,
                         "FulcrumCodeProvider Contract is not deployed"
                     );
@@ -410,6 +398,10 @@ program
                     assert.isOk(
                         optyCodeProviderContractVariables.YVaultCodeProvider.address,
                         "YVaultCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.YearnCodeProvider.address,
+                        "YearnCodeProvider Contract is not deployed"
                     );
                     assert.isOk(
                         optyCodeProviderContractVariables.CurvePoolCodeProvider.address,
@@ -999,174 +991,37 @@ program
                                                     )
                                                     .eq(0)
                                             ) {
-                                                //TUSD-deposit-YEARN-yTUSD
                                                 console.log("Withdrawal amount = 0");
                                             } else {
                                                 console.log("Withdrawal amount > 0");
                                                 //  This is the edge when running all the test cases together and it sometimes fails
                                                 //  (because of timing issues) for the first but works it same strategy is used again.
                                                 //  Also, it works if we are only testing this strategy alone.
-                                                if (
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-cDAI+cUSDC" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-DFORCE-dUSDC" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-ypaxCrv" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-crvPlain3andSUSD" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-3Crv" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-CURVE-cDAI+cUSDC+USDT" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-CURVE-ypaxCrv" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-CURVE-crvPlain3andSUSD" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-CURVE-3Crv"
-                                                ) {
-                                                    try {
-                                                        console.log(
-                                                            "special if condition for usdc"
-                                                        );
-                                                        //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
-                                                        //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
-                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                        let roundingDelta = 1;
-                                                        console.log("Started waiting");
-                                                        await utilities.sleep(
-                                                            60 * 1000
-                                                        ); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
-                                                        console.log("waiting over");
-                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                        await testUserWithdrawRebalance(
-                                                            initialUserOptyTokenBalanceWei,
-                                                            roundingDelta
-                                                        );
-                                                    } catch (error) {
-                                                        console.log(
-                                                            "Error occured: ",
-                                                            error.message
-                                                        );
-                                                    }
-                                                } else if (
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-HARVEST-fUSDC" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-HARVEST-fUSDT"
-                                                ) {
-                                                    //  Note: 1. For "USDC-deposit-HARVEST-fUSDC" and roundingDelta = 1, sleep should be minimum
-                                                    //  105 sec. to make it work for the first time else it work when withdraw will happen 2nd time
-                                                    //  2. "USDC-deposit-COMPOUND-cUSDC" doesn't work even after apply sleep of 2 min. Created Bug ticket OP-331
-                                                    //  for it - resolved and working (NO need of wait period for this strategy)
-                                                    //  3. "USDT-deposit-COMPOUND-cUSDT" - worked after OP-331 fix and "USDT-deposit-DFORCE-dUSDT" doesn't work even after apply sleep of 2 min.
-                                                    try {
-                                                        console.log(
-                                                            "special if condition for usdc harvest"
-                                                        );
-                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                        let roundingDelta = 0;
-                                                        console.log("Started waiting");
-                                                        await utilities.sleep(
-                                                            120 * 1000
-                                                        ); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
-                                                        console.log("waiting over");
-                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                        await testUserWithdrawRebalance(
-                                                            initialUserOptyTokenBalanceWei,
-                                                            roundingDelta
-                                                        );
-                                                    } catch (error) {
-                                                        console.log(
-                                                            "Error occured: ",
-                                                            error.message
-                                                        );
-                                                    }
-                                                } else if (
-                                                    strategies.strategyName.toString() ==
-                                                        "USDC-deposit-CURVE-cDAI+cUSDC+USDT" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "USDT-deposit-DFORCE-dUSDT" ||
-                                                    strategies.strategyName.toString() ==
-                                                        "TUSD-deposit-DFORCE-dTUSD"
-                                                ) {
-                                                    try {
-                                                        //  Note: 1. USDT-deposit-DFORCE-dUSDT => will work for all 0,2,3 roundingDelta w/o wait period
-                                                        //  2. USDT-deposit-DFORCE-dUSD => For roundingDelta = 1, wait period is required
-                                                        //  3. USDT-deposit-DFORCE-dUSDT => Works for any other amounts (apart from the  sept-2) w/o wait period
-                                                        //  4. USDC-deposit-CURVE-cDAI+cUSDC+USDT => works fine if run alone with 60 sec. wait period and works fine with
-                                                        //  180  sec or more wait period if tested altogether with other strategies for USDC.
-                                                        //  5. TUSD-deposit-DFORCE-dTUSD => Doesn't work with any wait period (sometimes)
-                                                        console.log(
-                                                            "special if condition for usdc and usdt curve and dforce"
-                                                        );
-                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                        let roundingDelta = 0;
-                                                        console.log("Started waiting");
-                                                        await utilities.sleep(
-                                                            180 * 1000
-                                                        ); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
-                                                        console.log("waiting over");
-                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                        await testUserWithdrawRebalance(
-                                                            initialUserOptyTokenBalanceWei,
-                                                            roundingDelta
-                                                        );
-                                                    } catch (error) {
-                                                        console.log(
-                                                            "Error occured: ",
-                                                            error.message
-                                                        );
-                                                    }
-                                                } else if (
-                                                    strategies.strategyName.toString() ==
-                                                    "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD"
-                                                ) {
-                                                    try {
-                                                        //  Note: 1. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => works for roundingDelta = 0,2,3, so on.. and for all other amounts w/o wait period but,
-                                                        //  2. TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD => It works fine if run with 240 sec or more wait period for roundingDelta = 1
-                                                        console.log(
-                                                            "special if condition for usdc and usdt curve and dforce"
-                                                        );
-                                                        // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                        let roundingDelta = 0;
-                                                        console.log("Started waiting");
-                                                        await utilities.sleep(
-                                                            240 * 1000
-                                                        ); //  Needs to wait  for min 105-120 sec or above else withdraw will through revert error
-                                                        console.log("waiting over");
-                                                        // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
-                                                        await testUserWithdrawRebalance(
-                                                            initialUserOptyTokenBalanceWei,
-                                                            roundingDelta
-                                                        );
-                                                    } catch (error) {
-                                                        console.log(
-                                                            "Error occured: ",
-                                                            error.message
-                                                        );
-                                                    }
-                                                } else {
-                                                    //  Note: 1. For 3Crv-deposit-CURVE-gusd3CRV, 3Crv-deposit-CURVE-husd3CRV, 3Crv-deposit-CURVE-usdk3CRV => for roundingDelta = 1, it works for test amount 46 or more and
-                                                    //  for roundingDelta = 2, it works for test amount 92 or more. Rest it works for any other amounts normally
-                                                    //  with any test amount
+                                                let EdgeCaseStrategiesKeys: keyof typeof OtherImports.EdgeCaseStrategies
+                                                EdgeCaseStrategiesKeys = <keyof typeof OtherImports.EdgeCaseStrategies>strategies.strategyName.toString()
+                                                let sleepTimeInSec = OtherImports.EdgeCaseStrategies[EdgeCaseStrategiesKeys] ? OtherImports.EdgeCaseStrategies[EdgeCaseStrategiesKeys].sleepTimeInSec : 0
+                                                try {
                                                     console.log(
-                                                        "Withdraw test Else condition.."
+                                                        "special if condition for usdc"
                                                     );
-                                                    // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals);
+                                                    //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
+                                                    //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
+                                                    // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                     let roundingDelta = 0;
+                                                    console.log("Started waiting");
+                                                    await utilities.sleep(
+                                                        sleepTimeInSec * 1000
+                                                    ); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
+                                                    console.log("waiting over");
+                                                    // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                     await testUserWithdrawRebalance(
                                                         initialUserOptyTokenBalanceWei,
                                                         roundingDelta
+                                                    );
+                                                } catch (error) {
+                                                    console.log(
+                                                        "Error occured: ",
+                                                        error.message
                                                     );
                                                 }
                                             }
