@@ -4,6 +4,9 @@ import exchange from "./exchange.json";
 import addressAbis from "./AddressAbis.json";
 import tokenAddresses from "./TokenAddresses.json";
 import { expect } from "chai";
+import * as OtherImports from "./OtherImports";
+import { OptyRegistry } from "./GovernanceContractAbis";
+import { solidity, deployContract } from "ethereum-waffle";
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -264,4 +267,146 @@ if your 'require' statement doesn't have one."
 //  sleep function
 export async function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function deployCodeProviderContracts(
+    optyCodeProviderContractsKey: any,
+    ownerWallet: any,
+    codeProviderAbi: any,
+    OptyRegistryAddress: any,
+    GathererAddress: any
+) {
+    let optyCodeProviderContract;
+    if (
+        optyCodeProviderContractsKey.toString().toLowerCase() == "dydxcodeprovider" ||
+        optyCodeProviderContractsKey.toString().toLowerCase() == "aavev1codeprovider" ||
+        optyCodeProviderContractsKey.toString().toLowerCase() ==
+            "fulcrumcodeprovider" ||
+        optyCodeProviderContractsKey.toString().toLowerCase() == "yvaultcodeprovider" ||
+        optyCodeProviderContractsKey.toString().toLowerCase() == "aavev2codeprovider" ||
+        optyCodeProviderContractsKey.toString().toLowerCase() == "yearncodeprovider"
+    ) {
+        console.log(
+            "==== 1. Depoying " + optyCodeProviderContractsKey + "  Contract ===="
+        );
+
+        //  Deploying the code provider contracts
+        optyCodeProviderContract = await deployContract(ownerWallet, codeProviderAbi, [
+            OptyRegistryAddress,
+        ]);
+        console.log(
+            "Printing " + optyCodeProviderContractsKey + "'s address: ",
+            optyCodeProviderContract.address
+        );
+    } else {
+        console.log(
+            "==== 2. Depoying " + optyCodeProviderContractsKey + "  Contract ===="
+        );
+        var overrideOptions: ethers.providers.TransactionRequest = {
+            gasLimit: 6721975,
+        };
+
+        //  Special case for deploying the CurveSwapCodeProvider.sol
+        if (optyCodeProviderContractsKey == "CurveSwapCodeProvider") {
+            var overrideOptions: ethers.providers.TransactionRequest = {
+                gasLimit: 6721975,
+            };
+            console.log("Deploy in IF condition..");
+            let factory = new ethers.ContractFactory(
+                codeProviderAbi.abi,
+                OtherImports.ByteCodes.CurveSwapCodeProvider,
+                ownerWallet
+            );
+            console.log("deploying curveSwap contract");
+            //  Deploying the curveSwap code provider contract
+            optyCodeProviderContract = await factory.deploy(
+                OptyRegistryAddress,
+                GathererAddress,
+                overrideOptions
+            );
+            console.log("deployed curve swap.....");
+            // console.log("deploying txn: ", optyCodeProviderContract.deployTransaction)
+            let curveSwapDeployReceipt = await optyCodeProviderContract.deployTransaction.wait();
+            // console.log("Curve swap deployed receipt:  ", curveSwapDeployReceipt)
+            console.log(
+                "Printing " + optyCodeProviderContractsKey + "'s address: ",
+                optyCodeProviderContract.address
+            );
+        } else {
+            console.log("Deploy in else condition");
+            var overrideOptions: ethers.providers.TransactionRequest = {
+                gasLimit: 6721975,
+            };
+
+            //  Deploying the code provider contracts
+            optyCodeProviderContract = await deployContract(
+                ownerWallet,
+                codeProviderAbi,
+                [OptyRegistryAddress, GathererAddress],
+                overrideOptions
+            );
+            console.log(
+                "Printing " + optyCodeProviderContractsKey + "'s address: ",
+                optyCodeProviderContract.address
+            );
+        }
+
+        //  Setting/Mapping the liquidityPoolToken, SwapPoolTOUnderlyingTokens and gauge address as pre-requisites in CurveSwapCodeProvider
+        let curveSwapDataProviderKey: keyof typeof OtherImports.curveSwapDataProvider;
+        for (curveSwapDataProviderKey in OtherImports.curveSwapDataProvider) {
+            if (
+                curveSwapDataProviderKey.toString().toLowerCase() ==
+                optyCodeProviderContractsKey.toString().toLowerCase()
+            ) {
+                console.log(
+                    "CurveSwapCodeProvider contract address: ",
+                    optyCodeProviderContract.address
+                );
+                let tokenPairs =
+                    OtherImports.curveSwapDataProvider[curveSwapDataProviderKey];
+                let tokenPair: keyof typeof tokenPairs;
+                for (tokenPair in tokenPairs) {
+                    let _liquidityPoolToken = tokenPairs[tokenPair].liquidityPoolToken;
+                    let _swapPool = tokenPairs[tokenPair].swapPool;
+                    let _guage = tokenPairs[tokenPair].gauge;
+                    let _underlyingTokens = tokenPairs[tokenPair].underlyingTokens;
+
+                    var overrideOptions: ethers.providers.TransactionRequest = {
+                        value: 0,
+                        gasLimit: 6721970,
+                    };
+                    console.log("step-1");
+                    let optyCodeProviderContractOwnerSigner = optyCodeProviderContract.connect(
+                        ownerWallet
+                    );
+
+                    console.log("step-1a");
+                    //  Mapping lpToken to swapPool contract
+                    await optyCodeProviderContractOwnerSigner.functions.setLiquidityPoolToken(
+                        _swapPool,
+                        _liquidityPoolToken,
+                        {
+                            gasLimit: 6700000,
+                        }
+                    );
+
+                    console.log("step-2");
+                    //  Mapping UnderlyingTokens to SwapPool Contract
+                    await optyCodeProviderContract.setSwapPoolToUnderlyingTokens(
+                        _swapPool,
+                        _underlyingTokens
+                    );
+
+                    console.log("step-3");
+                    //  Mapping Gauge contract to the SwapPool Contract
+                    await optyCodeProviderContract.setSwapPoolToGauges(
+                        _swapPool,
+                        _guage
+                    );
+                }
+            }
+        }
+    }
+
+    return optyCodeProviderContract;
 }

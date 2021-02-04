@@ -275,195 +275,11 @@ program
                                             optyCodeProviderContractsKey.toString()
                                         )
                                     ) {
-                                        //  In if condition, deploying the code provider contract with only registry address
-                                        //  and in else deploy CodeProvider Contract with registry and gatherer addresses
-                                        if (
+                                        //  Deploying  the  code provider contracts
+                                        optyCodeProviderContract = await utilities.deployCodeProviderContracts(optyCodeProviderContractsKey, ownerWallet, codeProviderContract[
                                             optyCodeProviderContractsKey
-                                                .toString()
-                                                .toLowerCase() == "dydxcodeprovider" ||
-                                            optyCodeProviderContractsKey
-                                                .toString()
-                                                .toLowerCase() ==
-                                                "aavev1codeprovider" ||
-                                            optyCodeProviderContractsKey
-                                                .toString()
-                                                .toLowerCase() ==
-                                                "fulcrumcodeprovider" ||
-                                            optyCodeProviderContractsKey
-                                                .toString()
-                                                .toLowerCase() ==
-                                                "yvaultcodeprovider" ||
-                                            optyCodeProviderContractsKey
-                                                .toString()
-                                                .toLowerCase() ==
-                                                "aavev2codeprovider" ||
-                                            optyCodeProviderContractsKey
-                                                .toString()
-                                                .toLowerCase() == "yearncodeprovider"
-                                        ) {
-                                            console.log(
-                                                "==== 1. Depoying " +
-                                                    optyCodeProviderContractsKey +
-                                                    "  Contract ===="
-                                            );
-
-                                            //  Deploying the code provider contracts
-                                            optyCodeProviderContract = await deployContract(
-                                                ownerWallet,
-                                                codeProviderContract[
-                                                    optyCodeProviderContractsKey
-                                                ],
-                                                [optyRegistry.address]
-                                            );
-                                            console.log(
-                                                "Printing " +
-                                                    optyCodeProviderContractsKey +
-                                                    "'s address: ",
-                                                optyCodeProviderContract.address
-                                            );
-                                        } else {
-                                            console.log(
-                                                "==== 2. Depoying " +
-                                                    optyCodeProviderContractsKey +
-                                                    "  Contract ===="
-                                            );
-                                            var overrideOptions: ethers.providers.TransactionRequest = {
-                                                gasLimit: 6721975,
-                                            };
-
-                                            //  Special case for deploying the CurveSwapCodeProvider.sol
-                                            if (
-                                                optyCodeProviderContractsKey ==
-                                                "CurveSwapCodeProvider"
-                                            ) {
-                                                var overrideOptions: ethers.providers.TransactionRequest = {
-                                                    gasLimit: 6721975,
-                                                };
-                                                console.log("Deploy in IF condition..");
-                                                let factory = new ethers.ContractFactory(
-                                                    codeProviderContract[
-                                                        optyCodeProviderContractsKey
-                                                    ].abi,
-                                                    OtherImports.ByteCodes.CurveSwapCodeProvider,
-                                                    ownerWallet
-                                                );
-                                                console.log(
-                                                    "deploying curveSwap contract"
-                                                );
-                                                //  Deploying the curveSwap code provider contract
-                                                optyCodeProviderContract = await factory.deploy(
-                                                    optyRegistry.address,
-                                                    gatherer.address,
-                                                    overrideOptions
-                                                );
-                                                console.log("deployed curve swap.....");
-                                                // console.log("deploying txn: ", optyCodeProviderContract.deployTransaction)
-                                                let curveSwapDeployReceipt = await optyCodeProviderContract.deployTransaction.wait();
-                                                // console.log("Curve swap deployed receipt:  ", curveSwapDeployReceipt)
-                                                console.log(
-                                                    "Printing " +
-                                                        optyCodeProviderContractsKey +
-                                                        "'s address: ",
-                                                    optyCodeProviderContract.address
-                                                );
-                                            } else {
-                                                console.log("Deploy in else condition");
-                                                var overrideOptions: ethers.providers.TransactionRequest = {
-                                                    gasLimit: 6721975,
-                                                };
-
-                                                //  Deploying the code provider contracts
-                                                optyCodeProviderContract = await deployContract(
-                                                    ownerWallet,
-                                                    codeProviderContract[
-                                                        optyCodeProviderContractsKey
-                                                    ],
-                                                    [
-                                                        optyRegistry.address,
-                                                        gatherer.address,
-                                                    ],
-                                                    overrideOptions
-                                                );
-                                                console.log(
-                                                    "Printing " +
-                                                        optyCodeProviderContractsKey +
-                                                        "'s address: ",
-                                                    optyCodeProviderContract.address
-                                                );
-                                                // process.exit(32)
-                                            }
-
-                                            //  Setting/Mapping the liquidityPoolToken, SwapPoolTOUnderlyingTokens and gauge address as pre-requisites in CurveSwapCodeProvider
-                                            let curveSwapDataProviderKey: keyof typeof OtherImports.curveSwapDataProvider;
-                                            for (curveSwapDataProviderKey in OtherImports.curveSwapDataProvider) {
-                                                if (
-                                                    curveSwapDataProviderKey
-                                                        .toString()
-                                                        .toLowerCase() ==
-                                                    optyCodeProviderContractsKey
-                                                        .toString()
-                                                        .toLowerCase()
-                                                ) {
-                                                    console.log(
-                                                        "CurveSwapCodeProvider contract address: ",
-                                                        optyCodeProviderContract.address
-                                                    );
-                                                    let tokenPairs =
-                                                        OtherImports
-                                                            .curveSwapDataProvider[
-                                                            curveSwapDataProviderKey
-                                                        ];
-                                                    let tokenPair: keyof typeof tokenPairs;
-                                                    for (tokenPair in tokenPairs) {
-                                                        let _liquidityPoolToken =
-                                                            tokenPairs[tokenPair]
-                                                                .liquidityPoolToken;
-                                                        let _swapPool =
-                                                            tokenPairs[tokenPair]
-                                                                .swapPool;
-                                                        let _guage =
-                                                            tokenPairs[tokenPair].gauge;
-                                                        let _underlyingTokens =
-                                                            tokenPairs[tokenPair]
-                                                                .underlyingTokens;
-
-                                                        var overrideOptions: ethers.providers.TransactionRequest = {
-                                                            value: 0,
-                                                            gasLimit: 6721970,
-                                                        };
-                                                        console.log("step-1");
-                                                        let optyCodeProviderContractOwnerSigner = optyCodeProviderContract.connect(
-                                                            ownerWallet
-                                                        );
-
-                                                        console.log("step-1a");
-                                                        //  Mapping lpToken to swapPool contract
-                                                        await optyCodeProviderContractOwnerSigner.functions.setLiquidityPoolToken(
-                                                            _swapPool,
-                                                            _liquidityPoolToken,
-                                                            {
-                                                                gasLimit: 6700000,
-                                                            }
-                                                        );
-
-                                                        console.log("step-2");
-                                                        //  Mapping UnderlyingTokens to SwapPool Contract
-                                                        await optyCodeProviderContract.setSwapPoolToUnderlyingTokens(
-                                                            _swapPool,
-                                                            _underlyingTokens
-                                                        );
-
-                                                        console.log("step-3");
-                                                        //  Mapping Gauge contract to the SwapPool Contract
-                                                        await optyCodeProviderContract.setSwapPoolToGauges(
-                                                            _swapPool,
-                                                            _guage
-                                                        );
-                                                    }
-                                                }
-                                            }
-                                        }
-
+                                        ], optyRegistry.address, gatherer.address)
+                                        
                                         //  Mapping CodeProvider contracts deployed to their variable names
                                         optyCodeProviderContractVariables[
                                             optyCodeProviderContractsKey
@@ -507,35 +323,19 @@ program
                                                         ].tokens,
                                                         optyRegistry
                                                     );
-                                                    if (
-                                                        defiPoolsKey
-                                                            .toString()
-                                                            .includes("Borrow")
-                                                    ) {
-                                                        // Approving pool as creditPool if it is borrow
-                                                        await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
-                                                            defiPoolsUnderlyingTokens[
-                                                                defiPoolsUnderlyingTokensKey
-                                                            ].pool,
-                                                            optyCodeProviderContractVariables[
-                                                                optyCodeProviderContractsKey
-                                                            ].address,
-                                                            true,
-                                                            optyRegistry
-                                                        );
-                                                    } else {
-                                                        // Approving pool as Liquidity pool and mapping it to the CodeProvider
-                                                        await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
-                                                            defiPoolsUnderlyingTokens[
-                                                                defiPoolsUnderlyingTokensKey
-                                                            ].pool,
-                                                            optyCodeProviderContractVariables[
-                                                                optyCodeProviderContractsKey
-                                                            ].address,
-                                                            false,
-                                                            optyRegistry
-                                                        );
-                                                    }
+                                                    
+                                                    // Approving pool as Liquidity pool and mapping it to the CodeProvider
+                                                    await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
+                                                        defiPoolsUnderlyingTokens[
+                                                            defiPoolsUnderlyingTokensKey
+                                                        ].pool,
+                                                        optyCodeProviderContractVariables[
+                                                            optyCodeProviderContractsKey
+                                                        ].address,
+                                                        false,
+                                                        optyRegistry
+                                                    );
+
                                                     if (
                                                         defiPoolsUnderlyingTokens[
                                                             defiPoolsUnderlyingTokensKey
