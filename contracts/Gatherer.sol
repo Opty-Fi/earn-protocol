@@ -32,7 +32,7 @@ contract Gatherer is Modifiers {
         return true;
     }
     
-    function getHarvestCodes(address _optyPool, address _rewardToken, address _underlyingToken, uint _rewardTokenAmount) public view returns(bytes[] memory _codes) {
+    function getHarvestCodes(address payable _optyPool, address _rewardToken, address _underlyingToken, uint _rewardTokenAmount) public view returns(bytes[] memory _codes) {
         if (_rewardTokenAmount > 0) {
             address[] memory _path;
             uint256[] memory _amounts;
