@@ -6,6 +6,7 @@ import * as PoolContractAbis from "./shared/PoolContractAbis";
 import * as GovernanceContractAbis from "./shared/GovernanceContractAbis";
 import * as ProtocolCodeProviderAbis from "./shared/ProtocolCodeProvidersAbi";
 import * as OtherImports from "./shared/OtherImports";
+import * as RegistryFunctions from "./shared/OptyRegistryFunctions";
 
 const envConfig = require("dotenv").config(); //  library to import the local ENV variables defined
 //  Note: Don't remove line-6, because this line helps to get rid of error: NOT ABLE TO READ LOCAL ENV VARIABLES defined in .env file
@@ -509,19 +510,21 @@ program
                                                 //  current CodeProvider Contract Key
                                                 for (let defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
                                                     //  Approving tokens, lpTokens
-                                                    await approveTokenLpToken(
+                                                    await RegistryFunctions.approveTokenLpToken(
                                                         defiPoolsUnderlyingTokens[
                                                             defiPoolsUnderlyingTokensKey
                                                         ].lpToken,
                                                         defiPoolsUnderlyingTokens[
                                                             defiPoolsUnderlyingTokensKey
-                                                        ].tokens
+                                                        ].tokens,
+                                                        optyRegistry
                                                     );
                                                     // Mapping tokensHash to token
-                                                    await setTokensHashToTokens(
+                                                    await RegistryFunctions.setTokensHashToTokens(
                                                         defiPoolsUnderlyingTokens[
                                                             defiPoolsUnderlyingTokensKey
-                                                        ].tokens
+                                                        ].tokens,
+                                                        optyRegistry
                                                     );
                                                     if (
                                                         defiPoolsKey
@@ -529,25 +532,27 @@ program
                                                             .includes("Borrow")
                                                     ) {
                                                         // Approving pool as creditPool if it is borrow
-                                                        await approveLpCpAndMapLpToCodeProvider(
+                                                        await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
                                                             defiPoolsUnderlyingTokens[
                                                                 defiPoolsUnderlyingTokensKey
                                                             ].pool,
                                                             optyCodeProviderContractVariables[
                                                                 optyCodeProviderContractsKey
                                                             ].address,
-                                                            true
+                                                            true,
+                                                            optyRegistry
                                                         );
                                                     } else {
                                                         // Approving pool as Liquidity pool and mapping it to the CodeProvider
-                                                        await approveLpCpAndMapLpToCodeProvider(
+                                                        await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
                                                             defiPoolsUnderlyingTokens[
                                                                 defiPoolsUnderlyingTokensKey
                                                             ].pool,
                                                             optyCodeProviderContractVariables[
                                                                 optyCodeProviderContractsKey
                                                             ].address,
-                                                            false
+                                                            false,
+                                                            optyRegistry
                                                         );
                                                     }
                                                     if (
@@ -1967,6 +1972,7 @@ program
                                     const fileName: string =
                                         path + gasRecordsFileName + ".json";
 
+                                    //  Appending into the file (if exists) else creating new file and adding data into it
                                     fs.stat(fileName, async function (
                                         err: { code: string } | null,
                                         stat: any
@@ -1998,92 +2004,6 @@ program
                             });
                         }
                     );
-                }
-
-                //  Function to approve the LpTokens as tokens and underlyingTokens from tokens list
-                async function approveTokenLpToken(lpToken: string, tokens: string[]) {
-                    // Note: May need this if lpToken is null/empty down the road - Deepanshu
-                    // if (!!lpToken || lpToken.length > 0) {
-                    if (lpToken != "0x0000000000000000000000000000000000000000") {
-                        let lpTokenApproveStatus = await optyRegistry.tokens(lpToken);
-                        if (!lpTokenApproveStatus) {
-                            console.log("Approving LpToken: ", lpToken);
-                            await optyRegistry.approveToken(lpToken);
-                        }
-                    }
-
-                    console.log("STep-1 approve");
-                    if (tokens.length > 0) {
-                        console.log("step2 approve");
-                        tokens.forEach(async (token) => {
-                            console.log("step3 approve");
-                            let tokenApproveStatus = await optyRegistry.tokens(token);
-                            if (!tokenApproveStatus) {
-                                console.log("Approving token: ", token);
-                                await optyRegistry.approveToken(token);
-                            }
-                        });
-                    }
-                }
-
-                //  Function to set the hash for the list of underlying tokens
-                async function setTokensHashToTokens(tokens: string[]) {
-                    let tokensHash =
-                        "0x" +
-                        abi.soliditySHA3(["address[]"], [tokens]).toString("hex");
-                    // let tokensHashIndex: ethers.utils.BigNumber = await optyRegistry.tokensHashToTokens(
-                    //     tokensHash
-                    // );
-                    let tokensHashIndex: ethers.BigNumber = await optyRegistry.tokensHashToTokens(
-                        tokensHash
-                    );
-                    if (
-                        tokensHashIndex.eq(0) &&
-                        tokensHash !==
-                            "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
-                    ) {
-                        console.log(
-                            "Tokens Hash generated from SHA3 lib: ",
-                            tokensHash
-                        );
-                        const setTokensHashTx = await optyRegistry.setTokensHashToTokens(
-                            tokens
-                        );
-                        const setTokensHashTxOutput = await setTokensHashTx.wait();
-                        console.log(
-                            "set Tokens hash output from contract: ",
-                            setTokensHashTxOutput
-                        );
-                    }
-                }
-
-                //  Function to approve the liquidity/credit pool and map the Lp to the CodeProvider Contract
-                async function approveLpCpAndMapLpToCodeProvider(
-                    pool: string,
-                    codeProvider: string,
-                    isBorrow: boolean
-                ) {
-                    let liquidityPools = await optyRegistry.liquidityPools(pool);
-                    let creditPools = await optyRegistry.creditPools(pool);
-                    if (!liquidityPools.isLiquidityPool) {
-                        await optyRegistry.approveLiquidityPool(pool);
-                    }
-                    liquidityPools = await optyRegistry.liquidityPools(pool);
-                    if (!creditPools.isLiquidityPool) {
-                        await optyRegistry.approveCreditPool(pool);
-                    }
-                    if (isBorrow) {
-                        await optyRegistry.setLiquidityPoolToBorrowPoolProxy(
-                            pool,
-                            codeProvider
-                        );
-                    } else {
-                        console.log("Mapping code provider to lp");
-                        await optyRegistry.setLiquidityPoolToCodeProvider(
-                            pool,
-                            codeProvider
-                        );
-                    }
                 }
             });
         }
