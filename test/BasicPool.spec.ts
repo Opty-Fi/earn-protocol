@@ -539,64 +539,39 @@ program
                                 userOptyTokenBalance = parseFloat(
                                     fromWei(userOptyTokenBalanceWei)
                                 );
-                                console.log("BEFORE IF CONDITION..");
                                 //  If user's underlying token balance is less than TEST_AMOUNT then, fund user's wallet with underlying token
                                 if (
                                     userTokenBalanceWei.lt(TEST_AMOUNT) ||
                                     userTokenBalanceWei == undefined
                                 ) {
-                                    console.log("Coming in If condition");
+                                    
                                     let FUND_AMOUNT;
-                                    //  Edge case for funding the HBTC token
+                                    //  Edge case for funding the HBTC token due to price impact during swapping
                                     if (
                                         tokenContractInstance.address ==
                                         "0x0316EB71485b0Ab14103307bf65a021042c6d380"
                                     ) {
-                                        console.log(
-                                            "coming in hbtc fund amount condition"
-                                        );
                                         FUND_AMOUNT = TEST_AMOUNT;
                                     } else {
                                         FUND_AMOUNT = TEST_AMOUNT.sub(
                                             userTokenBalanceWei
                                         );
                                     }
-                                    console.log("FUNDING STARTED..");
-                                    console.log(
-                                        "FUND AMOUNT: ",
-                                        ethers.utils.formatUnits(
-                                            FUND_AMOUNT,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
+                                    
                                     //  Fund the user's wallet with some TEST_AMOUNT_NUM of tokens
                                     await utilities.fundWallet(
                                         underlyingToken,
                                         userWallet,
                                         FUND_AMOUNT
                                     );
-                                    console.log("FUNDING DONE");
+                                    
                                     // Check Token and opToken balance of User's wallet and OptyTokenBaiscPool Contract
                                     userTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         userWallet.address
                                     );
-                                    console.log(
-                                        "User's token balance after funding: ",
-                                        ethers.utils.formatUnits(
-                                            userTokenBalanceWei,
-                                            underlyingTokenDecimals
-                                        )
-                                    );
+                                    
                                     //  If still user's wallet is not funded with TEST_AMOUNT, then fund the wallet again with remaining tokens
                                     if (userTokenBalanceWei.lt(TEST_AMOUNT)) {
-                                        console.log("Coming in 2nd if condition");
-                                        console.log(
-                                            "User's balance in 2nd if condition before funding: ",
-                                            ethers.utils.formatUnits(
-                                                userTokenBalanceWei,
-                                                underlyingTokenDecimals
-                                            )
-                                        );
 
                                         await utilities.fundWallet(
                                             underlyingToken,
@@ -605,13 +580,6 @@ program
                                         );
                                         userTokenBalanceWei = await tokenContractInstance.balanceOf(
                                             userWallet.address
-                                        );
-                                        console.log(
-                                            "User's token balance after funding in if condition: ",
-                                            ethers.utils.formatUnits(
-                                                userTokenBalanceWei,
-                                                underlyingTokenDecimals
-                                            )
                                         );
                                     }
                                     userInitialTokenBalance = parseFloat(
