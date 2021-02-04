@@ -69,14 +69,13 @@ program
 
             //  Creatubg the file name based on underlying token passed or not
             if (command.symbol == null) {
-                
                 testScriptRunTimeDateAndTime = Date.now();
                 gasRecordsFileName =
                     "AllTokenStrategiesGasRecords_" +
                     testScriptRunTimeDateAndTime.toString();
             } else {
                 underlyingTokenSymbol = command.symbol.toString().toUpperCase();
-                
+
                 testScriptRunTimeDateAndTime = Date.now();
                 gasRecordsFileName =
                     underlyingTokenSymbol +
@@ -337,7 +336,6 @@ program
                                                     ].lpToken
                                                 );
                                             }
-                                            
                                         }
                                     }
                                 }
@@ -544,7 +542,6 @@ program
                                     userTokenBalanceWei.lt(TEST_AMOUNT) ||
                                     userTokenBalanceWei == undefined
                                 ) {
-                                    
                                     let FUND_AMOUNT;
                                     //  Edge case for funding the HBTC token due to price impact during swapping
                                     if (
@@ -557,22 +554,21 @@ program
                                             userTokenBalanceWei
                                         );
                                     }
-                                    
+
                                     //  Fund the user's wallet with some TEST_AMOUNT_NUM of tokens
                                     await utilities.fundWallet(
                                         underlyingToken,
                                         userWallet,
                                         FUND_AMOUNT
                                     );
-                                    
+
                                     // Check Token and opToken balance of User's wallet and OptyTokenBaiscPool Contract
                                     userTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         userWallet.address
                                     );
-                                    
+
                                     //  If still user's wallet is not funded with TEST_AMOUNT, then fund the wallet again with remaining tokens
                                     if (userTokenBalanceWei.lt(TEST_AMOUNT)) {
-
                                         await utilities.fundWallet(
                                             underlyingToken,
                                             userWallet,
@@ -585,7 +581,6 @@ program
                                     userInitialTokenBalance = parseFloat(
                                         fromWei(userTokenBalanceWei)
                                     );
-                                    // expect(userInitialTokenBalance).to.equal(TEST_AMOUNT_NUM);
                                 }
                             }
 
@@ -824,14 +819,14 @@ program
                                                         strategy["_isStrategy"],
                                                         "Strategy is not approved"
                                                     );
-                                                    
+
                                                     let scoreStrategyTx = await optyRegistry.scoreStrategy(
                                                         strategyHash.toString(),
                                                         index + 1
                                                     );
                                                     let scoreStrategyReceipt = await scoreStrategyTx.wait();
                                                     scoreStrategyTxGasUsed = scoreStrategyReceipt.gasUsed.toNumber();
-                                                    
+
                                                     setAndScoreStrategyTotalGasUsed = setStrategyReceipt.gasUsed
                                                         .add(
                                                             scoreStrategyReceipt.gasUsed
@@ -843,7 +838,6 @@ program
                                                         index + 1
                                                     );
                                                     await scoreStrategyTx.wait();
-                                                    
                                                 }
 
                                                 //  Fetching best strategy
@@ -870,7 +864,6 @@ program
                                         "should withdraw using userWithdrawRebalance() using Strategy - " +
                                             strategies.strategyName,
                                         async () => {
-                                            
                                             //  Connect the BasicPool Contract with the user's Wallet for making userDeposit()
                                             let initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
                                                 userWallet.address
@@ -879,40 +872,49 @@ program
                                             //  If condition is checking if the withdrawal is 0 or not. This can happen when
                                             //  depositRebalance() is called after setting up the same strategy. This can happen
                                             //  user doesn't have any Op<Token>Bsc tokens.
-                                            if (!(
-                                                initialUserOptyTokenBalanceWei
-                                                    .sub(1)
-                                                    .eq(0) ||
-                                                initialUserOptyTokenBalanceWei.eq(0) ||
-                                                initialUserOptyTokenBalanceWei
-                                                    .sub(
-                                                        utilities.expandToTokenDecimals(
-                                                            1,
-                                                            11
+                                            if (
+                                                !(
+                                                    initialUserOptyTokenBalanceWei
+                                                        .sub(1)
+                                                        .eq(0) ||
+                                                    initialUserOptyTokenBalanceWei.eq(
+                                                        0
+                                                    ) ||
+                                                    initialUserOptyTokenBalanceWei
+                                                        .sub(
+                                                            utilities.expandToTokenDecimals(
+                                                                1,
+                                                                11
+                                                            )
                                                         )
-                                                    )
-                                                    .eq(0)
-                                            )) {
-                                                
-                                            // } else {
-                                                
+                                                        .eq(0)
+                                                )
+                                            ) {
                                                 //  This is the edge when running all the test cases together and it sometimes fails
                                                 //  (because of timing issues) for the first but works it same strategy is used again.
                                                 //  Also, it works if we are only testing this strategy alone.
-                                                let EdgeCaseStrategiesKeys: keyof typeof OtherImports.EdgeCaseStrategies
-                                                EdgeCaseStrategiesKeys = <keyof typeof OtherImports.EdgeCaseStrategies>strategies.strategyName.toString()
-                                                let sleepTimeInSec = OtherImports.EdgeCaseStrategies[EdgeCaseStrategiesKeys] ? OtherImports.EdgeCaseStrategies[EdgeCaseStrategiesKeys].sleepTimeInSec : 0
+                                                let EdgeCaseStrategiesKeys: keyof typeof OtherImports.EdgeCaseStrategies;
+                                                EdgeCaseStrategiesKeys = <
+                                                    keyof typeof OtherImports.EdgeCaseStrategies
+                                                >strategies.strategyName.toString();
+                                                let sleepTimeInSec = OtherImports
+                                                    .EdgeCaseStrategies[
+                                                    EdgeCaseStrategiesKeys
+                                                ]
+                                                    ? OtherImports.EdgeCaseStrategies[
+                                                          EdgeCaseStrategiesKeys
+                                                      ].sleepTimeInSec
+                                                    : 0;
                                                 try {
-                                                    
                                                     //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
                                                     //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
                                                     // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
                                                     let roundingDelta = 0;
-                                                    
+
                                                     await utilities.sleep(
                                                         sleepTimeInSec * 1000
                                                     ); //  Needs to wait  for min 60 sec or above else withdraw will through a revert error
-                                                    
+
                                                     // await optyTokenBasicPoolAsSignerUser.userWithdraw(initialUserOptyTokenBalanceWei.sub(1))
                                                     await testUserWithdrawRebalance(
                                                         initialUserOptyTokenBalanceWei,
@@ -931,7 +933,6 @@ program
 
                                 //  Function to deposit the underlying tokens into Opty<XXX>Pool and test the userDepositRebalance()
                                 async function testUserDepositRebalance() {
-                                    
                                     let userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         userWallet.address
                                     );
@@ -945,7 +946,7 @@ program
                                             gasLimit: 1000000,
                                         }
                                     );
-                                    
+
                                     expect(
                                         await tokenContractInstance.allowance(
                                             userWallet.address,
@@ -957,7 +958,7 @@ program
                                     let userOptyTokenBalanceBefore = await optyTokenBasicPool.balanceOf(
                                         userWallet.address
                                     );
-                                    
+
                                     //  Promises for getting totalSupply, poolValue and making userDepositRebalance() in parallel
                                     //  for getting latest values of totalSuppy and poolValue while Deposit txn is made
                                     let totalSupplyPromise = new Promise(
@@ -967,7 +968,7 @@ program
                                             );
                                         }
                                     );
-                                    
+
                                     let poolValuePromise = new Promise(
                                         async (resolve) => {
                                             resolve(
@@ -975,11 +976,11 @@ program
                                             );
                                         }
                                     );
-                                    
+
                                     let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
                                         userWallet
                                     );
-                                    
+
                                     let userDepositRebalanceTxPromise = new Promise(
                                         async (resolve) => {
                                             resolve(
@@ -992,7 +993,7 @@ program
                                             );
                                         }
                                     );
-                                    
+
                                     let allPromiseResponses: [
                                         any,
                                         any,
@@ -1007,7 +1008,7 @@ program
                                     let poolValue = "";
                                     let shares: ethers.BigNumber;
                                     let userDepositRebalanceTx;
-                                    
+
                                     allPromiseResponses.forEach(
                                         async (promiseResponse, index) => {
                                             if (index == 0) {
@@ -1018,7 +1019,6 @@ program
                                                 userDepositRebalanceTx = promiseResponse;
                                                 let userDepositTxReceipt = await userDepositRebalanceTx.wait();
                                                 userDepositRebalanceTxGasUsed = userDepositTxReceipt.gasUsed.toNumber();
-
                                             }
                                         }
                                     );
@@ -1035,13 +1035,13 @@ program
                                     const userNewTokenBalance = parseFloat(
                                         fromWei(userTokenBalanceWei)
                                     );
-                                    
+
                                     expect(
                                         userTokenBalanceWei.eq(
                                             userInitialTokenBalanceWei.sub(TEST_AMOUNT)
                                         )
                                     ).to.be.true;
-                                    
+
                                     userInitialTokenBalance = userNewTokenBalance;
 
                                     //  Check Token balance of OptyPool contract after userDepositRabalance() call
@@ -1098,7 +1098,7 @@ program
                                     const userNewOptyTokenBalance = parseFloat(
                                         fromWei(userOptyTokenBalanceWei)
                                     );
-                                    
+
                                     userOptyTokenBalance = userNewOptyTokenBalance;
                                 }
 
@@ -1120,14 +1120,14 @@ program
                                     let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
                                         userWallet
                                     );
-                                    
+
                                     const userWithdrawTxOutput = await optyTokenBasicPoolAsSignerUser.functions.userWithdrawRebalance(
                                         withdrawAmount.sub(roundingDelta),
                                         {
                                             gasLimit: 5141327,
                                         }
                                     );
-                                    
+
                                     let receipt = await userWithdrawTxOutput.wait();
                                     userWithdrawRebalanceTxGasUsed = receipt.gasUsed.toNumber();
 
@@ -1159,7 +1159,7 @@ program
                                     let noOfTokensReceivedFromFormula = poolValue
                                         .mul(withdrawAmount.sub(1))
                                         .div(totalSupply);
-                                    
+
                                     expect(
                                         afterUserOptyTokenBalanceWei.eq(roundingDelta)
                                     ).to.be.true;
@@ -1263,7 +1263,6 @@ program
 
                                 //  Pushing data to DB
                                 if (command.insertGasRecordsInDB) {
-                                    
                                     allStrategiesGasUsedRecords.forEach(
                                         async (gasRecordItem) => {
                                             const inserQueryResponse: number = await utilities.insertGasUsedRecordsIntoDB(
@@ -1277,7 +1276,7 @@ program
                                                 gasRecordItem.userWithdrawRebalanceTx,
                                                 command.runTimeversion
                                             );
-                                            
+
                                             expect(inserQueryResponse).to.equal(
                                                 1,
                                                 "All records for gas used are not entered into DB!"
@@ -1288,7 +1287,6 @@ program
 
                                 //  Writing data into file
                                 if (command.writeGasRecordsInFile) {
-                                    
                                     let path = process.env.PWD;
                                     if (path?.endsWith("earn-protocol")) {
                                         path = path + "/test/gasRecordFiles/";
@@ -1306,12 +1304,10 @@ program
                                     ) {
                                         //  if file exists, then appending data to the file
                                         if (err == null) {
-                                            
                                             await utilities.appendInFile(
                                                 fileName,
                                                 tokenStrategyGasUsedRecord
                                             );
-                                            
                                         } else if (err.code === "ENOENT") {
                                             // file does not exist, therefore creating new one and writing into it
                                             await utilities.writeInFile(
@@ -1319,7 +1315,10 @@ program
                                                 tokenStrategyGasUsedRecord
                                             );
                                         } else {
-                                            console.log("Error occured while writing into file: ", err.code);
+                                            console.log(
+                                                "Error occured while writing into file: ",
+                                                err.code
+                                            );
                                         }
                                     });
                                 }

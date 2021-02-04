@@ -11,7 +11,7 @@ export async function approveTokenLpToken(
     // if (!!lpToken || lpToken.length > 0) {
     if (lpToken != "0x0000000000000000000000000000000000000000") {
         let lpTokenApproveStatus = await optyRegistry.tokens(lpToken);
-        
+
         if (!lpTokenApproveStatus) {
             await optyRegistry.approveToken(lpToken);
         }

@@ -209,14 +209,13 @@ export async function appendInFile(fileName: string, data: any) {
 
 async function formatFile(fileName: string) {
     await fs.readFile(fileName, "utf8", async function (err: any, data: string) {
-        
         if (err) {
             return console.log(err);
         }
         //  refactoring text data of string format into json
         var result = data.replace(/}","{/g, ",");
         var final_data = JSON.parse(result);
-        
+
         //  writing into file
         await writeInFile(fileName, final_data);
     });
@@ -280,14 +279,11 @@ export async function deployCodeProviderContracts(
         optyCodeProviderContractsKey.toString().toLowerCase() == "aavev2codeprovider" ||
         optyCodeProviderContractsKey.toString().toLowerCase() == "yearncodeprovider"
     ) {
-
         //  Deploying the code provider contracts
         optyCodeProviderContract = await deployContract(ownerWallet, codeProviderAbi, [
             OptyRegistryAddress,
         ]);
-
     } else {
-
         var overrideOptions: ethers.providers.TransactionRequest = {
             gasLimit: 6721975,
         };
@@ -311,7 +307,6 @@ export async function deployCodeProviderContracts(
 
             let curveSwapDeployReceipt = await optyCodeProviderContract.deployTransaction.wait();
         } else {
-
             var overrideOptions: ethers.providers.TransactionRequest = {
                 gasLimit: 6721975,
             };
@@ -332,7 +327,6 @@ export async function deployCodeProviderContracts(
                 curveSwapDataProviderKey.toString().toLowerCase() ==
                 optyCodeProviderContractsKey.toString().toLowerCase()
             ) {
-                
                 let tokenPairs =
                     OtherImports.curveSwapDataProvider[curveSwapDataProviderKey];
                 let tokenPair: keyof typeof tokenPairs;
