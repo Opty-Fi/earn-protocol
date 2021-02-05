@@ -1,11 +1,11 @@
-import ByteCodes from "./Bytecodes.json";
-import ProtocolCodeProviderNames from "./ProtocolCodeProviderNames.json";
-import defiPools from "./defiPools.json";
-import curveSwapDataProvider from "./CurveSwapDataProvider.json";
-import allStrategies from "./strategies.json";
-import EdgeCaseStrategies from "./EdgeCaseStrategies.json";
-import tokenAddresses from "./TokenAddresses.json";
-import addressAbis from "./AddressAbis.json";
+import ByteCodes from "../data/Bytecodes.json";
+import ProtocolCodeProviderNames from "../data/ProtocolCodeProviderNames.json";
+import defiPools from "../data/defiPools.json";
+import curveSwapDataProvider from "../data/CurveSwapDataProvider.json";
+import allStrategies from "../data/strategies.json";
+import EdgeCaseStrategies from "../data/EdgeCaseStrategies.json";
+import tokenAddresses from "../data/TokenAddresses.json";
+import addressAbis from "../data/AddressAbis.json";
 
 export {
     ByteCodes,

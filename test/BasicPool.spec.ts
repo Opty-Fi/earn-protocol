@@ -2,9 +2,9 @@ import chai, { assert, expect } from "chai";
 import { Contract, ethers } from "ethers";
 import { solidity, deployContract } from "ethereum-waffle";
 import * as utilities from "./shared/utilities";
-import * as PoolContractAbis from "./shared/PoolContractAbis";
-import * as GovernanceContractAbis from "./shared/GovernanceContractAbis";
-import * as ProtocolCodeProviderAbis from "./shared/ProtocolCodeProvidersAbi";
+import * as PoolContracts from "./shared/PoolContracts";
+import * as GovernanceContracts from "./shared/GovernanceContract";
+import * as ProtocolCodeProviderContracts from "./shared/ProtocolCodeProviderContracts";
 import * as OtherImports from "./shared/OtherImports";
 import * as RegistryFunctions from "./shared/OptyRegistryFunctions";
 
@@ -136,18 +136,18 @@ program
 
             //  Json of CodeProviderContract for storing the Abi's of CodeProviderContracts
             let codeProviderContract: CodeProviderContract = {
-                CompoundCodeProvider: ProtocolCodeProviderAbis.CompoundCodeProvider,
-                AaveV1CodeProvider: ProtocolCodeProviderAbis.AaveV1CodeProvider,
-                FulcrumCodeProvider: ProtocolCodeProviderAbis.FulcrumCodeProvider,
-                DForceCodeProvider: ProtocolCodeProviderAbis.DForceCodeProvider,
-                HarvestCodeProvider: ProtocolCodeProviderAbis.HarvestCodeProvider,
-                YVaultCodeProvider: ProtocolCodeProviderAbis.YVaultCodeProvider,
-                CurvePoolCodeProvider: ProtocolCodeProviderAbis.CurvePoolCodeProvider,
-                CurveSwapCodeProvider: ProtocolCodeProviderAbis.CurveSwapCodeProvider,
-                dYdXCodeProvider: ProtocolCodeProviderAbis.dYdXCodeProvider,
-                CreamCodeProvider: ProtocolCodeProviderAbis.CreamCodeProvider,
-                AaveV2CodeProvider: ProtocolCodeProviderAbis.AaveV2CodeProvider,
-                YearnCodeProvider: ProtocolCodeProviderAbis.YearnCodeProvider,
+                CompoundCodeProvider: ProtocolCodeProviderContracts.CompoundCodeProvider,
+                AaveV1CodeProvider: ProtocolCodeProviderContracts.AaveV1CodeProvider,
+                FulcrumCodeProvider: ProtocolCodeProviderContracts.FulcrumCodeProvider,
+                DForceCodeProvider: ProtocolCodeProviderContracts.DForceCodeProvider,
+                HarvestCodeProvider: ProtocolCodeProviderContracts.HarvestCodeProvider,
+                YVaultCodeProvider: ProtocolCodeProviderContracts.YVaultCodeProvider,
+                CurvePoolCodeProvider: ProtocolCodeProviderContracts.CurvePoolCodeProvider,
+                CurveSwapCodeProvider: ProtocolCodeProviderContracts.CurveSwapCodeProvider,
+                dYdXCodeProvider: ProtocolCodeProviderContracts.dYdXCodeProvider,
+                CreamCodeProvider: ProtocolCodeProviderContracts.CreamCodeProvider,
+                AaveV2CodeProvider: ProtocolCodeProviderContracts.AaveV2CodeProvider,
+                YearnCodeProvider: ProtocolCodeProviderContracts.YearnCodeProvider,
             };
 
             let optyCodeProviderContractVariables: OptyCodeProviderContractVariables = {};
@@ -182,7 +182,7 @@ program
                     //  Deploying Registry, RiskManager, Gatherer and StrategyCodeProvider Contracts
                     optyRegistry = await deployContract(
                         ownerWallet,
-                        GovernanceContractAbis.OptyRegistry,
+                        GovernanceContracts.OptyRegistry,
                         [],
                         {
                             gasLimit: 5141327,
@@ -195,21 +195,21 @@ program
 
                     riskManager = await deployContract(
                         ownerWallet,
-                        GovernanceContractAbis.RiskManager,
+                        GovernanceContracts.RiskManager,
                         [optyRegistry.address]
                     );
                     assert.isDefined(riskManager, "RiskManager contract not deployed");
 
                     gatherer = await deployContract(
                         ownerWallet,
-                        GovernanceContractAbis.Gatherer,
+                        GovernanceContracts.Gatherer,
                         [optyRegistry.address]
                     );
                     assert.isDefined(gatherer, "Gatherer contract not deployed");
 
                     optyStrategyCodeProvider = await deployContract(
                         ownerWallet,
-                        GovernanceContractAbis.OptyStrategyCodeProvider,
+                        GovernanceContracts.OptyStrategyCodeProvider,
                         [optyRegistry.address]
                     );
                     assert.isDefined(
@@ -349,7 +349,7 @@ program
                     console.log("TESTING COMPLETED..");
                 });
 
-                it.skip("should check if the code provider contracts are deployed", async () => {
+                it("should check if the code provider contracts are deployed", async () => {
                     assert.isOk(
                         optyCodeProviderContractVariables.CompoundCodeProvider.address,
                         "CompoundCodeProvider Contract is not deployed"
@@ -495,7 +495,7 @@ program
                                 ) {
                                     optyTokenBasicPool = await deployContract(
                                         ownerWallet,
-                                        PoolContractAbis.OptyTokenBasicPoolMkr,
+                                        PoolContracts.OptyTokenBasicPoolMkr,
                                         [
                                             optyRegistry.address,
                                             riskManager.address,
@@ -507,7 +507,7 @@ program
                                     //  Deploying the BasicPool Contract each time for every underlying token
                                     optyTokenBasicPool = await deployContract(
                                         ownerWallet,
-                                        PoolContractAbis.OptyTokenBasicPool,
+                                        PoolContracts.OptyTokenBasicPool,
                                         [
                                             optyRegistry.address,
                                             riskManager.address,

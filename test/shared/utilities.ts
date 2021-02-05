@@ -1,11 +1,11 @@
 import { BigNumber, bigNumberify } from "ethers/utils";
 import { Contract, ethers } from "ethers";
-import exchange from "./exchange.json";
-import addressAbis from "./AddressAbis.json";
-import tokenAddresses from "./TokenAddresses.json";
+import exchange from "../data/exchange.json";
+import addressAbis from "../data/AddressAbis.json";
+import tokenAddresses from "../data/TokenAddresses.json";
 import { expect } from "chai";
 import * as OtherImports from "./OtherImports";
-import { OptyRegistry } from "./GovernanceContractAbis";
+import { OptyRegistry } from "./GovernanceContract";
 import { solidity, deployContract } from "ethereum-waffle";
 
 const dotenv = require("dotenv");
