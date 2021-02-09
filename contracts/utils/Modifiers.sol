@@ -60,10 +60,18 @@ contract Modifiers {
     }
 
     /**
-     * @dev Modifier to check caller is operator or not
+     * @dev Modifier to check caller is strategist or not
      */
     modifier onlyStrategist() {
         require(msg.sender == registryContract.strategist(), "caller is not the strategist");
+        _;
+    }
+    
+    /**
+     * @dev Modifier to check caller is minter or not
+     */
+    modifier onlyMinter() {
+        require(msg.sender == registryContract.minter(), "caller is not the strategist");
         _;
     }
 

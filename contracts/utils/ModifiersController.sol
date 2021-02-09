@@ -12,17 +12,19 @@ contract ModifiersController {
     address public governance;
     address public operator;
     address public strategist;
+    address public minter;
     
     using Address for address;
     
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
      */
-    constructor (address _governance, address _strategist, address _operator) internal {
+    constructor (address _governance, address _strategist, address _operator, address _minter) internal {
         require(_governance != address(0),"!address(0)");
         governance = _governance;
         setStrategist(_strategist);
         setOperator(_operator);
+        setMinter(_minter);
     }
     
     /**
@@ -53,6 +55,15 @@ contract ModifiersController {
     }
     
     /**
+     * @dev Transfers minter to a new account (`_minter`).
+     * Can only be called by the current governance.
+     */   
+    function setMinter(address _minter) public onlyGovernance {
+        require(_minter != address(0),"!address(0)");
+        minter = _minter;
+    }
+    
+    /**
      * @dev Modifier to check caller is governance or not
      */
     modifier onlyGovernance() {
@@ -73,6 +84,14 @@ contract ModifiersController {
      */
     modifier onlyStrategist() {
         require(msg.sender == strategist, "caller is not the strategist");
+        _;
+    }
+    
+    /**
+     * @dev Modifier to check caller is minter or not
+     */
+    modifier onlyMinter() {
+        require(msg.sender == minter, "caller is not the minter");
         _;
     }
 }

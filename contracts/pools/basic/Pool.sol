@@ -236,7 +236,6 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
 
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
-
         //  Updating the totalSupply of op tokens
         _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
         _totalSupply = _totalSupply.sub(_redeemAmount);
