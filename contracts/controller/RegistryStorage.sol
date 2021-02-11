@@ -39,7 +39,7 @@ contract RegistryAdminStorage {
     address public pendingRegistryImplementation;
 }
 
-contract RegistryStorage is RegistryAdminStorage {
+contract Structs {
     struct StrategyStep {
         address pool;
         address outputToken;
@@ -53,7 +53,6 @@ contract RegistryStorage is RegistryAdminStorage {
 
     struct Strategy {
         uint256 index;
-        uint256 blockNumber;
         StrategyStep[] strategySteps;
     }
 
@@ -61,7 +60,9 @@ contract RegistryStorage is RegistryAdminStorage {
         uint256 index;
         address[] tokens;
     }
+}
 
+contract RegistryStorage is RegistryAdminStorage, Structs {
     bytes32[] public strategyHashIndexes;
     bytes32[] public tokensHashIndexes;
 
@@ -71,7 +72,6 @@ contract RegistryStorage is RegistryAdminStorage {
     mapping(address => LiquidityPool) public creditPools;
     mapping(bytes32 => Strategy) public strategies;
     mapping(bytes32 => bytes32[]) public tokenToStrategies;
-    mapping(address => mapping(bytes32 => address)) public liquidityPoolToLPTokens;
     mapping(address => mapping(address => bytes32)) public liquidityPoolToTokenHashes;
     mapping(address => address) public liquidityPoolToCodeProvider;
 }

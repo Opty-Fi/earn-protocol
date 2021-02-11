@@ -14,104 +14,6 @@ contract Registry is ModifiersController {
     using Address for address;
 
     /**
-     * @dev Sets the value for {governance} and {strategist},
-     * approves dai, usdt, usdc, tusd, wbtc, weth tokens.
-     *
-     * All these tokens can be approved by governance only
-     */
-    function intialize() public onlyGovernance {
-        // underlying tokens
-        address dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-        address usdt = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
-        address usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-        address tusd = address(0x0000000000085d4780B73119b644AE5ecd22b376);
-        address wbtc = address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
-        address weth = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-
-        // activate underlying tokens
-        approveToken(dai);
-        approveToken(usdt);
-        approveToken(usdc);
-        approveToken(tusd);
-        approveToken(wbtc);
-        approveToken(weth);
-
-        // declare token groups
-        address[] memory tkns = new address[](1);
-
-        // intialized token(dai) hash to dai
-        tkns[0] = dai;
-        setTokensHashToTokens(tkns);
-
-        // activation for aave dai
-        address aaveLendingPoolAddressProvider = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
-        address aDAILPToken = address(0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d);
-        approveToken(aDAILPToken);
-        approveLiquidityPool(aaveLendingPoolAddressProvider);
-        setLiquidityPoolToLPToken(aaveLendingPoolAddressProvider, tkns, aDAILPToken);
-
-        // activation for compound dai
-        address cDAILiquidityPool = address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643);
-        approveToken(cDAILiquidityPool);
-        approveLiquidityPool(cDAILiquidityPool);
-        setLiquidityPoolToLPToken(cDAILiquidityPool, tkns, cDAILiquidityPool);
-
-        // activation for yearn dai vault
-        address yearnDAIVault = address(0xACd43E627e64355f1861cEC6d3a6688B31a6F952);
-        approveLiquidityPool(yearnDAIVault);
-        approveToken(yearnDAIVault);
-        setLiquidityPoolToLPToken(yearnDAIVault, tkns, yearnDAIVault);
-
-        //  activation for harvest dai vault
-        address harvestDAIvault = address(0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C);
-        approveToken(harvestDAIvault);
-        approveLiquidityPool(harvestDAIvault);
-        setLiquidityPoolToLPToken(harvestDAIvault, tkns, harvestDAIvault);
-
-        // activation for fulcrum dai
-        address fulcrumDAILendingPool = address(0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0);
-        approveLiquidityPool(fulcrumDAILendingPool);
-        approveToken(fulcrumDAILendingPool);
-        setLiquidityPoolToLPToken(fulcrumDAILendingPool, tkns, fulcrumDAILendingPool);
-
-        // activation for dforce dai
-        address dforceDAILiquidityPool = address(0x02285AcaafEB533e03A7306C55EC031297df9224);
-        approveLiquidityPool(dforceDAILiquidityPool);
-        approveToken(dforceDAILiquidityPool);
-        setLiquidityPoolToLPToken(dforceDAILiquidityPool, tkns, dforceDAILiquidityPool);
-
-        //  activation for compound usdc
-        tkns = new address[](1);
-        tkns[0] = usdc;
-        setTokensHashToTokens(tkns);
-
-        //  activation for compound usdc
-        address cUSDCLiquidityPool = address(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
-        approveToken(cUSDCLiquidityPool);
-        approveLiquidityPool(cUSDCLiquidityPool);
-        setLiquidityPoolToLPToken(cUSDCLiquidityPool, tkns, cUSDCLiquidityPool);
-
-        // activation for cream usdc
-        address crUSDCLendingPool = address(0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322);
-        approveLiquidityPool(crUSDCLendingPool);
-        approveToken(crUSDCLendingPool);
-        setLiquidityPoolToLPToken(crUSDCLendingPool, tkns, crUSDCLendingPool);
-
-        // activation for curve compound (dai + usdc)
-        tkns = new address[](2);
-        tkns[0] = dai;
-        tkns[1] = usdc;
-        setTokensHashToTokens(tkns);
-
-        // activate for curve compound (dai + usdc)
-        address curveCompoundDeposit = address(0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06);
-        address curveCompoundLPToken = address(0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2);
-        approveLiquidityPool(curveCompoundDeposit);
-        approveToken(curveCompoundLPToken);
-        setLiquidityPoolToLPToken(curveCompoundDeposit, tkns, curveCompoundLPToken);
-    }
-
-    /**
      * @dev Sets `_token` from the {tokens} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
@@ -311,7 +213,7 @@ contract Registry is ModifiersController {
     }
 
     /**
-     * @dev Sets `_strategySteps` for `_pool` from the {liquidityPools} mapping.
+     * @dev assign strategy in form of `_strategySteps` to the `_tokensHash`.
      *
      * Returns a hash value of strategy indicating successful operation.
      *
@@ -328,59 +230,58 @@ contract Registry is ModifiersController {
      */
     function setStrategy(bytes32 _tokensHash, StrategyStep[] memory _strategySteps) public onlyOperator returns (bytes32) {
         require(!_isNewTokensHash(_tokensHash), "_isNewTokensHash");
-        for (uint8 i = 0; i < _strategySteps.length; i++) {
-            require(liquidityPoolToCodeProvider[_strategySteps[i].pool] != address(0), "!codeProvider.");
+        return _setStrategy(_tokensHash, _strategySteps);
+    }
+
+    /**
+     * @dev assign multiple strategies in form of `_strategySteps` to the `_tokensHash`.
+     *
+     * Emits a {LogSetStrategy} event per successful assignment of the strategy.
+     *
+     * Requirements:
+     *
+     * - `_tokensHash` should be approved.
+     * - msg.sender can be governance or strategist.
+     * - `creditPool` in {_strategySteps} shoould be approved.
+     * - `liquidityPool` in {_strategySteps} should be approved
+     * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
+     * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
+     */
+    function setStrategy(bytes32 _tokensHash, StrategyStep[][] memory _strategySteps) public onlyOperator {
+        require(!_isNewTokensHash(_tokensHash), "_isNewTokensHash");
+        uint8 _len = uint8(_strategySteps.length);
+        for (uint8 _i = 0; _i < _len; _i++) {
+            _setStrategy(_tokensHash, _strategySteps[_i]);
         }
-        bytes32[] memory hashes = new bytes32[](_strategySteps.length);
-        for (uint8 i = 0; i < _strategySteps.length; i++) {
-            hashes[i] = keccak256(abi.encodePacked(_strategySteps[i].pool, _strategySteps[i].outputToken, _strategySteps[i].isBorrow));
+    }
+
+    /**
+     * @dev assign multiple strategies in form of `_strategySteps` to multiple tokens in form of `_tokensHash`.
+     *
+     * Emits a {LogSetStrategy} event per successful assignment of the strategy.
+     *
+     * Requirements:
+     *
+     * - `_tokensHash` should be approved.
+     * - msg.sender can be governance or strategist.
+     * - `creditPool` in {_strategySteps} shoould be approved.
+     * - `liquidityPool` in {_strategySteps} should be approved
+     * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
+     * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
+     */
+    function setStrategy(bytes32[] memory _tokensHash, StrategyStep[][] memory _strategySteps) public onlyOperator returns (bytes32) {
+        require(_tokensHash.length == _strategySteps.length, "!index mismatch");
+        uint8 _len = uint8(_strategySteps.length);
+        for (uint8 _i = 0; _i < _len; _i++) {
+            setStrategy(_tokensHash[_i], _strategySteps[_i]);
         }
-        bytes32 hash = keccak256(abi.encodePacked(_tokensHash, hashes));
-        require(_isNewStrategy(hash), "isNewStrategy");
-        for (uint8 i = 0; i < _strategySteps.length; i++) {
-            if (_strategySteps[i].isBorrow) {
-                require(creditPools[_strategySteps[i].pool].isLiquidityPool, "!isLiquidityPool");
-                require(tokens[_strategySteps[i].outputToken], "!borrowToken");
-            } else {
-                require(liquidityPools[_strategySteps[i].pool].isLiquidityPool, "!isLiquidityPool");
-                if (i == 0) {
-                    require(
-                        liquidityPoolToLPTokens[_strategySteps[i].pool][_tokensHash] == _strategySteps[i].outputToken,
-                        "!liquidityPoolToLPTokens"
-                    );
-                } else {
-                    address[] memory _tokenArr = new address[](1);
-                    _tokenArr[0] = _strategySteps[i - 1].outputToken;
-                    require(
-                        liquidityPoolToLPTokens[_strategySteps[i].pool][keccak256(abi.encodePacked(_tokenArr))] == _strategySteps[i].outputToken,
-                        "!liquidityPoolToLPTokens"
-                    );
-                }
-            }
-            strategies[hash].strategySteps.push(StrategyStep(_strategySteps[i].pool, _strategySteps[i].outputToken, _strategySteps[i].isBorrow));
-        }
-        strategyHashIndexes.push(hash);
-        strategies[hash].index = strategyHashIndexes.length - 1;
-        strategies[hash].blockNumber = block.number;
-        tokenToStrategies[_tokensHash].push(hash);
-        emit LogSetStrategy(msg.sender, _tokensHash, hash);
-        return hash;
     }
 
     /**
      * @dev Returns the Strategy by `_hash`.
      */
-    function getStrategy(bytes32 _hash)
-        public
-        view
-        returns (
-            uint256 _index,
-            uint256 _blockNumber,
-            StrategyStep[] memory _strategySteps
-        )
-    {
+    function getStrategy(bytes32 _hash) public view returns (uint256 _index, StrategyStep[] memory _strategySteps) {
         _index = strategies[_hash].index;
-        _blockNumber = strategies[_hash].blockNumber;
         _strategySteps = strategies[_hash].strategySteps;
     }
 
@@ -389,38 +290,6 @@ contract Registry is ModifiersController {
      */
     function getTokenToStrategies(bytes32 _tokensHash) public view returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];
-    }
-
-    /**
-     * @dev Sets `_poolToken` to the `_pool` from the {liquidityPoolToLPTokens} mapping.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {LogSetLiquidityPoolToLPTokens} event.
-     *
-     * Requirements:
-     *
-     * - `_pool`should be approved.
-     * - msg.sender should be governance.
-     * - `_tokens` should be approved
-     * - `_poolToken` should be approved
-     */
-    function setLiquidityPoolToLPToken(
-        address _pool,
-        address[] memory _tokens,
-        address _poolToken
-    ) public onlyOperator returns (bool success) {
-        require(liquidityPools[_pool].isLiquidityPool, "!liquidityPools.isLiquidityPool");
-        // require(tokens[_poolToken],"!tokens");
-        for (uint8 i = 0; i < _tokens.length; i++) {
-            require(tokens[_tokens[i]], "!_tokens");
-        }
-        bytes32 _tokensHash = keccak256(abi.encodePacked(_tokens));
-        require(!_isNewTokensHash(_tokensHash), "_isNewTokensHash");
-        liquidityPoolToLPTokens[_pool][_tokensHash] = _poolToken;
-        liquidityPoolToTokenHashes[_pool][_poolToken] = _tokensHash;
-        LogSetLiquidityPoolToLPTokens(msg.sender, _pool, _tokensHash, _poolToken);
-        success = true;
     }
 
     /**
@@ -434,15 +303,15 @@ contract Registry is ModifiersController {
      * - `_tokens` should be approved
      */
     function setTokensHashToTokens(address[] memory _tokens) public onlyOperator {
-        for (uint8 i = 0; i < _tokens.length; i++) {
-            require(tokens[_tokens[i]], "!tokens");
+        for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
+            require(tokens[_tokens[_i]], "!tokens");
         }
         bytes32 _tokensHash = keccak256(abi.encodePacked(_tokens));
         require(_isNewTokensHash(_tokensHash), "!_isNewTokensHash");
         tokensHashIndexes.push(_tokensHash);
         tokensHashToTokens[_tokensHash].index = tokensHashIndexes.length - 1;
-        for (uint8 i = 0; i < _tokens.length; i++) {
-            tokensHashToTokens[_tokensHash].tokens.push(_tokens[i]);
+        for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
+            tokensHashToTokens[_tokensHash].tokens.push(_tokens[_i]);
         }
         emit LogTokensToTokensHash(msg.sender, _tokensHash);
     }
@@ -454,8 +323,9 @@ contract Registry is ModifiersController {
         return tokensHashToTokens[_tokensHash].tokens;
     }
 
-    function _become(RegistryProxy _registryProxy) public onlyGovernance {
-        require(_registryProxy._acceptImplementation() == 0, "change not authorized");
+    function _become(RegistryProxy _registryProxy) public {
+        require(msg.sender == _registryProxy.governance(), "!governance");
+        require(_registryProxy._acceptImplementation() == 0, "!unauthorized");
     }
 
     /**
@@ -488,6 +358,50 @@ contract Registry is ModifiersController {
             return true;
         }
         return (tokensHashIndexes[tokensHashToTokens[_hash].index] != _hash);
+    }
+
+    /**
+     * @dev assign strategy in form of `_strategySteps` to the `_tokensHash`.
+     *
+     * Returns a hash value of strategy indicating successful operation.
+     *
+     * Emits a {LogSetStrategy} event.
+     *
+     * Requirements:
+     *
+     * - `_tokensHash` should be approved.
+     * - msg.sender can be governance or strategist.
+     * - `creditPool` in {_strategySteps} shoould be approved.
+     * - `liquidityPool` in {_strategySteps} should be approved
+     * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
+     * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
+     */
+    function _setStrategy(bytes32 _tokensHash, StrategyStep[] memory _strategySteps) private returns (bytes32) {
+        for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
+            require(liquidityPoolToCodeProvider[_strategySteps[_i].pool] != address(0), "!codeProvider.");
+        }
+        bytes32[] memory hashes = new bytes32[](_strategySteps.length);
+        for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
+            hashes[_i] = keccak256(abi.encodePacked(_strategySteps[_i].pool, _strategySteps[_i].outputToken, _strategySteps[_i].isBorrow));
+        }
+        bytes32 hash = keccak256(abi.encodePacked(_tokensHash, hashes));
+        require(_isNewStrategy(hash), "isNewStrategy");
+        for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
+            if (_strategySteps[_i].isBorrow) {
+                require(creditPools[_strategySteps[_i].pool].isLiquidityPool, "!isLiquidityPool");
+                require(tokens[_strategySteps[_i].outputToken], "!borrowToken");
+            } else {
+                require(liquidityPools[_strategySteps[_i].pool].isLiquidityPool, "!isLiquidityPool");
+            }
+            strategies[hash].strategySteps.push(
+                StrategyStep(_strategySteps[_i].pool, _strategySteps[_i].outputToken, _strategySteps[_i].isBorrow)
+            );
+        }
+        strategyHashIndexes.push(hash);
+        strategies[hash].index = strategyHashIndexes.length - 1;
+        tokenToStrategies[_tokensHash].push(hash);
+        emit LogSetStrategy(msg.sender, _tokensHash, hash);
+        return hash;
     }
 
     /**
@@ -538,13 +452,6 @@ contract Registry is ModifiersController {
      * Note that `hash` startegy should exist in {strategyHashIndexes}.
      */
     event LogScoreStrategy(address indexed caller, bytes32 indexed hash, uint8 indexed score);
-
-    /**
-     * @dev Emitted when liquidity pool `tokens` are assigned to pool.
-     *
-     * Note that `pool` and `tokens` should be approved in {liquidityPools} and {tokens} respectively.
-     */
-    event LogSetLiquidityPoolToLPTokens(address indexed caller, address indexed pool, bytes32 indexed tokens, address poolToken);
 
     /**
      * @dev Emitted when liquidity pool `pool` is assigned to `codeProvider`.

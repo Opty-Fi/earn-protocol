@@ -92,7 +92,7 @@ contract RiskManager is Modifiers, RegistryStorage {
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
 
         // validate strategy profile
-        (, , StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
+        (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
             !_strategySteps[0].isBorrow &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
@@ -120,7 +120,7 @@ contract RiskManager is Modifiers, RegistryStorage {
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
 
         // validate strategy profile
-        (, , StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
+        (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
             !_strategySteps[0].isBorrow &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
@@ -148,7 +148,7 @@ contract RiskManager is Modifiers, RegistryStorage {
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
 
         // validate strategy profile
-        (, , StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
+        (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
             !_strategySteps[0].isBorrow &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&

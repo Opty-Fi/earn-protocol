@@ -12,7 +12,7 @@ import "./utils/ERC20.sol";
 import "./utils/Modifiers.sol";
 import "./Gatherer.sol";
 
-contract StrategyCodeProvider is Modifiers,RegistryStorage {
+contract StrategyCodeProvider is Modifiers, Structs {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -90,7 +90,7 @@ contract StrategyCodeProvider is Modifiers,RegistryStorage {
     }
 
     function _getStrategySteps(bytes32 _hash) internal view returns (StrategyStep[] memory _strategySteps) {
-        (, , , _strategySteps) = registryContract.getStrategy(_hash);
+        (, _strategySteps) = registryContract.getStrategy(_hash);
     }
 
     function _getPoolDepositAllCodes(

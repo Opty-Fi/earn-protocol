@@ -31,15 +31,11 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
      */
     event NewGovernance(address oldGovernance, address newGovernance);
 
-    constructor(
-        address _strategist,
-        address _operator,
-        address _minter
-    ) public {
+    constructor() public {
         governance = msg.sender;
-        setStrategist(_strategist);
-        setOperator(_operator);
-        setMinter(_minter);
+        setStrategist(msg.sender);
+        setOperator(msg.sender);
+        setMinter(msg.sender);
     }
 
     /*** Admin Functions ***/
