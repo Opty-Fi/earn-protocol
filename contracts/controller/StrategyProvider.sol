@@ -2,7 +2,9 @@
 
 pragma solidity ^0.6.10;
 
-contract StrategyProvider {
+import "../utils/Modifiers.sol";
+
+contract StrategyProvider is Modifiers {
     mapping(bytes32 => bytes32) public tokenToBestBasicStrategies;
     mapping(bytes32 => bytes32) public tokenToDefaultBasicStrategies;
     mapping(bytes32 => bytes32) public tokenToBestAdvanceStrategies;
@@ -10,33 +12,29 @@ contract StrategyProvider {
     mapping(bytes32 => bytes32) public tokenToBestAdvancePlusStrategies;
     mapping(bytes32 => bytes32) public tokenToDefaultAdvancePlusStrategies;
 
-    function setBestBasicStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public {
-        // TODO @ OP-357 : validate tokenHash, strategyHash
+    constructor(address _registry) public Modifiers(_registry) {}
+
+    function setBestBasicStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToBestBasicStrategies[_tokenHash] = _strategyHash;
     }
 
-    function setBestAdvanceStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public {
-        // TODO @ OP-357 : validate tokenHash, strategyHash
+    function setBestAdvanceStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToBestAdvanceStrategies[_tokenHash] = _strategyHash;
     }
 
-    function setBestAdvancePlusStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public {
-        // TODO @ OP-357 : validate tokenHash, strategyHash
+    function setBestAdvancePlusStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToBestAdvancePlusStrategies[_tokenHash] = _strategyHash;
     }
 
-    function setDefaultBasicStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public {
-        // TODO @ OP-357 : validate tokenHash, strategyHash
+    function setDefaultBasicStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToDefaultBasicStrategies[_tokenHash] = _strategyHash;
     }
 
-    function setDefaultAdvanceStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public {
-        // TODO @ OP-357 : validate tokenHash, strategyHash
+    function setDefaultAdvanceStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToDefaultAdvancePlusStrategies[_tokenHash] = _strategyHash;
     }
 
-    function setDefaultAdvancePlusStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public {
-        // TODO @ OP-357 : validate tokenHash, strategyHash
+    function setDefaultAdvancePlusStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToDefaultAdvancePlusStrategies[_tokenHash] = _strategyHash;
     }
 }
