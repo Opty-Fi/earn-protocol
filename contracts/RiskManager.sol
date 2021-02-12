@@ -122,7 +122,6 @@ contract RiskManager is Modifiers, RegistryStorage {
         // validate strategy profile
         (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
-            !_strategySteps[0].isBorrow &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T2_limit
         ) {
@@ -150,7 +149,6 @@ contract RiskManager is Modifiers, RegistryStorage {
         // validate strategy profile
         (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
-            !_strategySteps[0].isBorrow &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T3_limit
         ) {
