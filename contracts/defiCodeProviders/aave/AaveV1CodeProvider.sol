@@ -38,6 +38,9 @@ contract AaveV1CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (bytes[] memory _codes) {
         if (_amounts[0] > 0) {
             address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
+            ReserveConfigurationData memory _inputTokenReserveConfigurationData =
+                IAaveV1(_lendingPool).getReserveConfigurationData(_underlyingTokens[0]);
+            require(_inputTokenReserveConfigurationData.isActive, "!isActive");
             address _lendingPoolCore = _getLendingPoolCore(_liquidityPoolAddressProvider);
             uint256 _depositAmount = _getDepositAmount(_liquidityPoolAddressProvider, _underlyingTokens[0], _amounts[0]);
             _codes = new bytes[](3);
@@ -67,31 +70,37 @@ contract AaveV1CodeProvider is ICodeProvider, Modifiers {
         address _outputToken
     ) public view override returns (bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        ReserveConfigurationData memory _reserveConfigurationData = IAaveV1(_lendingPool).getReserveConfigurationData(_underlyingTokens[0]);
-        if (_reserveConfigurationData.usageAsCollateralEnabled && _reserveConfigurationData.stableBorrowRateEnabled) {
-            uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProvider, _outputToken);
-            if (_borrow > 0) {
-                bool _isUserCollateralEnabled = IAaveV1(_lendingPool).getUserReserveData(_underlyingTokens[0], _optyPool).enabled;
-                if (_isUserCollateralEnabled) {
-                    _codes = new bytes[](1);
-                    _codes[0] = abi.encode(
-                        _lendingPool,
-                        abi.encodeWithSignature("borrow(address,uint256,uint256,uint16)", _outputToken, _borrow, uint256(1), uint16(0))
-                    );
-                } else {
-                    _codes = new bytes[](2);
-                    _codes[0] = abi.encode(
-                        _lendingPool,
-                        abi.encodeWithSignature("setUserUseReserveAsCollateral(address,bool)", _underlyingTokens[0], true)
-                    );
-                    _codes[1] = abi.encode(
-                        _lendingPool,
-                        abi.encodeWithSignature("borrow(address,uint256,uint256,uint16)", _outputToken, _borrow, uint256(1), uint16(0))
-                    );
-                }
+        ReserveConfigurationData memory _inputTokenReserveConfigurationData =
+            IAaveV1(_lendingPool).getReserveConfigurationData(_underlyingTokens[0]);
+        ReserveConfigurationData memory _outputTokenReserveConfigurationData = IAaveV1(_lendingPool).getReserveConfigurationData(_outputToken);
+        require(
+            _inputTokenReserveConfigurationData.isActive &&
+                _inputTokenReserveConfigurationData.usageAsCollateralEnabled &&
+                _outputTokenReserveConfigurationData.isActive &&
+                _outputTokenReserveConfigurationData.borrowingEnabled,
+            "!borrow"
+        );
+        uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProvider, _outputToken);
+        if (_borrow > 0) {
+            bool _isUserCollateralEnabled = IAaveV1(_lendingPool).getUserReserveData(_underlyingTokens[0], _optyPool).enabled;
+            uint256 _interestRateMode = _outputTokenReserveConfigurationData.stableBorrowRateEnabled ? uint256(1) : uint256(2);
+            if (_isUserCollateralEnabled) {
+                _codes = new bytes[](1);
+                _codes[0] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature("borrow(address,uint256,uint256,uint16)", _outputToken, _borrow, _interestRateMode, uint16(0))
+                );
+            } else {
+                _codes = new bytes[](2);
+                _codes[0] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature("setUserUseReserveAsCollateral(address,bool)", _underlyingTokens[0], true)
+                );
+                _codes[1] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature("borrow(address,uint256,uint256,uint16)", _outputToken, _borrow, _interestRateMode, uint16(0))
+                );
             }
-        } else {
-            revert("!borrow");
         }
     }
 
