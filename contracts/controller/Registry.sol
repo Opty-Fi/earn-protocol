@@ -206,7 +206,7 @@ contract Registry is ModifiersController {
      */
     function setLiquidityPoolToCodeProvider(address _pool, address _codeProvider) public onlyOperator returns (bool) {
         require(_codeProvider.isContract(), "!_codeProvider.isContract()");
-        require(liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
+        require(liquidityPools[_pool].isLiquidityPool || creditPools[_pool].isLiquidityPool, "!liquidityPools");
         liquidityPoolToCodeProvider[_pool] = _codeProvider;
         emit LogLiquidityPoolToDepositToken(msg.sender, _pool, _codeProvider);
         return true;
