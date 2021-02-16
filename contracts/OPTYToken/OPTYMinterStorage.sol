@@ -4,25 +4,27 @@ pragma solidity ^0.6.10;
 
 contract OPTYMinterStorage {
     
+    /// @notice The market's last index
+    /// @notice The block number the index was last updated at
     struct OptyState {
-        /// @notice The market's last index
         uint224 index;
-
-        /// @notice The block number the index was last updated at
         uint32 block;
     }
     
-    uint genesisBlock;
+    mapping(address => uint) public optyPoolStartBlock;
         
     address[] public allOptyPools;
     
-    mapping(address => bool) public marketEnabled;
+    mapping(address => bool) public optyPoolEnabled;
     
     /// @notice The rate at which the flywheel distributes OPTY, per block
     uint public optyTotalRate;
 
     /// @notice The portion of optyRate that each market currently receives
-    mapping(address => uint) public optyPoolRate;
+    mapping(address => uint) public optyPoolRatePerBlock;
+    
+    /// @notice The portion of optyRate that each market currently receives divided by the amount of LP tokens
+    mapping(address => uint) public optyPoolRatePerBlockAndLPToken;
     
     /// @notice The OPTY accrued but not yet transferred to each user
     mapping(address => uint) public optyAccrued;
