@@ -5,34 +5,10 @@
     "AaveV1CodeProvider":{
         "canHarvest":false
     },
-    "FulcrumCodeProvider":{
-        "canHarvest":false
-    },
-    "DForceCodeProvider":{
-        "canHarvest":true
-    },
-    "HarvestCodeProvider" :{
-        "canHarvest":true
-    },
     "YVaultCodeProvider":{
         "canHarvest":false
     },
     "CurvePoolCodeProvider":{
         "canHarvest":true
-    },
-    "CurveSwapCodeProvider":{
-        "canHarvest":true
-    },
-    "dYdXCodeProvider":{
-        "canHarvest":false
-    },
-    "CreamCodeProvider":{
-        "canHarvest":true
-    },
-    "AaveV2CodeProvider":{
-        "canHarvest":false
-    },
-    "YearnCodeProvider":{
-        "canHarvest":false
     }
 }

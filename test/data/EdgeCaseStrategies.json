@@ -55,5 +55,17 @@
     },
     "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD": {
         "sleepTimeInSec": 300
+    },
+    "DAI-borrow-AAVE-KNC": {
+        "sleepTimeInSec": 120
+    },
+    "DAI-borrow-AAVE-MKR": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-MANA": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-YFI": {
+        "sleepTimeInSec": 240
     }
 }

@@ -1,6 +1,7 @@
 import ByteCodes from "../data/Bytecodes.json";
 import *  as ProtocolCodeProviderNames from "../data/ProtocolCodeProviderNames.json";
 import defiPools from "../data/defiPools.json";
+import defiPoolsAdv from "../data/defiPoolsAdv.json";
 import curveSwapDataProvider from "../data/Curve/CurveSwapDataProvider.json";
 import allStrategies from "../data/strategies.json";
 import allAdvancedStrategies from "../shared/advanced_strategies.json";
@@ -12,6 +13,7 @@ export {
     ByteCodes,
     ProtocolCodeProviderNames,
     defiPools,
+    defiPoolsAdv,
     curveSwapDataProvider,
     allStrategies,
     EdgeCaseStrategies,

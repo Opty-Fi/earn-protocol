@@ -12,6 +12,7 @@ import * as Interfaces from "./shared/interfaces";
 import * as Types from "./shared/types";
 import * as Constants from "./shared/constants";
 import * as CurveFunctions from "./shared/Curve/Curve";
+import { outputHelp } from "commander";
 
 chai.use(solidity);
 const { program } = require("commander"); //  library to handle the command line arguments
@@ -24,7 +25,7 @@ program
         null
     )
     .option("-sn, --strategyName <string>", "name of the strategy to run", null)
-    .option("-ta, --testAmount <number>", "amount with which you want to test", 30)
+    .option("-ta, --testAmount <number>", "amount with which you want to test", 10000)
     .option(
         "-sc, --strategiesCount <number>",
         "number of strategies you want to run",
@@ -86,7 +87,7 @@ program
             let TEST_AMOUNT: ethers.BigNumber; //  convert the test amount passed in to big number for testing
 
             let optyCodeProviderContractVariables: Interfaces.OptyCodeProviderContractVariables = {};
-            let defiPoolsKey: keyof typeof OtherImports.defiPools; //  Keys of defiPools.json corresponding to CodeProvider Contracts
+            let defiPoolsAdvKey: keyof typeof OtherImports.defiPoolsAdv; //  Keys of defiPoolsAdv.json corresponding to CodeProvider Contracts
             let provider: ethers.providers.Web3Provider;
 
             describe.only("OptyTokenAdvancePool", async () => {
@@ -267,41 +268,41 @@ program
                                     ],
                                     "optyCodeProviderContract contract not deployed"
                                 );
-                                // //  Iterating through defiPools.json to approve LpTokens/Tokens, set Tokens hash
+                                // //  Iterating through defiPoolsAdv.json to approve LpTokens/Tokens, set Tokens hash
                                 // //  mapping to tokens, approve LP/CP, map Lp to CodeProvider Contract and setting the
                                 // //  Lp to LpToken
-                                for (defiPoolsKey in OtherImports.defiPools) {
+                                for (defiPoolsAdvKey in OtherImports.defiPoolsAdv) {
                                     if (
-                                        defiPoolsKey.toString() ==
+                                        defiPoolsAdvKey.toString() ==
                                         optyCodeProviderContractsKey.toString()
                                     ) {
-                                        let defiPoolsUnderlyingTokens: Interfaces.DefiPools =
-                                            OtherImports.defiPools[defiPoolsKey];
+                                        let defiPoolsAdvUnderlyingTokens: Interfaces.DefiPoolsAdv =
+                                            OtherImports.defiPoolsAdv[defiPoolsAdvKey];
                                         //  Iteracting through all the underlying tokens available corresponding to this
                                         //  current CodeProvider Contract Key
-                                        for (let defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
+                                        for (let defiPoolsAdvUnderlyingTokensKey in defiPoolsAdvUnderlyingTokens) {
                                             //  Approving tokens, lpTokens
                                             await RegistryFunctions.approveTokenLpToken(
-                                                defiPoolsUnderlyingTokens[
-                                                    defiPoolsUnderlyingTokensKey
+                                                defiPoolsAdvUnderlyingTokens[
+                                                    defiPoolsAdvUnderlyingTokensKey
                                                 ].lpToken,
-                                                defiPoolsUnderlyingTokens[
-                                                    defiPoolsUnderlyingTokensKey
+                                                defiPoolsAdvUnderlyingTokens[
+                                                    defiPoolsAdvUnderlyingTokensKey
                                                 ].tokens,
                                                 optyRegistry
                                             );
                                             // Mapping tokensHash to token
                                             await RegistryFunctions.setTokensHashToTokens(
-                                                defiPoolsUnderlyingTokens[
-                                                    defiPoolsUnderlyingTokensKey
+                                                defiPoolsAdvUnderlyingTokens[
+                                                    defiPoolsAdvUnderlyingTokensKey
                                                 ].tokens,
                                                 optyRegistry
                                             );
 
                                             // Approving pool as Liquidity pool and mapping it to the CodeProvider
                                             await RegistryFunctions.approveLpCpAndMapLpToCodeProvider(
-                                                defiPoolsUnderlyingTokens[
-                                                    defiPoolsUnderlyingTokensKey
+                                                defiPoolsAdvUnderlyingTokens[
+                                                    defiPoolsAdvUnderlyingTokensKey
                                                 ].pool,
                                                 optyCodeProviderContractVariables[
                                                     optyCodeProviderContractsKey
@@ -311,8 +312,8 @@ program
                                             );
 
                                             if (
-                                                defiPoolsUnderlyingTokens[
-                                                    defiPoolsUnderlyingTokensKey
+                                                defiPoolsAdvUnderlyingTokens[
+                                                    defiPoolsAdvUnderlyingTokensKey
                                                 ].lpToken !=
                                                 "0x0000000000000000000000000000000000000000"
                                             ) {
@@ -321,32 +322,32 @@ program
                                                 );
                                                 DEBUG && console.log(
                                                     "\nLp: ",
-                                                    defiPoolsUnderlyingTokens[
-                                                        defiPoolsUnderlyingTokensKey
+                                                    defiPoolsAdvUnderlyingTokens[
+                                                        defiPoolsAdvUnderlyingTokensKey
                                                     ].pool
                                                 );
                                                 DEBUG && console.log(
                                                     "\nTokens: ",
-                                                    defiPoolsUnderlyingTokens[
-                                                        defiPoolsUnderlyingTokensKey
+                                                    defiPoolsAdvUnderlyingTokens[
+                                                        defiPoolsAdvUnderlyingTokensKey
                                                     ].tokens
                                                 );
                                                 DEBUG && console.log(
                                                     "\nLp token: ",
-                                                    defiPoolsUnderlyingTokens[
-                                                        defiPoolsUnderlyingTokensKey
+                                                    defiPoolsAdvUnderlyingTokens[
+                                                        defiPoolsAdvUnderlyingTokensKey
                                                     ].lpToken
                                                 );
                                                 // Mapping LiquidityPool to lpToken
                                                 await optyRegistry.setLiquidityPoolToLPToken(
-                                                    defiPoolsUnderlyingTokens[
-                                                        defiPoolsUnderlyingTokensKey
+                                                    defiPoolsAdvUnderlyingTokens[
+                                                        defiPoolsAdvUnderlyingTokensKey
                                                     ].pool,
-                                                    defiPoolsUnderlyingTokens[
-                                                        defiPoolsUnderlyingTokensKey
+                                                    defiPoolsAdvUnderlyingTokens[
+                                                        defiPoolsAdvUnderlyingTokensKey
                                                     ].tokens,
-                                                    defiPoolsUnderlyingTokens[
-                                                        defiPoolsUnderlyingTokensKey
+                                                    defiPoolsAdvUnderlyingTokens[
+                                                        defiPoolsAdvUnderlyingTokensKey
                                                     ].lpToken
                                                 );
                                             }
@@ -358,54 +359,54 @@ program
                         count++;
                     }
 
-                    assert.isOk(
-                        optyCodeProviderContractVariables.CompoundCodeProvider.address,
-                        "CompoundCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.AaveV1CodeProvider.address,
-                        "AaveV1CodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.AaveV2CodeProvider.address,
-                        "AaveV2CodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.FulcrumCodeProvider.address,
-                        "FulcrumCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.DForceCodeProvider.address,
-                        "DForceCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.HarvestCodeProvider.address,
-                        "HarvestCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.YVaultCodeProvider.address,
-                        "YVaultCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.YearnCodeProvider.address,
-                        "YearnCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.CurvePoolCodeProvider.address,
-                        "CurvePoolCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.CurveSwapCodeProvider.address,
-                        "CurveSwapCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.dYdXCodeProvider.address,
-                        "dYdXCodeProvider Contract is not deployed"
-                    );
-                    assert.isOk(
-                        optyCodeProviderContractVariables.CreamCodeProvider.address,
-                        "CreamCodeProvider Contract is not deployed"
-                    );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.CompoundCodeProvider.address,
+                    //     "CompoundCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.AaveV1CodeProvider.address,
+                    //     "AaveV1CodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.AaveV2CodeProvider.address,
+                    //     "AaveV2CodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.FulcrumCodeProvider.address,
+                    //     "FulcrumCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.DForceCodeProvider.address,
+                    //     "DForceCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.HarvestCodeProvider.address,
+                    //     "HarvestCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.YVaultCodeProvider.address,
+                    //     "YVaultCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.YearnCodeProvider.address,
+                    //     "YearnCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.CurvePoolCodeProvider.address,
+                    //     "CurvePoolCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.CurveSwapCodeProvider.address,
+                    //     "CurveSwapCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.dYdXCodeProvider.address,
+                    //     "dYdXCodeProvider Contract is not deployed"
+                    // );
+                    // assert.isOk(
+                    //     optyCodeProviderContractVariables.CreamCodeProvider.address,
+                    //     "CreamCodeProvider Contract is not deployed"
+                    // );
                 });
 
                 after(async () => {
@@ -691,7 +692,8 @@ program
                                                     );
                                                     setStrategyTx = await optyRegistry.setStrategy(
                                                         tokensHash,
-                                                        strategySteps
+                                                        strategySteps,
+                                                        Constants.GAS_OVERRIDE_OPTIONS
                                                     );
                                                     assert.isDefined(
                                                         setStrategyTx,
@@ -712,6 +714,7 @@ program
                                                     );
                                                 }
 
+                                                DEBUG && console.log("Strategy is set and getting confirmation on txn.")
                                                 const setStrategyReceipt = await setStrategyTx.wait();
                                                 setStrategyTxGasUsed = setStrategyReceipt.gasUsed.toNumber();
 
@@ -827,6 +830,10 @@ program
                                                     "\n Credit pool rating condition: ",
                                                     creditPool.rating >= 0
                                                 );
+                                                let outputTokenStatus = await optyRegistry.tokens(
+                                                    StrategyFromRM["_strategySteps"][0].outputToken
+                                                );
+                                                DEBUG && console.log("Output token status: ", outputTokenStatus)
                                                 let liquidityPool = await optyRegistry.getLiquidityPool(
                                                     StrategyFromRM["_strategySteps"][0]
                                                         .pool
@@ -915,6 +922,7 @@ program
                                                     //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
                                                     //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
                                                     // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
+                                                    // let roundingDelta = utilities.expandToTokenDecimals(100, underlyingTokenDecimals);
                                                     let roundingDelta = 0;
 
                                                     await utilities.sleep(
