@@ -9,21 +9,14 @@ import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
 import "./../../RiskManager.sol";
 import "./../../StrategyCodeProvider.sol";
+import "../PoolStorage.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
+contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
-
-    bytes32 public strategyHash;
-    address public token; //  store the underlying token contract address (for example DAI)
-    uint256 public poolValue;
-    string public profile;
-
-    StrategyCodeProvider public strategyCodeProviderContract;
-    RiskManager public riskManagerContract;
 
     /**
      * @dev
@@ -57,29 +50,29 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function setRiskManager(address _riskManager) public onlyOperator returns (bool _success) {
-        require(_riskManager != address(0), "!_riskManager");
         require(_riskManager.isContract(), "!_riskManager.isContract");
         riskManagerContract = RiskManager(_riskManager);
         _success = true;
     }
 
     function setToken(address _underlyingToken) public onlyOperator returns (bool _success) {
-        require(_underlyingToken != address(0), "!address(0)");
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         token = _underlyingToken;
         _success = true;
     }
 
     function setStrategyCodeProvider(address _strategyCodeProvider) public onlyOperator returns (bool _success) {
-        require(_strategyCodeProvider != address(0), "!_strategyCodeProvider");
         require(_strategyCodeProvider.isContract(), "!__strategyCodeProvider.isContract");
         strategyCodeProviderContract = StrategyCodeProvider(_strategyCodeProvider);
         _success = true;
     }
 
-    function supplyAll() public ifNotDiscontinued ifNotPaused {
+    function _supplyAll() internal ifNotDiscontinued ifNotPaused {
         uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
+        _batchMintAndBurn();
+        first = 1;
+        last = 0;
         uint8 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
         for (uint8 _i = 0; _i < _steps; _i++) {
             bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i, _steps);
@@ -110,7 +103,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
         if (balance() > 0) {
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-            supplyAll();
+            _supplyAll();
         }
     }
 
@@ -124,19 +117,15 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     function _calPoolValueInToken() internal view returns (uint256) {
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(payable(address(this)), token, strategyHash);
-            return balanceInToken.add(balance());
+            return balanceInToken.add(balance()).sub(depositQueue);
         }
-        return balance();
+        return balance().sub(depositQueue);
     }
 
     /**
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
     function balance() public view returns (uint256) {
-        return IERC20(token).balanceOf(address(this));
-    }
-
-    function _balance() internal view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
@@ -178,6 +167,46 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
     }
 
+    function userDepositAll() external {
+        userDeposit(IERC20(token).balanceOf(msg.sender));
+    }
+
+    /**
+     * @dev Function for depositing underlying tokens (for example DAI) into the contract
+     *
+     * Requirements:
+     *
+     *  - Amount should be greater than 0
+     *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
+     */
+    function userDeposit(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+        require(_amount > 0, "!(_amount>0)");
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
+        last++;
+        queue[last] = Operation(msg.sender, true, _amount);
+        pendingDeposits[msg.sender] += _amount;
+        depositQueue += _amount;
+        emit DepositQueue(msg.sender, last, _amount);
+        _success = true;
+    }
+
+    function _batchMintAndBurn() internal returns (bool _success) {
+        while (last >= first) {
+            if (queue[first].isDeposit) {
+                _mintShares(queue[first].account, balance(), queue[first].value);
+                pendingDeposits[msg.sender] -= queue[first].value;
+                depositQueue -= queue[first].value;
+            } else {
+                _redeemAndBurn(queue[first].account, balance(), queue[first].value);
+                pendingWithdraws[msg.sender] -= queue[first].value;
+                withdrawQueue -= queue[first].value;
+            }
+            delete queue[first];
+            first++;
+        }
+        _success = true;
+    }
+
     function userDepositAllRebalance() external {
         userDepositRebalance(IERC20(token).balanceOf(msg.sender));
     }
@@ -198,22 +227,46 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
             _withdrawAll();
             harvest(strategyHash);
         }
-
-        uint256 _tokenBalance = balance();
+        // do not consider _amount and pending deposit sum to calculate token balance
+        uint256 _tokenBalance = balance().sub(_amount).sub(depositQueue);
         uint256 shares = 0;
 
-        if (_tokenBalance.sub(_amount) == 0 || totalSupply() == 0) {
+        if (_tokenBalance == 0 || totalSupply() == 0) {
             shares = _amount;
         } else {
-            shares = (_amount.mul(totalSupply())).div((_tokenBalance.sub(_amount)));
+            shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
+        _mint(msg.sender, shares);
         if (balance() > 0) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-            supplyAll();
+            _supplyAll();
         }
-        _mint(msg.sender, shares);
+        _success = true;
+    }
+
+    function userWithdrawAll() external {
+        userWithdraw(balanceOf(msg.sender));
+    }
+
+    /**
+     * @dev Function to queu withdraw of the lp tokens from the liquidity pool (for example opDAI)
+     *
+     * Requirements:
+     *  -   contract function will be called.
+     *  -   _redeemAmount: amount to withdraw from the  liquidity pool. Its uints are:
+     *      in  weth uints i.e. 1e18
+     */
+    function userWithdraw(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
+        require(_redeemAmount > 0, "!_redeemAmount>0");
+        uint256 opBalance = balanceOf(msg.sender);
+        require(pendingWithdraws[msg.sender] + _redeemAmount <= opBalance, "!balance");
+        last++;
+        queue[last] = Operation(msg.sender, false, _redeemAmount);
+        pendingWithdraws[msg.sender] += _redeemAmount;
+        withdrawQueue += _redeemAmount;
+        emit WithdrawQueue(msg.sender, last, _redeemAmount);
         _success = true;
     }
 
@@ -230,30 +283,46 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *      in  weth uints i.e. 1e18
      */
     function userWithdrawRebalance(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool) {
-        require(_redeemAmount > 0, "withdraw must be greater than 0");
+        require(_redeemAmount > 0, "!_redeemAmount>0");
         uint256 opBalance = balanceOf(msg.sender);
-        require(_redeemAmount <= opBalance, "Insufficient balance");
+        require(_redeemAmount <= opBalance, "!!balance");
 
         if (!discontinued) {
             _withdrawAll();
             harvest(strategyHash);
         }
 
-        uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
+        // subtract pending deposit from total balance
+        _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
 
-        //  Updating the totalSupply of op tokens
-        _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
-        _totalSupply = _totalSupply.sub(_redeemAmount);
-        emit Transfer(msg.sender, address(0), _redeemAmount);
-
-        IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
         if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-            supplyAll();
+            _supplyAll();
         }
         return true;
+    }
+
+    function _redeemAndBurn(
+        address _account,
+        uint256 _balance,
+        uint256 _redeemAmount
+    ) private {
+        uint256 redeemAmountInToken = (_balance.mul(_redeemAmount)).div(totalSupply());
+        //  Updating the totalSupply of op tokens
+        _balances[_account] = _balances[_account].sub(_redeemAmount, "!_redeemAmount>balance");
+        _totalSupply = _totalSupply.sub(_redeemAmount);
+        emit Transfer(_account, address(0), _redeemAmount);
+        IERC20(token).safeTransfer(_account, redeemAmountInToken);
+    }
+
+    function _mintShares(
+        address _account,
+        uint256 _balance,
+        uint256 _depositAmount
+    ) private {
+        _mint(_account, (_depositAmount.mul(totalSupply())).div(_balance));
     }
 
     function getPricePerFullShare() public view returns (uint256) {
