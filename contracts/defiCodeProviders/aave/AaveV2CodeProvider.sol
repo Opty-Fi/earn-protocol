@@ -14,9 +14,12 @@ import "../../interfaces/ERC20/IERC20.sol";
 import "../../libraries/SafeMath.sol";
 import "../../utils/Modifiers.sol";
 import "../../utils/ERC20Detailed.sol";
+import "../../Gatherer.sol";
 
 contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
+    
+    Gatherer public gathererContract;
 
     uint256 public maxExposure; // basis points
 
@@ -25,7 +28,8 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     uint256 public max = 100;
     bytes32 public constant protocolDataProviderId = 0x0100000000000000000000000000000000000000000000000000000000000000;
 
-    constructor(address _registry) public Modifiers(_registry) {
+    constructor(address _registry, address _gatherer) public Modifiers(_registry) {
+        setGatherer(_gatherer);
         setMaxExposure(uint256(5000)); // 50%
     }
 
@@ -230,6 +234,22 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (uint256) {
         return _liquidityPoolTokenAmount;
     }
+    
+    function getSomeAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProviderRegistry, uint256 _liquidityPoolTokenBalance, address _borrowToken, uint256 _borrowAmount) public view override returns(uint256) {
+        address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
+        uint256 _aTokenAmount = _maxWithdrawal(_optyPool, _lendingPool, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
+        uint256 _outputTokenRepayable = _over(_optyPool, _underlyingToken, _liquidityPoolAddressProviderRegistry, _borrowToken, _aTokenAmount);
+        if(_outputTokenRepayable > _borrowAmount) {
+            return _aTokenAmount;   
+        } else {
+            return _aTokenAmount.add(gathererContract.getOptimalTokenAmount(_borrowToken,_underlyingToken,_borrowAmount.sub(_outputTokenRepayable)));
+        }
+    }
+    
+    function getAllAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProviderRegistry, address _borrowToken, uint256 _borrowAmount) public view override returns(uint256) {
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool, _underlyingToken, _liquidityPoolAddressProviderRegistry);
+        return getSomeAmountInTokenBorrow(_optyPool, _underlyingToken, _liquidityPoolAddressProviderRegistry, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
+    }
 
     function calculateAmountInLPToken(
         address,
@@ -357,6 +377,10 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (bytes[] memory) {
         revert("!empty");
     }
+    
+    function setGatherer(address _gatherer) public onlyOperator {
+        gathererContract = Gatherer(_gatherer);
+    }
 
     function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
@@ -383,7 +407,7 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
         }
     }
 
-    function _maxSafeETH(address _optyPool, address _liquidityPoolAddressProvider)
+    function _maxSafeETH(address _optyPool, address _liquidityPoolAddressProviderRegistry)
         internal
         view
         returns (
@@ -392,15 +416,15 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
             uint256 availableBorrowsETH
         )
     {
-        UserAccountData memory _userAccountData = IAaveV2(_getLendingPool(_liquidityPoolAddressProvider)).getUserAccountData(_optyPool);
+        UserAccountData memory _userAccountData = IAaveV2(_getLendingPool(_liquidityPoolAddressProviderRegistry)).getUserAccountData(_optyPool);
         uint256 _totalBorrowsETH = _userAccountData.totalDebtETH;
         uint256 _availableBorrowsETH = _userAccountData.availableBorrowsETH;
         uint256 _maxBorrowETH = (_totalBorrowsETH.add(_availableBorrowsETH));
         return (_maxBorrowETH.div(healthFactor), _totalBorrowsETH, _availableBorrowsETH);
     }
 
-    function _availableToBorrowETH(address _optyPool, address _liquidityPoolAddressProvider) internal view returns (uint256) {
-        (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, uint256 _availableBorrowsETH) = _maxSafeETH(_optyPool, _liquidityPoolAddressProvider);
+    function _availableToBorrowETH(address _optyPool, address _liquidityPoolAddressProviderRegistry) internal view returns (uint256) {
+        (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, uint256 _availableBorrowsETH) = _maxSafeETH(_optyPool, _liquidityPoolAddressProviderRegistry);
         _maxSafeETH_ = _maxSafeETH_.mul(95).div(100); // 5% buffer so we don't go into a earn/rebalance loop
         if (_maxSafeETH_ > _totalBorrowsETH) {
             return _availableBorrowsETH.mul(_maxSafeETH_.sub(_totalBorrowsETH)).div(_availableBorrowsETH);
@@ -409,8 +433,8 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
         }
     }
 
-    function _getReservePrice(address _liquidityPoolAddressProvider, address _token) internal view returns (uint256) {
-        return _getReservePriceETH(_liquidityPoolAddressProvider, _token);
+    function _getReservePrice(address _liquidityPoolAddressProviderRegistry, address _token) internal view returns (uint256) {
+        return _getReservePriceETH(_liquidityPoolAddressProviderRegistry, _token);
     }
 
     function _getReservePriceETH(address _liquidityPoolAddressProviderRegistry, address _token) internal view returns (uint256) {
@@ -433,17 +457,17 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
         }
     }
 
-    function _getUnderlyingPrice(address _liquidityPoolAddressProvider, address _underlyingToken) internal view returns (uint256) {
-        return _getReservePriceETH(_liquidityPoolAddressProvider, _underlyingToken);
+    function _getUnderlyingPrice(address _liquidityPoolAddressProviderRegistry, address _underlyingToken) internal view returns (uint256) {
+        return _getReservePriceETH(_liquidityPoolAddressProviderRegistry, _underlyingToken);
     }
 
     function _getUnderlyingPriceETH(
         address _underlyingToken,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPoolAddressProviderRegistry,
         uint256 _amount
     ) internal view returns (uint256) {
-        address _liquidityPoolToken = getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProvider);
-        _amount = _amount.mul(_getUnderlyingPrice(_liquidityPoolAddressProvider, _underlyingToken)).div(
+        address _liquidityPoolToken = getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProviderRegistry);
+        _amount = _amount.mul(_getUnderlyingPrice(_liquidityPoolAddressProviderRegistry, _underlyingToken)).div(
             uint256(10)**ERC20Detailed(address(_liquidityPoolToken)).decimals()
         ); // Calculate the amount we are withdrawing in ETH
         return _amount.mul(ltv).div(max).div(healthFactor);
@@ -452,12 +476,12 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     function _over(
         address _optyPool,
         address _underlyingToken,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPoolAddressProviderRegistry,
         address _outputToken,
         uint256 _amount
     ) internal view returns (uint256) {
-        uint256 _eth = _getUnderlyingPriceETH(_underlyingToken, _liquidityPoolAddressProvider, _amount);
-        (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, ) = _maxSafeETH(_optyPool, _liquidityPoolAddressProvider);
+        uint256 _eth = _getUnderlyingPriceETH(_underlyingToken, _liquidityPoolAddressProviderRegistry, _amount);
+        (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, ) = _maxSafeETH(_optyPool, _liquidityPoolAddressProviderRegistry);
         _maxSafeETH_ = _maxSafeETH_.mul(105).div(100); // 5% buffer so we don't go into a earn/rebalance loop
         if (_eth > _maxSafeETH_) {
             _maxSafeETH_ = 0;
@@ -467,7 +491,7 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
         if (_maxSafeETH_ < _totalBorrowsETH) {
             uint256 _over_ = _totalBorrowsETH.mul(_totalBorrowsETH.sub(_maxSafeETH_)).div(_totalBorrowsETH);
             _over_ = _over_.mul(uint256(10)**ERC20Detailed(_outputToken).decimals()).div(
-                _getReservePrice(_liquidityPoolAddressProvider, _outputToken)
+                _getReservePrice(_liquidityPoolAddressProviderRegistry, _outputToken)
             );
             return _over_;
         } else {

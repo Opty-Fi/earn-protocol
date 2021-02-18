@@ -57,6 +57,28 @@ contract Gatherer is Modifiers {
             }
         }
     }
+    
+    function getOptimalTokenAmount(address _borrowToken, address _underlyingToken, uint _borrowTokenAmount) public view returns(uint) {
+        if (_borrowTokenAmount > 0) {
+            address[] memory _path;
+            uint256[] memory _amounts;
+            if (_underlyingToken == WETH) {
+                _path = new address[](2);
+                _path[0] = _borrowToken;
+                _path[1] = WETH;
+                _amounts = IUniswap(router).getAmountsOut(_borrowTokenAmount,_path);
+            } 
+            else {
+                _path = new address[](3);
+                _path[0] = _borrowToken;
+                _path[1] = WETH;
+                _path[2] = _underlyingToken;
+                _amounts = IUniswap(router).getAmountsOut(_borrowTokenAmount,_path);
+            }
+            return _amounts[_path.length - 1];
+        }
+        return uint(0);
+    }
 
     function rewardBalanceInUnderlyingTokens(address _rewardToken, address _underlyingToken, uint _amount) public view returns(uint){
         uint[] memory amounts = new uint[](3);

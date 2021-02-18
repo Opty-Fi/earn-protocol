@@ -245,13 +245,13 @@ contract StrategyCodeProvider is Modifiers, Structs {
         uint256 _outputTokenAmount = _balance;
         for (uint8 _i = 0; _i < _steps; _i++) {
             uint256 _iterator = _steps - 1 - _i;
+            address _liquidityPool = _strategySteps[_iterator].pool;
+            address _optyCodeProvider = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
+            address _inputToken = _underlyingToken;
+            if (_iterator != 0) {
+                _inputToken = _strategySteps[_iterator - 1].outputToken;
+            }
             if (!_strategySteps[_iterator].isBorrow) {
-                address _liquidityPool = _strategySteps[_iterator].pool;
-                address _optyCodeProvider = registryContract.liquidityPoolToCodeProvider(_liquidityPool);
-                address _inputToken = _underlyingToken;
-                if (_iterator != 0) {
-                    _inputToken = _strategySteps[_iterator - 1].outputToken;
-                }
                 if (_iterator == (_steps - 1)) {
                     if (ICodeProvider(_optyCodeProvider).canStake(_liquidityPool)) {
                         _balance = ICodeProvider(_optyCodeProvider).getAllAmountInTokenStake(_optyPool, _inputToken, _liquidityPool);
@@ -261,9 +261,11 @@ contract StrategyCodeProvider is Modifiers, Structs {
                 } else {
                     _balance = ICodeProvider(_optyCodeProvider).getSomeAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
                 }
-            } else {
-                // borrow
-            }
+            } // deposit
+            else {
+                address _borrowToken = _strategySteps[_iterator].outputToken;
+                _balance = ICodeProvider(_optyCodeProvider).getAllAmountInTokenBorrow(_optyPool, _inputToken, _liquidityPool, _borrowToken, _outputTokenAmount);
+            } // borrow
             _outputTokenAmount = _balance;
         }
     }
