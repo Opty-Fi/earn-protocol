@@ -89,6 +89,7 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
                 require(success);
             }
         }
+        poolValue = _calPoolValueInToken();
     }
 
     function rebalance() public ifNotDiscontinued ifNotPaused {
@@ -121,8 +122,11 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *    credit pool like compound is added.
      */
     function _calPoolValueInToken() internal view returns (uint256) {
-        uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(payable(address(this)), token, strategyHash);
-        return balanceInToken.add(balance());
+        if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(payable(address(this)), token, strategyHash);
+            return balanceInToken.add(balance());
+        }
+        return balance();
     }
 
     /**
@@ -253,7 +257,10 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function getPricePerFullShare() public view returns (uint256) {
-        return _calPoolValueInToken().div(totalSupply());
+        if (totalSupply() != 0) {
+            return _calPoolValueInToken().div(totalSupply());
+        }
+        return uint256(0);
     }
 
     function discontinue() public onlyOperator {
