@@ -10,7 +10,6 @@ import "./../../utils/ReentrancyGuard.sol";
 import "./../../RiskManager.sol";
 import "./../../StrategyCodeProvider.sol";
 import "./../../OPTYToken/OPTYMinter.sol";
-import "./../../OPTYToken/OPTYMinterStorage.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)

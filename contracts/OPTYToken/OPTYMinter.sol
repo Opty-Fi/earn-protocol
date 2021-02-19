@@ -41,14 +41,40 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         for (uint i = 0; i < optyTokens.length; i++) {
             address _optyToken = optyTokens[i];
             require(optyPoolEnabled[_optyToken], "optyPool must be enabled");
-            updateOptyPoolIndex(_optyToken);
             for (uint j = 0; j < holders.length; j++) {
                 updateSupplierRewards(address(_optyToken), holders[j]);
-                uint _amount = optyAccrued[holders[j]];
+                uint _amount = div_(optyAccrued[holders[j]], 1e18);
                 optyAccrued[holders[j]] = uint(0);
                 mintOpty(holders[j], _amount);
             }
         }
+    }
+
+    /**
+     * @notice Claim all the opty accrued by holder in all markets
+     * @param holder The address to claim OPTY for
+     */
+    function claimableOpty(address holder) public view returns(uint) {
+        return claimableOpty(holder, allOptyPools);
+    }
+
+    /**
+     * @notice Claim all the opty accrued by holder in the specified markets
+     * @param holder The address to claim OPTY for
+     * @param optyTokens The list of markets to claim OPTY in
+     */
+    function claimableOpty(address holder, address[] memory optyTokens) public view returns(uint) {
+        uint _totalOpty = optyAccrued[holder];
+        for (uint i = 0; i < optyTokens.length; i++) {
+            address _optyToken = optyTokens[i];
+            if(optyPoolEnabled[_optyToken] == true) {
+                uint _deltaBlocksPool = sub_(getBlockNumber(),optyPoolStartBlock[_optyToken]);
+                uint _deltaBlocksUser = sub_(optyUserStateInPool[_optyToken][holder].block,optyPoolStartBlock[_optyToken]);
+                uint _supplierDelta = mul_(IERC20(_optyToken).balanceOf(holder), sub_(mul_(uint(optyPoolState[_optyToken].index),_deltaBlocksPool),mul_(optyUserStateInPool[_optyToken][holder].index,_deltaBlocksUser)));
+                _totalOpty = add_(_totalOpty, _supplierDelta);
+            }
+        }
+        return div_(_totalOpty, 1e18);
     }
     
     /**
@@ -74,7 +100,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @return The amount of OPTY which was NOT transferred to the user
      */
     function updateOptyPoolRatePerBlockAndLPToken(address optyPool) public returns (bool) {
-        optyPoolRatePerBlockAndLPToken[optyPool] = div_(mul_(optyPoolRatePerBlock[optyPool], 1e18), IERC20(optyPool).totalSupply());
+        optyPoolRatePerBlockAndLPToken[optyPool] = IERC20(optyPool).totalSupply() > 0 ? div_(mul_(optyPoolRatePerBlock[optyPool], 1e18), IERC20(optyPool).totalSupply()) : uint(0);
         return true;
     }
     
@@ -94,7 +120,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 uint _supplyTokens = IERC20(optyPool).totalSupply();
                 uint _optyAccrued = mul_(_deltaBlocks, optyPoolRatePerBlock[optyPool]);
                 uint ratio = _supplyTokens > 0 ? div_(mul_(_optyAccrued, 1e18), _supplyTokens) : uint(0);
-                uint index = div_(add_(mul_(optyPoolState[optyPool].index, sub_(uint(optyPoolState[optyPool].block),optyPoolStartBlock[optyPool])), ratio), add_(_deltaBlocksSinceStart,_deltaBlocks));
+                uint index = div_(add_(mul_(optyPoolState[optyPool].index, sub_(uint(optyPoolState[optyPool].block),optyPoolStartBlock[optyPool])), ratio), _deltaBlocksSinceStart);
                 optyPoolState[optyPool] = OptyState({
                     index: safe224(index, "new index exceeds 224 bits"),
                     block: safe32(getBlockNumber(), "block number exceeds 32 bits")
@@ -144,7 +170,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
     
     function getOptyAddress() public pure returns (address) {
-        return address(0xC2baA31152e527B07e5125Ada80cB54cA44eeA48);
+        return address(0xdCe3A64316E849cB063AbCC8De4dD78B231C28C7);
     }
     
     function getBlockNumber() public view returns (uint) {
