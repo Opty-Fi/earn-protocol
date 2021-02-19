@@ -8,8 +8,34 @@ import "./RegistryStorage.sol";
 /**
  * @dev Contract used to keep all the modifiers at one place
  */
-contract ModifiersController is RegistryStorage {
+contract ModifiersController {
+    
+    address public governance;
+    address public operator;
+    address public strategist;
+    address public minter;
+    
     using Address for address;
+    
+    /**
+     * @dev Sets the owner, governance and strategist while deploying the contract
+     */
+    constructor (address _governance, address _strategist, address _operator, address _minter) internal {
+        require(_governance != address(0),"!address(0)");
+        governance = _governance;
+        setStrategist(_strategist);
+        setOperator(_operator);
+        setMinter(_minter);
+    }
+    
+    /**
+     * @dev Transfers governance to a new account (`_governance`).
+     * Can only be called by the current governance.
+     */    
+    function transferGovernance(address _governance) public onlyGovernance {
+        require(_governance != address(0),"!address(0)");
+        governance = _governance;
+    }
     
     /**
      * @dev Transfers operator to a new account (`_governance`).

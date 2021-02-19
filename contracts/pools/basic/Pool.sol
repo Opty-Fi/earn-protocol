@@ -9,6 +9,7 @@ import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
 import "./../../RiskManager.sol";
 import "./../../StrategyCodeProvider.sol";
+import "./../../OPTYToken/OPTYMinter.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
@@ -24,6 +25,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
     StrategyCodeProvider public strategyCodeProviderContract;
     RiskManager public riskManagerContract;
+    OPTYMinter public optyMinterContract;
 
     /**
      * @dev
@@ -34,7 +36,8 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         address _registry,
         address _riskManager,
         address _underlyingToken,
-        address _strategyCodeProvider
+        address _strategyCodeProvider,
+        address _optyMinter
     )
         public
         ERC20Detailed(
@@ -48,11 +51,19 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
+        setOPTYMinter(_optyMinter);
     }
 
     function setProfile(string memory _profile) public onlyOperator returns (bool _success) {
         require(bytes(_profile).length > 0, "empty!");
         profile = _profile;
+        _success = true;
+    }
+    
+    function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
+        require(_optyMinter != address(0), "!_optyMinter");
+        require(_optyMinter.isContract(), "!_optyMinter.isContract");
+        optyMinterContract = OPTYMinter(_optyMinter);
         _success = true;
     }
 
@@ -198,7 +209,13 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
             _withdrawAll();
             harvest(strategyHash);
         }
-
+        
+        // Following lines will be added if all the optyPoolRates are updated every transaction:
+        // 
+        // uint256 _optyPoolRate = OPTYMinter(optyMinterContract).optyPoolRate(address(this));
+        // uint256 _newOptyPoolRate = calculateNewOptyPoolRate();
+        // storeAllNewOptyPoolRatesInMapping();
+        
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
 
@@ -213,7 +230,11 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             supplyAll();
         }
+        optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
+        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
+        optyMinterContract.updateOptyPoolIndex(address(this));
+        optyMinterContract.updateUserStateInPool(address(this), msg.sender);
         _success = true;
     }
 
@@ -240,11 +261,14 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
 
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
-
+        optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         //  Updating the totalSupply of op tokens
         _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
+        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
+        optyMinterContract.updateOptyPoolIndex(address(this));
+        optyMinterContract.updateUserStateInPool(address(this), msg.sender);
 
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
         if (!discontinued && (balance() > 0)) {

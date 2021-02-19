@@ -71,7 +71,7 @@ contract Modifiers {
      * @dev Modifier to check caller is minter or not
      */
     modifier onlyMinter() {
-        require(msg.sender == registryContract.minter(), "caller is not the strategist");
+        require(msg.sender == registryContract.minter(), "caller is not the minter");
         _;
     }
 
