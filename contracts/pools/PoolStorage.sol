@@ -11,6 +11,12 @@ contract PoolStorage {
         bool isDeposit;
         uint256 value;
     }
+    
+    struct BlockPoolValue {
+        uint256 actualPoolValue;
+        uint256 blockMinPoolValue;
+        uint256 blockMaxPoolValue;
+    }
 
     bytes32 public strategyHash;
     address public token; //  store the underlying token contract address (for example DAI)
@@ -26,6 +32,8 @@ contract PoolStorage {
     mapping(uint256 => Operation) public queue;
     mapping(address => uint256) public pendingDeposits;
     mapping(address => uint256) public pendingWithdraws;
+    uint256 public maxPoolValueJump; // basis points
+    mapping(uint256 => BlockPoolValue[]) public blockToBlockPoolValues;
 
     event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
     event WithdrawQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);

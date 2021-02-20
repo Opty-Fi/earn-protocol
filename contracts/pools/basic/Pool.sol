@@ -41,6 +41,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
+        setMaxPoolValueJump(100);
     }
 
     function setProfile(string memory _profile) public onlyOperator returns (bool _success) {
@@ -64,6 +65,11 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
     function setStrategyCodeProvider(address _strategyCodeProvider) public onlyOperator returns (bool _success) {
         require(_strategyCodeProvider.isContract(), "!__strategyCodeProvider.isContract");
         strategyCodeProviderContract = StrategyCodeProvider(_strategyCodeProvider);
+        _success = true;
+    }
+
+    function setMaxPoolValueJump(uint256 _maxPoolValueJump) public onlyGovernance returns (bool _success) {
+        maxPoolValueJump = _maxPoolValueJump;
         _success = true;
     }
 
@@ -101,7 +107,10 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
 
         strategyHash = newStrategyHash;
 
-        if (balance() > 0) {
+        uint256 _balance = balance();
+
+        if (_balance > 0) {
+            _emergencyBrake(_balance);
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             _supplyAll();
         }
@@ -229,6 +238,9 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         }
         // do not consider _amount and pending deposit sum to calculate token balance
         uint256 _tokenBalance = balance().sub(_amount).sub(depositQueue);
+
+        _emergencyBrake(_tokenBalance);
+
         uint256 shares = 0;
 
         if (_tokenBalance == 0 || totalSupply() == 0) {
@@ -293,7 +305,11 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         }
 
         // subtract pending deposit from total balance
-        _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
+        uint256 _balance = balance().sub(depositQueue);
+
+        _emergencyBrake(_balance);
+
+        _redeemAndBurn(msg.sender, _balance, _redeemAmount);
 
         if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
@@ -302,6 +318,48 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             _supplyAll();
         }
         return true;
+    }
+
+    function _emergencyBrake(uint256 _poolValue) private returns (bool) {
+        uint256 _blockTransactions = blockToBlockPoolValues[block.number].length;
+        if (_blockTransactions > 0) {
+            blockToBlockPoolValues[block.number].push(
+                BlockPoolValue({
+                    actualPoolValue: _poolValue,
+                    blockMinPoolValue: _poolValue < blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue
+                        ? _poolValue
+                        : blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue,
+                    blockMaxPoolValue: _poolValue > blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMaxPoolValue
+                        ? _poolValue
+                        : blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue
+                })
+            );
+            require(
+                isMaxPoolValueJumpAllowed(
+                    _abs(
+                        blockToBlockPoolValues[block.number][_blockTransactions].blockMinPoolValue,
+                        blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMaxPoolValue
+                    ),
+                    _poolValue
+                ),
+                "!maxPoolValueJump"
+            );
+        } else {
+            blockToBlockPoolValues[block.number].push(
+                BlockPoolValue({actualPoolValue: _poolValue, blockMinPoolValue: _poolValue, blockMaxPoolValue: _poolValue})
+            );
+        }
+    }
+
+    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        if (_a > _b) {
+            return _a.sub(_b);
+        }
+        return _b.sub(_a);
+    }
+
+    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) public view returns (bool) {
+        return (_diff.div(_currentPoolValue)).mul(10000) < maxPoolValueJump;
     }
 
     function _redeemAndBurn(
