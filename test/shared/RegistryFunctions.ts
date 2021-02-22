@@ -1,6 +1,12 @@
 import { Contract, ethers } from "ethers";
 const abi = require("ethereumjs-abi");
 
+export async function approveToken(token: string, optyRegistry: Contract) {
+    let tokenStatus = await optyRegistry.tokens(token);
+    if (!tokenStatus) {
+        await optyRegistry.approveToken(token);
+    }
+}
 //  Function to approve the LpTokens as tokens and underlyingTokens from tokens list
 export async function approveTokenLpToken(
     lpToken: string,
@@ -10,19 +16,12 @@ export async function approveTokenLpToken(
     // Note: May need this if lpToken is null/empty down the road - Deepanshu
     // if (!!lpToken || lpToken.length > 0) {
     if (lpToken != "0x0000000000000000000000000000000000000000") {
-        let lpTokenApproveStatus = await optyRegistry.tokens(lpToken);
-
-        if (!lpTokenApproveStatus) {
-            await optyRegistry.approveToken(lpToken);
-        }
+        await approveToken(lpToken, optyRegistry);
     }
 
     if (tokens.length > 0) {
         tokens.forEach(async (token) => {
-            let tokenApproveStatus = await optyRegistry.tokens(token);
-            if (!tokenApproveStatus) {
-                await optyRegistry.approveToken(token);
-            }
+            await approveToken(token, optyRegistry);
         });
     }
 }
@@ -30,19 +29,15 @@ export async function approveTokenLpToken(
 //  Function to set the hash for the list of underlying tokens
 export async function setTokensHashToTokens(tokens: string[], optyRegistry: Contract) {
     let tokensHash = "0x" + abi.soliditySHA3(["address[]"], [tokens]).toString("hex");
-    // let tokensHashIndex: ethers.utils.BigNumber = await optyRegistry.tokensHashToTokens(
-    //     tokensHash
-    // );
     let tokensHashIndex: ethers.BigNumber = await optyRegistry.tokensHashToTokens(
         tokensHash
     );
-    if (
-        tokensHashIndex.eq(0) &&
-        tokensHash !==
-            "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
-    ) {
+    //  Get tokens corresponding to tokensHash from contract (if any)
+    let tokensFromContract = await optyRegistry.getTokensHashToTokens(tokensHash);
+    if (tokensHashIndex.eq(0) && tokensFromContract.length == 0) {
         const setTokensHashTx = await optyRegistry.setTokensHashToTokens(tokens);
         const setTokensHashTxOutput = await setTokensHashTx.wait();
+        return setTokensHashTxOutput;
     }
 }
 
