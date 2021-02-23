@@ -313,9 +313,13 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             _withdrawAll();
             harvest(strategyHash);
         }
-
+        
+        optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         // subtract pending deposit from total balance
         _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
+        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
+        optyMinterContract.updateOptyPoolIndex(address(this));
+        optyMinterContract.updateUserStateInPool(address(this), msg.sender);
 
         if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
