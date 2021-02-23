@@ -82,13 +82,14 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param supplier The address to calculate contributor rewards for
      */
     function updateSupplierRewards(address optyToken, address supplier) public {
-        if (IERC20(optyToken).balanceOf(supplier) > 0) {
+        if (IERC20(optyToken).balanceOf(supplier) > 0 && lastUserUpdate[optyToken][supplier] != getBlockNumber()) {
             uint _deltaBlocksPool = sub_(getBlockNumber(),optyPoolStartBlock[optyToken]);
             uint _deltaBlocksUser = sub_(optyUserStateInPool[optyToken][supplier].block,optyPoolStartBlock[optyToken]);
             uint _supplierTokens = IERC20(optyToken).balanceOf(supplier);
             uint _supplierDelta = mul_(_supplierTokens, sub_(mul_(uint(optyPoolState[optyToken].index),_deltaBlocksPool),mul_(optyUserStateInPool[optyToken][supplier].index,_deltaBlocksUser)));
             uint _supplierAccrued = add_(optyAccrued[supplier], _supplierDelta);
             optyAccrued[supplier] = _supplierAccrued;
+            lastUserUpdate[optyToken][supplier] = getBlockNumber();
         }
     }
     
@@ -172,7 +173,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
     
     function getOptyAddress() public pure returns (address) {
-        return address(0xf79599DecdFb2D755CCDD7fa5A672E137e21a268);
+        return address(0x9A08506B4d371D47547612E3c4998b2DF7543695);
     }
     
     function getBlockNumber() public view returns (uint) {
