@@ -12,7 +12,6 @@ import * as Interfaces from "./shared/interfaces";
 import * as Types from "./shared/types";
 import * as Constants from "./shared/constants";
 import * as CurveFunctions from "./shared/Curve/Curve";
-import { outputHelp } from "commander";
 
 chai.use(solidity);
 const { program } = require("commander"); //  library to handle the command line arguments
@@ -299,54 +298,54 @@ program
                         count++;
                     }
 
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.CompoundCodeProvider.address,
-                    //     "CompoundCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.AaveV1CodeProvider.address,
-                    //     "AaveV1CodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.AaveV2CodeProvider.address,
-                    //     "AaveV2CodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.FulcrumCodeProvider.address,
-                    //     "FulcrumCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.DForceCodeProvider.address,
-                    //     "DForceCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.HarvestCodeProvider.address,
-                    //     "HarvestCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.YVaultCodeProvider.address,
-                    //     "YVaultCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.YearnCodeProvider.address,
-                    //     "YearnCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.CurvePoolCodeProvider.address,
-                    //     "CurvePoolCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.CurveSwapCodeProvider.address,
-                    //     "CurveSwapCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.dYdXCodeProvider.address,
-                    //     "dYdXCodeProvider Contract is not deployed"
-                    // );
-                    // assert.isOk(
-                    //     optyCodeProviderContractVariables.CreamCodeProvider.address,
-                    //     "CreamCodeProvider Contract is not deployed"
-                    // );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.CompoundCodeProvider.address,
+                        "CompoundCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.AaveV1CodeProvider.address,
+                        "AaveV1CodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.AaveV2CodeProvider.address,
+                        "AaveV2CodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.FulcrumCodeProvider.address,
+                        "FulcrumCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.DForceCodeProvider.address,
+                        "DForceCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.HarvestCodeProvider.address,
+                        "HarvestCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.YVaultCodeProvider.address,
+                        "YVaultCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.YearnCodeProvider.address,
+                        "YearnCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.CurvePoolCodeProvider.address,
+                        "CurvePoolCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.CurveSwapCodeProvider.address,
+                        "CurveSwapCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.dYdXCodeProvider.address,
+                        "dYdXCodeProvider Contract is not deployed"
+                    );
+                    assert.isOk(
+                        optyCodeProviderContractVariables.CreamCodeProvider.address,
+                        "CreamCodeProvider Contract is not deployed"
+                    );
                 });
 
                 after(async () => {
@@ -805,7 +804,6 @@ program
                                                     //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies
                                                     //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
                                                     // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                    // let roundingDelta = utilities.expandToTokenDecimals(100, underlyingTokenDecimals);
                                                     let roundingDelta = 0;
 
                                                     await utilities.sleep(
