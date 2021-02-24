@@ -159,6 +159,7 @@ program
                     optyStrategyCodeProvider = allGovernanceContracts[4];
 
                     DEBUG && console.log("\nRegistry address: ", optyRegistry.address);
+                    DEBUG && console.log("\Strategy provider address: ", strategyProvider.address);
                     DEBUG &&
                         console.log("\nRiskManager address: ", riskManager.address);
                     DEBUG && console.log("\nGatherer address: ", gatherer.address);
@@ -171,12 +172,16 @@ program
                     /*
                         Iterating through list of underlyingTokens and approving them if not approved
                     */
-                    let token: keyof typeof OtherImports.tokenAddresses;
-                    for (token in OtherImports.tokenAddresses) {
-                        await RegistryFunctions.approveToken(
-                            OtherImports.tokenAddresses[token],
-                            optyRegistry
-                        );
+                    let tokenType: keyof typeof OtherImports.tokenAddresses;
+                    for (tokenType in OtherImports.tokenAddresses) {
+                        let tokens: Interfaces.TokenAddress = OtherImports.tokenAddresses[tokenType];
+                        for (let token in tokens) {
+                            DEBUG && console.log("Approving token: ", tokens[token])
+                            await RegistryFunctions.approveToken(
+                                tokens[token],
+                                optyRegistry
+                            );
+                        }
                     }
 
                     /*  
@@ -409,11 +414,11 @@ program
                             before(async () => {
                                 //  Getting the underlying token's contract instance
                                 underlyingToken =
-                                    OtherImports.tokenAddresses[
-                                        <keyof typeof OtherImports.tokenAddresses>(
-                                            strategiesTokenKey.toLowerCase()
-                                        )
-                                    ];
+                                OtherImports.tokenAddresses.underlyingTokens[
+                                    <keyof typeof OtherImports.tokenAddresses.underlyingTokens>(
+                                        strategiesTokenKey.toLowerCase()
+                                    )
+                                ];
                                 tokens = [underlyingToken];
 
                                 // Instantiate token contract
@@ -741,9 +746,13 @@ program
                                                 userInitialTokenBalance =
                                                     allFundWalletReturnParams[4];
                                                 //  Function call to test userDepositRebalance()
+                                                try {
+                                                    await testUserDepositRebalance();
+                                                    strategyScore = strategyScore + 1;
 
-                                                await testUserDepositRebalance();
-                                                strategyScore = strategyScore + 1;
+                                                } catch (error) {
+                                                    console.log("Deposit Failed with error: ", error.message)
+                                                }
                                         }
                                     );
 

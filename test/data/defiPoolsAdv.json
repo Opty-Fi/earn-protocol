@@ -255,6 +255,11 @@
         }
     },
     "YVaultCodeProvider": {
+        "link_yalink": {
+            "pool": "0x29E240CFD7946BA20895a7a02eDb25C210f9f324",
+            "lpToken": "0x29E240CFD7946BA20895a7a02eDb25C210f9f324",
+            "tokens": ["0x514910771AF9Ca656af840dff83E8264EcF986CA"]
+        },
         "yDAI+yUSDC+yUSDT+yBUSD_yyDAI+yUSDC+yUSDT+yBUSD": {
             "pool": "0x2994529c0652d127b7842094103715ec5299bbed",
             "lpToken": "0x2994529c0652d127b7842094103715ec5299bbed",

@@ -29,6 +29,10 @@ export interface DefiPoolsAdv {
     };
 }
 
+export interface TokenAddress {
+    [id: string]: string
+}
+
 export interface DeployCodeProviderContracts {
     [id: string] : {
         canHarvest: boolean
