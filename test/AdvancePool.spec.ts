@@ -365,11 +365,11 @@ program
                 });
 
                 //  Iterating through all the strategies by picking underlyingTokens as key
-                let strategiesTokenKey: keyof typeof OtherImports.allAdvancedStrategies;
+                let strategiesTokenKey: keyof typeof OtherImports.allStrategies;
                 let allAdvancedStrategiesTokenKeys = Object.keys(
-                    OtherImports.allAdvancedStrategies
+                    OtherImports.allStrategies
                 ).map((item) => item.toUpperCase());
-                for (strategiesTokenKey in OtherImports.allAdvancedStrategies) {
+                for (strategiesTokenKey in OtherImports.allStrategies) {
                     //  If: Executes test suite for all the underlying tokens, Else: Executes test suite for token symbol passed from command line
                     if (command.symbol == null) {
                         if (strategiesTokenKey.toUpperCase() != "REP") {
@@ -397,7 +397,7 @@ program
 
                 //  Function to execute the test suite for underlying tokens one by one
                 async function runTokenTestSuite(
-                    strategiesTokenKey: keyof typeof OtherImports.allAdvancedStrategies
+                    strategiesTokenKey: keyof typeof OtherImports.allStrategies
                 ) {
                     describe(
                         "TEST CASES FOR: " + strategiesTokenKey.toUpperCase(),
@@ -495,7 +495,7 @@ program
 
                             //  Recording GasUsed for all strategies to push data into DB and file at last
                             let allAdvancedStrategiesGasUsedRecords: Types.allStrategiesGasUsedRecordsType[] = [];
-                            let allStrategyNames = OtherImports.allAdvancedStrategies[
+                            let allStrategyNames = OtherImports.allStrategies[
                                 strategiesTokenKey
                             ].advanced.map((element) =>
                                 element.strategyName.toLowerCase()
@@ -505,7 +505,7 @@ program
                                 Iterating through each strategy one by one, setting, approving and scroing the each 
                                 strategy and then making userDepositRebalance() call 
                             */
-                            OtherImports.allAdvancedStrategies[
+                            OtherImports.allStrategies[
                                 strategiesTokenKey
                             ].advanced.forEach(async (strategies, index) => {
                                 let setStrategyTxGasUsed: number = 0;
@@ -527,7 +527,7 @@ program
                                         if (command.strategiesCount == 0) {
                                             if (
                                                 index <
-                                                OtherImports.allAdvancedStrategies[
+                                                OtherImports.allStrategies[
                                                     strategiesTokenKey
                                                 ].advanced.length
                                             ) {
@@ -558,7 +558,7 @@ program
                                         );
                                         process.exit(5);
                                     } else if (
-                                        OtherImports.allAdvancedStrategies[
+                                        OtherImports.allStrategies[
                                             strategiesTokenKey
                                         ].advanced[index].strategyName.toLowerCase() ==
                                         command.strategyName.toLowerCase()
