@@ -1,0 +1,37 @@
+{
+    "DAI": {
+        "basic": [
+            {
+                "strategyName": "<strategyName>",
+                "strategy": [
+                    {
+                        "contract": "<lpContractAddress>",
+                        "outputTokenSymbol": "cDAI",
+                        "outputToken": "<lpTokenAddress>",
+                        "isBorrow": false
+                    }
+                ]
+            }
+        ],
+        "advanced": [
+            {
+                "strategyName": "DAI-borrow-AAVE-USDC-deposit-COMPOUND-cUSDC",
+                "strategy": [
+                    {
+                        "contract": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                        "outputTokenSymbol": "USDC",
+                        "outputToken": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "isBorrow": true
+                    },
+                    {
+                        "contract": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+                        "outputTokenSymbol": "cUSDC",
+                        "outputToken": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+                        "isBorrow": false
+                    }
+                ]
+            }
+        ],
+        "advancedPlus": []
+    }
+}
