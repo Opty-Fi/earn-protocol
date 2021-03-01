@@ -60,10 +60,10 @@ export async function fundWallet(
     GAS_OVERRIDE_OPTIONS: any,
     ETH_VALUE_GAS_OVERIDE_OPTIONS: any
 ) {
-    if (OtherImports.tokenAddresses.weth.toLowerCase() == tokenAddress.toLowerCase()) {
+    if (OtherImports.tokenAddresses.underlyingTokens.weth.toLowerCase() == tokenAddress.toLowerCase()) {
         await fundWalletWithWeth(wallet, FUND_AMOUNT);
     } else if (
-        OtherImports.tokenAddresses["3crv"].toLowerCase() == tokenAddress.toLowerCase()
+        OtherImports.tokenAddresses.underlyingTokens["3crv"].toLowerCase() == tokenAddress.toLowerCase()
     ) {
         await fundWalletWith3Crv(
             wallet,
@@ -111,7 +111,7 @@ async function fundWalletWith3Crv(
     const daiAmount = fundAmount.add(expandToTokenDecimals(10, 18));
     await uniswapInstance.swapETHForExactTokens(
         daiAmount,
-        [tokenAddresses.weth, tokenAddresses.dai],
+        [tokenAddresses.underlyingTokens.weth, tokenAddresses.underlyingTokens.dai],
         wallet.address,
         deadlineTimestamp,
         ethValueGasOverrideOptions
@@ -119,7 +119,7 @@ async function fundWalletWith3Crv(
 
     // Instantiate DAI token contract
     const daiTokenContractInstance = getContractInstance(
-        tokenAddresses.dai,
+        tokenAddresses.underlyingTokens.dai,
         addressAbis.erc20.abi,
         wallet
     );
@@ -149,7 +149,7 @@ async function fundWalletWith3Crv(
 
     // Instantiate 3Crv ERC20 token contract
     let erc20TokenContractInstance = getContractInstance(
-        tokenAddresses["3crv"],
+        tokenAddresses.underlyingTokens["3crv"],
         addressAbis.erc20.abi,
         wallet
     );
@@ -180,7 +180,7 @@ async function fundWalletAnyToken(
 
     await uniswapInstance.swapETHForExactTokens(
         amount,
-        [tokenAddresses.weth, tokenAddress],
+        [tokenAddresses.underlyingTokens.weth, tokenAddress],
         wallet.address,
         deadlineTimestamp,
         ethValueGasOverrideOptions

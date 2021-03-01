@@ -19,6 +19,20 @@ export interface DefiPools {
     };
 }
 
+//  Interface for getting the pools, lpTokens and underlyingTokens corresponding to CodeProvider Contract for Adv pools
+//  Kept separately in case if in future json for adv pools and basic pools gets changed
+export interface DefiPoolsAdv {
+    [id: string]: {
+        pool: string;
+        lpToken: string;
+        tokens: string[];
+    };
+}
+
+export interface TokenAddress {
+    [id: string]: string
+}
+
 export interface DeployCodeProviderContracts {
     [id: string] : {
         canHarvest: boolean

@@ -3,7 +3,7 @@
         "canHarvest":true
     },
     "AaveV1CodeProvider":{
-        "canHarvest":false
+        "canHarvest":true
     },
     "FulcrumCodeProvider":{
         "canHarvest":false
@@ -30,7 +30,7 @@
         "canHarvest":true
     },
     "AaveV2CodeProvider":{
-        "canHarvest":false
+        "canHarvest":true
     },
     "YearnCodeProvider":{
         "canHarvest":false

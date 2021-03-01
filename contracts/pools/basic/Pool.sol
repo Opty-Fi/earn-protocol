@@ -14,7 +14,7 @@ import "./../../OPTYToken/OPTYMinter.sol";
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
+contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -68,29 +68,34 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     }
 
     function setRiskManager(address _riskManager) public onlyOperator returns (bool _success) {
-        require(_riskManager != address(0), "!_riskManager");
         require(_riskManager.isContract(), "!_riskManager.isContract");
         riskManagerContract = RiskManager(_riskManager);
         _success = true;
     }
 
     function setToken(address _underlyingToken) public onlyOperator returns (bool _success) {
-        require(_underlyingToken != address(0), "!address(0)");
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         token = _underlyingToken;
         _success = true;
     }
 
     function setStrategyCodeProvider(address _strategyCodeProvider) public onlyOperator returns (bool _success) {
-        require(_strategyCodeProvider != address(0), "!_strategyCodeProvider");
         require(_strategyCodeProvider.isContract(), "!__strategyCodeProvider.isContract");
         strategyCodeProviderContract = StrategyCodeProvider(_strategyCodeProvider);
         _success = true;
     }
 
-    function supplyAll() public ifNotDiscontinued ifNotPaused {
+    function setMaxPoolValueJump(uint256 _maxPoolValueJump) public onlyGovernance returns (bool _success) {
+        maxPoolValueJump = _maxPoolValueJump;
+        _success = true;
+    }
+
+    function _supplyAll() internal ifNotDiscontinued ifNotPaused {
         uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
+        _batchMintAndBurn();
+        first = 1;
+        last = 0;
         uint8 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
         for (uint8 _i = 0; _i < _steps; _i++) {
             bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i, _steps);
@@ -119,9 +124,12 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
 
         strategyHash = newStrategyHash;
 
-        if (balance() > 0) {
+        uint256 _balance = balance();
+
+        if (_balance > 0) {
+            _emergencyBrake(_balance);
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-            supplyAll();
+            _supplyAll();
         }
     }
 
@@ -135,19 +143,15 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
     function _calPoolValueInToken() internal view returns (uint256) {
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(payable(address(this)), token, strategyHash);
-            return balanceInToken.add(balance());
+            return balanceInToken.add(balance()).sub(depositQueue);
         }
-        return balance();
+        return balance().sub(depositQueue);
     }
 
     /**
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
     function balance() public view returns (uint256) {
-        return IERC20(token).balanceOf(address(this));
-    }
-
-    function _balance() internal view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
@@ -189,6 +193,46 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         }
     }
 
+    function userDepositAll() external {
+        userDeposit(IERC20(token).balanceOf(msg.sender));
+    }
+
+    /**
+     * @dev Function for depositing underlying tokens (for example DAI) into the contract
+     *
+     * Requirements:
+     *
+     *  - Amount should be greater than 0
+     *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
+     */
+    function userDeposit(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+        require(_amount > 0, "!(_amount>0)");
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
+        last++;
+        queue[last] = Operation(msg.sender, true, _amount);
+        pendingDeposits[msg.sender] += _amount;
+        depositQueue += _amount;
+        emit DepositQueue(msg.sender, last, _amount);
+        _success = true;
+    }
+
+    function _batchMintAndBurn() internal returns (bool _success) {
+        while (last >= first) {
+            if (queue[first].isDeposit) {
+                _mintShares(queue[first].account, balance(), queue[first].value);
+                pendingDeposits[msg.sender] -= queue[first].value;
+                depositQueue -= queue[first].value;
+            } else {
+                _redeemAndBurn(queue[first].account, balance(), queue[first].value);
+                pendingWithdraws[msg.sender] -= queue[first].value;
+                withdrawQueue -= queue[first].value;
+            }
+            delete queue[first];
+            first++;
+        }
+        _success = true;
+    }
+
     function userDepositAllRebalance() external {
         userDepositRebalance(IERC20(token).balanceOf(msg.sender));
     }
@@ -219,16 +263,17 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
 
-        if (_tokenBalance.sub(_amount) == 0 || totalSupply() == 0) {
+        if (_tokenBalance == 0 || totalSupply() == 0) {
             shares = _amount;
         } else {
-            shares = (_amount.mul(totalSupply())).div((_tokenBalance.sub(_amount)));
+            shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
+        _mint(msg.sender, shares);
         if (balance() > 0) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-            supplyAll();
+            _supplyAll();
         }
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
@@ -251,9 +296,9 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
      *      in  weth uints i.e. 1e18
      */
     function userWithdrawRebalance(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool) {
-        require(_redeemAmount > 0, "withdraw must be greater than 0");
+        require(_redeemAmount > 0, "!_redeemAmount>0");
         uint256 opBalance = balanceOf(msg.sender);
-        require(_redeemAmount <= opBalance, "Insufficient balance");
+        require(_redeemAmount <= opBalance, "!!balance");
 
         if (!discontinued) {
             _withdrawAll();
@@ -270,14 +315,76 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard {
         optyMinterContract.updateOptyPoolIndex(address(this));
         optyMinterContract.updateUserStateInPool(address(this), msg.sender);
 
-        IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
         if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-            supplyAll();
+            _supplyAll();
         }
         return true;
+    }
+
+    function _emergencyBrake(uint256 _poolValue) private returns (bool) {
+        uint256 _blockTransactions = blockToBlockPoolValues[block.number].length;
+        if (_blockTransactions > 0) {
+            blockToBlockPoolValues[block.number].push(
+                BlockPoolValue({
+                    actualPoolValue: _poolValue,
+                    blockMinPoolValue: _poolValue < blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue
+                        ? _poolValue
+                        : blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue,
+                    blockMaxPoolValue: _poolValue > blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMaxPoolValue
+                        ? _poolValue
+                        : blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue
+                })
+            );
+            require(
+                isMaxPoolValueJumpAllowed(
+                    _abs(
+                        blockToBlockPoolValues[block.number][_blockTransactions].blockMinPoolValue,
+                        blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMaxPoolValue
+                    ),
+                    _poolValue
+                ),
+                "!maxPoolValueJump"
+            );
+        } else {
+            blockToBlockPoolValues[block.number].push(
+                BlockPoolValue({actualPoolValue: _poolValue, blockMinPoolValue: _poolValue, blockMaxPoolValue: _poolValue})
+            );
+        }
+    }
+
+    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        if (_a > _b) {
+            return _a.sub(_b);
+        }
+        return _b.sub(_a);
+    }
+
+    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) public view returns (bool) {
+        return (_diff.div(_currentPoolValue)).mul(10000) < maxPoolValueJump;
+    }
+
+    function _redeemAndBurn(
+        address _account,
+        uint256 _balance,
+        uint256 _redeemAmount
+    ) private {
+        uint256 redeemAmountInToken = (_balance.mul(_redeemAmount)).div(totalSupply());
+        //  Updating the totalSupply of op tokens
+        _balances[_account] = _balances[_account].sub(_redeemAmount, "!_redeemAmount>balance");
+        _totalSupply = _totalSupply.sub(_redeemAmount);
+        emit Transfer(_account, address(0), _redeemAmount);
+        IERC20(token).safeTransfer(_account, redeemAmountInToken);
+    }
+
+    function _mintShares(
+        address _account,
+        uint256 _balance,
+        uint256 _depositAmount
+    ) private {
+        _mint(_account, (_depositAmount.mul(totalSupply())).div(_balance));
     }
 
     function getPricePerFullShare() public view returns (uint256) {
