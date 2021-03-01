@@ -55,5 +55,83 @@
     },
     "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD": {
         "sleepTimeInSec": 300
+    },
+    "DAI-borrow-AAVE-KNC": {
+        "sleepTimeInSec": 120
+    },
+    "DAI-borrow-AAVE-MKR": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-MANA": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-YFI": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-USDC-deposit-CREAM-crUSDC": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-USDT-deposit-AAVE-aUSDT": {
+        "sleepTimeInSec": 180
+    },
+    "DAI-borrow-AAVE-USDT-deposit-COMPOUND-cUSDT": {
+        "sleepTimeInSec": 180
+    },
+    "DAI-borrow-AAVE-REN": {
+        "sleepTimeInSec": 180
+    },
+    "DAI-borrow-AAVE-USDC-borrow-AAVE-ENJ": {
+        "sleepTimeInSec": 180
+    },
+    "DAI-borrow-AAVE-TUSD-deposit-AAVE-aTUSD": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-BUSD-deposit-AAVE-aBUSD": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-BUSD-deposit-CREAM-crBUSD": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-BUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-LINK-deposit-YEARN-yLINK": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-ENJ-deposit-AAVE-aENJ": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-MANA-deposit-AAVE-aMANA": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-KNC-deposit-AAVE-aKNC": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-MKR-deposit-AAVE-aMKR": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-REN-deposit-AAVE-aREN": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-SNX-deposit-AAVE-aSNX": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-WBTC-deposit-AAVE-aWBTC": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-YFI-deposit-AAVE-aYFI": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-YFI-deposit-CREAM-crYFI": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-YFI-deposit-YEARN-yYFI": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-ZRX-deposit-AAVE-aZRX": {
+        "sleepTimeInSec": 240
+    },
+    "DAI-borrow-AAVE-ZRX-deposit-COMPOUND-cZRX": {
+        "sleepTimeInSec": 240
     }
 }

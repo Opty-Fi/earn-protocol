@@ -164,12 +164,15 @@ program
                 /*
                     Iterating through list of underlyingTokens and approving them if not approved
                 */
-                let token: keyof typeof OtherImports.tokenAddresses;
-                for (token in OtherImports.tokenAddresses) {
-                    await RegistryFunctions.approveToken(
-                        OtherImports.tokenAddresses[token],
-                        optyRegistry
-                    );
+                let tokenType: keyof typeof OtherImports.tokenAddresses;
+                for (tokenType in OtherImports.tokenAddresses) {
+                    let tokens: Interfaces.TokenAddress = OtherImports.tokenAddresses[tokenType];
+                    for (let token in tokens) {
+                        await RegistryFunctions.approveToken(
+                            tokens[token],
+                            optyRegistry
+                        );
+                    }
                 }
 
                 /*  
@@ -387,8 +390,8 @@ program
                         before(async () => {
                             //  Getting the underlying token's contract instance
                             underlyingToken =
-                                OtherImports.tokenAddresses[
-                                    <keyof typeof OtherImports.tokenAddresses>(
+                                OtherImports.tokenAddresses.underlyingTokens[
+                                    <keyof typeof OtherImports.tokenAddresses.underlyingTokens>(
                                         strategiesTokenKey.toLowerCase()
                                     )
                                 ];
