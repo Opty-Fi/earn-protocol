@@ -2,12 +2,12 @@
     "DAI": {
         "basic": [
             {
-                "strategyName": "<strategyName>",
+                "strategyName": "DAI-deposit-COMPOUND-cDAI",
                 "strategy": [
                     {
-                        "contract": "<lpContractAddress>",
+                        "contract": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
                         "outputTokenSymbol": "cDAI",
-                        "outputToken": "<lpTokenAddress>",
+                        "outputToken": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
                         "isBorrow": false
                     }
                 ]
