@@ -191,19 +191,28 @@ contract AdvancePlusPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Po
     }
 
     function _batchMintAndBurn() internal returns (bool _success) {
-        while (last >= first) {
-            if (queue[first].isDeposit) {
-                _mintShares(queue[first].account, balance(), queue[first].value);
-                pendingDeposits[msg.sender] -= queue[first].value;
-                depositQueue -= queue[first].value;
+        uint iterator = first;
+        while (last >= iterator) {
+            optyMinterContract.updateSupplierRewards(address(this), queue[iterator].account);
+            if (queue[iterator].isDeposit) {
+                _mintShares(queue[iterator].account, balance(), queue[iterator].value);
+                pendingDeposits[msg.sender] -= queue[iterator].value;
+                depositQueue -= queue[iterator].value;
             } else {
-                _redeemAndBurn(queue[first].account, balance(), queue[first].value);
-                pendingWithdraws[msg.sender] -= queue[first].value;
-                withdrawQueue -= queue[first].value;
+                _redeemAndBurn(queue[iterator].account, balance(), queue[iterator].value);
+                pendingWithdraws[msg.sender] -= queue[iterator].value;
+                withdrawQueue -= queue[iterator].value;
             }
+            iterator++;
+        }
+        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
+        optyMinterContract.updateOptyPoolIndex(address(this));
+        while (last >= first) {
+            optyMinterContract.updateUserStateInPool(address(this), queue[first].account);
             delete queue[first];
             first++;
         }
+        
         _success = true;
     }
 
@@ -236,7 +245,11 @@ contract AdvancePlusPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Po
         } else {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
+        optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
+        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
+        optyMinterContract.updateOptyPoolIndex(address(this));
+        optyMinterContract.updateUserStateInPool(address(this), msg.sender);
         if (balance() > 0) {
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = token;
@@ -291,9 +304,13 @@ contract AdvancePlusPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Po
             _withdrawAll();
             harvest(strategyHash);
         }
-
+        
+        optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         // subtract pending deposit from total balance
         _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
+        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
+        optyMinterContract.updateOptyPoolIndex(address(this));
+        optyMinterContract.updateUserStateInPool(address(this), msg.sender);
 
         if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);

@@ -34,4 +34,6 @@ contract OPTYMinterStorage {
     
     /// @notice The OPTY index for each market for each user as of the last time they accrued OPTY
     mapping(address => mapping(address => OptyState)) public optyUserStateInPool;
+    
+    mapping(address => mapping(address => uint)) public lastUserUpdate;
 }

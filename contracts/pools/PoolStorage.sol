@@ -4,6 +4,7 @@ pragma solidity ^0.6.10;
 
 import "./../RiskManager.sol";
 import "./../StrategyCodeProvider.sol";
+import "./../OPTYToken/OPTYMinter.sol";
 
 contract PoolStorage {
     struct Operation {
@@ -24,6 +25,7 @@ contract PoolStorage {
     string public profile;
     StrategyCodeProvider public strategyCodeProviderContract;
     RiskManager public riskManagerContract;
+    OPTYMinter public optyMinterContract;
 
     uint256 public first = 1;
     uint256 public last = 0;
