@@ -130,11 +130,16 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         _success = true;
     }
     
-    function updatePool() public ifNotPaused nonReentrant returns (bool _success) {
-        uint _deltaBlocks = block.timestamp.sub(lastPoolUpdate);
-        uint optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
-        lastPoolUpdate = uint32(block.timestamp);
-        optyMinterContract.mintOpty(address(this), optyAccrued);
+    function updatePool() public ifNotPaused returns (bool _success) {
+        if (lastPoolUpdate == uint(0)) {
+            lastPoolUpdate = uint32(block.timestamp);
+        }
+        else {
+            uint _deltaBlocks = block.timestamp.sub(lastPoolUpdate);
+            uint optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
+            lastPoolUpdate = uint32(block.timestamp);
+            optyMinterContract.mintOpty(address(this), optyAccrued);
+        }
         _success = true;
     }
     
