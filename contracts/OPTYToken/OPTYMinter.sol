@@ -150,7 +150,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param amount The amount of OPTY to (possibly) transfer
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function mintOpty(address user, uint amount) internal returns (uint) {
+    function mintOpty(address user, uint amount) public returns (uint) {
         OPTY _opty = OPTY(getOptyAddress());
         require(amount > 0 && user != address(0), "Insufficient amount or invalid address");
         _opty.mint(user,amount);

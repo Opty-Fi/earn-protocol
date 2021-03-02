@@ -317,13 +317,10 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             _withdrawAll();
             harvest(strategyHash);
         }
-
-        uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
+        
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
-        //  Updating the totalSupply of op tokens
-        _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "Redeem amount exceeds balance");
-        _totalSupply = _totalSupply.sub(_redeemAmount);
-        emit Transfer(msg.sender, address(0), _redeemAmount);
+        // subtract pending deposit from total balance
+        _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
         optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
         optyMinterContract.updateOptyPoolIndex(address(this));
         optyMinterContract.updateUserStateInPool(address(this), msg.sender);

@@ -303,8 +303,7 @@ contract BasicPoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolS
             _withdrawAll();
             harvest(strategyHash);
         }
-
-        uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
+        
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         // subtract pending deposit from total balance
         _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
