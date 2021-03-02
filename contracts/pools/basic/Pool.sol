@@ -286,11 +286,6 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             _supplyAll();
         }
-        optyMinterContract.updateSupplierRewards(address(this), msg.sender);
-        _mint(msg.sender, shares);
-        optyMinterContract.updateOptyPoolRatePerBlockAndLPToken(address(this));
-        optyMinterContract.updateOptyPoolIndex(address(this));
-        optyMinterContract.updateUserStateInPool(address(this), msg.sender);
         _success = true;
     }
 
