@@ -10,15 +10,26 @@ import "./../interfaces/ERC20/IERC20.sol";
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     
-    constructor(address _registry) public Modifiers(_registry) {
+    constructor(address _registry, address _stakingPool) public Modifiers(_registry) {
+        setStakingPool(_stakingPool);
+    }
+    
+    function setStakingPool(address _stakingPool) public onlyOperator {
+        require(_stakingPool != address(0), "Invalid address");
+        optyStakingPool = OPTYStakingPool(_stakingPool);
+    }
+    
+    function claimAndStake (address holder) public {
+        uint _amount = claimOpty(holder, allOptyPools);
+        optyStakingPool.userStake(_amount);
     }
     
     /**
      * @notice Claim all the opty accrued by holder in all markets
      * @param holder The address to claim OPTY for
      */
-    function claimOpty(address holder) public {
-        return claimOpty(holder, allOptyPools);
+    function claimOpty(address holder) public returns (uint) {
+        claimOpty(holder, allOptyPools);
     }
 
     /**
@@ -26,7 +37,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param holder The address to claim OPTY for
      * @param optyTokens The list of markets to claim OPTY in
      */
-    function claimOpty(address holder, address[] memory optyTokens) public {
+    function claimOpty(address holder, address[] memory optyTokens) public returns (uint) {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         claimOpty(holders, optyTokens);
@@ -37,7 +48,8 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param holders The addresses to claim OPTY for
      * @param optyTokens The list of markets to claim OPTY in
      */
-    function claimOpty(address[] memory holders, address[] memory optyTokens) public {
+    function claimOpty(address[] memory holders, address[] memory optyTokens) public returns (uint) {
+        uint _total;
         for (uint i = 0; i < optyTokens.length; i++) {
             address _optyToken = optyTokens[i];
             require(optyPoolEnabled[_optyToken], "optyPool must be enabled");
@@ -46,8 +58,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 uint _amount = div_(optyAccrued[holders[j]], 1e18);
                 optyAccrued[holders[j]] = uint(0);
                 mintOpty(holders[j], _amount);
+                _total = add_(_total, _amount);
             }
         }
+        return _total;
     }
 
     /**

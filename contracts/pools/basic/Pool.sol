@@ -10,6 +10,7 @@ import "./../../utils/ReentrancyGuard.sol";
 import "./../../RiskManager.sol";
 import "./../../StrategyCodeProvider.sol";
 import "./../../OPTYToken/OPTYMinter.sol";
+import "./../PoolStorage.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
@@ -17,15 +18,6 @@ import "./../../OPTYToken/OPTYMinter.sol";
 contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
-
-    bytes32 public strategyHash;
-    address public token; //  store the underlying token contract address (for example DAI)
-    uint256 public poolValue;
-    string public profile;
-
-    StrategyCodeProvider public strategyCodeProviderContract;
-    RiskManager public riskManagerContract;
-    OPTYMinter public optyMinterContract;
 
     /**
      * @dev
@@ -215,6 +207,12 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         emit DepositQueue(msg.sender, last, _amount);
         _success = true;
     }
+    
+    function userDepositAndStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+        userDeposit(_amount);
+        optyMinterContract.claimAndStake(msg.sender);
+        _success = true;
+    }
 
     function _batchMintAndBurn() internal returns (bool _success) {
         uint iterator = first;
@@ -245,7 +243,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
     function userDepositAllRebalance() external {
         userDepositRebalance(IERC20(token).balanceOf(msg.sender));
     }
-
+    
     /**
      * @dev Function for depositing underlying tokens (for example DAI) into the contract and in return giving op tokens to the user
      *
@@ -296,6 +294,12 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         _success = true;
     }
 
+    function userDepositRebalanceAndStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+        userDepositRebalance(_amount);
+        optyMinterContract.claimAndStake(msg.sender);
+        _success = true;
+    }
+    
     function userWithdrawAllRebalance() external {
         userWithdrawRebalance(balanceOf(msg.sender));
     }

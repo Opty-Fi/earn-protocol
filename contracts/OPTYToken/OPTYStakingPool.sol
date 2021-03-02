@@ -14,7 +14,7 @@ import "./StakingPoolStorage.sol";
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract StakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, StakingPoolStorage {
+contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, StakingPoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -102,7 +102,6 @@ contract StakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Stakin
         userState[msg.sender].timestamp = uint32(block.timestamp);
         userState[msg.sender].value = uint224(uint256(userState[msg.sender].value).add(_amount));
         _success = true;
-        
     }
 
     function userUnstakeAll() external {
