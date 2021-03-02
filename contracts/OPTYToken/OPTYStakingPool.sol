@@ -99,8 +99,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         }
         _mint(msg.sender, shares);
         updatePool();
-        userState[msg.sender].timestamp = uint32(block.timestamp);
-        userState[msg.sender].value = uint224(uint256(userState[msg.sender].value).add(_amount));
+        userLastUpdate[msg.sender] = block.timestamp;
         _success = true;
     }
 
@@ -117,27 +116,26 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
      *      in  weth uints i.e. 1e18
      */
     function userUnstake(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
-        require(block.timestamp.sub(uint(userState[msg.sender].timestamp)) > timelockPeriod, "you can't unstake until timelockPeriod has passed");
+        require(block.timestamp.sub(userLastUpdate[msg.sender]) > timelockPeriod, "you can't unstake until timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
+        updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "!_redeemAmount>balance");
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-        updatePool();
-        userState[msg.sender].timestamp = uint32(block.timestamp);
-        userState[msg.sender].value = uint224(uint256(userState[msg.sender].value).sub(redeemAmountInToken));
+        userLastUpdate[msg.sender] = block.timestamp;
         _success = true;
     }
     
     function updatePool() public ifNotPaused returns (bool _success) {
         if (lastPoolUpdate == uint(0)) {
-            lastPoolUpdate = uint32(block.timestamp);
+            lastPoolUpdate = block.timestamp;
         }
         else {
             uint _deltaBlocks = block.timestamp.sub(lastPoolUpdate);
             uint optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
-            lastPoolUpdate = uint32(block.timestamp);
+            lastPoolUpdate = block.timestamp;
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
         _success = true;
