@@ -99,7 +99,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         }
         _mint(msg.sender, shares);
         updatePool();
-        userLastUpdate[msg.sender] = block.timestamp;
+        userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
 
@@ -116,7 +116,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
      *      in  weth uints i.e. 1e18
      */
     function userUnstake(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
-        require(block.timestamp.sub(userLastUpdate[msg.sender]) > timelockPeriod, "you can't unstake until timelockPeriod has passed");
+        require(getBlockTimestamp().sub(userLastUpdate[msg.sender]) > timelockPeriod, "you can't unstake until timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
@@ -124,18 +124,18 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-        userLastUpdate[msg.sender] = block.timestamp;
+        userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
     
     function updatePool() public ifNotPaused returns (bool _success) {
         if (lastPoolUpdate == uint(0)) {
-            lastPoolUpdate = block.timestamp;
+            lastPoolUpdate = getBlockTimestamp();
         }
         else {
-            uint _deltaBlocks = block.timestamp.sub(lastPoolUpdate);
+            uint _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
             uint optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
-            lastPoolUpdate = block.timestamp;
+            lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
         _success = true;
@@ -146,6 +146,10 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
             return balance().div(totalSupply());
         }
         return uint256(0);
+    }
+    
+    function getBlockTimestamp() public view returns (uint256) {
+        return block.timestamp;
     }
 
     function discontinue() public onlyOperator {
