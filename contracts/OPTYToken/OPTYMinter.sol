@@ -82,9 +82,9 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         for (uint i = 0; i < optyTokens.length; i++) {
             address _optyToken = optyTokens[i];
             if(optyPoolEnabled[_optyToken] == true) {
-                uint _deltaBlocksUser = sub_(optyUserStateInPool[_optyToken][holder].block,optyPoolStartBlock[_optyToken]);
+                uint _deltaSecondsUser = sub_(optyUserStateInPool[_optyToken][holder].timestamp,optyPoolStartTimestamp[_optyToken]);
                 uint _currentOptyPoolIndex = currentOptyPoolIndex(_optyToken);
-                uint _supplierDelta = mul_(IERC20(_optyToken).balanceOf(holder), sub_(mul_(_currentOptyPoolIndex,sub_(getBlockNumber(),optyPoolStartBlock[_optyToken])),mul_(optyUserStateInPool[_optyToken][holder].index,_deltaBlocksUser)));
+                uint _supplierDelta = mul_(IERC20(_optyToken).balanceOf(holder), sub_(mul_(_currentOptyPoolIndex,sub_(getBlockTimestamp(),optyPoolStartTimestamp[_optyToken])),mul_(optyUserStateInPool[_optyToken][holder].index,_deltaSecondsUser)));
                 _totalOpty = add_(_totalOpty, _supplierDelta);
             }
         }
@@ -92,12 +92,12 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
     
     function currentOptyPoolIndex(address optyPool) public view returns(uint) {
-        uint _deltaBlocksSinceStart = sub_(getBlockNumber(), optyPoolStartBlock[optyPool]);
-        uint _deltaBlocks = sub_(getBlockNumber(), uint(optyPoolState[optyPool].block));
+        uint _deltaSecondsSinceStart = sub_(getBlockTimestamp(), optyPoolStartTimestamp[optyPool]);
+        uint _deltaSeconds = sub_(getBlockTimestamp(), uint(optyPoolState[optyPool].timestamp));
         uint _supplyTokens = IERC20(optyPool).totalSupply();
-        uint _optyAccrued = mul_(_deltaBlocks, optyPoolRatePerBlock[optyPool]);
+        uint _optyAccrued = mul_(_deltaSeconds, optyPoolRatePerSecond[optyPool]);
         uint _ratio = _supplyTokens > 0 ? div_(mul_(_optyAccrued, 1e18), _supplyTokens) : uint(0);
-        uint _index = div_(add_(mul_(optyPoolState[optyPool].index, sub_(uint(optyPoolState[optyPool].block),optyPoolStartBlock[optyPool])), _ratio), _deltaBlocksSinceStart);
+        uint _index = div_(add_(mul_(optyPoolState[optyPool].index, sub_(uint(optyPoolState[optyPool].timestamp),optyPoolStartTimestamp[optyPool])), _ratio), _deltaSecondsSinceStart);
         return _index;
     }
     /**
@@ -105,29 +105,29 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param supplier The address to calculate contributor rewards for
      */
     function updateSupplierRewards(address optyToken, address supplier) public {
-        if (IERC20(optyToken).balanceOf(supplier) > 0 && lastUserUpdate[optyToken][supplier] != getBlockNumber()) {
-            uint _deltaBlocksPool = sub_(getBlockNumber(),optyPoolStartBlock[optyToken]);
-            uint _deltaBlocksUser = sub_(optyUserStateInPool[optyToken][supplier].block,optyPoolStartBlock[optyToken]);
+        if (IERC20(optyToken).balanceOf(supplier) > 0 && lastUserUpdate[optyToken][supplier] != getBlockTimestamp()) {
+            uint _deltaSecondsPool = sub_(getBlockTimestamp(),optyPoolStartTimestamp[optyToken]);
+            uint _deltaSecondsUser = sub_(optyUserStateInPool[optyToken][supplier].timestamp,optyPoolStartTimestamp[optyToken]);
             uint _supplierTokens = IERC20(optyToken).balanceOf(supplier);
             uint _currentOptyPoolIndex = currentOptyPoolIndex(optyToken);
-            uint _supplierDelta = mul_(_supplierTokens, sub_(mul_(_currentOptyPoolIndex,_deltaBlocksPool),mul_(optyUserStateInPool[optyToken][supplier].index,_deltaBlocksUser)));
+            uint _supplierDelta = mul_(_supplierTokens, sub_(mul_(_currentOptyPoolIndex,_deltaSecondsPool),mul_(optyUserStateInPool[optyToken][supplier].index,_deltaSecondsUser)));
             uint _supplierAccrued = add_(optyAccrued[supplier], _supplierDelta);
             optyAccrued[supplier] = _supplierAccrued;
-            lastUserUpdate[optyToken][supplier] = getBlockNumber();
+            lastUserUpdate[optyToken][supplier] = getBlockTimestamp();
         }
     }
     
     function updateUserStateInPool(address optyToken, address supplier) public {
         optyUserStateInPool[optyToken][supplier].index = optyPoolState[optyToken].index;
-        optyUserStateInPool[optyToken][supplier].block = optyPoolState[optyToken].block;
+        optyUserStateInPool[optyToken][supplier].timestamp = optyPoolState[optyToken].timestamp;
     }
     
     /**
      * @notice Set the OPTY rate for a specific pool
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function updateOptyPoolRatePerBlockAndLPToken(address optyPool) public returns (bool) {
-        optyPoolRatePerBlockAndLPToken[optyPool] = IERC20(optyPool).totalSupply() > 0 ? div_(mul_(optyPoolRatePerBlock[optyPool], 1e18), IERC20(optyPool).totalSupply()) : uint(0);
+    function updateOptyPoolRatePerSecondAndLPToken(address optyPool) public returns (bool) {
+        optyPoolRatePerSecondAndLPToken[optyPool] = IERC20(optyPool).totalSupply() > 0 ? div_(mul_(optyPoolRatePerSecond[optyPool], 1e18), IERC20(optyPool).totalSupply()) : uint(0);
         return true;
     }
     
@@ -137,20 +137,21 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      */
     function updateOptyPoolIndex(address optyPool) public returns(uint224) {
         if (optyPoolState[optyPool].index == uint224(0)) {
-            optyPoolStartBlock[optyPool] = getBlockNumber();
-            optyPoolState[optyPool].block = uint32(optyPoolStartBlock[optyPool]);
-            optyPoolState[optyPool].index = uint224(optyPoolRatePerBlockAndLPToken[optyPool]);
+            optyPoolStartTimestamp[optyPool] = getBlockTimestamp();
+            optyPoolState[optyPool].timestamp = uint32(optyPoolStartTimestamp[optyPool]);
+            optyPoolState[optyPool].index = uint224(optyPoolRatePerSecondAndLPToken[optyPool]);
+            return optyPoolState[optyPool].index;
         } else {
-            uint _deltaBlocks = sub_(getBlockNumber(), uint(optyPoolState[optyPool].block));
-            if (_deltaBlocks > 0) {
-                uint _deltaBlocksSinceStart = sub_(getBlockNumber(), optyPoolStartBlock[optyPool]);
+            uint _deltaSeconds = sub_(getBlockTimestamp(), uint(optyPoolState[optyPool].timestamp));
+            if (_deltaSeconds > 0) {
+                uint _deltaSecondsSinceStart = sub_(getBlockTimestamp(), optyPoolStartTimestamp[optyPool]);
                 uint _supplyTokens = IERC20(optyPool).totalSupply();
-                uint _optyAccrued = mul_(_deltaBlocks, optyPoolRatePerBlock[optyPool]);
+                uint _optyAccrued = mul_(_deltaSeconds, optyPoolRatePerSecond[optyPool]);
                 uint _ratio = _supplyTokens > 0 ? div_(mul_(_optyAccrued, 1e18), _supplyTokens) : uint(0);
-                uint _index = div_(add_(mul_(optyPoolState[optyPool].index, sub_(uint(optyPoolState[optyPool].block),optyPoolStartBlock[optyPool])), _ratio), _deltaBlocksSinceStart);
+                uint _index = div_(add_(mul_(optyPoolState[optyPool].index, sub_(uint(optyPoolState[optyPool].timestamp),optyPoolStartTimestamp[optyPool])), _ratio), _deltaSecondsSinceStart);
                 optyPoolState[optyPool] = OptyState({
                     index: safe224(_index, "new index exceeds 224 bits"),
-                    block: safe32(getBlockNumber(), "block number exceeds 32 bits")
+                    timestamp: safe32(getBlockTimestamp(), "block number exceeds 32 bits")
                 });
             }
             return optyPoolState[optyPool].index;
@@ -176,7 +177,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @return The amount of OPTY which was NOT transferred to the user
      */
     function setOptyPoolRate(address optyPool, uint rate) public onlyOperator returns (bool) {
-        optyPoolRatePerBlock[optyPool] = rate;
+        optyPoolRatePerSecond[optyPool] = rate;
         return true;
     }
     
@@ -192,15 +193,11 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         return true;
     }
     
-    function setOptyPoolStartBlock(address optyPool, uint blockNumber) public returns (bool) {
-        optyPoolStartBlock[optyPool] = blockNumber;
-    }
-    
     function getOptyAddress() public pure returns (address) {
-        return address(0x97b5aBc84eC2B0f9C188b96768fB7738fFc1356a);
+        return address(0xBbc96A1676922ce6bA4366c0d30f155514E588c3);
     }
     
-    function getBlockNumber() public view returns (uint) {
-        return block.number;
+    function getBlockTimestamp() public view returns (uint) {
+        return block.timestamp;
     }
 }

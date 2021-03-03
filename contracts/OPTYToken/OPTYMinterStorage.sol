@@ -11,10 +11,10 @@ contract OPTYMinterStorage {
     /// @notice The block number the index was last updated at
     struct OptyState {
         uint224 index;
-        uint32 block;
+        uint32 timestamp;
     }
     
-    mapping(address => uint) public optyPoolStartBlock;
+    mapping(address => uint) public optyPoolStartTimestamp;
         
     address[] public allOptyPools;
     
@@ -24,10 +24,10 @@ contract OPTYMinterStorage {
     uint public optyTotalRate;
 
     /// @notice The portion of optyRate that each market currently receives
-    mapping(address => uint) public optyPoolRatePerBlock;
+    mapping(address => uint) public optyPoolRatePerSecond;
     
     /// @notice The portion of optyRate that each market currently receives divided by the amount of LP tokens
-    mapping(address => uint) public optyPoolRatePerBlockAndLPToken;
+    mapping(address => uint) public optyPoolRatePerSecondAndLPToken;
     
     /// @notice The OPTY accrued but not yet transferred to each user
     mapping(address => uint) public optyAccrued;
