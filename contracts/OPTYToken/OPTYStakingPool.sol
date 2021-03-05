@@ -18,8 +18,8 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     using SafeERC20 for IERC20;
     using Address for address;
 
-    uint timelockPeriod;
-    
+    uint256 timelockPeriod;
+
     /**
      * @dev
      *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for token (for example DAI)
@@ -29,7 +29,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         address _registry,
         address _underlyingToken,
         address _optyMinter,
-        uint _timelock
+        uint256 _timelock
     )
         public
         ERC20Detailed(
@@ -43,13 +43,13 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
     }
-    
-    function setTimelockPeriod(uint _timelock) public onlyOperator returns (bool _success) {
-        require(_timelock != uint(0), "timelockPeriod != 0");
+
+    function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
+        require(_timelock != uint256(0), "timelockPeriod != 0");
         timelockPeriod = _timelock;
         _success = true;
     }
-    
+
     function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
         require(_optyMinter != address(0), "!_optyMinter");
         require(_optyMinter.isContract(), "!_optyMinter.isContract");
@@ -63,11 +63,11 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         _success = true;
     }
 
-    function setOptyRatePerBlock(uint _rate) public onlyOperator returns (bool _success) {
+    function setOptyRatePerBlock(uint256 _rate) public onlyOperator returns (bool _success) {
         optyRatePerBlock = _rate;
         _success = true;
     }
-    
+
     /**
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
@@ -127,27 +127,26 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
-    
+
     function updatePool() public ifNotPaused returns (bool _success) {
-        if (lastPoolUpdate == uint(0)) {
+        if (lastPoolUpdate == uint256(0)) {
             lastPoolUpdate = getBlockTimestamp();
-        }
-        else {
-            uint _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
-            uint optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
+        } else {
+            uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
+            uint256 optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
             lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
         _success = true;
     }
-    
+
     function getPricePerFullShare() public view returns (uint256) {
         if (totalSupply() != 0) {
             return balance().div(totalSupply());
         }
         return uint256(0);
     }
-    
+
     function getBlockTimestamp() public view returns (uint256) {
         return block.timestamp;
     }

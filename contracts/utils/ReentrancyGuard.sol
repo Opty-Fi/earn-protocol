@@ -5,7 +5,7 @@ pragma solidity ^0.6.10;
 contract ReentrancyGuard {
     uint256 private _guardCounter;
 
-    constructor () internal {
+    constructor() internal {
         _guardCounter = 1;
     }
 
@@ -15,5 +15,4 @@ contract ReentrancyGuard {
         _;
         require(localCounter == _guardCounter, "ReentrancyGuard: reentrant call");
     }
-
 }

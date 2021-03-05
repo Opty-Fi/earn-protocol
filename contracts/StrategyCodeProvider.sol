@@ -261,10 +261,17 @@ contract StrategyCodeProvider is Modifiers, Structs {
                 } else {
                     _balance = ICodeProvider(_optyCodeProvider).getSomeAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
                 }
-            } // deposit
+            }
+            // deposit
             else {
                 address _borrowToken = _strategySteps[_iterator].outputToken;
-                _balance = ICodeProvider(_optyCodeProvider).getAllAmountInTokenBorrow(_optyPool, _inputToken, _liquidityPool, _borrowToken, _outputTokenAmount);
+                _balance = ICodeProvider(_optyCodeProvider).getAllAmountInTokenBorrow(
+                    _optyPool,
+                    _inputToken,
+                    _liquidityPool,
+                    _borrowToken,
+                    _outputTokenAmount
+                );
             } // borrow
             _outputTokenAmount = _balance;
         }

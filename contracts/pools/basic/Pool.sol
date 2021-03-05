@@ -51,7 +51,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         profile = _profile;
         _success = true;
     }
-    
+
     function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
         require(_optyMinter != address(0), "!_optyMinter");
         require(_optyMinter.isContract(), "!_optyMinter.isContract");
@@ -207,7 +207,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         emit DepositQueue(msg.sender, last, _amount);
         _success = true;
     }
-    
+
     function userDepositAndStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDeposit(_amount);
         optyMinterContract.claimAndStake(msg.sender);
@@ -215,7 +215,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
     }
 
     function _batchMintAndBurn() internal returns (bool _success) {
-        uint iterator = first;
+        uint256 iterator = first;
         while (last >= iterator) {
             optyMinterContract.updateSupplierRewards(address(this), queue[iterator].account);
             if (queue[iterator].isDeposit) {
@@ -236,14 +236,14 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             delete queue[first];
             first++;
         }
-        
+
         _success = true;
     }
 
     function userDepositAllRebalance() external {
         userDepositRebalance(IERC20(token).balanceOf(msg.sender));
     }
-    
+
     /**
      * @dev Function for depositing underlying tokens (for example DAI) into the contract and in return giving op tokens to the user
      *
@@ -260,13 +260,13 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             _withdrawAll();
             harvest(strategyHash);
         }
-        
+
         // Following lines will be added if all the optyPoolRates are updated every transaction:
-        // 
+        //
         // uint256 _optyPoolRate = OPTYMinter(optyMinterContract).optyPoolRate(address(this));
         // uint256 _newOptyPoolRate = calculateNewOptyPoolRate();
         // storeAllNewOptyPoolRatesInMapping();
-        
+
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
 
@@ -294,7 +294,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
-    
+
     function userWithdrawAllRebalance() external {
         userWithdrawRebalance(balanceOf(msg.sender));
     }
@@ -316,7 +316,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             _withdrawAll();
             harvest(strategyHash);
         }
-        
+
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         // subtract pending deposit from total balance
         _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);

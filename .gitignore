@@ -8,4 +8,3 @@ test/SS_NO_CP_strategies.json
 test/gasRecordFiles/*
 desktop.ini
 **/*strategies*.json
-!**/*strategies.example.json

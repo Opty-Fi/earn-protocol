@@ -229,7 +229,7 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
         _tbtcUnderlyingTokens[1] = CRV_REN_BTC_WBTC_SBTC;
         setLiquidityPoolToken(TBTC_SWAP_POOL, TBTC_SBTC_CRV);
         setSwapPoolToUnderlyingTokens(TBTC_SWAP_POOL, _tbtcUnderlyingTokens);
-        
+
         address[] memory _dusdUnderlyingTokens = new address[](2);
         _dusdUnderlyingTokens[0] = DUSD;
         _dusdUnderlyingTokens[1] = THREE_CRV;
@@ -405,12 +405,25 @@ contract CurveSwapCodeProvider is ICodeProvider, Modifiers {
         }
         return 0;
     }
-    
-    function getSomeAmountInTokenBorrow(address payable, address, address, uint256, address, uint256) public view override returns(uint256) {
+
+    function getSomeAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        uint256,
+        address,
+        uint256
+    ) public view override returns (uint256) {
         revert("!empty");
     }
-    
-    function getAllAmountInTokenBorrow(address payable, address, address, address, uint256) public view override returns(uint256) {
+
+    function getAllAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        address,
+        uint256
+    ) public view override returns (uint256) {
         revert("!empty");
     }
 
