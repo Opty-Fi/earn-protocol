@@ -12,7 +12,7 @@ contract PoolStorage {
         bool isDeposit;
         uint256 value;
     }
-    
+
     struct BlockPoolValue {
         uint256 actualPoolValue;
         uint256 blockMinPoolValue;

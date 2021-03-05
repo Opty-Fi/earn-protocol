@@ -3,7 +3,8 @@
 pragma solidity ^0.6.10;
 
 contract Context {
-    constructor () internal { }
+    constructor() internal {}
+
     // solhint-disable-previous-line no-empty-blocks
 
     function _msgSender() internal view returns (address payable) {

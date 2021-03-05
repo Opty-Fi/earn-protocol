@@ -191,7 +191,7 @@ contract AdvancePoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Poo
     }
 
     function _batchMintAndBurn() internal returns (bool _success) {
-        uint iterator = first;
+        uint256 iterator = first;
         while (last >= iterator) {
             optyMinterContract.updateSupplierRewards(address(this), queue[iterator].account);
             if (queue[iterator].isDeposit) {
@@ -212,7 +212,7 @@ contract AdvancePoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Poo
             delete queue[first];
             first++;
         }
-        
+
         _success = true;
     }
 
@@ -304,7 +304,7 @@ contract AdvancePoolMkr is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, Poo
             _withdrawAll();
             harvest(strategyHash);
         }
-        
+
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         // subtract pending deposit from total balance
         _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);

@@ -141,12 +141,25 @@ contract CompoundCodeProvider is ICodeProvider, Modifiers {
         }
         return _liquidityPoolTokenAmount;
     }
-    
-    function getSomeAmountInTokenBorrow(address payable, address, address, uint256, address, uint256) public view override returns(uint256) {
+
+    function getSomeAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        uint256,
+        address,
+        uint256
+    ) public view override returns (uint256) {
         revert("!empty");
     }
-    
-    function getAllAmountInTokenBorrow(address payable, address, address, address, uint256) public view override returns(uint256) {
+
+    function getAllAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        address,
+        uint256
+    ) public view override returns (uint256) {
         revert("!empty");
     }
 

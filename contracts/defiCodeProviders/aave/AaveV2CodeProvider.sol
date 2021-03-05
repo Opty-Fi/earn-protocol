@@ -18,7 +18,7 @@ import "../../Gatherer.sol";
 
 contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
-    
+
     Gatherer public gathererContract;
 
     uint256 public maxExposure; // basis points
@@ -81,50 +81,52 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
             IAaveV2ProtocolDataProvider(_getProtocolDataProvider(_liquidityPoolAddressProviderRegistry)).getReserveConfigurationData(
                 _outputToken
             );
-        require (
+        require(
             _inputTokenReserveConfigurationData.usageAsCollateralEnabled &&
-            !_inputTokenReserveConfigurationData.isFrozen &&
-            _inputTokenReserveConfigurationData.isActive &&
-            _outputTokenReserveConfigurationData.borrowingEnabled &&
-            _outputTokenReserveConfigurationData.isActive && !_outputTokenReserveConfigurationData.isFrozen, "!borrow"
+                !_inputTokenReserveConfigurationData.isFrozen &&
+                _inputTokenReserveConfigurationData.isActive &&
+                _outputTokenReserveConfigurationData.borrowingEnabled &&
+                _outputTokenReserveConfigurationData.isActive &&
+                !_outputTokenReserveConfigurationData.isFrozen,
+            "!borrow"
         );
-            uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProviderRegistry, _outputToken);
-            if (_borrow > 0) {
-                bool _isUserCollateralEnabled =
-                    _getUserReserveData(_liquidityPoolAddressProviderRegistry, _underlyingTokens[0], _optyPool).usageAsCollateralEnabled;
-                uint256 _interestRateMode = _outputTokenReserveConfigurationData.stableBorrowRateEnabled ? uint256(1) : uint256(2);
-                if (_isUserCollateralEnabled) {
-                    _codes = new bytes[](1);
-                    _codes[0] = abi.encode(
-                        _lendingPool,
-                        abi.encodeWithSignature(
-                            "borrow(address,uint256,uint256,uint16,address)",
-                            _outputToken,
-                            _borrow,
-                            _interestRateMode,
-                            uint16(0),
-                            _optyPool
-                        )
-                    );
-                } else {
-                    _codes = new bytes[](2);
-                    _codes[0] = abi.encode(
-                        _lendingPool,
-                        abi.encodeWithSignature("setUserUseReserveAsCollateral(address,bool)", _underlyingTokens[0], true)
-                    );
-                    _codes[1] = abi.encode(
-                        _lendingPool,
-                        abi.encodeWithSignature(
-                            "borrow(address,uint256,uint256,uint16,address)",
-                            _outputToken,
-                            _borrow,
-                            _interestRateMode,
-                            uint16(0),
-                            _optyPool
-                        )
-                    );
-                }
+        uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProviderRegistry, _outputToken);
+        if (_borrow > 0) {
+            bool _isUserCollateralEnabled =
+                _getUserReserveData(_liquidityPoolAddressProviderRegistry, _underlyingTokens[0], _optyPool).usageAsCollateralEnabled;
+            uint256 _interestRateMode = _outputTokenReserveConfigurationData.stableBorrowRateEnabled ? uint256(1) : uint256(2);
+            if (_isUserCollateralEnabled) {
+                _codes = new bytes[](1);
+                _codes[0] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature(
+                        "borrow(address,uint256,uint256,uint16,address)",
+                        _outputToken,
+                        _borrow,
+                        _interestRateMode,
+                        uint16(0),
+                        _optyPool
+                    )
+                );
+            } else {
+                _codes = new bytes[](2);
+                _codes[0] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature("setUserUseReserveAsCollateral(address,bool)", _underlyingTokens[0], true)
+                );
+                _codes[1] = abi.encode(
+                    _lendingPool,
+                    abi.encodeWithSignature(
+                        "borrow(address,uint256,uint256,uint16,address)",
+                        _outputToken,
+                        _borrow,
+                        _interestRateMode,
+                        uint16(0),
+                        _optyPool
+                    )
+                );
             }
+        }
     }
 
     function getRepayAndWithdrawAllCodes(
@@ -236,21 +238,45 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (uint256) {
         return _liquidityPoolTokenAmount;
     }
-    
-    function getSomeAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProviderRegistry, uint256 _liquidityPoolTokenBalance, address _borrowToken, uint256 _borrowAmount) public view override returns(uint256) {
+
+    function getSomeAmountInTokenBorrow(
+        address payable _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProviderRegistry,
+        uint256 _liquidityPoolTokenBalance,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) public view override returns (uint256) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
         uint256 _aTokenAmount = _maxWithdrawal(_optyPool, _lendingPool, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
         uint256 _outputTokenRepayable = _over(_optyPool, _underlyingToken, _liquidityPoolAddressProviderRegistry, _borrowToken, _aTokenAmount);
-        if(_outputTokenRepayable > _borrowAmount) {
-            return _aTokenAmount;   
+        if (_outputTokenRepayable > _borrowAmount) {
+            return _aTokenAmount;
         } else {
-            return _aTokenAmount.add(gathererContract.getOptimalTokenAmount(_borrowToken,_underlyingToken,_borrowAmount.sub(_outputTokenRepayable)));
+            return
+                _aTokenAmount.add(
+                    gathererContract.getOptimalTokenAmount(_borrowToken, _underlyingToken, _borrowAmount.sub(_outputTokenRepayable))
+                );
         }
     }
-    
-    function getAllAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProviderRegistry, address _borrowToken, uint256 _borrowAmount) public view override returns(uint256) {
+
+    function getAllAmountInTokenBorrow(
+        address payable _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProviderRegistry,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) public view override returns (uint256) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool, _underlyingToken, _liquidityPoolAddressProviderRegistry);
-        return getSomeAmountInTokenBorrow(_optyPool, _underlyingToken, _liquidityPoolAddressProviderRegistry, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
+        return
+            getSomeAmountInTokenBorrow(
+                _optyPool,
+                _underlyingToken,
+                _liquidityPoolAddressProviderRegistry,
+                _liquidityPoolTokenBalance,
+                _borrowToken,
+                _borrowAmount
+            );
     }
 
     function calculateAmountInLPToken(
@@ -379,7 +405,7 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (bytes[] memory) {
         revert("!empty");
     }
-    
+
     function setGatherer(address _gatherer) public onlyOperator {
         gathererContract = Gatherer(_gatherer);
     }
@@ -426,7 +452,8 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
     }
 
     function _availableToBorrowETH(address _optyPool, address _liquidityPoolAddressProviderRegistry) internal view returns (uint256) {
-        (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, uint256 _availableBorrowsETH) = _maxSafeETH(_optyPool, _liquidityPoolAddressProviderRegistry);
+        (uint256 _maxSafeETH_, uint256 _totalBorrowsETH, uint256 _availableBorrowsETH) =
+            _maxSafeETH(_optyPool, _liquidityPoolAddressProviderRegistry);
         _maxSafeETH_ = _maxSafeETH_.mul(95).div(100); // 5% buffer so we don't go into a earn/rebalance loop
         if (_maxSafeETH_ > _totalBorrowsETH) {
             return _availableBorrowsETH.mul(_maxSafeETH_.sub(_totalBorrowsETH)).div(_availableBorrowsETH);
