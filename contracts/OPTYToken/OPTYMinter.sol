@@ -14,8 +14,8 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Claim all the opty accrued by holder in all markets
      * @param holder The address to claim OPTY for
      */
-    function claimOpty(address holder) public {
-        return claimOpty(holder, allOptyPools);
+    function claimOpty(address holder) public returns (uint256) {
+        claimOpty(holder, allOptyPools);
     }
 
     /**
@@ -23,7 +23,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param holder The address to claim OPTY for
      * @param optyTokens The list of markets to claim OPTY in
      */
-    function claimOpty(address holder, address[] memory optyTokens) public {
+    function claimOpty(address holder, address[] memory optyTokens) public returns (uint256) {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         claimOpty(holders, optyTokens);
@@ -43,8 +43,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 uint256 _amount = div_(optyAccrued[holders[j]], 1e18);
                 optyAccrued[holders[j]] = uint256(0);
                 mintOpty(holders[j], _amount);
+                _total = add_(_total, _amount);
             }
         }
+        return _total;
     }
 
     /**
@@ -112,13 +114,13 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 );
             uint256 _supplierAccrued = add_(optyAccrued[supplier], _supplierDelta);
             optyAccrued[supplier] = _supplierAccrued;
-            lastUserUpdate[optyToken][supplier] = getBlockNumber();
+            lastUserUpdate[optyToken][supplier] = getBlockTimestamp();
         }
     }
 
     function updateUserStateInPool(address optyToken, address supplier) public {
         optyUserStateInPool[optyToken][supplier].index = optyPoolState[optyToken].index;
-        optyUserStateInPool[optyToken][supplier].block = optyPoolState[optyToken].block;
+        optyUserStateInPool[optyToken][supplier].timestamp = optyPoolState[optyToken].timestamp;
     }
 
     /**
@@ -138,9 +140,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      */
     function updateOptyPoolIndex(address optyPool) public returns (uint224) {
         if (optyPoolState[optyPool].index == uint224(0)) {
-            optyPoolStartBlock[optyPool] = getBlockNumber();
-            optyPoolState[optyPool].block = uint32(optyPoolStartBlock[optyPool]);
-            optyPoolState[optyPool].index = uint224(optyPoolRatePerBlockAndLPToken[optyPool]);
+            optyPoolStartTimestamp[optyPool] = getBlockTimestamp();
+            optyPoolState[optyPool].timestamp = uint32(optyPoolStartTimestamp[optyPool]);
+            optyPoolState[optyPool].index = uint224(optyPoolRatePerSecondAndLPToken[optyPool]);
+            return optyPoolState[optyPool].index;
         } else {
             uint256 _deltaBlocks = sub_(getBlockNumber(), uint256(optyPoolState[optyPool].block));
             if (_deltaBlocks > 0) {
@@ -158,7 +161,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                     );
                 optyPoolState[optyPool] = OptyState({
                     index: safe224(_index, "new index exceeds 224 bits"),
-                    block: safe32(getBlockNumber(), "block number exceeds 32 bits")
+                    timestamp: safe32(getBlockTimestamp(), "block number exceeds 32 bits")
                 });
             }
             return optyPoolState[optyPool].index;
@@ -205,7 +208,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
 
     function getOptyAddress() public pure returns (address) {
-        return address(0x97b5aBc84eC2B0f9C188b96768fB7738fFc1356a);
+        return address(0xBbc96A1676922ce6bA4366c0d30f155514E588c3);
     }
 
     function getBlockNumber() public view returns (uint256) {

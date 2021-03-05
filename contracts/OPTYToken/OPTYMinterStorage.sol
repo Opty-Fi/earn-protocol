@@ -2,15 +2,18 @@
 
 pragma solidity ^0.6.10;
 
+import "./OPTYStakingPool.sol";
+
 contract OPTYMinterStorage {
+    OPTYStakingPool optyStakingPool;
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
     struct OptyState {
         uint224 index;
-        uint32 block;
+        uint32 timestamp;
     }
 
-    mapping(address => uint256) public optyPoolStartBlock;
+    mapping(address => uint256) public optyPoolStartTimestamp;
 
     address[] public allOptyPools;
 
@@ -20,10 +23,10 @@ contract OPTYMinterStorage {
     uint256 public optyTotalRate;
 
     /// @notice The portion of optyRate that each market currently receives
-    mapping(address => uint256) public optyPoolRatePerBlock;
+    mapping(address => uint256) public optyPoolRatePerSecond;
 
     /// @notice The portion of optyRate that each market currently receives divided by the amount of LP tokens
-    mapping(address => uint256) public optyPoolRatePerBlockAndLPToken;
+    mapping(address => uint256) public optyPoolRatePerSecondAndLPToken;
 
     /// @notice The OPTY accrued but not yet transferred to each user
     mapping(address => uint256) public optyAccrued;
