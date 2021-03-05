@@ -73,21 +73,26 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
         address _outputToken
     ) public view override returns (bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
-        ReserveConfigurationData memory _reserveConfigurationData =
+        ReserveConfigurationData memory _inputTokenReserveConfigurationData =
             IAaveV2ProtocolDataProvider(_getProtocolDataProvider(_liquidityPoolAddressProviderRegistry)).getReserveConfigurationData(
                 _underlyingTokens[0]
             );
-        if (
-            _reserveConfigurationData.usageAsCollateralEnabled &&
-            _reserveConfigurationData.stableBorrowRateEnabled &&
-            _reserveConfigurationData.borrowingEnabled &&
-            _reserveConfigurationData.isActive &&
-            !_reserveConfigurationData.isFrozen
-        ) {
+        ReserveConfigurationData memory _outputTokenReserveConfigurationData =
+            IAaveV2ProtocolDataProvider(_getProtocolDataProvider(_liquidityPoolAddressProviderRegistry)).getReserveConfigurationData(
+                _outputToken
+            );
+        require (
+            _inputTokenReserveConfigurationData.usageAsCollateralEnabled &&
+            !_inputTokenReserveConfigurationData.isFrozen &&
+            _inputTokenReserveConfigurationData.isActive &&
+            _outputTokenReserveConfigurationData.borrowingEnabled &&
+            _outputTokenReserveConfigurationData.isActive && !_outputTokenReserveConfigurationData.isFrozen, "!borrow"
+        );
             uint256 _borrow = _availableToBorrowReserve(_optyPool, _liquidityPoolAddressProviderRegistry, _outputToken);
             if (_borrow > 0) {
                 bool _isUserCollateralEnabled =
                     _getUserReserveData(_liquidityPoolAddressProviderRegistry, _underlyingTokens[0], _optyPool).usageAsCollateralEnabled;
+                uint256 _interestRateMode = _outputTokenReserveConfigurationData.stableBorrowRateEnabled ? uint256(1) : uint256(2);
                 if (_isUserCollateralEnabled) {
                     _codes = new bytes[](1);
                     _codes[0] = abi.encode(
@@ -96,7 +101,7 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
                             "borrow(address,uint256,uint256,uint16,address)",
                             _outputToken,
                             _borrow,
-                            uint256(1),
+                            _interestRateMode,
                             uint16(0),
                             _optyPool
                         )
@@ -113,16 +118,13 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
                             "borrow(address,uint256,uint256,uint16,address)",
                             _outputToken,
                             _borrow,
-                            uint256(1),
+                            _interestRateMode,
                             uint16(0),
                             _optyPool
                         )
                     );
                 }
             }
-        } else {
-            revert("!borrow");
-        }
     }
 
     function getRepayAndWithdrawAllCodes(
@@ -135,7 +137,7 @@ contract AaveV2CodeProvider is ICodeProvider, Modifiers {
         uint256 _liquidityPoolTokenBalance =
             getLiquidityPoolTokenBalance(_optyPool, _underlyingTokens[0], _liquidityPoolAddressProviderRegistry);
 
-        // // borrow token amount
+        // borrow token amount
         uint256 _borrowAmount = IERC20(_outputToken).balanceOf(_optyPool);
 
         uint256 _aTokenAmount =
