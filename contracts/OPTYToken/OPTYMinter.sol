@@ -25,7 +25,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
     
     /**
-     * @notice Claim all the opty accrued by holder in all markets
+     * @notice Claim all the OPTY accrued by holder in all markets
      * @param holder The address to claim OPTY for
      */
     function claimOpty(address holder) public returns (uint) {
@@ -33,7 +33,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
 
     /**
-     * @notice Claim all the opty accrued by holder in the specified markets
+     * @notice Claim all the OPTY accrued by holder in the specified markets
      * @param holder The address to claim OPTY for
      * @param optyTokens The list of markets to claim OPTY in
      */
@@ -101,7 +101,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         return _index;
     }
     /**
-     * @notice Calculate additional accrued COMP for a contributor since last accrual
+     * @notice Calculate additional accrued OPTY for a contributor since last accrual
      * @param supplier The address to calculate contributor rewards for
      */
     function updateSupplierRewards(address optyToken, address supplier) public {
