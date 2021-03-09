@@ -28,7 +28,8 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolSt
         address _registry,
         address _riskManager,
         address _underlyingToken,
-        address _strategyCodeProvider
+        address _strategyCodeProvider,
+        address _optyMinter
     )
         public
         ERC20Detailed(
@@ -42,11 +43,19 @@ contract AdvancePool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolSt
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
+        setOPTYMinter(_optyMinter);
     }
 
     function setProfile(string memory _profile) public onlyOperator returns (bool _success) {
         require(bytes(_profile).length > 0, "empty!");
         profile = _profile;
+        _success = true;
+    }
+    
+    function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
+        require(_optyMinter != address(0), "!_optyMinter");
+        require(_optyMinter.isContract(), "!_optyMinter.isContract");
+        optyMinterContract = OPTYMinter(_optyMinter);
         _success = true;
     }
 
