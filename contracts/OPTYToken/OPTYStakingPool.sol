@@ -18,7 +18,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     using SafeERC20 for IERC20;
     using Address for address;
 
-    uint timelockPeriod;
+    uint256 timelockPeriod;
     
     /**
      * @dev
@@ -29,7 +29,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         address _registry,
         address _underlyingToken,
         address _optyMinter,
-        uint _timelock
+        uint256 _timelock
     )
         public
         ERC20Detailed(
@@ -44,8 +44,8 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         setTimelockPeriod(_timelock);
     }
     
-    function setTimelockPeriod(uint _timelock) public onlyOperator returns (bool _success) {
-        require(_timelock != uint(0), "timelockPeriod != 0");
+    function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
+        require(_timelock != uint256(0), "timelockPeriod != 0");
         timelockPeriod = _timelock;
         _success = true;
     }
@@ -63,7 +63,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         _success = true;
     }
 
-    function setOptyRatePerBlock(uint _rate) public onlyOperator returns (bool _success) {
+    function setOptyRatePerBlock(uint256 _rate) public onlyOperator returns (bool _success) {
         optyRatePerBlock = _rate;
         _success = true;
     }
@@ -129,12 +129,12 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     }
     
     function updatePool() public ifNotPaused returns (bool _success) {
-        if (lastPoolUpdate == uint(0)) {
+        if (lastPoolUpdate == uint256(0)) {
             lastPoolUpdate = getBlockTimestamp();
         }
         else {
-            uint _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
-            uint optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
+            uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
+            uint256 optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
             lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
@@ -144,6 +144,14 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     function getPricePerFullShare() public view returns (uint256) {
         if (totalSupply() != 0) {
             return balance().div(totalSupply());
+        }
+        return uint256(0);
+    }
+    
+    function balanceInOpty(address _user) public view returns (uint256) {
+        if (balanceOf(_user) != uint256(0)) {
+            uint256 _balanceInOpty = balanceOf(_user).mul(balance()).div(totalSupply());
+            return _balanceInOpty;
         }
         return uint256(0);
     }
