@@ -66,7 +66,7 @@ contract Modifiers {
         require(msg.sender == registryContract.strategist(), "caller is not the strategist");
         _;
     }
-    
+
     /**
      * @dev Modifier to check caller is minter or not
      */

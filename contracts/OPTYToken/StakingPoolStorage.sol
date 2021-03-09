@@ -7,11 +7,7 @@ import "./../StrategyCodeProvider.sol";
 import "./../OPTYToken/OPTYMinter.sol";
 
 contract StakingPoolStorage {
-    struct StakingState {
-        uint32 timestamp;
-        uint224 value;
-    }
-    mapping (address => uint) userLastUpdate;
+    mapping(address => uint256) userLastUpdate;
     uint256 lastPoolUpdate;
     uint256 optyRatePerBlock;
     address public token; //  store the underlying token contract address (for example DAI)

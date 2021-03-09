@@ -19,7 +19,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     using Address for address;
 
     uint256 timelockPeriod;
-    
+
     /**
      * @dev
      *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for token (for example DAI)
@@ -43,13 +43,13 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
     }
-    
+
     function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
         require(_timelock != uint256(0), "timelockPeriod != 0");
         timelockPeriod = _timelock;
         _success = true;
     }
-    
+
     function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
         require(_optyMinter != address(0), "!_optyMinter");
         require(_optyMinter.isContract(), "!_optyMinter.isContract");
@@ -67,7 +67,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         optyRatePerBlock = _rate;
         _success = true;
     }
-    
+
     /**
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
@@ -127,12 +127,11 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
-    
+
     function updatePool() public ifNotPaused returns (bool _success) {
         if (lastPoolUpdate == uint256(0)) {
             lastPoolUpdate = getBlockTimestamp();
-        }
-        else {
+        } else {
             uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
             uint256 optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
             lastPoolUpdate = getBlockTimestamp();
@@ -140,7 +139,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         }
         _success = true;
     }
-    
+
     function getPricePerFullShare() public view returns (uint256) {
         if (totalSupply() != 0) {
             return balance().div(totalSupply());

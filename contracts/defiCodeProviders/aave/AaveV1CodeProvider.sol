@@ -16,7 +16,7 @@ import "../../Gatherer.sol";
 
 contract AaveV1CodeProvider is ICodeProvider, Modifiers {
     using SafeMath for uint256;
-    
+
     Gatherer public gathererContract;
 
     uint256 public maxExposure; // basis points
@@ -203,21 +203,45 @@ contract AaveV1CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (uint256) {
         return _liquidityPoolTokenAmount;
     }
-    
-    function getSomeAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider, uint256 _liquidityPoolTokenBalance, address _borrowToken, uint256 _borrowAmount) public view override returns(uint256) {
+
+    function getSomeAmountInTokenBorrow(
+        address payable _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProvider,
+        uint256 _liquidityPoolTokenBalance,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) public view override returns (uint256) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
         uint256 _aTokenAmount = _maxWithdrawal(_optyPool, _lendingPool, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
         uint256 _outputTokenRepayable = _over(_optyPool, _underlyingToken, _liquidityPoolAddressProvider, _borrowToken, _aTokenAmount);
-        if(_outputTokenRepayable > _borrowAmount) {
-            return _aTokenAmount;   
+        if (_outputTokenRepayable > _borrowAmount) {
+            return _aTokenAmount;
         } else {
-            return _aTokenAmount.add(gathererContract.getOptimalTokenAmount(_borrowToken,_underlyingToken,_borrowAmount.sub(_outputTokenRepayable)));
+            return
+                _aTokenAmount.add(
+                    gathererContract.getOptimalTokenAmount(_borrowToken, _underlyingToken, _borrowAmount.sub(_outputTokenRepayable))
+                );
         }
     }
-    
-    function getAllAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider, address _borrowToken, uint256 _borrowAmount) public view override returns(uint256) {
+
+    function getAllAmountInTokenBorrow(
+        address payable _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProvider,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) public view override returns (uint256) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyPool, _underlyingToken, _liquidityPoolAddressProvider);
-        return getSomeAmountInTokenBorrow(_optyPool, _underlyingToken, _liquidityPoolAddressProvider, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
+        return
+            getSomeAmountInTokenBorrow(
+                _optyPool,
+                _underlyingToken,
+                _liquidityPoolAddressProvider,
+                _liquidityPoolTokenBalance,
+                _borrowToken,
+                _borrowAmount
+            );
     }
 
     function calculateAmountInLPToken(
@@ -346,7 +370,7 @@ contract AaveV1CodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (bytes[] memory) {
         revert("!empty");
     }
-    
+
     function setGatherer(address _gatherer) public onlyOperator {
         gathererContract = Gatherer(_gatherer);
     }

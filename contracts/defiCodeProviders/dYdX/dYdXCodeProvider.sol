@@ -97,7 +97,7 @@ contract dYdXCodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (bytes[] memory _codes) {
         uint256[] memory _amounts = new uint256[](liquidityPoolToUnderlyingTokens[_liquidityPool].length);
         for (uint256 i = 0; i < liquidityPoolToUnderlyingTokens[_liquidityPool].length; i++) {
-            if (liquidityPoolToUnderlyingTokens[_liquidityPool][i] == _underlyingTokens[0]){
+            if (liquidityPoolToUnderlyingTokens[_liquidityPool][i] == _underlyingTokens[0]) {
                 _amounts[i] = IERC20(_underlyingTokens[0]).balanceOf(_optyPool);
             }
         }
@@ -196,12 +196,25 @@ contract dYdXCodeProvider is ICodeProvider, Modifiers {
     ) public view override returns (uint256) {
         revert("!empty");
     }
-    
-    function getSomeAmountInTokenBorrow(address payable, address, address, uint256, address, uint256) public view override returns(uint256) {
+
+    function getSomeAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        uint256,
+        address,
+        uint256
+    ) public view override returns (uint256) {
         revert("!empty");
     }
-    
-    function getAllAmountInTokenBorrow(address payable, address, address, address, uint256) public view override returns(uint256) {
+
+    function getAllAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        address,
+        uint256
+    ) public view override returns (uint256) {
         revert("!empty");
     }
 

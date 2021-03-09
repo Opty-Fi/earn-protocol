@@ -124,17 +124,29 @@ interface ICodeProvider {
         address _liquidityPool,
         uint256 _liquidityPoolTokenAmount
     ) external view returns (uint256);
-    
-    
+
     /**
      * @dev Returns the amount in underlying token for {_liquidityPoolTokenAmount} collateral if {_borrowAmount} in {_borrowToken} is repaid.
      */
-    function getSomeAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider, uint256 _liquidityPoolTokenAmount, address _borrowToken, uint256 _borrowAmount) external view returns(uint256);
-    
+    function getSomeAmountInTokenBorrow(
+        address payable _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProvider,
+        uint256 _liquidityPoolTokenAmount,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) external view returns (uint256);
+
     /**
      * @dev Returns the amount in underlying token for whole collateral of {_optyPool} balance if {_borrowAmount} in {_borrowToken} is repaid.
      */
-    function getAllAmountInTokenBorrow(address payable _optyPool, address _underlyingToken, address _liquidityPoolAddressProvider, address _borrowToken, uint256 _borrowAmount) external view returns(uint256);
+    function getAllAmountInTokenBorrow(
+        address payable _optyPool,
+        address _underlyingToken,
+        address _liquidityPoolAddressProvider,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) external view returns (uint256);
 
     /**
      * @dev Returns the equivalent value of _liquidityPoolToken got given {underlyingTokenAmount}
