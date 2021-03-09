@@ -19,9 +19,11 @@ contract PoolStorage {
         uint256 blockMaxPoolValue;
     }
 
+    address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     bytes32 public strategyHash;
     address public token; //  store the underlying token contract address (for example DAI)
     uint256 public poolValue;
+    uint256 public gasOwedToOperator;
     string public profile;
     StrategyCodeProvider public strategyCodeProviderContract;
     RiskManager public riskManagerContract;

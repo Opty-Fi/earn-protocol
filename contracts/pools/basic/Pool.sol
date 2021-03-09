@@ -11,6 +11,7 @@ import "./../../utils/ChiDeployer.sol";
 import "./../../RiskManager.sol";
 import "./../../StrategyCodeProvider.sol";
 import "./../PoolStorage.sol";
+import "./../../interfaces/uniswap/IUniswap.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
@@ -101,6 +102,12 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
     }
 
     function rebalance() public ifNotDiscontinued ifNotPaused {
+        uint256 _gasInitial;
+        
+        if (msg.sender == registryContract.operator()) {
+            _gasInitial = gasleft();
+        }
+        
         require(totalSupply() > 0, "!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = token;
@@ -112,6 +119,14 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         ) {
             _withdrawAll();
             harvest(strategyHash);
+            if (msg.sender == registryContract.operator() && gasOwedToOperator != uint(0)){
+                address[] memory _path = new address[](2);
+                _path[0] = WETH;
+                _path[1] = token;
+                uint256[] memory  _amounts = IUniswap(address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)).getAmountsOut(gasOwedToOperator,_path);
+                uint256 _gasToTransfer = _amounts[1];
+                IERC20(token).safeTransfer(registryContract.operator(), _gasToTransfer);
+            }
         }
 
         strategyHash = newStrategyHash;
@@ -122,6 +137,13 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
             _emergencyBrake(_balance);
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             _supplyAll();
+        }
+        
+        if (msg.sender == registryContract.operator()) {
+            uint256 _gasFinal = gasleft();
+            uint256 _gasBurned = _gasInitial.sub(_gasFinal);
+            uint256 _gasCost = _gasBurned.mul(tx.gasprice);
+            gasOwedToOperator = gasOwedToOperator.add(_gasCost);
         }
     }
 
