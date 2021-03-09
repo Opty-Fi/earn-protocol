@@ -150,7 +150,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     
     function balanceInOpty(address _user) public view returns (uint256) {
         if (balanceOf(_user) != uint256(0)) {
-            uint256 _balanceInOpty = balanceOf(_user).mul(balance()).div(totalSupply());
+            uint256 _balanceInOpty = balanceOf(_user).mul(balance().add(optyRatePerBlock.mul(getBlockTimestamp().sub(lastPoolUpdate)))).div(totalSupply());
             return _balanceInOpty;
         }
         return uint256(0);
