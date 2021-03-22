@@ -1,7 +1,7 @@
 import { Contract } from "ethers";
 
- //  Interface for storing the Abi's of CodeProvider Contracts
- export interface CodeProviderContract {
+//  Interface for storing the Abi's of CodeProvider Contracts
+export interface CodeProviderContract {
     [id: string]: any;
 }
 
@@ -30,13 +30,13 @@ export interface DefiPoolsAdv {
 }
 
 export interface TokenAddress {
-    [id: string]: string
+    [id: string]: string;
 }
 
 export interface DeployCodeProviderContracts {
-    [id: string] : {
-        canHarvest: boolean
-    }
+    [id: string]: {
+        canHarvest: boolean;
+    };
 }
 
 // Interface to store the gasRecords only

@@ -81,13 +81,13 @@ program
 
         let TEST_AMOUNT: ethers.BigNumber; //  convert the test amount passed in to big number for testing
 
-        let optyCodeProviderContractVariables: Interfaces.OptyCodeProviderContractVariables = {};
+        const optyCodeProviderContractVariables: Interfaces.OptyCodeProviderContractVariables = {};
         let defiPoolsKey: keyof typeof OtherImports.defiPools; //  Keys of defiPools.json corresponding to CodeProvider Contracts
         let provider: ethers.providers.Web3Provider;
 
         describe("OPTokenBasicPool", async () => {
             //  local variables used throughout the testing
-            let strategyScore: number = 1;
+            let strategyScore = 1;
             let ownerWallet: ethers.Wallet;
             let userWallet: ethers.Wallet;
             let optyRegistry: Contract;
@@ -95,7 +95,7 @@ program
             let gatherer: Contract;
             let optyStrategyCodeProvider: Contract;
             let strategyProvider: Contract;
-            let profile = "basic";
+            const profile = "basic";
             let userTokenBalanceWei;
             let userInitialTokenBalance: number;
             let contractTokenBalanceWei;
@@ -115,7 +115,9 @@ program
                 ownerWallet = ethers.Wallet.fromMnemonic(Constants.MNEMONIC).connect(
                     provider
                 );
-                let ownerWalletBalance = await provider.getBalance(ownerWallet.address);
+                const ownerWalletBalance = await provider.getBalance(
+                    ownerWallet.address
+                );
                 assert(
                     utilities
                         .expandToTokenDecimals(
@@ -131,7 +133,9 @@ program
                     Constants.MNEMONIC,
                     `m/44'/60'/0'/0/1`
                 ).connect(provider);
-                let userWalletBalance = await provider.getBalance(ownerWallet.address);
+                const userWalletBalance = await provider.getBalance(
+                    ownerWallet.address
+                );
                 assert(
                     utilities
                         .expandToTokenDecimals(
@@ -166,8 +170,9 @@ program
                 */
                 let tokenType: keyof typeof OtherImports.tokenAddresses;
                 for (tokenType in OtherImports.tokenAddresses) {
-                    let tokens: Interfaces.TokenAddress = OtherImports.tokenAddresses[tokenType];
-                    for (let token in tokens) {
+                    const tokens: Interfaces.TokenAddress =
+                        OtherImports.tokenAddresses[tokenType];
+                    for (const token in tokens) {
                         await RegistryFunctions.approveToken(
                             tokens[token],
                             optyRegistry
@@ -179,10 +184,10 @@ program
                     Iterating through the list of CodeProvider Contracts for deploying them
                 */
                 let count = 1;
-                let optyCodeProviderContracts = Object.keys(
+                const optyCodeProviderContracts = Object.keys(
                     OtherImports.ProtocolCodeProviderNames
                 );
-                for (let optyCodeProviderContractsKey of optyCodeProviderContracts) {
+                for (const optyCodeProviderContractsKey of optyCodeProviderContracts) {
                     let flag: boolean;
                     if (optyCodeProviderContractsKey == command.codeProvider) {
                         flag = true;
@@ -194,7 +199,8 @@ program
 
                     if (flag && count <= optyCodeProviderContracts.length) {
                         if (
-                            codeProviderContract.hasOwnProperty(
+                            Object.prototype.hasOwnProperty.call(
+                                codeProviderContract,
                                 optyCodeProviderContractsKey.toString()
                             )
                         ) {
@@ -238,11 +244,11 @@ program
                                     defiPoolsKey.toString() ==
                                     optyCodeProviderContractsKey.toString()
                                 ) {
-                                    let defiPoolsUnderlyingTokens: Interfaces.DefiPools =
+                                    const defiPoolsUnderlyingTokens: Interfaces.DefiPools =
                                         OtherImports.defiPools[defiPoolsKey];
                                     //  Iteracting through all the underlying tokens available corresponding to this
                                     //  current CodeProvider Contract Key
-                                    for (let defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
+                                    for (const defiPoolsUnderlyingTokensKey in defiPoolsUnderlyingTokens) {
                                         //  Approving tokens, lpTokens
                                         await RegistryFunctions.approveTokenLpToken(
                                             defiPoolsUnderlyingTokens[
@@ -332,7 +338,9 @@ program
 
             after(async () => {
                 //  Checking Owner's Ether balance left after all the transactions
-                let ownerWalletBalance = await provider.getBalance(ownerWallet.address);
+                const ownerWalletBalance = await provider.getBalance(
+                    ownerWallet.address
+                );
                 assert(
                     ownerWalletBalance.lt(
                         utilities.expandToTokenDecimals(
@@ -348,7 +356,7 @@ program
 
             //  Iterating through all the strategies by picking underlyingTokens as key
             let strategiesTokenKey: keyof typeof OtherImports.allStrategies;
-            let allStrategiesTokenKeys = Object.keys(
+            const allStrategiesTokenKeys = Object.keys(
                 OtherImports.allStrategies
             ).map((item) => item.toUpperCase());
             for (strategiesTokenKey in OtherImports.allStrategies) {
@@ -385,15 +393,15 @@ program
                         let tokens: string[];
                         let tokenContractInstance: Contract;
                         let optyTokenBasicPool: Contract;
-                        let tokensHash: string = "";
+                        let tokensHash = "";
 
                         before(async () => {
                             //  Getting the underlying token's contract instance
                             underlyingToken =
                                 OtherImports.tokenAddresses.underlyingTokens[
-                                    <keyof typeof OtherImports.tokenAddresses.underlyingTokens>(
-                                        strategiesTokenKey.toLowerCase()
-                                    )
+                                    <
+                                        keyof typeof OtherImports.tokenAddresses.underlyingTokens
+                                    >strategiesTokenKey.toLowerCase()
                                 ];
                             tokens = [underlyingToken];
 
@@ -457,8 +465,8 @@ program
                         );
 
                         //  Recording GasUsed for all strategies to push data into DB and file at last
-                        let allStrategiesGasUsedRecords: Types.allStrategiesGasUsedRecordsType[] = [];
-                        let allStrategyNames = OtherImports.allStrategies[
+                        const allStrategiesGasUsedRecords: Types.allStrategiesGasUsedRecordsType[] = [];
+                        const allStrategyNames = OtherImports.allStrategies[
                             strategiesTokenKey
                         ].basic.map((element) => element.strategyName.toLowerCase());
 
@@ -468,11 +476,11 @@ program
                             */
                         OtherImports.allStrategies[strategiesTokenKey].basic.forEach(
                             async (strategies, index) => {
-                                let setStrategyTxGasUsed: number = 0;
-                                let scoreStrategyTxGasUsed: number = 0;
-                                let setAndScoreStrategyTotalGasUsed: number = 0;
-                                let userDepositRebalanceTxGasUsed: number = 0;
-                                let userWithdrawRebalanceTxGasUsed: number = 0;
+                                let setStrategyTxGasUsed = 0;
+                                const scoreStrategyTxGasUsed = 0;
+                                const setAndScoreStrategyTotalGasUsed = 0;
+                                let userDepositRebalanceTxGasUsed = 0;
+                                let userWithdrawRebalanceTxGasUsed = 0;
 
                                 //  Run for either specific strategy passed from command line or run it for all the strategies
                                 //  If any wrong strategy is passed from command line, then error will be thrown and testing will be stopped.
@@ -536,7 +544,7 @@ program
                                         async () => {
                                             //  Setting the strategy and making it the best strategy so that each strategy can be tested
                                             //  before testing depositRebalance() and withdrawRebalance()
-                                            let strategySteps: (
+                                            const strategySteps: (
                                                 | string
                                                 | boolean
                                             )[][] = [];
@@ -546,7 +554,10 @@ program
                                                 index < strategies.strategy.length;
                                                 index++
                                             ) {
-                                                let tempArr: (string | boolean)[] = [];
+                                                const tempArr: (
+                                                    | string
+                                                    | boolean
+                                                )[] = [];
                                                 //  If condition For 2 step strategies
                                                 if (
                                                     previousStepOutputToken.length > 0
@@ -573,7 +584,7 @@ program
                                             }
 
                                             //  Iterating through each strategy step and generate the strategy Hash
-                                            let strategyStepHash: string[] = [];
+                                            const strategyStepHash: string[] = [];
                                             strategySteps.forEach(
                                                 (tempStrategyStep, index) => {
                                                     strategyStepHash[
@@ -588,13 +599,13 @@ program
                                                     );
                                                 }
                                             );
-                                            let tokenToStrategyStepsHash = utilities.getSoliditySHA3Hash(
+                                            const tokenToStrategyStepsHash = utilities.getSoliditySHA3Hash(
                                                 ["bytes32", "bytes32[]"],
                                                 [tokensHash, strategyStepHash]
                                             );
 
                                             //  Getting the strategy hash corresponding to underlying token
-                                            let tokenToStrategyHashes = await optyRegistry.getTokenToStrategies(
+                                            const tokenToStrategyHashes = await optyRegistry.getTokenToStrategies(
                                                 tokensHash
                                             );
                                             //  If strategyHash is already set then check revert error message from the Contract
@@ -622,7 +633,7 @@ program
                                                 const setStrategyReceipt = await setStrategyTx.wait();
                                                 setStrategyTxGasUsed = setStrategyReceipt.gasUsed.toNumber();
 
-                                                let strategyHash =
+                                                const strategyHash =
                                                     setStrategyReceipt.events[0]
                                                         .args[2];
                                                 expect(
@@ -636,13 +647,13 @@ program
                                                 );
 
                                                 //  Fetching best strategy
-                                                let bestStrategyHash = await riskManager.getBestStrategy(
+                                                const bestStrategyHash = await riskManager.getBestStrategy(
                                                     profile,
                                                     [underlyingToken]
                                                 );
 
                                                 // Funding the wallet with the underlying tokens before making the deposit transaction
-                                                let allFundWalletReturnParams = await utilities.checkAndFundWallet(
+                                                const allFundWalletReturnParams = await utilities.checkAndFundWallet(
                                                     underlyingToken,
                                                     underlyingTokenDecimals,
                                                     tokenContractInstance,
@@ -676,7 +687,7 @@ program
                                             strategies.strategyName,
                                         async () => {
                                             //  Connect the BasicPool Contract with the user's Wallet for making userDeposit()
-                                            let initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
+                                            const initialUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
                                                 userWallet.address
                                             );
 
@@ -704,11 +715,10 @@ program
                                                 //  This is the edge when running all the test cases together and it sometimes fails
                                                 //  (because of timing issues) for the first but works it same strategy is used again.
                                                 //  Also, it works if we are only testing this strategy alone.
-                                                let EdgeCaseStrategiesKeys: keyof typeof OtherImports.EdgeCaseStrategies;
-                                                EdgeCaseStrategiesKeys = <
+                                                const EdgeCaseStrategiesKeys: keyof typeof OtherImports.EdgeCaseStrategies = <
                                                     keyof typeof OtherImports.EdgeCaseStrategies
                                                 >strategies.strategyName.toString();
-                                                let sleepTimeInSec = OtherImports
+                                                const sleepTimeInSec = OtherImports
                                                     .EdgeCaseStrategies[
                                                     EdgeCaseStrategiesKeys
                                                 ]
@@ -720,7 +730,7 @@ program
                                                     //  Note: 1. roundingDelta = 0,1,2 - It works for all these 3 values for all other strategies - Deepanshu
                                                     //  2. roundingDelta = 0,2,3... - It work for "USDT-deposit-CURVE-ypaxCrv". "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD", "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD" but not for roundingDelta = 1
                                                     // let roundingDelta = utilities.expandToTokenDecimals(2, underlyingTokenDecimals); // - also works
-                                                    let roundingDelta = 0;
+                                                    const roundingDelta = 0;
 
                                                     await utilities.sleep(
                                                         sleepTimeInSec * 1000
@@ -743,10 +753,10 @@ program
 
                                 //  Function to deposit the underlying tokens into Opty<XXX>Pool and test the userDepositRebalance()
                                 async function testUserDepositRebalance() {
-                                    let userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                    const userInitialTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         userWallet.address
                                     );
-                                    let tokenContractInstanceAsSignerUser = tokenContractInstance.connect(
+                                    const tokenContractInstanceAsSignerUser = tokenContractInstance.connect(
                                         userWallet
                                     );
                                     await tokenContractInstanceAsSignerUser.approve(
@@ -763,23 +773,23 @@ program
                                     ).to.equal(TEST_AMOUNT);
 
                                     //  Getting initial balance of OptyBasicTokens for user
-                                    let userOptyTokenBalanceBefore = await optyTokenBasicPool.balanceOf(
+                                    const userOptyTokenBalanceBefore = await optyTokenBasicPool.balanceOf(
                                         userWallet.address
                                     );
 
                                     //  Getting the totalSupply and poolValue from deposit txn.
-                                    let totalSupply = await optyTokenBasicPool.totalSupply();
-                                    let poolValue = await optyTokenBasicPool.poolValue();
+                                    const totalSupply = await optyTokenBasicPool.totalSupply();
+                                    const poolValue = await optyTokenBasicPool.poolValue();
 
-                                    let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
+                                    const optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
                                         userWallet
                                     );
 
-                                    let userDepositRebalanceTx = await optyTokenBasicPoolAsSignerUser.userDepositRebalance(
+                                    const userDepositRebalanceTx = await optyTokenBasicPoolAsSignerUser.userDepositRebalance(
                                         TEST_AMOUNT,
                                         Constants.GAS_OVERRIDE_OPTIONS
                                     );
-                                    let userDepositTxReceipt = await userDepositRebalanceTx.wait();
+                                    const userDepositTxReceipt = await userDepositRebalanceTx.wait();
                                     userDepositRebalanceTxGasUsed = userDepositTxReceipt.gasUsed.toNumber();
 
                                     assert.isOk(
@@ -835,7 +845,7 @@ program
                                             poolValue
                                         );
                                     }
-                                    let userExpectedOptyTokenBalance = userOptyTokenBalanceBefore.add(
+                                    const userExpectedOptyTokenBalance = userOptyTokenBalanceBefore.add(
                                         shares
                                     );
 
@@ -882,15 +892,15 @@ program
                                     withdrawAmount: any,
                                     roundingDelta: any
                                 ) {
-                                    let initialContractTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                    const initialContractTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         optyTokenBasicPool.address
                                     );
 
-                                    let totalSupply = await optyTokenBasicPool.totalSupply();
+                                    const totalSupply = await optyTokenBasicPool.totalSupply();
 
-                                    let poolValue = await optyTokenBasicPool.poolValue();
+                                    const poolValue = await optyTokenBasicPool.poolValue();
 
-                                    let optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
+                                    const optyTokenBasicPoolAsSignerUser = optyTokenBasicPool.connect(
                                         userWallet
                                     );
 
@@ -899,7 +909,7 @@ program
                                         Constants.GAS_OVERRIDE_OPTIONS
                                     );
 
-                                    let receipt = await userWithdrawTxOutput.wait();
+                                    const receipt = await userWithdrawTxOutput.wait();
                                     userWithdrawRebalanceTxGasUsed = receipt.gasUsed.toNumber();
 
                                     assert.isOk(
@@ -907,15 +917,15 @@ program
                                         "UserWithdraw() call failed"
                                     );
 
-                                    let afterUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
+                                    const afterUserOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
                                         userWallet.address
                                     );
 
-                                    let afterUserTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                    const afterUserTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         userWallet.address
                                     );
 
-                                    let noOfTokensReceivedFromFormula = poolValue
+                                    const noOfTokensReceivedFromFormula = poolValue
                                         .mul(withdrawAmount.sub(1))
                                         .div(totalSupply);
 
@@ -952,7 +962,7 @@ program
                                         ).to.be.true;
                                     }
 
-                                    let afterContractTokenBalanceWei = await tokenContractInstance.balanceOf(
+                                    const afterContractTokenBalanceWei = await tokenContractInstance.balanceOf(
                                         optyTokenBasicPool.address
                                     );
 
@@ -980,7 +990,7 @@ program
                                         );
                                     }
 
-                                    let strategyGasUsedJson = {
+                                    const strategyGasUsedJson = {
                                         testScriptRunDateAndTime: testScriptRunTimeDateAndTime,
                                         strategyRunDateAndTime: Date.now(),
                                         strategyName: strategies.strategyName,
@@ -1000,7 +1010,7 @@ program
 
                         after(async () => {
                             //  Checking User's Ether balance left after all the transactions
-                            let ownerWalletBalance = await provider.getBalance(
+                            const ownerWalletBalance = await provider.getBalance(
                                 ownerWallet.address
                             );
                             assert(
@@ -1015,7 +1025,7 @@ program
                                 )} is not less than the balance before starting test suite`
                             );
 
-                            let userWalletBalance = await provider.getBalance(
+                            const userWalletBalance = await provider.getBalance(
                                 userWallet.address
                             );
                             assert(
@@ -1030,7 +1040,7 @@ program
                                 )} is not less than the balance before starting test suite`
                             );
 
-                            let tokenStrategyGasUsedRecord: Interfaces.GasUsedRecords = {};
+                            const tokenStrategyGasUsedRecord: Interfaces.GasUsedRecords = {};
                             tokenStrategyGasUsedRecord[strategiesTokenKey] = {
                                 GasRecords: allStrategiesGasUsedRecords,
                             };

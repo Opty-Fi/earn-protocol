@@ -20,7 +20,7 @@ export async function deployAllGovernanceContracts(
     GAS_OVERRIDE_OPTIONS: any
 ) {
     //  Deploy RegistryProxy
-    let optyRegistryProxy = await deployContract(
+    const optyRegistryProxy = await deployContract(
         ownerWallet,
         RegistryProxyContractJSON,
         [],
@@ -44,7 +44,7 @@ export async function deployAllGovernanceContracts(
     await optyRegistry.become(optyRegistryProxy.address);
 
     //  Checking status if the registry implementation is set or not
-    let registryImplementationAddress = await optyRegistryProxy.registryImplementation();
+    const registryImplementationAddress = await optyRegistryProxy.registryImplementation();
     assert.equal(
         registryImplementationAddress,
         optyRegistry.address,
@@ -63,7 +63,7 @@ export async function deployAllGovernanceContracts(
     );
 
     //  Deploy StrategyProvider
-    let strategyProvider = await deployContract(
+    const strategyProvider = await deployContract(
         ownerWallet,
         StrategyProviderContractJSON,
         [optyRegistry.address],
@@ -72,7 +72,7 @@ export async function deployAllGovernanceContracts(
     assert.isDefined(strategyProvider, "StrategyProvider contract not deployed");
 
     //  Deploy RiskManager
-    let riskManager = await deployContract(
+    const riskManager = await deployContract(
         ownerWallet,
         RiskManagerContractJSON,
         [optyRegistry.address, strategyProvider.address],
@@ -81,7 +81,7 @@ export async function deployAllGovernanceContracts(
     assert.isDefined(riskManager, "RiskManager contract not deployed");
 
     //  Deploy Gatherer
-    let gatherer = await deployContract(
+    const gatherer = await deployContract(
         ownerWallet,
         GathererContractJSON,
         [optyRegistry.address],
@@ -90,7 +90,7 @@ export async function deployAllGovernanceContracts(
     assert.isDefined(gatherer, "Gatherer contract not deployed");
 
     //  Deploy StrategyCodeProvider
-    let optyStrategyCodeProvider = await deployContract(
+    const optyStrategyCodeProvider = await deployContract(
         ownerWallet,
         StrategyCodeProviderContractJSON,
         [optyRegistry.address, gatherer.address],
