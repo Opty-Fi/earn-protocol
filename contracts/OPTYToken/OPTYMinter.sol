@@ -35,7 +35,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param holder The address to claim OPTY for
      * @param optyTokens The list of markets to claim OPTY in
      */
-     function claimOpty(address holder, address[] memory optyTokens) public returns (uint256) {
+    function claimOpty(address holder, address[] memory optyTokens) public returns (uint256) {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         claimOpty(holders, optyTokens);

@@ -2,11 +2,9 @@
 
 pragma solidity ^0.6.10;
 
-
 interface IFreeFromUpTo {
     function freeFromUpTo(address from, uint256 value) external returns (uint256 freed);
 }
-
 
 contract Deployer {
     IFreeFromUpTo public constant gst = IFreeFromUpTo(0x0000000000b3F879cb30FE243b4Dfee438691c04);
@@ -26,25 +24,25 @@ contract Deployer {
         chi.freeFromUpTo(msg.sender, (gasSpent + 14154) / 41130);
     }
 
-    function gstDeploy(bytes memory data) public discountGST returns(address contractAddress) {
+    function gstDeploy(bytes memory data) public discountGST returns (address contractAddress) {
         assembly {
             contractAddress := create(0, add(data, 32), mload(data))
         }
     }
 
-    function chiDeploy(bytes memory data) public discountCHI returns(address contractAddress) {
+    function chiDeploy(bytes memory data) public discountCHI returns (address contractAddress) {
         assembly {
             contractAddress := create(0, add(data, 32), mload(data))
         }
     }
 
-    function gstDeploy2(uint256 salt, bytes memory data) public discountGST returns(address contractAddress) {
+    function gstDeploy2(uint256 salt, bytes memory data) public discountGST returns (address contractAddress) {
         assembly {
             contractAddress := create2(0, add(data, 32), mload(data), salt)
         }
     }
 
-    function chiDeploy2(uint256 salt, bytes memory data) public discountCHI returns(address contractAddress) {
+    function chiDeploy2(uint256 salt, bytes memory data) public discountCHI returns (address contractAddress) {
         assembly {
             contractAddress := create2(0, add(data, 32), mload(data), salt)
         }
