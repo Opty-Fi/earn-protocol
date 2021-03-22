@@ -38,10 +38,10 @@ export async function deployAllGovernanceContracts(
     assert.isDefined(optyRegistry, "OptyRegistry contract not deployed");
 
     //  Setting Pending Implementation in RegistryProxy with Registry's address
-    await optyRegistryProxy._setPendingImplementation(optyRegistry.address);
+    await optyRegistryProxy.setPendingImplementation(optyRegistry.address);
 
     //  Setting RegistryProxy to act as Registry
-    await optyRegistry._become(optyRegistryProxy.address);
+    await optyRegistry.become(optyRegistryProxy.address);
 
     //  Checking status if the registry implementation is set or not
     let registryImplementationAddress = await optyRegistryProxy.registryImplementation();

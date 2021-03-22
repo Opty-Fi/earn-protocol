@@ -18,7 +18,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     using SafeERC20 for IERC20;
     using Address for address;
 
-    uint256 timelockPeriod;
+    uint256 _timelockPeriod;
 
     /**
      * @dev
@@ -45,8 +45,8 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     }
 
     function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
-        require(_timelock != uint256(0), "timelockPeriod != 0");
-        timelockPeriod = _timelock;
+        require(_timelock != uint256(0), "_timelockPeriod != 0");
+        _timelockPeriod = _timelock;
         _success = true;
     }
 
@@ -64,7 +64,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     }
 
     function setOptyRatePerBlock(uint256 _rate) public onlyOperator returns (bool _success) {
-        optyRatePerBlock = _rate;
+        _optyRatePerBlock = _rate;
         _success = true;
     }
 
@@ -99,7 +99,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         }
         _mint(msg.sender, shares);
         updatePool();
-        userLastUpdate[msg.sender] = getBlockTimestamp();
+        _userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
 
@@ -116,7 +116,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
      *      in  weth uints i.e. 1e18
      */
     function userUnstake(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
-        require(getBlockTimestamp().sub(userLastUpdate[msg.sender]) > timelockPeriod, "you can't unstake until timelockPeriod has passed");
+        require(getBlockTimestamp().sub(_userLastUpdate[msg.sender]) > _timelockPeriod, "you can't unstake until _timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
@@ -124,17 +124,17 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         _totalSupply = _totalSupply.sub(_redeemAmount);
         emit Transfer(msg.sender, address(0), _redeemAmount);
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-        userLastUpdate[msg.sender] = getBlockTimestamp();
+        _userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
 
     function updatePool() public ifNotPaused returns (bool _success) {
-        if (lastPoolUpdate == uint256(0)) {
-            lastPoolUpdate = getBlockTimestamp();
+        if (_lastPoolUpdate == uint256(0)) {
+            _lastPoolUpdate = getBlockTimestamp();
         } else {
-            uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
-            uint256 optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
-            lastPoolUpdate = getBlockTimestamp();
+            uint256 _deltaBlocks = getBlockTimestamp().sub(_lastPoolUpdate);
+            uint256 optyAccrued = _deltaBlocks.mul(_optyRatePerBlock);
+            _lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
         _success = true;
@@ -150,7 +150,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
     function balanceInOpty(address _user) public view returns (uint256) {
         if (balanceOf(_user) != uint256(0)) {
             uint256 _balanceInOpty =
-                balanceOf(_user).mul(balance().add(optyRatePerBlock.mul(getBlockTimestamp().sub(lastPoolUpdate)))).div(totalSupply());
+                balanceOf(_user).mul(balance().add(_optyRatePerBlock.mul(getBlockTimestamp().sub(_lastPoolUpdate)))).div(totalSupply());
             return _balanceInOpty;
         }
         return uint256(0);

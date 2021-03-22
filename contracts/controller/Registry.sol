@@ -323,9 +323,9 @@ contract Registry is ModifiersController {
         return tokensHashToTokens[_tokensHash].tokens;
     }
 
-    function _become(RegistryProxy _registryProxy) public {
+    function become(RegistryProxy _registryProxy) public {
         require(msg.sender == _registryProxy.governance(), "!governance");
-        require(_registryProxy._acceptImplementation() == 0, "!unauthorized");
+        require(_registryProxy.acceptImplementation() == 0, "!unauthorized");
     }
 
     /**
