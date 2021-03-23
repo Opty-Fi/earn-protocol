@@ -1,0 +1,5 @@
+node_modules/
+additional-tests.sol
+contracts/libraries/*.sol
+contracts/utils/*.sol
+contracts/OPTYToken/ExponentialNoError.sol
