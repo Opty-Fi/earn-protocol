@@ -54,7 +54,7 @@
         "test": "yarn compile && yarn test:dev",
         "test:dev": "mocha",
         "prepublishOnly": "yarn test",
-        "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
+        "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol ",
         "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
     },
     "license": "GPL-3.0-or-later",
@@ -68,6 +68,6 @@
     },
     "lint-staged": {
         "./test/*.ts": "yarn lint:fix",
-        "./contracts/**/*.sol": "yarn solhint && yarn prettier:solidity"
+        "./contracts/!(library|utils)/!(ExponentialNoError).sol": "yarn solhint"
     }
 }

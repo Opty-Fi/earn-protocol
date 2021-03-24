@@ -26,7 +26,7 @@ contract Modifiers {
     /**
      * @dev Function to check if the address is zero address or not
      */
-    function _isZeroAddress(address _address) internal pure returns (bool) {
+    function isZeroAddress(address _address) internal pure returns (bool) {
         require(_address != address(0), "Modifiers: caller is zero address");
         return true;
     }
