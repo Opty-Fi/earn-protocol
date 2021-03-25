@@ -4,7 +4,7 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "./../libraries/SafeERC20.sol";
-import "./../utils/ERC20Detailed.sol";
+import "./../utils/ERC20.sol";
 import "./../utils/Ownable.sol";
 import "./../utils/ReentrancyGuard.sol";
 import "./../RiskManager.sol";
@@ -14,7 +14,7 @@ import "./StakingPoolStorage.sol";
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, StakingPoolStorage {
+contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -32,13 +32,12 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         uint256 _timelock
     )
         public
-        ERC20Detailed(
+        ERC20(
             string(abi.encodePacked("op ", "30 Days", " Staking", " Pool")),
-            string(abi.encodePacked("op", "30Days", "StkPool")),
-            ERC20Detailed(_underlyingToken).decimals()
-        )
-        Modifiers(_registry)
+            string(abi.encodePacked("op", "30Days", "StkPool"))
+            )
     {
+        __Modifiers_init_unchained(_registry);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
@@ -120,9 +119,7 @@ contract OPTYStakingPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, St
         require(_redeemAmount > 0, "!_redeemAmount>0");
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
-        _balances[msg.sender] = _balances[msg.sender].sub(_redeemAmount, "!_redeemAmount>balance");
-        _totalSupply = _totalSupply.sub(_redeemAmount);
-        emit Transfer(msg.sender, address(0), _redeemAmount);
+        _burn(msg.sender, _redeemAmount);
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
         userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;

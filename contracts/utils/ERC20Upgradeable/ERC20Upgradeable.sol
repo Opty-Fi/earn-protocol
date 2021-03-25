@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.10;
+pragma solidity >=0.6.0 <0.8.0;
 
-import "../../interfaces/ERC20Upgradeable/IERC20Upgradeable.sol";
-import "../../interfaces/ERC20Upgradeable/IERC20MetadataUpgradeable.sol";
 import "./ContextUpgradeable.sol";
-import "./Initializable.sol";
+import "../../interfaces/ERC20Upgradeable/IERC20Upgradeable.sol";
+import "../../libraries/ERC20Upgradeable/SafeMathUpgradeable.sol";
+import "./VersionedInitializable.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -31,39 +31,43 @@ import "./Initializable.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable {
-    mapping (address => uint256) private _balances;
+contract ERC20Upgradeable is VersionedInitializable, ContextUpgradeable, IERC20Upgradeable {
+    using SafeMathUpgradeable for uint256;
+
+    mapping (address => uint256) _balances;
 
     mapping (address => mapping (address => uint256)) private _allowances;
 
-    uint256 private _totalSupply;
+    uint256 _totalSupply;
 
     string private _name;
     string private _symbol;
+    uint8 private _decimals;
 
     /**
-     * @dev Sets the values for {name} and {symbol}.
+     * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
+     * a default value of 18.
      *
-     * The defaut value of {decimals} is 18. To select a different value for
-     * {decimals} you should overload it.
+     * To select a different value for {decimals}, use {_setupDecimals}.
      *
-     * All two of these values are immutable: they can only be set once during
+     * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    function __ERC20_init(string memory name_, string memory symbol_) internal initializer {
+    function __ERC20_init(string memory name_, string memory symbol_, uint8 decimals_) internal initializer {
         __Context_init_unchained();
-        __ERC20_init_unchained(name_, symbol_);
+        __ERC20_init_unchained(name_, symbol_, decimals_);
     }
 
-    function __ERC20_init_unchained(string memory name_, string memory symbol_) internal initializer {
+    function __ERC20_init_unchained(string memory name_, string memory symbol_, uint8 decimals_) internal initializer {
         _name = name_;
         _symbol = symbol_;
+        _decimals = decimals_;
     }
 
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view virtual override returns (string memory) {
+    function name() public view virtual returns (string memory) {
         return _name;
     }
 
@@ -71,7 +75,7 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view virtual override returns (string memory) {
+    function symbol() public view virtual returns (string memory) {
         return _symbol;
     }
 
@@ -81,15 +85,15 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
      * be displayed to a user as `5,05` (`505 / 10 ** 2`).
      *
      * Tokens usually opt for a value of 18, imitating the relationship between
-     * Ether and Wei. This is the value {ERC20} uses, unless this function is
-     * overloaded;
+     * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
+     * called.
      *
      * NOTE: This information is only used for _display_ purposes: it in
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view virtual override returns (uint8) {
-        return 18;
+    function decimals() public view virtual returns (uint8) {
+        return _decimals;
     }
 
     /**
@@ -153,11 +157,7 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
      */
     function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
         _transfer(sender, recipient, amount);
-
-        uint256 currentAllowance = _allowances[sender][_msgSender()];
-        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
-        _approve(sender, _msgSender(), currentAllowance - amount);
-
+        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
     }
 
@@ -174,7 +174,7 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
         return true;
     }
 
@@ -193,10 +193,7 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
-        uint256 currentAllowance = _allowances[_msgSender()][spender];
-        require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
-        _approve(_msgSender(), spender, currentAllowance - subtractedValue);
-
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
         return true;
     }
 
@@ -220,11 +217,8 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
 
         _beforeTokenTransfer(sender, recipient, amount);
 
-        uint256 senderBalance = _balances[sender];
-        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
-        _balances[sender] = senderBalance - amount;
-        _balances[recipient] += amount;
-
+        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
 
@@ -242,8 +236,8 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
 
         _beforeTokenTransfer(address(0), account, amount);
 
-        _totalSupply += amount;
-        _balances[account] += amount;
+        _totalSupply = _totalSupply.add(amount);
+        _balances[account] = _balances[account].add(amount);
         emit Transfer(address(0), account, amount);
     }
 
@@ -263,11 +257,8 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
 
         _beforeTokenTransfer(account, address(0), amount);
 
-        uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
-        _balances[account] = accountBalance - amount;
-        _totalSupply -= amount;
-
+        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }
 
@@ -293,6 +284,17 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
     }
 
     /**
+     * @dev Sets {decimals} to a value other than the default one of 18.
+     *
+     * WARNING: This function should only be called from the constructor. Most
+     * applications that interact with token contracts will not expect
+     * {decimals} to ever change, and may work incorrectly if it does.
+     */
+    function _setupDecimals(uint8 decimals_) internal virtual {
+        _decimals = decimals_;
+    }
+
+    /**
      * @dev Hook that is called before any transfer of tokens. This includes
      * minting and burning.
      *
@@ -307,5 +309,5 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20Upgradeabl
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
-    uint256[45] private __gap;
+    uint256[44] private __gap;
 }

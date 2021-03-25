@@ -3,8 +3,7 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./../../libraries/SafeERC20.sol";
-import "./../../utils/ERC20Detailed.sol";
+import "./../../utils/ERC20Burnable.sol";
 import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
 import "./../../utils/ChiDeployer.sol";
@@ -12,13 +11,20 @@ import "./../../RiskManager.sol";
 import "./../../StrategyCodeProvider.sol";
 import "./../PoolStorage.sol";
 import "./../../interfaces/uniswap/IUniswap.sol";
+import "./../../interfaces/opty/IVault.sol";
+import "./../../utils/ERC20Upgradeable/VersionedInitializable.sol";
+import "./../../interfaces/ERC20Upgradeable/IERC20MetadataUpgradeable.sol";
+import "./../../utils/Modifiers.sol";
+import "./../../libraries/SafeERC20.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStorage, Deployer {
+contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, PoolStorage, Deployer {
     using SafeERC20 for IERC20;
     using Address for address;
+    
+    uint256 public constant OPTOKEN_REVISION = 0x1;
     
     /**
      * @dev
@@ -26,59 +32,74 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
      *  - Storing the underlying token contract address (for example DAI)
      */
     constructor(
+        address _underlyingToken
+    )
+        public
+        ERC20(
+            string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")),
+            string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool"))
+        )
+    {
+        // setProfile("basic");
+        // setRiskManager(_riskManager);
+        // setToken(_underlyingToken); //  underlying token contract address (for example DAI)
+        // setStrategyCodeProvider(_strategyCodeProvider);
+        // setOPTYMinter(_optyMinter);
+    }
+    
+    function initialize(
         address _registry,
         address _riskManager,
         address _underlyingToken,
         address _strategyCodeProvider,
         address _optyMinter
-    )
-        public
-        ERC20Detailed(
-            string(abi.encodePacked("op ", ERC20Detailed(_underlyingToken).name(), " basic", " pool")),
-            string(abi.encodePacked("op", ERC20Detailed(_underlyingToken).symbol(), "BscPool")),
-            ERC20Detailed(_underlyingToken).decimals()
-        )
-        Modifiers(_registry)
-    {
+    ) external virtual initializer {
+        __Modifiers_init_unchained(_registry);
+        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")));
+        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool")));
         setProfile("basic");
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
         setOPTYMinter(_optyMinter);
     }
+    
+    function getRevision() internal pure virtual override(Modifiers, VersionedInitializable) returns (uint256) {
+        return OPTOKEN_REVISION;
+    }
 
-    function setProfile(string memory _profile) public onlyOperator returns (bool _success) {
+    function setProfile(string memory _profile) public override onlyOperator returns (bool _success) {
         require(bytes(_profile).length > 0, "empty!");
         profile = _profile;
         _success = true;
     }
 
-    function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
+    function setOPTYMinter(address _optyMinter) public override onlyOperator returns (bool _success) {
         require(_optyMinter != address(0), "!_optyMinter");
         require(_optyMinter.isContract(), "!_optyMinter.isContract");
         optyMinterContract = OPTYMinter(_optyMinter);
         _success = true;
     }
 
-    function setRiskManager(address _riskManager) public onlyOperator returns (bool _success) {
+    function setRiskManager(address _riskManager) public override onlyOperator returns (bool _success) {
         require(_riskManager.isContract(), "!_riskManager.isContract");
         riskManagerContract = RiskManager(_riskManager);
         _success = true;
     }
 
-    function setToken(address _underlyingToken) public onlyOperator returns (bool _success) {
+    function setToken(address _underlyingToken) public override onlyOperator returns (bool _success) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         token = _underlyingToken;
         _success = true;
     }
 
-    function setStrategyCodeProvider(address _strategyCodeProvider) public onlyOperator returns (bool _success) {
+    function setStrategyCodeProvider(address _strategyCodeProvider) public override onlyOperator returns (bool _success) {
         require(_strategyCodeProvider.isContract(), "!__strategyCodeProvider.isContract");
         strategyCodeProviderContract = StrategyCodeProvider(_strategyCodeProvider);
         _success = true;
     }
 
-    function setMaxPoolValueJump(uint256 _maxPoolValueJump) public onlyGovernance returns (bool _success) {
+    function setMaxPoolValueJump(uint256 _maxPoolValueJump) public override onlyGovernance returns (bool _success) {
         maxPoolValueJump = _maxPoolValueJump;
         _success = true;
     }
@@ -101,7 +122,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         poolValue = _calPoolValueInToken();
     }
 
-    function rebalance() public ifNotDiscontinued ifNotPaused {
+    function rebalance() public override ifNotDiscontinued ifNotPaused {
         uint256 _gasInitial;
         
         if (msg.sender == registryContract.operator()) {
@@ -165,7 +186,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
     /**
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
-    function balance() public view returns (uint256) {
+    function balance() public override view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
@@ -183,7 +204,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         }
     }
 
-    function harvest(bytes32 _hash) public {
+    function harvest(bytes32 _hash) public override {
         require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!invalidHash");
         uint8 _claimRewardSteps = strategyCodeProviderContract.getClaimRewardStepsCount(_hash);
         for (uint8 _i = 0; _i < _claimRewardSteps; _i++) {
@@ -207,7 +228,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         }
     }
 
-    function userDepositAll() external {
+    function userDepositAll() external override {
         userDeposit(IERC20(token).balanceOf(msg.sender));
     }
 
@@ -219,7 +240,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userDeposit(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDeposit(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
         last++;
@@ -230,7 +251,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         _success = true;
     }
 
-    function userDepositAndStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDeposit(_amount);
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
@@ -262,7 +283,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         _success = true;
     }
     
-    function userDepositAllRebalance() external {
+    function userDepositAllRebalance() external override {
         userDepositRebalance(IERC20(token).balanceOf(msg.sender));
     }
     
@@ -274,7 +295,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userDepositRebalance(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositRebalance(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -311,13 +332,13 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         _success = true;
     }
 
-    function userDepositRebalanceAndStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositRebalanceAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDepositRebalance(_amount);
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
     
-    function userWithdrawAllRebalance() external {
+    function userWithdrawAllRebalance() external override {
         userWithdrawRebalance(balanceOf(msg.sender));
     }
     
@@ -329,7 +350,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
      *  -   _redeemAmount: amount to withdraw from the  liquidity pool. Its uints are:
      *      in  weth uints i.e. 1e18
      */
-    function userWithdrawRebalance(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool) {
+    function userWithdrawRebalance(uint256 _redeemAmount) public override ifNotPaused nonReentrant returns (bool) {
         require(_redeemAmount > 0, "!_redeemAmount>0");
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "!!balance");
@@ -355,23 +376,23 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         return true;
     }
     
-    function userDepositWithCHI(uint256 _amount) public discountCHI {
+    function userDepositWithCHI(uint256 _amount) public override discountCHI {
         userDeposit(_amount);
     }
     
-    function userDepositAndStakeWithCHI(uint256 _amount) public discountCHI {
+    function userDepositAndStakeWithCHI(uint256 _amount) public override discountCHI {
         userDepositAndStake(_amount);
     }
     
-    function userDepositRebalanceWithCHI(uint256 _amount) public discountCHI {
+    function userDepositRebalanceWithCHI(uint256 _amount) public override discountCHI {
         userDepositRebalance(_amount);
     }
     
-    function userDepositRebalanceAndStakeWithCHI(uint256 _amount) public discountCHI {
+    function userDepositRebalanceAndStakeWithCHI(uint256 _amount) public override discountCHI {
         userDepositRebalanceAndStake(_amount);
     }
     
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) public discountCHI {
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) public override discountCHI {
         userWithdrawRebalance(_redeemAmount);
     }
 
@@ -413,7 +434,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         return _b.sub(_a);
     }
 
-    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) public view returns (bool) {
+    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) public override view returns (bool) {
         return (_diff.div(_currentPoolValue)).mul(10000) < maxPoolValueJump;
     }
 
@@ -424,9 +445,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
     ) private {
         uint256 redeemAmountInToken = (_balance.mul(_redeemAmount)).div(totalSupply());
         //  Updating the totalSupply of op tokens
-        _balances[_account] = _balances[_account].sub(_redeemAmount, "!_redeemAmount>balance");
-        _totalSupply = _totalSupply.sub(_redeemAmount);
-        emit Transfer(_account, address(0), _redeemAmount);
+        _burn(msg.sender, _redeemAmount);
         IERC20(token).safeTransfer(_account, redeemAmountInToken);
     }
 
@@ -438,14 +457,14 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         _mint(_account, (_depositAmount.mul(totalSupply())).div(_balance));
     }
 
-    function getPricePerFullShare() public view returns (uint256) {
+    function getPricePerFullShare() public override view returns (uint256) {
         if (totalSupply() != 0) {
             return _calPoolValueInToken().div(totalSupply());
         }
         return uint256(0);
     }
 
-    function discontinue() public onlyOperator {
+    function discontinue() public override onlyOperator {
         discontinued = true;
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();
@@ -453,7 +472,7 @@ contract BasicPool is ERC20, ERC20Detailed, Modifiers, ReentrancyGuard, PoolStor
         }
     }
 
-    function setPaused(bool _paused) public onlyOperator {
+    function setPaused(bool _paused) public override onlyOperator {
         paused = _paused;
         if (paused && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();

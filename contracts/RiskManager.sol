@@ -9,7 +9,7 @@ import "./libraries/Addresses.sol";
 import "./utils/Modifiers.sol";
 import "./controller/StrategyProvider.sol";
 
-contract RiskManager is Modifiers, RegistryStorage {
+contract RiskManager is Modifiers, Structs {
     using Address for address;
 
     StrategyProvider public strategyProvider;
@@ -21,8 +21,9 @@ contract RiskManager is Modifiers, RegistryStorage {
     uint256 public T2_limit;
     uint256 public T3_limit;
 
-    constructor(address _registry, StrategyProvider _strategyProvider) public Modifiers(_registry) {
-        strategyProvider = _strategyProvider;
+    constructor(address _registry, StrategyProvider _strategyProvider) public {
+        __Modifiers_init_unchained(_registry);
+        setStrategyProvider(_strategyProvider);
     }
 
     /**
@@ -42,7 +43,11 @@ contract RiskManager is Modifiers, RegistryStorage {
         T3_limit = _T3_limit;
         return true;
     }
-
+    
+    function setStrategyProvider(StrategyProvider _strategyProvider) public onlyOperator {
+        strategyProvider = _strategyProvider;
+    }
+    
     /**
      * @dev Get the best strategy for the Basic/Advance Pool
      *
@@ -94,6 +99,7 @@ contract RiskManager is Modifiers, RegistryStorage {
         // validate strategy profile
         (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
+            _strategySteps.length == 1 &&
             !_strategySteps[0].isBorrow &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T1_limit
@@ -122,7 +128,7 @@ contract RiskManager is Modifiers, RegistryStorage {
         // validate strategy profile
         (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
-            registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
+            (registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool || registryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool) &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T2_limit
         ) {
             return _strategyHash;
@@ -145,11 +151,11 @@ contract RiskManager is Modifiers, RegistryStorage {
         }
 
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
-
+    
         // validate strategy profile
         (, StrategyStep[] memory _strategySteps) = registryContract.getStrategy(_strategyHash);
         if (
-            registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool &&
+            (registryContract.getLiquidityPool(_strategySteps[0].pool).isLiquidityPool || registryContract.getCreditPool(_strategySteps[0].pool).isLiquidityPool) &&
             registryContract.getLiquidityPool(_strategySteps[0].pool).rating >= T3_limit
         ) {
             return _strategyHash;

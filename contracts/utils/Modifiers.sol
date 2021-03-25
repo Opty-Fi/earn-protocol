@@ -4,11 +4,12 @@ pragma solidity ^0.6.10;
 
 import "./../libraries/Addresses.sol";
 import "../controller/Registry.sol";
+import "./ERC20Upgradeable/VersionedInitializable.sol";
 
 /**
  * @dev Contract used to keep all the modifiers at one place
  */
-contract Modifiers {
+contract Modifiers is VersionedInitializable {
     Registry public registryContract;
 
     using Address for address;
@@ -19,10 +20,12 @@ contract Modifiers {
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
      */
-    constructor(address _registry) internal {
+    function __Modifiers_init_unchained(address _registry) internal initializer {
         registryContract = Registry(_registry);
     }
 
+    function getRevision() pure virtual override internal returns(uint256) {}
+    
     /**
      * @dev Function to check if the address is zero address or not
      */
