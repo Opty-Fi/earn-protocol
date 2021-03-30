@@ -38,12 +38,12 @@ contract StrategyCodeProvider is Modifiers, Structs {
         return _getHarvestRewardStepsCount(_hash);
     }
 
-    function getBalanceInToken(
+    function getBalanceInUnderlyingToken(
         address payable _optyPool,
         address _underlyingToken,
         bytes32 _hash
     ) public view returns (uint256 _balance) {
-        return _getBalanceInToken(_optyPool, _underlyingToken, _hash);
+        return _getBalanceInUnderlyingToken(_optyPool, _underlyingToken, _hash);
     }
 
     function getPoolDepositAllCodes(
@@ -234,7 +234,7 @@ contract StrategyCodeProvider is Modifiers, Structs {
         _codes = ICodeProvider(_optyCodeProvider).getClaimRewardTokenCode(_optyPool, _liquidityPool);
     }
 
-    function _getBalanceInToken(
+    function _getBalanceInUnderlyingToken(
         address payable _optyPool,
         address _underlyingToken,
         bytes32 _hash

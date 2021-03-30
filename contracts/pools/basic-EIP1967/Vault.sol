@@ -16,6 +16,10 @@ import "./../../utils/Modifiers.sol";
 import "./../../libraries/SafeERC20.sol";
 
 /**
+ * @title Vault
+ *
+ * @author Opty.fi, inspired by the Aave V2 AToken.sol contract
+ *
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
 contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, PoolStorage, Deployer {
@@ -50,7 +54,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         address _optyMinter
     ) external virtual initializer {
         registryContract = Registry(registry);
-        setProfile("basic");
+        setProfile("RP1");
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
@@ -81,7 +85,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
 
     function setToken(address _underlyingToken) public override onlyOperator returns (bool _success) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
-        token = _underlyingToken;
+        underlyingToken = _underlyingToken;
         _success = true;
     }
 
@@ -97,21 +101,21 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
 
     function _supplyAll() internal ifNotDiscontinued ifNotPaused {
-        uint256 _tokenBalance = IERC20(token).balanceOf(address(this));
+        uint256 _tokenBalance = IERC20(underlyingToken).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
         _batchMintAndBurn();
         first = 1;
         last = 0;
         uint8 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
         for (uint8 _i = 0; _i < _steps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), token, strategyHash, _i, _steps);
+            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), underlyingToken, strategyHash, _i, _steps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
                 require(success);
             }
         }
-        poolValue = _calPoolValueInToken();
+        poolValue = _calPoolValueInUnderlyingToken();
     }
 
     function rebalance() public override ifNotDiscontinued ifNotPaused {
@@ -123,7 +127,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         
         require(totalSupply() > 0, "!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = token;
+        _underlyingTokens[0] = underlyingToken;
         bytes32 newStrategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
 
         if (
@@ -135,10 +139,10 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
             if (msg.sender == registryContract.operator() && gasOwedToOperator != uint(0)){
                 address[] memory _path = new address[](2);
                 _path[0] = WETH;
-                _path[1] = token;
+                _path[1] = underlyingToken;
                 uint256[] memory  _amounts = IUniswap(address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)).getAmountsOut(gasOwedToOperator,_path);
                 uint256 _gasToTransfer = _amounts[1];
-                IERC20(token).safeTransfer(registryContract.operator(), _gasToTransfer);
+                IERC20(underlyingToken).safeTransfer(registryContract.operator(), _gasToTransfer);
             }
         }
 
@@ -167,10 +171,10 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
      *  - Need to modify this function in future whenever 2nd layer of depositing the underlying token (for example DAI) into any
      *    credit pool like compound is added.
      */
-    function _calPoolValueInToken() internal view returns (uint256) {
+    function _calPoolValueInUnderlyingToken() internal view returns (uint256) {
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            uint256 balanceInToken = strategyCodeProviderContract.getBalanceInToken(payable(address(this)), token, strategyHash);
-            return balanceInToken.add(balance()).sub(depositQueue);
+            uint256 balanceInUnderlyingToken = strategyCodeProviderContract.getBalanceInUnderlyingToken(payable(address(this)), underlyingToken, strategyHash);
+            return balanceInUnderlyingToken.add(balance()).sub(depositQueue);
         }
         return balance().sub(depositQueue);
     }
@@ -179,7 +183,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
     function balance() public override view returns (uint256) {
-        return IERC20(token).balanceOf(address(this));
+        return IERC20(underlyingToken).balanceOf(address(this));
     }
 
     function _withdrawAll() internal {
@@ -187,7 +191,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         for (uint8 _i = 0; _i < _steps; _i++) {
             uint8 _iterator = _steps - 1 - _i;
             bytes[] memory _codes =
-                strategyCodeProviderContract.getPoolWithdrawAllCodes(payable(address(this)), token, strategyHash, _iterator, _steps);
+                strategyCodeProviderContract.getPoolWithdrawAllCodes(payable(address(this)), underlyingToken, strategyHash, _iterator, _steps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool _success, ) = pool.call(data);
@@ -211,7 +215,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         uint8 _harvestSteps = strategyCodeProviderContract.getHarvestRewardStepsCount(_hash);
         for (uint8 _i = 0; _i < _harvestSteps; _i++) {
             bytes[] memory _codes =
-                strategyCodeProviderContract.getPoolHarvestAllRewardCodes(payable(address(this)), token, _hash, _i, _harvestSteps);
+                strategyCodeProviderContract.getPoolHarvestAllRewardCodes(payable(address(this)), underlyingToken, _hash, _i, _harvestSteps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
@@ -221,7 +225,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
 
     function userDepositAll() external override {
-        userDeposit(IERC20(token).balanceOf(msg.sender));
+        userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
     /**
@@ -234,7 +238,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
      */
     function userDeposit(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
-        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         last++;
         queue[last] = Operation(msg.sender, true, _amount);
         pendingDeposits[msg.sender] += _amount;
@@ -250,7 +254,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
     
     function userDepositAllAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
-        userDeposit(IERC20(token).balanceOf(msg.sender));
+        userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
@@ -282,7 +286,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
     
     function userDepositAllRebalance() external override {
-        userDepositRebalance(IERC20(token).balanceOf(msg.sender));
+        userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
     }
     
     /**
@@ -310,7 +314,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
             shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
         
-        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
@@ -319,7 +323,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         optyMinterContract.updateUserStateInPool(address(this), msg.sender);
         if (balance() > 0) {
             address[] memory _underlyingTokens = new address[](1);
-            _underlyingTokens[0] = token;
+            _underlyingTokens[0] = underlyingToken;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             _supplyAll();
         }
@@ -333,7 +337,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
     
     function userDepositAllRebalanceAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
-        userDepositRebalance(IERC20(token).balanceOf(msg.sender));
+        userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
@@ -369,7 +373,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
 
         if (!discontinued && (balance() > 0)) {
             address[] memory _underlyingTokens = new address[](1);
-            _underlyingTokens[0] = token;
+            _underlyingTokens[0] = underlyingToken;
             strategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             _supplyAll();
         }
@@ -377,7 +381,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
     
     function userDepositAllWithCHI() public override discountCHI {
-        userDeposit(IERC20(token).balanceOf(msg.sender));
+        userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
     
     function userDepositAllAndStakeWithCHI() public override discountCHI {
@@ -393,7 +397,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     }
     
     function userDepositAllRebalanceWithCHI() public override discountCHI {
-        userDepositRebalance(IERC20(token).balanceOf(msg.sender));
+        userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
     }
     
     function userDepositRebalanceWithCHI(uint256 _amount) public override discountCHI {
@@ -466,7 +470,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         uint256 redeemAmountInToken = (_balance.mul(_redeemAmount)).div(totalSupply());
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
-        IERC20(token).safeTransfer(_account, redeemAmountInToken);
+        IERC20(underlyingToken).safeTransfer(_account, redeemAmountInToken);
     }
 
     function _mintShares(
@@ -479,7 +483,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
 
     function getPricePerFullShare() public override view returns (uint256) {
         if (totalSupply() != 0) {
-            return _calPoolValueInToken().div(totalSupply());
+            return _calPoolValueInUnderlyingToken().div(totalSupply());
         }
         return uint256(0);
     }

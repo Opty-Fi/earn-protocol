@@ -14,9 +14,9 @@ contract RiskManager is Modifiers, Structs {
 
     StrategyProvider public strategyProvider;
 
-    string public constant BASIC = "basic";
-    string public constant ADVANCE = "advance";
-    string public constant ADVANCEPLUS = "advanceplus";
+    string public constant RP1 = "RP1";
+    string public constant RP2 = "RP2";
+    string public constant RP3 = "RP3";
     uint256 public T1_limit;
     uint256 public T2_limit;
     uint256 public T3_limit;
@@ -28,7 +28,7 @@ contract RiskManager is Modifiers, Structs {
     /**
      * @dev Set limit values for T1, T2 and T3 ranges
      *
-     * Returns the hash of the best strategy for Basic Pool
+     * Returns the hash of the best strategy for RP1 Pool
      *
      */
     function setLimits(
@@ -48,13 +48,13 @@ contract RiskManager is Modifiers, Structs {
     }
     
     /**
-     * @dev Get the best strategy for the Basic/Advance Pool
+     * @dev Get the best strategy for the RP1/RP2 Pool
      *
-     * Returns the hash of the best strategy for Basic or Advance Pool
+     * Returns the hash of the best strategy for RP1 or RP2 Pool
      *
      * Requirements:
      *
-     * - `_profile` should be among these values ["basic"/"advance"/"advance+"]
+     * - `_profile` should be among these values ["RP1"/"RP2"/"RP3"]
      *      - Can not be empty
      * - `_underlyingTokens` is an array of underlying tokens like dai, usdc and so forth
      *      - Can not have length 0
@@ -67,30 +67,30 @@ contract RiskManager is Modifiers, Structs {
             require(_underlyingTokens[i].isContract(), "!_underlyingTokens");
         }
         bytes32 tokensHash = keccak256(abi.encodePacked(_underlyingTokens));
-        if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((BASIC)))) {
-            return _getBestBasicStrategy(tokensHash);
-        } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((ADVANCE)))) {
-            return _getBestAdvanceStrategy(tokensHash);
-        } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((ADVANCEPLUS)))) {
-            return _getBestAdvancePlusStrategy(tokensHash);
+        if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((RP1)))) {
+            return _getBestRP1Strategy(tokensHash);
+        } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((RP2)))) {
+            return _getBestRP2Strategy(tokensHash);
+        } else if (keccak256(abi.encodePacked((_profile))) == keccak256(abi.encodePacked((RP3)))) {
+            return _getBestRP3Strategy(tokensHash);
         } else {
             revert("not implemented");
         }
     }
 
     /**
-     * @dev Get the best strategy for the Basic Pool which includes T1 and T2 pools
+     * @dev Get the best strategy for the RP1 Pool which includes T1 and T2 pools
      *      Get the best strategy corresponding to _tokenHash
      *
-     * Returns the hash of the best strategy for Basic Pool
+     * Returns the hash of the best strategy for RP1 Pool
      *
      */
-    function _getBestBasicStrategy(bytes32 _tokensHash) internal view returns (bytes32) {
-        bytes32 _strategyHash = strategyProvider.tokenToBestBasicStrategies(_tokensHash);
+    function _getBestRP1Strategy(bytes32 _tokensHash) internal view returns (bytes32) {
+        bytes32 _strategyHash = strategyProvider.tokenToBestRP1Strategies(_tokensHash);
 
         // fallback to default strategy if best strategy is not available
         if (_strategyHash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            _strategyHash = strategyProvider.tokenToDefaultBasicStrategies(_tokensHash);
+            _strategyHash = strategyProvider.tokenToDefaultRP1Strategies(_tokensHash);
         }
 
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
@@ -114,12 +114,12 @@ contract RiskManager is Modifiers, Structs {
      * Returns the hash of the best strategy for Advance Pool
      *
      */
-    function _getBestAdvanceStrategy(bytes32 _tokensHash) internal view returns (bytes32) {
-        bytes32 _strategyHash = strategyProvider.tokenToBestAdvanceStrategies(_tokensHash);
+    function _getBestRP2Strategy(bytes32 _tokensHash) internal view returns (bytes32) {
+        bytes32 _strategyHash = strategyProvider.tokenToBestRP2Strategies(_tokensHash);
 
         // fallback to default strategy if best strategy is not available
         if (_strategyHash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            _strategyHash = strategyProvider.tokenToDefaultAdvanceStrategies(_tokensHash);
+            _strategyHash = strategyProvider.tokenToDefaultRP2Strategies(_tokensHash);
         }
 
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
@@ -141,12 +141,12 @@ contract RiskManager is Modifiers, Structs {
      * Returns the hash of the best strategy for Advance Plus Pool
      *
      */
-    function _getBestAdvancePlusStrategy(bytes32 _tokensHash) internal view returns (bytes32) {
-        bytes32 _strategyHash = strategyProvider.tokenToBestAdvancePlusStrategies(_tokensHash);
+    function _getBestRP3Strategy(bytes32 _tokensHash) internal view returns (bytes32) {
+        bytes32 _strategyHash = strategyProvider.tokenToBestRP3Strategies(_tokensHash);
 
         // fallback to default strategy if best strategy is not available
         if (_strategyHash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            _strategyHash = strategyProvider.tokenToDefaultAdvancePlusStrategies(_tokensHash);
+            _strategyHash = strategyProvider.tokenToDefaultRP3Strategies(_tokensHash);
         }
 
         require(_strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!bestStrategyHash");
