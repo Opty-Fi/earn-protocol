@@ -32,8 +32,8 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     )
         public
         ERC20(
-            string(abi.encodePacked("op ", "Maker", " basic", " pool")),
-            string(abi.encodePacked("op", "MKR", "BscPool"))
+            string(abi.encodePacked("op ", "Maker", " RP1", " pool")),
+            string(abi.encodePacked("op", "MKR", "RP1Pool"))
         )
         Modifiers(_registry)
     {
@@ -57,8 +57,8 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
         setOPTYMinter(_optyMinter);
-        _setName(string(abi.encodePacked("op ", "Maker", " basic", " pool")));
-        _setSymbol(string(abi.encodePacked("op", "MKR", "BscPool")));
+        _setName(string(abi.encodePacked("op ", "Maker", " RP1", " pool")));
+        _setSymbol(string(abi.encodePacked("op", "MKR", "RP1Pool")));
         _setDecimals(ERC20(_underlyingToken).decimals());
     }
 

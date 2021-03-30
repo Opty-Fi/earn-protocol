@@ -18,7 +18,7 @@ import "./../../libraries/SafeERC20.sol";
  *
  * @author Opty.fi, inspired by the Aave V2 AToken.sol contract
  *
- * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
+ * @dev Opty.Fi's RP1 Pool contract for underlying tokens (for example DAI)
  */
 contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, PoolStorage, Deployer {
     using SafeERC20 for IERC20;
@@ -32,8 +32,8 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     )
         public
         ERC20(
-            string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")),
-            string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool"))
+            string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " RP1", " pool")),
+            string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "RP1Pool"))
         )
         Modifiers(_registry)
     {
@@ -57,8 +57,8 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
         setOPTYMinter(_optyMinter);
-        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")));
-        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool")));
+        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " RP1", " pool")));
+        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "RP1Pool")));
         _setDecimals(ERC20(_underlyingToken).decimals());
     }
 
