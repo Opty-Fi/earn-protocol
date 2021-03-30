@@ -18,7 +18,8 @@ contract StrategyCodeProvider is Modifiers, Structs {
 
     Gatherer public gathererContract;
 
-    constructor(address _registry, address _gatherer) public Modifiers(_registry) {
+    constructor(address _registry, address _gatherer) public {
+        __Modifiers_init_unchained(_registry);
         setGatherer(_gatherer);
     }
 

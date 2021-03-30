@@ -7,9 +7,9 @@ import "./../StrategyCodeProvider.sol";
 import "./../OPTYToken/OPTYMinter.sol";
 
 contract StakingPoolStorage {
-    mapping(address => uint256) userLastUpdate;
-    uint256 lastPoolUpdate;
-    uint256 optyRatePerBlock;
+    mapping(address => uint256) _userLastUpdate;
+    uint256 _lastPoolUpdate;
+    uint256 _optyRatePerBlock;
     address public token; //  store the underlying token contract address (for example DAI)
     uint256 public poolValue;
     OPTYMinter public optyMinterContract;

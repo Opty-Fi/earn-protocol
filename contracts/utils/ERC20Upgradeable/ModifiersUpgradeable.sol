@@ -2,27 +2,33 @@
 
 pragma solidity ^0.6.10;
 
-import "./../libraries/Addresses.sol";
-import "../controller/Registry.sol";
+import "./../../libraries/ERC20Upgradeable/AddressUpgradeable.sol";
+import "../../controller/Registry.sol";
+import "./VersionedInitializable.sol";
 
 /**
  * @dev Contract used to keep all the modifiers at one place
  */
-contract Modifiers {
+contract ModifiersUpgradeable is VersionedInitializable {
     Registry public registryContract;
-
-    using Address for address;
+    uint256 public constant MODIFIERS_REVISION = 0x1;
+    
+    using AddressUpgradeable for address;
 
     bool public discontinued;
     bool public paused;
 
+    function getRevision() internal pure virtual override returns (uint256) {
+        return MODIFIERS_REVISION;
+    }
+    
     /**
      * @dev Sets the owner, governance and strategist while deploying the contract
      */
-    constructor(address _registry) internal {
+    function __Modifiers_init_unchained(address _registry) internal initializer {
         registryContract = Registry(_registry);
     }
-    
+
     /**
      * @dev Function to check if the address is zero address or not
      */

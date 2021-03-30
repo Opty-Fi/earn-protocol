@@ -1,7 +1,12 @@
 import { ethers } from "ethers";
 import * as OtherImports from "../OtherImports";
 
-export async function swapLpMappingAndSetGauge(optyCodeProviderContractsKey: string, optyCodeProviderContract: any, ownerWallet: any, overrideOptions: any) {
+export async function swapLpMappingAndSetGauge(
+    optyCodeProviderContractsKey: string,
+    optyCodeProviderContract: any,
+    ownerWallet: any,
+    overrideOptions: any
+) {
     //  Setting/Mapping the liquidityPoolToken, SwapPoolTOUnderlyingTokens and gauge address as pre-requisites in CurveSwapCodeProvider
     let curveSwapDataProviderKey: keyof typeof OtherImports.curveSwapDataProvider;
     for (curveSwapDataProviderKey in OtherImports.curveSwapDataProvider) {
@@ -9,16 +14,16 @@ export async function swapLpMappingAndSetGauge(optyCodeProviderContractsKey: str
             curveSwapDataProviderKey.toString().toLowerCase() ==
             optyCodeProviderContractsKey.toString().toLowerCase()
         ) {
-            let tokenPairs =
+            const tokenPairs =
                 OtherImports.curveSwapDataProvider[curveSwapDataProviderKey];
             let tokenPair: keyof typeof tokenPairs;
             for (tokenPair in tokenPairs) {
-                let _liquidityPoolToken = tokenPairs[tokenPair].liquidityPoolToken;
-                let _swapPool = tokenPairs[tokenPair].swapPool;
-                let _guage = tokenPairs[tokenPair].gauge;
-                let _underlyingTokens = tokenPairs[tokenPair].underlyingTokens;
+                const _liquidityPoolToken = tokenPairs[tokenPair].liquidityPoolToken;
+                const _swapPool = tokenPairs[tokenPair].swapPool;
+                const _guage = tokenPairs[tokenPair].gauge;
+                const _underlyingTokens = tokenPairs[tokenPair].underlyingTokens;
 
-                let optyCodeProviderContractOwnerSigner = optyCodeProviderContract.connect(
+                const optyCodeProviderContractOwnerSigner = optyCodeProviderContract.connect(
                     ownerWallet
                 );
 

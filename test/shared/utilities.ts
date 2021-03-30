@@ -60,10 +60,14 @@ export async function fundWallet(
     GAS_OVERRIDE_OPTIONS: any,
     ETH_VALUE_GAS_OVERIDE_OPTIONS: any
 ) {
-    if (OtherImports.tokenAddresses.underlyingTokens.weth.toLowerCase() == tokenAddress.toLowerCase()) {
+    if (
+        OtherImports.tokenAddresses.underlyingTokens.weth.toLowerCase() ==
+        tokenAddress.toLowerCase()
+    ) {
         await fundWalletWithWeth(wallet, FUND_AMOUNT);
     } else if (
-        OtherImports.tokenAddresses.underlyingTokens["3crv"].toLowerCase() == tokenAddress.toLowerCase()
+        OtherImports.tokenAddresses.underlyingTokens["3crv"].toLowerCase() ==
+        tokenAddress.toLowerCase()
     ) {
         await fundWalletWith3Crv(
             wallet,
@@ -148,13 +152,13 @@ async function fundWalletWith3Crv(
     );
 
     // Instantiate 3Crv ERC20 token contract
-    let erc20TokenContractInstance = getContractInstance(
+    const erc20TokenContractInstance = getContractInstance(
         tokenAddresses.underlyingTokens["3crv"],
         addressAbis.erc20.abi,
         wallet
     );
 
-    let users3CrvBalance = await erc20TokenContractInstance.balanceOf(wallet.address);
+    const users3CrvBalance = await erc20TokenContractInstance.balanceOf(wallet.address);
 
     // Make the user's wallet balance equals to the TEST_AMOUNT
     await curveSwapContractInstance.remove_liquidity(users3CrvBalance.sub(amount), [
@@ -255,14 +259,17 @@ async function appendInFile(fileName: string, data: any) {
             return console.log(err);
         }
     });
-    await fs.appendFileSync(fileName, JSON.stringify(data), "utf8", function (
-        err: any
-    ) {
-        if (err) {
-            //  Handling error occured while appending JSON Object to File
-            return console.log(err);
+    await fs.appendFileSync(
+        fileName,
+        JSON.stringify(data),
+        "utf8",
+        function (err: any) {
+            if (err) {
+                //  Handling error occured while appending JSON Object to File
+                return console.log(err);
+            }
         }
-    });
+    );
     await formatFile(fileName);
 }
 
@@ -272,8 +279,8 @@ async function formatFile(fileName: string) {
             return console.log(err);
         }
         //  refactoring text data of string format into json
-        var result = data.replace(/}","{/g, ",");
-        var final_data = JSON.parse(result);
+        const result = data.replace(/}","{/g, ",");
+        const final_data = JSON.parse(result);
 
         //  writing into file
         await writeInFile(fileName, final_data);
@@ -313,7 +320,7 @@ if your 'require' statement doesn't have one."
         );
     }
 
-    let status = await expectException(promise, expectedError);
+    const status = await expectException(promise, expectedError);
 }
 
 //  sleep function
@@ -331,7 +338,7 @@ export async function deployCodeProviderContracts(
 ) {
     const ProtocolCodeProviderNames: Interfaces.DeployCodeProviderContracts =
         OtherImports.ProtocolCodeProviderNames;
-    const canHarvestStatus: Boolean =
+    const canHarvestStatus: boolean =
         ProtocolCodeProviderNames[optyCodeProviderContractsKey].canHarvest;
 
     optyCodeProviderContractsKey = optyCodeProviderContractsKey
@@ -349,7 +356,7 @@ export async function deployCodeProviderContracts(
     } else {
         //  Special case for deploying the CurveSwapCodeProvider.sol
         if (optyCodeProviderContractsKey == Constants.CURVESWAPCODEPROVIDER) {
-            let factory = new ethers.ContractFactory(
+            const factory = new ethers.ContractFactory(
                 codeProviderAbi.abi,
                 OtherImports.ByteCodes.CurveSwapCodeProvider,
                 ownerWallet
@@ -420,7 +427,7 @@ export async function checkAndFundWallet(
     let userTokenBalanceWei = await tokenContractInstance.balanceOf(userWallet.address);
 
     // user's initial opXXXBsc tokens balance in Wei
-    let userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
+    const userOptyTokenBalanceWei = await optyTokenBasicPool.balanceOf(
         userWallet.address
     );
     userOptyTokenBalance = parseFloat(

@@ -18,4 +18,4 @@ export type allStrategiesGasUsedRecordsType = {
     setAndScoreStrategy: number;
     userDepositRebalanceTx: number;
     userWithdrawRebalanceTx: number;
-}
+};

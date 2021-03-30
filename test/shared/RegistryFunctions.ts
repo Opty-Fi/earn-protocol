@@ -2,7 +2,7 @@ import { Contract, ethers } from "ethers";
 const abi = require("ethereumjs-abi");
 
 export async function approveToken(token: string, optyRegistry: Contract) {
-    let tokenStatus = await optyRegistry.tokens(token);
+    const tokenStatus = await optyRegistry.tokens(token);
     if (!tokenStatus) {
         await optyRegistry.approveToken(token);
     }
@@ -28,12 +28,12 @@ export async function approveTokenLpToken(
 
 //  Function to set the hash for the list of underlying tokens
 export async function setTokensHashToTokens(tokens: string[], optyRegistry: Contract) {
-    let tokensHash = "0x" + abi.soliditySHA3(["address[]"], [tokens]).toString("hex");
-    let tokensHashIndex: ethers.BigNumber = await optyRegistry.tokensHashToTokens(
+    const tokensHash = "0x" + abi.soliditySHA3(["address[]"], [tokens]).toString("hex");
+    const tokensHashIndex: ethers.BigNumber = await optyRegistry.tokensHashToTokens(
         tokensHash
     );
     //  Get tokens corresponding to tokensHash from contract (if any)
-    let tokensFromContract = await optyRegistry.getTokensHashToTokens(tokensHash);
+    const tokensFromContract = await optyRegistry.getTokensHashToTokens(tokensHash);
     if (tokensHashIndex.eq(0) && tokensFromContract.length == 0) {
         const setTokensHashTx = await optyRegistry.setTokensHashToTokens(tokens);
         const setTokensHashTxOutput = await setTokensHashTx.wait();
@@ -49,7 +49,7 @@ export async function approveLpCpAndMapLpToCodeProvider(
     optyRegistry: Contract
 ) {
     let liquidityPools = await optyRegistry.liquidityPools(pool);
-    let creditPools = await optyRegistry.creditPools(pool);
+    const creditPools = await optyRegistry.creditPools(pool);
     if (!liquidityPools.isLiquidityPool) {
         await optyRegistry.approveLiquidityPool(pool);
     }
