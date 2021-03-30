@@ -22,7 +22,7 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     using SafeERC20 for IERC20;
     using Address for address;
     
-    uint256 public constant opTOKEN_REVISION = 0x4;
+    uint256 public constant opTOKEN_REVISION = 0x1;
     
     constructor(
         address _registry,
