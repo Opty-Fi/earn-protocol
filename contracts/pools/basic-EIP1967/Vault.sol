@@ -3,7 +3,6 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./../../utils/ERC20Burnable.sol";
 import "./../../utils/Ownable.sol";
 import "./../../utils/ReentrancyGuard.sol";
 import "./../../utils/ChiDeployer.sol";
@@ -13,7 +12,6 @@ import "./../PoolStorage.sol";
 import "./../../interfaces/uniswap/IUniswap.sol";
 import "./../../interfaces/opty/IVault.sol";
 import "./../../utils/ERC20Upgradeable/VersionedInitializable.sol";
-import "./../../interfaces/ERC20Upgradeable/IERC20MetadataUpgradeable.sol";
 import "./../../utils/Modifiers.sol";
 import "./../../libraries/SafeERC20.sol";
 
@@ -24,14 +22,10 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
     using SafeERC20 for IERC20;
     using Address for address;
     
-    uint256 public constant OPTOKEN_REVISION = 0x1;
+    uint256 public constant opTOKEN_REVISION = 0x4;
     
-    /**
-     * @dev
-     *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for token (for example DAI)
-     *  - Storing the underlying token contract address (for example DAI)
-     */
     constructor(
+        address _registry,
         address _underlyingToken
     )
         public
@@ -39,33 +33,31 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
             string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")),
             string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool"))
         )
+        Modifiers(_registry)
     {
-        // setProfile("basic");
-        // setRiskManager(_riskManager);
-        // setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        // setStrategyCodeProvider(_strategyCodeProvider);
-        // setOPTYMinter(_optyMinter);
+        
+    }
+    
+    function getRevision() internal pure virtual override returns (uint256) {
+        return opTOKEN_REVISION;
     }
     
     function initialize(
-        address _registry,
+        address registry,
         address _riskManager,
         address _underlyingToken,
         address _strategyCodeProvider,
         address _optyMinter
     ) external virtual initializer {
-        __Modifiers_init_unchained(_registry);
-        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")));
-        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool")));
+        registryContract = Registry(registry);
         setProfile("basic");
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyCodeProvider(_strategyCodeProvider);
         setOPTYMinter(_optyMinter);
-    }
-    
-    function getRevision() internal pure virtual override(Modifiers, VersionedInitializable) returns (uint256) {
-        return OPTOKEN_REVISION;
+        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")));
+        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool")));
+        _setDecimals(ERC20(_underlyingToken).decimals());
     }
 
     function setProfile(string memory _profile) public override onlyOperator returns (bool _success) {
@@ -256,6 +248,12 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
+    
+    function userDepositAllAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+        userDeposit(IERC20(token).balanceOf(msg.sender));
+        optyMinterContract.claimAndStake(msg.sender);
+        _success = true;
+    }
 
     function _batchMintAndBurn() internal returns (bool _success) {
         uint256 iterator = first;
@@ -297,18 +295,11 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
      */
     function userDepositRebalance(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
-        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
 
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();
             harvest(strategyHash);
         }
-
-        // Following lines will be added if all the optyPoolRates are updated every transaction:
-        //
-        // uint256 _optyPoolRate = OPTYMinter(optyMinterContract).optyPoolRate(address(this));
-        // uint256 _newOptyPoolRate = calculateNewOptyPoolRate();
-        // storeAllNewOptyPoolRatesInMapping();
 
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
@@ -318,6 +309,9 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         } else {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
+        
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
+        
         optyMinterContract.updateSupplierRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
         optyMinterContract.updateOptyPoolRatePerSecondAndLPToken(address(this));
@@ -334,6 +328,12 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
 
     function userDepositRebalanceAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDepositRebalance(_amount);
+        optyMinterContract.claimAndStake(msg.sender);
+        _success = true;
+    }
+    
+    function userDepositAllRebalanceAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+        userDepositRebalance(IERC20(token).balanceOf(msg.sender));
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
@@ -376,12 +376,24 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         return true;
     }
     
+    function userDepositAllWithCHI() public override discountCHI {
+        userDeposit(IERC20(token).balanceOf(msg.sender));
+    }
+    
+    function userDepositAllAndStakeWithCHI() public override discountCHI {
+        userDepositAllAndStake();
+    }
+    
     function userDepositWithCHI(uint256 _amount) public override discountCHI {
         userDeposit(_amount);
     }
     
     function userDepositAndStakeWithCHI(uint256 _amount) public override discountCHI {
         userDepositAndStake(_amount);
+    }
+    
+    function userDepositAllRebalanceWithCHI() public override discountCHI {
+        userDepositRebalance(IERC20(token).balanceOf(msg.sender));
     }
     
     function userDepositRebalanceWithCHI(uint256 _amount) public override discountCHI {
@@ -392,8 +404,16 @@ contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGu
         userDepositRebalanceAndStake(_amount);
     }
     
+    function userDepositAllRebalanceAndStakeWithCHI() public override discountCHI {
+        userDepositAllRebalanceAndStake();
+    }
+    
     function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) public override discountCHI {
         userWithdrawRebalance(_redeemAmount);
+    }
+    
+    function userWithdrawAllRebalanceWithCHI() public override discountCHI {
+        userWithdrawRebalance(balanceOf(msg.sender));
     }
 
     function _emergencyBrake(uint256 _poolValue) private returns (bool) {

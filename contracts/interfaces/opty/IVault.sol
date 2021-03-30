@@ -19,28 +19,34 @@ interface IVault {
     function setStrategyCodeProvider(address _strategyCodeProvider) external returns (bool _success);
     
     function setMaxPoolValueJump(uint256 _maxPoolValueJump) external returns (bool _success);
-    
-    // function _supplyAll() external;
 
     function rebalance() external;
 
-    // function _calPoolValueInToken() external view returns (uint256);
-
     function balance() external view returns (uint256);
-
-    // function _withdrawAll() external;
 
     function harvest(bytes32 _hash) external;
     
+    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) external view returns (bool);
+
+    function getPricePerFullShare() external view returns (uint256);
+    
+    function discontinue() external;
+
+    function setPaused(bool _paused) external;
+    
+    // no CHI functions
+    
     function userDepositAll() external;
+    
+    function userDepositAllAndStake() external returns (bool _success);
 
     function userDeposit(uint256 _amount) external returns (bool _success);
-    
+
     function userDepositAndStake(uint256 _amount) external returns (bool _success);
 
-    // function _batchMintAndBurn() external returns (bool _success);
-    
     function userDepositAllRebalance() external;
+
+    function userDepositAllRebalanceAndStake() external returns (bool _success);
 
     function userDepositRebalance(uint256 _amount) external returns (bool _success);
 
@@ -50,37 +56,25 @@ interface IVault {
 
     function userWithdrawRebalance(uint256 _redeemAmount) external returns (bool);
     
+    // CHI token functions
+
+    function userDepositAllWithCHI() external;
+    
+    function userDepositAllAndStakeWithCHI() external;
+    
     function userDepositWithCHI(uint256 _amount) external;
     
     function userDepositAndStakeWithCHI(uint256 _amount) external;
+    
+    function userDepositAllRebalanceWithCHI() external;
+    
+    function userDepositAllRebalanceAndStakeWithCHI() external;
     
     function userDepositRebalanceWithCHI(uint256 _amount) external;
     
     function userDepositRebalanceAndStakeWithCHI(uint256 _amount) external;
     
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external;
-
-    // function _emergencyBrake(uint256 _poolValue) external returns (bool);
-
-    // function _abs(uint256 _a, uint256 _b) external pure returns (uint256);
-
-    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) external view returns (bool);
-
-    // function _redeemAndBurn(
-    //     address _account,
-    //     uint256 _balance,
-    //     uint256 _redeemAmount
-    // ) external;
-
-    // function _mintShares(
-    //     address _account,
-    //     uint256 _balance,
-    //     uint256 _depositAmount
-    // ) external;
-
-    function getPricePerFullShare() external view returns (uint256);
+    function userWithdrawAllRebalanceWithCHI() external;
     
-    function discontinue() external;
-
-    function setPaused(bool _paused) external;
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external;
 }

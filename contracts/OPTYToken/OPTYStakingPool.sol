@@ -35,9 +35,9 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         ERC20(
             string(abi.encodePacked("op ", "30 Days", " Staking", " Pool")),
             string(abi.encodePacked("op", "30Days", "StkPool"))
-            )
+        )
+        Modifiers(_registry)
     {
-        __Modifiers_init_unchained(_registry);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);

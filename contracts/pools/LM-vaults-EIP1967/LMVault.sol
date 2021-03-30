@@ -14,7 +14,7 @@ import "./../../interfaces/uniswap/IUniswap.sol";
 import "./../../interfaces/opty/IVault.sol";
 import "./../../utils/ERC20Upgradeable/VersionedInitializable.sol";
 import "./../../interfaces/ERC20Upgradeable/IERC20MetadataUpgradeable.sol";
-import "./../../utils/ERC20Upgradeable/ModifiersUpgradeable.sol";
+import "./../../utils/Modifiers.sol";
 import "./../../libraries/SafeERC20.sol";
 
 /**
@@ -26,33 +26,11 @@ import "./../../libraries/SafeERC20.sol";
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract LMVault is VersionedInitializable, IVault, ERC20, ModifiersUpgradeable, ReentrancyGuard, PoolStorage, Deployer {
+contract LMVault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, PoolStorage, Deployer {
     using SafeERC20 for IERC20;
-    using AddressUpgradeable for address;
+    using Address for address;
     
-    uint256 public constant ATOKEN_REVISION = 0x1;
-    
-    /**
-     * @dev
-     *  - Constructor used to initialise the Opty.Fi token name, symbol, decimals for token (for example DAI)
-     *  - Storing the underlying token contract address (for example DAI)
-     */
-    constructor(
-        address _registry,
-        address _underlyingToken
-    )
-        public
-        ERC20(
-            string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")),
-            string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool"))
-        )
-    {
-        // setProfile("basic");
-        // setRiskManager(_riskManager);
-        // setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        // setStrategyCodeProvider(_strategyCodeProvider);
-        // setOPTYMinter(_optyMinter);
-    }
+    uint256 public constant opTOKEN_REVISION = 0x1;
     
     function initialize(
         address _registry,
@@ -60,10 +38,12 @@ contract LMVault is VersionedInitializable, IVault, ERC20, ModifiersUpgradeable,
         address _underlyingToken,
         address _strategyCodeProvider,
         address _optyMinter
-    ) external virtual initializer {
-        __Modifiers_init_unchained(_registry);
-        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")));
-        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool")));
+    ) external virtual versionedInitializer {
+        __Modifiers_init(_registry);
+        __ERC20_init(
+            string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " basic", " pool")),
+            string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "BscPool"))
+        );
         setProfile("basic");
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
@@ -71,8 +51,8 @@ contract LMVault is VersionedInitializable, IVault, ERC20, ModifiersUpgradeable,
         setOPTYMinter(_optyMinter);
     }
     
-    function getRevision() internal pure virtual override(ModifiersUpgradeable, VersionedInitializable) returns (uint256) {
-        return ATOKEN_REVISION;
+    function getRevision() internal pure virtual override returns (uint256) {
+        return opTOKEN_REVISION;
     }
 
     function setProfile(string memory _profile) public override onlyOperator returns (bool _success) {

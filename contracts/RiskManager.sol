@@ -21,9 +21,8 @@ contract RiskManager is Modifiers, Structs {
     uint256 public T2_limit;
     uint256 public T3_limit;
 
-    constructor(address _registry, StrategyProvider _strategyProvider) public {
-        __Modifiers_init_unchained(_registry);
-        setStrategyProvider(_strategyProvider);
+    constructor(address _registry, StrategyProvider _strategyProvider) public Modifiers(_registry) {
+        strategyProvider = _strategyProvider;
     }
 
     /**

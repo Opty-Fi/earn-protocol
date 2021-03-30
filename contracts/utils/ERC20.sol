@@ -5,7 +5,6 @@ pragma solidity >=0.6.0 <0.8.0;
 import "./Context.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeMath.sol";
-
 /**
  * @dev Implementation of the {IERC20} interface.
  *
@@ -278,9 +277,9 @@ contract ERC20 is Context, IERC20 {
     }
 
     function _setName(string memory newName) internal {
-    _name = newName;
+        _name = newName;
     }
-
+    
     function _setSymbol(string memory newSymbol) internal {
         _symbol = newSymbol;
     }

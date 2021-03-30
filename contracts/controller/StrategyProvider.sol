@@ -12,9 +12,7 @@ contract StrategyProvider is Modifiers {
     mapping(bytes32 => bytes32) public tokenToBestAdvancePlusStrategies;
     mapping(bytes32 => bytes32) public tokenToDefaultAdvancePlusStrategies;
 
-    constructor(address _registry) public {
-        __Modifiers_init_unchained(_registry);
-    }
+    constructor(address _registry) public Modifiers(_registry) {}
 
     function setBestBasicStrategy(bytes32 _tokenHash, bytes32 _strategyHash) public onlyOperator {
         tokenToBestBasicStrategies[_tokenHash] = _strategyHash;

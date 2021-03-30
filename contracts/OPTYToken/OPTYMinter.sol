@@ -8,9 +8,7 @@ import "./ExponentialNoError.sol";
 import "./../interfaces/ERC20/IERC20.sol";
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
-    constructor(address _registry) public {
-        __Modifiers_init_unchained(_registry);
-    }
+    constructor(address _registry) public Modifiers(_registry) {}
 
     function setStakingPool(address _stakingPool) public onlyOperator {
         require(_stakingPool != address(0), "Invalid address");
@@ -223,7 +221,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
 
     function getOptyAddress() public pure returns (address) {
-        return address(0x3456cBcd79e86040B661c1837c3bf776EBFb173F);
+        return OPTYAddress;
     }
 
     function getBlockTimestamp() public view returns (uint256) {
