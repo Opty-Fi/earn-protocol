@@ -4,9 +4,9 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 /**
- * @dev Interface of the Opty.fi Vaults.
+ * @dev Interface of the Opty.fi LMVaults.
  */
-interface IVault {
+interface ILMVault {
 
     function setProfile(string memory _profile) external returns (bool _success);
 
