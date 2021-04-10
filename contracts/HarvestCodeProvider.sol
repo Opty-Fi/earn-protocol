@@ -19,18 +19,6 @@ contract HarvestCodeProvider is Modifiers {
         setRouter(address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D));
     }
 
-    function harvest(address _rewardToken, address _underlyingToken) public returns (bool) {
-        IERC20(_rewardToken).safeTransferFrom(msg.sender, address(this), IERC20(_rewardToken).balanceOf(msg.sender));
-        IERC20(_rewardToken).safeApprove(router, uint256(0));
-        IERC20(_rewardToken).safeApprove(router, IERC20(_rewardToken).balanceOf(address(this)));
-        address[] memory path = new address[](3);
-        path[0] = _rewardToken;
-        path[1] = WETH;
-        path[2] = _underlyingToken;
-        IUniswap(router).swapExactTokensForTokens(IERC20(_rewardToken).balanceOf(address(this)), uint256(0), path, msg.sender, uint256(-1));
-        return true;
-    }
-
     function getHarvestCodes(
         address payable _optyPool,
         address _rewardToken,
