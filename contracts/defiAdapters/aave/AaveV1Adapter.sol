@@ -20,7 +20,8 @@ contract AaveV1Adapter is IAdapter, Modifiers {
     HarvestCodeProvider public harvestCodeProviderContract;
 
     uint256 public maxExposure; // basis points
-
+    mapping(address => uint256) public maxExposureMapping;
+    
     uint256 public healthFactor = 2;
     uint256 public ltv = 65;
     uint256 public max = 100;
@@ -378,7 +379,11 @@ contract AaveV1Adapter is IAdapter, Modifiers {
     function setMaxExposure(uint256 _maxExposure) public onlyOperator {
         maxExposure = _maxExposure;
     }
-
+    
+    function setMaxExposureMapping(address _liquidityPoolAddressProvider, uint256 _maxExposure) public onlyOperator {
+        maxExposureMapping[_liquidityPoolAddressProvider] = _maxExposure;
+    }
+    
     function _getLendingPool(address _lendingPoolAddressProvider) internal view returns (address) {
         return IAaveV1LendingPoolAddressesProvider(_lendingPoolAddressProvider).getLendingPool();
     }
@@ -398,7 +403,11 @@ contract AaveV1Adapter is IAdapter, Modifiers {
     ) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPoolAddressProvider, _underlyingToken);
-        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        uint256 maxExposureValue = maxExposureMapping[_liquidityPoolAddressProvider];
+        if (maxExposureValue == 0) {
+            maxExposureValue = maxExposure;
+        }
+        uint256 _limit = (_poolValue.mul(maxExposureValue)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }

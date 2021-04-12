@@ -13,6 +13,7 @@ contract FulcrumAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
     uint256 public maxExposure; // basis points
+    mapping(address => uint256) public maxExposureMapping;
 
     constructor(address _registry) public Modifiers(_registry) {
         setMaxExposure(uint256(5000)); // 50%
@@ -283,10 +284,18 @@ contract FulcrumAdapter is IAdapter, Modifiers {
         maxExposure = _maxExposure;
     }
 
+    function setMaxExposureMapping(address _liquidityPool, uint256 _maxExposure) public onlyOperator {
+        maxExposureMapping[_liquidityPool] = _maxExposure;
+    }
+
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
-        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        uint256 maxExposureValue = maxExposureMapping[_liquidityPool];
+        if (maxExposureValue == 0) {
+            maxExposureValue = maxExposure;
+        }
+        uint256 _limit = (_poolValue.mul(maxExposureValue)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }

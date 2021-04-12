@@ -16,7 +16,9 @@ contract HarvestAdapter is IAdapter, Modifiers {
     HarvestCodeProvider public harvestCodeProviderContract;
     mapping(address => address) public liquidityPoolToStakingPool;
     address public rewardToken;
+
     uint256 public maxExposure; // basis points
+    mapping(address => uint256) public maxExposureMapping;
 
     // deposit pool
     address public constant TBTC_SBTC_CRV_DEPOSIT_POOL = address(0x640704D106E79e105FDA424f05467F005418F1B5);
@@ -388,10 +390,18 @@ contract HarvestAdapter is IAdapter, Modifiers {
         maxExposure = _maxExposure;
     }
 
+    function setMaxExposureMapping(address _liquidityPool, uint256 _maxExposure) public onlyOperator {
+        maxExposureMapping[_liquidityPool] = _maxExposure;
+    }
+
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
-        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        uint256 maxExposureValue = maxExposureMapping[_liquidityPool];
+        if (maxExposureValue == 0) {
+            maxExposureValue = maxExposure;
+        }
+        uint256 _limit = (_poolValue.mul(maxExposureValue)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }

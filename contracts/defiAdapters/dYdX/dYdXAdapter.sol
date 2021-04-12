@@ -13,6 +13,7 @@ contract dYdXAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
     uint256 public maxExposure; // basis points
+    mapping(address => uint256) public maxExposureMapping;
 
     address public constant DYDX_LIQUIIDTY_POOL = address(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
 
@@ -357,6 +358,10 @@ contract dYdXAdapter is IAdapter, Modifiers {
         maxExposure = _maxExposure;
     }
 
+    function setMaxExposureMapping(address _liquidityPoolAddressProvider, uint256 _maxExposure) public onlyOperator {
+        maxExposureMapping[_liquidityPoolAddressProvider] = _maxExposure;
+    }
+
     function _getDepositAmount(
         address _liquidityPool,
         address _underlyingToken,
@@ -364,7 +369,11 @@ contract dYdXAdapter is IAdapter, Modifiers {
     ) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, _underlyingToken);
-        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        uint256 maxExposureValue = maxExposureMapping[_liquidityPool];
+        if (maxExposureValue == 0) {
+            maxExposureValue = maxExposure;
+        }
+        uint256 _limit = (_poolValue.mul(maxExposureValue)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }

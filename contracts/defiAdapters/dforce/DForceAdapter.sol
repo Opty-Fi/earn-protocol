@@ -17,7 +17,9 @@ contract DForceAdapter is IAdapter, Modifiers {
     mapping(address => address) public liquidityPoolToStakingPool;
     address public rewardToken;
     HarvestCodeProvider public harvestCodeProviderContract;
+    
     uint256 public maxExposure; // basis points
+    mapping(address => uint256) public maxExposureMapping;
 
     // deposit pools
     address public constant USDT_DEPOSIT_POOL = address(0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8);
@@ -351,10 +353,18 @@ contract DForceAdapter is IAdapter, Modifiers {
         maxExposure = _maxExposure;
     }
 
+    function setMaxExposureMapping(address _liquidityPool, uint256 _maxExposure) public onlyOperator {
+        maxExposureMapping[_liquidityPool] = _maxExposure;
+    }
+
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
-        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        uint256 maxExposureValue = maxExposureMapping[_liquidityPool];
+        if (maxExposureValue == 0) {
+            maxExposureValue = maxExposure;
+        }
+        uint256 _limit = (_poolValue.mul(maxExposureValue)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
