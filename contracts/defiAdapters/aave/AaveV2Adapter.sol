@@ -22,7 +22,6 @@ contract AaveV2Adapter is IAdapter, Modifiers {
     HarvestCodeProvider public harvestCodeProviderContract;
 
     uint256 public maxExposure; // basis points
-    mapping(address => uint256) public maxExposureMapping;
 
     uint256 public healthFactor = 2;
     uint256 public ltv = 65;
@@ -411,10 +410,6 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         maxExposure = _maxExposure;
     }
 
-    function setMaxExposureMapping(address _liquidityPoolAddressProvider, uint256 _maxExposure) public onlyOperator {
-        maxExposureMapping[_liquidityPoolAddressProvider] = _maxExposure;
-    }
-    
     function _getLendingPool(address _lendingPoolAddressProviderRegistry) internal view returns (address) {
         return IAaveV2LendingPoolAddressesProvider(_getLendingPoolAddressProvider(_lendingPoolAddressProviderRegistry)).getLendingPool();
     }
@@ -424,17 +419,13 @@ contract AaveV2Adapter is IAdapter, Modifiers {
     }
 
     function _getDepositAmount(
-        address _liquidityPoolAddressProvider,
+        address _liquidityPoolAddressProviderRegistry,
         address _underlyingToken,
         uint256 _amount
     ) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint256 _poolValue = getPoolValue(_liquidityPoolAddressProvider, _underlyingToken);
-        uint256 maxExposureValue = maxExposureMapping[_liquidityPoolAddressProvider];
-        if (maxExposureValue == 0) {
-            maxExposureValue = maxExposure;
-        }
-        uint256 _limit = (_poolValue.mul(maxExposureValue)).div(uint256(10000));
+        uint256 _poolValue = getPoolValue(_liquidityPoolAddressProviderRegistry, _underlyingToken);
+        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
         }
@@ -483,7 +474,9 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         uint256 _available = _availableToBorrowETH(_optyVault, _liquidityPoolAddressProvider);
         if (_available > 0) {
             return
-                _available.mul(uint256(10)**ERC20(_outputToken).decimals()).div(_getReservePrice(_liquidityPoolAddressProvider, _outputToken));
+                _available.mul(uint256(10)**ERC20(_outputToken).decimals()).div(
+                    _getReservePrice(_liquidityPoolAddressProvider, _outputToken)
+                );
         } else {
             return 0;
         }
