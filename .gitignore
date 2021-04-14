@@ -9,3 +9,4 @@ test/gasRecordFiles/*
 desktop.ini
 
 .vscode/
+cache/
