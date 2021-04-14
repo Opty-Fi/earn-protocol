@@ -12,7 +12,7 @@ import "./utils/ERC20.sol";
 import "./utils/Modifiers.sol";
 import "./HarvestCodeProvider.sol";
 
-contract StrategyCodeProvider is Modifiers, Structs {
+contract StrategyManager is Modifiers, Structs {
     using SafeERC20 for IERC20;
     using Address for address;
 

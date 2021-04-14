@@ -16,9 +16,9 @@ interface IVault {
     
     function setToken(address _underlyingToken) external returns (bool _success);
 
-    function setStrategyCodeProvider(address _strategyCodeProvider) external returns (bool _success);
+    function setStrategyManager(address _strategyCodeProvider) external returns (bool _success);
     
-    function setMaxPoolValueJump(uint256 _maxPoolValueJump) external returns (bool _success);
+    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external returns (bool _success);
 
     function rebalance() external;
 
@@ -26,7 +26,7 @@ interface IVault {
 
     function harvest(bytes32 _hash) external;
     
-    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) external view returns (bool);
+    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) external view returns (bool);
 
     function getPricePerFullShare() external view returns (uint256);
     

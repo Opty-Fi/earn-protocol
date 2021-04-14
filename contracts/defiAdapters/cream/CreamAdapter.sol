@@ -327,7 +327,7 @@ contract CreamAdapter is IAdapter, Modifiers {
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
-        uint256 maxExposureValue = maxExposureMapping[_liquidityPoolAddressProvider];
+        uint256 maxExposureValue = maxExposureMapping[_liquidityPool];
         if (maxExposureValue == 0) {
             maxExposureValue = maxExposure;
         }

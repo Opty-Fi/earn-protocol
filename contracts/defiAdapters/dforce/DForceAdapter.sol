@@ -17,7 +17,7 @@ contract DForceAdapter is IAdapter, Modifiers {
     mapping(address => address) public liquidityPoolToStakingPool;
     address public rewardToken;
     HarvestCodeProvider public harvestCodeProviderContract;
-    
+
     uint256 public maxExposure; // basis points
     mapping(address => uint256) public maxExposureMapping;
 

@@ -6,8 +6,7 @@ pragma experimental ABIEncoderV2;
 import "./../../utils/ReentrancyGuard.sol";
 import "./../../utils/ChiDeployer.sol";
 import "./../../RiskManager.sol";
-import "./../../StrategyCodeProvider.sol";
-import "./../PoolStorage.sol";
+import "./../VaultStorage.sol";
 import "./../../interfaces/opty/IVault.sol";
 import "./../../utils/ERC20Upgradeable/VersionedInitializable.sol";
 import "./../../utils/Modifiers.sol";
@@ -18,9 +17,9 @@ import "./../../libraries/SafeERC20.sol";
  *
  * @author Opty.fi, inspired by the Aave V2 AToken.sol contract
  *
- * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
+ * @dev Opty.Fi's RP1 Vault contract for MKR token
  */
-contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, PoolStorage, Deployer {
+contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, VaultStorage, Deployer {
     using SafeERC20 for IERC20;
     using Address for address;
     
@@ -32,8 +31,8 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
     )
         public
         ERC20(
-            string(abi.encodePacked("op ", "Maker", " RP1", " pool")),
-            string(abi.encodePacked("op", "MKR", "RP1Pool"))
+            string(abi.encodePacked("op ", "Maker", " RP1", " vault")),
+            string(abi.encodePacked("op", "MKR", "RP1Vault"))
         )
         Modifiers(_registry)
     {
@@ -48,17 +47,17 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         address registry,
         address _riskManager,
         address _underlyingToken,
-        address _strategyCodeProvider,
+        address _strategyManager,
         address _optyMinter
     ) external virtual initializer {
         registryContract = Registry(registry);
         setProfile("RP1");
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        setStrategyCodeProvider(_strategyCodeProvider);
+        setStrategyManager(_strategyManager);
         setOPTYMinter(_optyMinter);
-        _setName(string(abi.encodePacked("op ", "Maker", " RP1", " pool")));
-        _setSymbol(string(abi.encodePacked("op", "MKR", "RP1Pool")));
+        _setName(string(abi.encodePacked("op ", "Maker", " RP1", " vault")));
+        _setSymbol(string(abi.encodePacked("op", "MKR", "RP1Vault")));
         _setDecimals(ERC20(_underlyingToken).decimals());
     }
 
@@ -87,14 +86,14 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _success = true;
     }
 
-    function setStrategyCodeProvider(address _strategyCodeProvider) public override onlyOperator returns (bool _success) {
-        require(_strategyCodeProvider.isContract(), "!__strategyCodeProvider.isContract");
-        strategyCodeProviderContract = StrategyCodeProvider(_strategyCodeProvider);
+    function setStrategyManager(address _strategyManager) public override onlyOperator returns (bool _success) {
+        require(_strategyManager.isContract(), "!__strategyManager.isContract");
+        strategyManagerContract = StrategyManager(_strategyManager);
         _success = true;
     }
 
-    function setMaxPoolValueJump(uint256 _maxPoolValueJump) public override onlyGovernance returns (bool _success) {
-        maxPoolValueJump = _maxPoolValueJump;
+    function setMaxVaultValueJump(uint256 _maxVaultValueJump) public override onlyGovernance returns (bool _success) {
+        maxVaultValueJump = _maxVaultValueJump;
         _success = true;
     }
 
@@ -104,16 +103,16 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _batchMintAndBurn();
         first = 1;
         last = 0;
-        uint8 _steps = strategyCodeProviderContract.getDepositAllStepCount(strategyHash);
+        uint8 _steps = strategyManagerContract.getDepositAllStepCount(strategyHash);
         for (uint8 _i = 0; _i < _steps; _i++) {
-            bytes[] memory _codes = strategyCodeProviderContract.getPoolDepositAllCodes(payable(address(this)), underlyingToken, strategyHash, _i, _steps);
+            bytes[] memory _codes = strategyManagerContract.getPoolDepositAllCodes(payable(address(this)), underlyingToken, strategyHash, _i, _steps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
                 require(success);
             }
         }
-        poolValue = _calPoolValueInUnderlyingToken();
+        vaultValue = _calVaultValueInUnderlyingToken();
     }
 
     function rebalance() public override ifNotDiscontinued ifNotPaused {
@@ -163,33 +162,33 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
     }
 
     /**
-     * @dev Function to calculate pool value in underlying token (for example DAI)
+     * @dev Function to calculate vault value in underlying token (for example DAI)
      *
      * Note:
      *  - Need to modify this function in future whenever 2nd layer of depositing the underlying token (for example DAI) into any
      *    credit pool like compound is added.
      */
-    function _calPoolValueInUnderlyingToken() internal view returns (uint256) {
+    function _calVaultValueInUnderlyingToken() internal view returns (uint256) {
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            uint256 balanceInUnderlyingToken = strategyCodeProviderContract.getBalanceInUnderlyingToken(payable(address(this)), underlyingToken, strategyHash);
+            uint256 balanceInUnderlyingToken = strategyManagerContract.getBalanceInUnderlyingToken(payable(address(this)), underlyingToken, strategyHash);
             return balanceInUnderlyingToken.add(balance()).sub(depositQueue);
         }
         return balance().sub(depositQueue);
     }
 
     /**
-     * @dev Function to get the underlying token balance of OptyPool Contract
+     * @dev Function to get the underlying token balance of OptyVault Contract
      */
     function balance() public override view returns (uint256) {
         return IERC20(underlyingToken).balanceOf(address(this));
     }
 
     function _withdrawAll() internal {
-        uint8 _steps = strategyCodeProviderContract.getWithdrawAllStepsCount(strategyHash);
+        uint8 _steps = strategyManagerContract.getWithdrawAllStepsCount(strategyHash);
         for (uint8 _i = 0; _i < _steps; _i++) {
             uint8 _iterator = _steps - 1 - _i;
             bytes[] memory _codes =
-                strategyCodeProviderContract.getPoolWithdrawAllCodes(payable(address(this)), underlyingToken, strategyHash, _iterator, _steps);
+                strategyManagerContract.getPoolWithdrawAllCodes(payable(address(this)), underlyingToken, strategyHash, _iterator, _steps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool _success, ) = pool.call(data);
@@ -200,20 +199,20 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
 
     function harvest(bytes32 _hash) public override {
         require(_hash != 0x0000000000000000000000000000000000000000000000000000000000000000, "!invalidHash");
-        uint8 _claimRewardSteps = strategyCodeProviderContract.getClaimRewardStepsCount(_hash);
+        uint8 _claimRewardSteps = strategyManagerContract.getClaimRewardStepsCount(_hash);
         for (uint8 _i = 0; _i < _claimRewardSteps; _i++) {
             bytes[] memory _codes =
-                strategyCodeProviderContract.getPoolClaimAllRewardCodes(payable(address(this)), _hash, _i, _claimRewardSteps);
+                strategyManagerContract.getPoolClaimAllRewardCodes(payable(address(this)), _hash, _i, _claimRewardSteps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
                 require(success);
             }
         }
-        uint8 _harvestSteps = strategyCodeProviderContract.getHarvestRewardStepsCount(_hash);
+        uint8 _harvestSteps = strategyManagerContract.getHarvestRewardStepsCount(_hash);
         for (uint8 _i = 0; _i < _harvestSteps; _i++) {
             bytes[] memory _codes =
-                strategyCodeProviderContract.getPoolHarvestAllRewardCodes(payable(address(this)), underlyingToken, _hash, _i, _harvestSteps);
+                strategyManagerContract.getPoolHarvestAllRewardCodes(payable(address(this)), underlyingToken, _hash, _i, _harvestSteps);
             for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
                 (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
                 (bool success, ) = pool.call(data);
@@ -346,12 +345,12 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
     }
     
     /**
-     * @dev Function to withdraw the lp tokens from the liquidity pool (for example cDAI)
+     * @dev Function to withdraw the vault tokens from the vault (for example cDAI)
      *
      * Requirements:
      *  -   contract function will be called.
-     *  -   _redeemAmount: amount to withdraw from the  liquidity pool. Its uints are:
-     *      in  weth uints i.e. 1e18
+     *  -   _redeemAmount: amount to withdraw from the vault. Its units are:
+     *      in weth uints i.e. 1e18
      */
     function userWithdrawRebalance(uint256 _redeemAmount) public override ifNotPaused nonReentrant returns (bool) {
         require(_redeemAmount > 0, "!_redeemAmount>0");
@@ -420,33 +419,33 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         userWithdrawRebalance(balanceOf(msg.sender));
     }
 
-    function _emergencyBrake(uint256 _poolValue) private returns (bool) {
-        uint256 _blockTransactions = blockToBlockPoolValues[block.number].length;
+    function _emergencyBrake(uint256 _vaultValue) private returns (bool) {
+        uint256 _blockTransactions = blockToBlockVaultValues[block.number].length;
         if (_blockTransactions > 0) {
-            blockToBlockPoolValues[block.number].push(
-                BlockPoolValue({
-                    actualPoolValue: _poolValue,
-                    blockMinPoolValue: _poolValue < blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue
-                        ? _poolValue
-                        : blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue,
-                    blockMaxPoolValue: _poolValue > blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMaxPoolValue
-                        ? _poolValue
-                        : blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMinPoolValue
+            blockToBlockVaultValues[block.number].push(
+                BlockVaultValue({
+                    actualVaultValue: _vaultValue,
+                    blockMinVaultValue: _vaultValue < blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue
+                        ? _vaultValue
+                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue,
+                    blockMaxVaultValue: _vaultValue > blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
+                        ? _vaultValue
+                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue
                 })
             );
             require(
-                isMaxPoolValueJumpAllowed(
+                isMaxVaultValueJumpAllowed(
                     _abs(
-                        blockToBlockPoolValues[block.number][_blockTransactions].blockMinPoolValue,
-                        blockToBlockPoolValues[block.number][_blockTransactions - 1].blockMaxPoolValue
+                        blockToBlockVaultValues[block.number][_blockTransactions].blockMinVaultValue,
+                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
                     ),
-                    _poolValue
+                    _vaultValue
                 ),
-                "!maxPoolValueJump"
+                "!maxVaultValueJump"
             );
         } else {
-            blockToBlockPoolValues[block.number].push(
-                BlockPoolValue({actualPoolValue: _poolValue, blockMinPoolValue: _poolValue, blockMaxPoolValue: _poolValue})
+            blockToBlockVaultValues[block.number].push(
+                BlockVaultValue({actualVaultValue: _vaultValue, blockMinVaultValue: _vaultValue, blockMaxVaultValue: _vaultValue})
             );
         }
     }
@@ -458,8 +457,8 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         return _b.sub(_a);
     }
 
-    function isMaxPoolValueJumpAllowed(uint256 _diff, uint256 _currentPoolValue) public override view returns (bool) {
-        return (_diff.div(_currentPoolValue)).mul(10000) < maxPoolValueJump;
+    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) public override view returns (bool) {
+        return (_diff.div(_currentVaultValue)).mul(10000) < maxVaultValueJump;
     }
 
     function _redeemAndBurn(
@@ -483,7 +482,7 @@ contract RP1Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
 
     function getPricePerFullShare() public override view returns (uint256) {
         if (totalSupply() != 0) {
-            return _calPoolValueInUnderlyingToken().div(totalSupply());
+            return _calVaultValueInUnderlyingToken().div(totalSupply());
         }
         return uint256(0);
     }

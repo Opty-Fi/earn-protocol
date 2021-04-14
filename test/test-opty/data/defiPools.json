@@ -1,5 +1,5 @@
 {
-    "CompoundCodeProvider": {
+    "CompoundAdapter": {
         "dai": {
             "pool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
             "lpToken": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
@@ -41,7 +41,7 @@
             "tokens": ["0x1985365e9f78359a9b6ad760e32412f4a445e862"]
         }
     },
-    "AaveV1CodeProvider": {
+    "AaveV1Adapter": {
         "dai": {
             "pool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
             "lpToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
@@ -123,7 +123,7 @@
             "tokens": ["0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9"]
         }
     },
-    "DForceCodeProvider": {
+    "DForceAdapter": {
         "dai": {
             "pool": "0x02285AcaafEB533e03A7306C55EC031297df9224",
             "lpToken": "0x02285AcaafEB533e03A7306C55EC031297df9224",
@@ -145,7 +145,7 @@
             "tokens": ["0x0000000000085d4780B73119b644AE5ecd22b376"]
         }
     },
-    "FulcrumCodeProvider": {
+    "FulcrumAdapter": {
         "dai": {
             "pool": "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
             "lpToken": "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
@@ -197,22 +197,7 @@
             "tokens": ["0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"]
         }
     },
-    "HarvestCodeProvider": {
-        "yDAI+yUSDC+yUSDT+yBUSD_fyDAI+yUSDC+yUSDT+yBUSD": {
-            "pool": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-            "lpToken": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-            "tokens": ["0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B"]
-        },
-        "yDAI+yUSDC+yUSDT+yTUSD_fYCRV": {
-            "pool": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-            "lpToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-            "tokens": ["0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"]
-        },
-        "cdai_cusdc": {
-            "pool": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
-            "lpToken": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
-            "tokens": ["0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2"]
-        },
+    "HarvestAdapter": {
         "dai": {
             "pool": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
             "lpToken": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
@@ -254,27 +239,7 @@
             "tokens": ["0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D"]
         }
     },
-    "YVaultCodeProvider": {
-        "link_yalink": {
-            "pool": "0x29E240CFD7946BA20895a7a02eDb25C210f9f324",
-            "lpToken": "0x29E240CFD7946BA20895a7a02eDb25C210f9f324",
-            "tokens": ["0x514910771AF9Ca656af840dff83E8264EcF986CA"]
-        },
-        "yDAI+yUSDC+yUSDT+yBUSD_yyDAI+yUSDC+yUSDT+yBUSD": {
-            "pool": "0x2994529c0652d127b7842094103715ec5299bbed",
-            "lpToken": "0x2994529c0652d127b7842094103715ec5299bbed",
-            "tokens": ["0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B"]
-        },
-        "yDAI+yUSDC+yUSDT+yTUSD_yyDAI+yUSDC+yUSDT+yTUSD": {
-            "pool": "0x5dbcF33D8c2E976c6b560249878e6F1491Bca25c",
-            "lpToken": "0x5dbcF33D8c2E976c6b560249878e6F1491Bca25c",
-            "tokens": ["0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"]
-        },
-        "cDAI+cUSDC_yvcDAI+cUSDC": {
-            "pool": "0x629c759D1E83eFbF63d84eb3868B564d9521C129",
-            "lpToken": "0x629c759D1E83eFbF63d84eb3868B564d9521C129",
-            "tokens": ["0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2"]
-        },
+    "YVaultAdapter": {
         "dai": {
             "pool": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
             "lpToken": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
@@ -321,12 +286,7 @@
             "tokens": ["0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e"]
         }
     },
-    "CurvePoolCodeProvider": {
-        "cdai_cdai+cusdc": {
-            "pool": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
-            "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
-            "tokens": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"]
-        },
+    "CurvePoolAdapter": {
         "dai_dai+usdc": {
             "pool": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
             "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
@@ -344,11 +304,6 @@
                 "0x6b175474e89094c44da98b954eedeac495271d0f",
                 "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
             ]
-        },
-        "cdai_cdai+cusdc+cusdt": {
-            "pool": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
-            "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
-            "tokens": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"]
         },
         "dai_dai+usdc+usdt": {
             "pool": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
@@ -374,16 +329,6 @@
                 "0xdac17f958d2ee523a2206206994597c13d831ec7"
             ]
         },
-        "ydai_ypaxCrv": {
-            "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
-            "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
-            "tokens": ["0xACd43E627e64355f1861cEC6d3a6688B31a6F952"]
-        },
-        "cdai_ypaxCrv": {
-            "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
-            "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
-            "tokens": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"]
-        },
         "dai_ypaxCrv": {
             "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
             "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
@@ -398,11 +343,6 @@
             "pool": "0xA50cCc70b6a011CffDdf45057E39679379187287",
             "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
             "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
-        },
-        "ydai_dai+usdc+usdt+tusd": {
-            "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-            "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-            "tokens": ["0xACd43E627e64355f1861cEC6d3a6688B31a6F952"]
         },
         "dai_dai+usdc+usdt+tusd": {
             "pool": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
@@ -454,11 +394,6 @@
             "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
             "tokens": ["0x57ab1ec28d129707052df4df418d58a2d46d5f51"]
         },
-        "ydai_dai+usdc+usdt+busd": {
-            "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
-            "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
-            "tokens": ["0xACd43E627e64355f1861cEC6d3a6688B31a6F952"]
-        },
         "dai_dai+usdc+usdt+busd": {
             "pool": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
             "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
@@ -490,7 +425,7 @@
             ]
         }
     },
-    "CurveSwapCodeProvider": {
+    "CurveSwapAdapter": {
         "dai_3crv": {
             "pool": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
@@ -577,19 +512,14 @@
             "tokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
         }
     },
-    "dYdXCodeProvider": {
+    "dYdXAdapter": {
         "dai": {
             "pool": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
             "lpToken": "0x0000000000000000000000000000000000000000",
             "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
         }
     },
-    "CreamCodeProvider": {
-        "yDAI+yUSDC+yUSDT+yTUSD_crYCRV": {
-            "pool": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-            "lpToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-            "tokens": ["0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"]
-        },
+    "CreamAdapter": {
         "usdc": {
             "pool": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
             "lpToken": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
@@ -641,7 +571,7 @@
             "tokens": ["0x0316EB71485b0Ab14103307bf65a021042c6d380"]
         }
     },
-    "AaveV2CodeProvider": {
+    "AaveV2Adapter": {
         "dai": {
             "pool": "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             "lpToken": "0x028171bCA77440897B824Ca71D1c56caC55b68A3",

@@ -3,29 +3,29 @@
 pragma solidity ^0.6.10;
 
 import "./../RiskManager.sol";
-import "./../StrategyCodeProvider.sol";
+import "./../StrategyManager.sol";
 import "./../OPTYToken/OPTYMinter.sol";
 
-contract PoolStorage {
+contract VaultStorage {
     struct Operation {
         address account;
         bool isDeposit;
         uint256 value;
     }
 
-    struct BlockPoolValue {
-        uint256 actualPoolValue;
-        uint256 blockMinPoolValue;
-        uint256 blockMaxPoolValue;
+    struct BlockVaultValue {
+        uint256 actualVaultValue;
+        uint256 blockMinVaultValue;
+        uint256 blockMaxVaultValue;
     }
 
     address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     bytes32 public strategyHash;
     address public underlyingToken; //  store the underlying token contract address (for example DAI)
-    uint256 public poolValue;
+    uint256 public vaultValue;
     uint256 public gasOwedToOperator;
     string public profile;
-    StrategyCodeProvider public strategyCodeProviderContract;
+    StrategyManager public strategyManagerContract;
     RiskManager public riskManagerContract;
     OPTYMinter public optyMinterContract;
 
@@ -36,8 +36,8 @@ contract PoolStorage {
     mapping(uint256 => Operation) public queue;
     mapping(address => uint256) public pendingDeposits;
     mapping(address => uint256) public pendingWithdraws;
-    uint256 public maxPoolValueJump; // basis points
-    mapping(uint256 => BlockPoolValue[]) public blockToBlockPoolValues;
+    uint256 public maxVaultValueJump; // basis points
+    mapping(uint256 => BlockVaultValue[]) public blockToBlockVaultValues;
 
     event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
     event WithdrawQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);

@@ -1,0 +1,108 @@
+{
+    "title": "EmergencyBrake: Negative (reverts)",
+    "description": "Test cases for the EmergencyBrake function.",
+    "vaults": [
+        {
+            "name": "RP1Vault",
+            "maxJump": 100,
+            "stories": [
+                {
+                    "description": "[Double deposit in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
+                    "actions": [
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 1
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runTwoTxnDepositRebalance(uint256,uint256)",
+                            "args": {
+                                "max_amount": 100000,
+                                "min_amount": 1
+                            },
+                            "expect": "fail",
+                            "message": "!maxVaultValueJump"
+                        }
+                    ]
+                },
+                {
+                    "description": "[Double withDraw in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
+                    "actions": [
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 10001
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runTwoTxnWithdrawRebalance(uint256,uint256)",
+                            "args": {
+                                "max_amount": 10000,
+                                "min_amount": 1
+                            },
+                            "expect": "fail",
+                            "message": "!maxVaultValueJump"
+                        }
+                    ]
+                },
+                {
+                    "description": "[Double rebalance in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
+                    "actions": [
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 10001
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runTwoTxnRebalance(uint256,uint256)",
+                            "args": {
+                                "max_amount": 10000,
+                                "min_amount": 1
+                            },
+                            "expect": "fail",
+                            "message": "!maxVaultValueJump"
+                        }
+                    ]
+                },
+                {
+                    "description": "[Deposit and withdraw in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
+                    "actions": [
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 1
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "emergencyBrake",
+                            "action": "runTwoTxnWithdrawAndDepositRebalance(uint256,uint256)",
+                            "args": {
+                                "max_amount": 10000,
+                                "min_amount": 1
+                            },
+                            "expect": "fail",
+                            "message": "!maxVaultValueJump"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

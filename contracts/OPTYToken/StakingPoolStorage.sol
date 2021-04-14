@@ -3,7 +3,6 @@
 pragma solidity ^0.6.10;
 
 import "./../RiskManager.sol";
-import "./../StrategyCodeProvider.sol";
 import "./../OPTYToken/OPTYMinter.sol";
 
 contract StakingPoolStorage {

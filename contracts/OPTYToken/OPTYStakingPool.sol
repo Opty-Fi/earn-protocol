@@ -5,10 +5,8 @@ pragma experimental ABIEncoderV2;
 
 import "./../libraries/SafeERC20.sol";
 import "./../utils/ERC20.sol";
-import "./../utils/Ownable.sol";
 import "./../utils/ReentrancyGuard.sol";
 import "./../RiskManager.sol";
-import "./../StrategyCodeProvider.sol";
 import "./StakingPoolStorage.sol";
 
 /**

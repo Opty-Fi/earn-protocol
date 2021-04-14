@@ -7,5 +7,5 @@ test/SS_NO_CP_strategies.json
 **/.DS_Store*
 test/gasRecordFiles/*
 desktop.ini
-**/*strategies*.json
+
 .vscode/
