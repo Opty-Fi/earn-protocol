@@ -18,6 +18,21 @@ import "../interfaces/opty/IVault.sol";
 contract Registry is ModifiersController {
     using Address for address;
 
+    
+     /**
+     * @dev Sets multiple `_token` from the {tokens} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     */
+     
+    function approveTokens(address[] memory _tokens) public onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
+            address _token = _tokens[_i];
+            approveToken(_token);
+        }
+        return true;
+    }
+    
     /**
      * @dev Sets `_token` from the {tokens} mapping.
      *
@@ -39,7 +54,21 @@ contract Registry is ModifiersController {
         emit LogToken(msg.sender, _token, tokens[_token]);
         return true;
     }
-
+    
+    /**
+     * @dev Revokes multiple `_token` from the {tokens} mapping.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     */
+     
+    function revokeTokens(address[] memory _tokens) public onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
+            address _token = _tokens[_i];
+            revokeToken(_token);
+        }
+        return true;
+    }
+    
     /**
      * @dev Revokes `_token` from the {tokens} mapping.
      *
@@ -57,6 +86,18 @@ contract Registry is ModifiersController {
         require(tokens[_token], "!tokens");
         tokens[_token] = false;
         emit LogToken(msg.sender, _token, tokens[_token]);
+        return true;
+    }
+    
+    /**
+     * @dev Sets multiple `_pool` from the {liquidityPools} mapping.
+     *
+     */
+    function approveLiquidityPools(address[] memory _pools) public onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
+            address _pool = _pools[_i];
+            approveLiquidityPool(_pool);
+        }
         return true;
     }
 
@@ -79,6 +120,18 @@ contract Registry is ModifiersController {
         require(!liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
         liquidityPools[_pool].isLiquidityPool = true;
         emit LogLiquidityPool(msg.sender, _pool, liquidityPools[_pool].isLiquidityPool);
+        return true;
+    }
+    
+    /**
+     * @dev Revokes multiple `_pool` from the {liquidityPools} mapping.
+     *
+     */
+    function revokeLiquidityPools(address[] memory _pools) public onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
+            address _pool = _pools[_i];
+            revokeLiquidityPool(_pool);
+        }
         return true;
     }
 
@@ -104,10 +157,24 @@ contract Registry is ModifiersController {
     /**
      * @dev Returns the liquidity pool by `_pool`.
      */
+     
     function getLiquidityPool(address _pool) public view returns (LiquidityPool memory _liquidityPool) {
         _liquidityPool = liquidityPools[_pool];
     }
-
+    
+     /**
+     * @dev Provide [`_pool`,`_rate`] from the {liquidityPools} mapping.
+     * 
+     */
+    
+    function rateLiquidityPools(PoolRate[] memory _poolRates) public onlyGovernance returns (bool) {
+        for(uint8 _i = 0; _i < _poolRates.length; _i++){
+            PoolRate memory poolRate = _poolRates[_i];
+            rateLiquidityPool(poolRate.pool, poolRate.rate);
+        }
+        return true;
+    }
+    
     /**
      * @dev Provide `_rate` to `_pool` from the {liquidityPools} mapping.
      *
@@ -127,7 +194,19 @@ contract Registry is ModifiersController {
         emit LogRateLiquidityPool(msg.sender, _pool, liquidityPools[_pool].rating);
         return true;
     }
-
+    
+    /**
+     * @dev Sets multiple `_pool` from the {creditPools} mapping.
+     *
+     */
+    function approveCreditPools(address[] memory _pools) public onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
+            address _pool = _pools[_i];
+            approveCreditPool(_pool);
+        }
+        return true;
+    }
+    
     /**
      * @dev Sets `_pool` from the {creditPools} mapping.
      *
@@ -149,7 +228,19 @@ contract Registry is ModifiersController {
         emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isLiquidityPool);
         return true;
     }
-
+    
+    /**
+     * @dev Revokes multiple `_pool` from the {revokeCreditPools} mapping.
+     *
+     */
+    function revokeCreditPools(address[] memory _pools) public onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
+            address _pool = _pools[_i];
+            revokeLiquidityPool(_pool);
+        }
+        return true;
+    }
+    
     /**
      * @dev Revokes `_pool` from the {creditPools} mapping.
      *
@@ -175,7 +266,20 @@ contract Registry is ModifiersController {
     function getCreditPool(address _pool) public view returns (LiquidityPool memory _creditPool) {
         _creditPool = creditPools[_pool];
     }
-
+    
+    /**
+     * @dev Provide [`_pool`,`_rate`] from the {creditPools} mapping.
+     * 
+     */
+    
+    function rateCreditPools(PoolRate[] memory _poolRates) public onlyGovernance returns (bool) {
+        for(uint8 _i = 0; _i < _poolRates.length; _i++){
+            PoolRate memory poolRate = _poolRates[_i];
+            rateCreditPool(poolRate.pool, poolRate.rate);
+        }
+        return true;
+    }
+    
     /**
      * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
      *
@@ -195,7 +299,19 @@ contract Registry is ModifiersController {
         emit LogRateCreditPool(msg.sender, _pool, creditPools[_pool].rating);
         return true;
     }
-
+    
+    /**
+     * @dev Sets multiple liquidity `_pool` corresponding to the protocol adapter `_adapter` from the {liquidityPoolToAdapter} mapping.
+     *
+     */
+    function setLiquidityPoolToAdapter(PoolAdapter[] memory _poolAdapters) public onlyOperator returns (bool) {
+        for(uint8 _i = 0; _i < _poolAdapters.length; _i++){
+            PoolAdapter memory _poolAdapter = _poolAdapters[_i];
+            setLiquidityPoolToAdapter(_poolAdapter.pool, _poolAdapter.adapter);
+        }
+        return true;
+    }
+    
     /**
      * @dev Sets liquidity `_pool` to the protocol adapter `_adapter` from the {liquidityPoolToAdapter} mapping.
      *
@@ -296,7 +412,17 @@ contract Registry is ModifiersController {
     function getTokenToStrategies(bytes32 _tokensHash) public view returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];
     }
-
+    
+    /**
+     * @dev Sets multiple `_tokens` to keccak256 hash the {tokensHashToTokens} mapping.
+     *
+     */
+    function setMultipleTokensHashToTokens(address[][] memory _setOfTokens) public onlyOperator {
+        for (uint8 _i = 0; _i < uint8(_setOfTokens.length); _i++) {
+            setTokensHashToTokens(_setOfTokens[_i]);
+        }
+    }
+    
     /**
      * @dev Sets `_tokens` to keccak256 hash the {tokensHashToTokens} mapping.
      *

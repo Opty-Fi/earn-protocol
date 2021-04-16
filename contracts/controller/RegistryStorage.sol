@@ -60,6 +60,16 @@ contract Structs {
         uint256 index;
         address[] tokens;
     }
+    
+    struct PoolRate {
+        address pool;
+        uint8 rate;
+    }
+    
+    struct PoolAdapter {
+        address pool;
+        address adapter;
+    }
 }
 
 contract RegistryStorage is RegistryAdminStorage, Structs {
