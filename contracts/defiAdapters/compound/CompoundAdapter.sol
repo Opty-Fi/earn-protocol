@@ -17,7 +17,9 @@ contract CompoundAdapter is IAdapter, Modifiers {
 
     address public comptroller;
     address public rewardToken;
-
+    
+    enum MaxExposure { Number, Pct }
+    MaxExposure public maxExposureType;
     uint256 public maxDepositPoolPctDefault; // basis points
     mapping(address => uint256) public maxDepositPoolPct; // basis points
     uint256 public maxDepositAmountDefault;
@@ -29,7 +31,8 @@ contract CompoundAdapter is IAdapter, Modifiers {
         setRewardToken(address(0xc00e94Cb662C3520282E6f5717214004A7f26888));
         setComptroller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
         setHarvestCodeProvider(_harvestCodeProvider);
-        setMaxDepositPoolPctDefault(uint256(5000)); // 50%
+        setMaxDepositPoolPctDefault(uint256(10000)); // 100%
+        setMaxDepositPoolType(MaxExposure.Number);
     }
 
     function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
@@ -60,7 +63,7 @@ contract CompoundAdapter is IAdapter, Modifiers {
         _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyVault);
         return getDepositSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _amounts);
     }
-
+    
     function getBorrowAllCodes(
         address payable,
         address[] memory,
@@ -310,6 +313,10 @@ contract CompoundAdapter is IAdapter, Modifiers {
     function setHarvestCodeProvider(address _harvestCodeProvider) public onlyOperator {
         harvestCodeProviderContract = HarvestCodeProvider(_harvestCodeProvider);
     }
+    
+    function setMaxDepositPoolType(MaxExposure _type) public onlyGovernance {
+        maxExposureType = _type;
+    }
 
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
@@ -327,10 +334,9 @@ contract CompoundAdapter is IAdapter, Modifiers {
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
-    function _getDepositAmount(address _liquidityPool, uint256 _amount) public view returns (uint256 _depositAmount) {
+    function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint256 _limit = _getMaxDepositAmountByPct(_liquidityPool, _amount);
-        _limit = _getMaxDepositAmount(_liquidityPool, _limit);
+        uint256 _limit = maxExposureType == MaxExposure.Pct ? _getMaxDepositAmountByPct(_liquidityPool, _amount) : _getMaxDepositAmount(_liquidityPool, _amount);
         if (_limit != 0 && _depositAmount > _limit) {
             _depositAmount = _limit;
         }

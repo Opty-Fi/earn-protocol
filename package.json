@@ -55,7 +55,7 @@
         "precompile": "yarn clean",
         "compile": "waffle .waffle.json",
         "test": "yarn compile && yarn test:dev",
-        "test:dev": "hardhat test test/test-opty/*.spec.ts",
+        "test:dev": "hardhat test test/test-opty/invest-limitation.spec.ts",
         "prepublishOnly": "yarn test",
         "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol ",
         "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
