@@ -58,13 +58,13 @@
         ],
         "DForceAdapter": [
             {
-                "strategyName": "USDC-deposit-DFORCE-dUSDC",
-                "token": "USDC",
+                "strategyName": "DAI-deposit-DFORCE-dDAI",
+                "token": "DAI",
                 "strategy": [
                     {
-                        "contract": "0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179",
-                        "outputTokenSymbol": "dUSDC",
-                        "outputToken": "0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179",
+                        "contract": "0x02285AcaafEB533e03A7306C55EC031297df9224",
+                        "outputTokenSymbol": "dDAI",
+                        "outputToken": "0x02285acaafeb533e03a7306c55ec031297df9224",
                         "isBorrow": false
                     }
                 ]

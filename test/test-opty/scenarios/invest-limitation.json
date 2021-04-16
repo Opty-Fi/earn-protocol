@@ -23,7 +23,10 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmount(address,uint256)",
                             "args": {
-                                "amount": "500000000000000000"
+                                "amount": {
+                                    "DAI": "500000000000000000",
+                                    "USDC": "500000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -33,7 +36,10 @@
                             "contract": "erc20",
                             "action": "approve(address,uint256)",
                             "args": {
-                                "amount": "2000000000000000000"
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -43,7 +49,10 @@
                             "contract": "vault",
                             "action": "userDepositRebalance(uint256)",
                             "args": {
-                                "amount": "2000000000000000000"
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -55,7 +64,10 @@
                             "contract": "vault",
                             "action": "balance()",
                             "args": {},
-                            "expectedValue": "1500000000000000000"
+                            "expectedValue": {
+                                "DAI": "1500000000000000000",
+                                "USDC": "1500000"
+                            }
                         }
                     ]
                 },
@@ -77,7 +89,10 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmount(address,uint256)",
                             "args": {
-                                "amount": 0
+                                "amount": {
+                                    "DAI": "0",
+                                    "USDC": "0"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -87,7 +102,10 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmountDefault(address,uint256)",
                             "args": {
-                                "amount": "500000000000000000"
+                                "amount": {
+                                    "DAI": "500000000000000000",
+                                    "USDC": "500000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -97,7 +115,10 @@
                             "contract": "erc20",
                             "action": "approve(address,uint256)",
                             "args": {
-                                "amount": "2000000000000000000"
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -107,7 +128,10 @@
                             "contract": "vault",
                             "action": "userDepositRebalance(uint256)",
                             "args": {
-                                "amount": "2000000000000000000"
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -119,7 +143,10 @@
                             "contract": "vault",
                             "action": "balance()",
                             "args": {},
-                            "expectedValue": "1500000000000000000"
+                            "expectedValue": {
+                                "DAI": "1500000000000000000",
+                                "USDC": "1500000"
+                            }
                         }
                     ]
                 },
@@ -141,7 +168,10 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmount(address,uint256)",
                             "args": {
-                                "amount": 0
+                                "amount": {
+                                    "DAI": "0",
+                                    "USDC": "0"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -151,7 +181,10 @@
                             "contract": "erc20",
                             "action": "approve(address,uint256)",
                             "args": {
-                                "amount": "2000000000000000000"
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -161,7 +194,10 @@
                             "contract": "vault",
                             "action": "userDepositRebalance(uint256)",
                             "args": {
-                                "amount": "2000000000000000000"
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000"
+                                }
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -173,7 +209,7 @@
                             "contract": "vault",
                             "action": "balance()",
                             "args": {},
-                            "expectedValue": "0"
+                            "expectedValue": { "DAI": "0", "USDC": "0" }
                         }
                     ]
                 },
@@ -202,7 +238,7 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmount(address,uint256)",
                             "args": {
-                                "amount": 0
+                                "amount": { "DAI": "0", "USDC": "0" }
                             },
                             "executer": "admin",
                             "expect": "fail",
@@ -219,7 +255,7 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmountDefault(uint256)",
                             "args": {
-                                "amount": 0
+                                "amount": { "DAI": "0", "USDC": "0" }
                             },
                             "executer": "admin",
                             "expect": "fail",
@@ -236,7 +272,7 @@
                             "contract": "adapter",
                             "action": "setMaxDepositPoolPct(address,uint256)",
                             "args": {
-                                "amount": 0
+                                "amount": { "DAI": "0", "USDC": "0" }
                             },
                             "executer": "admin",
                             "expect": "fail",

@@ -194,7 +194,6 @@ async function approveLiquidityPoolAndMapAdapters(
                             TypedDefiPools[adapter][token].lpToken,
                             adapters[adapter].address
                         );
-                        console.log(TypedDefiPools[adapter][token].lpToken);
                     } catch (error) {
                         console.log(
                             `Got error when executing approveLiquidityPoolAndMapAdapters for ${token} : ${error}`

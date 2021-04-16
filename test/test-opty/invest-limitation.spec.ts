@@ -16,9 +16,16 @@ import {
     getBlockTimestamp,
 } from "./utils/helpers";
 import scenarios from "./scenarios/invest-limitation.json";
+type ARGUMENTS = {
+    amount?: { [key: string]: string };
+    type?: number;
+};
 describe(scenarios.title, () => {
     // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
-    const MAX_AMOUNT = BigNumber.from("20000000000000000000");
+    const MAX_AMOUNT: { [key: string]: BigNumber } = {
+        DAI: BigNumber.from("20000000000000000000"),
+        USDC: BigNumber.from("20000000"),
+    };
     let essentialContracts: ESSENTIAL_CONTRACTS;
     let adapters: CONTRACTS;
     let users: { [key: string]: Signer };
@@ -37,16 +44,12 @@ describe(scenarios.title, () => {
 
     for (let i = 0; i < scenarios.vaults.length; i++) {
         describe(`${scenarios.vaults[i].name}`, async () => {
-            const stories = scenarios.vaults[i].stories;
-            const adaptersName = Object.keys(
-                TypedAdapterStrategies[scenarios.vaults[i].name]
-            );
+            const vault = scenarios.vaults[i];
+            const stories = vault.stories;
+            const adaptersName = Object.keys(TypedAdapterStrategies[vault.name]);
             for (let i = 0; i < adaptersName.length; i++) {
-                if (adaptersName[i] !== "CompoundAdapter") {
-                    break;
-                }
-                const strategies =
-                    TypedAdapterStrategies[scenarios.vaults[i].name][adaptersName[i]];
+                const adapterName = adaptersName[i];
+                const strategies = TypedAdapterStrategies[vault.name][adaptersName[i]];
 
                 for (let i = 0; i < strategies.length; i++) {
                     describe(`${strategies[i].strategyName}`, async () => {
@@ -58,7 +61,7 @@ describe(scenarios.title, () => {
                         const contracts: CONTRACTS = {};
                         before(async () => {
                             try {
-                                const adapter = adapters[adaptersName[i]];
+                                const adapter = adapters[adapterName];
                                 const Vault = await deployVault(
                                     essentialContracts.registry.address,
                                     essentialContracts.riskManager.address,
@@ -84,7 +87,7 @@ describe(scenarios.title, () => {
                                 await fundWalletToken(
                                     TOKENS[strategy.token],
                                     users["owner"],
-                                    MAX_AMOUNT,
+                                    MAX_AMOUNT[strategy.token],
                                     timestamp
                                 );
 
@@ -111,7 +114,9 @@ describe(scenarios.title, () => {
                                         const setAction = story.setActions[i];
                                         switch (setAction.action) {
                                             case "setMaxDepositPoolType(uint8)": {
-                                                const { type } = setAction.args;
+                                                const {
+                                                    type,
+                                                }: ARGUMENTS = setAction.args;
                                                 if (setAction.expect === "success") {
                                                     await contracts[setAction.contract]
                                                         .connect(
@@ -134,7 +139,9 @@ describe(scenarios.title, () => {
                                                 break;
                                             }
                                             case "setMaxDepositAmount(address,uint256)": {
-                                                const { amount } = setAction.args;
+                                                const {
+                                                    amount,
+                                                }: ARGUMENTS = setAction.args;
                                                 if (setAction.expect === "success") {
                                                     await contracts[setAction.contract]
                                                         .connect(
@@ -144,6 +151,8 @@ describe(scenarios.title, () => {
                                                             contracts["adapter"]
                                                                 .address,
                                                             amount
+                                                                ? amount[strategy.token]
+                                                                : "0"
                                                         );
                                                 } else {
                                                     await expect(
@@ -157,16 +166,21 @@ describe(scenarios.title, () => {
                                                                 contracts["adapter"]
                                                                     .address,
                                                                 amount
+                                                                    ? amount[
+                                                                          strategy.token
+                                                                      ]
+                                                                    : "0"
                                                             )
                                                     ).to.be.revertedWith(
                                                         setAction.message
                                                     );
                                                 }
-
                                                 break;
                                             }
                                             case "approve(address,uint256)": {
-                                                const { amount } = setAction.args;
+                                                const {
+                                                    amount,
+                                                }: ARGUMENTS = setAction.args;
                                                 if (setAction.expect === "success") {
                                                     await contracts[setAction.contract]
                                                         .connect(
@@ -175,6 +189,8 @@ describe(scenarios.title, () => {
                                                         [setAction.action](
                                                             contracts["vault"].address,
                                                             amount
+                                                                ? amount[strategy.token]
+                                                                : "0"
                                                         );
                                                 } else {
                                                     await expect(
@@ -188,22 +204,41 @@ describe(scenarios.title, () => {
                                                                 contracts["vault"]
                                                                     .address,
                                                                 amount
+                                                                    ? amount[
+                                                                          strategy.token
+                                                                      ]
+                                                                    : "0"
                                                             )
                                                     ).to.be.revertedWith(
                                                         setAction.message
                                                     );
                                                 }
-
                                                 break;
                                             }
                                             case "userDepositRebalance(uint256)": {
-                                                const { amount } = setAction.args;
+                                                const {
+                                                    amount,
+                                                }: ARGUMENTS = setAction.args;
                                                 if (setAction.expect === "success") {
+                                                    const userAddr = await users[
+                                                        "owner"
+                                                    ].getAddress();
+                                                    const balance = await contracts[
+                                                        "vault"
+                                                    ].symbol();
+                                                    const allowance = await contracts[
+                                                        "erc20"
+                                                    ].allowance(
+                                                        userAddr,
+                                                        contracts["vault"].address
+                                                    );
                                                     await contracts[setAction.contract]
                                                         .connect(
                                                             users[setAction.executer]
                                                         )
-                                                        [setAction.action](amount);
+                                                        [setAction.action](
+                                                            amount ? "1" : "0"
+                                                        );
                                                 } else {
                                                     await expect(
                                                         contracts[setAction.contract]
@@ -212,12 +247,17 @@ describe(scenarios.title, () => {
                                                                     setAction.executer
                                                                 ]
                                                             )
-                                                            [setAction.action](amount)
+                                                            [setAction.action](
+                                                                amount
+                                                                    ? amount[
+                                                                          strategy.token
+                                                                      ]
+                                                                    : "0"
+                                                            )
                                                     ).to.be.revertedWith(
                                                         setAction.message
                                                     );
                                                 }
-
                                                 break;
                                             }
                                             default:
@@ -244,7 +284,9 @@ describe(scenarios.title, () => {
                                         const setAction = story.setActions[i];
                                         switch (setAction.action) {
                                             case "setMaxDepositPoolType(uint8)": {
-                                                const { type } = setAction.args;
+                                                const {
+                                                    type,
+                                                }: ARGUMENTS = setAction.args;
                                                 if (setAction.expect === "success") {
                                                     await contracts[setAction.contract]
                                                         .connect(
@@ -267,26 +309,28 @@ describe(scenarios.title, () => {
                                                 break;
                                             }
                                             case "setMaxDepositPoolPct(address,uint256)": {
-                                                const { amount } = setAction.args;
-                                                const percentage = BigNumber.from(
-                                                    amount
-                                                ).div(BigNumber.from("10000"));
+                                                const {
+                                                    amount,
+                                                }: ARGUMENTS = setAction.args;
+
                                                 const poolValue = await contracts[
                                                     "adapter"
                                                 ].getPoolValue(
                                                     strategy.strategy[0].contract,
-                                                    ADDRESS_ZERO
+                                                    TOKENS[strategy.token]
                                                 );
-                                                console.log(percentage.toString());
-                                                console.log(poolValue.toString());
                                                 maxValue = BigNumber.from(poolValue)
-                                                    .mul(BigNumber.from(amount))
+                                                    .mul(
+                                                        BigNumber.from(
+                                                            amount
+                                                                ? amount[strategy.token]
+                                                                : "0"
+                                                        )
+                                                    )
                                                     .div(BigNumber.from("10000"));
-                                                console.log(maxValue.toString());
                                                 investedValue = maxValue.mul(
                                                     BigNumber.from("2")
                                                 );
-                                                console.log(investedValue.toString());
                                                 if (setAction.expect === "success") {
                                                     await contracts[setAction.contract]
                                                         .connect(
@@ -295,7 +339,13 @@ describe(scenarios.title, () => {
                                                         [setAction.action](
                                                             contracts["adapter"]
                                                                 .address,
-                                                            amount
+                                                            BigNumber.from(
+                                                                amount
+                                                                    ? amount[
+                                                                          strategy.token
+                                                                      ]
+                                                                    : "0"
+                                                            )
                                                         );
                                                 } else {
                                                     await expect(
@@ -308,13 +358,19 @@ describe(scenarios.title, () => {
                                                             [setAction.action](
                                                                 contracts["adapter"]
                                                                     .address,
-                                                                amount
+                                                                BigNumber.from(
+                                                                    amount
+                                                                        ? amount[
+                                                                              strategy
+                                                                                  .token
+                                                                          ]
+                                                                        : "0"
+                                                                )
                                                             )
                                                     ).to.be.revertedWith(
                                                         setAction.message
                                                     );
                                                 }
-
                                                 break;
                                             }
                                             case "approve(address,uint256)": {
@@ -344,11 +400,9 @@ describe(scenarios.title, () => {
                                                         setAction.message
                                                     );
                                                 }
-
                                                 break;
                                             }
                                             case "userDepositRebalance(uint256)": {
-                                                console.log(investedValue.toString());
                                                 if (setAction.expect === "success") {
                                                     await contracts[setAction.contract]
                                                         .connect(
@@ -372,7 +426,6 @@ describe(scenarios.title, () => {
                                                         setAction.message
                                                     );
                                                 }
-
                                                 break;
                                             }
                                             default:
