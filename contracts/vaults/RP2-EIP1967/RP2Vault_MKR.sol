@@ -97,7 +97,7 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _success = true;
     }
 
-    function _supplyAll() internal ifNotDiscontinued ifNotPaused {
+    function _supplyAll() internal ifNotDiscontinued(address(this)) ifNotPaused(address(this)) {
         uint256 _tokenBalance = IERC20(underlyingToken).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
         _batchMintAndBurn();
@@ -115,7 +115,7 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         vaultValue = _calVaultValueInUnderlyingToken();
     }
 
-    function rebalance() public override ifNotDiscontinued ifNotPaused {
+    function rebalance() public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) {
         uint256 _gasInitial;
         
         if (msg.sender == registryContract.operator()) {
@@ -233,7 +233,7 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userDeposit(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDeposit(uint256 _amount) public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         last++;
@@ -244,13 +244,13 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _success = true;
     }
 
-    function userDepositAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAndStake(uint256 _amount) public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         userDeposit(_amount);
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
     
-    function userDepositAllAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAllAndStake() public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
@@ -294,7 +294,7 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userDepositRebalance(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositRebalance(uint256 _amount) public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
 
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
@@ -328,13 +328,13 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _success = true;
     }
 
-    function userDepositRebalanceAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositRebalanceAndStake(uint256 _amount) public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         userDepositRebalance(_amount);
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
     }
     
-    function userDepositAllRebalanceAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAllRebalanceAndStake() public override ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
         optyMinterContract.claimAndStake(msg.sender);
         _success = true;
@@ -352,12 +352,12 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
      *  -   _redeemAmount: amount to withdraw from the vault. Its units are:
      *      in weth uints i.e. 1e18
      */
-    function userWithdrawRebalance(uint256 _redeemAmount) public override ifNotPaused nonReentrant returns (bool) {
+    function userWithdrawRebalance(uint256 _redeemAmount) public override ifNotPaused(address(this)) nonReentrant returns (bool) {
         require(_redeemAmount > 0, "!_redeemAmount>0");
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "!!balance");
 
-        if (!discontinued) {
+        if (!registryContract.vaultToDiscontinued(address(this))) {
             _withdrawAll();
             harvest(strategyHash);
         }
@@ -369,7 +369,7 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         optyMinterContract.updateOptyVaultIndex(address(this));
         optyMinterContract.updateUserStateInVault(address(this), msg.sender);
 
-        if (!discontinued && (balance() > 0)) {
+        if (!registryContract.vaultToDiscontinued(address(this)) && (balance() > 0)) {
             _emergencyBrake(balance());
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = underlyingToken;
@@ -487,17 +487,15 @@ contract RP2Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         return uint256(0);
     }
 
-    function discontinue() public override onlyOperator {
-        discontinued = true;
+    function discontinue() public override onlyRegistry {
         if (strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();
             harvest(strategyHash);
         }
     }
 
-    function setPaused(bool _paused) public override onlyOperator {
-        paused = _paused;
-        if (paused && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+    function setPaused(bool _paused) public override onlyRegistry {
+        if (_paused && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();
             harvest(strategyHash);
         }

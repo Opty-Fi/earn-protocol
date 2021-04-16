@@ -1,0 +1,112 @@
+{
+    "title": "Discontinue and Pause: Positive (pass) and Negative (reverts)",
+    "description": "Test cases for the setDiscontinue() and setPause() functions",
+    "vaults": [
+        {
+            "name": "RP1Vault",
+            "stories": [
+                {
+                    "description": "[Vault is neither paused nor discontinued] Should pass when user deposits and withdraws from the vault contract",
+                    "actions": [
+                        {
+                            "contract": "Vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 1
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "Vault",
+                            "action": "userWithdrawRebalanceAll()",
+                            "args": {
+                                "amount": ""
+                            },
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ]
+                },
+                {
+                    "description": "[Vault is paused] Should throw an error when vault is paused and user deposits in the vault contract",
+                    "actions": [
+                        {
+                            "contract": "Registry",
+                            "action": "setPause(address,bool)",
+                            "args": {
+                                "pause": true
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "Vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 1
+                            },
+                            "expect": "fail",
+                            "message": "paused"
+                        }
+                    ]
+                },
+                {
+                    "description": "[Vault is reset to non-paused] Should pass when user deposits and withdraws from the vault contract",
+                    "actions": [
+                        {
+                            "contract": "Registry",
+                            "action": "setPause(address,bool)",
+                            "args": {
+                                "pause": false
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "Vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 1
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "Vault",
+                            "action": "userWithdrawRebalanceAll()",
+                            "args": {
+                                "amount": ""
+                            },
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ]
+                },
+                {
+                    "description": "[Vault is discontinued] Should throw an error when vault is discontinued and user deposits in the vault contract",
+                    "actions": [
+                        {
+                            "contract": "Registry",
+                            "action": "discontinue(address)",
+                            "args": {
+                                "pause": ""
+                            },
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "Vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": 1
+                            },
+                            "expect": "fail",
+                            "message": "discontinued"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

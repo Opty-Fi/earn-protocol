@@ -6,9 +6,14 @@ pragma experimental ABIEncoderV2;
 import "../libraries/Addresses.sol";
 import "./ModifiersController.sol";
 import "./RegistryProxy.sol";
+import "../interfaces/opty/IVault.sol";
 
 /**
- * @dev Contract for Opty Strategy Registry
+ * @title Registry
+ * 
+ * @author Opty.fi
+ * 
+ * @dev OptyFi's Registry contract for persisting all tokens,lpTokens and lp/cp status along with all Optyfi's Vaults and LM_Vaults
  */
 contract Registry is ModifiersController {
     using Address for address;
@@ -403,6 +408,101 @@ contract Registry is ModifiersController {
         emit LogSetStrategy(msg.sender, _tokensHash, hash);
         return hash;
     }
+    
+    /**
+     * @dev Sets `Vault`/`LM_vault` contract for the corresponding `_underlyingToken` and `_riskProfile`
+     * 
+     * Returns a boolean value indicating whether the operation succeeded
+     * 
+     * Emits a {LogUnderlyingTokenRPVault} event
+     * 
+     * Requirements:
+     * 
+     * - `_underlyingToken` cannot be the zero address or EOA
+     * - `_vault` cannot be the zero address or EOA
+     * - `msg.sender` (caller) should be governance
+     * 
+     */
+    function setUnderlyingTokenToRPToVaults(address _underlyingToken, string memory _riskProfile, address _vault) public returns (bool) {
+        return _setUnderlyingTokenToRPToVaults(_underlyingToken, _riskProfile, _vault);
+    }
+    
+    /**
+     * @dev Sets bunch of `Vaults`/`LM_vaults` contract for the corresponding `_underlyingTokens` 
+     *      and `_riskProfiles`in one transaction
+     * 
+     * Returns a boolean value indicating whether the operation succeeded
+     * 
+     * Emits a {LogUnderlyingTokenRPVault} event
+     * 
+     * Requirements:
+     * 
+     * - `_underlyingToken` cannot be the zero address or EOA
+     * - `_vault` cannot be the zero address or EOA
+     * - `msg.sender` (caller) should be governance
+     * 
+     */
+    function setUnderlyingTokenToRPToVaults(address[] memory _underlyingTokens, string[] memory _riskProfiles, address[][] memory _vaults) public returns (bool) {
+        require(uint8(_riskProfiles.length) == uint8(_vaults.length), "!Profileslength");
+        for (uint8 _i = 0; _i < uint8(_vaults.length); _i++) {
+            require(uint8(_vaults[_i].length) == uint8(_underlyingTokens.length), "!VaultsLength");
+            for (uint8 _j = 0; _j < _vaults[_i].length; _j++) {
+                _setUnderlyingTokenToRPToVaults(_underlyingTokens[_j], _riskProfiles[_i], _vaults[_i][_j]);
+            }
+        }
+        return true;
+    }
+    
+    function _setUnderlyingTokenToRPToVaults(address _underlyingToken, string memory _riskProfile, address _vault) internal returns (bool) {
+        require(_underlyingToken != address(0), "!address(0)");
+        require(address(_underlyingToken).isContract(), "!isContract");
+        require(bytes(_riskProfile).length > 0, "RP_empty.");
+        require(_vault != address(0), "!address(0)");
+        require(address(_vault).isContract(), "!isContract");
+        underlyingTokenToRPToVaults[_underlyingToken][_riskProfile] = _vault;
+        emit LogUnderlyingTokenRPVault(_underlyingToken, _riskProfile, _vault);
+        return true;
+    }
+    
+    /**
+     * @dev Set Disconinue for the _vault contract 
+     * 
+     * Returns a boolean value indicating whether operation is succeeded
+     * 
+     * Emits a {LogDiscontinuedPaused} event
+     * 
+     * Requirements:
+     * 
+     * - `_vault` cannot be a zero address
+     * - `msg.sender` (caller) should be governance
+     */
+    function discontinue(address _vault) public onlyGovernance returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        vaultToDiscontinued[_vault] = true;
+        IVault(_vault).discontinue();
+        emit LogDiscontinuedPaused(msg.sender, "Discontinue", vaultToDiscontinued[_vault]);
+        return true;
+    }
+    
+    /**
+     * @dev Set Pause functionality for the _vault contract 
+     * 
+     * Returns a boolean value indicating whether pause is set to true or false
+     * 
+     * Emits a {LogDiscontinuedPaused} event
+     * 
+     * Requirements:
+     * 
+     * - `_vault` cannot be a zero address
+     * - `msg.sender` (caller) should be governance
+     */
+    function setPause(address _vault, bool _paused) public onlyGovernance returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        vaultToPaused[_vault] = _paused;
+        IVault(_vault).setPaused(vaultToPaused[_vault]);
+        emit LogDiscontinuedPaused(_vault, "Pause", vaultToPaused[_vault]);
+        return _paused;
+    }
 
     /**
      * @dev Emitted when `token` is approved or revoked.
@@ -466,4 +566,18 @@ contract Registry is ModifiersController {
      * Note that tokens should be approved
      */
     event LogTokensToTokensHash(address indexed caller, bytes32 indexed _tokensHash);
+    
+    /**
+     * @dev Emiited when `Discontinue` or `setPause` functions are called
+     * 
+     * Note that `vault` can not be a zero address
+     */
+    event LogDiscontinuedPaused(address indexed vault, bytes32 indexed action, bool indexed actionStatus);
+    
+    /**
+     * @dev Emitted when `setUnderlyingTokenToRPToVaults` function is called.
+     *
+     * Note that `underlyingToken` cannot be zero address or EOA.
+     */
+    event LogUnderlyingTokenRPVault(address indexed underlyingToken, string indexed riskProfile, address indexed vault);
 }

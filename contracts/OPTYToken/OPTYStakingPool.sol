@@ -84,7 +84,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userStake(uint256 _amount) public ifNotDiscontinued(address(this)) ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         uint256 _tokenBalance = balance();
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -112,7 +112,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
      *  -   _redeemAmount: amount to withdraw from the  liquidity pool. Its uints are:
      *      in  weth uints i.e. 1e18
      */
-    function userUnstake(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
+    function userUnstake(uint256 _redeemAmount) public ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         require(getBlockTimestamp().sub(_userLastUpdate[msg.sender]) > _timelockPeriod, "you can't unstake until _timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
         updatePool();
@@ -123,7 +123,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         _success = true;
     }
 
-    function updatePool() public ifNotPaused returns (bool _success) {
+    function updatePool() public ifNotPaused(address(this)) returns (bool _success) {
         if (_lastPoolUpdate == uint256(0)) {
             _lastPoolUpdate = getBlockTimestamp();
         } else {
@@ -155,11 +155,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         return block.timestamp;
     }
 
-    function discontinue() public onlyOperator {
-        discontinued = true;
-    }
+    function discontinue() public onlyRegistry { }
 
-    function setPaused(bool _paused) public onlyOperator {
-        paused = _paused;
-    }
+    function setPaused(bool _paused) public onlyRegistry { }
 }
