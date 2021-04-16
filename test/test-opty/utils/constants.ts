@@ -22,7 +22,7 @@ export const ADAPTER = [
     "DForceAdapter",
     "FulcrumAdapter",
     "HarvestAdapter",
-    "YearnAdapter",
+    "YVaultAdapter",
 ];
 
 export const TOKENS: DATA_OBJECT = {

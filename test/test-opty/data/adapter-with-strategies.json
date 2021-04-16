@@ -98,7 +98,7 @@
                 ]
             }
         ],
-        "YearnAdapter": [
+        "YVaultAdapter": [
             {
                 "strategyName": "DAI-deposit-YEARN-yDAI",
                 "token": "DAI",

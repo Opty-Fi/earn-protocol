@@ -216,7 +216,7 @@ async function deployAdapters(
         try {
             const factory = await ethers.getContractFactory(adapter);
             let contract: Contract;
-            if (["dYdXAdapter", "FulcrumAdapter", "YearnAdapter"].includes(adapter)) {
+            if (["dYdXAdapter", "FulcrumAdapter", "YVaultAdapter"].includes(adapter)) {
                 contract = await factory.connect(owner).deploy(registryAddr);
             } else {
                 contract = await factory
