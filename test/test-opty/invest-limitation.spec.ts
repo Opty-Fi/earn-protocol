@@ -1,6 +1,6 @@
 import { expect, assert } from "chai";
 import { ethers } from "hardhat";
-import { Contract, Signer, BigNumber } from "ethers";
+import { Signer, BigNumber } from "ethers";
 import {
     setUp,
     deployVault,
@@ -8,8 +8,8 @@ import {
     approveLiquidityPoolAndMapAdapter,
 } from "./setup";
 import { ESSENTIAL_CONTRACTS, CONTRACTS } from "./utils/type";
-import { TOKENS, TESTING_CONTRACTS, ADDRESS_ZERO } from "./utils/constants";
-import { TypedStrategies, TypedAdapterStrategies } from "./data";
+import { TOKENS } from "./utils/constants";
+import { TypedAdapterStrategies } from "./data";
 import {
     getSoliditySHA3Hash,
     fundWalletToken,
@@ -220,24 +220,14 @@ describe(scenarios.title, () => {
                                                     amount,
                                                 }: ARGUMENTS = setAction.args;
                                                 if (setAction.expect === "success") {
-                                                    const userAddr = await users[
-                                                        "owner"
-                                                    ].getAddress();
-                                                    const balance = await contracts[
-                                                        "vault"
-                                                    ].symbol();
-                                                    const allowance = await contracts[
-                                                        "erc20"
-                                                    ].allowance(
-                                                        userAddr,
-                                                        contracts["vault"].address
-                                                    );
                                                     await contracts[setAction.contract]
                                                         .connect(
                                                             users[setAction.executer]
                                                         )
                                                         [setAction.action](
-                                                            amount ? "1" : "0"
+                                                            amount
+                                                                ? amount[strategy.token]
+                                                                : "0"
                                                         );
                                                 } else {
                                                     await expect(
