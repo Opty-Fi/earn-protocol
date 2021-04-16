@@ -410,7 +410,26 @@ contract Registry is ModifiersController {
     }
     
     /**
-     * @dev Sets `Vaults`/`LM_vaults` contract for the corresponding `_underlyingTokens` and `_riskProfiles`
+     * @dev Sets `Vault`/`LM_vault` contract for the corresponding `_underlyingToken` and `_riskProfile`
+     * 
+     * Returns a boolean value indicating whether the operation succeeded
+     * 
+     * Emits a {LogUnderlyingTokenRPVault} event
+     * 
+     * Requirements:
+     * 
+     * - `_underlyingToken` cannot be the zero address or EOA
+     * - `_vault` cannot be the zero address or EOA
+     * - `msg.sender` (caller) should be governance
+     * 
+     */
+    function setUnderlyingTokenToRPToVaults(address _underlyingToken, string memory _riskProfile, address _vault) public returns (bool) {
+        return _setUnderlyingTokenToRPToVaults(_underlyingToken, _riskProfile, _vault);
+    }
+    
+    /**
+     * @dev Sets bunch of `Vaults`/`LM_vaults` contract for the corresponding `_underlyingTokens` 
+     *      and `_riskProfiles`in one transaction
      * 
      * Returns a boolean value indicating whether the operation succeeded
      * 
@@ -428,14 +447,20 @@ contract Registry is ModifiersController {
         for (uint8 _i = 0; _i < uint8(_vaults.length); _i++) {
             require(uint8(_vaults[_i].length) == uint8(_underlyingTokens.length), "!VaultsLength");
             for (uint8 _j = 0; _j < _vaults[_i].length; _j++) {
-                require(_underlyingTokens[_j] != address(0), "!address(0)");
-                require(address(_underlyingTokens[_j]).isContract(), "!isContract");
-                require(_vaults[_i][_j] != address(0), "!address(0)");
-                require(address(_vaults[_i][_j]).isContract(), "!isContract");
-                underlyingTokenToRPToVaults[_underlyingTokens[_j]][_riskProfiles[_i]] = _vaults[_i][_j];
-                emit LogUnderlyingTokenRPVault(_underlyingTokens[_j], _riskProfiles[_i], _vaults[_i][_j]);
+                _setUnderlyingTokenToRPToVaults(_underlyingTokens[_j], _riskProfiles[_i], _vaults[_i][_j]);
             }
         }
+        return true;
+    }
+    
+    function _setUnderlyingTokenToRPToVaults(address _underlyingToken, string memory _riskProfile, address _vault) internal returns (bool) {
+        require(_underlyingToken != address(0), "!address(0)");
+        require(address(_underlyingToken).isContract(), "!isContract");
+        require(bytes(_riskProfile).length > 0, "RP_empty.");
+        require(_vault != address(0), "!address(0)");
+        require(address(_vault).isContract(), "!isContract");
+        underlyingTokenToRPToVaults[_underlyingToken][_riskProfile] = _vault;
+        emit LogUnderlyingTokenRPVault(_underlyingToken, _riskProfile, _vault);
         return true;
     }
     
