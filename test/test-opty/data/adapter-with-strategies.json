@@ -44,13 +44,13 @@
         ],
         "CreamAdapter": [
             {
-                "strategyName": "USDC-deposit-CREAM-crUSDC",
-                "token": "USDC",
+                "strategyName": "USDT-deposit-CREAM-crUSDT",
+                "token": "USDT",
                 "strategy": [
                     {
-                        "contract": "0x44fbebd2f576670a6c33f6fc0b00aa8c5753b322",
-                        "outputTokenSymbol": "crUSDC",
-                        "outputToken": "0x44fbebd2f576670a6c33f6fc0b00aa8c5753b322",
+                        "contract": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+                        "outputTokenSymbol": "crUSDT",
+                        "outputToken": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
                         "isBorrow": false
                     }
                 ]

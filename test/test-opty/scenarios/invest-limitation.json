@@ -25,7 +25,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "500000000000000000",
-                                    "USDC": "500000"
+                                    "USDC": "500000",
+                                    "USDT": "500000"
                                 }
                             },
                             "executer": "owner",
@@ -38,7 +39,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "2000000000000000000",
-                                    "USDC": "2000000"
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -51,7 +53,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "2000000000000000000",
-                                    "USDC": "2000000"
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -66,7 +69,8 @@
                             "args": {},
                             "expectedValue": {
                                 "DAI": "1500000000000000000",
-                                "USDC": "1500000"
+                                "USDC": "1500000",
+                                "USDT": "1500000"
                             }
                         }
                     ]
@@ -91,7 +95,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "0",
-                                    "USDC": "0"
+                                    "USDC": "0",
+                                    "USDT": "0"
                                 }
                             },
                             "executer": "owner",
@@ -104,7 +109,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "500000000000000000",
-                                    "USDC": "500000"
+                                    "USDC": "500000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -117,7 +123,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "2000000000000000000",
-                                    "USDC": "2000000"
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -130,7 +137,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "2000000000000000000",
-                                    "USDC": "2000000"
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -145,7 +153,8 @@
                             "args": {},
                             "expectedValue": {
                                 "DAI": "1500000000000000000",
-                                "USDC": "1500000"
+                                "USDC": "1500000",
+                                "USDT": "1500000"
                             }
                         }
                     ]
@@ -170,7 +179,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "0",
-                                    "USDC": "0"
+                                    "USDC": "0",
+                                    "USDT": "0"
                                 }
                             },
                             "executer": "owner",
@@ -183,7 +193,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "2000000000000000000",
-                                    "USDC": "2000000"
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -196,7 +207,8 @@
                             "args": {
                                 "amount": {
                                     "DAI": "2000000000000000000",
-                                    "USDC": "2000000"
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
                                 }
                             },
                             "executer": "owner",
@@ -209,7 +221,7 @@
                             "contract": "vault",
                             "action": "balance()",
                             "args": {},
-                            "expectedValue": { "DAI": "0", "USDC": "0" }
+                            "expectedValue": { "DAI": "0", "USDC": "0", "USDT": "0" }
                         }
                     ]
                 },
@@ -238,7 +250,7 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmount(address,uint256)",
                             "args": {
-                                "amount": { "DAI": "0", "USDC": "0" }
+                                "amount": { "DAI": "0", "USDC": "0", "USDT": "0" }
                             },
                             "executer": "admin",
                             "expect": "fail",
@@ -255,7 +267,7 @@
                             "contract": "adapter",
                             "action": "setMaxDepositAmountDefault(uint256)",
                             "args": {
-                                "amount": { "DAI": "0", "USDC": "0" }
+                                "amount": { "DAI": "0", "USDC": "0", "USDT": "0" }
                             },
                             "executer": "admin",
                             "expect": "fail",
@@ -272,7 +284,7 @@
                             "contract": "adapter",
                             "action": "setMaxDepositPoolPct(address,uint256)",
                             "args": {
-                                "amount": { "DAI": "0", "USDC": "0" }
+                                "amount": { "DAI": "0", "USDC": "0", "USDT": "0" }
                             },
                             "executer": "admin",
                             "expect": "fail",

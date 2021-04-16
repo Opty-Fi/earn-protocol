@@ -25,6 +25,7 @@ describe(scenarios.title, () => {
     const MAX_AMOUNT: { [key: string]: BigNumber } = {
         DAI: BigNumber.from("20000000000000000000"),
         USDC: BigNumber.from("20000000"),
+        USDT: BigNumber.from("20000000"),
     };
     let essentialContracts: ESSENTIAL_CONTRACTS;
     let adapters: CONTRACTS;
@@ -436,7 +437,7 @@ describe(scenarios.title, () => {
                                         }
                                     }
                                 }
-                            }).timeout(100000);
+                            }).timeout(150000);
                         }
                     });
                 }
