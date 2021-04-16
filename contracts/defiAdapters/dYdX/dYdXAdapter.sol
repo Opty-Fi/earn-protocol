@@ -406,7 +406,7 @@ contract dYdXAdapter is IAdapter, Modifiers {
         if (maxDeposit == 0) {
             maxDeposit = maxDepositAmountDefault;
         }
-        if (maxDeposit != 0 && _depositAmount > maxDeposit) {
+        if (_depositAmount > maxDeposit) {
             _depositAmount = maxDeposit;
         }
     }

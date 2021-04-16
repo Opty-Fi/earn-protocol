@@ -16,6 +16,7 @@ const buidlerConfig: HardhatUserConfig = {
     networks: {
         hardhat: {
             forking: {
+                blockNumber: 12200321,
                 url: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",
             },
         },
