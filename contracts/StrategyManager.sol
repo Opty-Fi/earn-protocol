@@ -300,6 +300,9 @@ contract StrategyManager is Modifiers, Structs {
     }
 
     function _getDepositAllStepCount(bytes32 _hash) internal view returns (uint8) {
+        if (_hash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            return uint8(0);
+        }
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _strategyStepCount = uint8(_strategySteps.length);
         uint8 _lastStepIndex = _strategyStepCount - 1;
@@ -317,6 +320,9 @@ contract StrategyManager is Modifiers, Structs {
     }
 
     function _getWithdrawAllStepsCount(bytes32 _hash) internal view returns (uint8) {
+        if (_hash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            return uint8(0);
+        }
         StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _steps = uint8(_strategySteps.length);
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {

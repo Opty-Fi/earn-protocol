@@ -60,6 +60,18 @@ contract Structs {
         uint256 index;
         address[] tokens;
     }
+    
+    struct PoolRatingsRange {
+        uint8 lowerLimit;
+        uint8 upperLimit;
+    }
+    
+    struct RiskProfile {
+        uint256 index;
+        uint8 steps;
+        PoolRatingsRange[] poolRatingsRange;
+        bool exists;
+    }
 }
 
 contract RegistryStorage is RegistryAdminStorage, Structs {
@@ -77,4 +89,6 @@ contract RegistryStorage is RegistryAdminStorage, Structs {
     mapping(address => mapping(string => address)) public underlyingTokenToRPToVaults;
     mapping(address => bool) public vaultToDiscontinued;
     mapping(address => bool) public vaultToPaused;
+    string[] public riskProfilesArray;
+    mapping(string => RiskProfile) public riskProfiles;
 }

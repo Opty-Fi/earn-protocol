@@ -503,6 +503,151 @@ contract Registry is ModifiersController {
         emit LogDiscontinuedPaused(_vault, "Pause", vaultToPaused[_vault]);
         return _paused;
     }
+    
+    /**
+     * @dev Add the risk profile in Registry contract Storage
+     * 
+     * Returns _riskProfile added
+     * 
+     * Requirements:
+     *  
+     * - `_riskProfile` can not be empty
+     *          - should not already exists
+     * - `msg.sender` can only be governance
+     * 
+     */
+    function addRiskProfile(string memory _riskProfile, uint8 _noOfSteps, PoolRatingsRange memory _poolRatingRange) public onlyGovernance returns (string memory) {
+        return _addRiskProfile(_riskProfile, _noOfSteps, _poolRatingRange);
+    }
+    
+    /**
+     * @dev Add list of the risk profiles in Registry contract Storage in 1 txn.
+     * 
+     * Returns bool value for multiple _riskProfiles added operation succeeded 
+     * 
+     * Requirements:
+     *  
+     * - `_riskProfile` can not be empty array
+     *          - should not already exists
+     * - `msg.sender` can only be governance
+     * 
+     */
+    function addRiskProfiles(string[] memory _riskProfiles, uint8[] memory _noOfSteps, PoolRatingsRange[] memory _poolRatingRanges) public onlyGovernance returns (bool) {
+        require(_riskProfiles.length > 0, "!length>0");
+        require(_riskProfiles.length == _noOfSteps.length, "!Stepslength");
+        require(_riskProfiles.length == _poolRatingRanges.length, "!PoolRatingsLength");
+        
+        for (uint8 _i; _i <= _riskProfiles.length; _i++) {
+            _addRiskProfile(_riskProfiles[_i], _noOfSteps[_i], _poolRatingRanges[_i]);
+        }
+        return true;
+    }
+    
+    /**
+     * @dev Add the risk profile in Registry contract Storage
+     * 
+     * Returns _riskProfile added
+     * 
+     * Requirements:
+     *  
+     * - `_riskProfile` can not be empty
+     *          - should not already exists
+     * 
+     */
+    function _addRiskProfile(string memory _riskProfile, uint8 _noOfSteps, PoolRatingsRange memory _poolRatingRange) internal returns (string memory){
+        require(bytes(_riskProfile).length > 0, "RP_Empty!");
+        require(!riskProfiles[_riskProfile].exists, "RP_already_exists");
+        
+        riskProfilesArray.push(_riskProfile);
+        riskProfiles[_riskProfile].steps = _noOfSteps;
+        riskProfiles[_riskProfile].poolRatingsRange.push(PoolRatingsRange({lowerLimit: _poolRatingRange.lowerLimit, upperLimit: _poolRatingRange.upperLimit}));
+        riskProfiles[_riskProfile].index = riskProfilesArray.length - 1;
+        riskProfiles[_riskProfile].exists = true;
+        
+        emit RiskProfileAdded(riskProfiles[_riskProfile].index, keccak256(abi.encodePacked(_riskProfile)), riskProfiles[_riskProfile].exists);
+        return _riskProfile;
+    }
+    
+    /**
+     * @dev Update the no. of steps for existing risk profile
+     * 
+     * Returns bool value for update _riskProfile operation succeeded 
+     * 
+     * Requirements:
+     *  
+     * - `_riskProfile` should exists
+     * - `msg.sender` can only be governance
+     * 
+     */
+    function updateRiskProfileSteps(string memory _riskProfile, uint8 _noOfSteps) public onlyGovernance returns (bool) {
+        require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
+        riskProfiles[_riskProfile].steps = _noOfSteps;
+        return true;
+    }
+    
+    /**
+     * @dev Update the pool ratings for existing risk profile
+     * 
+     * Returns bool value for update _riskProfile operation succeeded 
+     * 
+     * Requirements:
+     *  
+     * - `_riskProfile` should exists
+     * - `msg.sender` can only be governance
+     * 
+     */
+    function updateRPPoolRatings(string memory _riskProfile, PoolRatingsRange memory _poolRatingRange) public onlyGovernance returns (bool) {
+        require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
+        riskProfiles[_riskProfile].poolRatingsRange[0] = _poolRatingRange;
+        return true;
+    }
+    
+    /**
+     * @dev Remove the existing risk profile in Registry contract Storage
+     * 
+     * Returns _riskProfile added
+     * 
+     * Requirements:
+     *  
+     * - `_riskProfile` can not be empty
+     *          - should not already exists
+     * - `msg.sender` can only be governance
+     * 
+     */
+    function removeRiskProfile(uint256 _index) public onlyGovernance returns (bool) {
+        require(_index <= riskProfilesArray.length, "Invalid_Rp_index");
+        string memory _riskProfile = riskProfilesArray[_index];
+        require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
+        riskProfiles[_riskProfile].exists = false;
+        delete riskProfilesArray[_index];
+        return true;
+    }
+    
+    // function testGetRiskProfilePoolRatings(string memory _riskProfile) public view returns (PoolRatingsRange memory, uint8, uint8){
+        
+    //     (,,PoolRatingsRange memory _permittedPoolRatings,) = getRiskProfile(_riskProfile);
+    //     return (_permittedPoolRatings, _permittedPoolRatings.lowerLimit, _permittedPoolRatings.upperLimit);
+    //     // (,uint8 _permittedSteps,bool _profileExists) = riskProfiles[_riskProfile];
+    // }
+    
+    /**
+     * @dev Get the risk profile details
+     * 
+     */
+    function getRiskProfile(string memory _riskProfile) public view returns (uint256 _index, uint8 _noOfSteps, PoolRatingsRange memory _poolRatingsRange, bool _exists) {
+        _index = riskProfiles[_riskProfile].index;
+        _noOfSteps = riskProfiles[_riskProfile].steps;
+        _poolRatingsRange = riskProfiles[_riskProfile].poolRatingsRange[0];
+        _exists = riskProfiles[_riskProfile].exists;
+    }
+    
+    
+    /**
+     * @dev Get the list of all the riskProfiles
+     */
+    function getRiskProfiles() public view returns (string[] memory) {
+        return riskProfilesArray;
+    }
 
     /**
      * @dev Emitted when `token` is approved or revoked.
@@ -580,4 +725,11 @@ contract Registry is ModifiersController {
      * Note that `underlyingToken` cannot be zero address or EOA.
      */
     event LogUnderlyingTokenRPVault(address indexed underlyingToken, string indexed riskProfile, address indexed vault);
+    
+    /**
+     * @dev Emitted when RiskProfile is added
+     * 
+     Note that ``riskProfile can not be empty
+     */
+    event RiskProfileAdded(uint256 indexed index, bytes32 indexed riskProfile, bool indexed exists);
 }
