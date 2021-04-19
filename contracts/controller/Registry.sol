@@ -623,13 +623,6 @@ contract Registry is ModifiersController {
         return true;
     }
     
-    // function testGetRiskProfilePoolRatings(string memory _riskProfile) public view returns (PoolRatingsRange memory, uint8, uint8){
-        
-    //     (,,PoolRatingsRange memory _permittedPoolRatings,) = getRiskProfile(_riskProfile);
-    //     return (_permittedPoolRatings, _permittedPoolRatings.lowerLimit, _permittedPoolRatings.upperLimit);
-    //     // (,uint8 _permittedSteps,bool _profileExists) = riskProfiles[_riskProfile];
-    // }
-    
     /**
      * @dev Get the risk profile details
      * 
