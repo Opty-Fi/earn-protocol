@@ -8,16 +8,35 @@ import "./controller/RegistryStorage.sol";
 import "./libraries/Addresses.sol";
 import "./utils/Modifiers.sol";
 import "./controller/StrategyProvider.sol";
+import "./RiskManagerStorage.sol";
+import "./RiskManagerProxy.sol";
 
-contract RiskManager is Modifiers, Structs {
+contract RiskManager is RiskManagerStorage, Modifiers, Structs {
     using Address for address;
 
-    StrategyProvider public strategyProvider;
-
-    constructor(address _registry, StrategyProvider _strategyProvider) public Modifiers(_registry) {
-        setStrategyProvider(_strategyProvider);
+    constructor(address _registry) public Modifiers(_registry) {
     }
     
+    /**
+     * @dev initialize the strategyProvider 
+     * 
+     */
+    function initialize(StrategyProvider _strategyProvider) public onlyGovernance {
+        setStrategyProvider(_strategyProvider);
+    }
+
+    /**
+     * @dev Set RiskManagerProxy to act as RiskManager
+     * 
+     */
+    function become(RiskManagerProxy _riskManagerProxy) public onlyGovernance {
+        require(_riskManagerProxy.acceptImplementation() == 0, "!unauthorized");
+    }
+
+    /**
+     * @dev Sets the strategyProvider
+     * 
+     */
     function setStrategyProvider(StrategyProvider _strategyProvider) public onlyOperator {
         strategyProvider = _strategyProvider;
     }

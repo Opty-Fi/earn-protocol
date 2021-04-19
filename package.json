@@ -49,8 +49,8 @@
     },
     "scripts": {
         "prepare": "husky install",
-        "lint": "yarn prettier ./test/test-opty/*.ts --check && eslint ./test/test-opty/*.ts --ext .ts",
-        "lint:fix": "yarn prettier ./test/test-opty/*.ts --write && eslint ./test/test-opty/*.ts --ext .ts --fix",
+        "lint": "yarn prettier ./test/**/*.ts --check && eslint ./test/**/*.ts --ext .ts",
+        "lint:fix": "yarn prettier ./test/**/*.ts --write && eslint ./test/**/*.ts --ext .ts --fix",
         "clean": "rimraf ./build/",
         "precompile": "yarn clean",
         "compile": "waffle .waffle.json",
@@ -70,7 +70,7 @@
         "web3": "1.3.4"
     },
     "lint-staged": {
-        "./test/test-opty/*.ts": "yarn lint:fix",
+        "./test/**/*.ts": "yarn lint:fix",
         "./contracts/!(library|utils)/!(ExponentialNoError).sol": "yarn solhint"
     }
 }

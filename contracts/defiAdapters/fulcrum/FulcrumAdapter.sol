@@ -12,10 +12,16 @@ import "../../utils/Modifiers.sol";
 contract FulcrumAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
-    uint256 public maxExposure; // basis points
+    enum MaxExposure { Number, Pct }
+    MaxExposure public maxExposureType;
+    uint256 public maxDepositPoolPctDefault; // basis points
+    mapping(address => uint256) public maxDepositPoolPct; // basis points
+    uint256 public maxDepositAmountDefault;
+    mapping(address => uint256) public maxDepositAmount;
 
     constructor(address _registry) public Modifiers(_registry) {
-        setMaxExposure(uint256(5000)); // 50%
+        setMaxDepositPoolPctDefault(uint256(10000)); // 100%
+        setMaxDepositPoolType(MaxExposure.Number);
     }
 
     function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
@@ -279,16 +285,55 @@ contract FulcrumAdapter is IAdapter, Modifiers {
         revert("!empty");
     }
 
-    function setMaxExposure(uint256 _maxExposure) public onlyOperator {
-        maxExposure = _maxExposure;
+    function setMaxDepositPoolType(MaxExposure _type) public onlyGovernance {
+        maxExposureType = _type;
+    }
+
+    function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
+        maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
+    }
+    
+    function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) public onlyGovernance {
+        maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
+    }
+    
+    function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) public onlyGovernance {
+        maxDepositAmountDefault = _maxDepositAmountDefault;
+    }
+    
+    function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) public onlyGovernance {
+        maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
+        uint256 _limit = maxExposureType == MaxExposure.Pct ? _getMaxDepositAmountByPct(_liquidityPool, _amount) : _getMaxDepositAmount(_liquidityPool, _amount);
+        if (_limit != 0 && _depositAmount > _limit) {
+            _depositAmount = _limit;
+        }
+    }
+    
+    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+        _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
-        uint256 _limit = (_poolValue.mul(maxExposure)).div(uint256(10000));
+        uint256 maxPct = maxDepositPoolPct[_liquidityPool];
+        if (maxPct == 0) {
+            maxPct = maxDepositPoolPctDefault;
+        }
+        uint256 _limit = (_poolValue.mul(maxPct)).div(uint256(10000));
         if (_depositAmount > _limit) {
             _depositAmount = _limit;
+        }
+    }
+    
+    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+        _depositAmount = _amount;
+        uint256 maxDeposit = maxDepositAmount[_liquidityPool];
+        if (maxDeposit == 0) {
+            maxDeposit = maxDepositAmountDefault;
+        }
+        if ( _depositAmount > maxDeposit) {
+            _depositAmount = maxDeposit;
         }
     }
 }

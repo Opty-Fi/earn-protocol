@@ -194,7 +194,6 @@ async function approveLiquidityPoolAndMapAdapters(
                             TypedDefiPools[adapter][token].lpToken,
                             adapters[adapter].address
                         );
-                        console.log(TypedDefiPools[adapter][token].lpToken);
                     } catch (error) {
                         console.log(
                             `Got error when executing approveLiquidityPoolAndMapAdapters for ${token} : ${error}`
@@ -217,7 +216,7 @@ async function deployAdapters(
         try {
             const factory = await ethers.getContractFactory(adapter);
             let contract: Contract;
-            if (["dYdXAdapter", "FulcrumAdapter", "YearnAdapter"].includes(adapter)) {
+            if (["dYdXAdapter", "FulcrumAdapter", "YVaultAdapter"].includes(adapter)) {
                 contract = await factory.connect(owner).deploy(registryAddr);
             } else {
                 contract = await factory

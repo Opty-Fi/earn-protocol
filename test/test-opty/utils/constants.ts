@@ -22,7 +22,7 @@ export const ADAPTER = [
     "DForceAdapter",
     "FulcrumAdapter",
     "HarvestAdapter",
-    "YearnAdapter",
+    "YVaultAdapter",
 ];
 
 export const TOKENS: DATA_OBJECT = {
@@ -37,3 +37,5 @@ export const TESTING_CONTRACTS: DATA_OBJECT = {
     TESTING_EMERGENCY_BRAKE_RP1: "TestingEmergencyBrakeRP1",
     TESTING_EMERGENCY_BRAKE_RP2: "TestingEmergencyBrakeRP2",
 };
+
+export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";

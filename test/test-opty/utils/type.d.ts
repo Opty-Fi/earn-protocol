@@ -38,3 +38,17 @@ export type DEFI_POOLS_DATA = {
         };
     };
 };
+export type ADAPTER_WITH_STRATEGIES_DATA = {
+    [key: string]: {
+        [key: string]: {
+            strategyName: string;
+            token: string;
+            strategy: {
+                contract: string;
+                outputTokenSymbol: string;
+                outputToken: string;
+                isBorrow: boolean;
+            }[];
+        }[];
+    };
+};

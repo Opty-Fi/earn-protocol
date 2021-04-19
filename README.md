@@ -39,24 +39,30 @@ $ node ./ganache-server.js
 $ git clone https://github.com/Opty-Fi/earn-protocol.git
 ```
 #### Steps to deploy all the contracts correctly
-Note: harvest.finance fDAI vault will be used in this example.
+Note: harvest.finance fDAI vault (HarvestAdapter) will be used in this example.
 1. Deploy RegistryProxy()
 2. Deploy Registry()
 3. Call RegistryProxy.setPendingImplementation(address _registry)
 4. Call Registry.become(address _registryProxy)
 5. Deploy Registry at RegistryProxy address
 6. Deploy StrategyProvider(address _registryProxy)
-7. Deploy RiskManager(address _registryProxy, address _strategyProvider)
-8. Deploy Gatherer(address _registryProxy)
-9. Deploy StrategyCodeProvider(address _registryProxy, address _gatherer)
-10. Deploy OPTY(address _registryProxy, uint256(0)). Copy OPTY address and paste it in OPTYMinterStorage, where there is a constant called OPTYAddress
-11. Deploy OPTYMinter(address _registryProxy)
-12. Deploy HarvestCodeProvider(address _registryProxy, address _gatherer)
-13. Compile VaultProxy => Deploy InitializableImmutableAdminUpgradeabilityProxy(address _admin). Note: _admin should be a different account that the one from which you deployed the previous contract. This address will only be used for upgrading the implementations in VaultProxy
-14. Deploy Vault(address _registryProxy, address DAI)
-15. Switch to _admin account and call VaultProxy.upgradeTo(address _vault)
-16. Switch back to your normal account
-17. Deploy Vault at VaultProxy address
-18. Call Vault.initialize(address _registryProxy, address _riskManager, address DAI, address _strategyCodeProvider, address _optyMinter)
+7. Deploy RiskManagerProxy Contract
+8. Deploy RiskManager Contract
+9. Call RiskManagerProxy.setPendingImplementation(address _riskManager)
+10. Call RiskManager.become(address _riskManagerProxy)
+11. Deploy RiskManager at RiskManagerProxy address
+    - Note: Use this new RiskManager everywhere from here onwards
+12. Call RiskManager.initialize(address __strategyProvider)
+13. Deploy HarvestCodeProvider(address _registryProxy)
+14. Deploy StrategyCodeProvider(address _registryProxy, address _gatherer)
+15. Deploy OPTY(address _registryProxy, uint256(0)). Copy OPTY address and paste it in OPTYMinterStorage, where there is a constant called OPTYAddress
+16. Deploy OPTYMinter(address _registryProxy)
+17. Deploy HarvestAdapter(address _registryProxy, address _harvestCodeProvider)
+18. Compile VaultProxy => Deploy InitializableImmutableAdminUpgradeabilityProxy(address _admin). Note: _admin should be a different account that the one from which you deployed the previous contract. This address will only be used for upgrading the implementations in VaultProxy
+19. Deploy Vault(address _registryProxy, address DAI)
+20. Switch to _admin account and call VaultProxy.upgradeTo(address _vault)
+21. Switch back to your normal account
+22. Deploy Vault at VaultProxy address
+23. Call Vault.initialize(address _registryProxy, address _riskManager, address DAI, address _strategyCodeProvider, address _optyMinter)
 
 After all these steps, if you want to test it, you need to approve token, approve liquidityPool, etc. in RegistryProxy as usual.

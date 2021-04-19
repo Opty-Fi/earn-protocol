@@ -1,0 +1,299 @@
+{
+    "title": "Invest Limitation",
+    "description": "Test cases for the _getDepositAmount function.",
+    "vaults": [
+        {
+            "name": "RP1Vault",
+            "stories": [
+                {
+                    "description": "User shouldn't be able to deposit more than max deposit amount",
+                    "maxDepositType": "amount",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositPoolType(uint8)",
+                            "args": {
+                                "type": 0
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositAmount(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "500000000000000000",
+                                    "USDC": "500000",
+                                    "USDT": "500000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "expectedValue": {
+                                "DAI": "1500000000000000000",
+                                "USDC": "1500000",
+                                "USDT": "1500000"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "description": "User shouldn't be able to deposit more than max deposit amount default when max deposit amount is set to 0",
+                    "maxDepositType": "amount",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositPoolType(uint8)",
+                            "args": {
+                                "type": 0
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositAmount(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "0",
+                                    "USDC": "0",
+                                    "USDT": "0"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositAmountDefault(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "500000000000000000",
+                                    "USDC": "500000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "expectedValue": {
+                                "DAI": "1500000000000000000",
+                                "USDC": "1500000",
+                                "USDT": "1500000"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "description": "User should be able to deposit unlimited amount when max deposit amount is set to 0",
+                    "maxDepositType": "amount",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositPoolType(uint8)",
+                            "args": {
+                                "type": 0
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositAmount(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "0",
+                                    "USDC": "0",
+                                    "USDT": "0"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "2000000000000000000",
+                                    "USDC": "2000000",
+                                    "USDT": "2000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "expectedValue": { "DAI": "0", "USDC": "0", "USDT": "0" }
+                        }
+                    ]
+                },
+                {
+                    "description": "Non governance cannot set max deposit type",
+                    "maxDepositType": "amount",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositPoolType(uint8)",
+                            "args": {
+                                "type": 0
+                            },
+                            "executer": "admin",
+                            "expect": "fail",
+                            "message": "caller is not having governance"
+                        }
+                    ],
+                    "getActions": []
+                },
+                {
+                    "description": "Non governance cannot set max deposit amount",
+                    "maxDepositType": "amount",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositAmount(address,uint256)",
+                            "args": {
+                                "amount": { "DAI": "0", "USDC": "0", "USDT": "0" }
+                            },
+                            "executer": "admin",
+                            "expect": "fail",
+                            "message": "caller is not having governance"
+                        }
+                    ],
+                    "getActions": []
+                },
+                {
+                    "description": "Non governance cannot set max deposit amount default",
+                    "maxDepositType": "amount",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositAmountDefault(uint256)",
+                            "args": {
+                                "amount": { "DAI": "0", "USDC": "0", "USDT": "0" }
+                            },
+                            "executer": "admin",
+                            "expect": "fail",
+                            "message": "caller is not having governance"
+                        }
+                    ],
+                    "getActions": []
+                },
+                {
+                    "description": "Non governance cannot set max deposit percentage",
+                    "maxDepositType": "pct",
+                    "setActions": [
+                        {
+                            "contract": "adapter",
+                            "action": "setMaxDepositPoolPct(address,uint256)",
+                            "args": {
+                                "amount": { "DAI": "0", "USDC": "0", "USDT": "0" }
+                            },
+                            "executer": "admin",
+                            "expect": "fail",
+                            "message": "caller is not having governance"
+                        }
+                    ],
+                    "getActions": []
+                }
+            ]
+        }
+    ]
+}
