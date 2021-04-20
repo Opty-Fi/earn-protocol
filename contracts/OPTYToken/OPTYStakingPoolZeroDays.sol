@@ -16,7 +16,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
     using SafeERC20 for IERC20;
     using Address for address;
 
-    uint256 _timelockPeriod;
+    uint256 public constant timelockPeriod = uint256(0);
 
     /**
      * @dev
@@ -26,25 +26,18 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
     constructor(
         address _registry,
         address _underlyingToken,
-        address _optyMinter,
-        uint256 _timelock
+        address _optyMinter
     )
         public
         ERC20(
-            string(abi.encodePacked("op ", "30 Days", " Staking", " Pool")),
-            string(abi.encodePacked("op", "30Days", "StkPool"))
+            string(abi.encodePacked("op ", "0 Days", " Staking", " Pool")),
+            string(abi.encodePacked("op", "0Days", "StkPool"))
         )
         Modifiers(_registry)
     {
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
-    }
-
-    function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
-        require(_timelock != uint256(0), "_timelockPeriod != 0");
-        _timelockPeriod = _timelock;
-        _success = true;
     }
 
     function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
