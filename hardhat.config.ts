@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
+import "hardhat-gas-reporter";
 require("dotenv").config();
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -23,6 +24,14 @@ const buidlerConfig: HardhatUserConfig = {
     },
     mocha: {
         timeout: 10000000,
+    },
+    gasReporter: {
+        currency: "USD",
+        gasPrice: 21,
+        enabled: true,
+        coinmarketcap: "b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c",
+        outputFile: "output.txt",
+        noColors: true,
     },
 };
 export default buidlerConfig;
