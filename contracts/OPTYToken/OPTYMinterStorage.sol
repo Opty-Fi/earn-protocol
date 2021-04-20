@@ -5,6 +5,17 @@ pragma solidity ^0.6.10;
 import "./OPTYStakingPool.sol";
 
 contract OPTYMinterStorage {
+    
+        /**
+     * @notice Active brains of Registry
+     */
+    address public optyMinterImplementation;
+
+    /**
+     * @notice Pending brains of Registry
+     */
+    address public pendingOPTYMinterImplementation;
+    
     OPTYStakingPool _optyStakingPool;
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
