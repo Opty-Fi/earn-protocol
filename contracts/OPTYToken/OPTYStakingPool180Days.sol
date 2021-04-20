@@ -12,7 +12,7 @@ import "./StakingPoolStorage.sol";
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
  */
-contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorage {
+contract OPTYStakingPool180Days is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -37,7 +37,6 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
     {
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setOPTYMinter(_optyMinter);
-        setTimelockPeriod(_timelock);
     }
 
     function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
@@ -106,7 +105,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
      *      in  weth uints i.e. 1e18
      */
     function userUnstake(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
-        require(getBlockTimestamp().sub(_userLastUpdate[msg.sender]) > _timelockPeriod, "you can't unstake until _timelockPeriod has passed");
+        require(getBlockTimestamp().sub(_userLastUpdate[msg.sender]) > timelockPeriod, "you can't unstake until _timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());

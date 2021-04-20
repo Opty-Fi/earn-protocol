@@ -7,6 +7,10 @@ import "./OPTYMinterStorage.sol";
 import "./ExponentialNoError.sol";
 import "./../interfaces/ERC20/IERC20.sol";
 import "./OPTYMinterProxy.sol";
+import "./OPTYStakingPoolZeroDays.sol";
+import "./OPTYStakingPool30Days.sol";
+import "./OPTYStakingPool60Days.sol";
+import "./OPTYStakingPool180Days.sol";
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     constructor(address _registry, address _opty) public Modifiers(_registry) {
@@ -25,13 +29,41 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         OPTYAddress = _opty;
     }
 
-    function setStakingPool(address _stakingPool) public onlyOperator {
-        require(_stakingPool != address(0), "Invalid address");
-        _optyStakingPool = OPTYStakingPool(_stakingPool);
+    function setStakingPool(StakingPool _stakingPool, address _stakingPoolAddress) public onlyOperator {
+        require(_stakingPoolAddress != address(0), "Invalid address");
+        stakingPoolAddresses[_stakingPool] = _stakingPoolAddress;
+    }
+    
+    function claimAndStake(address _holder, StakingPool _stakingPool) public {
+        uint256 _amount = claimOpty(_holder, allOptyVaults);
+        if (_stakingPool == StakingPool.ZeroDays) {
+            stake0Days(_amount);
+        } else if (_stakingPool == StakingPool.ThirtyDays) {
+            stake30Days(_amount);
+        }
     }
 
-    function claimAndStake(address _holder) public {
-        uint256 _amount = claimOpty(_holder, allOptyVaults);
+    function stake0Days(uint256 _amount) public {
+        address _stakingPoolAddress = stakingPoolAddresses[StakingPool.ZeroDays];
+        OPTYStakingPoolZeroDays _optyStakingPool = OPTYStakingPoolZeroDays(_stakingPoolAddress);
+        _optyStakingPool.userStake(_amount);
+    }
+    
+    function stake30Days(uint256 _amount) public {
+        address _stakingPoolAddress = stakingPoolAddresses[StakingPool.ThirtyDays];
+        OPTYStakingPool30Days _optyStakingPool = OPTYStakingPool30Days(_stakingPoolAddress);
+        _optyStakingPool.userStake(_amount);
+    }
+    
+    function stake60Days(uint256 _amount) public {
+        address _stakingPoolAddress = stakingPoolAddresses[StakingPool.SixtyDays];
+        OPTYStakingPool60Days _optyStakingPool = OPTYStakingPool60Days(_stakingPoolAddress);
+        _optyStakingPool.userStake(_amount);
+    }
+    
+    function stake180Days(uint256 _amount) public {
+        address _stakingPoolAddress = stakingPoolAddresses[StakingPool.OneEightyDays];
+        OPTYStakingPool180Days _optyStakingPool = OPTYStakingPool180Days(_stakingPoolAddress);
         _optyStakingPool.userStake(_amount);
     }
 
@@ -207,7 +239,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _amount The amount of OPTY to (possibly) transfer
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function mintOpty(address _user, uint256 _amount) public returns (uint256) {
+    function mintOpty(address _user, uint256 _amount) public onlyMinter returns (uint256) {
         OPTY _opty = OPTY(getOptyAddress());
         require(_amount > 0 && _user != address(0), "Insufficient amount or invalid address");
         _opty.mint(_user, _amount);

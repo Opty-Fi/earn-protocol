@@ -2,8 +2,6 @@
 
 pragma solidity ^0.6.10;
 
-import "./OPTYStakingPool.sol";
-
 contract OPTYMinterStorage {
     
         /**
@@ -16,7 +14,6 @@ contract OPTYMinterStorage {
      */
     address public pendingOPTYMinterImplementation;
     
-    OPTYStakingPool _optyStakingPool;
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
     struct OptyState {
@@ -51,4 +48,13 @@ contract OPTYMinterStorage {
     mapping(address => mapping(address => OptyState)) public optyUserStateInVault;
 
     mapping(address => mapping(address => uint256)) public lastUserUpdate;
+    
+    enum StakingPool {
+        ZeroDays,
+        ThirtyDays,
+        SixtyDays,
+        OneEightyDays
+    }
+    
+    mapping(StakingPool => address) stakingPoolAddresses;
 }
