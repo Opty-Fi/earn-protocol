@@ -7,7 +7,7 @@ import {
     setBestBasicStrategy,
     approveLiquidityPoolAndMapAdapter,
 } from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS, DATA_OBJECT } from "./utils/type";
+import { ESSENTIAL_CONTRACTS, CONTRACTS } from "./utils/type";
 import { TOKENS } from "./utils/constants";
 import { TypedAdapterStrategies } from "./data";
 import {
@@ -116,10 +116,6 @@ describe(scenarios.title, () => {
                         });
 
                         for (let i = 0; i < stories.length; i++) {
-                            // if (i!=3) {
-                            //     continue
-                            // }
-                            // for (let i = 0; i < 2; i++) {
                             it(stories[i].description, async () => {
                                 const story = stories[i];
                                 // if (story.maxDepositType === "amount") {
@@ -132,8 +128,6 @@ describe(scenarios.title, () => {
                                                 strategyHash,
                                             }: ARGUMENTS = action.args;
                                             if (action.expect === "success") {
-                                                // console.log("StrategyHash: ", strategyHash)
-                                                // let _strategyHash = strategyHash? strategyHash: bestStrategyHash
                                                 await contracts[action.contract]
                                                     .connect(users[action.executer])
                                                     [action.action](
@@ -158,54 +152,12 @@ describe(scenarios.title, () => {
                                             }
                                             break;
                                         }
-                                        // case "setMaxDepositAmount(address,uint256)": {
-                                        //     const {
-                                        //         amount,
-                                        //     }: ARGUMENTS = action.args;
-                                        //     if (action.expect === "success") {
-                                        //         await contracts[action.contract]
-                                        //             .connect(
-                                        //                 users[action.executer]
-                                        //             )
-                                        //             [action.action](
-                                        //                 contracts["adapter"]
-                                        //                     .address,
-                                        //                 amount
-                                        //                     ? amount[strategy.token]
-                                        //                     : "0"
-                                        //             );
-                                        //     } else {
-                                        //         await expect(
-                                        //             contracts[action.contract]
-                                        //                 .connect(
-                                        //                     users[
-                                        //                         action.executer
-                                        //                     ]
-                                        //                 )
-                                        //                 [action.action](
-                                        //                     contracts["adapter"]
-                                        //                         .address,
-                                        //                     amount
-                                        //                         ? amount[
-                                        //                               strategy.token
-                                        //                           ]
-                                        //                         : "0"
-                                        //                 )
-                                        //         ).to.be.revertedWith(
-                                        //             action.message
-                                        //         );
-                                        //     }
-                                        //     break;
-                                        // }
                                         case "approve(address,uint256)": {
                                             const {
                                                 amount,
                                                 strategyHash,
                                             }: ARGUMENTS = action.args;
                                             if (action.expect === "success") {
-                                                // console.log("tokensHash: ", tokensHash)
-                                                // console.log("Strategy: ", strategyHash ? strategyHash : bestStrategyHash)
-                                                // console.log("Approve Amount: ", ethers.utils.formatUnits(amount?amount[strategy.token]:0, 6))
                                                 await contracts[action.contract]
                                                     .connect(users[action.executer])
                                                     [action.action](
@@ -253,15 +205,9 @@ describe(scenarios.title, () => {
                                             break;
                                         }
                                         case "balance()": {
-                                            // const {
-                                            //     expectedValue }: ARGUMENTS = action;
-                                            // let _temp  = action.expectedValue
-                                            // console.log("Checking balance")
                                             const balance = await contracts[
                                                 action.contract
                                             ][action.action]();
-                                            // console.log("Balance: ", balance)
-                                            // console.log("balance: ", ethers.utils.formatEther(balance))
                                             expect(balance).to.equal(
                                                 action.expectedValue[
                                                     <keyof typeof action.expectedValue>(
@@ -272,14 +218,8 @@ describe(scenarios.title, () => {
                                             break;
                                         }
                                         case "userWithdrawRebalance(uint256)": {
-                                            // console.log("Testing withdraw")
                                             const { amount }: ARGUMENTS = action.args;
-                                            // console.log("Amount: ", amount)
-                                            // console.log("Amount internal: ", amount? amount[strategy.token]: 0)
                                             if (action.expect === "success") {
-                                                // const ownerAddress = await users[action.executer].getAddress()
-                                                // const ownerOptyBalance = await contracts["vault"].balanceOf(ownerAddress)
-                                                // console.log("Owner opty balance: ", ethers.utils.formatEther(ownerOptyBalance))
                                                 await contracts[action.contract]
                                                     .connect(users[action.executer])
                                                     [action.action](
@@ -304,189 +244,6 @@ describe(scenarios.title, () => {
                                             break;
                                     }
                                 }
-                                // for (let i = 0; i < story.getActions.length; i++) {
-                                //     const getAction = story.getActions[i];
-                                //     switch (getAction.action) {
-                                //         case "balance": {
-                                //             const balance = await contracts[
-                                //                 getAction.contract
-                                //             ][getAction.action]();
-                                //             expect(balance).to.equal(
-                                //                 getAction.expectedValue
-                                //             );
-                                //         }
-                                //     }
-                                // }
-                                // }
-                                // } else if (story.maxDepositType === "pct") {
-                                //     let investedValue = BigNumber.from("0");
-                                //     let maxValue = BigNumber.from("0");
-                                //     for (let i = 0; i < story.actions.length; i++) {
-                                //         const action = story.actions[i];
-                                //         switch (action.action) {
-                                //             case "setMaxDepositPoolType(uint8)": {
-                                //                 const {
-                                //                     type,
-                                //                 }: ARGUMENTS = action.args;
-                                //                 if (action.expect === "success") {
-                                //                     await contracts[action.contract]
-                                //                         .connect(
-                                //                             users[action.executer]
-                                //                         )
-                                //                         [action.action](type);
-                                //                 } else {
-                                //                     await expect(
-                                //                         contracts[action.contract]
-                                //                             .connect(
-                                //                                 users[
-                                //                                     action.executer
-                                //                                 ]
-                                //                             )
-                                //                             [action.action](type)
-                                //                     ).to.be.revertedWith(
-                                //                         action.message
-                                //                     );
-                                //                 }
-                                //                 break;
-                                //             }
-                                //             case "setMaxDepositPoolPct(address,uint256)": {
-                                //                 const {
-                                //                     amount,
-                                //                 }: ARGUMENTS = action.args;
-
-                                //                 const poolValue = await contracts[
-                                //                     "adapter"
-                                //                 ].getPoolValue(
-                                //                     strategy.strategy[0].contract,
-                                //                     TOKENS[strategy.token]
-                                //                 );
-                                //                 maxValue = BigNumber.from(poolValue)
-                                //                     .mul(
-                                //                         BigNumber.from(
-                                //                             amount
-                                //                                 ? amount[strategy.token]
-                                //                                 : "0"
-                                //                         )
-                                //                     )
-                                //                     .div(BigNumber.from("10000"));
-                                //                 investedValue = maxValue.mul(
-                                //                     BigNumber.from("2")
-                                //                 );
-                                //                 if (action.expect === "success") {
-                                //                     await contracts[action.contract]
-                                //                         .connect(
-                                //                             users[action.executer]
-                                //                         )
-                                //                         [action.action](
-                                //                             contracts["adapter"]
-                                //                                 .address,
-                                //                             BigNumber.from(
-                                //                                 amount
-                                //                                     ? amount[
-                                //                                           strategy.token
-                                //                                       ]
-                                //                                     : "0"
-                                //                             )
-                                //                         );
-                                //                 } else {
-                                //                     await expect(
-                                //                         contracts[action.contract]
-                                //                             .connect(
-                                //                                 users[
-                                //                                     action.executer
-                                //                                 ]
-                                //                             )
-                                //                             [action.action](
-                                //                                 contracts["adapter"]
-                                //                                     .address,
-                                //                                 BigNumber.from(
-                                //                                     amount
-                                //                                         ? amount[
-                                //                                               strategy
-                                //                                                   .token
-                                //                                           ]
-                                //                                         : "0"
-                                //                                 )
-                                //                             )
-                                //                     ).to.be.revertedWith(
-                                //                         action.message
-                                //                     );
-                                //                 }
-                                //                 break;
-                                //             }
-                                //             case "approve(address,uint256)": {
-                                //                 if (action.expect === "success") {
-                                //                     await contracts[action.contract]
-                                //                         .connect(
-                                //                             users[action.executer]
-                                //                         )
-                                //                         [action.action](
-                                //                             contracts["vault"].address,
-                                //                             investedValue
-                                //                         );
-                                //                 } else {
-                                //                     await expect(
-                                //                         contracts[action.contract]
-                                //                             .connect(
-                                //                                 users[
-                                //                                     action.executer
-                                //                                 ]
-                                //                             )
-                                //                             [action.action](
-                                //                                 contracts["vault"]
-                                //                                     .address,
-                                //                                 investedValue
-                                //                             )
-                                //                     ).to.be.revertedWith(
-                                //                         action.message
-                                //                     );
-                                //                 }
-                                //                 break;
-                                //             }
-                                //             case "userDepositRebalance(uint256)": {
-                                //                 if (action.expect === "success") {
-                                //                     await contracts[action.contract]
-                                //                         .connect(
-                                //                             users[action.executer]
-                                //                         )
-                                //                         [action.action](
-                                //                             investedValue
-                                //                         );
-                                //                 } else {
-                                //                     await expect(
-                                //                         contracts[action.contract]
-                                //                             .connect(
-                                //                                 users[
-                                //                                     action.executer
-                                //                                 ]
-                                //                             )
-                                //                             [action.action](
-                                //                                 investedValue
-                                //                             )
-                                //                     ).to.be.revertedWith(
-                                //                         action.message
-                                //                     );
-                                //                 }
-                                //                 break;
-                                //             }
-                                //             default:
-                                //                 break;
-                                //         }
-                                //     }
-                                //     for (let i = 0; i < story.getActions.length; i++) {
-                                //         const getAction = story.getActions[i];
-                                //         switch (getAction.action) {
-                                //             case "balance": {
-                                //                 const balance = await contracts[
-                                //                     getAction.contract
-                                //                 ][getAction.action]();
-                                //                 expect(balance).to.equal(
-                                //                     investedValue.sub(maxValue)
-                                //                 );
-                                //             }
-                                //         }
-                                //     }
-                                // }
                             }).timeout(150000);
                         }
                     });
