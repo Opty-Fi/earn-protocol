@@ -22,7 +22,7 @@ export async function setUp(owner: Signer): Promise<[ESSENTIAL_CONTRACTS, CONTRA
     return [contracts, adapters];
 }
 
-async function deployEssentialContracts(owner: Signer): Promise<ESSENTIAL_CONTRACTS> {
+export async function deployRegistry(owner: Signer): Promise<Contract> {
     const RegistryFactory = await ethers.getContractFactory(
         ESSENTIAL_CONTRACTS_DATA.REGISTRY
     );
@@ -32,15 +32,19 @@ async function deployEssentialContracts(owner: Signer): Promise<ESSENTIAL_CONTRA
         ESSENTIAL_CONTRACTS_DATA.REGISTRY_PROXY
     );
     const registryProxy = await RegistryProxyFactory.connect(owner).deploy();
-
     await registryProxy.connect(owner).setPendingImplementation(registry.address);
     await registry.connect(owner).become(registryProxy.address);
-
     registry = await ethers.getContractAt(
         ESSENTIAL_CONTRACTS_DATA.REGISTRY,
         registryProxy.address,
         owner
     );
+    return registry;
+}
+
+async function deployEssentialContracts(owner: Signer): Promise<ESSENTIAL_CONTRACTS> {
+    const registry = await deployRegistry(owner);
+
     const profiles = Object.keys(RISK_PROFILES);
     for (let i = 0; i < profiles.length; i++) {
         await registry.addRiskProfile(
@@ -231,7 +235,7 @@ async function approveLiquidityPoolAndMapAdapters(
     }
 }
 
-async function deployAdapters(
+export async function deployAdapters(
     owner: Signer,
     registryAddr: string,
     harvestAddr: string
