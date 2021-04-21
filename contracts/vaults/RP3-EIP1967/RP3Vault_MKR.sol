@@ -198,9 +198,6 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
     }
 
     function harvest(bytes32 _hash) public override {
-        if (_hash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            return;
-        }
         uint8 _claimRewardSteps = strategyManagerContract.getClaimRewardStepsCount(_hash);
         for (uint8 _i = 0; _i < _claimRewardSteps; _i++) {
             bytes[] memory _codes =
@@ -359,7 +356,7 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "!!balance");
 
-        if (!registryContract.vaultToDiscontinued(address(this))) {
+        if (!registryContract.vaultToDiscontinued(address(this)) && strategyHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
             _withdrawAll();
             harvest(strategyHash);
         }

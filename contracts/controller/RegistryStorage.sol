@@ -72,6 +72,7 @@ contract Structs {
         PoolRatingsRange[] poolRatingsRange;
         bool exists;
     }
+
 }
 
 contract RegistryStorage is RegistryAdminStorage, Structs {

@@ -537,12 +537,12 @@ contract Registry is ModifiersController {
         require(_riskProfiles.length == _noOfSteps.length, "!Stepslength");
         require(_riskProfiles.length == _poolRatingRanges.length, "!PoolRatingsLength");
         
-        for (uint8 _i; _i <= _riskProfiles.length; _i++) {
+        for (uint8 _i = 0; _i < _riskProfiles.length; _i++) {
             _addRiskProfile(_riskProfiles[_i], _noOfSteps[_i], _poolRatingRanges[_i]);
         }
         return true;
     }
-    
+
     /**
      * @dev Add the risk profile in Registry contract Storage
      * 
