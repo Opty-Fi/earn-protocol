@@ -84,7 +84,6 @@
                             "action": "setBestStrategy(string,bytes32,bytes32)",
                             "args": {
                                 "riskProfile": "RP1"
-                                
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -207,13 +206,12 @@
                             "action": "setBestStrategy(string,bytes32,bytes32)",
                             "args": {
                                 "riskProfile": "RP1"
-                                
                             },
                             "executer": "owner",
                             "expect": "success",
                             "message": "",
                             "expectedValue": {}
-                        },                        
+                        },
                         {
                             "contract": "vault",
                             "action": "userWithdrawRebalance(uint256)",
@@ -302,7 +300,6 @@
                             "action": "setBestStrategy(string,bytes32,bytes32)",
                             "args": {
                                 "riskProfile": "RP1"
-                                
                             },
                             "executer": "owner",
                             "expect": "success",
@@ -336,7 +333,7 @@
                             "expect": "success",
                             "message": "",
                             "expectedValue": {}
-                        },                        
+                        },
                         {
                             "contract": "vault",
                             "action": "userWithdrawRebalance(uint256)",
