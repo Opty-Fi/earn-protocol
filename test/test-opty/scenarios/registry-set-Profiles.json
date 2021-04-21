@@ -1,9 +1,9 @@
 {
-    "title": "Registry - Set Risk Profiles",
+    "title": "Registry - Add,Update,Remove Risk Profiles",
     "description": "Test cases for Registry contract",
     "stories": [
         {
-            "description": "User should be able to add a single Risk Profile",
+            "description": "User should be able to add a Risk Profile",
             "setActions": [
                 {
                     "action": "addRiskProfile(string,uint8,(uint8,uint8))",
