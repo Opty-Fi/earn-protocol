@@ -18,6 +18,14 @@ export type DATA_OBJECT = {
     [name: string]: string;
 };
 
+export type RISK_PROFILE_DATA = {
+    [key: string]: {
+        name: string;
+        steps: number;
+        poolRating: number[];
+    };
+};
+
 export type STRATEGIES_DATA = {
     [key: string]: {
         [key: string]: { strategyName: string; strategy: STRATEGY_DATA[] }[];

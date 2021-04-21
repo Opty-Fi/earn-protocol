@@ -1,4 +1,4 @@
-import { DATA_OBJECT } from "./type";
+import { DATA_OBJECT, RISK_PROFILE_DATA } from "./type";
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
     REGISTRY: "Registry",
     REGISTRY_PROXY: "RegistryProxy",
@@ -9,6 +9,7 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
     STRATEGY_PROVIDER: "StrategyProvider",
     HARVEST_CODE_PROVIDER: "HarvestCodeProvider",
     VAULT_PROXY: "InitializableImmutableAdminUpgradeabilityProxy",
+    RISK_MANAGER_PROXY: "RiskManagerProxy",
 };
 export const VAULT = ["RP1Vault", "RP2Vault", "RP3Vault"];
 export const ADAPTER = [
@@ -39,3 +40,21 @@ export const TESTING_CONTRACTS: DATA_OBJECT = {
 };
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+
+export const RISK_PROFILES: RISK_PROFILE_DATA = {
+    RP1: {
+        name: "RP1",
+        steps: 1,
+        poolRating: [0, 10],
+    },
+    RP2: {
+        name: "RP2",
+        steps: 2,
+        poolRating: [0, 20],
+    },
+    RP3: {
+        name: "RP3",
+        steps: 3,
+        poolRating: [0, 30],
+    },
+};
