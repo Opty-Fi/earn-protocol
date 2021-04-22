@@ -37,34 +37,40 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     function claimAndStake(address _holder, StakingPool _stakingPool) public {
         uint256 _amount = claimOpty(_holder, allOptyVaults);
         if (_stakingPool == StakingPool.ZeroDays) {
-            stake0Days(_amount);
+            stake0Days(_holder, _amount);
         } else if (_stakingPool == StakingPool.ThirtyDays) {
-            stake30Days(_amount);
+            stake30Days(_holder, _amount);
+        }
+        else if (_stakingPool == StakingPool.SixtyDays) {
+            stake60Days(_holder, _amount);
+        }
+        else if (_stakingPool == StakingPool.OneEightyDays) {
+            stake180Days(_holder, _amount);
         }
     }
 
-    function stake0Days(uint256 _amount) public {
+    function stake0Days(address _staker, uint256 _amount) public {
         address _stakingPoolAddress = stakingPoolAddresses[StakingPool.ZeroDays];
         OPTYStakingPoolZeroDays _optyStakingPool = OPTYStakingPoolZeroDays(_stakingPoolAddress);
-        _optyStakingPool.userStake(_amount);
+        _optyStakingPool.userStake(_staker, _amount);
     }
     
-    function stake30Days(uint256 _amount) public {
+    function stake30Days(address _staker, uint256 _amount) public {
         address _stakingPoolAddress = stakingPoolAddresses[StakingPool.ThirtyDays];
         OPTYStakingPool30Days _optyStakingPool = OPTYStakingPool30Days(_stakingPoolAddress);
-        _optyStakingPool.userStake(_amount);
+        _optyStakingPool.userStake(_staker, _amount);
     }
     
-    function stake60Days(uint256 _amount) public {
+    function stake60Days(address _staker, uint256 _amount) public {
         address _stakingPoolAddress = stakingPoolAddresses[StakingPool.SixtyDays];
         OPTYStakingPool60Days _optyStakingPool = OPTYStakingPool60Days(_stakingPoolAddress);
-        _optyStakingPool.userStake(_amount);
+        _optyStakingPool.userStake(_staker, _amount);
     }
     
-    function stake180Days(uint256 _amount) public {
+    function stake180Days(address _staker, uint256 _amount) public {
         address _stakingPoolAddress = stakingPoolAddresses[StakingPool.OneEightyDays];
         OPTYStakingPool180Days _optyStakingPool = OPTYStakingPool180Days(_stakingPoolAddress);
-        _optyStakingPool.userStake(_amount);
+        _optyStakingPool.userStake(_staker, _amount);
     }
 
     /**

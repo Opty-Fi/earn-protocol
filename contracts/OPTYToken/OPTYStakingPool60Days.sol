@@ -65,7 +65,7 @@ contract OPTYStakingPool60Days is ERC20, Modifiers, ReentrancyGuard, StakingPool
     }
 
     function userStakeAll() external {
-        userStake(IERC20(token).balanceOf(msg.sender));
+        userStake(msg.sender, IERC20(token).balanceOf(msg.sender));
     }
 
     /**
@@ -76,7 +76,7 @@ contract OPTYStakingPool60Days is ERC20, Modifiers, ReentrancyGuard, StakingPool
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userStake(uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userStake(address _staker, uint256 _amount) public ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         require(_amount > 0, "!(_amount>0)");
         uint256 _tokenBalance = balance();
         IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -88,6 +88,7 @@ contract OPTYStakingPool60Days is ERC20, Modifiers, ReentrancyGuard, StakingPool
         }
         _mint(msg.sender, shares);
         updatePool();
+        _userToOPTYStaked[_staker] = _userToOPTYStaked[_staker].add(_amount);
         _userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }
@@ -107,6 +108,14 @@ contract OPTYStakingPool60Days is ERC20, Modifiers, ReentrancyGuard, StakingPool
     function userUnstake(uint256 _redeemAmount) public ifNotPaused nonReentrant returns (bool _success) {
         require(getBlockTimestamp().sub(_userLastUpdate[msg.sender]) > timelockPeriod, "you can't unstake until _timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
+        if (_redeemAmount == balanceOf(msg.sender)) {
+            _userToOPTYStaked[msg.sender] = uint(0);
+        } else {
+            uint256 _amount = _userToOPTYStaked[msg.sender].mul(_redeemAmount).div(IERC20(token).balanceOf(msg.sender));
+            _userToOPTYStaked[msg.sender] = _userToOPTYStaked[msg.sender].sub(_amount);
+        }
+        uint256 _amount = _userToOPTYStaked[msg.sender].mul(_redeemAmount).div(IERC20(token).balanceOf(msg.sender));
+        _userToOPTYStaked[msg.sender] = _userToOPTYStaked[msg.sender].sub(_amount);
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         _burn(msg.sender, _redeemAmount);
