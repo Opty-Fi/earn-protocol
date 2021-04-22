@@ -34,18 +34,20 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         stakingPoolAddresses[_stakingPool] = _stakingPoolAddress;
     }
     
-    function claimAndStake(address _holder, StakingPool _stakingPool) public {
+    function claimAndStake(address _holder, uint8 _stakingPool) public {
         uint256 _amount = claimOpty(_holder, allOptyVaults);
-        if (_stakingPool == StakingPool.ZeroDays) {
+        if (_stakingPool == uint8(StakingPool.ZeroDays)) {
             stake0Days(_holder, _amount);
-        } else if (_stakingPool == StakingPool.ThirtyDays) {
+        } else if (_stakingPool == uint8(StakingPool.ThirtyDays)) {
             stake30Days(_holder, _amount);
         }
-        else if (_stakingPool == StakingPool.SixtyDays) {
+        else if (_stakingPool == uint8(StakingPool.SixtyDays)) {
             stake60Days(_holder, _amount);
         }
-        else if (_stakingPool == StakingPool.OneEightyDays) {
+        else if (_stakingPool == uint8(StakingPool.OneEightyDays)) {
             stake180Days(_holder, _amount);
+        } else {
+            revert("staking pool doesn't exist");
         }
     }
 

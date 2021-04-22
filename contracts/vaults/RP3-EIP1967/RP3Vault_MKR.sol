@@ -244,15 +244,15 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _success = true;
     }
 
-    function userDepositAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAndStake(uint256 _amount, uint8 _stakingPool) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDeposit(_amount);
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
     
-    function userDepositAllAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAllAndStake(uint8 _stakingPool) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
 
@@ -328,15 +328,15 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         _success = true;
     }
 
-    function userDepositRebalanceAndStake(uint256 _amount) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositRebalanceAndStake(uint256 _amount, uint8 _stakingPool) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDepositRebalance(_amount);
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
     
-    function userDepositAllRebalanceAndStake() public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
+    function userDepositAllRebalanceAndStake(uint8 _stakingPool) public override ifNotDiscontinued ifNotPaused nonReentrant returns (bool _success) {
         userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
     
@@ -383,16 +383,16 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
     
-    function userDepositAllAndStakeWithCHI() public override discountCHI {
-        userDepositAllAndStake();
+    function userDepositAllAndStakeWithCHI(uint8 _stakingPool) public override discountCHI {
+        userDepositAllAndStake(_stakingPool);
     }
     
     function userDepositWithCHI(uint256 _amount) public override discountCHI {
         userDeposit(_amount);
     }
     
-    function userDepositAndStakeWithCHI(uint256 _amount) public override discountCHI {
-        userDepositAndStake(_amount);
+    function userDepositAndStakeWithCHI(uint256 _amount, uint8 _stakingPool) public override discountCHI {
+        userDepositAndStake(_amount, _stakingPool);
     }
     
     function userDepositAllRebalanceWithCHI() public override discountCHI {
@@ -403,12 +403,12 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         userDepositRebalance(_amount);
     }
     
-    function userDepositRebalanceAndStakeWithCHI(uint256 _amount) public override discountCHI {
-        userDepositRebalanceAndStake(_amount);
+    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, uint8 _stakingPool) public override discountCHI {
+        userDepositRebalanceAndStake(_amount, _stakingPool);
     }
     
-    function userDepositAllRebalanceAndStakeWithCHI() public override discountCHI {
-        userDepositAllRebalanceAndStake();
+    function userDepositAllRebalanceAndStakeWithCHI(uint8 _stakingPool) public override discountCHI {
+        userDepositAllRebalanceAndStake(_stakingPool);
     }
     
     function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) public override discountCHI {
@@ -430,7 +430,7 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
                         : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue,
                     blockMaxVaultValue: _vaultValue > blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
                         ? _vaultValue
-                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue
+                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
                 })
             );
             require(

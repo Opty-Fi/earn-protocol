@@ -60,6 +60,13 @@ contract Structs {
         uint256 index;
         address[] tokens;
     }
+
+    enum StakingPool {
+        ZeroDays,
+        ThirtyDays,
+        SixtyDays,
+        OneEightyDays
+    }
 }
 
 contract RegistryStorage is RegistryAdminStorage, Structs {
