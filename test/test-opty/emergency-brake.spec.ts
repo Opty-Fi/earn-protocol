@@ -62,11 +62,13 @@ describe(scenario.title, () => {
                         TOKEN_STRATEGY.strategy[0].contract
                     );
 
+                    const riskProfile = await Vault.profile();
                     await setBestBasicStrategy(
                         TOKEN_STRATEGY.strategy,
                         tokensHash,
                         essentialContracts.registry,
-                        essentialContracts.strategyProvider
+                        essentialContracts.strategyProvider,
+                        riskProfile
                     );
 
                     const timestamp = (await getBlockTimestamp()) * 2;

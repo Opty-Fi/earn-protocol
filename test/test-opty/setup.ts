@@ -5,6 +5,7 @@ import {
     ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA,
     TOKENS,
     ADAPTER,
+    RISK_PROFILES,
 } from "./utils/constants";
 import { ESSENTIAL_CONTRACTS, CONTRACTS, STRATEGY_DATA } from "./utils/type";
 import { getSoliditySHA3Hash } from "./utils/helpers";
@@ -30,10 +31,8 @@ export async function deployRegistry(owner: Signer): Promise<Contract> {
         ESSENTIAL_CONTRACTS_DATA.REGISTRY_PROXY
     );
     const registryProxy = await RegistryProxyFactory.connect(owner).deploy();
-
     await registryProxy.connect(owner).setPendingImplementation(registry.address);
     await registry.connect(owner).become(registryProxy.address);
-
     registry = await ethers.getContractAt(
         ESSENTIAL_CONTRACTS_DATA.REGISTRY,
         registryProxy.address,
@@ -44,6 +43,15 @@ export async function deployRegistry(owner: Signer): Promise<Contract> {
 
 async function deployEssentialContracts(owner: Signer): Promise<ESSENTIAL_CONTRACTS> {
     const registry = await deployRegistry(owner);
+
+    const profiles = Object.keys(RISK_PROFILES);
+    for (let i = 0; i < profiles.length; i++) {
+        await registry.addRiskProfile(
+            RISK_PROFILES[profiles[i]].name,
+            RISK_PROFILES[profiles[i]].steps,
+            RISK_PROFILES[profiles[i]].poolRating
+        );
+    }
 
     const StrategyProvider = await ethers.getContractFactory(
         ESSENTIAL_CONTRACTS_DATA.STRATEGY_PROVIDER
@@ -59,13 +67,28 @@ async function deployEssentialContracts(owner: Signer): Promise<ESSENTIAL_CONTRA
         registry.address
     );
 
-    const RiskManager = await ethers.getContractFactory(
+    const RiskManagerFactory = await ethers.getContractFactory(
         ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER
     );
-    const riskManager = await RiskManager.connect(owner).deploy(
-        registry.address,
-        strategyProvider.address
+    let riskManager = await RiskManagerFactory.connect(owner).deploy(registry.address);
+
+    const RiskManagerProxyFactory = await ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER_PROXY
     );
+    const riskManagerProxy = await RiskManagerProxyFactory.connect(owner).deploy(
+        registry.address
+    );
+
+    await riskManagerProxy.connect(owner).setPendingImplementation(riskManager.address);
+    await riskManager.connect(owner).become(riskManagerProxy.address);
+
+    riskManager = await ethers.getContractAt(
+        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER,
+        riskManagerProxy.address,
+        owner
+    );
+
+    await riskManager.initialize(strategyProvider.address);
 
     const StrategyManager = await ethers.getContractFactory(
         ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER
@@ -131,7 +154,8 @@ export async function setBestBasicStrategy(
     strategy: STRATEGY_DATA[],
     tokensHash: string,
     registry: Contract,
-    strategyProvider: Contract
+    strategyProvider: Contract,
+    riskProfile: string
 ): Promise<void> {
     const strategySteps: [string, string, boolean][] = [];
     const strategyStepsHash: string[] = [];
@@ -158,7 +182,8 @@ export async function setBestBasicStrategy(
     );
     const strategyReceipt = await strategies.wait();
     const strategyHash = strategyReceipt.events[0].args[2];
-    await strategyProvider.setBestRP1Strategy(tokensHash, strategyHash);
+    await strategyProvider.setBestStrategy(riskProfile, tokensHash, strategyHash);
+    return strategyHash;
 }
 
 async function approveTokens(registryContract: Contract) {

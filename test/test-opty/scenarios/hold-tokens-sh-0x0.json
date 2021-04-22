@@ -1,0 +1,368 @@
+{
+    "title": "Hold tokens in Vault when strategy hash is 0x0..00",
+    "description": "Test cases for the _getDepositAmount function.",
+    "vaults": [
+        {
+            "name": "RP1Vault",
+            "stories": [
+                {
+                    "description": "[StrategyHash is 0x..00] User should be able to deposit and Vault should hold tokens",
+                    "actions": [
+                        {
+                            "contract": "strategyProvider",
+                            "action": "setBestStrategy(string,bytes32,bytes32)",
+                            "args": {
+                                "riskProfile": "RP1",
+                                "strategyHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {
+                                "DAI": "30000000000000000000",
+                                "USDT": "30000000"
+                            }
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userWithdrawRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        }
+                    ]
+                },
+                {
+                    "description": "[StrategyHash is NOT 0x..00] User should be able to deposit and vault will not hold any tokens",
+                    "actions": [
+                        {
+                            "contract": "strategyProvider",
+                            "action": "setBestStrategy(string,bytes32,bytes32)",
+                            "args": {
+                                "riskProfile": "RP1"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {
+                                "DAI": "0",
+                                "USDT": "0"
+                            }
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userWithdrawRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        }
+                    ]
+                },
+                {
+                    "description": "[Change StrategyHash from 0x00 to best strategy] User should be able to deposit when strategy hash is 0x00 and withdraw if strategy hash is changed to best strategy",
+                    "actions": [
+                        {
+                            "contract": "strategyProvider",
+                            "action": "setBestStrategy(string,bytes32,bytes32)",
+                            "args": {
+                                "riskProfile": "RP1",
+                                "strategyHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {
+                                "DAI": "30000000000000000000",
+                                "USDT": "30000000"
+                            }
+                        },
+                        {
+                            "contract": "strategyProvider",
+                            "action": "setBestStrategy(string,bytes32,bytes32)",
+                            "args": {
+                                "riskProfile": "RP1"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userWithdrawRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {
+                                "DAI": "0",
+                                "USDT": "0"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "description": "[Change StrategyHash from 0x00 to best strategy] User should be able to deposit when strategy hash is 0x00 and again deposit and withdraw if strategy hash is changed to best strategy",
+                    "actions": [
+                        {
+                            "contract": "strategyProvider",
+                            "action": "setBestStrategy(string,bytes32,bytes32)",
+                            "args": {
+                                "riskProfile": "RP1",
+                                "strategyHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {
+                                "DAI": "30000000000000000000",
+                                "USDT": "30000000"
+                            }
+                        },
+                        {
+                            "contract": "strategyProvider",
+                            "action": "setBestStrategy(string,bytes32,bytes32)",
+                            "args": {
+                                "riskProfile": "RP1"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userWithdrawRebalance(uint256)",
+                            "args": {
+                                "amount": {
+                                    "DAI": "30000000000000000000",
+                                    "USDT": "30000000"
+                                }
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {}
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "balance()",
+                            "args": {},
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": "",
+                            "expectedValue": {
+                                "DAI": "0",
+                                "USDT": "0"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
