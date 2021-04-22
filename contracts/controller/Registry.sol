@@ -25,10 +25,10 @@ contract Registry is ModifiersController {
      * Returns a boolean value indicating whether the operation succeeded.
      */
      
-    function approveTokens(address[] memory _tokens) public onlyGovernance returns (bool) {
+    function approveTokens(address[] memory _tokens) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
             address _token = _tokens[_i];
-            _approveToken(_token);
+            approveToken(_token);
         }
         return true;
     }
@@ -46,7 +46,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_token` should not be approved
      */
-    function _approveToken(address _token) internal onlyGovernance returns (bool) {
+    function approveToken(address _token) public onlyGovernance returns (bool) {
         require(_token != address(0), "!address(0)");
         require(address(_token).isContract(), "!isContract");
         require(!tokens[_token], "!tokens");
@@ -61,10 +61,10 @@ contract Registry is ModifiersController {
      * Returns a boolean value indicating whether the operation succeeded.
      */
      
-    function revokeTokens(address[] memory _tokens) public onlyGovernance returns (bool) {
+    function revokeTokens(address[] memory _tokens) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
             address _token = _tokens[_i];
-            _revokeToken(_token);
+            revokeToken(_token);
         }
         return true;
     }
@@ -82,7 +82,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_token` should be approved
      */
-    function _revokeToken(address _token) internal onlyGovernance returns (bool) {
+    function revokeToken(address _token) public onlyGovernance returns (bool) {
         require(tokens[_token], "!tokens");
         tokens[_token] = false;
         emit LogToken(msg.sender, _token, tokens[_token]);
@@ -93,10 +93,10 @@ contract Registry is ModifiersController {
      * @dev Sets multiple `_pool` from the {liquidityPools} mapping.
      *
      */
-    function approveLiquidityPools(address[] memory _pools) public onlyGovernance returns (bool) {
+    function approveLiquidityPools(address[] memory _pools) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
             address _pool = _pools[_i];
-            _approveLiquidityPool(_pool);
+            approveLiquidityPool(_pool);
         }
         return true;
     }
@@ -114,7 +114,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function _approveLiquidityPool(address _pool) internal onlyGovernance returns (bool) {
+    function approveLiquidityPool(address _pool) public onlyGovernance returns (bool) {
         require(_pool != address(0), "!address(0)");
         require(address(_pool).isContract(), "!isContract");
         require(!liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
@@ -127,10 +127,10 @@ contract Registry is ModifiersController {
      * @dev Revokes multiple `_pool` from the {liquidityPools} mapping.
      *
      */
-    function revokeLiquidityPools(address[] memory _pools) public onlyGovernance returns (bool) {
+    function revokeLiquidityPools(address[] memory _pools) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
             address _pool = _pools[_i];
-            _revokeLiquidityPool(_pool);
+            revokeLiquidityPool(_pool);
         }
         return true;
     }
@@ -148,7 +148,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function _revokeLiquidityPool(address _pool) internal onlyGovernance {
+    function revokeLiquidityPool(address _pool) public onlyGovernance {
         require(liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
         emit LogLiquidityPool(msg.sender, _pool, liquidityPools[_pool].isLiquidityPool);
         liquidityPools[_pool].isLiquidityPool = false;
@@ -167,7 +167,7 @@ contract Registry is ModifiersController {
      * 
      */
     
-    function rateLiquidityPools(PoolRate[] memory _poolRates) public onlyGovernance returns (bool) {
+    function rateLiquidityPools(PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
         for(uint8 _i = 0; _i < _poolRates.length; _i++){
             PoolRate memory poolRate = _poolRates[_i];
             rateLiquidityPool(poolRate.pool, poolRate.rate);
@@ -199,10 +199,10 @@ contract Registry is ModifiersController {
      * @dev Sets multiple `_pool` from the {creditPools} mapping.
      *
      */
-    function approveCreditPools(address[] memory _pools) public onlyGovernance returns (bool) {
+    function approveCreditPools(address[] memory _pools) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
             address _pool = _pools[_i];
-            _approveCreditPool(_pool);
+            approveCreditPool(_pool);
         }
         return true;
     }
@@ -220,7 +220,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function _approveCreditPool(address _pool) internal onlyGovernance returns (bool) {
+    function approveCreditPool(address _pool) public onlyGovernance returns (bool) {
         require(_pool != address(0), "!address(0)");
         require(address(_pool).isContract(), "!isContract");
         require(!creditPools[_pool].isLiquidityPool, "!creditPools");
@@ -233,10 +233,10 @@ contract Registry is ModifiersController {
      * @dev Revokes multiple `_pool` from the {revokeCreditPools} mapping.
      *
      */
-    function revokeCreditPools(address[] memory _pools) public onlyGovernance returns (bool) {
+    function revokeCreditPools(address[] memory _pools) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_pools.length); _i++) {
             address _pool = _pools[_i];
-            _revokeCreditPool(_pool);
+            revokeCreditPool(_pool);
         }
         return true;
     }
@@ -254,7 +254,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_pool` should not be approved
      */
-    function _revokeCreditPool(address _pool) internal onlyGovernance {
+    function revokeCreditPool(address _pool) public onlyGovernance {
         require(creditPools[_pool].isLiquidityPool, "!creditPools");
         emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isLiquidityPool);
         creditPools[_pool].isLiquidityPool = false;
@@ -272,10 +272,10 @@ contract Registry is ModifiersController {
      * 
      */
     
-    function rateCreditPools(PoolRate[] memory _poolRates) public onlyGovernance returns (bool) {
+    function rateCreditPools(PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
         for(uint8 _i = 0; _i < _poolRates.length; _i++){
             PoolRate memory poolRate = _poolRates[_i];
-            _rateCreditPool(poolRate.pool, poolRate.rate);
+            rateCreditPool(poolRate.pool, poolRate.rate);
         }
         return true;
     }
@@ -293,7 +293,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_pool` should be approved
      */
-    function _rateCreditPool(address _pool, uint8 _rate) internal onlyGovernance returns (bool) {
+    function rateCreditPool(address _pool, uint8 _rate) public onlyGovernance returns (bool) {
         require(creditPools[_pool].isLiquidityPool, "!liquidityPools");
         creditPools[_pool].rating = _rate;
         emit LogRateCreditPool(msg.sender, _pool, creditPools[_pool].rating);
@@ -304,7 +304,7 @@ contract Registry is ModifiersController {
      * @dev Sets multiple liquidity `_pool` corresponding to the protocol adapter `_adapter` from the {liquidityPoolToAdapter} mapping.
      *
      */
-    function setLiquidityPoolsToAdapters(PoolAdapter[] memory _poolAdapters) public onlyOperator returns (bool) {
+    function setLiquidityPoolsToAdapters(PoolAdapter[] memory _poolAdapters) external onlyOperator returns (bool) {
         for(uint8 _i = 0; _i < _poolAdapters.length; _i++){
             PoolAdapter memory _poolAdapter = _poolAdapters[_i];
             setLiquidityPoolToAdapter(_poolAdapter.pool, _poolAdapter.adapter);
@@ -417,9 +417,9 @@ contract Registry is ModifiersController {
      * @dev Sets multiple `_tokens` to keccak256 hash the {tokensHashToTokens} mapping.
      *
      */
-    function setMultipleTokensHashToTokens(address[][] memory _setOfTokens) public onlyOperator {
+    function setMultipleTokensHashToTokens(address[][] memory _setOfTokens) external onlyOperator {
         for (uint8 _i = 0; _i < uint8(_setOfTokens.length); _i++) {
-            _setTokensHashToTokens(_setOfTokens[_i]);
+            setTokensHashToTokens(_setOfTokens[_i]);
         }
     }
     
@@ -433,7 +433,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be operator.
      * - `_tokens` should be approved
      */
-    function _setTokensHashToTokens(address[] memory _tokens) internal onlyOperator {
+    function setTokensHashToTokens(address[] memory _tokens) public onlyOperator {
         for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
             require(tokens[_tokens[_i]], "!tokens");
         }

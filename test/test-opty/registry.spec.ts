@@ -42,7 +42,8 @@ describe(scenario.title, () => {
             for (let i = 0; i < story.setActions.length; i++) {
                 const action = story.setActions[i];
                 switch (action.action) {
-                    case "approveTokens(address[])": {
+                    case "approveTokens(address[])":
+                    case "approveToken(address)": {
                         const { tokens }: ARGUMENTS = action.args;
                         if (tokens) {
                             if (action.expect === "success") {
@@ -60,7 +61,9 @@ describe(scenario.title, () => {
                         break;
                     }
                     case "approveLiquidityPools(address[])":
-                    case "approveCreditPools(address[])": {
+                    case "approveCreditPools(address[])":
+                    case "approveLiquidityPool(address)":
+                    case "approveCreditPool(address)": {
                         const { lqs }: ARGUMENTS = action.args;
                         if (lqs) {
                             if (action.expect === "success") {
@@ -95,8 +98,34 @@ describe(scenario.title, () => {
                         );
                         break;
                     }
+                    case "rateLiquidityPool(address,uint8)":
+                    case "rateCreditPool(address,uint8)": {
+                        const { lqRate }: ARGUMENTS = action.args;
+                        if (lqRate) {
+                            if (action.expect === "success") {
+                                await registryContract[action.action](
+                                    lqRate[0],
+                                    lqRate[1]
+                                );
+                            } else {
+                                await expect(
+                                    registryContract[action.action](
+                                        lqRate[0],
+                                        lqRate[1]
+                                    )
+                                ).to.be.revertedWith(action.message);
+                            }
+                        }
+                        assert.isDefined(
+                            lqRate,
+                            `args is wrong in ${action.action} testcase`
+                        );
+                        break;
+                    }
                     case "revokeLiquidityPools(address[])":
-                    case "revokeCreditPools(address[])": {
+                    case "revokeCreditPools(address[])":
+                    case "revokeLiquidityPool(address)":
+                    case "revokeCreditPool(address)": {
                         const { lqs }: ARGUMENTS = action.args;
                         if (lqs) {
                             if (action.expect === "success") {
@@ -113,7 +142,7 @@ describe(scenario.title, () => {
                         );
                         break;
                     }
-                    case "setLiquidityPoolsToAdapters(address[])": {
+                    case "setLiquidityPoolsToAdapters((address,address)[])": {
                         const { lqs }: ARGUMENTS = action.args;
                         if (lqs) {
                             const args: [string, string][] = [];
@@ -137,7 +166,31 @@ describe(scenario.title, () => {
                         );
                         break;
                     }
-                    case "setMultipleTokensHashToTokens(address[][])": {
+                    case "setLiquidityPoolToAdapter(address,address)": {
+                        const { lqs }: ARGUMENTS = action.args;
+                        if (lqs) {
+                            if (action.expect === "success") {
+                                await registryContract[action.action](
+                                    lqs.liquidityPool,
+                                    adapters[lqs.adapterName].address
+                                );
+                            } else {
+                                await expect(
+                                    registryContract[action.action](
+                                        lqs.liquidityPool,
+                                        adapters[lqs.adapterName].address
+                                    )
+                                ).to.be.revertedWith(action.message);
+                            }
+                        }
+                        assert.isDefined(
+                            lqs,
+                            `args is wrong in ${action.action} testcase`
+                        );
+                        break;
+                    }
+                    case "setMultipleTokensHashToTokens(address[][])":
+                    case "setTokensHashToTokens(address[])": {
                         const { tokensHash }: ARGUMENTS = action.args;
                         if (tokensHash) {
                             if (action.expect === "success") {
