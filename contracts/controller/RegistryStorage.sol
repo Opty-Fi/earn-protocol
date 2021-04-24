@@ -19,6 +19,11 @@ contract RegistryAdminStorage {
     address public strategist;
 
     /**
+     * @notice Treasury for this contract
+     */
+    address public treasury;
+
+    /**
      * @notice Minter for OPTY token
      */
     address public minter;

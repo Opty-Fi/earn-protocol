@@ -32,6 +32,16 @@ contract ModifiersController is RegistryStorage {
     }
 
     /**
+     * @dev Transfers treasury to a new account (`_strategist`).
+     * Can only be called by the current governance.
+     */
+
+    function setTreasury(address _treasury) public onlyGovernance {
+        require(_treasury != address(0), "!address(0)");
+        treasury = _treasury;
+    }
+
+    /**
      * @dev Transfers minter to a new account (`_minter`).
      * Can only be called by the current governance.
      */
