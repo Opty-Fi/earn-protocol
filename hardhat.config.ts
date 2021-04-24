@@ -20,6 +20,7 @@ const buidlerConfig: HardhatUserConfig = {
                 blockNumber: 12200321,
                 url: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",
             },
+            allowUnlimitedContractSize: true,
         },
     },
     mocha: {
