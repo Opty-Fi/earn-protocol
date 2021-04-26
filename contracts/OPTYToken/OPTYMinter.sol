@@ -4,7 +4,7 @@ pragma solidity ^0.6.10;
 
 import "./OPTY.sol";
 import "./OPTYMinterStorage.sol";
-import "./ExponentialNoError.sol";
+import "./../utils/ExponentialNoError.sol";
 import "./../interfaces/ERC20/IERC20.sol";
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
