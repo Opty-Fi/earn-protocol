@@ -3,7 +3,8 @@
     "description": "Test cases for the _getDepositAmount function.",
     "vaults": [
         {
-            "name": "RP1Vault",
+            "name": "Vault",
+            "profile": "RP1",
             "stories": [
                 {
                     "description": "[StrategyHash is 0x..00] User should be able to deposit and Vault should hold tokens",
