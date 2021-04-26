@@ -769,6 +769,16 @@ contract Registry is ModifiersController {
     }
 
     /**
+     * @dev Transfers treasury to a new account (`_strategist`).
+     * Can only be called by the current governance.
+     */
+
+    function setTreasury(address _treasury) public onlyGovernance {
+        require(_treasury != address(0), "!address(0)");
+        treasury = _treasury;
+    }
+    
+    /**
      * @dev Emitted when `token` is approved or revoked.
      *
      * Note that `token` cannot be zero address or EOA.

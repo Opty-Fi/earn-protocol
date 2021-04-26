@@ -37,7 +37,7 @@
                             "args": {
                                 "fee": "60"
                             },
-                            "executer": "user",
+                            "executer": "user1",
                             "expect": "fail",
                             "message": "caller is not having governance"
                         }
@@ -58,13 +58,13 @@
                             "message": ""
                         },
                         {
-                            "contract": "erc20",
-                            "action": "transfer(address,uint256)",
+                            "contract": "",
+                            "action": "fundWallet",
                             "args": {
-                                "addressName": "user",
+                                "addressName": "user1",
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "owner",
+                            "executer": "",
                             "expect": "success",
                             "message": ""
                         },
@@ -75,7 +75,7 @@
                                 "addressName": "vault",
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "user",
+                            "executer": "user1",
                             "expect": "success",
                             "message": ""
                         },
@@ -85,7 +85,7 @@
                             "args": {
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "user",
+                            "executer": "user1",
                             "expect": "success",
                             "message": ""
                         },
@@ -95,7 +95,7 @@
                             "args": {
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "user",
+                            "executer": "user1",
                             "expect": "success",
                             "message": ""
                         }
@@ -111,7 +111,7 @@
                             "contract": "erc20",
                             "action": "balanceOf(address)",
                             "args": {
-                                "addressName": "user"
+                                "addressName": "user1"
                             },
                             "expectedValue": "1000000000000000000"
                         }
@@ -149,7 +149,7 @@
                             "args": {
                                 "address": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
                             },
-                            "executer": "user",
+                            "executer": "user1",
                             "expect": "fail",
                             "message": "caller is not having governance"
                         }
@@ -196,13 +196,24 @@
                             "message": ""
                         },
                         {
+                            "contract": "",
+                            "action": "fundWallet",
+                            "args": {
+                                "addressName": "user2",
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
                             "contract": "erc20",
                             "action": "approve(address,uint256)",
                             "args": {
                                 "addressName": "vault",
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "owner",
+                            "executer": "user2",
                             "expect": "success",
                             "message": ""
                         },
@@ -212,7 +223,7 @@
                             "args": {
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "owner",
+                            "executer": "user2",
                             "expect": "success",
                             "message": ""
                         },
@@ -222,12 +233,20 @@
                             "args": {
                                 "amount": "1000000000000000000"
                             },
-                            "executer": "owner",
+                            "executer": "user2",
                             "expect": "success",
                             "message": ""
                         }
                     ],
                     "getActions": [
+                        {
+                            "contract": "erc20",
+                            "action": "balanceOf(address)",
+                            "args": {
+                                "addressName": "user2"
+                            },
+                            "expectedValue": "950000000000000000"
+                        },
                         {
                             "contract": "erc20",
                             "action": "balanceOf(address)",

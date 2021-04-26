@@ -369,8 +369,7 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
         optyMinterContract.updateUserRewards(address(this), msg.sender);
 
         // subtract pending deposit from total balance
-        uint256 _fee = _chargeWithdrawlFee(_redeemAmount);
-        _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount.sub(_fee));
+        _redeemAndBurn(msg.sender, balance().sub(depositQueue), _redeemAmount);
 
         optyMinterContract.updateOptyVaultRatePerSecondAndVaultToken(address(this));
         optyMinterContract.updateOptyVaultIndex(address(this));
@@ -474,9 +473,15 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
         uint256 _redeemAmount
     ) private {
         uint256 redeemAmountInToken = (_balance.mul(_redeemAmount)).div(totalSupply());
+        address _treasury = registryContract.treasury();
+        uint256 _fee = 0;
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
-        IERC20(underlyingToken).safeTransfer(_account, redeemAmountInToken);
+        if (_treasury != address(0)) {
+            _fee = ((redeemAmountInToken).mul(withdrawalFee)).div(WITHDRAWAL_MAX);
+            IERC20(underlyingToken).safeTransfer(_treasury, _fee);
+        }
+        IERC20(underlyingToken).safeTransfer(_account, redeemAmountInToken.sub(_fee));
     }
 
     function _mintShares(

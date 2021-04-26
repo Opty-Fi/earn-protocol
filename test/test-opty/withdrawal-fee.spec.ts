@@ -35,8 +35,8 @@ describe(scenario.title, () => {
     let users: { [key: string]: Signer };
     before(async () => {
         try {
-            const [owner, admin, user] = await ethers.getSigners();
-            users = { owner, admin, user };
+            const [owner, admin, user1, user2] = await ethers.getSigners();
+            users = { owner, admin, user1, user2 };
             [essentialContracts, adapters] = await setUp(owner);
             assert.isDefined(essentialContracts, "Essential contracts not deployed");
             assert.isDefined(adapters, "Adapters not deployed");
@@ -54,6 +54,7 @@ describe(scenario.title, () => {
             const TOKEN_STRATEGY = TypedStrategies[token][profile][0];
             const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[token]]]);
             let ERC20Instance: Contract;
+
             before(async () => {
                 await approveLiquidityPoolAndMapAdapter(
                     essentialContracts.registry,
@@ -66,6 +67,13 @@ describe(scenario.title, () => {
                     essentialContracts.registry,
                     essentialContracts.strategyProvider,
                     "RP1"
+                );
+                const timestamp = (await getBlockTimestamp()) * 2;
+                await fundWalletToken(
+                    TOKENS[token],
+                    users["owner"],
+                    BigNumber.from(MAX_AMOUNT),
+                    timestamp
                 );
             });
             beforeEach(async () => {
@@ -81,13 +89,6 @@ describe(scenario.title, () => {
                         profile
                     );
 
-                    const timestamp = (await getBlockTimestamp()) * 2;
-                    await fundWalletToken(
-                        TOKENS[token],
-                        users["owner"],
-                        BigNumber.from(MAX_AMOUNT),
-                        timestamp
-                    );
                     ERC20Instance = await ethers.getContractAt("ERC20", TOKENS[token]);
                     contracts["vault"] = Vault;
                     contracts["erc20"] = ERC20Instance;
@@ -102,6 +103,38 @@ describe(scenario.title, () => {
                     for (let j = 0; j < story.setActions.length; j++) {
                         const action = story.setActions[j];
                         switch (action.action) {
+                            case "fundWallet": {
+                                const { addressName, amount }: ARGUMENTS = action.args;
+                                try {
+                                    if (addressName && amount) {
+                                        const timestamp =
+                                            (await getBlockTimestamp()) * 2;
+                                        await fundWalletToken(
+                                            TOKENS[token],
+                                            users[addressName],
+                                            BigNumber.from(amount),
+                                            timestamp
+                                        );
+                                    }
+                                } catch (error) {
+                                    if (action.expect === "success") {
+                                        assert.isUndefined(error);
+                                    } else {
+                                        expect(error.message).to.equal(
+                                            `VM Exception while processing transaction: revert ${action.message}`
+                                        );
+                                    }
+                                }
+                                assert.isDefined(
+                                    addressName,
+                                    `args is wrong in ${action.action} testcase`
+                                );
+                                assert.isDefined(
+                                    amount,
+                                    `args is wrong in ${action.action} testcase`
+                                );
+                                break;
+                            }
                             case "setTreasury(address)": {
                                 const { address }: ARGUMENTS = action.args;
                                 try {
@@ -164,7 +197,6 @@ describe(scenario.title, () => {
                                                 addressName
                                             ].getAddress();
                                         }
-
                                         await contracts[action.contract]
                                             .connect(users[action.executer])
                                             [action.action](address, amount);
@@ -191,6 +223,7 @@ describe(scenario.title, () => {
                             case "userDepositRebalance(uint256)":
                             case "userWithdrawRebalance(uint256)": {
                                 const { amount }: ARGUMENTS = action.args;
+
                                 if (
                                     action.action === "userWithdrawRebalance(uint256)"
                                 ) {
@@ -242,13 +275,13 @@ describe(scenario.title, () => {
                                     const value = await contracts[action.contract][
                                         action.action
                                     ](address);
-                                    expect(+value).to.equal(+action.expectedValue);
+                                    expect(+value).to.gte(+action.expectedValue);
                                 } else if (addressName) {
                                     const address = users[addressName].getAddress();
                                     const value = await contracts[action.contract][
                                         action.action
                                     ](address);
-                                    expect(+value).to.greaterThan(0);
+                                    expect(+value).to.gte(+action.expectedValue);
                                 }
                                 break;
                             }
