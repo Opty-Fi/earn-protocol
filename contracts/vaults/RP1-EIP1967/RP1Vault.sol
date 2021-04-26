@@ -480,7 +480,9 @@ contract RP1Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
         _burn(msg.sender, _redeemAmount);
         if (_treasury != address(0)) {
             _fee = ((redeemAmountInToken).mul(withdrawalFee)).div(WITHDRAWAL_MAX);
-            IERC20(underlyingToken).safeTransfer(_treasury, _fee);
+            if (_fee > 0) {
+                IERC20(underlyingToken).safeTransfer(_treasury, _fee);
+            }
         }
         IERC20(underlyingToken).safeTransfer(_account, redeemAmountInToken.sub(_fee));
     }
