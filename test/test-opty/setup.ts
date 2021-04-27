@@ -136,16 +136,13 @@ export async function deployVault(
     underlyingTokenSymbol: string,
     riskProfile: string
 ): Promise<Contract> {
-    // console.log("STEp-1");
     const VAULTFactory = await ethers.getContractFactory(vaultContractName);
-    // console.log("Step-2");
     let vault = await VAULTFactory.connect(owner).deploy(
         registry,
         underlyingTokenName,
         underlyingTokenSymbol,
         riskProfile
     );
-    // console.log("Step-3");
 
     const VAULTProxyFactory = await ethers.getContractFactory(
         ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY
