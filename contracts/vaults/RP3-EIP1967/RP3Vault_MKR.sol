@@ -478,11 +478,9 @@ contract RP3Vault_MKR is VersionedInitializable, IVault, ERC20, Modifiers, Reent
         uint256 _fee = 0;
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
-        if (_treasury != address(0)) {
+        if (_treasury != address(0) && withdrawalFee > 0) {
             _fee = ((redeemAmountInToken).mul(withdrawalFee)).div(WITHDRAWAL_MAX);
-            if(_fee > 0) {
-                IERC20(underlyingToken).safeTransfer(_treasury, _fee);
-            }
+            IERC20(underlyingToken).safeTransfer(_treasury, _fee);
         }
         IERC20(underlyingToken).safeTransfer(_account, redeemAmountInToken.sub(_fee));
     }
