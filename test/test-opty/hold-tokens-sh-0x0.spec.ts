@@ -259,7 +259,7 @@ describe(scenarios.title, () => {
                                             break;
                                     }
                                 }
-                            }).timeout(150000);
+                            }).timeout(350000);
                         }
                     });
                 }

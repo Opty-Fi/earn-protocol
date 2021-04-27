@@ -26,7 +26,7 @@ const buidlerConfig: HardhatUserConfig = {
         },
     },
     mocha: {
-        timeout: 10000000,
+        timeout: 100000000,
     },
     gasReporter: {
         currency: "USD",
