@@ -3,7 +3,8 @@
     "description": "Test cases for _chargeWithdrawlFee",
     "vaults": [
         {
-            "name": "RP1Vault",
+            "name": "Vault",
+            "profile": "RP1",
             "stories": [
                 {
                     "description": "Governance should be able to set withdrawal fee ",
