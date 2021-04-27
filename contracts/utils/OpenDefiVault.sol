@@ -5,14 +5,14 @@ pragma experimental ABIEncoderV2;
 
 import "./../libraries/SafeERC20.sol";
 import "./ERC20.sol";
-
+import "./../vaultBooster/VaultBooster.sol";
 contract OpenDefiVault is ERC20 {
     using SafeERC20 for IERC20;
     using Address for address;
     
     uint256 public constant opTOKEN_REVISION = 0x1;
     address public underlyingToken; //  store the underlying token contract address (for example DAI)
-    
+    VaultBooster public vaultBoosterContract;
     constructor(
         address _underlyingToken
     )
@@ -30,12 +30,14 @@ contract OpenDefiVault is ERC20 {
     }
     
     function initialize(
-        address _underlyingToken
+        address _underlyingToken,
+        address _vaultBoosterContract
     ) external virtual {
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " Open", " Vault")));
         _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "OpenVault")));
         _setDecimals(ERC20(_underlyingToken).decimals());
+        vaultBoosterContract = VaultBooster(_vaultBoosterContract);
     }
 
     function setToken(address _underlyingToken) public returns (bool _success) {
@@ -62,7 +64,11 @@ contract OpenDefiVault is ERC20 {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
+        vaultBoosterContract.updateUserRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
+        vaultBoosterContract.updateOdefiVaultRatePerSecondAndVaultToken(address(this));
+        vaultBoosterContract.updateOdefiVaultIndex(address(this));
+        vaultBoosterContract.updateUserStateInVault(address(this), msg.sender);
         return true;
     }
 }
