@@ -26,6 +26,13 @@ export type RISK_PROFILE_DATA = {
     };
 };
 
+export type TOKENS_DATA_OBJECT = {
+    [key: string]: {
+        name: string;
+        address: string;
+    };
+};
+
 export type STRATEGIES_DATA = {
     [key: string]: {
         [key: string]: { strategyName: string; strategy: STRATEGY_DATA[] }[];

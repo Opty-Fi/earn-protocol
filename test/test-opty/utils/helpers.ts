@@ -46,3 +46,40 @@ export async function getBlockTimestamp(): Promise<number> {
     const timestamp = block.timestamp;
     return timestamp;
 }
+
+export async function getTokenName(tokenName: string): Promise<string> {
+    // console.log("1 token address: ", tokenAddresses.underlyingTokens[<keyof typeof tokenAddresses.underlyingTokens>tokenName.toLowerCase()])
+    if (tokenName.toLowerCase() == "mkr") {
+        console.log("Coming in if");
+        return "Maker";
+    } else {
+        const ERC20Instance = await ethers.getContractAt(
+            "ERC20",
+            tokenAddresses.underlyingTokens[
+                <keyof typeof tokenAddresses.underlyingTokens>tokenName.toLowerCase()
+            ]
+        );
+        // console.log("Step-1")
+        const name: string = await ERC20Instance.name();
+        // console.log("Name: ", name)
+        return name;
+    }
+}
+
+export async function getTokenSymbol(tokenName: string): Promise<string> {
+    // console.log("2 token address: ", tokenAddresses.underlyingTokens[<keyof typeof tokenAddresses.underlyingTokens>tokenName.toLowerCase()])
+    if (tokenName.toLowerCase() == "mkr") {
+        return "MKR";
+    } else {
+        // console.log("coming in else symbol")
+        const ERC20Instance = await ethers.getContractAt(
+            "ERC20",
+            tokenAddresses.underlyingTokens[
+                <keyof typeof tokenAddresses.underlyingTokens>tokenName.toLowerCase()
+            ]
+        );
+        const symbol = await ERC20Instance.symbol();
+        // console.log("Symbol: ", symbol)
+        return symbol;
+    }
+}
