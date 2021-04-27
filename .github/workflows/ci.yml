@@ -1,0 +1,46 @@
+name: Earn protocol Install, lint and test pipeline
+
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
+
+
+jobs:
+  install-lint-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x.x]
+    
+    env:
+      MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
+
+    steps:
+      - name: Checkout Use Node.js ${{ matrix.node-version}}
+        uses: actions/checkout@v2
+      
+      - name: Install
+        run: |
+          yarn
+      - name: Lint
+        run: |
+          yarn lint
+      - name: Compile
+        run: |
+          npx hardhat compile --force
+      - name: Test
+        run: |
+          yarn test:dev
+      - name: Google Chat Notification
+        uses: Co-qn/google-chat-notification@releases/v1
+        if: always()
+        with:
+          name: Compile & Test
+          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          status: ${{ job.status }}
+          
