@@ -1,0 +1,263 @@
+{
+    "title": "Charge Withdrawal Fee",
+    "description": "Test cases for _chargeWithdrawlFee",
+    "vaults": [
+        {
+            "name": "RP1Vault",
+            "stories": [
+                {
+                    "description": "Governance should be able to set withdrawal fee ",
+                    "setActions": [
+                        {
+                            "contract": "vault",
+                            "action": "setWithdrawalFee(uint256)",
+                            "args": {
+                                "fee": "60"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "vault",
+                            "action": "withdrawalFee()",
+                            "args": {},
+                            "expectedValue": "60"
+                        }
+                    ]
+                },
+                {
+                    "description": "Non-Governance shouldn't be able to set withdrawal fee ",
+                    "setActions": [
+                        {
+                            "contract": "vault",
+                            "action": "setWithdrawalFee(uint256)",
+                            "args": {
+                                "fee": "60"
+                            },
+                            "executer": "user1",
+                            "expect": "fail",
+                            "message": "caller is not having governance"
+                        }
+                    ],
+                    "getActions": []
+                },
+                {
+                    "description": "User don't have to pay withdrawal fee when no treasury address is set",
+                    "setActions": [
+                        {
+                            "contract": "vault",
+                            "action": "setWithdrawalFee(uint256)",
+                            "args": {
+                                "fee": "500"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "",
+                            "action": "fundWallet",
+                            "args": {
+                                "addressName": "user1",
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "addressName": "vault",
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "user1",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "user1",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userWithdrawRebalance(uint256)",
+                            "args": {
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "user1",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "registry",
+                            "action": "treasury()",
+                            "args": {},
+                            "expectedValue": "0x0000000000000000000000000000000000000000"
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "balanceOf(address)",
+                            "args": {
+                                "addressName": "user1"
+                            },
+                            "expectedValue": "1000000000000000000"
+                        }
+                    ]
+                },
+                {
+                    "description": "Governance should be able to set treasury",
+                    "setActions": [
+                        {
+                            "contract": "registry",
+                            "action": "setTreasury(address)",
+                            "args": {
+                                "address": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "registry",
+                            "action": "treasury()",
+                            "args": {},
+                            "expectedValue": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+                        }
+                    ]
+                },
+                {
+                    "description": "Non-Governance shouldn't be able to set treasury",
+                    "setActions": [
+                        {
+                            "contract": "registry",
+                            "action": "setTreasury(address)",
+                            "args": {
+                                "address": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+                            },
+                            "executer": "user1",
+                            "expect": "fail",
+                            "message": "caller is not having governance"
+                        }
+                    ],
+                    "getActions": []
+                },
+                {
+                    "description": "Governance shouldn't be able to set treasury with address(0)",
+                    "setActions": [
+                        {
+                            "contract": "registry",
+                            "action": "setTreasury(address)",
+                            "args": {
+                                "address": "0x0000000000000000000000000000000000000000"
+                            },
+                            "executer": "owner",
+                            "expect": "fail",
+                            "message": "!address(0)"
+                        }
+                    ],
+                    "getActions": []
+                },
+                {
+                    "description": "User have to pay withdrawal fee when they do userWithdrawRebalance",
+                    "setActions": [
+                        {
+                            "contract": "registry",
+                            "action": "setTreasury(address)",
+                            "args": {
+                                "address": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "setWithdrawalFee(uint256)",
+                            "args": {
+                                "fee": "500"
+                            },
+                            "executer": "owner",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "",
+                            "action": "fundWallet",
+                            "args": {
+                                "addressName": "user2",
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "approve(address,uint256)",
+                            "args": {
+                                "addressName": "vault",
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "user2",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userDepositRebalance(uint256)",
+                            "args": {
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "user2",
+                            "expect": "success",
+                            "message": ""
+                        },
+                        {
+                            "contract": "vault",
+                            "action": "userWithdrawRebalance(uint256)",
+                            "args": {
+                                "amount": "1000000000000000000"
+                            },
+                            "executer": "user2",
+                            "expect": "success",
+                            "message": ""
+                        }
+                    ],
+                    "getActions": [
+                        {
+                            "contract": "erc20",
+                            "action": "balanceOf(address)",
+                            "args": {
+                                "addressName": "user2"
+                            },
+                            "expectedValue": "950000000000000000"
+                        },
+                        {
+                            "contract": "erc20",
+                            "action": "balanceOf(address)",
+                            "args": {
+                                "address": "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+                            },
+                            "expectedValue": "50000000000000000"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

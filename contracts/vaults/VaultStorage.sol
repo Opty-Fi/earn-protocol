@@ -38,7 +38,8 @@ contract VaultStorage {
     mapping(address => uint256) public pendingWithdraws;
     uint256 public maxVaultValueJump; // basis points
     mapping(uint256 => BlockVaultValue[]) public blockToBlockVaultValues;
-
+    uint256 public withdrawalFee = 50;
+    uint256 public constant WITHDRAWAL_MAX = 10000;
     event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
     event WithdrawQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
 }

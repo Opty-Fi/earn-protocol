@@ -14,6 +14,10 @@ function amountInHex(fundAmount: BigNumber): string {
     return amount;
 }
 
+export function delay(ms: number): Promise<unknown> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function fundWalletToken(
     tokenAddress: string,
     wallet: Signer,
