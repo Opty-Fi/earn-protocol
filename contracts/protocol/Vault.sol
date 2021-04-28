@@ -3,14 +3,14 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./../../utils/ReentrancyGuard.sol";
-import "./../../utils/ChiDeployer.sol";
-import "./../../RiskManager.sol";
-import "./../VaultStorage.sol";
-import "./../../interfaces/opty/IVault.sol";
-import "./../../utils/ERC20Upgradeable/VersionedInitializable.sol";
-import "./../../utils/Modifiers.sol";
-import "./../../libraries/SafeERC20.sol";
+import "./../utils/ReentrancyGuard.sol";
+import "./../utils/ChiDeployer.sol";
+import "./../RiskManager.sol";
+import "./VaultStorage.sol";
+import "./../interfaces/opty/IVault.sol";
+import "./../utils/ERC20Upgradeable/VersionedInitializable.sol";
+import "./../utils/Modifiers.sol";
+import "./../libraries/SafeERC20.sol";
 
 /**
  * @title Vault

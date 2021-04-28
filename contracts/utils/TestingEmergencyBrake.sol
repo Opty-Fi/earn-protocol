@@ -2,7 +2,7 @@
 
 pragma solidity ^0.6.10;
 
-import "../vaults/RP-EIP1967/Vault.sol";
+import "../protocol/Vault.sol";
 
 contract TestingEmergencyBrake {
     ERC20 tokenAddr;
