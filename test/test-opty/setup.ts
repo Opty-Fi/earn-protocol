@@ -119,6 +119,10 @@ async function deployEssentialContracts(owner: Signer): Promise<ESSENTIAL_CONTRA
     };
 }
 
+export const GAS_OVERRIDE_OPTIONS = {
+    gasLimit: 6721975,
+};
+
 export async function deployVault(
     registry: string,
     riskManager: string,
@@ -127,10 +131,18 @@ export async function deployVault(
     underlyingToken: string,
     owner: Signer,
     admin: Signer,
-    profile: string
+    vaultContractName: string,
+    underlyingTokenName: string,
+    underlyingTokenSymbol: string,
+    riskProfile: string
 ): Promise<Contract> {
-    const VAULTFactory = await ethers.getContractFactory(profile);
-    let vault = await VAULTFactory.connect(owner).deploy(registry, underlyingToken);
+    const VAULTFactory = await ethers.getContractFactory(vaultContractName);
+    let vault = await VAULTFactory.connect(owner).deploy(
+        registry,
+        underlyingTokenName,
+        underlyingTokenSymbol,
+        riskProfile
+    );
 
     const VAULTProxyFactory = await ethers.getContractFactory(
         ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY
@@ -139,13 +151,16 @@ export async function deployVault(
     const vaultProxy = await VAULTProxyFactory.connect(owner).deploy(adminAddress);
 
     await vaultProxy.connect(admin).upgradeTo(vault.address);
-    vault = await ethers.getContractAt(profile, vaultProxy.address, owner);
+    vault = await ethers.getContractAt(vaultContractName, vaultProxy.address, owner);
     await vault.initialize(
         registry,
         riskManager,
         underlyingToken,
         strategyCodeProvider,
-        optyMinter
+        optyMinter,
+        underlyingTokenName,
+        underlyingTokenSymbol,
+        riskProfile
     );
     return vault;
 }

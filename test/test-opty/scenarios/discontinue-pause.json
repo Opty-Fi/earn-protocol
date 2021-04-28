@@ -3,7 +3,8 @@
     "description": "Test cases for the setDiscontinue() and setPause() functions",
     "vaults": [
         {
-            "name": "RP1Vault",
+            "name": "Vault",
+            "profile": "RP1",
             "stories": [
                 {
                     "description": "[Vault is neither paused nor discontinued] Should pass when user deposits and withdraws from the vault contract",

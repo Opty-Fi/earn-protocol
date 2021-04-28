@@ -12,7 +12,7 @@ const buidlerConfig: HardhatUserConfig = {
     solidity: {
         version: "0.6.10",
         settings: {
-            optimizer: { enabled: true, runs: 20 },
+            optimizer: { enabled: true, runs: 1 },
             evmVersion: "istanbul",
         },
     },
@@ -25,7 +25,9 @@ const buidlerConfig: HardhatUserConfig = {
                 blockNumber: 12200321,
                 url: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",
             },
+            gas: 12000000,
             allowUnlimitedContractSize: true,
+            blockGasLimit: 0x1fffffffffffff,
         },
     },
     mocha: {

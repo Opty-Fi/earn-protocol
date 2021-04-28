@@ -3,23 +3,23 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./../../utils/ReentrancyGuard.sol";
-import "./../../utils/ChiDeployer.sol";
-import "./../../RiskManager.sol";
-import "./../VaultStorage.sol";
-import "./../../interfaces/opty/IVault.sol";
-import "./../../utils/ERC20Upgradeable/VersionedInitializable.sol";
-import "./../../utils/Modifiers.sol";
-import "./../../libraries/SafeERC20.sol";
+import "./../utils/ReentrancyGuard.sol";
+import "./../utils/ChiDeployer.sol";
+import "./../RiskManager.sol";
+import "./VaultStorage.sol";
+import "./../interfaces/opty/IVault.sol";
+import "./../utils/ERC20Upgradeable/VersionedInitializable.sol";
+import "./../utils/Modifiers.sol";
+import "./../libraries/SafeERC20.sol";
 
 /**
- * @title RP3Vault
+ * @title Vault
  *
  * @author Opty.fi, inspired by the Aave V2 AToken.sol contract
  *
- * @dev Opty.Fi's RP3 Vault contract for underlying tokens (for example DAI)
+ * @dev Opty.Fi's Vault contract for underlying tokens (for example DAI) and risk profiles (for example RP1)
  */
-contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, VaultStorage, Deployer {
+contract Vault is VersionedInitializable, IVault, ERC20, Modifiers, ReentrancyGuard, VaultStorage, Deployer {
     using SafeERC20 for IERC20;
     using Address for address;
     
@@ -27,16 +27,18 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
     
     constructor(
         address _registry,
-        address _underlyingToken
+        string memory _name,
+        string memory _symbol,
+        string memory _riskProfile
     )
         public
         ERC20(
-            string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " RP3", " vault")),
-            string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "RP3Vault"))
+            string(abi.encodePacked("op ", _name, " ", _riskProfile, " vault")),
+            string(abi.encodePacked("op", _symbol, _riskProfile, "Vault"))
         )
         Modifiers(_registry)
     {
-        
+
     }
     
     function getRevision() internal pure virtual override returns (uint256) {
@@ -48,21 +50,28 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
         address _riskManager,
         address _underlyingToken,
         address _strategyManager,
-        address _optyMinter
+        address _optyMinter,
+        string memory _name,
+        string memory _symbol,
+        string memory _riskProfile
     ) external virtual initializer {
+        require(bytes(_name).length > 0, "Name_Empty!");
+        require(bytes(_symbol).length > 0, "Symbol_Empty!");
         registryContract = Registry(registry);
-        setProfile("RP3");
+        setProfile(_riskProfile);
         setRiskManager(_riskManager);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setStrategyManager(_strategyManager);
         setOPTYMinter(_optyMinter);
-        _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " RP3", " vault")));
-        _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "RP3Vault")));
+        _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile, " vault")));
+        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile,"Vault")));
         _setDecimals(ERC20(_underlyingToken).decimals());
     }
 
     function setProfile(string memory _profile) public override onlyOperator returns (bool _success) {
-        require(bytes(_profile).length > 0, "empty!");
+        require(bytes(_profile).length > 0, "Profile_Empty!");
+        (,,bool _profileExists) = registryContract.riskProfiles(_profile);
+        require(_profileExists, "!Rp_Exists");
         profile = _profile;
         _success = true;
     }
@@ -101,7 +110,7 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
         withdrawalFee = _withdrawalFee;
         _success = true;
     }
-    
+
     function _supplyAll() internal ifNotDiscontinued(address(this)) ifNotPaused(address(this)) {
         uint256 _tokenBalance = IERC20(underlyingToken).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
@@ -213,6 +222,7 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
                 require(success);
             }
         }
+        // TODO: Opty-22 will have vault reward strategy
         uint8 _harvestSteps = strategyManagerContract.getHarvestRewardStepsCount(_hash);
         for (uint8 _i = 0; _i < _harvestSteps; _i++) {
             bytes[] memory _codes =
@@ -492,15 +502,6 @@ contract RP3Vault is VersionedInitializable, IVault, ERC20, Modifiers, Reentranc
         _mint(_account, (_depositAmount.mul(totalSupply())).div(_balance.sub(depositQueue)));
     }
 
-    function _chargeWithdrawlFee(uint256 _amount) private returns(uint256 _fee) {
-        address _treasury = registryContract.treasury();
-        if (_treasury != address(0)) {
-            _fee = ((_amount).mul(withdrawalFee)).div(WITHDRAWAL_MAX);
-            _burn(msg.sender, _fee);
-            IERC20(underlyingToken).safeTransfer(_treasury, _fee);
-        }
-    }
-    
     function getPricePerFullShare() public override view returns (uint256) {
         if (totalSupply() != 0) {
             return _calVaultValueInUnderlyingToken().div(totalSupply());

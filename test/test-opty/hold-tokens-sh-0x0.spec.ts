@@ -14,6 +14,8 @@ import {
     getSoliditySHA3Hash,
     fundWalletToken,
     getBlockTimestamp,
+    getTokenName,
+    getTokenSymbol,
 } from "./utils/helpers";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 type ARGUMENTS = {
@@ -47,12 +49,17 @@ describe(scenarios.title, () => {
     for (let i = 0; i < scenarios.vaults.length; i++) {
         describe(`${scenarios.vaults[i].name}`, async () => {
             const vault = scenarios.vaults[i];
+            let underlyingTokenName: string;
+            let underlyingTokenSymbol: string;
+            const profile = vault.profile;
             const stories = vault.stories;
-            const adaptersName = Object.keys(TypedAdapterStrategies[vault.name]);
+            const adaptersName = Object.keys(
+                TypedAdapterStrategies[profile + vault.name]
+            );
             for (let i = 0; i < adaptersName.length; i++) {
-                // for (let i = 0; i < 1; i++) {
                 const adapterName = adaptersName[i];
-                const strategies = TypedAdapterStrategies[vault.name][adaptersName[i]];
+                const strategies =
+                    TypedAdapterStrategies[profile + vault.name][adaptersName[i]];
 
                 for (let i = 0; i < strategies.length; i++) {
                     describe(`${strategies[i].strategyName}`, async () => {
@@ -66,6 +73,12 @@ describe(scenarios.title, () => {
                         const contracts: CONTRACTS = {};
                         before(async () => {
                             try {
+                                underlyingTokenName = await getTokenName(
+                                    strategy.token
+                                );
+                                underlyingTokenSymbol = await getTokenSymbol(
+                                    strategy.token
+                                );
                                 const adapter = adapters[adapterName];
                                 const Vault = await deployVault(
                                     essentialContracts.registry.address,
@@ -75,7 +88,10 @@ describe(scenarios.title, () => {
                                     TOKENS[strategy.token],
                                     users["owner"],
                                     users["admin"],
-                                    scenarios.vaults[i].name
+                                    scenarios.vaults[i].name,
+                                    underlyingTokenName,
+                                    underlyingTokenSymbol,
+                                    profile
                                 );
                                 await approveLiquidityPoolAndMapAdapter(
                                     essentialContracts.registry,
@@ -118,7 +134,6 @@ describe(scenarios.title, () => {
                         for (let i = 0; i < stories.length; i++) {
                             it(stories[i].description, async () => {
                                 const story = stories[i];
-                                // if (story.maxDepositType === "amount") {
                                 for (let i = 0; i < story.actions.length; i++) {
                                     const action = story.actions[i];
                                     switch (action.action) {
@@ -244,7 +259,7 @@ describe(scenarios.title, () => {
                                             break;
                                     }
                                 }
-                            }).timeout(150000);
+                            }).timeout(350000);
                         }
                     });
                 }

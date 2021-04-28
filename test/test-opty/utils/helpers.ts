@@ -50,3 +50,33 @@ export async function getBlockTimestamp(): Promise<number> {
     const timestamp = block.timestamp;
     return timestamp;
 }
+
+export async function getTokenName(tokenName: string): Promise<string> {
+    if (tokenName.toLowerCase() == "mkr") {
+        return "Maker";
+    } else {
+        const ERC20Instance = await ethers.getContractAt(
+            "ERC20",
+            tokenAddresses.underlyingTokens[
+                <keyof typeof tokenAddresses.underlyingTokens>tokenName.toLowerCase()
+            ]
+        );
+        const name: string = await ERC20Instance.name();
+        return name;
+    }
+}
+
+export async function getTokenSymbol(tokenName: string): Promise<string> {
+    if (tokenName.toLowerCase() == "mkr") {
+        return "MKR";
+    } else {
+        const ERC20Instance = await ethers.getContractAt(
+            "ERC20",
+            tokenAddresses.underlyingTokens[
+                <keyof typeof tokenAddresses.underlyingTokens>tokenName.toLowerCase()
+            ]
+        );
+        const symbol = await ERC20Instance.symbol();
+        return symbol;
+    }
+}

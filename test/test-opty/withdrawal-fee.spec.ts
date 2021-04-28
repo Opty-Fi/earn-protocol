@@ -15,6 +15,8 @@ import {
     fundWalletToken,
     getBlockTimestamp,
     delay,
+    getTokenName,
+    getTokenSymbol,
 } from "./utils/helpers";
 import scenario from "./scenarios/withdrawal-fee.json";
 
@@ -49,9 +51,13 @@ describe(scenario.title, () => {
     for (let i = 0; i < scenario.vaults.length; i++) {
         describe(`${scenario.vaults[i].name}`, async () => {
             let Vault: Contract;
+            let underlyingTokenName: string;
+            let underlyingTokenSymbol: string;
             const vault = scenario.vaults[i];
-            const profile = vault.name;
-            const TOKEN_STRATEGY = TypedStrategies[token][profile][0];
+            const vaultContractName = vault.name;
+            const profile = vault.profile;
+            const TOKEN_STRATEGY =
+                TypedStrategies[token][profile + vaultContractName][0];
             const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[token]]]);
             let ERC20Instance: Contract;
 
@@ -78,6 +84,8 @@ describe(scenario.title, () => {
             });
             beforeEach(async () => {
                 try {
+                    underlyingTokenName = await getTokenName(token);
+                    underlyingTokenSymbol = await getTokenSymbol(token);
                     Vault = await deployVault(
                         essentialContracts.registry.address,
                         essentialContracts.riskManager.address,
@@ -86,6 +94,9 @@ describe(scenario.title, () => {
                         TOKENS[token],
                         users["owner"],
                         users["admin"],
+                        vaultContractName,
+                        underlyingTokenName,
+                        underlyingTokenSymbol,
                         profile
                     );
 

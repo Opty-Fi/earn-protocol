@@ -3,7 +3,8 @@
     "description": "Test cases for the EmergencyBrake function.",
     "vaults": [
         {
-            "name": "RP1Vault",
+            "name": "Vault",
+            "profile": "RP1",
             "maxJump": 100,
             "stories": [
                 {
