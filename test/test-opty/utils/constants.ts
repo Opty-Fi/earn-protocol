@@ -35,7 +35,7 @@ export const TOKENS: DATA_OBJECT = {
 };
 
 export const TESTING_CONTRACTS: DATA_OBJECT = {
-    TESTING_EMERGENCY_BRAKE: "TestingEmergencyBrake",
+    TESTING_EMERGENCY_BRAKE: "EmergencyBrake",
 };
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";

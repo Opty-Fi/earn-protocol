@@ -4,7 +4,7 @@ pragma solidity ^0.6.10;
 
 import "../protocol/Vault.sol";
 
-contract TestingEmergencyBrake {
+contract EmergencyBrake {
     ERC20 tokenAddr;
     Vault vaultAddr;
     constructor(Vault _vault, ERC20 _erc20) public {
