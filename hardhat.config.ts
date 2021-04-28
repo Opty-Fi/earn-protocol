@@ -1,6 +1,8 @@
 import { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
+import "@nomiclabs/hardhat-etherscan";
+import "@typechain/hardhat";
 require("dotenv").config();
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -14,6 +16,9 @@ const buidlerConfig: HardhatUserConfig = {
             evmVersion: "istanbul",
         },
     },
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API_KEY,
+    },
     networks: {
         hardhat: {
             forking: {
@@ -24,15 +29,13 @@ const buidlerConfig: HardhatUserConfig = {
         },
     },
     mocha: {
-        timeout: 10000000,
+        timeout: 0,
     },
     gasReporter: {
         currency: "USD",
         gasPrice: 21,
-        enabled: true,
-        coinmarketcap: "b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c",
-        outputFile: "output.txt",
-        noColors: true,
+        enabled: process.env.REPORT_GAS ? true : false,
+        coinmarketcap: process.env.COINMARKETCAP_API,
     },
 };
 export default buidlerConfig;

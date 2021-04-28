@@ -11,3 +11,4 @@ desktop.ini
 .vscode/
 cache/
 **/*cache*.json
+typechain
