@@ -33,10 +33,10 @@ jobs:
           yarn lint
       - name: Compile
         run: |
-          npx hardhat compile --force
+          yarn compile
       - name: Test
         run: |
-          yarn test:dev
+          yarn test
       - name: Google Chat Notification
         uses: Co-qn/google-chat-notification@releases/v1
         if: always()
