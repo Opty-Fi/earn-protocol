@@ -1,0 +1,114 @@
+{
+    "CompoundAdapter": [
+        {
+            "strategyName": "DAI-deposit-COMPOUND-cDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+                    "outputTokenSymbol": "cDAI",
+                    "outputToken": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "AaveV1Adapter": [
+        {
+            "strategyName": "DAI-deposit-AAVE-aDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                    "outputTokenSymbol": "aDAI",
+                    "outputToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "AaveV2Adapter": [
+        {
+            "strategyName": "DAI-deposit-AAVE_V2-aDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+                    "outputTokenSymbol": "aDAI",
+                    "outputToken": "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "CreamAdapter": [
+        {
+            "strategyName": "USDT-deposit-CREAM-crUSDT",
+            "token": "USDT",
+            "strategy": [
+                {
+                    "contract": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+                    "outputTokenSymbol": "crUSDT",
+                    "outputToken": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "DForceAdapter": [
+        {
+            "strategyName": "DAI-deposit-DFORCE-dDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0x02285AcaafEB533e03A7306C55EC031297df9224",
+                    "outputTokenSymbol": "dDAI",
+                    "outputToken": "0x02285acaafeb533e03a7306c55ec031297df9224",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "dYdXAdapter": [
+        {
+            "strategyName": "DAI-deposit-DYDX-dyDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+                    "outputTokenSymbol": "dyDAI",
+                    "outputToken": "0x0000000000000000000000000000000000000000",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "HarvestAdapter": [
+        {
+            "strategyName": "DAI-deposit-HARVEST-fDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
+                    "outputTokenSymbol": "fDAI",
+                    "outputToken": "0xab7fa2b2985bccfc13c6d86b1d5a17486ab1e04c",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ],
+    "YVaultAdapter": [
+        {
+            "strategyName": "DAI-deposit-YEARN-yDAI",
+            "token": "DAI",
+            "strategy": [
+                {
+                    "contract": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
+                    "outputTokenSymbol": "yDAI",
+                    "outputToken": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
+                    "isBorrow": false
+                }
+            ]
+        }
+    ]
+}

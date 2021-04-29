@@ -17,7 +17,7 @@ import {
     delay,
     getTokenName,
     getTokenSymbol,
-} from "../../helpers/helpers";
+} from "../../helpers/utils";
 import scenario from "./scenarios/withdrawal-fee.json";
 
 type ARGUMENTS = {

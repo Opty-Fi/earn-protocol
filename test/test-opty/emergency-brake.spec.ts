@@ -16,7 +16,7 @@ import {
     getBlockTimestamp,
     getTokenName,
     getTokenSymbol,
-} from "../../helpers/helpers";
+} from "../../helpers/utils";
 import scenario from "./scenarios/emergency-brake-negative.json";
 describe(scenario.title, () => {
     // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.

@@ -16,7 +16,7 @@ import {
     getBlockTimestamp,
     getTokenName,
     getTokenSymbol,
-} from "../../helpers/helpers";
+} from "../../helpers/utils";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 type ARGUMENTS = {
     amount?: { [key: string]: string };
