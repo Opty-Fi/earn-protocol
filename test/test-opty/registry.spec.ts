@@ -2,8 +2,8 @@ import { expect, assert } from "chai";
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
 import { deployAdapters, deployRegistry } from "./setup";
-import { CONTRACTS } from "./utils/type";
-import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "./utils/constants";
+import { CONTRACTS } from "../../helpers/type";
+import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "../../helpers/constants";
 import scenario from "./scenarios/registry.json";
 type ARGUMENTS = {
     [key: string]: any;

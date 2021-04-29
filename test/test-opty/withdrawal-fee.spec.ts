@@ -7,8 +7,8 @@ import {
     setBestBasicStrategy,
     approveLiquidityPoolAndMapAdapter,
 } from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS } from "./utils/type";
-import { TOKENS } from "./utils/constants";
+import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
+import { TOKENS } from "../../helpers/constants";
 import { TypedStrategies } from "./data";
 import {
     getSoliditySHA3Hash,
@@ -17,7 +17,7 @@ import {
     delay,
     getTokenName,
     getTokenSymbol,
-} from "./utils/helpers";
+} from "../../helpers/helpers";
 import scenario from "./scenarios/withdrawal-fee.json";
 
 type ARGUMENTS = {

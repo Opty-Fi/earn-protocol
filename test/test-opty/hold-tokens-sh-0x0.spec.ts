@@ -7,8 +7,8 @@ import {
     setBestBasicStrategy,
     approveLiquidityPoolAndMapAdapter,
 } from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS } from "./utils/type";
-import { TOKENS } from "./utils/constants";
+import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
+import { TOKENS } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "./data";
 import {
     getSoliditySHA3Hash,
@@ -16,7 +16,7 @@ import {
     getBlockTimestamp,
     getTokenName,
     getTokenSymbol,
-} from "./utils/helpers";
+} from "../../helpers/helpers";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 type ARGUMENTS = {
     amount?: { [key: string]: string };

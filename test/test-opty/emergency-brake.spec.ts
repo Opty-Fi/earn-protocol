@@ -7,8 +7,8 @@ import {
     setBestBasicStrategy,
     approveLiquidityPoolAndMapAdapter,
 } from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS } from "./utils/type";
-import { TOKENS, TESTING_CONTRACTS } from "./utils/constants";
+import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
+import { TOKENS, TESTING_CONTRACTS } from "../../helpers/constants";
 import { TypedStrategies } from "./data";
 import {
     getSoliditySHA3Hash,
@@ -16,7 +16,7 @@ import {
     getBlockTimestamp,
     getTokenName,
     getTokenSymbol,
-} from "./utils/helpers";
+} from "../../helpers/helpers";
 import scenario from "./scenarios/emergency-brake-negative.json";
 describe(scenario.title, () => {
     // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.

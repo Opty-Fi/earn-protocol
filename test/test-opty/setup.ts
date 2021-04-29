@@ -6,9 +6,9 @@ import {
     TOKENS,
     ADAPTER,
     RISK_PROFILES,
-} from "./utils/constants";
-import { ESSENTIAL_CONTRACTS, CONTRACTS, STRATEGY_DATA } from "./utils/type";
-import { getSoliditySHA3Hash } from "./utils/helpers";
+} from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS, CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
+import { getSoliditySHA3Hash } from "../../helpers/helpers";
 
 export async function setUp(owner: Signer): Promise<[ESSENTIAL_CONTRACTS, CONTRACTS]> {
     const contracts = await deployEssentialContracts(owner);
