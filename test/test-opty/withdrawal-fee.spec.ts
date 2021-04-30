@@ -1,23 +1,20 @@
 import { expect, assert } from "chai";
-import { ethers } from "hardhat";
+import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
-import {
-    setUp,
-    deployVault,
-    setBestBasicStrategy,
-    approveLiquidityPoolAndMapAdapter,
-} from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
+import { setUp } from "./setup";
+import { CONTRACTS } from "../../helpers/type";
 import { TOKENS } from "../../helpers/constants";
 import { TypedStrategies } from "./data";
+import { getSoliditySHA3Hash, delay } from "../../helpers/utils";
+import { deployVault } from "../../helpers/contracts-deployments";
 import {
-    getSoliditySHA3Hash,
+    setBestBasicStrategy,
+    approveLiquidityPoolAndMapAdapter,
     fundWalletToken,
     getBlockTimestamp,
-    delay,
     getTokenName,
     getTokenSymbol,
-} from "../../helpers/utils";
+} from "../../helpers/contracts-actions";
 import scenario from "./scenarios/withdrawal-fee.json";
 
 type ARGUMENTS = {
@@ -31,13 +28,13 @@ describe(scenario.title, () => {
     // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
     const token = "DAI";
     const MAX_AMOUNT = "2000000000000000000";
-    let essentialContracts: ESSENTIAL_CONTRACTS;
+    let essentialContracts: CONTRACTS;
     let adapters: CONTRACTS;
     const contracts: CONTRACTS = {};
     let users: { [key: string]: Signer };
     before(async () => {
         try {
-            const [owner, admin, user1, user2] = await ethers.getSigners();
+            const [owner, admin, user1, user2] = await hre.ethers.getSigners();
             users = { owner, admin, user1, user2 };
             [essentialContracts, adapters] = await setUp(owner);
             assert.isDefined(essentialContracts, "Essential contracts not deployed");
@@ -63,6 +60,7 @@ describe(scenario.title, () => {
 
             before(async () => {
                 await approveLiquidityPoolAndMapAdapter(
+                    users["owner"],
                     essentialContracts.registry,
                     adapters["CompoundAdapter"].address,
                     TOKEN_STRATEGY.strategy[0].contract
@@ -74,8 +72,9 @@ describe(scenario.title, () => {
                     essentialContracts.strategyProvider,
                     "RP1"
                 );
-                const timestamp = (await getBlockTimestamp()) * 2;
+                const timestamp = (await getBlockTimestamp(hre)) * 2;
                 await fundWalletToken(
+                    hre,
                     TOKENS[token],
                     users["owner"],
                     BigNumber.from(MAX_AMOUNT),
@@ -84,9 +83,10 @@ describe(scenario.title, () => {
             });
             beforeEach(async () => {
                 try {
-                    underlyingTokenName = await getTokenName(token);
-                    underlyingTokenSymbol = await getTokenSymbol(token);
+                    underlyingTokenName = await getTokenName(hre, token);
+                    underlyingTokenSymbol = await getTokenSymbol(hre, token);
                     Vault = await deployVault(
+                        hre,
                         essentialContracts.registry.address,
                         essentialContracts.riskManager.address,
                         essentialContracts.strategyManager.address,
@@ -94,13 +94,15 @@ describe(scenario.title, () => {
                         TOKENS[token],
                         users["owner"],
                         users["admin"],
-                        vaultContractName,
                         underlyingTokenName,
                         underlyingTokenSymbol,
                         profile
                     );
 
-                    ERC20Instance = await ethers.getContractAt("ERC20", TOKENS[token]);
+                    ERC20Instance = await hre.ethers.getContractAt(
+                        "ERC20",
+                        TOKENS[token]
+                    );
                     contracts["vault"] = Vault;
                     contracts["erc20"] = ERC20Instance;
                 } catch (error) {
@@ -119,8 +121,9 @@ describe(scenario.title, () => {
                                 try {
                                     if (addressName && amount) {
                                         const timestamp =
-                                            (await getBlockTimestamp()) * 2;
+                                            (await getBlockTimestamp(hre)) * 2;
                                         await fundWalletToken(
+                                            hre,
                                             TOKENS[token],
                                             users[addressName],
                                             BigNumber.from(amount),

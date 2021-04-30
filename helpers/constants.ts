@@ -8,10 +8,11 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
     RISK_MANAGER: "RiskManager",
     STRATEGY_PROVIDER: "StrategyProvider",
     HARVEST_CODE_PROVIDER: "HarvestCodeProvider",
+    VAULT: "Vault",
     VAULT_PROXY: "InitializableImmutableAdminUpgradeabilityProxy",
     RISK_MANAGER_PROXY: "RiskManagerProxy",
 };
-export const VAULT = ["RP1Vault", "RP2Vault", "RP3Vault"];
+
 export const ADAPTER = [
     "AaveV1Adapter",
     "AaveV2Adapter",

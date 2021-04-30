@@ -1,22 +1,20 @@
 import { expect, assert } from "chai";
-import { ethers } from "hardhat";
+import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
-import {
-    setUp,
-    deployVault,
-    setBestBasicStrategy,
-    approveLiquidityPoolAndMapAdapter,
-} from "./setup";
+import { setUp } from "./setup";
 import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
 import { TOKENS } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "./data";
+import { getSoliditySHA3Hash } from "../../helpers/utils";
+import { deployVault } from "../../helpers/contracts-deployments";
 import {
-    getSoliditySHA3Hash,
+    setBestBasicStrategy,
+    approveLiquidityPoolAndMapAdapter,
     fundWalletToken,
     getBlockTimestamp,
     getTokenName,
     getTokenSymbol,
-} from "../../helpers/utils";
+} from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/invest-limitation.json";
 type ARGUMENTS = {
     amount?: { [key: string]: string };
@@ -29,13 +27,13 @@ describe(scenarios.title, () => {
         USDC: BigNumber.from("20000000"),
         USDT: BigNumber.from("20000000"),
     };
-    let essentialContracts: ESSENTIAL_CONTRACTS;
+    let essentialContracts: CONTRACTS;
     let adapters: CONTRACTS;
     let users: { [key: string]: Signer };
 
     before(async () => {
         try {
-            const [owner, admin] = await ethers.getSigners();
+            const [owner, admin] = await hre.ethers.getSigners();
             users = { owner, admin };
             [essentialContracts, adapters] = await setUp(users["owner"]);
             assert.isDefined(essentialContracts, "Essential contracts not deployed");
@@ -71,13 +69,16 @@ describe(scenarios.title, () => {
                         before(async () => {
                             try {
                                 underlyingTokenName = await getTokenName(
+                                    hre,
                                     strategy.token
                                 );
                                 underlyingTokenSymbol = await getTokenSymbol(
+                                    hre,
                                     strategy.token
                                 );
                                 const adapter = adapters[adapterName];
                                 const Vault = await deployVault(
+                                    hre,
                                     essentialContracts.registry.address,
                                     essentialContracts.riskManager.address,
                                     essentialContracts.strategyManager.address,
@@ -85,12 +86,12 @@ describe(scenarios.title, () => {
                                     TOKENS[strategy.token],
                                     users["owner"],
                                     users["admin"],
-                                    scenarios.vaults[i].name,
                                     underlyingTokenName,
                                     underlyingTokenSymbol,
                                     profile
                                 );
                                 await approveLiquidityPoolAndMapAdapter(
+                                    users["owner"],
                                     essentialContracts.registry,
                                     adapter.address,
                                     strategy.strategy[0].contract
@@ -103,15 +104,16 @@ describe(scenarios.title, () => {
                                     essentialContracts.strategyProvider,
                                     riskProfile
                                 );
-                                const timestamp = (await getBlockTimestamp()) * 2;
+                                const timestamp = (await getBlockTimestamp(hre)) * 2;
                                 await fundWalletToken(
+                                    hre,
                                     TOKENS[strategy.token],
                                     users["owner"],
                                     MAX_AMOUNT[strategy.token],
                                     timestamp
                                 );
 
-                                const ERC20Instance = await ethers.getContractAt(
+                                const ERC20Instance = await hre.ethers.getContractAt(
                                     "ERC20",
                                     TOKENS[strategy.token]
                                 );

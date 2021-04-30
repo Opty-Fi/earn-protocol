@@ -11,7 +11,6 @@ import {
 
 require("dotenv").config();
 require("./tasks/deployment/deploy-infra");
-require("./tasks/misc/set-bre");
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -61,7 +60,6 @@ const buidlerConfig: HardhatUserConfig = {
                 blockNumber: 12200321,
                 url: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",
             },
-            gas: 12000000,
             allowUnlimitedContractSize: true,
             blockGasLimit: 0x1fffffffffffff,
             chainId: 1337,

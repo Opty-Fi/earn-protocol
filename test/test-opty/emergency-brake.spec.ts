@@ -1,34 +1,32 @@
 import { expect, assert } from "chai";
-import { ethers } from "hardhat";
+import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
-import {
-    setUp,
-    deployVault,
-    setBestBasicStrategy,
-    approveLiquidityPoolAndMapAdapter,
-} from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
+import { setUp } from "./setup";
+import { CONTRACTS } from "../../helpers/type";
 import { TOKENS, TESTING_CONTRACTS } from "../../helpers/constants";
 import { TypedStrategies } from "./data";
+import { getSoliditySHA3Hash } from "../../helpers/utils";
+import { deployVault } from "../../helpers/contracts-deployments";
 import {
-    getSoliditySHA3Hash,
+    setBestBasicStrategy,
+    approveLiquidityPoolAndMapAdapter,
     fundWalletToken,
     getBlockTimestamp,
     getTokenName,
     getTokenSymbol,
-} from "../../helpers/utils";
+} from "../../helpers/contracts-actions";
 import scenario from "./scenarios/emergency-brake-negative.json";
 describe(scenario.title, () => {
     // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
     const token = "DAI";
     const MAX_AMOUNT = 100000000;
-    let essentialContracts: ESSENTIAL_CONTRACTS;
+    let essentialContracts: CONTRACTS;
     let adapters: CONTRACTS;
     let owner: Signer;
     let admin: Signer;
     before(async () => {
         try {
-            [owner, admin] = await ethers.getSigners();
+            [owner, admin] = await hre.ethers.getSigners();
             [essentialContracts, adapters] = await setUp(owner);
             assert.isDefined(essentialContracts, "Essential contracts not deployed");
             assert.isDefined(adapters, "Adapters not deployed");
@@ -52,9 +50,10 @@ describe(scenario.title, () => {
             let emergencyBrake: Contract;
             before(async () => {
                 try {
-                    underlyingTokenName = await getTokenName(token);
-                    underlyingTokenSymbol = await getTokenSymbol(token);
+                    underlyingTokenName = await getTokenName(hre, token);
+                    underlyingTokenSymbol = await getTokenSymbol(hre, token);
                     Vault = await deployVault(
+                        hre,
                         essentialContracts.registry.address,
                         essentialContracts.riskManager.address,
                         essentialContracts.strategyManager.address,
@@ -62,12 +61,12 @@ describe(scenario.title, () => {
                         TOKENS[token],
                         owner,
                         admin,
-                        vaultContractName,
                         underlyingTokenName,
                         underlyingTokenSymbol,
                         profile
                     );
                     await approveLiquidityPoolAndMapAdapter(
+                        owner,
                         essentialContracts.registry,
                         adapters["CompoundAdapter"].address,
                         TOKEN_STRATEGY.strategy[0].contract
@@ -82,15 +81,16 @@ describe(scenario.title, () => {
                         riskProfile
                     );
 
-                    const timestamp = (await getBlockTimestamp()) * 2;
+                    const timestamp = (await getBlockTimestamp(hre)) * 2;
                     await fundWalletToken(
+                        hre,
                         TOKENS[token],
                         owner,
                         BigNumber.from(MAX_AMOUNT * 100),
                         timestamp
                     );
 
-                    const EmergencyBrakeFactory = await ethers.getContractFactory(
+                    const EmergencyBrakeFactory = await hre.ethers.getContractFactory(
                         TESTING_CONTRACTS.TESTING_EMERGENCY_BRAKE
                     );
 
@@ -99,7 +99,10 @@ describe(scenario.title, () => {
                         TOKENS[token]
                     );
 
-                    ERC20Instance = await ethers.getContractAt("ERC20", TOKENS[token]);
+                    ERC20Instance = await hre.ethers.getContractAt(
+                        "ERC20",
+                        TOKENS[token]
+                    );
                 } catch (error) {
                     console.error(error);
                 }
