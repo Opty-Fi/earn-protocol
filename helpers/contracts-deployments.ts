@@ -6,37 +6,36 @@ import {
 } from "./constants";
 import { Contract, Signer } from "ethers";
 import { CONTRACTS, CONTRACTS_WITH_HASH } from "./type";
-import {
-    Registry__factory,
-    RegistryProxy__factory,
-    StrategyProvider__factory,
-    HarvestCodeProvider__factory,
-    RiskManagerProxy__factory,
-    RiskManager__factory,
-    StrategyManager__factory,
-    OPTY__factory,
-    OPTYMinter__factory,
-    Vault__factory,
-    InitializableImmutableAdminUpgradeabilityProxy__factory,
-} from "../typechain";
 import { getTokenName, getTokenSymbol } from "./contracts-actions";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { deployContract, executeFunc, deployContractWithHash } from "./helpers";
+
 export async function deployRegistry(
     hre: HardhatRuntimeEnvironment,
     owner: Signer
 ): Promise<Contract> {
-    let registry = await deployContract(new Registry__factory(owner), []);
-    const registryProxy = await deployContract(new RegistryProxy__factory(owner), []);
+    const REGISTRY_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.REGISTRY
+    );
+
+    let registry = await deployContract(REGISTRY_FACTORY, [], owner);
+
+    const REGISTRY_PROXY_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.REGISTRY_PROXY
+    );
+    const registryProxy = await deployContract(REGISTRY_PROXY_FACTORY, [], owner);
+
     await executeFunc(registryProxy, owner, "setPendingImplementation(address)", [
         registry.address,
     ]);
     await executeFunc(registry, owner, "become(address)", [registryProxy.address]);
+
     registry = await hre.ethers.getContractAt(
         ESSENTIAL_CONTRACTS_DATA.REGISTRY,
         registryProxy.address,
         owner
     );
+
     return registry;
 }
 
@@ -58,27 +57,50 @@ export async function deployEssentialContracts(
             ]
         );
     }
+
+    const STRATEGY_PROVIDER_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.STRATEGY_PROVIDER
+    );
     const strategyProvider = await deployContract(
-        new StrategyProvider__factory(owner),
-        [registry.address]
+        STRATEGY_PROVIDER_FACTORY,
+        [registry.address],
+        owner
+    );
+
+    const HARVEST_CODE_PROVIDER_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER
     );
     const harvestCodeProvider = await deployContract(
-        new HarvestCodeProvider__factory(owner),
-        [registry.address]
+        HARVEST_CODE_PROVIDER_FACTORY,
+        [registry.address],
+        owner
     );
-    let riskManager = await deployContract(new RiskManager__factory(owner), [
-        registry.address,
-    ]);
+
+    const RISK_MANAGER_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER
+    );
+    let riskManager = await deployContract(
+        RISK_MANAGER_FACTORY,
+        [registry.address],
+        owner
+    );
+
+    const RISK_MANAGER_PROXY_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER_PROXY
+    );
     const riskManagerProxy = await deployContract(
-        new RiskManagerProxy__factory(owner),
-        [registry.address]
+        RISK_MANAGER_PROXY_FACTORY,
+        [registry.address],
+        owner
     );
+
     await executeFunc(riskManagerProxy, owner, "setPendingImplementation(address)", [
         riskManager.address,
     ]);
     await executeFunc(riskManager, owner, "become(address)", [
         riskManagerProxy.address,
     ]);
+
     riskManager = await hre.ethers.getContractAt(
         ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER,
         riskManagerProxy.address,
@@ -87,15 +109,29 @@ export async function deployEssentialContracts(
     await executeFunc(riskManager, owner, "initialize(address)", [
         strategyProvider.address,
     ]);
-    const strategyManager = await deployContract(new StrategyManager__factory(owner), [
-        registry.address,
-        harvestCodeProvider.address,
-    ]);
-    const opty = await deployContract(new OPTY__factory(owner), [registry.address, 0]);
-    const optyMinter = await deployContract(new OPTYMinter__factory(owner), [
-        registry.address,
-        opty.address,
-    ]);
+
+    const STRATEGY_MANAGER_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER
+    );
+    const strategyManager = await deployContract(
+        STRATEGY_MANAGER_FACTORY,
+        [registry.address, harvestCodeProvider.address],
+        owner
+    );
+
+    const OPTY_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.OPTY
+    );
+    const opty = await deployContract(OPTY_FACTORY, [registry.address, 0], owner);
+
+    const OPTY_MINTER_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.OPTY_MINTER
+    );
+    const optyMinter = await deployContract(
+        OPTY_MINTER_FACTORY,
+        [registry.address, opty.address],
+        owner
+    );
     const essentialContracts: CONTRACTS = {
         registry,
         strategyProvider,
@@ -183,17 +219,20 @@ export async function deployVault(
     underlyingTokenSymbol: string,
     riskProfile: string
 ): Promise<Contract> {
-    let vault = await deployContract(new Vault__factory(owner), [
-        registry,
-        underlyingTokenName,
-        underlyingTokenSymbol,
-        riskProfile,
-    ]);
-    const adminAddress = await admin.getAddress();
-    const vaultProxy = await deployContract(
-        new InitializableImmutableAdminUpgradeabilityProxy__factory(owner),
-        [adminAddress]
+    const VAULT_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.VAULT
     );
+    let vault = await deployContract(
+        VAULT_FACTORY,
+        [registry, underlyingTokenName, underlyingTokenSymbol, riskProfile],
+        owner
+    );
+    const adminAddress = await admin.getAddress();
+
+    const VAULT_PROXY_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY
+    );
+    const vaultProxy = await deployContract(VAULT_PROXY_FACTORY, [adminAddress], owner);
 
     await executeFunc(vaultProxy, admin, "upgradeTo(address)", [vault.address]);
 
@@ -267,16 +306,23 @@ export async function deployVaultWithHash(
     underlyingTokenSymbol: string,
     riskProfile: string
 ): Promise<{ contract: Contract; hash: string }> {
-    const vault = await deployContractWithHash(new Vault__factory(owner), [
-        registry,
-        underlyingTokenName,
-        underlyingTokenSymbol,
-        riskProfile,
-    ]);
+    const VAULT_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.VAULT
+    );
+    const vault = await deployContractWithHash(
+        VAULT_FACTORY,
+        [registry, underlyingTokenName, underlyingTokenSymbol, riskProfile],
+        owner
+    );
     const adminAddress = await admin.getAddress();
+
+    const VAULT_PROXY_FACTORY = await hre.ethers.getContractFactory(
+        ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY
+    );
     const vaultProxy = await deployContractWithHash(
-        new InitializableImmutableAdminUpgradeabilityProxy__factory(owner),
-        [adminAddress]
+        VAULT_PROXY_FACTORY,
+        [adminAddress],
+        owner
     );
 
     await executeFunc(vaultProxy.contract, admin, "upgradeTo(address)", [
