@@ -105,6 +105,6 @@ export const insertContractIntoDB = async (
         });
         return "";
     } catch (error) {
-        return error;
+        return error.message ? error.message : error;
     }
 };

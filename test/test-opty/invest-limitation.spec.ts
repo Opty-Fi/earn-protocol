@@ -2,8 +2,8 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
-import { ESSENTIAL_CONTRACTS, CONTRACTS } from "../../helpers/type";
-import { TOKENS } from "../../helpers/constants";
+import { CONTRACTS } from "../../helpers/type";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "./data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -88,7 +88,8 @@ describe(scenarios.title, () => {
                                     users["admin"],
                                     underlyingTokenName,
                                     underlyingTokenSymbol,
-                                    profile
+                                    profile,
+                                    TESTING_DEPLOYMENT_ONCE
                                 );
                                 await approveLiquidityPoolAndMapAdapter(
                                     users["owner"],

@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedStrategies } from "./data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -63,7 +63,8 @@ describe(scenario.title, () => {
                         admin,
                         underlyingTokenName,
                         underlyingTokenSymbol,
-                        profile
+                        profile,
+                        TESTING_DEPLOYMENT_ONCE
                     );
                     contracts = { ...essentialContracts, vault };
                     await approveLiquidityPoolAndMapAdapter(
@@ -95,7 +96,6 @@ describe(scenario.title, () => {
                         TOKENS[token]
                     );
                 } catch (error) {
-                    console.log("hello");
                     console.error(error);
                 }
             });

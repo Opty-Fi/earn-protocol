@@ -214,3 +214,13 @@ export async function getTokenSymbol(
         return symbol;
     }
 }
+
+export async function getTokenInforWithAddress(
+    hre: HardhatRuntimeEnvironment,
+    address: string
+): Promise<{ name: string; symbol: string }> {
+    const ERC20Instance = await hre.ethers.getContractAt("ERC20", address);
+    const symbol = await ERC20Instance.symbol();
+    const name: string = await ERC20Instance.name();
+    return { name, symbol };
+}

@@ -58,3 +58,5 @@ export const RISK_PROFILES: RISK_PROFILE_DATA = {
         poolRating: [0, 30],
     },
 };
+
+export const TESTING_DEPLOYMENT_ONCE = false; // accept deploy contracts once for testing

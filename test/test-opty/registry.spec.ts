@@ -3,7 +3,10 @@ import hre from "hardhat";
 import { Contract, Signer } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS } from "../../helpers/type";
-import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "../../helpers/constants";
+import {
+    ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA,
+    TESTING_DEPLOYMENT_ONCE,
+} from "../../helpers/constants";
 import scenario from "./scenarios/registry.json";
 type ARGUMENTS = {
     [key: string]: any;
@@ -16,7 +19,11 @@ describe(scenario.title, () => {
     beforeEach(async () => {
         try {
             [owner] = await hre.ethers.getSigners();
-            registryContract = await deployRegistry(hre, owner);
+            registryContract = await deployRegistry(
+                hre,
+                owner,
+                TESTING_DEPLOYMENT_ONCE
+            );
             const HarvestCodeProvider = await hre.ethers.getContractFactory(
                 ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER
             );
@@ -27,7 +34,8 @@ describe(scenario.title, () => {
                 hre,
                 owner,
                 registryContract.address,
-                harvestCodeProvider.address
+                harvestCodeProvider.address,
+                TESTING_DEPLOYMENT_ONCE
             );
             assert.isDefined(registryContract, "Registry contract not deployed");
             assert.isDefined(harvestCodeProvider, "HarvestCodeProvider not deployed");

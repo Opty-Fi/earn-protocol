@@ -9,21 +9,26 @@ import { CONTRACTS, CONTRACTS_WITH_HASH } from "./type";
 import { getTokenName, getTokenSymbol } from "./contracts-actions";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { deployContract, executeFunc, deployContractWithHash } from "./helpers";
-
 export async function deployRegistry(
     hre: HardhatRuntimeEnvironment,
-    owner: Signer
+    owner: Signer,
+    isDeployedOnce: boolean
 ): Promise<Contract> {
-    const REGISTRY_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.REGISTRY
+    let registry = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.REGISTRY,
+        isDeployedOnce,
+        owner,
+        []
     );
 
-    let registry = await deployContract(REGISTRY_FACTORY, [], owner);
-
-    const REGISTRY_PROXY_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.REGISTRY_PROXY
+    const registryProxy = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.REGISTRY_PROXY,
+        isDeployedOnce,
+        owner,
+        []
     );
-    const registryProxy = await deployContract(REGISTRY_PROXY_FACTORY, [], owner);
 
     await executeFunc(registryProxy, owner, "setPendingImplementation(address)", [
         registry.address,
@@ -41,57 +46,63 @@ export async function deployRegistry(
 
 export async function deployEssentialContracts(
     hre: HardhatRuntimeEnvironment,
-    owner: Signer
+    owner: Signer,
+    isDeployedOnce: boolean
 ): Promise<CONTRACTS> {
-    const registry = await deployRegistry(hre, owner);
+    const registry = await deployRegistry(hre, owner, isDeployedOnce);
     const profiles = Object.keys(RISK_PROFILES);
     for (let i = 0; i < profiles.length; i++) {
-        await executeFunc(
-            registry,
-            owner,
-            "addRiskProfile(string,uint8,(uint8,uint8))",
-            [
-                RISK_PROFILES[profiles[i]].name,
-                RISK_PROFILES[profiles[i]].steps,
-                RISK_PROFILES[profiles[i]].poolRating,
-            ]
-        );
+        try {
+            const profile = await registry.riskProfiles(
+                RISK_PROFILES[profiles[i]].name
+            );
+            if (!profile.exists) {
+                await executeFunc(
+                    registry,
+                    owner,
+                    "addRiskProfile(string,uint8,(uint8,uint8))",
+                    [
+                        RISK_PROFILES[profiles[i]].name,
+                        RISK_PROFILES[profiles[i]].steps,
+                        RISK_PROFILES[profiles[i]].poolRating,
+                    ]
+                );
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
-    const STRATEGY_PROVIDER_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.STRATEGY_PROVIDER
-    );
     const strategyProvider = await deployContract(
-        STRATEGY_PROVIDER_FACTORY,
-        [registry.address],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.STRATEGY_PROVIDER,
+        isDeployedOnce,
+        owner,
+        [registry.address]
     );
 
-    const HARVEST_CODE_PROVIDER_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER
-    );
     const harvestCodeProvider = await deployContract(
-        HARVEST_CODE_PROVIDER_FACTORY,
-        [registry.address],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER,
+        isDeployedOnce,
+        owner,
+        [registry.address]
     );
 
-    const RISK_MANAGER_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER
-    );
     let riskManager = await deployContract(
-        RISK_MANAGER_FACTORY,
-        [registry.address],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER,
+        isDeployedOnce,
+        owner,
+        [registry.address]
     );
 
-    const RISK_MANAGER_PROXY_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER_PROXY
-    );
     const riskManagerProxy = await deployContract(
-        RISK_MANAGER_PROXY_FACTORY,
-        [registry.address],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER_PROXY,
+        isDeployedOnce,
+        owner,
+        [registry.address]
     );
 
     await executeFunc(riskManagerProxy, owner, "setPendingImplementation(address)", [
@@ -106,32 +117,35 @@ export async function deployEssentialContracts(
         riskManagerProxy.address,
         owner
     );
+
     await executeFunc(riskManager, owner, "initialize(address)", [
         strategyProvider.address,
     ]);
 
-    const STRATEGY_MANAGER_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER
-    );
     const strategyManager = await deployContract(
-        STRATEGY_MANAGER_FACTORY,
-        [registry.address, harvestCodeProvider.address],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER,
+        isDeployedOnce,
+        owner,
+        [registry.address, harvestCodeProvider.address]
     );
 
-    const OPTY_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.OPTY
+    const opty = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.OPTY,
+        isDeployedOnce,
+        owner,
+        [registry.address, 0]
     );
-    const opty = await deployContract(OPTY_FACTORY, [registry.address, 0], owner);
 
-    const OPTY_MINTER_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.OPTY_MINTER
-    );
     const optyMinter = await deployContract(
-        OPTY_MINTER_FACTORY,
-        [registry.address, opty.address],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.OPTY_MINTER,
+        isDeployedOnce,
+        owner,
+        [registry.address, opty.address]
     );
+
     const essentialContracts: CONTRACTS = {
         registry,
         strategyProvider,
@@ -148,21 +162,22 @@ export async function deployAdapters(
     hre: HardhatRuntimeEnvironment,
     owner: Signer,
     registryAddr: string,
-    harvestAddr: string
+    harvestAddr: string,
+    isDeployedOnce: boolean
 ): Promise<CONTRACTS> {
     const data: CONTRACTS = {};
     for (const adapter of ADAPTER) {
         try {
-            const factory = await hre.ethers.getContractFactory(adapter);
             let contract: Contract;
             if (["dYdXAdapter", "FulcrumAdapter", "YVaultAdapter"].includes(adapter)) {
-                contract = await deployContract(factory, [registryAddr], owner);
+                contract = await deployContract(hre, adapter, isDeployedOnce, owner, [
+                    registryAddr,
+                ]);
             } else {
-                contract = await deployContract(
-                    factory,
-                    [registryAddr, harvestAddr],
-                    owner
-                );
+                contract = await deployContract(hre, adapter, isDeployedOnce, owner, [
+                    registryAddr,
+                    harvestAddr,
+                ]);
             }
 
             data[adapter] = contract;
@@ -180,7 +195,8 @@ export async function deployVaults(
     strategyManager: string,
     optyMinter: string,
     owner: Signer,
-    admin: Signer
+    admin: Signer,
+    isDeployedOnce: boolean
 ): Promise<CONTRACTS> {
     const vaults: CONTRACTS = {};
     for (const token in TOKENS) {
@@ -198,10 +214,10 @@ export async function deployVaults(
                 admin,
                 name,
                 symbol,
-                riskProfile
+                riskProfile,
+                isDeployedOnce
             );
             vaults[`${symbol}-${riskProfile}`] = vault;
-            break;
         }
     }
     return vaults;
@@ -217,22 +233,26 @@ export async function deployVault(
     admin: Signer,
     underlyingTokenName: string,
     underlyingTokenSymbol: string,
-    riskProfile: string
+    riskProfile: string,
+    isDeployedOnce: boolean
 ): Promise<Contract> {
-    const VAULT_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.VAULT
-    );
     let vault = await deployContract(
-        VAULT_FACTORY,
-        [registry, underlyingTokenName, underlyingTokenSymbol, riskProfile],
-        owner
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.VAULT,
+        isDeployedOnce,
+        owner,
+        [registry, underlyingTokenName, underlyingTokenSymbol, riskProfile]
     );
+
     const adminAddress = await admin.getAddress();
 
-    const VAULT_PROXY_FACTORY = await hre.ethers.getContractFactory(
-        ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY
+    const vaultProxy = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY,
+        isDeployedOnce,
+        owner,
+        [adminAddress]
     );
-    const vaultProxy = await deployContract(VAULT_PROXY_FACTORY, [adminAddress], owner);
 
     await executeFunc(vaultProxy, admin, "upgradeTo(address)", [vault.address]);
 

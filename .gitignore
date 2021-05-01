@@ -11,3 +11,4 @@ desktop.ini
 cache/
 **/*cache*.json
 typechain
+deployments

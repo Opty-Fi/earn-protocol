@@ -66,3 +66,30 @@ Note: harvest.finance fDAI vault (HarvestAdapter) will be used in this example.
 23. Call Vault.initialize(address _registryProxy, address _riskManager, address DAI, address _strategyCodeProvider, address _optyMinter)
 
 After all these steps, if you want to test it, you need to approve token, approve liquidityPool, etc. in RegistryProxy as usual.
+
+- Run `yarn run` to view all available tasks.
+
+### Deployments
+For deploying infrastructure contracts (including executing all essential actions and deploying core vaults) in Optyfi protocol.
+```
+# hardhat
+    yarn deploy
+# localhost
+    yarn deploy:local
+```
+For deploying all Optyfi core vaults.
+```
+Prerequisite : Deployed all infrastructure contracts.
+# hardhat
+    yarn hardhat deploy-vaults --registry <address> --riskmanager <address> --strategymanager <address> --optyminter <address>
+# localhost
+    yarn hardhat --network localhost deploy-vaults --registry <address> --riskmanager <address> --strategymanager <address> --optyminter <address>
+```
+For deploying vault.
+```
+Prerequisite : Deployed all infrastructure contracts.
+# hardhat
+    yarn hardhat deploy-vault --token <address> --riskprofile <riskProfileName> --registry <address> --riskmanager <address> --strategymanager <address> --optyminter <address>
+# localhost
+    yarn hardhat --network localhost deploy-vaults --registry <address> --riskmanager <address> --strategymanager <address> --optyminter <address>
+```

@@ -1,8 +1,10 @@
 import { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
+import "hardhat-deploy-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
+import "hardhat-deploy";
 import {
     NETWORKS_RPC_URL,
     NETWORKS_DEFAULT_GAS,
@@ -11,6 +13,8 @@ import {
 
 require("dotenv").config();
 require("./tasks/deployment/deploy-infra");
+require("./tasks/deployment/deploy-vault");
+require("./tasks/deployment/deploy-vaults");
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -64,6 +68,10 @@ const buidlerConfig: HardhatUserConfig = {
             blockGasLimit: 0x1fffffffffffff,
             chainId: 1337,
         },
+    },
+    namedAccounts: {
+        owner: 0,
+        admin: 1,
     },
     mocha: {
         timeout: 0,

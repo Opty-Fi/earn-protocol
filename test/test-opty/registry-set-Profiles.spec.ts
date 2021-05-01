@@ -2,7 +2,7 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Contract, Signer } from "ethers";
 import { deployRegistry } from "../../helpers/contracts-deployments";
-
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import scenario from "./scenarios/registry-set-Profiles.json";
 type ARGUMENTS = {
     [key: string]: any;
@@ -13,7 +13,11 @@ describe(scenario.title, () => {
     before(async () => {
         try {
             [owner] = await hre.ethers.getSigners();
-            registryContract = await deployRegistry(hre, owner);
+            registryContract = await deployRegistry(
+                hre,
+                owner,
+                TESTING_DEPLOYMENT_ONCE
+            );
             assert.isDefined(registryContract, "Registry contract not deployed");
         } catch (error) {
             console.log(error);
