@@ -4,12 +4,14 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/opty/IOPTYStakingPool.sol";
+import "../libraries/SafeERC20.sol";
 import "./OPTYStakingRateBalancerStorage.sol";
 import "../libraries/SafeMath.sol";
 import "../utils/Modifiers.sol";
 
 contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
 
+    using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     constructor(
@@ -43,7 +45,6 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
         stakingPoolOPTYAllocation = _stakingPoolOPTYAllocation;
     }
 
-
     function updateOptyRates() public onlyStakingPools returns(bool) {
         uint256 _stakingPoolNoLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPoolNoLockingTerm];
         uint256 _stakingPool30DLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPool30DLockingTerm];
@@ -67,7 +68,6 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
         return true;
     }
 
-
     function updateStakedOPTY(address _staker, uint256 _amount) public onlyStakingPools returns(bool) {
         stakingPoolToUserStakedOPTY[msg.sender][_staker] = stakingPoolToUserStakedOPTY[msg.sender][_staker].add(_amount);
         stakingPoolToStakedOPTY[msg.sender] = stakingPoolToStakedOPTY[msg.sender].add(_amount);
@@ -77,6 +77,11 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
     function updateUnstakedOPTY(address _staker, uint256 _shares) public onlyStakingPools returns(bool) {
         uint256 _stakerStakedAmount = stakingPoolToUserStakedOPTY[msg.sender][_staker];
         uint256 _amount = _shares.mul(_stakerStakedAmount).div(stakingPoolToStakedOPTY[msg.sender]);
+        if (_shares == IERC20(msg.sender).balanceOf(_staker)) {
+            stakingPoolToUserStakedOPTY[msg.sender][_staker] = uint256(0);
+        } else {
+            stakingPoolToUserStakedOPTY[msg.sender][_staker] = stakingPoolToUserStakedOPTY[msg.sender][_staker].sub(_amount);
+        }
         stakingPoolToStakedOPTY[msg.sender] = stakingPoolToStakedOPTY[msg.sender].sub(_amount);
     }
 }
