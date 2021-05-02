@@ -12,4 +12,5 @@ contract StakingPoolStorage {
     address public token; //  store the underlying token contract address (for example DAI)
     uint256 public poolValue;
     OPTYMinter public optyMinterContract;
+    address public optyStakingRateBalancer;
 }

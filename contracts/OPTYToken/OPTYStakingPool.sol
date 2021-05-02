@@ -8,6 +8,7 @@ import "./../utils/ERC20.sol";
 import "./../utils/ReentrancyGuard.sol";
 import "./../RiskManager.sol";
 import "./StakingPoolStorage.sol";
+import "../interfaces/opty/IOPTYStakingRateBalancer.sol";
 
 /**
  * @dev Opty.Fi's Basic Pool contract for underlying tokens (for example DAI)
@@ -27,7 +28,8 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         address _registry,
         address _underlyingToken,
         address _optyMinter,
-        uint256 _timelock
+        uint256 _timelock,
+        address _optyStakingRateBalancer
     )
         public
         ERC20(
@@ -39,6 +41,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
+        setOPTYStakingRateBalance(_optyStakingRateBalancer);
     }
 
     function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
@@ -62,6 +65,11 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
 
     function setOptyRatePerBlock(uint256 _rate) public onlyOperator returns (bool _success) {
         _optyRatePerBlock = _rate;
+        _success = true;
+    }
+
+    function setOPTYStakingRateBalance(address _optyStakingRateBalancer) public onlyOperator returns(bool _success) {
+        optyStakingRateBalancer = _optyStakingRateBalancer;
         _success = true;
     }
 
@@ -95,6 +103,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
             shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
         _mint(msg.sender, shares);
+        require(IOPTYStakingRateBalancer(optyStakingRateBalancer).updateStakedOPTY(msg.sender,_amount));
         updatePool();
         _userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
@@ -115,6 +124,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
     function userUnstake(uint256 _redeemAmount) public ifNotPaused(address(this)) nonReentrant returns (bool _success) {
         require(getBlockTimestamp().sub(_userLastUpdate[msg.sender]) > _timelockPeriod, "you can't unstake until _timelockPeriod has passed");
         require(_redeemAmount > 0, "!_redeemAmount>0");
+        require(IOPTYStakingRateBalancer(optyStakingRateBalancer).updateUnstakedOPTY(msg.sender,_redeemAmount));
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         _burn(msg.sender, _redeemAmount);
@@ -132,6 +142,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
             _lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
+        require(IOPTYStakingRateBalancer(optyStakingRateBalancer).updateOptyRates());
         _success = true;
     }
 
