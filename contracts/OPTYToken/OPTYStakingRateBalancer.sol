@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import "../interfaces/opty/IOPTYStakingPool.sol";
 import "../libraries/SafeERC20.sol";
 import "./OPTYStakingRateBalancerStorage.sol";
+import "./OPTYStakingRateBalancerProxy.sol";
 import "../libraries/SafeMath.sol";
 import "../utils/Modifiers.sol";
 
@@ -15,12 +16,20 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
     using SafeMath for uint256;
 
     constructor(
-        address _registry,
+        address _registry
+    ) public Modifiers(_registry) {
+    }
+
+    /**
+     * @dev initialize the different stakingPools 
+     * 
+     */
+    function initialize(
         address _stakingPoolNoLockingPeriod,
         address _stakingPool30DLockingTerm,
         address _stakingPool60DLockingTerm,
         address _stakingPool180DLockingTerm
-    ) public  Modifiers(_registry) {
+    ) public onlyGovernance {
         stakingPoolNoLockingTerm = _stakingPoolNoLockingPeriod;
         stakingPool30DLockingTerm = _stakingPool30DLockingTerm;
         stakingPool60DLockingTerm = _stakingPool60DLockingTerm;
@@ -29,6 +38,14 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
         stakingPools[stakingPool30DLockingTerm] = true;
         stakingPools[stakingPool60DLockingTerm] = true;
         stakingPools[stakingPool180DLockingTerm] = true;
+    }
+
+    /**
+     * @dev Set OPTYStakingRateBalancerProxy to act as OPTYStakingRateBalancer
+     * 
+     */
+    function become(OPTYStakingRateBalancerProxy _OPTYStakingRateBalancerProxy) public onlyGovernance {
+        require(_OPTYStakingRateBalancerProxy.acceptImplementation() == 0, "!unauthorized");
     }
 
     modifier onlyStakingPools() {

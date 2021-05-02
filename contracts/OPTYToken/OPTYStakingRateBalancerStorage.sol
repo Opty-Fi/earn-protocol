@@ -4,6 +4,16 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 contract OPTYStakingRateBalancerStorage {
+    /**
+     * @notice Active brains of Risk Manager
+     */
+    address public OPTYStakingRateBalancerImplementation;
+    
+    /**
+     * @notice Pending brains of Risk Manager
+     */
+    address public pendingOPTYStakingRateBalancerImplementation;
+
     /// @notice This variable stores the no locking term's staking pool address
     address public stakingPoolNoLockingTerm;
     /// @notice This variable stores the 30 days locking term's staking pool address
