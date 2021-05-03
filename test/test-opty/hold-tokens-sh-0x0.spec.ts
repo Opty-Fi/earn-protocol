@@ -4,7 +4,7 @@ import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import { TypedAdapterStrategies } from "./data";
+import { TypedAdapterStrategies } from "../../helpers/data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -51,15 +51,12 @@ describe(scenarios.title, () => {
       let underlyingTokenSymbol: string;
       const profile = vault.profile;
       const stories = vault.stories;
-      const adaptersName = Object.keys(TypedAdapterStrategies[profile + vault.name]);
+      const adaptersName = Object.keys(TypedAdapterStrategies);
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
-        const strategies = TypedAdapterStrategies[profile + vault.name][adaptersName[i]];
+        const strategies = TypedAdapterStrategies[adaptersName[i]];
 
         for (let i = 0; i < strategies.length; i++) {
-          if (strategies[i].strategyName == "DAI-deposit-CURVE-cDAI+cUSDC") {
-            continue;
-          }
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
             const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[strategy.token]]]);

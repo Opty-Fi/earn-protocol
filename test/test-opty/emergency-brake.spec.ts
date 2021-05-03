@@ -4,7 +4,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TOKENS, TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import { TypedStrategies } from "./data";
+import { TypedAdapterStrategies } from "../../helpers/data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -41,9 +41,8 @@ describe(scenario.title, () => {
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
       const vault = scenario.vaults[i];
-      const vaultContractName = vault.name;
       const profile = vault.profile;
-      const TOKEN_STRATEGY = TypedStrategies[token][profile + vaultContractName][0];
+      const TOKEN_STRATEGY = TypedAdapterStrategies["CompoundAdapter"][0];
       const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[token]]]);
       let ERC20Instance: Contract;
       let emergencyBrake: Contract;

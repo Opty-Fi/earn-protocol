@@ -31,17 +31,13 @@ export type RISK_PROFILE_DATA = {
   };
 };
 
-export type STRATEGIES_DATA = {
-  [key: string]: {
-    [key: string]: { strategyName: string; strategy: STRATEGY_DATA[] }[];
-  };
-};
 export type STRATEGY_DATA = {
   contract: string;
   outputTokenSymbol: string;
   outputToken: string;
   isBorrow: boolean;
 };
+
 export type DEFI_POOLS_DATA = {
   [key: string]: {
     [name: string]: {
@@ -51,6 +47,7 @@ export type DEFI_POOLS_DATA = {
     };
   };
 };
+
 export type ADAPTER_WITH_STRATEGIES_DATA = {
   [key: string]: {
     strategyName: string;

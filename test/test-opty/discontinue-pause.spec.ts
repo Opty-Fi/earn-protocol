@@ -4,8 +4,8 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import { TypedStrategies } from "./data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
+import { TypedAdapterStrategies } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   approveLiquidityPoolAndMapAdapter,
@@ -42,9 +42,8 @@ describe(scenario.title, () => {
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
       const vaults = scenario.vaults[i];
-      const vaultContractName = vaults.name;
       const profile = vaults.profile;
-      const TOKEN_STRATEGY = TypedStrategies[token][profile + vaultContractName][0];
+      const TOKEN_STRATEGY = TypedAdapterStrategies["CompoundAdapter"][0];
       const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[token]]]);
       let ERC20Instance: Contract;
       before(async () => {
