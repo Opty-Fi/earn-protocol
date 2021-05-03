@@ -1,813 +1,771 @@
 {
-    "title": "Registry",
-    "description": "Test cases for Registry contract",
-    "stories": [
+  "title": "Registry",
+  "description": "Test cases for Registry contract",
+  "stories": [
+    {
+      "description": "User should be able to approve a token",
+      "setActions": [
         {
-            "description": "User should be able to approve a token",
-            "setActions": [
-                {
-                    "action": "approveToken(address)",
-                    "args": {
-                        "tokens": "0x6b175474e89094c44da98b954eedeac495271d0f"
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "tokens(address)",
-                    "args": {
-                        "address": "0x6b175474e89094c44da98b954eedeac495271d0f"
-                    },
-                    "expectedValue": true
-                }
-            ]
-        },
-        {
-            "description": "User should be able to approve a list of tokens",
-            "setActions": [
-                {
-                    "action": "approveTokens(address[])",
-                    "args": {
-                        "tokens": [
-                            "0x6b175474e89094c44da98b954eedeac495271d0f",
-                            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                            "0xdac17f958d2ee523a2206206994597c13d831ec7"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "tokens(address)",
-                    "args": {
-                        "address": "0x6b175474e89094c44da98b954eedeac495271d0f"
-                    },
-                    "expectedValue": true
-                },
-                {
-                    "action": "tokens(address)",
-                    "args": {
-                        "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-                    },
-                    "expectedValue": true
-                },
-                {
-                    "action": "tokens(address)",
-                    "args": {
-                        "address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
-                    },
-                    "expectedValue": true
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to approve a token multiple times",
-            "setActions": [
-                {
-                    "action": "approveTokens(address[])",
-                    "args": {
-                        "tokens": [
-                            "0x6b175474e89094c44da98b954eedeac495271d0f",
-                            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                            "0xdac17f958d2ee523a2206206994597c13d831ec7"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "approveTokens(address[])",
-                    "args": {
-                        "tokens": [
-                            "0x6b175474e89094c44da98b954eedeac495271d0f",
-                            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                            "0xdac17f958d2ee523a2206206994597c13d831ec7"
-                        ]
-                    },
-                    "expect": "fail",
-                    "message": "!tokens"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User shouldn't be able to approve non-contract address",
-            "setActions": [
-                {
-                    "action": "approveTokens(address[])",
-                    "args": {
-                        "tokens": ["0x70eA4eCd78aBe80e6879c345aeD4838AB79a9c17"]
-                    },
-                    "expect": "fail",
-                    "message": "!isContract"
-                },
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": ["0x70eA4eCd78aBe80e6879c345aeD4838AB79a9c17"]
-                    },
-                    "expect": "fail",
-                    "message": "!isContract"
-                },
-                {
-                    "action": "approveCreditPools(address[])",
-                    "args": {
-                        "lqs": ["0x70eA4eCd78aBe80e6879c345aeD4838AB79a9c17"]
-                    },
-                    "expect": "fail",
-                    "message": "!isContract"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User should be able to approve a liquidity pool",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, true]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to approve a list of liquidity pools",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, true]
-                },
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": [0, true]
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to approve a liquidity pool multiple times",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "fail",
-                    "message": "!liquidityPools"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User should be able to rate a liquidity pool",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "rateLiquidityPool(address,uint8)",
-                    "args": {
-                        "lqRate": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [2, true]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to rate a list of liquidity pools",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "rateLiquidityPools((address,uint8)[])",
-                    "args": {
-                        "lqRate": [
-                            ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2],
-                            ["0x24a42fD28C976A61Df5D00D0599C34c4f90748c8", 3]
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [2, true]
-                },
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": [3, true]
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to rate non-approved liquidity pools",
-            "setActions": [
-                {
-                    "action": "rateLiquidityPools((address,uint8)[])",
-                    "args": {
-                        "lqRate": [["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]]
-                    },
-                    "expect": "fail",
-                    "message": "!liquidityPools"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User should be able to revoke a liquidity pool",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "revokeLiquidityPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, false]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to revoke a list of liquidity pools",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "revokeLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, false]
-                },
-                {
-                    "action": "liquidityPools(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": [0, false]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to approve a credit pool",
-            "setActions": [
-                {
-                    "action": "approveCreditPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, true]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to approve a list of credit pools",
-            "setActions": [
-                {
-                    "action": "approveCreditPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, true]
-                },
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": [0, true]
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to approve a credit pool multiple times",
-            "setActions": [
-                {
-                    "action": "approveCreditPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "approveCreditPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "fail",
-                    "message": "!creditPools"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User should be able to rate a credit pool",
-            "setActions": [
-                {
-                    "action": "approveCreditPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "rateCreditPool(address,uint8)",
-                    "args": {
-                        "lqRate": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [2, true]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to rate a list of credit pools",
-            "setActions": [
-                {
-                    "action": "approveCreditPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "rateCreditPools((address,uint8)[])",
-                    "args": {
-                        "lqRate": [
-                            ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2],
-                            ["0x24a42fD28C976A61Df5D00D0599C34c4f90748c8", 3]
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [2, true]
-                },
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": [3, true]
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to rate non-approved liquidity pools",
-            "setActions": [
-                {
-                    "action": "rateCreditPools((address,uint8)[])",
-                    "args": {
-                        "lqRate": [["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]]
-                    },
-                    "expect": "fail",
-                    "message": "!liquidityPools"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User should be able to revoke a credit pool",
-            "setActions": [
-                {
-                    "action": "approveCreditPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "revokeCreditPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, false]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to revoke a list of credit pools",
-            "setActions": [
-                {
-                    "action": "approveCreditPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "revokeCreditPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": [0, false]
-                },
-                {
-                    "action": "creditPools(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": [0, false]
-                }
-            ]
-        },
-        {
-            "description": "User should be able to set liquidity pool to adapter",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPool(address)",
-                    "args": {
-                        "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "setLiquidityPoolToAdapter(address,address)",
-                    "args": {
-                        "lqs": {
-                            "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "adapterName": "CompoundAdapter"
-                        }
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPoolToAdapter(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": {
-                        "adapterName": "CompoundAdapter"
-                    }
-                }
-            ]
-        },
-        {
-            "description": "User should be able to set mutiple liquidity pools to adapters",
-            "setActions": [
-                {
-                    "action": "approveLiquidityPools(address[])",
-                    "args": {
-                        "lqs": [
-                            "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                            "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "setLiquidityPoolsToAdapters((address,address)[])",
-                    "args": {
-                        "lqs": [
-                            {
-                                "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                                "adapterName": "CompoundAdapter"
-                            },
-                            {
-                                "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
-                                "adapterName": "AaveV1Adapter"
-                            }
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "liquidityPoolToAdapter(address)",
-                    "args": {
-                        "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-                    },
-                    "expectedValue": {
-                        "adapterName": "CompoundAdapter"
-                    }
-                },
-                {
-                    "action": "liquidityPoolToAdapter(address)",
-                    "args": {
-                        "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
-                    },
-                    "expectedValue": {
-                        "adapterName": "AaveV1Adapter"
-                    }
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to set mutiple non-approved liquidity pools to adapters",
-            "setActions": [
-                {
-                    "action": "setLiquidityPoolsToAdapters((address,address)[])",
-                    "args": {
-                        "lqs": [
-                            {
-                                "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-                                "adapterName": "CompoundAdapter"
-                            },
-                            {
-                                "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
-                                "adapterName": "AaveV1Adapter"
-                            }
-                        ]
-                    },
-                    "expect": "fail",
-                    "message": "!liquidityPools"
-                }
-            ],
-            "getActions": []
-        },
-        {
-            "description": "User should be able to set token hash to token",
-            "setActions": [
-                {
-                    "action": "approveToken(address)",
-                    "args": {
-                        "tokens": "0x6b175474e89094c44da98b954eedeac495271d0f"
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "setTokensHashToTokens(address[])",
-                    "args": {
-                        "tokensHash": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "tokensHashIndexes(uint256)",
-                    "args": {
-                        "index": "0"
-                    },
-                    "expectedValue": "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
-                }
-            ]
-        },
-        {
-            "description": "User should be able to set token hash to tokens",
-            "setActions": [
-                {
-                    "action": "approveTokens(address[])",
-                    "args": {
-                        "tokens": [
-                            "0x6b175474e89094c44da98b954eedeac495271d0f",
-                            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                },
-                {
-                    "action": "setMultipleTokensHashToTokens(address[][])",
-                    "args": {
-                        "tokensHash": [
-                            ["0x6b175474e89094c44da98b954eedeac495271d0f"],
-                            ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
-                        ]
-                    },
-                    "expect": "success",
-                    "message": ""
-                }
-            ],
-            "getActions": [
-                {
-                    "action": "tokensHashIndexes(uint256)",
-                    "args": {
-                        "index": "0"
-                    },
-                    "expectedValue": "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
-                },
-                {
-                    "action": "tokensHashIndexes(uint256)",
-                    "args": {
-                        "index": "1"
-                    },
-                    "expectedValue": "0x987a96a91381a62e90a58f1c68177b52aa669f3bd7798e321819de5f870d4ddd"
-                }
-            ]
-        },
-        {
-            "description": "User shouldn't be able to set token hash to non-approved tokens",
-            "setActions": [
-                {
-                    "action": "setMultipleTokensHashToTokens(address[][])",
-                    "args": {
-                        "tokensHash": [
-                            ["0x6b175474e89094c44da98b954eedeac495271d0f"],
-                            ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
-                        ]
-                    },
-                    "expect": "fail",
-                    "message": "!tokens"
-                }
-            ],
-            "getActions": []
+          "action": "approveToken(address)",
+          "args": {
+            "tokens": "0x6b175474e89094c44da98b954eedeac495271d0f"
+          },
+          "expect": "success",
+          "message": ""
         }
-    ]
+      ],
+      "getActions": [
+        {
+          "action": "tokens(address)",
+          "args": {
+            "address": "0x6b175474e89094c44da98b954eedeac495271d0f"
+          },
+          "expectedValue": true
+        }
+      ]
+    },
+    {
+      "description": "User should be able to approve a list of tokens",
+      "setActions": [
+        {
+          "action": "approveTokens(address[])",
+          "args": {
+            "tokens": [
+              "0x6b175474e89094c44da98b954eedeac495271d0f",
+              "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "0xdac17f958d2ee523a2206206994597c13d831ec7"
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "tokens(address)",
+          "args": {
+            "address": "0x6b175474e89094c44da98b954eedeac495271d0f"
+          },
+          "expectedValue": true
+        },
+        {
+          "action": "tokens(address)",
+          "args": {
+            "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+          },
+          "expectedValue": true
+        },
+        {
+          "action": "tokens(address)",
+          "args": {
+            "address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+          },
+          "expectedValue": true
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to approve a token multiple times",
+      "setActions": [
+        {
+          "action": "approveTokens(address[])",
+          "args": {
+            "tokens": [
+              "0x6b175474e89094c44da98b954eedeac495271d0f",
+              "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "0xdac17f958d2ee523a2206206994597c13d831ec7"
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "approveTokens(address[])",
+          "args": {
+            "tokens": [
+              "0x6b175474e89094c44da98b954eedeac495271d0f",
+              "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "0xdac17f958d2ee523a2206206994597c13d831ec7"
+            ]
+          },
+          "expect": "fail",
+          "message": "!tokens"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User shouldn't be able to approve non-contract address",
+      "setActions": [
+        {
+          "action": "approveTokens(address[])",
+          "args": {
+            "tokens": ["0x70eA4eCd78aBe80e6879c345aeD4838AB79a9c17"]
+          },
+          "expect": "fail",
+          "message": "!isContract"
+        },
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x70eA4eCd78aBe80e6879c345aeD4838AB79a9c17"]
+          },
+          "expect": "fail",
+          "message": "!isContract"
+        },
+        {
+          "action": "approveCreditPools(address[])",
+          "args": {
+            "lqs": ["0x70eA4eCd78aBe80e6879c345aeD4838AB79a9c17"]
+          },
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User should be able to approve a liquidity pool",
+      "setActions": [
+        {
+          "action": "approveLiquidityPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, true]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to approve a list of liquidity pools",
+      "setActions": [
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, true]
+        },
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": [0, true]
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to approve a liquidity pool multiple times",
+      "setActions": [
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "fail",
+          "message": "!liquidityPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User should be able to rate a liquidity pool",
+      "setActions": [
+        {
+          "action": "approveLiquidityPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "rateLiquidityPool(address,uint8)",
+          "args": {
+            "lqRate": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [2, true]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to rate a list of liquidity pools",
+      "setActions": [
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "rateLiquidityPools((address,uint8)[])",
+          "args": {
+            "lqRate": [
+              ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2],
+              ["0x24a42fD28C976A61Df5D00D0599C34c4f90748c8", 3]
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [2, true]
+        },
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": [3, true]
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to rate non-approved liquidity pools",
+      "setActions": [
+        {
+          "action": "rateLiquidityPools((address,uint8)[])",
+          "args": {
+            "lqRate": [["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]]
+          },
+          "expect": "fail",
+          "message": "!liquidityPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User should be able to revoke a liquidity pool",
+      "setActions": [
+        {
+          "action": "approveLiquidityPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "revokeLiquidityPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, false]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to revoke a list of liquidity pools",
+      "setActions": [
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "revokeLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, false]
+        },
+        {
+          "action": "liquidityPools(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": [0, false]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to approve a credit pool",
+      "setActions": [
+        {
+          "action": "approveCreditPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, true]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to approve a list of credit pools",
+      "setActions": [
+        {
+          "action": "approveCreditPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, true]
+        },
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": [0, true]
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to approve a credit pool multiple times",
+      "setActions": [
+        {
+          "action": "approveCreditPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "approveCreditPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "fail",
+          "message": "!creditPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User should be able to rate a credit pool",
+      "setActions": [
+        {
+          "action": "approveCreditPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "rateCreditPool(address,uint8)",
+          "args": {
+            "lqRate": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [2, true]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to rate a list of credit pools",
+      "setActions": [
+        {
+          "action": "approveCreditPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "rateCreditPools((address,uint8)[])",
+          "args": {
+            "lqRate": [
+              ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2],
+              ["0x24a42fD28C976A61Df5D00D0599C34c4f90748c8", 3]
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [2, true]
+        },
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": [3, true]
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to rate non-approved liquidity pools",
+      "setActions": [
+        {
+          "action": "rateCreditPools((address,uint8)[])",
+          "args": {
+            "lqRate": [["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", 2]]
+          },
+          "expect": "fail",
+          "message": "!liquidityPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User should be able to revoke a credit pool",
+      "setActions": [
+        {
+          "action": "approveCreditPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "revokeCreditPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, false]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to revoke a list of credit pools",
+      "setActions": [
+        {
+          "action": "approveCreditPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "revokeCreditPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": [0, false]
+        },
+        {
+          "action": "creditPools(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": [0, false]
+        }
+      ]
+    },
+    {
+      "description": "User should be able to set liquidity pool to adapter",
+      "setActions": [
+        {
+          "action": "approveLiquidityPool(address)",
+          "args": {
+            "lqs": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setLiquidityPoolToAdapter(address,address)",
+          "args": {
+            "lqs": {
+              "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+              "adapterName": "CompoundAdapter"
+            }
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPoolToAdapter(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": {
+            "adapterName": "CompoundAdapter"
+          }
+        }
+      ]
+    },
+    {
+      "description": "User should be able to set mutiple liquidity pools to adapters",
+      "setActions": [
+        {
+          "action": "approveLiquidityPools(address[])",
+          "args": {
+            "lqs": ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setLiquidityPoolsToAdapters((address,address)[])",
+          "args": {
+            "lqs": [
+              {
+                "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+                "adapterName": "CompoundAdapter"
+              },
+              {
+                "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                "adapterName": "AaveV1Adapter"
+              }
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "liquidityPoolToAdapter(address)",
+          "args": {
+            "address": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
+          },
+          "expectedValue": {
+            "adapterName": "CompoundAdapter"
+          }
+        },
+        {
+          "action": "liquidityPoolToAdapter(address)",
+          "args": {
+            "address": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
+          },
+          "expectedValue": {
+            "adapterName": "AaveV1Adapter"
+          }
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to set mutiple non-approved liquidity pools to adapters",
+      "setActions": [
+        {
+          "action": "setLiquidityPoolsToAdapters((address,address)[])",
+          "args": {
+            "lqs": [
+              {
+                "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+                "adapterName": "CompoundAdapter"
+              },
+              {
+                "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                "adapterName": "AaveV1Adapter"
+              }
+            ]
+          },
+          "expect": "fail",
+          "message": "!liquidityPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "User should be able to set token hash to token",
+      "setActions": [
+        {
+          "action": "approveToken(address)",
+          "args": {
+            "tokens": "0x6b175474e89094c44da98b954eedeac495271d0f"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTokensHashToTokens(address[])",
+          "args": {
+            "tokensHash": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "0"
+          },
+          "expectedValue": "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
+        }
+      ]
+    },
+    {
+      "description": "User should be able to set token hash to tokens",
+      "setActions": [
+        {
+          "action": "approveTokens(address[])",
+          "args": {
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setMultipleTokensHashToTokens(address[][])",
+          "args": {
+            "tokensHash": [
+              ["0x6b175474e89094c44da98b954eedeac495271d0f"],
+              ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "0"
+          },
+          "expectedValue": "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80"
+        },
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "1"
+          },
+          "expectedValue": "0x987a96a91381a62e90a58f1c68177b52aa669f3bd7798e321819de5f870d4ddd"
+        }
+      ]
+    },
+    {
+      "description": "User shouldn't be able to set token hash to non-approved tokens",
+      "setActions": [
+        {
+          "action": "setMultipleTokensHashToTokens(address[][])",
+          "args": {
+            "tokensHash": [
+              ["0x6b175474e89094c44da98b954eedeac495271d0f"],
+              ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+            ]
+          },
+          "expect": "fail",
+          "message": "!tokens"
+        }
+      ],
+      "getActions": []
+    }
+  ]
 }

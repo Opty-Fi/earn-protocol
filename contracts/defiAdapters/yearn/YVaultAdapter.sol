@@ -1,27 +1,32 @@
+// solhint-disable no-unused-vars
 // SPDX-License-Identifier:MIT
 
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IAdapter.sol";
-import "../../interfaces/yearn/IYVault.sol";
-import "../../interfaces/ERC20/IERC20.sol";
-import "../../libraries/SafeMath.sol";
-import "../../utils/Modifiers.sol";
- 
+import { IYVault } from "../../interfaces/yearn/IYVault.sol";
+import { IERC20, SafeMath } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { IAdapter } from "../../interfaces/opty/IAdapter.sol";
+import { Modifiers } from "../../controller/Modifiers.sol";
+import { DataTypes } from "../../libraries/types/DataTypes.sol";
+
+/**
+ * @dev Abstraction layer to yVault's pools
+ */
+
 contract YVaultAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
-    enum MaxExposure { Number, Pct }
-    MaxExposure public maxExposureType;
-    uint256 public maxDepositPoolPctDefault; // basis points
     mapping(address => uint256) public maxDepositPoolPct; // basis points
-    uint256 public maxDepositAmountDefault;
     mapping(address => uint256) public maxDepositAmount;
+
+    DataTypes.MaxExposure public maxExposureType;
+    uint256 public maxDepositPoolPctDefault; // basis points
+    uint256 public maxDepositAmountDefault;
 
     constructor(address _registry) public Modifiers(_registry) {
         setMaxDepositPoolPctDefault(uint256(10000)); // 100%
-        setMaxDepositPoolType(MaxExposure.Number);
+        setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
 
     function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
@@ -37,8 +42,14 @@ contract YVaultAdapter is IAdapter, Modifiers {
         if (_amounts[0] > 0) {
             uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
             _codes = new bytes[](3);
-            _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-            _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+            _codes[0] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount)
+            );
             _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("deposit(uint256)", _depositAmount));
         }
     }
@@ -96,7 +107,12 @@ contract YVaultAdapter is IAdapter, Modifiers {
         return _liquidityPool;
     }
 
-    function getUnderlyingTokens(address _liquidityPool, address) public view override returns (address[] memory _underlyingTokens) {
+    function getUnderlyingTokens(address _liquidityPool, address)
+        public
+        view
+        override
+        returns (address[] memory _underlyingTokens)
+    {
         _underlyingTokens = new address[](1);
         _underlyingTokens[0] = IYVault(_liquidityPool).token();
     }
@@ -106,7 +122,12 @@ contract YVaultAdapter is IAdapter, Modifiers {
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool));
+        return
+            getSomeAmountInToken(
+                _underlyingToken,
+                _liquidityPool,
+                getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool)
+            );
     }
 
     function getLiquidityPoolTokenBalance(
@@ -123,9 +144,9 @@ contract YVaultAdapter is IAdapter, Modifiers {
         uint256 _liquidityPoolTokenAmount
     ) public view override returns (uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IYVault(_liquidityPool).getPricePerFullShare()).div(
-                10**IYVault(_liquidityPool).decimals()
-            );
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount
+                .mul(IYVault(_liquidityPool).getPricePerFullShare())
+                .div(10**IYVault(_liquidityPool).decimals());
         }
         return _liquidityPoolTokenAmount;
     }
@@ -156,7 +177,10 @@ contract YVaultAdapter is IAdapter, Modifiers {
         address _liquidityPool,
         uint256 _depositAmount
     ) public view override returns (uint256) {
-        return _depositAmount.mul(10**IYVault(_liquidityPool).decimals()).div(IYVault(_liquidityPool).getPricePerFullShare());
+        return
+            _depositAmount.mul(10**IYVault(_liquidityPool).decimals()).div(
+                IYVault(_liquidityPool).getPricePerFullShare()
+            );
     }
 
     function calculateRedeemableLPTokenAmount(
@@ -281,35 +305,42 @@ contract YVaultAdapter is IAdapter, Modifiers {
         revert("!empty");
     }
 
-    function setMaxDepositPoolType(MaxExposure _type) public onlyGovernance {
+    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
         maxExposureType = _type;
     }
 
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
     }
-    
+
     function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) public onlyGovernance {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
     }
-    
+
     function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) public onlyGovernance {
         maxDepositAmountDefault = _maxDepositAmountDefault;
     }
-    
+
     function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) public onlyGovernance {
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint256 _limit = maxExposureType == MaxExposure.Pct ? _getMaxDepositAmountByPct(_liquidityPool, _amount) : _getMaxDepositAmount(_liquidityPool, _amount);
+        uint256 _limit =
+            maxExposureType == DataTypes.MaxExposure.Pct
+                ? _getMaxDepositAmountByPct(_liquidityPool, _amount)
+                : _getMaxDepositAmount(_liquidityPool, _amount);
         if (_limit != 0 && _depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }
-    
-    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+
+    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount)
+        internal
+        view
+        returns (uint256 _depositAmount)
+    {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
         uint256 maxPct = maxDepositPoolPct[_liquidityPool];
@@ -321,8 +352,12 @@ contract YVaultAdapter is IAdapter, Modifiers {
             _depositAmount = _limit;
         }
     }
-    
-    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+
+    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount)
+        internal
+        view
+        returns (uint256 _depositAmount)
+    {
         _depositAmount = _amount;
         uint256 maxDeposit = maxDepositAmount[_liquidityPool];
         if (maxDeposit == 0) {

@@ -2,14 +2,19 @@
 
 pragma solidity ^0.6.10;
 
-import "./../RiskManager.sol";
-import "./../OPTYToken/OPTYMinter.sol";
+import { RiskManager } from "./../RiskManager.sol";
+import { OPTYMinter } from "./../OPTYToken/OPTYMinter.sol";
+
+/**
+ * @dev Control to store state variables of Staking pool
+ */
 
 contract StakingPoolStorage {
-    mapping(address => uint256) _userLastUpdate;
-    uint256 _lastPoolUpdate;
-    uint256 _optyRatePerBlock;
+    mapping(address => uint256) public userLastUpdate;
+    uint256 public lastPoolUpdate;
+    uint256 public optyRatePerBlock;
     address public token; //  store the underlying token contract address (for example DAI)
     uint256 public poolValue;
     OPTYMinter public optyMinterContract;
+    address public optyStakingRateBalancer;
 }

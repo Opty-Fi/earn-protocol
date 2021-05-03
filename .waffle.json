@@ -1,27 +1,27 @@
 {
-    "compilerVersion": "./node_modules/solc",
-    "outputType": "all",
-    "compilerOptions": {
-      "outputSelection": {
-        "*": {
-          "*": [
-            "evm.bytecode.object",
-            "evm.deployedBytecode.object",
-            "abi",
-            "evm.bytecode.sourceMap",
-            "evm.deployedBytecode.sourceMap",
-            "metadata"
-          ],
-          "": ["ast"]
-        }
-      },
-      "evmVersion": "istanbul",
-      "optimizer": {
-        "enabled": true,
-        "runs": 200
+  "compilerVersion": "./node_modules/solc",
+  "outputType": "all",
+  "compilerOptions": {
+    "outputSelection": {
+      "*": {
+        "*": [
+          "evm.bytecode.object",
+          "evm.deployedBytecode.object",
+          "abi",
+          "evm.bytecode.sourceMap",
+          "evm.deployedBytecode.sourceMap",
+          "metadata"
+        ],
+        "": ["ast"]
       }
     },
-    "compilerType": "solcjs",
-    "sourceDirectory": "./contracts",
-    "outputDirectory": "./build"
-  }
+    "evmVersion": "istanbul",
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    }
+  },
+  "compilerType": "solcjs",
+  "sourceDirectory": "./contracts",
+  "outputDirectory": "./build"
+}

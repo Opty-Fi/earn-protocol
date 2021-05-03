@@ -3,7 +3,7 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./IAaveV2LendingPoolAddressesProvider.sol";
+import { IAaveV2LendingPoolAddressesProvider } from "./IAaveV2LendingPoolAddressesProvider.sol";
 
 struct TokenData {
     string symbol;
@@ -55,6 +55,7 @@ struct ReserveTokensAddresses {
 }
 
 interface IAaveV2ProtocolDataProvider {
+    // solhint-disable-next-line func-name-mixedcase
     function ADDRESSES_PROVIDER() external view returns (IAaveV2LendingPoolAddressesProvider);
 
     function getAllReservesTokens() external view returns (TokenData[] memory);

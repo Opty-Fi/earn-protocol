@@ -2,7 +2,6 @@
 
 pragma solidity ^0.6.10;
 
-
 contract VaultBoosterStorage {
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
@@ -10,8 +9,8 @@ contract VaultBoosterStorage {
         uint224 index;
         uint32 timestamp;
     }
-    
-    address public ODEFIAddress;
+
+    address public odefiAddress;
 
     mapping(address => uint256) public odefiVaultStartTimestamp;
 

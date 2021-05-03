@@ -1,77 +1,122 @@
 {
-    "name": "earn-protocol",
-    "description": "Core smart contract of OptyFi's Earn protocol",
-    "version": "1.0.0",
-    "homepage": "https://opty.fi",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/opty-fi/earn-protocol"
-    },
-    "keywords": [
-        "optyfi",
-        "ethereum",
-        "earn",
-        "core"
+  "name": "earn-protocol",
+  "description": "Core smart contract of OptyFi's Earn protocol",
+  "version": "1.0.0",
+  "homepage": "https://opty.fi",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opty-fi/earn-protocol"
+  },
+  "keywords": [
+    "optyfi",
+    "ethereum",
+    "earn",
+    "core"
+  ],
+  "files": [
+    "contracts",
+    "build"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@typechain/ethers-v5": "^6.0.5",
+    "@typechain/hardhat": "^1.0.1",
+    "@types/chai": "^4.2.14",
+    "@types/ethereumjs-abi": "^0.6.3",
+    "@types/fs-extra": "^9.0.11",
+    "@types/mocha": "^8.2.0",
+    "@types/node": "^15.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
+    "chai": "^4.3.0",
+    "eslint": "^7.22.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "ethereum-waffle": "^3.2.2",
+    "ethereumjs-util": "^7.0.8",
+    "fs-extra": "^9.1.0",
+    "hardhat": "^2.1.2",
+    "hardhat-deploy": "^0.7.5",
+    "hardhat-gas-reporter": "^1.0.4",
+    "hardhat-watcher": "^2.1.1",
+    "husky": "^5.2.0",
+    "lint-staged": "^10.5.4",
+    "mocha": "^8.2.1",
+    "prettier": "^2.2.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.6",
+    "rimraf": "^3.0.2",
+    "solc": "0.6.10",
+    "solhint": "^3.3.4",
+    "solhint-plugin-prettier": "^0.0.5",
+    "solidity-coverage": "^0.7.16",
+    "ts-node": "^9.1.1",
+    "typechain": "^4.0.3",
+    "typescript": "^4.1.3"
+  },
+  "scripts": {
+    "clean": "hardhat clean",
+    "prepare": "husky install",
+    "lint": "yarn run lint:sol && yarn run lint:ts && yarn run prettier:list-different",
+    "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
+    "lint:ts": "eslint --config ./.eslintrc.yaml --ignore-path ./.eslintignore --quiet --ext .js,.ts .",
+    "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
+    "prettier:list-different": "prettier --config .prettierrc --list-different \"**/*.{js,json,md,sol,ts}\"",
+    "lint:fix": "yarn run lint:sol --fix && yarn run lint:ts --fix && yarn run prettier:list-different --fix",
+    "precompile": "yarn clean",
+    "compile:waffle": "rimraf ./build && waffle .waffle.json",
+    "compile": "hardhat compile",
+    "watch:compile": "hardhat watch compilation",
+    "watch:ci": "hardhat watch ci",
+    "test": "hardhat test test/test-opty/*.spec.ts",
+    "test-clean": "yarn clean && yarn test",
+    "test-fast": "TS_NODE_TRANSPILE_ONLY=1 hardhat test test/test-opty/*.spec.ts",
+    "watch:test": "hardhat watch test",
+    "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
+    "typechain": "hardhat typechain",
+    "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol ",
+    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol",
+    "gas-report": "env REPORT_GAS=true yarn test",
+    "hardhat:local": "hardhat --network localhost",
+    "deploy": "hardhat deploy-infra",
+    "deploy:local": "npm run hardhat:local deploy-infra"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "3.4.0",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "apollo-cache-inmemory": "^1.6.6",
+    "apollo-client": "^2.6.10",
+    "apollo-link-http": "^1.5.17",
+    "commander": "^7.0.0",
+    "cross-fetch": "^3.1.4",
+    "dotenv": "^8.2.0",
+    "ethereumjs-abi": "^0.6.8",
+    "ethers": "^5.0.29",
+    "graphql": "^15.5.0",
+    "graphql-tag": "^2.11.0",
+    "hardhat-deploy-ethers": "^0.3.0-beta.7",
+    "hardhat-gas-reporter": "^1.0.4",
+    "node-fetch": "^2.6.1",
+    "pg": "^8.5.1",
+    "web3": "1.3.4"
+  },
+  "lint-staged": {
+    "./contracts/**/*.sol": [
+      "yarn lint:sol --quiet"
     ],
-    "files": [
-        "contracts",
-        "build"
+    "./(test|tasks|scripts)/**/*.{ts,js,json}": [
+      "yarn lint:ts --quiet"
     ],
-    "engines": {
-        "node": ">=10"
-    },
-    "devDependencies": {
-        "@nomiclabs/hardhat-ethers": "^2.0.2",
-        "@nomiclabs/hardhat-waffle": "^2.0.1",
-        "@types/chai": "^4.2.14",
-        "@types/ethereumjs-abi": "^0.6.3",
-        "@types/mocha": "^8.2.0",
-        "@typescript-eslint/eslint-plugin": "^4.19.0",
-        "@typescript-eslint/parser": "^4.19.0",
-        "chai": "^4.3.0",
-        "eslint": "^7.22.0",
-        "eslint-config-prettier": "^8.1.0",
-        "eslint-plugin-prettier": "^3.3.1",
-        "ethereum-waffle": "^3.2.2",
-        "ethereumjs-util": "^7.0.8",
-        "hardhat": "^2.1.2",
-        "husky": "^5.2.0",
-        "lint-staged": "^10.5.4",
-        "mocha": "^8.2.1",
-        "prettier": "^2.2.1",
-        "prettier-plugin-solidity": "^1.0.0-beta.6",
-        "rimraf": "^3.0.2",
-        "solc": "0.6.10",
-        "solhint": "^3.3.4",
-        "solhint-plugin-prettier": "^0.0.5",
-        "ts-node": "^9.1.1",
-        "typescript": "^4.1.3"
-    },
-    "scripts": {
-        "prepare": "husky install",
-        "lint": "yarn prettier ./test/**/*.ts --check && eslint ./test/**/*.ts --ext .ts",
-        "lint:fix": "yarn prettier ./test/**/*.ts --write && eslint ./test/**/*.ts --ext .ts --fix",
-        "clean": "rimraf ./build/",
-        "precompile": "yarn clean",
-        "compile": "waffle .waffle.json",
-        "test": "yarn compile && yarn test:dev",
-        "test:dev": "hardhat test test/test-opty/*.spec.ts",
-        "prepublishOnly": "yarn test",
-        "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol ",
-        "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
-    },
-    "license": "GPL-3.0-or-later",
-    "dependencies": {
-        "commander": "^7.0.0",
-        "dotenv": "^8.2.0",
-        "ethereumjs-abi": "^0.6.8",
-        "ethers": "^5.0.29",
-        "hardhat-gas-reporter": "^1.0.4",
-        "pg": "^8.5.1",
-        "web3": "1.3.4"
-    },
-    "lint-staged": {
-        "./test/**/*.ts": "yarn lint:fix",
-        "./contracts/!(library|utils)/!(ExponentialNoError).sol": "yarn solhint"
-    }
+    "./(test|tasks|scripts|contracts)/*.{js,json,md,sol,ts}": [
+      "yarn prettier:list-different --loglevel warn"
+    ]
+  }
 }

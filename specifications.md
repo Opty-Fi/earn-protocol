@@ -4,7 +4,7 @@
 
 ### Libraries
 
--   [Addresses.sol](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol)
+- [Addresses.sol](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol)
 
 ### Variables
 
@@ -88,17 +88,17 @@
 
 ### Interfaces
 
--   [IOptyLiquidityPoolProxy]()
--   [IOptyRegistry]()
+- [IOptyLiquidityPoolProxy]()
+- [IOptyRegistry]()
 
 ### Libraries
 
--   [SafeERC20]()
--   [Addresses]()
+- [SafeERC20]()
+- [Addresses]()
 
 ### Utils
 
--   [ERC20.sol]()
+- [ERC20.sol]()
 
 ### Variables
 
@@ -136,11 +136,11 @@
 
 ### Interfaces
 
--   [IOptyRegistry]();
+- [IOptyRegistry]();
 
 ### Libraries
 
--   [Addresses]()
+- [Addresses]()
 
 ### Variables
 
@@ -170,20 +170,20 @@
 
 ### Interfaces
 
--   [IOptyStrategy]()
--   [IOptyLiquidityPoolProxy]()
--   [IRiskManager]()
+- [IOptyStrategy]()
+- [IOptyLiquidityPoolProxy]()
+- [IRiskManager]()
 
 ### Utils
 
--   [ERC20](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol)
--   [ERC20Detailed.sol]()
--   [ReentrancyGuard]()
--   [Ownable]()
+- [ERC20](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol)
+- [ERC20Detailed.sol]()
+- [ReentrancyGuard]()
+- [Ownable]()
 
 ### libraries
 
--   [SafeERC20](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/SafeERC20.sol)
+- [SafeERC20](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/SafeERC20.sol)
 
 ### Variables
 
@@ -303,4 +303,3 @@
 
 | Name | Input Parameters | visibility | Return Parameters | Called By | Description |
 | ---- | ---------------- | ---------- | ----------------- | --------- | ----------- |
-

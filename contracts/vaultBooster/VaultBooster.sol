@@ -2,21 +2,21 @@
 
 pragma solidity ^0.6.10;
 
-import "./VaultBoosterStorage.sol";
-import "./../utils/Modifiers.sol";
-import "./../libraries/SafeERC20.sol";
-import "./../utils/ExponentialNoError.sol";
+import { VaultBoosterStorage } from "./VaultBoosterStorage.sol";
+import { Modifiers } from "./../controller/Modifiers.sol";
+import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { ExponentialNoError } from "../dependencies/compound/ExponentialNoError.sol";
 
 contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
     using SafeERC20 for IERC20;
-    
+
     constructor(address _registry, address _odefi) public Modifiers(_registry) {
         _setODEFIAddress(_odefi);
     }
-    
+
     function _setODEFIAddress(address _odefi) internal {
         require(_odefi != address(0), "Invalid address");
-        ODEFIAddress = _odefi;
+        odefiAddress = _odefi;
     }
 
     /**
@@ -52,7 +52,7 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
                 updateUserRewards(address(_odefiVault), _holders[j]);
                 uint256 _amount = div_(odefiAccrued[_holders[j]], 1e18);
                 odefiAccrued[_holders[j]] = uint256(0);
-                IERC20(ODEFIAddress).safeTransfer(_holders[j], _amount);
+                IERC20(odefiAddress).safeTransfer(_holders[j], _amount);
                 _total = add_(_total, _amount);
             }
         }
@@ -79,16 +79,25 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
             if (odefiVaultEnabled[_odefiVault] == true) {
                 uint256 _deltaSecondsUser;
                 if (lastUserUpdate[_odefiVault][_holder] != uint256(0)) {
-                    _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_holder], odefiVaultStartTimestamp[_odefiVault]);
+                    _deltaSecondsUser = sub_(
+                        lastUserUpdate[_odefiVault][_holder],
+                        odefiVaultStartTimestamp[_odefiVault]
+                    );
                 } else {
-                    _deltaSecondsUser = sub_(odefiUserStateInVault[_odefiVault][_holder].timestamp, odefiVaultStartTimestamp[_odefiVault]);
+                    _deltaSecondsUser = sub_(
+                        odefiUserStateInVault[_odefiVault][_holder].timestamp,
+                        odefiVaultStartTimestamp[_odefiVault]
+                    );
                 }
                 uint256 _currentODEFIVaultIndex = currentOdefiVaultIndex(_odefiVault);
                 uint256 _userDelta =
                     mul_(
                         IERC20(_odefiVault).balanceOf(_holder),
                         sub_(
-                            mul_(_currentODEFIVaultIndex, sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault])),
+                            mul_(
+                                _currentODEFIVaultIndex,
+                                sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault])
+                            ),
                             mul_(odefiUserStateInVault[_odefiVault][_holder].index, _deltaSecondsUser)
                         )
                     );
@@ -107,7 +116,10 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
         uint256 _index =
             div_(
                 add_(
-                    mul_(odefiVaultState[_odefiVault].index, sub_(uint256(odefiVaultState[_odefiVault].timestamp), odefiVaultStartTimestamp[_odefiVault])),
+                    mul_(
+                        odefiVaultState[_odefiVault].index,
+                        sub_(uint256(odefiVaultState[_odefiVault].timestamp), odefiVaultStartTimestamp[_odefiVault])
+                    ),
                     _ratio
                 ),
                 _deltaSecondsSinceStart
@@ -126,14 +138,20 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
             if (lastUserUpdate[_odefiVault][_user] != uint256(0)) {
                 _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_user], odefiVaultStartTimestamp[_odefiVault]);
             } else {
-                _deltaSecondsUser = sub_(odefiUserStateInVault[_odefiVault][_user].timestamp, odefiVaultStartTimestamp[_odefiVault]);
+                _deltaSecondsUser = sub_(
+                    odefiUserStateInVault[_odefiVault][_user].timestamp,
+                    odefiVaultStartTimestamp[_odefiVault]
+                );
             }
             uint256 _userTokens = IERC20(_odefiVault).balanceOf(_user);
             uint256 _currentOdefiVaultIndex = currentOdefiVaultIndex(_odefiVault);
             uint256 _userDelta =
                 mul_(
                     _userTokens,
-                    sub_(mul_(_currentOdefiVaultIndex, _deltaSecondsVault), mul_(odefiUserStateInVault[_odefiVault][_user].index, _deltaSecondsUser))
+                    sub_(
+                        mul_(_currentOdefiVaultIndex, _deltaSecondsVault),
+                        mul_(odefiUserStateInVault[_odefiVault][_user].index, _deltaSecondsUser)
+                    )
                 );
             uint256 _userAccrued = add_(odefiAccrued[_user], _userDelta);
             odefiAccrued[_user] = _userAccrued;
@@ -179,7 +197,10 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
                         add_(
                             mul_(
                                 odefiVaultState[_odefiVault].index,
-                                sub_(uint256(odefiVaultState[_odefiVault].timestamp), odefiVaultStartTimestamp[_odefiVault])
+                                sub_(
+                                    uint256(odefiVaultState[_odefiVault].timestamp),
+                                    odefiVaultStartTimestamp[_odefiVault]
+                                )
                             ),
                             _ratio
                         ),
@@ -211,10 +232,10 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
     }
 
     function balance() public view returns (uint256) {
-        return IERC20(ODEFIAddress).balanceOf(address(this));
+        return IERC20(odefiAddress).balanceOf(address(this));
     }
 
-    function rewardDepletionSeconds(address _odefiVault) public view returns (uint256){
+    function rewardDepletionSeconds(address _odefiVault) public view returns (uint256) {
         return div_(balance(), odefiVaultRatePerSecond[_odefiVault]);
     }
 
@@ -224,7 +245,7 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
     }
 
     function getOdefiAddress() public view returns (address) {
-        return ODEFIAddress;
+        return odefiAddress;
     }
 
     function getBlockTimestamp() public view returns (uint256) {

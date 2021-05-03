@@ -3,20 +3,26 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "./libraries/SafeERC20.sol";
-import "./interfaces/opty/IAdapter.sol";
-import "./controller/Registry.sol";
-import "./controller/RegistryStorage.sol";
-import "./libraries/Addresses.sol";
-import "./utils/ERC20.sol";
-import "./utils/Modifiers.sol";
-import "./HarvestCodeProvider.sol";
+import { IAdapter } from "./interfaces/opty/IAdapter.sol";
+import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { Registry } from "./controller/Registry.sol";
+import { RegistryStorage } from "./controller/RegistryStorage.sol";
+import { Modifiers } from "./controller/Modifiers.sol";
+import { HarvestCodeProvider } from "./HarvestCodeProvider.sol";
+import { DataTypes } from "./libraries/types/DataTypes.sol";
 
-contract StrategyManager is Modifiers, Structs {
+/**
+ * @dev Central processing unit of the earn protocol
+ */
+
+contract StrategyManager is Modifiers {
     using SafeERC20 for IERC20;
     using Address for address;
 
     HarvestCodeProvider public harvestCodeProviderContract;
+
+    bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     constructor(address _registry, address _harvestCodeProvider) public Modifiers(_registry) {
         setHarvestCodeProvider(_harvestCodeProvider);
@@ -89,7 +95,7 @@ contract StrategyManager is Modifiers, Structs {
         harvestCodeProviderContract = HarvestCodeProvider(_harvestCodeProvider);
     }
 
-    function _getStrategySteps(bytes32 _hash) internal view returns (StrategyStep[] memory _strategySteps) {
+    function _getStrategySteps(bytes32 _hash) internal view returns (DataTypes.StrategyStep[] memory _strategySteps) {
         (, _strategySteps) = registryContract.getStrategy(_hash);
     }
 
@@ -100,7 +106,7 @@ contract StrategyManager is Modifiers, Structs {
         uint8 _stepIndex,
         uint8
     ) internal view returns (bytes[] memory _codes) {
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _subStepCounter = 0;
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
             if (_strategySteps[_i].isBorrow) {
@@ -124,7 +130,12 @@ contract StrategyManager is Modifiers, Structs {
                     if (_i != 0) {
                         _underlyingTokens[0] = _strategySteps[_i - 1].outputToken;
                     }
-                    _codes = IAdapter(_optyAdapter).getBorrowAllCodes(_optyVault, _underlyingTokens, _liquidityPool, _outputToken);
+                    _codes = IAdapter(_optyAdapter).getBorrowAllCodes(
+                        _optyVault,
+                        _underlyingTokens,
+                        _liquidityPool,
+                        _outputToken
+                    );
                     break;
                 } // borrow at ith step
                 _subStepCounter += 2;
@@ -162,7 +173,7 @@ contract StrategyManager is Modifiers, Structs {
         uint8 _stepIndex,
         uint8 _stepCount
     ) internal view returns (bytes[] memory _codes) {
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _subStepCounter = _stepCount - 1;
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
             uint8 _iterator = uint8(_strategySteps.length) - 1 - _i;
@@ -184,7 +195,12 @@ contract StrategyManager is Modifiers, Structs {
                 if (_stepIndex == _subStepCounter - 1) {
                     _underlyingToken = (_iterator != 0) ? _strategySteps[_iterator - 1].outputToken : _underlyingToken;
                     uint256 _borrowTokenRemainingAmount = IERC20(_outputToken).balanceOf(_optyVault);
-                    _codes = harvestCodeProviderContract.getHarvestCodes(_optyVault, _outputToken, _underlyingToken, _borrowTokenRemainingAmount);
+                    _codes = harvestCodeProviderContract.getHarvestCodes(
+                        _optyVault,
+                        _outputToken,
+                        _underlyingToken,
+                        _borrowTokenRemainingAmount
+                    );
                     break;
                 } // swap at ith step
                 _subStepCounter -= 2;
@@ -201,7 +217,11 @@ contract StrategyManager is Modifiers, Structs {
                             _underlyingTokens,
                             _strategySteps[_iterator].pool
                         )
-                        : IAdapter(_optyAdapter).getWithdrawAllCodes(_optyVault, _underlyingTokens, _strategySteps[_iterator].pool);
+                        : IAdapter(_optyAdapter).getWithdrawAllCodes(
+                            _optyVault,
+                            _underlyingTokens,
+                            _strategySteps[_iterator].pool
+                        );
                     break;
                 } // withdraw/unstakeAndWithdraw at _iterator th step
                 _subStepCounter--;
@@ -216,7 +236,7 @@ contract StrategyManager is Modifiers, Structs {
         uint8,
         uint8
     ) internal view returns (bytes[] memory _codes) {
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
         address _optyAdapter = registryContract.liquidityPoolToAdapter(_liquidityPool);
         _codes = IAdapter(_optyAdapter).getHarvestAllCodes(_optyVault, _underlyingToken, _liquidityPool);
@@ -228,7 +248,7 @@ contract StrategyManager is Modifiers, Structs {
         uint8,
         uint8
     ) internal view returns (bytes[] memory _codes) {
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
         address _optyAdapter = registryContract.liquidityPoolToAdapter(_liquidityPool);
         _codes = IAdapter(_optyAdapter).getClaimRewardTokenCode(_optyVault, _liquidityPool);
@@ -240,7 +260,7 @@ contract StrategyManager is Modifiers, Structs {
         bytes32 _hash
     ) internal view returns (uint256 _balance) {
         uint8 _steps = uint8(_getStrategySteps(_hash).length);
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         _balance = 0;
         uint256 _outputTokenAmount = _balance;
         for (uint8 _i = 0; _i < _steps; _i++) {
@@ -254,12 +274,20 @@ contract StrategyManager is Modifiers, Structs {
             if (!_strategySteps[_iterator].isBorrow) {
                 if (_iterator == (_steps - 1)) {
                     if (IAdapter(_optyAdapter).canStake(_liquidityPool)) {
-                        _balance = IAdapter(_optyAdapter).getAllAmountInTokenStake(_optyVault, _inputToken, _liquidityPool);
+                        _balance = IAdapter(_optyAdapter).getAllAmountInTokenStake(
+                            _optyVault,
+                            _inputToken,
+                            _liquidityPool
+                        );
                     } else {
                         _balance = IAdapter(_optyAdapter).getAllAmountInToken(_optyVault, _inputToken, _liquidityPool);
                     }
                 } else {
-                    _balance = IAdapter(_optyAdapter).getSomeAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
+                    _balance = IAdapter(_optyAdapter).getSomeAmountInToken(
+                        _inputToken,
+                        _liquidityPool,
+                        _outputTokenAmount
+                    );
                 }
             }
             // deposit
@@ -278,7 +306,7 @@ contract StrategyManager is Modifiers, Structs {
     }
 
     function _getHarvestRewardStepsCount(bytes32 _hash) internal view returns (uint8) {
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _lastStepIndex = uint8(_strategySteps.length) - 1;
         address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
         address _lastStepOptyAdapter = registryContract.liquidityPoolToAdapter(_lastStepLiquidityPool);
@@ -289,7 +317,7 @@ contract StrategyManager is Modifiers, Structs {
     }
 
     function _getClaimRewardStepsCount(bytes32 _hash) internal view returns (uint8) {
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _lastStepIndex = uint8(_strategySteps.length) - 1;
         address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
         address _lastStepOptyAdapter = registryContract.liquidityPoolToAdapter(_lastStepLiquidityPool);
@@ -300,10 +328,10 @@ contract StrategyManager is Modifiers, Structs {
     }
 
     function _getDepositAllStepCount(bytes32 _hash) internal view returns (uint8) {
-        if (_hash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
+        if (_hash == ZERO_BYTES32) {
             return uint8(0);
         }
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _strategyStepCount = uint8(_strategySteps.length);
         uint8 _lastStepIndex = _strategyStepCount - 1;
         address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
@@ -320,10 +348,10 @@ contract StrategyManager is Modifiers, Structs {
     }
 
     function _getWithdrawAllStepsCount(bytes32 _hash) internal view returns (uint8) {
-        if (_hash == 0x0000000000000000000000000000000000000000000000000000000000000000) {
+        if (_hash == ZERO_BYTES32) {
             return uint8(0);
         }
-        StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
         uint8 _steps = uint8(_strategySteps.length);
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
             if (_strategySteps[_i].isBorrow) {

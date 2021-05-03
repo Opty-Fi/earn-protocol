@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.6.10;
+
+import { DataTypes } from "../libraries/types/DataTypes.sol";
+
+/**
+ * @dev Contract used to store registry's admin account
+ */
 
 contract RegistryAdminStorage {
     /**
@@ -44,66 +49,20 @@ contract RegistryAdminStorage {
     address public pendingRegistryImplementation;
 }
 
-contract Structs {
-    struct StrategyStep {
-        address pool;
-        address outputToken;
-        bool isBorrow;
-    }
-
-    struct LiquidityPool {
-        uint8 rating;
-        bool isLiquidityPool;
-    }
-
-    struct Strategy {
-        uint256 index;
-        StrategyStep[] strategySteps;
-    }
-
-    struct Token {
-        uint256 index;
-        address[] tokens;
-    }
-    
-    struct PoolRate {
-        address pool;
-        uint8 rate;
-    }
-    
-    struct PoolAdapter {
-        address pool;
-        address adapter;
-    }
-
-    struct PoolRatingsRange {
-        uint8 lowerLimit;
-        uint8 upperLimit;
-    }
-    
-    struct RiskProfile {
-        uint256 index;
-        uint8 steps;
-        PoolRatingsRange[] poolRatingsRange;
-        bool exists;
-    }
-}
-
-contract RegistryStorage is RegistryAdminStorage, Structs {
-    bytes32[] public strategyHashIndexes;
-    bytes32[] public tokensHashIndexes;
-
+contract RegistryStorage is RegistryAdminStorage {
     mapping(address => bool) public tokens;
-    mapping(bytes32 => Token) public tokensHashToTokens;
-    mapping(address => LiquidityPool) public liquidityPools;
-    mapping(address => LiquidityPool) public creditPools;
-    mapping(bytes32 => Strategy) public strategies;
+    mapping(bytes32 => DataTypes.Token) public tokensHashToTokens;
+    mapping(address => DataTypes.LiquidityPool) public liquidityPools;
+    mapping(address => DataTypes.LiquidityPool) public creditPools;
+    mapping(bytes32 => DataTypes.Strategy) public strategies;
     mapping(bytes32 => bytes32[]) public tokenToStrategies;
     mapping(address => mapping(address => bytes32)) public liquidityPoolToTokenHashes;
     mapping(address => address) public liquidityPoolToAdapter;
     mapping(address => mapping(string => address)) public underlyingTokenToRPToVaults;
     mapping(address => bool) public vaultToDiscontinued;
     mapping(address => bool) public vaultToPaused;
+    mapping(string => DataTypes.RiskProfile) public riskProfiles;
+    bytes32[] public strategyHashIndexes;
+    bytes32[] public tokensHashIndexes;
     string[] public riskProfilesArray;
-    mapping(string => RiskProfile) public riskProfiles;
 }

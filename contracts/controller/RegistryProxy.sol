@@ -2,8 +2,8 @@
 
 pragma solidity ^0.6.10;
 
-import "./RegistryStorage.sol";
-import "./ModifiersController.sol";
+import { RegistryStorage } from "./RegistryStorage.sol";
+import { ModifiersController } from "./ModifiersController.sol";
 
 /**
  * @title RegistryCore
@@ -17,7 +17,8 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
     event NewPendingImplementation(address oldPendingImplementation, address newPendingImplementation);
 
     /**
-     * @notice Emitted when pendingComptrollerImplementation is accepted, which means comptroller implementation is updated
+     * @notice Emitted when pendingComptrollerImplementation is accepted,
+     *         which means comptroller implementation is updated
      */
     event NewImplementation(address oldImplementation, address newImplementation);
 
@@ -53,7 +54,10 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
      */
     function acceptImplementation() public returns (uint256) {
         // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
-        require(msg.sender == pendingRegistryImplementation && pendingRegistryImplementation != address(0), "!pendingRegistryImplementation");
+        require(
+            msg.sender == pendingRegistryImplementation && pendingRegistryImplementation != address(0),
+            "!pendingRegistryImplementation"
+        );
 
         // Save current values for inclusion in log
         address oldImplementation = registryImplementation;
@@ -70,8 +74,12 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
     }
 
     /**
-     * @notice Begins transfer of governance rights. The newPendingGovernance must call `acceptGovernance` to finalize the transfer.
-     * @dev Governance function to begin change of governance. The newPendingGovernance must call `acceptGovernance` to finalize the transfer.
+     * @notice Begins transfer of governance rights.
+     *         The newPendingGovernance must call `acceptGovernance`
+     *         to finalize the transfer.
+     * @dev Governance function to begin change of governance.
+     *      The newPendingGovernance must call `acceptGovernance`
+     *      to finalize the transfer.
      * @param newPendingGovernance New pending governance.
      */
     function setPendingGovernance(address newPendingGovernance) public onlyOperator {
@@ -107,6 +115,7 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
         return uint256(0);
     }
 
+    /* solhint-disable */
     receive() external payable {
         revert();
     }
@@ -133,4 +142,5 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
                 }
         }
     }
+    /* solhint-disable */
 }

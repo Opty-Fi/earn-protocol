@@ -1,27 +1,32 @@
+// solhint-disable no-unused-vars
 // SPDX-License-Identifier:MIT
 
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IAdapter.sol";
-import "../../interfaces/fulcrum/IFulcrum.sol";
-import "../../libraries/SafeMath.sol";
-import "../../interfaces/ERC20/IERC20.sol";
-import "../../utils/Modifiers.sol";
+import { IFulcrum } from "../../interfaces/fulcrum/IFulcrum.sol";
+import { IERC20, SafeMath } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { IAdapter } from "../../interfaces/opty/IAdapter.sol";
+import { Modifiers } from "../../controller/Modifiers.sol";
+import { DataTypes } from "../../libraries/types/DataTypes.sol";
+
+/**
+ * @dev Abstraction layer to Fulcrum's pools
+ */
 
 contract FulcrumAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
-    enum MaxExposure { Number, Pct }
-    MaxExposure public maxExposureType;
-    uint256 public maxDepositPoolPctDefault; // basis points
     mapping(address => uint256) public maxDepositPoolPct; // basis points
-    uint256 public maxDepositAmountDefault;
     mapping(address => uint256) public maxDepositAmount;
+
+    DataTypes.MaxExposure public maxExposureType;
+    uint256 public maxDepositPoolPctDefault; // basis points
+    uint256 public maxDepositAmountDefault;
 
     constructor(address _registry) public Modifiers(_registry) {
         setMaxDepositPoolPctDefault(uint256(10000)); // 100%
-        setMaxDepositPoolType(MaxExposure.Number);
+        setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
 
     function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
@@ -37,9 +42,18 @@ contract FulcrumAdapter is IAdapter, Modifiers {
         if (_amounts[0] > 0) {
             uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
             _codes = new bytes[](3);
-            _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-            _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
-            _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(address,uint256)", _optyVault, _depositAmount));
+            _codes[0] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount)
+            );
+            _codes[2] = abi.encode(
+                _liquidityPool,
+                abi.encodeWithSignature("mint(address,uint256)", _optyVault, _depositAmount)
+            );
         }
     }
 
@@ -79,7 +93,10 @@ contract FulcrumAdapter is IAdapter, Modifiers {
     ) public view override returns (bytes[] memory _codes) {
         if (_burnAmount > 0) {
             _codes = new bytes[](1);
-            _codes[0] = abi.encode(_liquidityPool, abi.encodeWithSignature("burn(address,uint256)", _optyVault, _burnAmount));
+            _codes[0] = abi.encode(
+                _liquidityPool,
+                abi.encodeWithSignature("burn(address,uint256)", _optyVault, _burnAmount)
+            );
         }
     }
 
@@ -96,7 +113,12 @@ contract FulcrumAdapter is IAdapter, Modifiers {
         return _liquidityPool;
     }
 
-    function getUnderlyingTokens(address _liquidityPool, address) public view override returns (address[] memory _underlyingTokens) {
+    function getUnderlyingTokens(address _liquidityPool, address)
+        public
+        view
+        override
+        returns (address[] memory _underlyingTokens)
+    {
         _underlyingTokens = new address[](1);
         _underlyingTokens[0] = IFulcrum(_liquidityPool).loanTokenAddress();
     }
@@ -285,35 +307,42 @@ contract FulcrumAdapter is IAdapter, Modifiers {
         revert("!empty");
     }
 
-    function setMaxDepositPoolType(MaxExposure _type) public onlyGovernance {
+    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
         maxExposureType = _type;
     }
 
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
     }
-    
+
     function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) public onlyGovernance {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
     }
-    
+
     function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) public onlyGovernance {
         maxDepositAmountDefault = _maxDepositAmountDefault;
     }
-    
+
     function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) public onlyGovernance {
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint256 _limit = maxExposureType == MaxExposure.Pct ? _getMaxDepositAmountByPct(_liquidityPool, _amount) : _getMaxDepositAmount(_liquidityPool, _amount);
+        uint256 _limit =
+            maxExposureType == DataTypes.MaxExposure.Pct
+                ? _getMaxDepositAmountByPct(_liquidityPool, _amount)
+                : _getMaxDepositAmount(_liquidityPool, _amount);
         if (_limit != 0 && _depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }
-    
-    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+
+    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount)
+        internal
+        view
+        returns (uint256 _depositAmount)
+    {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
         uint256 maxPct = maxDepositPoolPct[_liquidityPool];
@@ -325,14 +354,18 @@ contract FulcrumAdapter is IAdapter, Modifiers {
             _depositAmount = _limit;
         }
     }
-    
-    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+
+    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount)
+        internal
+        view
+        returns (uint256 _depositAmount)
+    {
         _depositAmount = _amount;
         uint256 maxDeposit = maxDepositAmount[_liquidityPool];
         if (maxDeposit == 0) {
             maxDeposit = maxDepositAmountDefault;
         }
-        if ( _depositAmount > maxDeposit) {
+        if (_depositAmount > maxDeposit) {
             _depositAmount = maxDeposit;
         }
     }

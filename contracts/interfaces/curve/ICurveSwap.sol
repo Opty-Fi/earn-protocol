@@ -1,9 +1,12 @@
+// solhint-disable func-name-mixedcase
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.10;
 
 interface ICurveSwap {
-    function calc_token_amount(uint256[] calldata amountsIn, bool deposit) external;
+    function calc_token_amount(uint256[] calldata amountsIn, bool deposit) external view returns (uint256);
+
+    function get_virtual_price() external view returns (uint256);
 
     function remove_liquidity_one_coin(
         uint256 amountIn,
@@ -11,11 +14,14 @@ interface ICurveSwap {
         uint256 minAmountOut
     ) external;
 
-    function add_liquidity(uint256[2] calldata amountsIn, uint256 minAmountOut) external; //Function for every 2token pool.
+    /// @dev Function for every 2token pool.
+    function add_liquidity(uint256[2] calldata amountsIn, uint256 minAmountOut) external;
 
-    function add_liquidity(uint256[3] calldata amountsIn, uint256 minAmountOut) external; //Function for every 3token pool.
+    /// @dev Function for every 3token pool.
+    function add_liquidity(uint256[3] calldata amountsIn, uint256 minAmountOut) external;
 
-    function add_liquidity(uint256[4] calldata amountsIn, uint256 minAmountOut) external; //Function for every 4token pool.
+    /// @dev Function for every 4token pool.
+    function add_liquidity(uint256[4] calldata amountsIn, uint256 minAmountOut) external;
 
     function remove_liquidity(uint256 _amount, uint256[2] calldata minAmountOut) external;
 

@@ -2,14 +2,17 @@
 
 pragma solidity ^0.6.10;
 
-import "../../ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IAaveV2Token {
+    /* solhint-disable func-name-mixedcase */
     function UNDERLYING_ASSET_ADDRESS() external view returns (address);
 
     function RESERVE_TREASURY_ADDRESS() external view returns (address);
 
     function POOL() external view returns (address);
+
+    /* solhint-disable func-name-mixedcase */
 
     function scaledBalanceOf(address user) external view returns (uint256);
 

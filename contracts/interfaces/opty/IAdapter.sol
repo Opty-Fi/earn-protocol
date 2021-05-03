@@ -95,7 +95,10 @@ interface IAdapter {
     /**
      * @dev Returns the underlying token given the lendingPoolToken for Aave,Compound & lending pool for Curve.
      */
-    function getUnderlyingTokens(address liquidityPool, address _liquidityPoolToken) external view returns (address[] memory);
+    function getUnderlyingTokens(address liquidityPool, address _liquidityPoolToken)
+        external
+        view
+        returns (address[] memory);
 
     /**
      * @dev Returns the balance in underlying for liquidityPoolToken balance of holder
@@ -126,7 +129,9 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @dev Returns the amount in underlying token for {_liquidityPoolTokenAmount} collateral if {_borrowAmount} in {_borrowToken} is repaid.
+     * @dev Returns the amount in underlying token for
+     *      {_liquidityPoolTokenAmount} collateral if {_borrowAmount}
+     *      in {_borrowToken} is repaid.
      */
     function getSomeAmountInTokenBorrow(
         address payable _optyPool,
@@ -138,7 +143,9 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @dev Returns the amount in underlying token for whole collateral of {_optyPool} balance if {_borrowAmount} in {_borrowToken} is repaid.
+     * @dev Returns the amount in underlying token for whole
+     *      collateral of {_optyPool} balance if {_borrowAmount}
+     *      in {_borrowToken} is repaid.
      */
     function getAllAmountInTokenBorrow(
         address payable _optyPool,
@@ -185,12 +192,18 @@ interface IAdapter {
     /**
      * @dev Returns the amount of accrued reward tokens
      */
-    function getUnclaimedRewardTokenAmount(address payable _optyPool, address _liquidityPool) external view returns (uint256);
+    function getUnclaimedRewardTokenAmount(address payable _optyPool, address _liquidityPool)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Returns code for claiming the tokens
      */
-    function getClaimRewardTokenCode(address payable _optyPool, address _liquidityPool) external view returns (bytes[] memory);
+    function getClaimRewardTokenCode(address payable _optyPool, address _liquidityPool)
+        external
+        view
+        returns (bytes[] memory);
 
     /**
      * @dev Returns the code for harvesting some rewards
@@ -241,7 +254,10 @@ interface IAdapter {
     /**
      * @dev Returns code for unstaking liquidityPool token
      */
-    function getUnstakeAllCodes(address payable _optyPool, address _liquidityPool) external view returns (bytes[] memory _codes);
+    function getUnstakeAllCodes(address payable _optyPool, address _liquidityPool)
+        external
+        view
+        returns (bytes[] memory _codes);
 
     /**
      * @dev Returns the balance in underlying for staked liquidityPoolToken balance of holder
@@ -256,7 +272,10 @@ interface IAdapter {
      * @dev get liquidity pool token staked balance
      */
 
-    function getLiquidityPoolTokenBalanceStake(address payable _optyPool, address _liquidityPool) external view returns (uint256);
+    function getLiquidityPoolTokenBalanceStake(address payable _optyPool, address _liquidityPool)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Returns the equivalent amount of liquidity pool token given the share amount to be withdrawn

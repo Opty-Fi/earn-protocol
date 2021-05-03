@@ -1,27 +1,26 @@
+// solhint-disable no-unused-vars
 // SPDX-License-Identifier:MIT
 
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../../interfaces/opty/IAdapter.sol";
-import "../../interfaces/harvest.finance/IHarvestDeposit.sol";
-import "../../interfaces/harvest.finance/IHarvestFarm.sol";
-import "../../libraries/SafeMath.sol";
-import "../../utils/Modifiers.sol";
-import "../../HarvestCodeProvider.sol";
+import { IHarvestDeposit } from "../../interfaces/harvest.finance/IHarvestDeposit.sol";
+import { IHarvestFarm } from "../../interfaces/harvest.finance/IHarvestFarm.sol";
+import { IERC20, SafeMath } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { IAdapter } from "../../interfaces/opty/IAdapter.sol";
+import { Modifiers } from "../../controller/Modifiers.sol";
+import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { HarvestCodeProvider } from "../../HarvestCodeProvider.sol";
+
+/**
+ * @dev Abstraction layer to harvest finance's pools
+ */
 
 contract HarvestAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
-    HarvestCodeProvider public harvestCodeProviderContract;
     mapping(address => address) public liquidityPoolToStakingPool;
-    address public rewardToken;
-
-    enum MaxExposure { Number, Pct }
-    MaxExposure public maxExposureType;
-    uint256 public maxDepositPoolPctDefault; // basis points
     mapping(address => uint256) public maxDepositPoolPct; // basis points
-    uint256 public maxDepositAmountDefault;
     mapping(address => uint256) public maxDepositAmount;
 
     // deposit pool
@@ -56,6 +55,12 @@ contract HarvestAdapter is IAdapter, Modifiers {
     address public constant F_USDN_THREE_CRV_STAKE_POOL = address(0xef4Da1CE3f487DA2Ed0BE23173F76274E0D47579);
     address public constant F_YDAI_YUSDC_YUSDT_YBUSD_STAKE_POOL = address(0x093C2ae5E6F3D2A897459aa24551289D462449AD);
 
+    HarvestCodeProvider public harvestCodeProviderContract;
+    DataTypes.MaxExposure public maxExposureType;
+    address public rewardToken;
+    uint256 public maxDepositPoolPctDefault; // basis points
+    uint256 public maxDepositAmountDefault;
+
     constructor(address _registry, address _harvestCodeProvider) public Modifiers(_registry) {
         setHarvestCodeProvider(_harvestCodeProvider);
         setRewardToken(address(0xa0246c9032bC3A600820415aE600c6388619A14D));
@@ -75,7 +80,7 @@ contract HarvestAdapter is IAdapter, Modifiers {
         setLiquidityPoolToStakingPool(F_YDAI_YUSDC_YUSDT_YBUSD_DEPOSIT_POOL, F_YDAI_YUSDC_YUSDT_YBUSD_STAKE_POOL);
 
         setMaxDepositPoolPctDefault(uint256(10000)); // 100%
-        setMaxDepositPoolType(MaxExposure.Number);
+        setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
 
     function getPoolValue(address _liquidityPool, address) public view override returns (uint256) {
@@ -91,8 +96,14 @@ contract HarvestAdapter is IAdapter, Modifiers {
         if (_amounts[0] > 0) {
             uint256 _depositAmount = _getDepositAmount(_liquidityPool, _amounts[0]);
             _codes = new bytes[](3);
-            _codes[0] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0)));
-            _codes[1] = abi.encode(_underlyingTokens[0], abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount));
+            _codes[0] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _depositAmount)
+            );
             _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("deposit(uint256)", _depositAmount));
         }
     }
@@ -153,7 +164,12 @@ contract HarvestAdapter is IAdapter, Modifiers {
         return _liquidityPool;
     }
 
-    function getUnderlyingTokens(address _liquidityPool, address) public view override returns (address[] memory _underlyingTokens) {
+    function getUnderlyingTokens(address _liquidityPool, address)
+        public
+        view
+        override
+        returns (address[] memory _underlyingTokens)
+    {
         _underlyingTokens = new address[](1);
         _underlyingTokens[0] = IHarvestDeposit(_liquidityPool).underlying();
     }
@@ -163,7 +179,12 @@ contract HarvestAdapter is IAdapter, Modifiers {
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return getSomeAmountInToken(_underlyingToken, _liquidityPool, getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool));
+        return
+            getSomeAmountInToken(
+                _underlyingToken,
+                _liquidityPool,
+                getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool)
+            );
     }
 
     function getLiquidityPoolTokenBalance(
@@ -180,9 +201,9 @@ contract HarvestAdapter is IAdapter, Modifiers {
         uint256 _liquidityPoolTokenAmount
     ) public view override returns (uint256) {
         if (_liquidityPoolTokenAmount > 0) {
-            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount.mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare()).div(
-                10**IHarvestDeposit(_liquidityPool).decimals()
-            );
+            _liquidityPoolTokenAmount = _liquidityPoolTokenAmount
+                .mul(IHarvestDeposit(_liquidityPool).getPricePerFullShare())
+                .div(10**IHarvestDeposit(_liquidityPool).decimals());
         }
         return _liquidityPoolTokenAmount;
     }
@@ -213,7 +234,10 @@ contract HarvestAdapter is IAdapter, Modifiers {
         address _liquidityPool,
         uint256 _depositAmount
     ) public view override returns (uint256) {
-        return _depositAmount.mul(10**IHarvestDeposit(_liquidityPool).decimals()).div(IHarvestDeposit(_liquidityPool).getPricePerFullShare());
+        return
+            _depositAmount.mul(10**IHarvestDeposit(_liquidityPool).decimals()).div(
+                IHarvestDeposit(_liquidityPool).getPricePerFullShare()
+            );
     }
 
     function calculateRedeemableLPTokenAmount(
@@ -242,11 +266,21 @@ contract HarvestAdapter is IAdapter, Modifiers {
         return rewardToken;
     }
 
-    function getUnclaimedRewardTokenAmount(address payable _optyVault, address _liquidityPool) public view override returns (uint256) {
+    function getUnclaimedRewardTokenAmount(address payable _optyVault, address _liquidityPool)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return IHarvestFarm(liquidityPoolToStakingPool[_liquidityPool]).earned(_optyVault);
     }
 
-    function getClaimRewardTokenCode(address payable, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+    function getClaimRewardTokenCode(address payable, address _liquidityPool)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         _codes = new bytes[](1);
         _codes[0] = abi.encode(_stakingPool, abi.encodeWithSignature("getReward()"));
@@ -258,7 +292,13 @@ contract HarvestAdapter is IAdapter, Modifiers {
         address _liquidityPool,
         uint256 _rewardTokenAmount
     ) public view override returns (bytes[] memory _codes) {
-        return harvestCodeProviderContract.getHarvestCodes(_optyVault, getRewardToken(_liquidityPool), _underlyingToken, _rewardTokenAmount);
+        return
+            harvestCodeProviderContract.getHarvestCodes(
+                _optyVault,
+                getRewardToken(_liquidityPool),
+                _underlyingToken,
+                _rewardTokenAmount
+            );
     }
 
     function getHarvestAllCodes(
@@ -274,13 +314,24 @@ contract HarvestAdapter is IAdapter, Modifiers {
         return true;
     }
 
-    function getStakeSomeCodes(address _liquidityPool, uint256 _shares) public view override returns (bytes[] memory _codes) {
+    function getStakeSomeCodes(address _liquidityPool, uint256 _shares)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
         if (_shares > 0) {
             address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
             address _liquidityPoolToken = getLiquidityPoolToken(address(0), _liquidityPool);
             _codes = new bytes[](3);
-            _codes[0] = abi.encode(_liquidityPoolToken, abi.encodeWithSignature("approve(address,uint256)", _stakingPool, uint256(0)));
-            _codes[1] = abi.encode(_liquidityPoolToken, abi.encodeWithSignature("approve(address,uint256)", _stakingPool, _shares));
+            _codes[0] = abi.encode(
+                _liquidityPoolToken,
+                abi.encodeWithSignature("approve(address,uint256)", _stakingPool, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _liquidityPoolToken,
+                abi.encodeWithSignature("approve(address,uint256)", _stakingPool, _shares)
+            );
             _codes[2] = abi.encode(_stakingPool, abi.encodeWithSignature("stake(uint256)", _shares));
         }
     }
@@ -294,7 +345,12 @@ contract HarvestAdapter is IAdapter, Modifiers {
         return getStakeSomeCodes(_liquidityPool, _depositAmount);
     }
 
-    function getUnstakeSomeCodes(address _liquidityPool, uint256 _shares) public view override returns (bytes[] memory _codes) {
+    function getUnstakeSomeCodes(address _liquidityPool, uint256 _shares)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
         if (_shares > 0) {
             address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
             _codes = new bytes[](1);
@@ -302,7 +358,12 @@ contract HarvestAdapter is IAdapter, Modifiers {
         }
     }
 
-    function getUnstakeAllCodes(address payable _optyVault, address _liquidityPool) public view override returns (bytes[] memory _codes) {
+    function getUnstakeAllCodes(address payable _optyVault, address _liquidityPool)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
         uint256 _redeemAmount = getLiquidityPoolTokenBalanceStake(_optyVault, _liquidityPool);
         return getUnstakeSomeCodes(_liquidityPool, _redeemAmount);
     }
@@ -319,12 +380,23 @@ contract HarvestAdapter is IAdapter, Modifiers {
         }
         uint256 _unclaimedReward = getUnclaimedRewardTokenAmount(_optyVault, _liquidityPool);
         if (_unclaimedReward > 0) {
-            b = b.add(harvestCodeProviderContract.rewardBalanceInUnderlyingTokens(rewardToken, _underlyingToken, _unclaimedReward));
+            b = b.add(
+                harvestCodeProviderContract.rewardBalanceInUnderlyingTokens(
+                    rewardToken,
+                    _underlyingToken,
+                    _unclaimedReward
+                )
+            );
         }
         return b;
     }
 
-    function getLiquidityPoolTokenBalanceStake(address payable _optyVault, address _liquidityPool) public view override returns (uint256) {
+    function getLiquidityPoolTokenBalanceStake(address payable _optyVault, address _liquidityPool)
+        public
+        view
+        override
+        returns (uint256)
+    {
         address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
         return IHarvestFarm(_stakingPool).balanceOf(_optyVault);
     }
@@ -391,35 +463,42 @@ contract HarvestAdapter is IAdapter, Modifiers {
         rewardToken = _rewardToken;
     }
 
-    function setMaxDepositPoolType(MaxExposure _type) public onlyGovernance {
+    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
         maxExposureType = _type;
     }
 
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
     }
-    
+
     function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) public onlyGovernance {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
     }
-    
+
     function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) public onlyGovernance {
         maxDepositAmountDefault = _maxDepositAmountDefault;
     }
-    
+
     function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) public onlyGovernance {
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
         _depositAmount = _amount;
-        uint256 _limit = maxExposureType == MaxExposure.Pct ? _getMaxDepositAmountByPct(_liquidityPool, _amount) : _getMaxDepositAmount(_liquidityPool, _amount);
+        uint256 _limit =
+            maxExposureType == DataTypes.MaxExposure.Pct
+                ? _getMaxDepositAmountByPct(_liquidityPool, _amount)
+                : _getMaxDepositAmount(_liquidityPool, _amount);
         if (_limit != 0 && _depositAmount > _limit) {
             _depositAmount = _limit;
         }
     }
-    
-    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+
+    function _getMaxDepositAmountByPct(address _liquidityPool, uint256 _amount)
+        internal
+        view
+        returns (uint256 _depositAmount)
+    {
         _depositAmount = _amount;
         uint256 _poolValue = getPoolValue(_liquidityPool, address(0));
         uint256 maxPct = maxDepositPoolPct[_liquidityPool];
@@ -431,14 +510,18 @@ contract HarvestAdapter is IAdapter, Modifiers {
             _depositAmount = _limit;
         }
     }
-    
-    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {
+
+    function _getMaxDepositAmount(address _liquidityPool, uint256 _amount)
+        internal
+        view
+        returns (uint256 _depositAmount)
+    {
         _depositAmount = _amount;
         uint256 maxDeposit = maxDepositAmount[_liquidityPool];
         if (maxDeposit == 0) {
             maxDeposit = maxDepositAmountDefault;
         }
-        if ( _depositAmount > maxDeposit) {
+        if (_depositAmount > maxDeposit) {
             _depositAmount = maxDeposit;
         }
     }

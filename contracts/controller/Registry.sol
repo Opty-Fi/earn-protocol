@@ -3,28 +3,28 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import "../libraries/Addresses.sol";
-import "./ModifiersController.sol";
-import "./RegistryProxy.sol";
-import "../interfaces/opty/IVault.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { ModifiersController } from "./ModifiersController.sol";
+import { RegistryProxy } from "./RegistryProxy.sol";
+import { IVault } from "../interfaces/opty/IVault.sol";
+import { DataTypes } from "../libraries/types/DataTypes.sol";
 
 /**
  * @title Registry
- * 
+ *
  * @author Opty.fi
- * 
- * @dev OptyFi's Registry contract for persisting all tokens,lpTokens and lp/cp status along with all Optyfi's Vaults and LM_Vaults
+ *
+ * @dev Contract to persit status of tokens,lpTokens,lp/cp and Vaults
  */
 contract Registry is ModifiersController {
     using Address for address;
 
-    
-     /**
+    /**
      * @dev Sets multiple `_token` from the {tokens} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-     
+
     function approveTokens(address[] memory _tokens) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
             address _token = _tokens[_i];
@@ -32,7 +32,7 @@ contract Registry is ModifiersController {
         }
         return true;
     }
-    
+
     /**
      * @dev Sets `_token` from the {tokens} mapping.
      *
@@ -54,13 +54,13 @@ contract Registry is ModifiersController {
         emit LogToken(msg.sender, _token, tokens[_token]);
         return true;
     }
-    
+
     /**
      * @dev Revokes multiple `_token` from the {tokens} mapping.
      *
      * Returns a boolean value indicating whether the operation succeeded.
      */
-     
+
     function revokeTokens(address[] memory _tokens) external onlyGovernance returns (bool) {
         for (uint8 _i = 0; _i < uint8(_tokens.length); _i++) {
             address _token = _tokens[_i];
@@ -68,7 +68,7 @@ contract Registry is ModifiersController {
         }
         return true;
     }
-    
+
     /**
      * @dev Revokes `_token` from the {tokens} mapping.
      *
@@ -88,7 +88,7 @@ contract Registry is ModifiersController {
         emit LogToken(msg.sender, _token, tokens[_token]);
         return true;
     }
-    
+
     /**
      * @dev Sets multiple `_pool` from the {liquidityPools} mapping.
      *
@@ -122,7 +122,7 @@ contract Registry is ModifiersController {
         emit LogLiquidityPool(msg.sender, _pool, liquidityPools[_pool].isLiquidityPool);
         return true;
     }
-    
+
     /**
      * @dev Revokes multiple `_pool` from the {liquidityPools} mapping.
      *
@@ -157,24 +157,24 @@ contract Registry is ModifiersController {
     /**
      * @dev Returns the liquidity pool by `_pool`.
      */
-     
-    function getLiquidityPool(address _pool) public view returns (LiquidityPool memory _liquidityPool) {
+
+    function getLiquidityPool(address _pool) public view returns (DataTypes.LiquidityPool memory _liquidityPool) {
         _liquidityPool = liquidityPools[_pool];
     }
-    
-     /**
+
+    /**
      * @dev Provide [`_pool`,`_rate`] from the {liquidityPools} mapping.
-     * 
+     *
      */
-    
-    function rateLiquidityPools(PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
-        for(uint8 _i = 0; _i < _poolRates.length; _i++){
-            PoolRate memory poolRate = _poolRates[_i];
+
+    function rateLiquidityPools(DataTypes.PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < _poolRates.length; _i++) {
+            DataTypes.PoolRate memory poolRate = _poolRates[_i];
             rateLiquidityPool(poolRate.pool, poolRate.rate);
         }
         return true;
     }
-    
+
     /**
      * @dev Provide `_rate` to `_pool` from the {liquidityPools} mapping.
      *
@@ -194,7 +194,7 @@ contract Registry is ModifiersController {
         emit LogRateLiquidityPool(msg.sender, _pool, liquidityPools[_pool].rating);
         return true;
     }
-    
+
     /**
      * @dev Sets multiple `_pool` from the {creditPools} mapping.
      *
@@ -206,7 +206,7 @@ contract Registry is ModifiersController {
         }
         return true;
     }
-    
+
     /**
      * @dev Sets `_pool` from the {creditPools} mapping.
      *
@@ -228,7 +228,7 @@ contract Registry is ModifiersController {
         emit LogLiquidityPool(msg.sender, _pool, creditPools[_pool].isLiquidityPool);
         return true;
     }
-    
+
     /**
      * @dev Revokes multiple `_pool` from the {revokeCreditPools} mapping.
      *
@@ -240,7 +240,7 @@ contract Registry is ModifiersController {
         }
         return true;
     }
-    
+
     /**
      * @dev Revokes `_pool` from the {creditPools} mapping.
      *
@@ -263,23 +263,23 @@ contract Registry is ModifiersController {
     /**
      * @dev Returns the credit pool by `_pool`.
      */
-    function getCreditPool(address _pool) public view returns (LiquidityPool memory _creditPool) {
+    function getCreditPool(address _pool) public view returns (DataTypes.LiquidityPool memory _creditPool) {
         _creditPool = creditPools[_pool];
     }
-    
+
     /**
      * @dev Provide [`_pool`,`_rate`] from the {creditPools} mapping.
-     * 
+     *
      */
-    
-    function rateCreditPools(PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
-        for(uint8 _i = 0; _i < _poolRates.length; _i++){
-            PoolRate memory poolRate = _poolRates[_i];
+
+    function rateCreditPools(DataTypes.PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
+        for (uint8 _i = 0; _i < _poolRates.length; _i++) {
+            DataTypes.PoolRate memory poolRate = _poolRates[_i];
             rateCreditPool(poolRate.pool, poolRate.rate);
         }
         return true;
     }
-    
+
     /**
      * @dev Provide `_rate` to `_pool` from the {creditPools} mapping.
      *
@@ -299,19 +299,23 @@ contract Registry is ModifiersController {
         emit LogRateCreditPool(msg.sender, _pool, creditPools[_pool].rating);
         return true;
     }
-    
+
     /**
-     * @dev Sets multiple liquidity `_pool` corresponding to the protocol adapter `_adapter` from the {liquidityPoolToAdapter} mapping.
+     * @dev Maps liquidity `_pool` to the protocol adapter `_adapter` using {liquidityPoolToAdapter}.
      *
      */
-    function setLiquidityPoolsToAdapters(PoolAdapter[] memory _poolAdapters) external onlyOperator returns (bool) {
-        for(uint8 _i = 0; _i < _poolAdapters.length; _i++){
-            PoolAdapter memory _poolAdapter = _poolAdapters[_i];
+    function setLiquidityPoolsToAdapters(DataTypes.PoolAdapter[] memory _poolAdapters)
+        external
+        onlyOperator
+        returns (bool)
+    {
+        for (uint8 _i = 0; _i < _poolAdapters.length; _i++) {
+            DataTypes.PoolAdapter memory _poolAdapter = _poolAdapters[_i];
             setLiquidityPoolToAdapter(_poolAdapter.pool, _poolAdapter.adapter);
         }
         return true;
     }
-    
+
     /**
      * @dev Sets liquidity `_pool` to the protocol adapter `_adapter` from the {liquidityPoolToAdapter} mapping.
      *
@@ -349,7 +353,11 @@ contract Registry is ModifiersController {
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
      */
-    function setStrategy(bytes32 _tokensHash, StrategyStep[] memory _strategySteps) public onlyOperator returns (bytes32) {
+    function setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[] memory _strategySteps)
+        public
+        onlyOperator
+        returns (bytes32)
+    {
         require(!_isNewTokensHash(_tokensHash), "_isNewTokensHash");
         return _setStrategy(_tokensHash, _strategySteps);
     }
@@ -368,7 +376,7 @@ contract Registry is ModifiersController {
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
      */
-    function setStrategy(bytes32 _tokensHash, StrategyStep[][] memory _strategySteps) public onlyOperator {
+    function setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[][] memory _strategySteps) public onlyOperator {
         require(!_isNewTokensHash(_tokensHash), "_isNewTokensHash");
         uint8 _len = uint8(_strategySteps.length);
         for (uint8 _i = 0; _i < _len; _i++) {
@@ -390,7 +398,11 @@ contract Registry is ModifiersController {
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
      */
-    function setStrategy(bytes32[] memory _tokensHash, StrategyStep[][] memory _strategySteps) public onlyOperator returns (bytes32) {
+    function setStrategy(bytes32[] memory _tokensHash, DataTypes.StrategyStep[][] memory _strategySteps)
+        public
+        onlyOperator
+        returns (bytes32)
+    {
         require(_tokensHash.length == _strategySteps.length, "!index mismatch");
         uint8 _len = uint8(_strategySteps.length);
         for (uint8 _i = 0; _i < _len; _i++) {
@@ -401,7 +413,11 @@ contract Registry is ModifiersController {
     /**
      * @dev Returns the Strategy by `_hash`.
      */
-    function getStrategy(bytes32 _hash) public view returns (uint256 _index, StrategyStep[] memory _strategySteps) {
+    function getStrategy(bytes32 _hash)
+        public
+        view
+        returns (uint256 _index, DataTypes.StrategyStep[] memory _strategySteps)
+    {
         _index = strategies[_hash].index;
         _strategySteps = strategies[_hash].strategySteps;
     }
@@ -412,7 +428,7 @@ contract Registry is ModifiersController {
     function getTokenToStrategies(bytes32 _tokensHash) public view returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];
     }
-    
+
     /**
      * @dev Sets multiple `_tokens` to keccak256 hash the {tokensHashToTokens} mapping.
      *
@@ -422,7 +438,7 @@ contract Registry is ModifiersController {
             setTokensHashToTokens(_setOfTokens[_i]);
         }
     }
-    
+
     /**
      * @dev Sets `_tokens` to keccak256 hash the {tokensHashToTokens} mapping.
      *
@@ -507,13 +523,18 @@ contract Registry is ModifiersController {
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
      */
-    function _setStrategy(bytes32 _tokensHash, StrategyStep[] memory _strategySteps) private returns (bytes32) {
+    function _setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[] memory _strategySteps)
+        private
+        returns (bytes32)
+    {
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
             require(liquidityPoolToAdapter[_strategySteps[_i].pool] != address(0), "!adapter.");
         }
         bytes32[] memory hashes = new bytes32[](_strategySteps.length);
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
-            hashes[_i] = keccak256(abi.encodePacked(_strategySteps[_i].pool, _strategySteps[_i].outputToken, _strategySteps[_i].isBorrow));
+            hashes[_i] = keccak256(
+                abi.encodePacked(_strategySteps[_i].pool, _strategySteps[_i].outputToken, _strategySteps[_i].isBorrow)
+            );
         }
         bytes32 hash = keccak256(abi.encodePacked(_tokensHash, hashes));
         require(_isNewStrategy(hash), "isNewStrategy");
@@ -525,7 +546,11 @@ contract Registry is ModifiersController {
                 require(liquidityPools[_strategySteps[_i].pool].isLiquidityPool, "!isLiquidityPool");
             }
             strategies[hash].strategySteps.push(
-                StrategyStep(_strategySteps[_i].pool, _strategySteps[_i].outputToken, _strategySteps[_i].isBorrow)
+                DataTypes.StrategyStep(
+                    _strategySteps[_i].pool,
+                    _strategySteps[_i].outputToken,
+                    _strategySteps[_i].isBorrow
+                )
             );
         }
         strategyHashIndexes.push(hash);
@@ -534,41 +559,49 @@ contract Registry is ModifiersController {
         emit LogSetStrategy(msg.sender, _tokensHash, hash);
         return hash;
     }
-    
+
     /**
      * @dev Sets `Vault`/`LM_vault` contract for the corresponding `_underlyingToken` and `_riskProfile`
-     * 
+     *
      * Returns a boolean value indicating whether the operation succeeded
-     * 
+     *
      * Emits a {LogUnderlyingTokenRPVault} event
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `_underlyingToken` cannot be the zero address or EOA
      * - `_vault` cannot be the zero address or EOA
      * - `msg.sender` (caller) should be governance
-     * 
+     *
      */
-    function setUnderlyingTokenToRPToVaults(address _underlyingToken, string memory _riskProfile, address _vault) public returns (bool) {
+    function setUnderlyingTokenToRPToVaults(
+        address _underlyingToken,
+        string memory _riskProfile,
+        address _vault
+    ) public returns (bool) {
         return _setUnderlyingTokenToRPToVaults(_underlyingToken, _riskProfile, _vault);
     }
-    
+
     /**
-     * @dev Sets bunch of `Vaults`/`LM_vaults` contract for the corresponding `_underlyingTokens` 
+     * @dev Sets bunch of `Vaults`/`LM_vaults` contract for the corresponding `_underlyingTokens`
      *      and `_riskProfiles`in one transaction
-     * 
+     *
      * Returns a boolean value indicating whether the operation succeeded
-     * 
+     *
      * Emits a {LogUnderlyingTokenRPVault} event
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `_underlyingToken` cannot be the zero address or EOA
      * - `_vault` cannot be the zero address or EOA
      * - `msg.sender` (caller) should be governance
-     * 
+     *
      */
-    function setUnderlyingTokenToRPToVaults(address[] memory _underlyingTokens, string[] memory _riskProfiles, address[][] memory _vaults) public returns (bool) {
+    function setUnderlyingTokenToRPToVaults(
+        address[] memory _underlyingTokens,
+        string[] memory _riskProfiles,
+        address[][] memory _vaults
+    ) public returns (bool) {
         require(uint8(_riskProfiles.length) == uint8(_vaults.length), "!Profileslength");
         for (uint8 _i = 0; _i < uint8(_vaults.length); _i++) {
             require(uint8(_vaults[_i].length) == uint8(_underlyingTokens.length), "!VaultsLength");
@@ -578,8 +611,12 @@ contract Registry is ModifiersController {
         }
         return true;
     }
-    
-    function _setUnderlyingTokenToRPToVaults(address _underlyingToken, string memory _riskProfile, address _vault) internal returns (bool) {
+
+    function _setUnderlyingTokenToRPToVaults(
+        address _underlyingToken,
+        string memory _riskProfile,
+        address _vault
+    ) internal returns (bool) {
         require(_underlyingToken != address(0), "!address(0)");
         require(address(_underlyingToken).isContract(), "!isContract");
         require(bytes(_riskProfile).length > 0, "RP_empty.");
@@ -589,16 +626,16 @@ contract Registry is ModifiersController {
         emit LogUnderlyingTokenRPVault(_underlyingToken, _riskProfile, _vault);
         return true;
     }
-    
+
     /**
-     * @dev Set Disconinue for the _vault contract 
-     * 
+     * @dev Set Disconinue for the _vault contract
+     *
      * Returns a boolean value indicating whether operation is succeeded
-     * 
+     *
      * Emits a {LogDiscontinuedPaused} event
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `_vault` cannot be a zero address
      * - `msg.sender` (caller) should be governance
      */
@@ -609,16 +646,16 @@ contract Registry is ModifiersController {
         emit LogDiscontinuedPaused(msg.sender, "Discontinue", vaultToDiscontinued[_vault]);
         return true;
     }
-    
+
     /**
-     * @dev Set Pause functionality for the _vault contract 
-     * 
+     * @dev Set Pause functionality for the _vault contract
+     *
      * Returns a boolean value indicating whether pause is set to true or false
-     * 
+     *
      * Emits a {LogDiscontinuedPaused} event
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `_vault` cannot be a zero address
      * - `msg.sender` (caller) should be governance
      */
@@ -629,40 +666,48 @@ contract Registry is ModifiersController {
         emit LogDiscontinuedPaused(_vault, "Pause", vaultToPaused[_vault]);
         return _paused;
     }
-    
+
     /**
      * @dev Add the risk profile in Registry contract Storage
-     * 
+     *
      * Returns _riskProfile added
-     * 
+     *
      * Requirements:
-     *  
+     *
      * - `_riskProfile` can not be empty
      *          - should not already exists
      * - `msg.sender` can only be governance
-     * 
+     *
      */
-    function addRiskProfile(string memory _riskProfile, uint8 _noOfSteps, PoolRatingsRange memory _poolRatingRange) public onlyGovernance returns (string memory) {
+    function addRiskProfile(
+        string memory _riskProfile,
+        uint8 _noOfSteps,
+        DataTypes.PoolRatingsRange memory _poolRatingRange
+    ) public onlyGovernance returns (string memory) {
         return _addRiskProfile(_riskProfile, _noOfSteps, _poolRatingRange);
     }
-    
+
     /**
      * @dev Add list of the risk profiles in Registry contract Storage in 1 txn.
-     * 
-     * Returns bool value for multiple _riskProfiles added operation succeeded 
-     * 
+     *
+     * Returns bool value for multiple _riskProfiles added operation succeeded
+     *
      * Requirements:
-     *  
+     *
      * - `_riskProfile` can not be empty array
      *          - should not already exists
      * - `msg.sender` can only be governance
-     * 
+     *
      */
-    function addRiskProfiles(string[] memory _riskProfiles, uint8[] memory _noOfSteps, PoolRatingsRange[] memory _poolRatingRanges) public onlyGovernance returns (bool) {
+    function addRiskProfiles(
+        string[] memory _riskProfiles,
+        uint8[] memory _noOfSteps,
+        DataTypes.PoolRatingsRange[] memory _poolRatingRanges
+    ) public onlyGovernance returns (bool) {
         require(_riskProfiles.length > 0, "!length>0");
         require(_riskProfiles.length == _noOfSteps.length, "!Stepslength");
         require(_riskProfiles.length == _poolRatingRanges.length, "!PoolRatingsLength");
-        
+
         for (uint8 _i = 0; _i < _riskProfiles.length; _i++) {
             _addRiskProfile(_riskProfiles[_i], _noOfSteps[_i], _poolRatingRanges[_i]);
         }
@@ -671,74 +716,91 @@ contract Registry is ModifiersController {
 
     /**
      * @dev Add the risk profile in Registry contract Storage
-     * 
+     *
      * Returns _riskProfile added
-     * 
+     *
      * Requirements:
-     *  
+     *
      * - `_riskProfile` can not be empty
      *          - should not already exists
-     * 
+     *
      */
-    function _addRiskProfile(string memory _riskProfile, uint8 _noOfSteps, PoolRatingsRange memory _poolRatingRange) internal returns (string memory){
+    function _addRiskProfile(
+        string memory _riskProfile,
+        uint8 _noOfSteps,
+        DataTypes.PoolRatingsRange memory _poolRatingRange
+    ) internal returns (string memory) {
         require(bytes(_riskProfile).length > 0, "RP_Empty!");
         require(!riskProfiles[_riskProfile].exists, "RP_already_exists");
-        
+
         riskProfilesArray.push(_riskProfile);
         riskProfiles[_riskProfile].steps = _noOfSteps;
-        riskProfiles[_riskProfile].poolRatingsRange.push(PoolRatingsRange({lowerLimit: _poolRatingRange.lowerLimit, upperLimit: _poolRatingRange.upperLimit}));
+        riskProfiles[_riskProfile].poolRatingsRange.push(
+            DataTypes.PoolRatingsRange({
+                lowerLimit: _poolRatingRange.lowerLimit,
+                upperLimit: _poolRatingRange.upperLimit
+            })
+        );
         riskProfiles[_riskProfile].index = riskProfilesArray.length - 1;
         riskProfiles[_riskProfile].exists = true;
-        
-        emit RiskProfileAdded(riskProfiles[_riskProfile].index, keccak256(abi.encodePacked(_riskProfile)), riskProfiles[_riskProfile].exists);
+
+        emit RiskProfileAdded(
+            riskProfiles[_riskProfile].index,
+            keccak256(abi.encodePacked(_riskProfile)),
+            riskProfiles[_riskProfile].exists
+        );
         return _riskProfile;
     }
-    
+
     /**
      * @dev Update the no. of steps for existing risk profile
-     * 
-     * Returns bool value for update _riskProfile operation succeeded 
-     * 
+     *
+     * Returns bool value for update _riskProfile operation succeeded
+     *
      * Requirements:
-     *  
+     *
      * - `_riskProfile` should exists
      * - `msg.sender` can only be governance
-     * 
+     *
      */
     function updateRiskProfileSteps(string memory _riskProfile, uint8 _noOfSteps) public onlyGovernance returns (bool) {
         require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
         riskProfiles[_riskProfile].steps = _noOfSteps;
         return true;
     }
-    
+
     /**
      * @dev Update the pool ratings for existing risk profile
-     * 
-     * Returns bool value for update _riskProfile operation succeeded 
-     * 
+     *
+     * Returns bool value for update _riskProfile operation succeeded
+     *
      * Requirements:
-     *  
+     *
      * - `_riskProfile` should exists
      * - `msg.sender` can only be governance
-     * 
+     *
      */
-    function updateRPPoolRatings(string memory _riskProfile, PoolRatingsRange memory _poolRatingRange) public onlyGovernance returns (bool) {
+    function updateRPPoolRatings(string memory _riskProfile, DataTypes.PoolRatingsRange memory _poolRatingRange)
+        public
+        onlyGovernance
+        returns (bool)
+    {
         require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
         riskProfiles[_riskProfile].poolRatingsRange[0] = _poolRatingRange;
         return true;
     }
-    
+
     /**
      * @dev Remove the existing risk profile in Registry contract Storage
-     * 
+     *
      * Returns _riskProfile added
-     * 
+     *
      * Requirements:
-     *  
+     *
      * - `_riskProfile` can not be empty
      *          - should not already exists
      * - `msg.sender` can only be governance
-     * 
+     *
      */
     function removeRiskProfile(uint256 _index) public onlyGovernance returns (bool) {
         require(_index <= riskProfilesArray.length, "Invalid_Rp_index");
@@ -748,19 +810,27 @@ contract Registry is ModifiersController {
         delete riskProfilesArray[_index];
         return true;
     }
-    
+
     /**
      * @dev Get the risk profile details
-     * 
+     *
      */
-    function getRiskProfile(string memory _riskProfile) public view returns (uint256 _index, uint8 _noOfSteps, PoolRatingsRange memory _poolRatingsRange, bool _exists) {
+    function getRiskProfile(string memory _riskProfile)
+        public
+        view
+        returns (
+            uint256 _index,
+            uint8 _noOfSteps,
+            DataTypes.PoolRatingsRange memory _poolRatingsRange,
+            bool _exists
+        )
+    {
         _index = riskProfiles[_riskProfile].index;
         _noOfSteps = riskProfiles[_riskProfile].steps;
         _poolRatingsRange = riskProfiles[_riskProfile].poolRatingsRange[0];
         _exists = riskProfiles[_riskProfile].exists;
     }
-    
-    
+
     /**
      * @dev Get the list of all the riskProfiles
      */
@@ -777,7 +847,7 @@ contract Registry is ModifiersController {
         require(_treasury != address(0), "!address(0)");
         treasury = _treasury;
     }
-    
+
     /**
      * @dev Emitted when `token` is approved or revoked.
      *
@@ -840,21 +910,21 @@ contract Registry is ModifiersController {
      * Note that tokens should be approved
      */
     event LogTokensToTokensHash(address indexed caller, bytes32 indexed _tokensHash);
-    
+
     /**
      * @dev Emiited when `Discontinue` or `setPause` functions are called
-     * 
+     *
      * Note that `vault` can not be a zero address
      */
     event LogDiscontinuedPaused(address indexed vault, bytes32 indexed action, bool indexed actionStatus);
-    
+
     /**
      * @dev Emitted when `setUnderlyingTokenToRPToVaults` function is called.
      *
      * Note that `underlyingToken` cannot be zero address or EOA.
      */
     event LogUnderlyingTokenRPVault(address indexed underlyingToken, string indexed riskProfile, address indexed vault);
-    
+
     /**
      * @dev Emitted when RiskProfile is added
      * 
