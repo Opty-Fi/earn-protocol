@@ -138,10 +138,7 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
         if (IERC20(_odefiVault).balanceOf(_user) > 0 && lastUserUpdate[_odefiVault][_user] != getBlockTimestamp()) {
             uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
             uint256 _deltaSecondsUser;
-            if (
-                lastUserUpdate[_odefiVault][_user] != uint256(0) &&
-                lastUserUpdate[_odefiVault][_user] > odefiVaultStartTimestamp[_odefiVault]
-            ) {
+            if (lastUserUpdate[_odefiVault][_user] != uint256(0)) {
                 _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_user], odefiVaultStartTimestamp[_odefiVault]);
             } else {
                 _deltaSecondsUser = sub_(
@@ -161,8 +158,8 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
                 );
             uint256 _userAccrued = add_(odefiAccrued[_user], _userDelta);
             odefiAccrued[_user] = _userAccrued;
-            lastUserUpdate[_odefiVault][_user] = getBlockTimestamp();
         }
+        lastUserUpdate[_odefiVault][_user] = getBlockTimestamp();
     }
 
     function updateUserStateInVault(address _odefiVault, address _user) public {
