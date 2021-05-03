@@ -220,7 +220,13 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
      * @return The amount of ODEFI which was NOT transferred to the user
      */
     function setRewardRate(address _odefiVault, uint256 _rate) public onlyOperator returns (bool) {
+        require(msg.sender != rewarders[_odefiVault], "caller is zero address");
         odefiVaultRatePerSecond[_odefiVault] = _rate;
+        return true;
+    }
+
+    function setRewarder(address _odefiVault, address _rewarder) public onlyOperator returns (bool) {
+        rewarders[_odefiVault] = _rewarder;
         return true;
     }
 

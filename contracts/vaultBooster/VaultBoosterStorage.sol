@@ -12,6 +12,8 @@ contract VaultBoosterStorage {
 
     address public odefiAddress;
 
+    mapping(address => address) public rewarders;
+
     mapping(address => uint256) public odefiVaultStartTimestamp;
 
     address[] public allOdefiVaults;
