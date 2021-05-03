@@ -138,7 +138,10 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
         if (IERC20(_odefiVault).balanceOf(_user) > 0 && lastUserUpdate[_odefiVault][_user] != getBlockTimestamp()) {
             uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
             uint256 _deltaSecondsUser;
-            if (lastUserUpdate[_odefiVault][_user] != uint256(0)) {
+            if (
+                lastUserUpdate[_odefiVault][_user] != uint256(0) &&
+                lastUserUpdate[_odefiVault][_user] > odefiVaultStartTimestamp[_odefiVault]
+            ) {
                 _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_user], odefiVaultStartTimestamp[_odefiVault]);
             } else {
                 _deltaSecondsUser = sub_(
