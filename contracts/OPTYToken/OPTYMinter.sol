@@ -148,7 +148,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         if (IERC20(_optyVault).balanceOf(_user) > 0 && lastUserUpdate[_optyVault][_user] != getBlockTimestamp()) {
             uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
             uint256 _deltaSecondsUser;
-            if (lastUserUpdate[_optyVault][_user] != uint256(0)) {
+            if (
+                lastUserUpdate[_optyVault][_user] != uint256(0) &&
+                lastUserUpdate[_optyVault][_user] > optyVaultStartTimestamp[_optyVault]
+            ) {
                 _deltaSecondsUser = sub_(lastUserUpdate[_optyVault][_user], optyVaultStartTimestamp[_optyVault]);
             } else {
                 _deltaSecondsUser = sub_(
