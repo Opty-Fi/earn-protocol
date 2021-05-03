@@ -64,7 +64,6 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 _total = add_(_total, _amount);
             }
         }
-        return _total;
     }
 
     /**
@@ -81,11 +80,16 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _optyVaults The list of vaults to claim OPTY in
      */
     function claimableOpty(address _holder, address[] memory _optyVaults) public view returns (uint256) {
-        uint256 _totalOpty = optyAccrued[_holder];
+        uint256 claimableOptyAmount;
         for (uint256 i = 0; i < _optyVaults.length; i++) {
             address _optyVault = _optyVaults[i];
             if (optyVaultEnabled[_optyVault] == true) {
-                uint256 _deltaSecondsUser = sub_(optyUserStateInVault[_optyVault][_holder].timestamp, optyVaultStartTimestamp[_optyVault]);
+                uint256 _deltaSecondsUser;
+                if (lastUserUpdate[_optyVault][_holder] != uint256(0)) {
+                    _deltaSecondsUser = sub_(lastUserUpdate[_optyVault][_holder], optyVaultStartTimestamp[_optyVault]);
+                } else {
+                    _deltaSecondsUser = sub_(optyUserStateInVault[_optyVault][_holder].timestamp, optyVaultStartTimestamp[_optyVault]);
+                }
                 uint256 _currentOptyVaultIndex = currentOptyVaultIndex(_optyVault);
                 uint256 _userDelta =
                     mul_(
@@ -95,10 +99,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                             mul_(optyUserStateInVault[_optyVault][_holder].index, _deltaSecondsUser)
                         )
                     );
-                _totalOpty = add_(_totalOpty, _userDelta);
+                claimableOptyAmount = add_(claimableOptyAmount, _userDelta);
             }
         }
-        return div_(_totalOpty, 1e18);
+        return div_(add_(claimableOptyAmount, optyAccrued[_holder]), 1e18);
     }
 
     function currentOptyVaultIndex(address _optyVault) public view returns (uint256) {
@@ -125,7 +129,13 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     function updateUserRewards(address _optyVault, address _user) public {
         if (IERC20(_optyVault).balanceOf(_user) > 0 && lastUserUpdate[_optyVault][_user] != getBlockTimestamp()) {
             uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
-            uint256 _deltaSecondsUser = sub_(optyUserStateInVault[_optyVault][_user].timestamp, optyVaultStartTimestamp[_optyVault]);
+            uint256 _deltaSecondsUser;
+            if (lastUserUpdate[_optyVault][_user] != uint256(0)) {
+                _deltaSecondsUser = sub_(lastUserUpdate[_optyVault][_user], optyVaultStartTimestamp[_optyVault]);
+            } else {
+                _deltaSecondsUser = sub_(optyUserStateInVault[_optyVault][_user].timestamp, optyVaultStartTimestamp[_optyVault]);
+            }
+            
             uint256 _userTokens = IERC20(_optyVault).balanceOf(_user);
             uint256 _currentOptyVaultIndex = currentOptyVaultIndex(_optyVault);
             uint256 _userDelta =

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity ^0.6.10;
 
 import "../../interfaces/ERC20Upgradeable/IERC20Upgradeable.sol";
 import "../../libraries/ERC20Upgradeable/SafeMathUpgradeable.sol";

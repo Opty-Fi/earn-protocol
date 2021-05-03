@@ -73,11 +73,16 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
      * @param _odefiVaults The list of vaults to claim ODEFI in
      */
     function claimableODEFI(address _holder, address[] memory _odefiVaults) public view returns (uint256) {
-        uint256 _totalOdefi = odefiAccrued[_holder];
+        uint256 claimableOdefiAmount;
         for (uint256 i = 0; i < _odefiVaults.length; i++) {
             address _odefiVault = _odefiVaults[i];
             if (odefiVaultEnabled[_odefiVault] == true) {
-                uint256 _deltaSecondsUser = sub_(odefiUserStateInVault[_odefiVault][_holder].timestamp, odefiVaultStartTimestamp[_odefiVault]);
+                uint256 _deltaSecondsUser;
+                if (lastUserUpdate[_odefiVault][_holder] != uint256(0)) {
+                    _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_holder], odefiVaultStartTimestamp[_odefiVault]);
+                } else {
+                    _deltaSecondsUser = sub_(odefiUserStateInVault[_odefiVault][_holder].timestamp, odefiVaultStartTimestamp[_odefiVault]);
+                }
                 uint256 _currentODEFIVaultIndex = currentOdefiVaultIndex(_odefiVault);
                 uint256 _userDelta =
                     mul_(
@@ -87,10 +92,10 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
                             mul_(odefiUserStateInVault[_odefiVault][_holder].index, _deltaSecondsUser)
                         )
                     );
-                _totalOdefi = add_(_totalOdefi, _userDelta);
+                claimableOdefiAmount = add_(claimableOdefiAmount, _userDelta);
             }
         }
-        return div_(_totalOdefi, 1e18);
+        return div_(add_(claimableOdefiAmount, odefiAccrued[_holder]), 1e18);
     }
 
     function currentOdefiVaultIndex(address _odefiVault) public view returns (uint256) {
@@ -117,7 +122,12 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
     function updateUserRewards(address _odefiVault, address _user) public {
         if (IERC20(_odefiVault).balanceOf(_user) > 0 && lastUserUpdate[_odefiVault][_user] != getBlockTimestamp()) {
             uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
-            uint256 _deltaSecondsUser = sub_(odefiUserStateInVault[_odefiVault][_user].timestamp, odefiVaultStartTimestamp[_odefiVault]);
+            uint256 _deltaSecondsUser;
+            if (lastUserUpdate[_odefiVault][_user] != uint256(0)) {
+                _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_user], odefiVaultStartTimestamp[_odefiVault]);
+            } else {
+                _deltaSecondsUser = sub_(odefiUserStateInVault[_odefiVault][_user].timestamp, odefiVaultStartTimestamp[_odefiVault]);
+            }
             uint256 _userTokens = IERC20(_odefiVault).balanceOf(_user);
             uint256 _currentOdefiVaultIndex = currentOdefiVaultIndex(_odefiVault);
             uint256 _userDelta =
