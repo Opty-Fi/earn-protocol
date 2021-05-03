@@ -37,7 +37,7 @@ const CREATE_TOKEN_CONTRACT = gql`
 
 const LOGIN = gql`
     mutation login {
-        login(input: { email: "deepanshu@opty.fi", password: "deepanshu123" }) {
+        login(input: { email: "${process.env.DATA_LOGIN_EMAIL}", password: "${process.env.DATA_LOGIN_PASSWORD}" }) {
             userId
             name
             email
