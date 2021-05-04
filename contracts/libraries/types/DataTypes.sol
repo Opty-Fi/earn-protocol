@@ -63,4 +63,11 @@ library DataTypes {
     }
 
     enum MaxExposure { Number, Pct }
+
+    /// @notice The market's last index
+    /// @notice The block number the index was last updated at
+    struct ODEFIState {
+        uint224 index;
+        uint32 timestamp;
+    }
 }
