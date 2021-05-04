@@ -157,7 +157,6 @@ contract Registry is ModifiersController {
     /**
      * @dev Returns the liquidity pool by `_pool`.
      */
-
     function getLiquidityPool(address _pool) public view returns (DataTypes.LiquidityPool memory _liquidityPool) {
         _liquidityPool = liquidityPools[_pool];
     }
@@ -166,8 +165,7 @@ contract Registry is ModifiersController {
      * @dev Provide [`_pool`,`_rate`] from the {liquidityPools} mapping.
      *
      */
-
-    function rateLiquidityPools(DataTypes.PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
+    function rateLiquidityPools(DataTypes.PoolRate[] memory _poolRates) external onlyOperator returns (bool) {
         for (uint8 _i = 0; _i < _poolRates.length; _i++) {
             DataTypes.PoolRate memory poolRate = _poolRates[_i];
             rateLiquidityPool(poolRate.pool, poolRate.rate);
@@ -185,10 +183,10 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_pool` cannot be the zero address or an EOA.
-     * - msg.sender should be governance.
+     * - msg.sender should be operator.
      * - `_pool` should be approved
      */
-    function rateLiquidityPool(address _pool, uint8 _rate) public onlyGovernance returns (bool) {
+    function rateLiquidityPool(address _pool, uint8 _rate) public onlyOperator returns (bool) {
         require(liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
         liquidityPools[_pool].rating = _rate;
         emit LogRateLiquidityPool(msg.sender, _pool, liquidityPools[_pool].rating);
@@ -271,8 +269,7 @@ contract Registry is ModifiersController {
      * @dev Provide [`_pool`,`_rate`] from the {creditPools} mapping.
      *
      */
-
-    function rateCreditPools(DataTypes.PoolRate[] memory _poolRates) external onlyGovernance returns (bool) {
+    function rateCreditPools(DataTypes.PoolRate[] memory _poolRates) external onlyOperator returns (bool) {
         for (uint8 _i = 0; _i < _poolRates.length; _i++) {
             DataTypes.PoolRate memory poolRate = _poolRates[_i];
             rateCreditPool(poolRate.pool, poolRate.rate);
@@ -290,10 +287,10 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_pool` cannot be the zero address or an EOA.
-     * - msg.sender should be governance.
+     * - msg.sender should be operator.
      * - `_pool` should be approved
      */
-    function rateCreditPool(address _pool, uint8 _rate) public onlyGovernance returns (bool) {
+    function rateCreditPool(address _pool, uint8 _rate) public onlyOperator returns (bool) {
         require(creditPools[_pool].isLiquidityPool, "!liquidityPools");
         creditPools[_pool].rating = _rate;
         emit LogRateCreditPool(msg.sender, _pool, creditPools[_pool].rating);
@@ -347,8 +344,8 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_tokensHash` should be approved.
-     * - msg.sender can be governance or strategist.
-     * - `creditPool` in {_strategySteps} shoould be approved.
+     * - msg.sender should be operator.
+     * - `creditPool` in {_strategySteps} should be approved.
      * - `liquidityPool` in {_strategySteps} should be approved
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
@@ -370,8 +367,8 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_tokensHash` should be approved.
-     * - msg.sender can be governance or strategist.
-     * - `creditPool` in {_strategySteps} shoould be approved.
+     * - msg.sender should be operator.
+     * - `creditPool` in {_strategySteps} should be approved.
      * - `liquidityPool` in {_strategySteps} should be approved
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
      * - `token`, `liquidityPool` and `strategyContract` cannot be zero address or EOA.
@@ -392,7 +389,7 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_tokensHash` should be approved.
-     * - msg.sender can be governance or strategist.
+     * - msg.sender should be operator.
      * - `creditPool` in {_strategySteps} shoould be approved.
      * - `liquidityPool` in {_strategySteps} should be approved
      * - `creditPool` and `borrowToken` in {_strategySteps}can be zero address simultaneously only
@@ -427,6 +424,13 @@ contract Registry is ModifiersController {
      */
     function getTokenToStrategies(bytes32 _tokensHash) public view returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];
+    }
+
+    /**
+     * @dev Returns the list of tokensHash
+     */
+    function getTokenHashes() public view returns (bytes32[] memory) {
+        return tokensHashIndexes;
     }
 
     /**
@@ -470,6 +474,9 @@ contract Registry is ModifiersController {
         return tokensHashToTokens[_tokensHash].tokens;
     }
 
+    /**
+     * @dev Set RegistryProxy to act as Registry
+     */
     function become(RegistryProxy _registryProxy) public {
         require(msg.sender == _registryProxy.governance(), "!governance");
         require(_registryProxy.acceptImplementation() == 0, "!unauthorized");
@@ -571,14 +578,14 @@ contract Registry is ModifiersController {
      *
      * - `_underlyingToken` cannot be the zero address or EOA
      * - `_vault` cannot be the zero address or EOA
-     * - `msg.sender` (caller) should be governance
+     * - `msg.sender` (caller) should be operator
      *
      */
     function setUnderlyingTokenToRPToVaults(
         address _underlyingToken,
         string memory _riskProfile,
         address _vault
-    ) public returns (bool) {
+    ) public onlyOperator returns (bool) {
         return _setUnderlyingTokenToRPToVaults(_underlyingToken, _riskProfile, _vault);
     }
 
@@ -594,14 +601,14 @@ contract Registry is ModifiersController {
      *
      * - `_underlyingToken` cannot be the zero address or EOA
      * - `_vault` cannot be the zero address or EOA
-     * - `msg.sender` (caller) should be governance
+     * - `msg.sender` (caller) should be operator
      *
      */
     function setUnderlyingTokenToRPToVaults(
         address[] memory _underlyingTokens,
         string[] memory _riskProfiles,
         address[][] memory _vaults
-    ) public returns (bool) {
+    ) public onlyOperator returns (bool) {
         require(uint8(_riskProfiles.length) == uint8(_vaults.length), "!Profileslength");
         for (uint8 _i = 0; _i < uint8(_vaults.length); _i++) {
             require(uint8(_vaults[_i].length) == uint8(_underlyingTokens.length), "!VaultsLength");
@@ -676,14 +683,13 @@ contract Registry is ModifiersController {
      *
      * - `_riskProfile` can not be empty
      *          - should not already exists
-     * - `msg.sender` can only be governance
-     *
+     * - `msg.sender` can only be operator
      */
     function addRiskProfile(
         string memory _riskProfile,
         uint8 _noOfSteps,
         DataTypes.PoolRatingsRange memory _poolRatingRange
-    ) public onlyGovernance returns (string memory) {
+    ) public onlyOperator returns (string memory) {
         return _addRiskProfile(_riskProfile, _noOfSteps, _poolRatingRange);
     }
 
@@ -696,14 +702,14 @@ contract Registry is ModifiersController {
      *
      * - `_riskProfile` can not be empty array
      *          - should not already exists
-     * - `msg.sender` can only be governance
+     * - `msg.sender` can only be operator
      *
      */
     function addRiskProfiles(
         string[] memory _riskProfiles,
         uint8[] memory _noOfSteps,
         DataTypes.PoolRatingsRange[] memory _poolRatingRanges
-    ) public onlyGovernance returns (bool) {
+    ) public onlyOperator returns (bool) {
         require(_riskProfiles.length > 0, "!length>0");
         require(_riskProfiles.length == _noOfSteps.length, "!Stepslength");
         require(_riskProfiles.length == _poolRatingRanges.length, "!PoolRatingsLength");
@@ -760,10 +766,9 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_riskProfile` should exists
-     * - `msg.sender` can only be governance
-     *
+     * - `msg.sender` can only be operator
      */
-    function updateRiskProfileSteps(string memory _riskProfile, uint8 _noOfSteps) public onlyGovernance returns (bool) {
+    function updateRiskProfileSteps(string memory _riskProfile, uint8 _noOfSteps) public onlyOperator returns (bool) {
         require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
         riskProfiles[_riskProfile].steps = _noOfSteps;
         return true;
@@ -777,12 +782,11 @@ contract Registry is ModifiersController {
      * Requirements:
      *
      * - `_riskProfile` should exists
-     * - `msg.sender` can only be governance
-     *
+     * - `msg.sender` can only be operator
      */
     function updateRPPoolRatings(string memory _riskProfile, DataTypes.PoolRatingsRange memory _poolRatingRange)
         public
-        onlyGovernance
+        onlyOperator
         returns (bool)
     {
         require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
@@ -799,10 +803,9 @@ contract Registry is ModifiersController {
      *
      * - `_riskProfile` can not be empty
      *          - should not already exists
-     * - `msg.sender` can only be governance
-     *
+     * - `msg.sender` can only be operator
      */
-    function removeRiskProfile(uint256 _index) public onlyGovernance returns (bool) {
+    function removeRiskProfile(uint256 _index) public onlyOperator returns (bool) {
         require(_index <= riskProfilesArray.length, "Invalid_Rp_index");
         string memory _riskProfile = riskProfilesArray[_index];
         require(riskProfiles[_riskProfile].exists, "!Rp_Exists");
@@ -840,10 +843,10 @@ contract Registry is ModifiersController {
 
     /**
      * @dev Transfers treasury to a new account (`_strategist`).
-     * Can only be called by the current governance.
+     * Can only be called by the current operator.
      */
 
-    function setTreasury(address _treasury) public onlyGovernance {
+    function setTreasury(address _treasury) public onlyOperator {
         require(_treasury != address(0), "!address(0)");
         treasury = _treasury;
     }
@@ -927,8 +930,8 @@ contract Registry is ModifiersController {
 
     /**
      * @dev Emitted when RiskProfile is added
-     * 
-     Note that ``riskProfile can not be empty
+     *
+     * Note that `riskProfile` can not be empty
      */
     event RiskProfileAdded(uint256 indexed index, bytes32 indexed riskProfile, bool indexed exists);
 }

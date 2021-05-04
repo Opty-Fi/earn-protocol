@@ -57,5 +57,10 @@ library DataTypes {
         bool exists;
     }
 
+    struct VaultRewardStrategy {
+        uint256 hold; //  should be in basis eg: 50% means 5000
+        uint256 convert; //  should be in basis eg: 50% means 5000
+    }
+
     enum MaxExposure { Number, Pct }
 }

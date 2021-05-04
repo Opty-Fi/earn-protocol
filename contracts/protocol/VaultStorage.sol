@@ -13,7 +13,6 @@ contract VaultStorage {
     mapping(address => uint256) public pendingDeposits;
     mapping(address => uint256) public pendingWithdraws;
     mapping(uint256 => DataTypes.BlockVaultValue[]) public blockToBlockVaultValues;
-
     StrategyManager public strategyManagerContract;
     RiskManager public riskManagerContract;
     OPTYMinter public optyMinterContract;
@@ -22,7 +21,7 @@ contract VaultStorage {
     uint256 public last = 0;
     uint256 public withdrawalFee = 50;
     uint256 public constant WITHDRAWAL_MAX = 10000;
-    bytes32 public strategyHash;
+    bytes32 public investStrategyHash;
     uint256 public vaultValue;
     uint256 public gasOwedToOperator;
     uint256 public depositQueue;

@@ -110,4 +110,26 @@ contract RiskManager is RiskManagerStorage, Modifiers {
 
         return _strategyHash;
     }
+
+    /**
+     * @dev Get the VaultRewardToken strategy for respective VaultRewardToken hash
+     *
+     * Returns the hash of the VaultRewardToken strategy corresponding to the `_vaultRewardTokenHash` provided
+     *
+     * Requirements:
+     *
+     * - `_vaultRewardTokenHash` is the hash of Vault and RewardToken addresses
+     *      - Can not be empty
+     */
+    function getVaultRewardTokenStrategy(bytes32 _vaultRewardTokenHash)
+        public
+        view
+        returns (uint256 _hold, uint256 _convert)
+    {
+        require(
+            _vaultRewardTokenHash != 0x0000000000000000000000000000000000000000000000000000000000000000,
+            "vRtHash!=0x0"
+        );
+        (_hold, _convert) = strategyProvider.vaultRewardTokenHashToVaultRewardTokenStrategy(_vaultRewardTokenHash);
+    }
 }

@@ -19,6 +19,7 @@ import { DataTypes } from "./libraries/types/DataTypes.sol";
 contract StrategyManager is Modifiers {
     using SafeERC20 for IERC20;
     using Address for address;
+    using SafeMath for uint256;
 
     HarvestCodeProvider public harvestCodeProviderContract;
 
@@ -84,11 +85,35 @@ contract StrategyManager is Modifiers {
     function getPoolHarvestAllRewardCodes(
         address payable _optyVault,
         address _underlyingToken,
-        bytes32 _hash,
+        bytes32 _investStrategyHash,
         uint8 _stepIndex,
         uint8 _stepCount
     ) public view returns (bytes[] memory _codes) {
-        _codes = _getPoolHarvestAllRewardCodes(_optyVault, _underlyingToken, _hash, _stepIndex, _stepCount);
+        _codes = _getPoolHarvestAllRewardCodes(
+            _optyVault,
+            _underlyingToken,
+            _investStrategyHash,
+            _stepIndex,
+            _stepCount
+        );
+    }
+
+    function getPoolHarvestSomeRewardCodes(
+        address payable _optyVault,
+        address _underlyingToken,
+        bytes32 _investStrategyHash,
+        uint256 _convertRewardTokensPercent,
+        uint8 _stepIndex,
+        uint8 _stepCount
+    ) public view returns (bytes[] memory _codes) {
+        _codes = _getPoolHarvestSomeRewardCodes(
+            _optyVault,
+            _underlyingToken,
+            _investStrategyHash,
+            _convertRewardTokensPercent,
+            _stepIndex,
+            _stepCount
+        );
     }
 
     function setHarvestCodeProvider(address _harvestCodeProvider) public onlyOperator {
@@ -232,14 +257,49 @@ contract StrategyManager is Modifiers {
     function _getPoolHarvestAllRewardCodes(
         address payable _optyVault,
         address _underlyingToken,
-        bytes32 _hash,
+        bytes32 _investStrategyHash,
         uint8,
         uint8
     ) internal view returns (bytes[] memory _codes) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
-        address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
-        address _optyAdapter = registryContract.liquidityPoolToAdapter(_liquidityPool);
+        (address _liquidityPool, address _optyAdapter, ) = getLpAdapterRewardToken(_investStrategyHash);
         _codes = IAdapter(_optyAdapter).getHarvestAllCodes(_optyVault, _underlyingToken, _liquidityPool);
+    }
+
+    function _getPoolHarvestSomeRewardCodes(
+        address payable _optyVault,
+        address _underlyingToken,
+        bytes32 _investStrategyHash,
+        uint256 _convertRewardTokensPercent,
+        uint8,
+        uint8
+    ) internal view returns (bytes[] memory _codes) {
+        (address _liquidityPool, address _optyAdapter, address _rewardToken) =
+            getLpAdapterRewardToken(_investStrategyHash);
+        //  get reward token balance for optyVault
+        uint256 _rewardTokenBalance = IERC20(_rewardToken).balanceOf(_optyVault);
+        //  calculation in basis
+        uint256 _redeemRewardTokens = _rewardTokenBalance.mul(_convertRewardTokensPercent).div(10000);
+        _codes = IAdapter(_optyAdapter).getHarvestSomeCodes(
+            _optyVault,
+            _underlyingToken,
+            _liquidityPool,
+            _redeemRewardTokens
+        );
+    }
+
+    function getLpAdapterRewardToken(bytes32 _investStrategyHash)
+        public
+        view
+        returns (
+            address _liquidityPool,
+            address _optyAdapter,
+            address _rewardToken
+        )
+    {
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyHash);
+        _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
+        _optyAdapter = registryContract.liquidityPoolToAdapter(_liquidityPool);
+        _rewardToken = IAdapter(_optyAdapter).getRewardToken(_liquidityPool);
     }
 
     function _getPoolClaimAllRewardCodes(
