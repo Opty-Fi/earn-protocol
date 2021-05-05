@@ -66,7 +66,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 updateUserRewards(address(_optyVault), _holders[j]);
                 uint256 _amount = div_(optyAccrued[_holders[j]], 1e18);
                 optyAccrued[_holders[j]] = uint256(0);
-                mintOpty(_holders[j], _amount);
+                _mintOpty(_holders[j], _amount);
                 _total = add_(_total, _amount);
             }
         }
@@ -235,7 +235,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _amount The amount of OPTY to (possibly) transfer
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function mintOpty(address _user, uint256 _amount) public returns (uint256) {
+    function _mintOpty(address _user, uint256 _amount) internal returns (uint256) {
         OPTY _opty = OPTY(getOptyAddress());
         require(_amount > 0 && _user != address(0), "Insufficient amount or invalid address");
         _opty.mint(_user, _amount);
