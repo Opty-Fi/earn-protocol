@@ -82,8 +82,10 @@
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol",
     "gas-report": "env REPORT_GAS=true yarn test",
     "hardhat:local": "hardhat --network localhost",
+    "hardhat:fork": "hardhat --network forkMain",
     "deploy": "hardhat deploy-infra",
-    "deploy:local": "npm run hardhat:local deploy-infra"
+    "deploy:local": "npm run hardhat:local deploy-infra",
+    "deploy:fork": "npm run hardhat:fork deploy-infra"
   },
   "publishConfig": {
     "access": "public"
