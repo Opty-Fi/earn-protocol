@@ -242,7 +242,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         }
     }
 
-    function mintOpty(address _user, uint256 _amount) public onlyStakingPool returns (uint256) {
+    function mintOpty(address _user, uint256 _amount) external onlyStakingPool returns (uint256) {
         _mintOpty(_user, _amount);
     }
 
