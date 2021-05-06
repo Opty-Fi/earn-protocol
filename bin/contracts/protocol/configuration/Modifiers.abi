@@ -1,0 +1,1 @@
+[{"inputs":[],"name":"registryContract","outputs":[{"internalType":"contract Registry","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_registry","type":"address"}],"name":"setRegistry","outputs":[],"stateMutability":"nonpayable","type":"function"}]

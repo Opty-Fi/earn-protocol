@@ -1,0 +1,1038 @@
+{
+    "contractName": "OPTYMinterStorage",
+    "abi": [
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "allOptyVaults",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "lastUserUpdate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyAccrued",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "optyAddress",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "optyTotalRate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyUserStateInVault",
+            "outputs": [
+                {
+                    "internalType": "uint224",
+                    "name": "index",
+                    "type": "uint224"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "timestamp",
+                    "type": "uint32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyVaultEnabled",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyVaultRatePerSecond",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyVaultRatePerSecondAndVaultToken",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyVaultStartTimestamp",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "optyVaultState",
+            "outputs": [
+                {
+                    "internalType": "uint224",
+                    "name": "index",
+                    "type": "uint224"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "timestamp",
+                    "type": "uint32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "stakingPools",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ],
+    "metadata": "{\"compiler\":{\"version\":\"0.6.10+commit.00c0fcaf\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"allOptyVaults\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"lastUserUpdate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyAccrued\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"optyAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"optyTotalRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyUserStateInVault\",\"outputs\":[{\"internalType\":\"uint224\",\"name\":\"index\",\"type\":\"uint224\"},{\"internalType\":\"uint32\",\"name\":\"timestamp\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyVaultEnabled\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyVaultRatePerSecond\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyVaultRatePerSecondAndVaultToken\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyVaultStartTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"optyVaultState\",\"outputs\":[{\"internalType\":\"uint224\",\"name\":\"index\",\"type\":\"uint224\"},{\"internalType\":\"uint32\",\"name\":\"timestamp\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"stakingPools\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Contract to store the OPTYMinter's state variables\",\"methods\":{}},\"userdoc\":{\"methods\":{\"optyAccrued(address)\":{\"notice\":\"The OPTY accrued but not yet transferred to each user\"},\"optyTotalRate()\":{\"notice\":\"The rate at which the flywheel distributes OPTY, per block\"},\"optyUserStateInVault(address,address)\":{\"notice\":\"The OPTY index for each market for each user as of the last time they accrued OPTY\"},\"optyVaultRatePerSecond(address)\":{\"notice\":\"The portion of optyRate that each market currently receives\"},\"optyVaultRatePerSecondAndVaultToken(address)\":{\"notice\":\"The portion of optyRate that each market currently receives divided by the amount of LP tokens\"},\"optyVaultState(address)\":{\"notice\":\"The OPTY market supply state for each optyPool\"}}}},\"settings\":{\"compilationTarget\":{\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYMinterStorage.sol\":\"OPTYMinterStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/dependencies/compound/ExponentialNoError.sol\":{\"keccak256\":\"0x98b5d3a61e2cc0418f86cf28c9305ede16e4be5bf87cc150f51e73486585d23b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://fcf887b3ce76f7280252e482581cc4ba2e4672841730bd0fab673fe6e1011f14\",\"dweb:/ipfs/QmX2Qbkaf9o2CWzgfCAWEoZhipJpZ6xZyiPvoU1pbDgyDp\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/interfaces/opty/IOPTYStakingRateBalancer.sol\":{\"keccak256\":\"0x04bae4d69dcc22ff92e3bac174a8e5bf52147c2d23aac29230cadade94b6b46f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e39d87973bbc9faaa7768c947863e5a4887271474c6690db3ceceb331449deb4\",\"dweb:/ipfs/Qmbmt68B4FuW81Umxge6oQuqxmHKQwaZebXTNoThitQj8U\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/interfaces/opty/IVault.sol\":{\"keccak256\":\"0x4de16e2d119be23fc44da5ea282c7e8d4adc0f668f2045ce720c51b1b97496ce\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e5689b6c29f0146cf0d91bf675282cc0cb7f325bda47d9767db6da39341e276d\",\"dweb:/ipfs/QmeGzniiuw7AZGntkK6xX4DeM66s8wtgbh2RNx4pwoxDPB\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/libraries/types/DataTypes.sol\":{\"keccak256\":\"0x7f68415d21f761845517dfa912ff5827ac37bee07445449150e7007b377d6f8d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a8be0124b7ebbe80b32a171947472d32fe28bf84de9e90d6560d6054a62ea18e\",\"dweb:/ipfs/QmbGRsKJeUa2SVAfaNFTVYWNKWiyLmZiDSAQfxKHAnvm5g\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/Modifiers.sol\":{\"keccak256\":\"0xcec9c91d54c140776221a70bf6a57e805001ea1d100727f723fd137092bb6eab\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://081ca9c5fc677e5544709764ac1d44b428eba8ea61cad356d03e867eab1ee2d5\",\"dweb:/ipfs/QmYwoH2sLfUJyzR8wzK3gRMNMxHuhgiM3YUtSEzCtMEDFk\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/ModifiersController.sol\":{\"keccak256\":\"0x351c379c5819ce705cd842be03ffa65aeb3dc02386fa8a533e8327d725f0c1c8\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3ff907c7934c42eea3f467e8710e3cf0527a782798887942123b25731ffad54e\",\"dweb:/ipfs/QmTUeEy6iGw9hnXYDPPkdTqyfXuHKKAFvhY6YY9bXdRyKg\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/Registry.sol\":{\"keccak256\":\"0x2989f172e7148b8754cdeefd7be15e5916366f2a218b5cac44f91634dcfbffa2\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://f352a19e9422f5ad045bdde47bbddfe9b12bf55c21a06283827a1bc2ed175fc9\",\"dweb:/ipfs/QmQQxm6Srb8wmJj1WNt8Vpep16wVKqsAvJNcrUtrTNJ4Rg\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/RegistryProxy.sol\":{\"keccak256\":\"0x86e6dd938060b1a1603eddd80f4f863f098e5142b72f656225d06416692706d2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://cc79390d630e4c21003f978481a3246ab64a6f2d15e931e4dce0f3b025e8c5a8\",\"dweb:/ipfs/QmfUmEtQKdJnpZRLTac7DXTryMSdisSBr2sv5ZYebvLfRS\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/RegistryStorage.sol\":{\"keccak256\":\"0x17e0970d5af95fd60389fd91094c059b3fd9415752cb407ae8c0875d78bd9bc7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://441ac36a19f94d35e5b70bc32acc8bc270862e81a5b85c117351f796075763e9\",\"dweb:/ipfs/QmQgvjoejnEoExsmXTbM32gZHmyK22KZG8Ub5XdCrgL9Gn\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/RiskManager.sol\":{\"keccak256\":\"0xe7c4bb64c3ec09822526f587ff53352b537ca0827545eddf25fe196f89d6cfc4\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8c8e2513850527f43dcad0c8965b4952465ca09f4b9dc2cd71be9d0af503fa61\",\"dweb:/ipfs/QmVJeJfdMwNxLY53Afj98oUSkDzFsEAm7adsUd8ap6iUmX\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/RiskManagerProxy.sol\":{\"keccak256\":\"0xadbe99ebf4111853b8dd81a9e21cd0b1ce7e76828d2be8b310cbd5d209436e16\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9eaa9800f274c5ef2dfdee324e89ad9ff6311e6e0be617c7d44f517c25a357cb\",\"dweb:/ipfs/Qmag9GbCm3RspTGGyRqUFvJbz6qxkmZTmNfDTuDTq7jvUz\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/RiskManagerStorage.sol\":{\"keccak256\":\"0x3e55b09da811e91b01d1422641615aa7cd32563d1de14e400144a48c1c10617b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7a0a769bfa21e1d3acc70b46705465a3c98132ea26e649cbdaa29dec2619d3d1\",\"dweb:/ipfs/QmSqf4zMN8n2Uz6fmJDW1ZftzrPcE65gurKAdA24cc2rzW\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/configuration/StrategyProvider.sol\":{\"keccak256\":\"0xa97009fcdc34095853f151fe3b1f6dff24b2118669becacb33a79f7c9415b02a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://86ce70de3b5d8ad88418ad16983caa93f5727fd0386301bad4f8b7261dc4512a\",\"dweb:/ipfs/QmYv4SupyKtVKvEeVUyf2LU1upqyManoJHPJxcJhRhHf5z\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTY.sol\":{\"keccak256\":\"0x1bc0296671e9f0d6f784aada5ffd88087231dfcb63e2d66e8eddc60356b1edcf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6ce6a94bc9718fb7fac45984d9adfda490adba7392aae352995879187b4957e1\",\"dweb:/ipfs/QmP1wFnwzRDfG4dd8JoUcHLxNkEf7GvwUjBMFQTkr7CM6M\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYMinter.sol\":{\"keccak256\":\"0xab866e33efa469bfa6e5e91f16a5a3475ed38de948412bc64531bb9a76d1e349\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://0d9776198d9e12736aa2ce8637a4940750f756bbb0d8d96bba13efb8258ba319\",\"dweb:/ipfs/QmeW2oSNKbBuhbgoVS6zxa4aHSvuRx9dXPZPgBRK1b8Atq\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYMinterStorage.sol\":{\"keccak256\":\"0xa404a47a219606a9aae3f923afd88f7b3b3f65a9302eafe1428e4cb7681e2942\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://0dc2f977b22e5ad16e8bd5586786977405c41def63c60c6f4e97211c87ae7e99\",\"dweb:/ipfs/QmScXdXhW3duj2rCfFcqmxKPndbrCDWLmw6BYnU1UXEcum\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYStakingPool.sol\":{\"keccak256\":\"0x3b970ed8e09bcc6dd61e05b4014cb7c84cd0496368f18e035fd1e4702ab20625\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8d18b1a5fc2101734cce96732ae9872369c56bde241947a8d37566628d2e1323\",\"dweb:/ipfs/QmZ6GH1676shmxcczLL3WFXWkzaFXdKYxPoddn7h7boY9Q\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/StakingPoolStorage.sol\":{\"keccak256\":\"0xfeea324841c1213532f11a709c5ceacf2750e67daba0dfee278bc451931d551c\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://108fd82543061418e509aeccc07919b302aba1e6e175b052f87265a8166dba3a\",\"dweb:/ipfs/QmYFAcXsrLzsk9EaRFSMYM3AdPdapSbrmtKpb9qia47sS8\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/math/SafeMath.sol\":{\"keccak256\":\"0xcc78a17dd88fa5a2edc60c8489e2f405c0913b377216a5b26b35656b2d0dab52\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://526dc85e1f9b9b45830e202568d267d93dde7a4fcccf4ad7798dadcd92304d3c\",\"dweb:/ipfs/QmaoXMB972J3cSDLtBq3xBo4jLwqD2uzXTwujtSPqkYVhR\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol\":{\"keccak256\":\"0xca0c2396dbeb3503b51abf4248ebf77a1461edad513c01529df51850a012bee3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://991b44ff44e0496e8554a90f4c0512c28faed45104d40430019f3c67ea67740e\",\"dweb:/ipfs/Qmc3nRapVbcctELoZS5qe17zLkFB3bETBfwzCTMF1CSuGE\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x5f02220344881ce43204ae4a6281145a67bc52c2bb1290a791857df3d19d78f5\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://24427744bd3e6cb73c17010119af12a318289c0253a4d9acb8576c9fb3797b08\",\"dweb:/ipfs/QmTLDqpKRBuxGxRAmjgXt9AkXyACW3MtKzi7PYjm5iMfGC\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/token/ERC20/SafeERC20.sol\":{\"keccak256\":\"0xf12dfbe97e6276980b83d2830bb0eb75e0cf4f3e626c2471137f82158ae6a0fc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://b3a849c2d95e85463909e5b5c920b13e7a11216ca14127085e16d22b9379d52a\",\"dweb:/ipfs/QmUg3CZDbCCcQdroEpexBy5ZFd5vD1UWijWQq9qHZjtJNQ\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/utils/Address.sol\":{\"keccak256\":\"0x28911e614500ae7c607a432a709d35da25f3bc5ddc8bd12b278b66358070c0ea\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://256c8c8af5eb072bc473226ab2b2187149b8fc04f5f4a4820db22527f5ce8e3c\",\"dweb:/ipfs/QmRvi5BhnL7Rxf85KrJhwM6RRhukm4tzoctRdgQEheNyiN\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/utils/Context.sol\":{\"keccak256\":\"0x8d3cb350f04ff49cfb10aef08d87f19dcbaecc8027b0bed12f3275cd12f38cf0\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://ded47ec7c96750f9bd04bbbc84f659992d4ba901cb7b532a52cd468272cf378f\",\"dweb:/ipfs/QmfBrGtQP7rZEqEg6Wz6jh2N2Kukpj1z5v3CGWmAqrzm96\"]},\"d:/Blockchain/Capital Methods, Inc/earn-protocol/node_modules/@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"keccak256\":\"0x8bbbc2f5c10065ee272592ae0a7a6ceb23de2fbd81564ee0bb015ecf404d5f61\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://b95e56c1640d0ef789fc5c16269e141e992f6c8ac97cc6d377bd3825e9cab182\",\"dweb:/ipfs/QmVzaxJZY51EhagrcNnkxoU6Uq17RhATe7aHvtkC6wUkgK\"]}},\"version\":1}",
+    "bytecode": "608060405234801561001057600080fd5b50610416806100206000396000f3fe608060405234801561001057600080fd5b50600436106100b45760003560e01c8063a002032811610071578063a0020328146101e8578063ad0ac0851461020e578063ad935e971461023c578063ce546ead14610262578063cea80e4c1461026a578063e1131ca614610290576100b4565b806318d884f1146100b957806353c787b51461010f5780636d95f3a1146101485780637c199fe6146101805780637fb111fb146101885780638127a24d146101ae575b600080fd5b6100e7600480360360408110156100cf57600080fd5b506001600160a01b03813581169160200135166102b6565b604080516001600160e01b03909316835263ffffffff90911660208301528051918290030190f35b61012c6004803603602081101561012557600080fd5b50356102eb565b604080516001600160a01b039092168252519081900360200190f35b61016e6004803603602081101561015e57600080fd5b50356001600160a01b0316610312565b60408051918252519081900360200190f35b61016e610324565b61016e6004803603602081101561019e57600080fd5b50356001600160a01b031661032a565b6101d4600480360360208110156101c457600080fd5b50356001600160a01b031661033c565b604080519115158252519081900360200190f35b61016e600480360360208110156101fe57600080fd5b50356001600160a01b0316610351565b61016e6004803603604081101561022457600080fd5b506001600160a01b0381358116916020013516610363565b6101d46004803603602081101561025257600080fd5b50356001600160a01b0316610380565b61012c610395565b6100e76004803603602081101561028057600080fd5b50356001600160a01b03166103a4565b61016e600480360360208110156102a657600080fd5b50356001600160a01b03166103ce565b600a6020908152600092835260408084209091529082529020546001600160e01b03811690600160e01b900463ffffffff1682565b600381815481106102f857fe5b6000918252602090912001546001600160a01b0316905081565b60026020526000908152604090205481565b60055481565b60066020526000908152604090205481565b60046020526000908152604090205460ff1681565b60076020526000908152604090205481565b600b60209081526000928352604080842090915290825290205481565b60006020819052908152604090205460ff1681565b6001546001600160a01b031681565b6009602052600090815260409020546001600160e01b03811690600160e01b900463ffffffff1682565b6008602052600090815260409020548156fea26469706673582212202056b135b880ba6ff190fa14ca9e6dc03c54aaed95ca2fa2b74bbe73a184e11964736f6c634300060a0033",
+    "deployedBytecode": "608060405234801561001057600080fd5b50600436106100b45760003560e01c8063a002032811610071578063a0020328146101e8578063ad0ac0851461020e578063ad935e971461023c578063ce546ead14610262578063cea80e4c1461026a578063e1131ca614610290576100b4565b806318d884f1146100b957806353c787b51461010f5780636d95f3a1146101485780637c199fe6146101805780637fb111fb146101885780638127a24d146101ae575b600080fd5b6100e7600480360360408110156100cf57600080fd5b506001600160a01b03813581169160200135166102b6565b604080516001600160e01b03909316835263ffffffff90911660208301528051918290030190f35b61012c6004803603602081101561012557600080fd5b50356102eb565b604080516001600160a01b039092168252519081900360200190f35b61016e6004803603602081101561015e57600080fd5b50356001600160a01b0316610312565b60408051918252519081900360200190f35b61016e610324565b61016e6004803603602081101561019e57600080fd5b50356001600160a01b031661032a565b6101d4600480360360208110156101c457600080fd5b50356001600160a01b031661033c565b604080519115158252519081900360200190f35b61016e600480360360208110156101fe57600080fd5b50356001600160a01b0316610351565b61016e6004803603604081101561022457600080fd5b506001600160a01b0381358116916020013516610363565b6101d46004803603602081101561025257600080fd5b50356001600160a01b0316610380565b61012c610395565b6100e76004803603602081101561028057600080fd5b50356001600160a01b03166103a4565b61016e600480360360208110156102a657600080fd5b50356001600160a01b03166103ce565b600a6020908152600092835260408084209091529082529020546001600160e01b03811690600160e01b900463ffffffff1682565b600381815481106102f857fe5b6000918252602090912001546001600160a01b0316905081565b60026020526000908152604090205481565b60055481565b60066020526000908152604090205481565b60046020526000908152604090205460ff1681565b60076020526000908152604090205481565b600b60209081526000928352604080842090915290825290205481565b60006020819052908152604090205460ff1681565b6001546001600160a01b031681565b6009602052600090815260409020546001600160e01b03811690600160e01b900463ffffffff1682565b6008602052600090815260409020548156fea26469706673582212202056b135b880ba6ff190fa14ca9e6dc03c54aaed95ca2fa2b74bbe73a184e11964736f6c634300060a0033",
+    "sourceMap": "195:1428:15:-:0;;;;;;;;;;;;;;;;;;;",
+    "deployedSourceMap": "195:1428:15:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1464:77;;;;;;;;;;;;;;;;-1:-1:-1;;;;;;1464:77:15;;;;;;;;;;:::i;:::-;;;;-1:-1:-1;;;;;1464:77:15;;;;;;;;;;;;;;;;;;;;;;571:30;;;;;;;;;;;;;;;;-1:-1:-1;571:30:15;;:::i;:::-;;;;-1:-1:-1;;;;;571:30:15;;;;;;;;;;;;;;504:58;;;;;;;;;;;;;;;;-1:-1:-1;504:58:15;-1:-1:-1;;;;;504:58:15;;:::i;:::-;;;;;;;;;;;;;;;;743:28;;;:::i;857:57::-;;;;;;;;;;;;;;;;-1:-1:-1;857:57:15;-1:-1:-1;;;;;857:57:15;;:::i;610:48::-;;;;;;;;;;;;;;;;-1:-1:-1;610:48:15;-1:-1:-1;;;;;610:48:15;;:::i;:::-;;;;;;;;;;;;;;;;;;1035:70;;;;;;;;;;;;;;;;-1:-1:-1;1035:70:15;-1:-1:-1;;;;;1035:70:15;;:::i;1550:69::-;;;;;;;;;;;;;;;;-1:-1:-1;;;;;;1550:69:15;;;;;;;;;;:::i;229:44::-;;;;;;;;;;;;;;;;-1:-1:-1;229:44:15;-1:-1:-1;;;;;229:44:15;;:::i;469:26::-;;;:::i;1304:51::-;;;;;;;;;;;;;;;;-1:-1:-1;1304:51:15;-1:-1:-1;;;;;1304:51:15;;:::i;1185:46::-;;;;;;;;;;;;;;;;-1:-1:-1;1185:46:15;-1:-1:-1;;;;;1185:46:15;;:::i;1464:77::-;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;1464:77:15;;;-1:-1:-1;;;1464:77:15;;;;;:::o;571:30::-;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;571:30:15;;-1:-1:-1;571:30:15;:::o;504:58::-;;;;;;;;;;;;;:::o;743:28::-;;;;:::o;857:57::-;;;;;;;;;;;;;:::o;610:48::-;;;;;;;;;;;;;;;:::o;1035:70::-;;;;;;;;;;;;;:::o;1550:69::-;;;;;;;;;;;;;;;;;;;;;;;;:::o;229:44::-;;;;;;;;;;;;;;;;:::o;469:26::-;;;-1:-1:-1;;;;;469:26:15;;:::o;1304:51::-;;;;;;;;;;;;-1:-1:-1;;;;;1304:51:15;;;-1:-1:-1;;;1304:51:15;;;;;:::o;1185:46::-;;;;;;;;;;;;;:::o",
+    "sourcePath": "d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYMinterStorage.sol",
+    "compiler": {
+        "name": "solc",
+        "version": "0.6.10+commit.00c0fcaf"
+    },
+    "ast": {
+        "absolutePath": "d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYMinterStorage.sol",
+        "exportedSymbols": {
+            "OPTYMinterStorage": [
+                5687
+            ]
+        },
+        "id": 5688,
+        "license": "MIT",
+        "nodeType": "SourceUnit",
+        "nodes": [
+            {
+                "id": 5625,
+                "literals": [
+                    "solidity",
+                    "^",
+                    "0.6",
+                    ".10"
+                ],
+                "nodeType": "PragmaDirective",
+                "src": "35:24:15"
+            },
+            {
+                "absolutePath": "d:/Blockchain/Capital Methods, Inc/earn-protocol/contracts/protocol/tokenization/OPTYStakingPool.sol",
+                "file": "./OPTYStakingPool.sol",
+                "id": 5627,
+                "nodeType": "ImportDirective",
+                "scope": 5688,
+                "sourceUnit": 6321,
+                "src": "63:56:15",
+                "symbolAliases": [
+                    {
+                        "foreign": {
+                            "argumentTypes": null,
+                            "id": 5626,
+                            "name": "OPTYStakingPool",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": null,
+                            "src": "72:15:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": null,
+                                "typeString": null
+                            }
+                        },
+                        "local": null
+                    }
+                ],
+                "unitAlias": ""
+            },
+            {
+                "abstract": false,
+                "baseContracts": [],
+                "contractDependencies": [],
+                "contractKind": "contract",
+                "documentation": {
+                    "id": 5628,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "123:68:15",
+                    "text": " @dev Contract to store the OPTYMinter's state variables"
+                },
+                "fullyImplemented": true,
+                "id": 5687,
+                "linearizedBaseContracts": [
+                    5687
+                ],
+                "name": "OPTYMinterStorage",
+                "nodeType": "ContractDefinition",
+                "nodes": [
+                    {
+                        "constant": false,
+                        "functionSelector": "ad935e97",
+                        "id": 5632,
+                        "mutability": "mutable",
+                        "name": "stakingPools",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "229:44:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                            "typeString": "mapping(address => bool)"
+                        },
+                        "typeName": {
+                            "id": 5631,
+                            "keyType": {
+                                "id": 5629,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "237:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "229:24:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                                "typeString": "mapping(address => bool)"
+                            },
+                            "valueType": {
+                                "id": 5630,
+                                "name": "bool",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "248:4:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_bool",
+                                    "typeString": "bool"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "canonicalName": "OPTYMinterStorage.OptyState",
+                        "id": 5637,
+                        "members": [
+                            {
+                                "constant": false,
+                                "id": 5634,
+                                "mutability": "mutable",
+                                "name": "index",
+                                "nodeType": "VariableDeclaration",
+                                "overrides": null,
+                                "scope": 5637,
+                                "src": "413:13:15",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint224",
+                                    "typeString": "uint224"
+                                },
+                                "typeName": {
+                                    "id": 5633,
+                                    "name": "uint224",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "413:7:15",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint224",
+                                        "typeString": "uint224"
+                                    }
+                                },
+                                "value": null,
+                                "visibility": "internal"
+                            },
+                            {
+                                "constant": false,
+                                "id": 5636,
+                                "mutability": "mutable",
+                                "name": "timestamp",
+                                "nodeType": "VariableDeclaration",
+                                "overrides": null,
+                                "scope": 5637,
+                                "src": "437:16:15",
+                                "stateVariable": false,
+                                "storageLocation": "default",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint32",
+                                    "typeString": "uint32"
+                                },
+                                "typeName": {
+                                    "id": 5635,
+                                    "name": "uint32",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "437:6:15",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint32",
+                                        "typeString": "uint32"
+                                    }
+                                },
+                                "value": null,
+                                "visibility": "internal"
+                            }
+                        ],
+                        "name": "OptyState",
+                        "nodeType": "StructDefinition",
+                        "scope": 5687,
+                        "src": "385:76:15",
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "ce546ead",
+                        "id": 5639,
+                        "mutability": "mutable",
+                        "name": "optyAddress",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "469:26:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                        },
+                        "typeName": {
+                            "id": 5638,
+                            "name": "address",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "469:7:15",
+                            "stateMutability": "nonpayable",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_address",
+                                "typeString": "address"
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "6d95f3a1",
+                        "id": 5643,
+                        "mutability": "mutable",
+                        "name": "optyVaultStartTimestamp",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "504:58:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                            "typeString": "mapping(address => uint256)"
+                        },
+                        "typeName": {
+                            "id": 5642,
+                            "keyType": {
+                                "id": 5640,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "512:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "504:27:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                                "typeString": "mapping(address => uint256)"
+                            },
+                            "valueType": {
+                                "id": 5641,
+                                "name": "uint256",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "523:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "53c787b5",
+                        "id": 5646,
+                        "mutability": "mutable",
+                        "name": "allOptyVaults",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "571:30:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_storage",
+                            "typeString": "address[]"
+                        },
+                        "typeName": {
+                            "baseType": {
+                                "id": 5644,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "571:7:15",
+                                "stateMutability": "nonpayable",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "id": 5645,
+                            "length": null,
+                            "nodeType": "ArrayTypeName",
+                            "src": "571:9:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                                "typeString": "address[]"
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "8127a24d",
+                        "id": 5650,
+                        "mutability": "mutable",
+                        "name": "optyVaultEnabled",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "610:48:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                            "typeString": "mapping(address => bool)"
+                        },
+                        "typeName": {
+                            "id": 5649,
+                            "keyType": {
+                                "id": 5647,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "618:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "610:24:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                                "typeString": "mapping(address => bool)"
+                            },
+                            "valueType": {
+                                "id": 5648,
+                                "name": "bool",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "629:4:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_bool",
+                                    "typeString": "bool"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "documentation": {
+                            "id": 5651,
+                            "nodeType": "StructuredDocumentation",
+                            "src": "667:70:15",
+                            "text": "@notice The rate at which the flywheel distributes OPTY, per block"
+                        },
+                        "functionSelector": "7c199fe6",
+                        "id": 5653,
+                        "mutability": "mutable",
+                        "name": "optyTotalRate",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "743:28:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                        },
+                        "typeName": {
+                            "id": 5652,
+                            "name": "uint256",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "743:7:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "documentation": {
+                            "id": 5654,
+                            "nodeType": "StructuredDocumentation",
+                            "src": "780:71:15",
+                            "text": "@notice The portion of optyRate that each market currently receives"
+                        },
+                        "functionSelector": "7fb111fb",
+                        "id": 5658,
+                        "mutability": "mutable",
+                        "name": "optyVaultRatePerSecond",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "857:57:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                            "typeString": "mapping(address => uint256)"
+                        },
+                        "typeName": {
+                            "id": 5657,
+                            "keyType": {
+                                "id": 5655,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "865:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "857:27:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                                "typeString": "mapping(address => uint256)"
+                            },
+                            "valueType": {
+                                "id": 5656,
+                                "name": "uint256",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "876:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "documentation": {
+                            "id": 5659,
+                            "nodeType": "StructuredDocumentation",
+                            "src": "923:106:15",
+                            "text": "@notice The portion of optyRate that each market currently receives divided by the amount of LP tokens"
+                        },
+                        "functionSelector": "a0020328",
+                        "id": 5663,
+                        "mutability": "mutable",
+                        "name": "optyVaultRatePerSecondAndVaultToken",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "1035:70:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                            "typeString": "mapping(address => uint256)"
+                        },
+                        "typeName": {
+                            "id": 5662,
+                            "keyType": {
+                                "id": 5660,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1043:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "1035:27:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                                "typeString": "mapping(address => uint256)"
+                            },
+                            "valueType": {
+                                "id": 5661,
+                                "name": "uint256",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1054:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "documentation": {
+                            "id": 5664,
+                            "nodeType": "StructuredDocumentation",
+                            "src": "1114:65:15",
+                            "text": "@notice The OPTY accrued but not yet transferred to each user"
+                        },
+                        "functionSelector": "e1131ca6",
+                        "id": 5668,
+                        "mutability": "mutable",
+                        "name": "optyAccrued",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "1185:46:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                            "typeString": "mapping(address => uint256)"
+                        },
+                        "typeName": {
+                            "id": 5667,
+                            "keyType": {
+                                "id": 5665,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1193:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "1185:27:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                                "typeString": "mapping(address => uint256)"
+                            },
+                            "valueType": {
+                                "id": 5666,
+                                "name": "uint256",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1204:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "documentation": {
+                            "id": 5669,
+                            "nodeType": "StructuredDocumentation",
+                            "src": "1240:58:15",
+                            "text": "@notice The OPTY market supply state for each optyPool"
+                        },
+                        "functionSelector": "cea80e4c",
+                        "id": 5673,
+                        "mutability": "mutable",
+                        "name": "optyVaultState",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "1304:51:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_OptyState_$5637_storage_$",
+                            "typeString": "mapping(address => struct OPTYMinterStorage.OptyState)"
+                        },
+                        "typeName": {
+                            "id": 5672,
+                            "keyType": {
+                                "id": 5670,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1312:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "1304:29:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_OptyState_$5637_storage_$",
+                                "typeString": "mapping(address => struct OPTYMinterStorage.OptyState)"
+                            },
+                            "valueType": {
+                                "contractScope": null,
+                                "id": 5671,
+                                "name": "OptyState",
+                                "nodeType": "UserDefinedTypeName",
+                                "referencedDeclaration": 5637,
+                                "src": "1323:9:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_struct$_OptyState_$5637_storage_ptr",
+                                    "typeString": "struct OPTYMinterStorage.OptyState"
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "documentation": {
+                            "id": 5674,
+                            "nodeType": "StructuredDocumentation",
+                            "src": "1364:94:15",
+                            "text": "@notice The OPTY index for each market for each user as of the last time they accrued OPTY"
+                        },
+                        "functionSelector": "18d884f1",
+                        "id": 5680,
+                        "mutability": "mutable",
+                        "name": "optyUserStateInVault",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "1464:77:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_address_$_t_struct$_OptyState_$5637_storage_$_$",
+                            "typeString": "mapping(address => mapping(address => struct OPTYMinterStorage.OptyState))"
+                        },
+                        "typeName": {
+                            "id": 5679,
+                            "keyType": {
+                                "id": 5675,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1472:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "1464:49:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_address_$_t_struct$_OptyState_$5637_storage_$_$",
+                                "typeString": "mapping(address => mapping(address => struct OPTYMinterStorage.OptyState))"
+                            },
+                            "valueType": {
+                                "id": 5678,
+                                "keyType": {
+                                    "id": 5676,
+                                    "name": "address",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "1491:7:15",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_address",
+                                        "typeString": "address"
+                                    }
+                                },
+                                "nodeType": "Mapping",
+                                "src": "1483:29:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_mapping$_t_address_$_t_struct$_OptyState_$5637_storage_$",
+                                    "typeString": "mapping(address => struct OPTYMinterStorage.OptyState)"
+                                },
+                                "valueType": {
+                                    "contractScope": null,
+                                    "id": 5677,
+                                    "name": "OptyState",
+                                    "nodeType": "UserDefinedTypeName",
+                                    "referencedDeclaration": 5637,
+                                    "src": "1502:9:15",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_struct$_OptyState_$5637_storage_ptr",
+                                        "typeString": "struct OPTYMinterStorage.OptyState"
+                                    }
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    },
+                    {
+                        "constant": false,
+                        "functionSelector": "ad0ac085",
+                        "id": 5686,
+                        "mutability": "mutable",
+                        "name": "lastUserUpdate",
+                        "nodeType": "VariableDeclaration",
+                        "overrides": null,
+                        "scope": 5687,
+                        "src": "1550:69:15",
+                        "stateVariable": true,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_address_$_t_uint256_$_$",
+                            "typeString": "mapping(address => mapping(address => uint256))"
+                        },
+                        "typeName": {
+                            "id": 5685,
+                            "keyType": {
+                                "id": 5681,
+                                "name": "address",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "1558:7:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                }
+                            },
+                            "nodeType": "Mapping",
+                            "src": "1550:47:15",
+                            "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_address_$_t_uint256_$_$",
+                                "typeString": "mapping(address => mapping(address => uint256))"
+                            },
+                            "valueType": {
+                                "id": 5684,
+                                "keyType": {
+                                    "id": 5682,
+                                    "name": "address",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "1577:7:15",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_address",
+                                        "typeString": "address"
+                                    }
+                                },
+                                "nodeType": "Mapping",
+                                "src": "1569:27:15",
+                                "typeDescriptions": {
+                                    "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                                    "typeString": "mapping(address => uint256)"
+                                },
+                                "valueType": {
+                                    "id": 5683,
+                                    "name": "uint256",
+                                    "nodeType": "ElementaryTypeName",
+                                    "src": "1588:7:15",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    }
+                                }
+                            }
+                        },
+                        "value": null,
+                        "visibility": "public"
+                    }
+                ],
+                "scope": 5688,
+                "src": "195:1428:15"
+            }
+        ],
+        "src": "35:1590:15"
+    },
+    "functionHashes": {
+        "allOptyVaults(uint256)": "53c787b5",
+        "lastUserUpdate(address,address)": "ad0ac085",
+        "optyAccrued(address)": "e1131ca6",
+        "optyAddress()": "ce546ead",
+        "optyTotalRate()": "7c199fe6",
+        "optyUserStateInVault(address,address)": "18d884f1",
+        "optyVaultEnabled(address)": "8127a24d",
+        "optyVaultRatePerSecond(address)": "7fb111fb",
+        "optyVaultRatePerSecondAndVaultToken(address)": "a0020328",
+        "optyVaultStartTimestamp(address)": "6d95f3a1",
+        "optyVaultState(address)": "cea80e4c",
+        "stakingPools(address)": "ad935e97"
+    },
+    "gasEstimates": {
+        "creation": {
+            "codeDepositCost": "209200",
+            "executionCost": "251",
+            "totalCost": "209451"
+        },
+        "external": {
+            "allOptyVaults(uint256)": "1993",
+            "lastUserUpdate(address,address)": "1239",
+            "optyAccrued(address)": "1234",
+            "optyAddress()": "1103",
+            "optyTotalRate()": "1065",
+            "optyUserStateInVault(address,address)": "1313",
+            "optyVaultEnabled(address)": "1247",
+            "optyVaultRatePerSecond(address)": "1213",
+            "optyVaultRatePerSecondAndVaultToken(address)": "1124",
+            "optyVaultStartTimestamp(address)": "1169",
+            "optyVaultState(address)": "1307",
+            "stakingPools(address)": "1183"
+        }
+    }
+}

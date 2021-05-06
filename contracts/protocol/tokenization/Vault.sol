@@ -514,16 +514,16 @@ contract Vault is
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
-    function userDepositAllAndStakeWithCHI() public override discountCHI {
-        userDepositAllAndStake();
+    function userDepositAllAndStakeWithCHI(address _stakingPool) public override discountCHI {
+        userDepositAllAndStake(_stakingPool);
     }
 
     function userDepositWithCHI(uint256 _amount) public override discountCHI {
         userDeposit(_amount);
     }
 
-    function userDepositAndStakeWithCHI(uint256 _amount) public override discountCHI {
-        userDepositAndStake(_amount);
+    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingPool) public override discountCHI {
+        userDepositAndStake(_amount, _stakingPool);
     }
 
     function userDepositAllRebalanceWithCHI() public override discountCHI {
@@ -534,12 +534,12 @@ contract Vault is
         userDepositRebalance(_amount);
     }
 
-    function userDepositRebalanceAndStakeWithCHI(uint256 _amount) public override discountCHI {
-        userDepositRebalanceAndStake(_amount);
+    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingPool) public override discountCHI {
+        userDepositRebalanceAndStake(_amount, _stakingPool);
     }
 
-    function userDepositAllRebalanceAndStakeWithCHI() public override discountCHI {
-        userDepositAllRebalanceAndStake();
+    function userDepositAllRebalanceAndStakeWithCHI(address _stakingPool) public override discountCHI {
+        userDepositAllRebalanceAndStake(_stakingPool);
     }
 
     function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) public override discountCHI {
