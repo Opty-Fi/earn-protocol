@@ -18,19 +18,33 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         setOptyAddress(_opty);
     }
 
+    /**
+     * @dev Modifier to check caller is staking pool or not
+     */
+    modifier onlyStakingPool() {
+        require(stakingPools[msg.sender] == true, "caller is not a staking pool");
+        _;
+    }
+
+    /**
+     * @dev Maps staking pool to a boolean variable that indicates wether the staking pool is enabled`or not
+     *
+     */
+    function setStakingPool(address _stakingPool, bool _enable) public onlyOperator returns (bool) {
+        require(_stakingPool != address(0), "Invalid address");
+        stakingPools[_stakingPool] = _enable;
+        return true;
+    }
+
     function setOptyAddress(address _opty) internal {
         require(_opty != address(0), "Invalid address");
         optyAddress = _opty;
     }
 
-    function setStakingPool(address _stakingPool) public onlyOperator {
-        require(_stakingPool != address(0), "Invalid address");
-        optyStakingPool = OPTYStakingPool(_stakingPool);
-    }
-
-    function claimAndStake(address _holder) public {
+    function claimAndStake(address _holder, address _stakingPool) public {
         uint256 _amount = claimOpty(_holder, allOptyVaults);
-        optyStakingPool.userStake(_amount);
+        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        _optyStakingPool.userStake(_amount);
     }
 
     /**
@@ -226,6 +240,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
             }
             return optyVaultState[_optyVault].index;
         }
+    }
+
+    function mintOpty(address _user, uint256 _amount) public onlyStakingPool returns (uint256) {
+        _mintOpty(_user, _amount);
     }
 
     /**
