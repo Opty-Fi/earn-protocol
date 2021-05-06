@@ -332,7 +332,7 @@ contract Vault is
         _success = true;
     }
 
-    function userDepositAndStake(uint256 _amount)
+    function userDepositAndStake(uint256 _amount, address _stakingPool)
         public
         override
         ifNotDiscontinued(address(this))
@@ -341,11 +341,11 @@ contract Vault is
         returns (bool _success)
     {
         userDeposit(_amount);
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
 
-    function userDepositAllAndStake()
+    function userDepositAllAndStake(address _stakingPool)
         public
         override
         ifNotDiscontinued(address(this))
@@ -354,7 +354,7 @@ contract Vault is
         returns (bool _success)
     {
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
 
@@ -437,7 +437,7 @@ contract Vault is
         _success = true;
     }
 
-    function userDepositRebalanceAndStake(uint256 _amount)
+    function userDepositRebalanceAndStake(uint256 _amount, address _stakingPool)
         public
         override
         ifNotDiscontinued(address(this))
@@ -446,11 +446,11 @@ contract Vault is
         returns (bool _success)
     {
         userDepositRebalance(_amount);
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
 
-    function userDepositAllRebalanceAndStake()
+    function userDepositAllRebalanceAndStake(address _stakingPool)
         public
         override
         ifNotDiscontinued(address(this))
@@ -459,7 +459,7 @@ contract Vault is
         returns (bool _success)
     {
         userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender);
+        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
         _success = true;
     }
 
