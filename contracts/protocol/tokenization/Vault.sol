@@ -15,6 +15,7 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
 import { VaultStorage } from "./VaultStorage.sol";
 import { Registry } from "../configuration/Registry.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
+import { OPTYStakingPool } from "./OPTYStakingPool.sol";
 import { RiskManager } from "../configuration/RiskManager.sol";
 import { StrategyManager } from "../configuration/StrategyManager.sol";
 
@@ -341,7 +342,9 @@ contract Vault is
         returns (bool _success)
     {
         userDeposit(_amount);
-        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
+        uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
+        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        _optyStakingPool.userStake(_optyAmount);
         _success = true;
     }
 
@@ -354,7 +357,9 @@ contract Vault is
         returns (bool _success)
     {
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
+        uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
+        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        _optyStakingPool.userStake(_optyAmount);
         _success = true;
     }
 
@@ -446,7 +451,9 @@ contract Vault is
         returns (bool _success)
     {
         userDepositRebalance(_amount);
-        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
+        uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
+        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        _optyStakingPool.userStake(_optyAmount);
         _success = true;
     }
 
@@ -459,7 +466,9 @@ contract Vault is
         returns (bool _success)
     {
         userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender, _stakingPool);
+        uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
+        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        _optyStakingPool.userStake(_optyAmount);
         _success = true;
     }
 

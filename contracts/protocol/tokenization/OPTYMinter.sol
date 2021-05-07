@@ -15,7 +15,7 @@ import { OPTYStakingPool } from "./OPTYStakingPool.sol";
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     constructor(address _registry, address _opty) public Modifiers(_registry) {
-        setOptyAddress(_opty);
+        _setOptyAddress(_opty);
     }
 
     /**
@@ -36,13 +36,13 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         return true;
     }
 
-    function setOptyAddress(address _opty) internal {
+    function _setOptyAddress(address _opty) internal {
         require(_opty != address(0), "Invalid address");
         optyAddress = _opty;
     }
 
-    function claimAndStake(address _holder, address _stakingPool) public {
-        uint256 _amount = claimOpty(_holder, allOptyVaults);
+    function claimAndStake(address _stakingPool) public {
+        uint256 _amount = claimOpty(msg.sender);
         OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
         _optyStakingPool.userStake(_amount);
     }
