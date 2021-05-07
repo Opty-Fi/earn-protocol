@@ -29,7 +29,7 @@ const chainIds = {
   ropsten: 3,
 };
 
-const DEFAULT_BLOCK_GAS_LIMIT = 12450000;
+const DEFAULT_BLOCK_GAS_LIMIT = 0x1fffffffffffff;
 const DEFAULT_GAS_MUL = 5;
 const HARDFORK = "istanbul";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
@@ -77,9 +77,7 @@ const buidlerConfig: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   networks: {
-    kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, 42),
-    ropsten: getCommonNetworkConfig(eEthereumNetwork.ropsten, 3),
-    main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
+    staging: getCommonNetworkConfig(eEthereumNetwork.staging, chainIds.ganache),
     localhost: {
       url: NETWORKS_RPC_URL[eEthereumNetwork.hardhat],
       chainId: chainIds.ganache,
