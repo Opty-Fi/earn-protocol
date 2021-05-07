@@ -519,43 +519,43 @@ contract Vault is
         return true;
     }
 
-    function userDepositAllWithCHI() public override discountCHI {
+    function userDepositAllWithCHI() external override discountCHI {
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
-    function userDepositAllAndStakeWithCHI(address _stakingPool) public override discountCHI {
+    function userDepositAllAndStakeWithCHI(address _stakingPool) external override discountCHI {
         userDepositAllAndStake(_stakingPool);
     }
 
-    function userDepositWithCHI(uint256 _amount) public override discountCHI {
+    function userDepositWithCHI(uint256 _amount) external override discountCHI {
         userDeposit(_amount);
     }
 
-    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingPool) public override discountCHI {
+    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingPool) external override discountCHI {
         userDepositAndStake(_amount, _stakingPool);
     }
 
-    function userDepositAllRebalanceWithCHI() public override discountCHI {
+    function userDepositAllRebalanceWithCHI() external override discountCHI {
         userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
-    function userDepositRebalanceWithCHI(uint256 _amount) public override discountCHI {
+    function userDepositRebalanceWithCHI(uint256 _amount) external override discountCHI {
         userDepositRebalance(_amount);
     }
 
-    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingPool) public override discountCHI {
+    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingPool) external override discountCHI {
         userDepositRebalanceAndStake(_amount, _stakingPool);
     }
 
-    function userDepositAllRebalanceAndStakeWithCHI(address _stakingPool) public override discountCHI {
+    function userDepositAllRebalanceAndStakeWithCHI(address _stakingPool) external override discountCHI {
         userDepositAllRebalanceAndStake(_stakingPool);
     }
 
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) public override discountCHI {
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI {
         userWithdrawRebalance(_redeemAmount);
     }
 
-    function userWithdrawAllRebalanceWithCHI() public override discountCHI {
+    function userWithdrawAllRebalanceWithCHI() external override discountCHI {
         userWithdrawRebalance(balanceOf(msg.sender));
     }
 
