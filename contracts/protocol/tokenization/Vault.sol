@@ -681,4 +681,15 @@ contract Vault is
             _harvest(investStrategyHash);
         }
     }
+
+    function _beforeTokenTransfer(
+        address from,
+        address,
+        uint256
+    ) internal override {
+        optyMinterContract.updateUserRewards(address(this), from);
+        optyMinterContract.updateOptyVaultRatePerSecondAndVaultToken(address(this));
+        optyMinterContract.updateOptyVaultIndex(address(this));
+        optyMinterContract.updateUserStateInVault(address(this), from);
+    }
 }
