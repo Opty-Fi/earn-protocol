@@ -24,7 +24,7 @@ contract StrategyProvider is Modifiers {
         bytes32 _tokenHash,
         bytes32 _strategyHash
     ) public onlyOperator {
-        (, , bool _profileExists) = registryContract.riskProfiles(_riskProfile);
+        (, , , , bool _profileExists) = registryContract.riskProfiles(_riskProfile);
         require(_profileExists, "!Rp_Exists");
         rpToTokenToBestStrategy[_riskProfile][_tokenHash] = _strategyHash;
     }
@@ -34,7 +34,7 @@ contract StrategyProvider is Modifiers {
         bytes32 _tokenHash,
         bytes32 _strategyHash
     ) public onlyOperator {
-        (, , bool _profileExists) = registryContract.riskProfiles(_riskProfile);
+        (, , , , bool _profileExists) = registryContract.riskProfiles(_riskProfile);
         require(_profileExists, "!Rp_Exists");
         rpToTokenToDefaultStrategy[_riskProfile][_tokenHash] = _strategyHash;
     }

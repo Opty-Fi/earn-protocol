@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.10;
+pragma experimental ABIEncoderV2;
 
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
@@ -47,6 +48,26 @@ contract RegistryAdminStorage {
      * @notice Pending brains of Registry
      */
     address public pendingRegistryImplementation;
+
+    /**
+     * @notice when transfer operation of protocol occurs
+     */
+    event TransferOperator(address indexed operator, address indexed caller);
+
+    /**
+     * @notice Change strategist of protocol
+     */
+    event TransferStrategist(address indexed strategist, address indexed caller);
+
+    /**
+     * @notice Change minter of protocol
+     */
+    event TransferMinter(address indexed minter, address indexed caller);
+
+    /**
+     * @notice Change treasurer of protocol
+     */
+    event TransferTreasury(address indexed treasurer, address indexed caller);
 }
 
 contract RegistryStorage is RegistryAdminStorage {
@@ -65,4 +86,106 @@ contract RegistryStorage is RegistryAdminStorage {
     bytes32[] public strategyHashIndexes;
     bytes32[] public tokensHashIndexes;
     string[] public riskProfilesArray;
+    /**
+     * @dev Emitted when `token` is approved or revoked.
+     *
+     * Note that `token` cannot be zero address or EOA.
+     */
+    event LogToken(address indexed token, bool indexed enabled, address indexed caller);
+
+    /**
+     * @dev Emitted when `pool` is approved or revoked.
+     *
+     * Note that `pool` cannot be zero address or EOA.
+     */
+    event LogLiquidityPool(address indexed pool, bool indexed enabled, address indexed caller);
+
+    /**
+     * @dev Emitted when credit `pool` is approved or revoked.
+     *
+     * Note that `pool` cannot be zero address or EOA.
+     */
+    event LogCreditPool(address indexed pool, bool indexed enabled, address indexed caller);
+
+    /**
+     * @dev Emitted when `pool` is rated.
+     *
+     * Note that `pool` cannot be zero address or EOA.
+     */
+    event LogRateLiquidityPool(address indexed pool, uint8 indexed rate, address indexed caller);
+
+    /**
+     * @dev Emitted when `pool` is rated.
+     *
+     * Note that `pool` cannot be zero address or EOA.
+     */
+    event LogRateCreditPool(address indexed pool, uint8 indexed rate, address indexed caller);
+
+    /**
+     * @dev Emitted when `hash` strategy is set.
+     *
+     * Note that `token` cannot be zero address or EOA.
+     */
+    event LogSetStrategy(bytes32 indexed tokensHash, bytes32 indexed hash, address indexed caller);
+
+    /**
+     * @dev Emitted when `hash` strategy is scored.
+     *
+     * Note that `hash` startegy should exist in {strategyHashIndexes}.
+     */
+    event LogScoreStrategy(address indexed caller, bytes32 indexed hash, uint8 indexed score);
+
+    /**
+     * @dev Emitted when liquidity pool `pool` is assigned to `adapter`.
+     *
+     * Note that `pool` should be approved in {liquidityPools}.
+     */
+    event LogLiquidityPoolToDepositToken(address indexed pool, address indexed adapter, address indexed caller);
+
+    /**
+     * @dev Emitted when tokens are assigned to `_tokensHash`.
+     *
+     * Note that tokens should be approved
+     */
+    event LogTokensToTokensHash(bytes32 indexed _tokensHash, address indexed caller);
+
+    /**
+     * @dev Emiited when `Discontinue` over vault is activated
+     *
+     * Note that `vault` can not be a zero address
+     */
+    event LogDiscontinueVault(address indexed vault, bool indexed discontinued, address indexed caller);
+
+    /**
+     * @dev Emiited when `Pause` over vault is activated/deactivated
+     *
+     * Note that `vault` can not be a zero address
+     */
+    event LogPauseVault(address indexed vault, bool indexed paused, address indexed caller);
+
+    /**
+     * @dev Emitted when `setUnderlyingTokenToRPToVaults` function is called.
+     *
+     * Note that `underlyingToken` cannot be zero address or EOA.
+     */
+    event LogUnderlyingTokenRPVault(
+        address indexed underlyingToken,
+        string indexed riskProfile,
+        address indexed vault,
+        address caller
+    );
+
+    /**
+     * @dev Emitted when RiskProfile is added
+     *
+     * Note that `riskProfile` can not be empty
+     */
+    event LogRiskProfile(uint256 indexed index, bool indexed exists, uint8 indexed steps, address caller);
+
+    /**
+     * @dev Emitted when Risk profile is set
+     *
+     * Note that `riskProfile` can not be empty
+     */
+    event LogRPPoolRatings(uint256 indexed index, uint8 indexed lowerLimit, uint8 indexed upperLimit, address caller);
 }

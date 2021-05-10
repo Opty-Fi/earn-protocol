@@ -53,7 +53,8 @@ library DataTypes {
     struct RiskProfile {
         uint256 index;
         uint8 steps;
-        PoolRatingsRange[] poolRatingsRange;
+        uint8 lowerLimit;
+        uint8 upperLimit;
         bool exists;
     }
 
