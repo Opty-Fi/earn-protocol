@@ -19,6 +19,7 @@ contract ModifiersController is RegistryStorage {
     function setOperator(address _operator) public onlyGovernance {
         require(_operator != address(0), "!address(0)");
         operator = _operator;
+        emit TransferOperator(operator, msg.sender);
     }
 
     /**
@@ -29,6 +30,7 @@ contract ModifiersController is RegistryStorage {
     function setStrategist(address _strategist) public onlyGovernance {
         require(_strategist != address(0), "!address(0)");
         strategist = _strategist;
+        emit TransferStrategist(strategist, msg.sender);
     }
 
     /**
@@ -39,6 +41,7 @@ contract ModifiersController is RegistryStorage {
     function setMinter(address _minter) public onlyGovernance {
         require(_minter != address(0), "!address(0)");
         minter = _minter;
+        emit TransferMinter(minter, msg.sender);
     }
 
     /**

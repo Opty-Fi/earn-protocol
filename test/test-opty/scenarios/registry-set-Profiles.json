@@ -194,7 +194,7 @@
       "description": "User should be able to set a single Risk Profile",
       "setActions": [
         {
-          "action": "addRiskProfiles(string[],uint8[],(uint8,uint8)[])",
+          "action": "addRiskProfile(string[],uint8[],(uint8,uint8)[])",
           "args": {
             "riskProfile": ["RP1", "RP2", "RP3"],
             "noOfSteps": [1, 2, 3],

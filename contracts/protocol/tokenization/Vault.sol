@@ -88,7 +88,7 @@ contract Vault is
 
     function setProfile(string memory _profile) public override onlyOperator returns (bool _success) {
         require(bytes(_profile).length > 0, "Profile_Empty!");
-        (, , bool _profileExists) = registryContract.riskProfiles(_profile);
+        (, , , , bool _profileExists) = registryContract.riskProfiles(_profile);
         require(_profileExists, "!Rp_Exists");
         profile = _profile;
         _success = true;
@@ -346,15 +346,14 @@ contract Vault is
     }
 
     function userDepositAllAndStake()
-        public
+        external
         override
         ifNotDiscontinued(address(this))
         ifNotPaused(address(this))
         nonReentrant
         returns (bool _success)
     {
-        userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
-        optyMinterContract.claimAndStake(msg.sender);
+        userDepositAndStake(IERC20(underlyingToken).balanceOf(msg.sender));
         _success = true;
     }
 
@@ -510,12 +509,12 @@ contract Vault is
         return true;
     }
 
-    function userDepositAllWithCHI() public override discountCHI {
+    function userDepositAllWithCHI() external override discountCHI {
         userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
-    function userDepositAllAndStakeWithCHI() public override discountCHI {
-        userDepositAllAndStake();
+    function userDepositAllAndStakeWithCHI() external override discountCHI {
+        this.userDepositAllAndStake();
     }
 
     function userDepositWithCHI(uint256 _amount) public override discountCHI {

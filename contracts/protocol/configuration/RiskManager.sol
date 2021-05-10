@@ -81,7 +81,7 @@ contract RiskManager is RiskManagerStorage, Modifiers {
      *
      */
     function _getBestStrategy(string memory _riskProfile, bytes32 _tokensHash) internal view returns (bytes32) {
-        (, uint8 _permittedSteps, bool _profileExists) = registryContract.riskProfiles(_riskProfile);
+        (, uint8 _permittedSteps, , , bool _profileExists) = registryContract.riskProfiles(_riskProfile);
         require(_profileExists, "!Rp_Exists");
 
         // getbeststrategy from strategyProvider
@@ -126,10 +126,7 @@ contract RiskManager is RiskManagerStorage, Modifiers {
         view
         returns (uint256 _hold, uint256 _convert)
     {
-        require(
-            _vaultRewardTokenHash != 0x0000000000000000000000000000000000000000000000000000000000000000,
-            "vRtHash!=0x0"
-        );
+        require(_vaultRewardTokenHash != ZERO_BYTES32, "vRtHash!=0x0");
         (_hold, _convert) = strategyProvider.vaultRewardTokenHashToVaultRewardTokenStrategy(_vaultRewardTokenHash);
     }
 }
