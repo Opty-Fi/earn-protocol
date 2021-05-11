@@ -1,6 +1,6 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
-import { Contract } from "ethers";
+import { Contract, Signer } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
@@ -13,9 +13,10 @@ describe(scenario.title, () => {
   let optyStakingPool: Contract;
   let optyStakingRateBalancer: Contract;
   let essentialContracts: CONTRACTS;
+  let owner, user1: Signer;
   before(async () => {
     try {
-      const [owner] = await hre.ethers.getSigners();
+      [owner, user1] = await hre.ethers.getSigners();
       [essentialContracts,] = await setUp(owner);
       console.log(essentialContracts.registry.address);
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
@@ -50,7 +51,11 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await expect(optyStakingPool[action.action](token));
               } else {
-                await expect(optyStakingPool[action.action](token)).to.be.revertedWith(action.message);
+                if(action.message === "!_underlyingToken.isContract") {
+                  await expect(optyStakingPool[action.action](token)).to.be.revertedWith(action.message);
+                } else {
+                  await expect(optyStakingPool.connect(user1)[action.action](token)).to.be.revertedWith(action.message);
+                }
               }
             }
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
@@ -62,7 +67,11 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await expect(optyStakingPool[action.action](OPTYMinter));
               } else {
-                await expect(optyStakingPool[action.action](OPTYMinter)).to.be.revertedWith(action.message);
+                if(action.message === "!_optyMinter.isContract") {
+                  await expect(optyStakingPool[action.action](OPTYMinter)).to.be.revertedWith(action.message);
+                } else {
+                  await expect(optyStakingPool.connect(user1)[action.action](OPTYMinter)).to.be.revertedWith(action.message);
+                }
               }
             }
             assert.isDefined(OPTYMinter, `args is wrong in ${action.action} testcase`);
@@ -74,7 +83,7 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await expect(optyStakingPool[action.action](rate));
               } else {
-                await expect(optyStakingPool[action.action](rate)).to.be.revertedWith(action.message);
+                await expect(optyStakingPool.connect(user1)[action.action](rate)).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(rate, `args is wrong in ${action.action} testcase`);
