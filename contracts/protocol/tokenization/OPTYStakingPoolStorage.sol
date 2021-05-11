@@ -9,7 +9,7 @@ import { OPTYMinter } from "./OPTYMinter.sol";
  * @dev Control to store state variables of Staking pool
  */
 
-contract StakingPoolStorage {
+contract OPTYStakingPoolStorage {
     mapping(address => uint256) public userLastUpdate;
     uint256 public lastPoolUpdate;
     uint256 public optyRatePerBlock;
@@ -17,4 +17,5 @@ contract StakingPoolStorage {
     uint256 public poolValue;
     OPTYMinter public optyMinterContract;
     address public optyStakingRateBalancer;
+    uint256 public timelockPeriod;
 }

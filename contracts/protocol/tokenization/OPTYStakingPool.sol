@@ -7,7 +7,7 @@ import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/to
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { RiskManager } from "../configuration/RiskManager.sol";
-import { StakingPoolStorage } from "./StakingPoolStorage.sol";
+import { OPTYStakingPoolStorage } from "./OPTYStakingPoolStorage.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
@@ -15,11 +15,9 @@ import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRate
 /**
  * @dev Opty.Fi's Staking Pool contract for OPTY
  */
-contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorage {
+contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolStorage {
     using SafeERC20 for IERC20;
     using Address for address;
-
-    uint256 public timelockPeriod;
 
     /**
      * @dev
@@ -31,19 +29,14 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         address _underlyingToken,
         address _optyMinter,
         uint256 _timelock,
-        address _optyStakingRateBalancer
-    )
-        public
-        ERC20(
-            string(abi.encodePacked("op ", "30 Days", " Staking", " Pool")),
-            string(abi.encodePacked("op", "30Days", "StkPool"))
-        )
-        Modifiers(_registry)
-    {
+        address _optyStakingRateBalancer,
+        string memory _name,
+        string memory _symbol
+    ) public ERC20(_name, _symbol) Modifiers(_registry) {
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
-        setOPTYStakingRateBalance(_optyStakingRateBalancer);
+        setOPTYStakingRateBalancer(_optyStakingRateBalancer);
     }
 
     function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
@@ -70,7 +63,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, StakingPoolStorag
         _success = true;
     }
 
-    function setOPTYStakingRateBalance(address _optyStakingRateBalancer) public onlyOperator returns (bool _success) {
+    function setOPTYStakingRateBalancer(address _optyStakingRateBalancer) public onlyOperator returns (bool _success) {
         optyStakingRateBalancer = _optyStakingRateBalancer;
         _success = true;
     }
