@@ -76,3 +76,12 @@ export async function getExistingContractAddress(
   const contract = await hre.deployments.get(contractName);
   return contract.address;
 }
+
+export async function getContractInstance(
+  hre: HardhatRuntimeEnvironment,
+  contractName: string,
+  tokenAddress: string,
+): Promise<any> {
+  const contract = await hre.ethers.getContractAt(contractName, tokenAddress);
+  return contract;
+}

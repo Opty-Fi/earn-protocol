@@ -1,4 +1,4 @@
-import { TOKENS } from "./constants";
+import { REWARD_TOKENS, TOKENS } from "./constants";
 import { Contract, Signer, BigNumber } from "ethers";
 import { CONTRACTS, STRATEGY_DATA } from "./type";
 import { TypedAdapterStrategies } from "./data";
@@ -7,6 +7,7 @@ import { getSoliditySHA3Hash, amountInHex } from "./utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import exchange from "./data/exchange.json";
 import tokenAddresses from "./data/TokenAddresses.json";
+import { expect } from "chai";
 
 export async function approveLiquidityPoolAndMapAdapter(
   owner: Signer,
@@ -74,6 +75,26 @@ export async function approveTokens(owner: Signer, registryContract: Contract): 
   }
 }
 
+export async function approveVaultRewardTokens(
+  owner: Signer,
+  vaultContractAddress: string,
+  rewardTokenAddress: string,
+  registryContract: Contract,
+): Promise<void> {
+  try {
+    if (vaultContractAddress.length > 0 && rewardTokenAddress.length > 0) {
+      await executeFunc(registryContract, owner, "approveToken(address[])", [
+        [vaultContractAddress, rewardTokenAddress],
+      ]);
+      await executeFunc(registryContract, owner, "setTokensHashToTokens(address[])", [
+        [vaultContractAddress, rewardTokenAddress],
+      ]);
+    }
+  } catch (error) {
+    console.log(`Got error when executing approveTokens for vault and reward tokens : ${error}`);
+  }
+}
+
 export async function setBestBasicStrategy(
   strategy: STRATEGY_DATA[],
   tokensHash: string,
@@ -100,6 +121,8 @@ export async function setBestBasicStrategy(
   const strategyReceipt = await strategies.wait();
   const strategyHash = strategyReceipt.events[0].args[1];
   await strategyProvider.setBestStrategy(riskProfile, tokensHash, strategyHash);
+  const strategyProviderStrategy = await strategyProvider.rpToTokenToBestStrategy(riskProfile, tokensHash);
+  expect(strategyProviderStrategy).to.equal(strategyHash);
   return strategyHash;
 }
 

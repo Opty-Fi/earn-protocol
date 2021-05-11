@@ -15,22 +15,36 @@ import { OPTYStakingPool } from "./OPTYStakingPool.sol";
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     constructor(address _registry, address _opty) public Modifiers(_registry) {
-        setOptyAddress(_opty);
+        _setOptyAddress(_opty);
     }
 
-    function setOptyAddress(address _opty) internal {
+    /**
+     * @dev Modifier to check caller is staking pool or not
+     */
+    modifier onlyStakingPool() {
+        require(stakingPools[msg.sender] == true, "caller is not a staking pool");
+        _;
+    }
+
+    /**
+     * @dev Maps staking pool to a boolean variable that indicates wether the staking pool is enabled`or not
+     *
+     */
+    function setStakingPool(address _stakingPool, bool _enable) public onlyOperator returns (bool) {
+        require(_stakingPool != address(0), "Invalid address");
+        stakingPools[_stakingPool] = _enable;
+        return true;
+    }
+
+    function _setOptyAddress(address _opty) internal {
         require(_opty != address(0), "Invalid address");
         optyAddress = _opty;
     }
 
-    function setStakingPool(address _stakingPool) public onlyOperator {
-        require(_stakingPool != address(0), "Invalid address");
-        optyStakingPool = OPTYStakingPool(_stakingPool);
-    }
-
-    function claimAndStake(address _holder) public {
-        uint256 _amount = claimOpty(_holder, allOptyVaults);
-        optyStakingPool.userStake(_amount);
+    function claimAndStake(address _stakingPool) public {
+        uint256 _amount = claimOpty(msg.sender);
+        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        _optyStakingPool.userStake(_amount);
     }
 
     /**
@@ -66,7 +80,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 updateUserRewards(address(_optyVault), _holders[j]);
                 uint256 _amount = div_(optyAccrued[_holders[j]], 1e18);
                 optyAccrued[_holders[j]] = uint256(0);
-                mintOpty(_holders[j], _amount);
+                _mintOpty(_holders[j], _amount);
                 _total = add_(_total, _amount);
             }
         }
@@ -228,6 +242,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         }
     }
 
+    function mintOpty(address _user, uint256 _amount) external onlyStakingPool returns (uint256) {
+        _mintOpty(_user, _amount);
+    }
+
     /**
      * @notice Transfer OPTY to the user
      * @dev Note: If there is not enough OPTY, we do not perform the transfer all.
@@ -235,7 +253,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _amount The amount of OPTY to (possibly) transfer
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function mintOpty(address _user, uint256 _amount) public returns (uint256) {
+    function _mintOpty(address _user, uint256 _amount) internal returns (uint256) {
         OPTY _opty = OPTY(getOptyAddress());
         require(_amount > 0 && _user != address(0), "Insufficient amount or invalid address");
         _opty.mint(_user, _amount);

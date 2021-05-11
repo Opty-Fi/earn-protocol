@@ -1,4 +1,4 @@
-import { DATA_OBJECT, RISK_PROFILE_DATA } from "./type";
+import { DATA_OBJECT, REWARD_TOKEN_DATA_OBJECT, RISK_PROFILE_DATA } from "./type";
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   REGISTRY: "Registry",
   REGISTRY_PROXY: "RegistryProxy",
@@ -34,6 +34,29 @@ export const TOKENS: DATA_OBJECT = {
   USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
   WBTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
   WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+};
+
+export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
+  CompoundAdapter: {
+    tokenName: "COMP",
+    tokenAddress: "0xc00e94Cb662C3520282E6f5717214004A7f26888",
+    distributionActive: true,
+  },
+  DForceAdapter: {
+    tokenName: "DF",
+    tokenAddress: "0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0",
+    distributionActive: true,
+  },
+  HarvestAdapter: {
+    tokenName: "FARM",
+    tokenAddress: "0xa0246c9032bC3A600820415aE600c6388619A14D",
+    distributionActive: true,
+  },
+  CreamAdapter: {
+    tokenName: "CREAM",
+    tokenAddress: "0x2ba592F78dB6436527729929AAf6c908497cB200",
+    distributionActive: false,
+  },
 };
 
 export const TESTING_CONTRACTS: DATA_OBJECT = {

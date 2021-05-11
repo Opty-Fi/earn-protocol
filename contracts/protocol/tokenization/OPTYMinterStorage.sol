@@ -9,7 +9,7 @@ import { OPTYStakingPool } from "./OPTYStakingPool.sol";
  */
 
 contract OPTYMinterStorage {
-    OPTYStakingPool public optyStakingPool;
+    mapping(address => bool) public stakingPools;
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
     struct OptyState {
