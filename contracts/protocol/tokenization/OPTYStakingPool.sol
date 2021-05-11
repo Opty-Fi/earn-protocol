@@ -40,7 +40,6 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
     }
 
     function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
-        require(_timelock != uint256(0), "timelockPeriod != 0");
         timelockPeriod = _timelock;
         _success = true;
     }
@@ -58,12 +57,13 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         _success = true;
     }
 
-    function setOptyRatePerBlock(uint256 _rate) public onlyOperator returns (bool _success) {
-        optyRatePerBlock = _rate;
+    function setOptyRatePerSecond(uint256 _rate) public onlyOperator returns (bool _success) {
+        optyRatePerSecond = _rate;
         _success = true;
     }
 
     function setOPTYStakingRateBalancer(address _optyStakingRateBalancer) public onlyOperator returns (bool _success) {
+        require(_optyStakingRateBalancer.isContract(), "!_optyStakingRateBalancer.isContract");
         optyStakingRateBalancer = _optyStakingRateBalancer;
         _success = true;
     }
@@ -75,8 +75,12 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         return IERC20(token).balanceOf(address(this));
     }
 
-    function userStakeAll() external {
-        userStake(IERC20(token).balanceOf(msg.sender));
+    function userStakeAll() external returns (bool) {
+        _userStake(IERC20(token).balanceOf(msg.sender));
+    }
+
+    function userStake(uint256 _amount) external returns (bool) {
+        _userStake(_amount);
     }
 
     /**
@@ -87,8 +91,8 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
      *  - Amount should be greater than 0
      *  - Amount is in wad units, Eg: _amount = 1e18 wad means _amount = 1 DAI
      */
-    function userStake(uint256 _amount)
-        public
+    function _userStake(uint256 _amount)
+        internal
         ifNotDiscontinued(address(this))
         ifNotPaused(address(this))
         nonReentrant
@@ -113,8 +117,12 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         _success = true;
     }
 
-    function userUnstakeAll() external {
-        userUnstake(balanceOf(msg.sender));
+    function userUnstakeAll() external returns (bool) {
+        _userUnstake(balanceOf(msg.sender));
+    }
+
+    function userUnstake(uint256 _redeemAmount) external returns (bool) {
+        _userUnstake(_redeemAmount);
     }
 
     /**
@@ -125,7 +133,12 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
      *  -   _redeemAmount: amount to withdraw from the  liquidity pool. Its uints are:
      *      in  weth uints i.e. 1e18
      */
-    function userUnstake(uint256 _redeemAmount) public ifNotPaused(address(this)) nonReentrant returns (bool _success) {
+    function _userUnstake(uint256 _redeemAmount)
+        internal
+        ifNotPaused(address(this))
+        nonReentrant
+        returns (bool _success)
+    {
         require(
             getBlockTimestamp().sub(userLastUpdate[msg.sender]) > timelockPeriod,
             "you can't unstake until timelockPeriod has passed"
@@ -148,7 +161,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
             lastPoolUpdate = getBlockTimestamp();
         } else {
             uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
-            uint256 optyAccrued = _deltaBlocks.mul(optyRatePerBlock);
+            uint256 optyAccrued = _deltaBlocks.mul(optyRatePerSecond);
             lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
@@ -166,7 +179,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
     function balanceInOpty(address _user) public view returns (uint256) {
         if (balanceOf(_user) != uint256(0)) {
             uint256 _balanceInOpty =
-                balanceOf(_user).mul(balance().add(optyRatePerBlock.mul(getBlockTimestamp().sub(lastPoolUpdate)))).div(
+                balanceOf(_user).mul(balance().add(optyRatePerSecond.mul(getBlockTimestamp().sub(lastPoolUpdate)))).div(
                     totalSupply()
                 );
             return _balanceInOpty;

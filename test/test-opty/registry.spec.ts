@@ -4,7 +4,7 @@ import { Contract, Signer } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS } from "../../helpers/type";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import scenario from "./scenarios/staking-pool.json";
+import scenario from "./scenarios/registry.json";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 
 type ARGUMENTS = {
