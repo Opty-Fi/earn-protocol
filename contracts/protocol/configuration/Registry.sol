@@ -413,21 +413,21 @@ contract Registry is ModifiersController {
      *
      * Returns a boolean value indicating whether the operation succeeded
      *
-     * Emits a {LogUnderlyingTokenRPVault} event
+     * Emits a {LogUnderlyingAssetHashToRPToVaults} event
      *
      * Requirements:
      *
-     * - `_underlyingToken` cannot be the zero address or EOA
+     * - `_underlyingTokens` cannot be empty
      * - `_vault` cannot be the zero address or EOA
      * - `msg.sender` (caller) should be operator
      *
      */
-    function setUnderlyingTokenToRPToVaults(
-        address _underlyingToken,
+    function setUnderlyingAssetHashToRPToVaults(
+        address[] memory _underlyingTokens,
         string memory _riskProfile,
         address _vault
     ) external onlyOperator returns (bool) {
-        _setUnderlyingTokenToRPToVaults(_underlyingToken, _riskProfile, _vault);
+        _setUnderlyingAssetHashToRPToVaults(keccak256(abi.encodePacked(_underlyingTokens)), _riskProfile, _vault);
         return true;
     }
 
@@ -437,17 +437,17 @@ contract Registry is ModifiersController {
      *
      * Returns a boolean value indicating whether the operation succeeded
      *
-     * Emits a {LogUnderlyingTokenRPVault} event
+     * Emits a {LogUnderlyingAssetHashToRPToVaults} event
      *
      * Requirements:
      *
-     * - `_underlyingToken` cannot be the zero address or EOA
+     * - `_underlyingTokens` cannot be empty
      * - `_vault` cannot be the zero address or EOA
      * - `msg.sender` (caller) should be operator
      *
      */
-    function setUnderlyingTokenToRPToVaults(
-        address[] memory _underlyingTokens,
+    function setUnderlyingAssetHashToRPToVaults(
+        address[][] memory _underlyingTokens,
         string[] memory _riskProfiles,
         address[][] memory _vaults
     ) public onlyOperator returns (bool) {
@@ -455,7 +455,11 @@ contract Registry is ModifiersController {
         for (uint8 _i = 0; _i < uint8(_vaults.length); _i++) {
             require(uint8(_vaults[_i].length) == uint8(_underlyingTokens.length), "!VaultsLength");
             for (uint8 _j = 0; _j < _vaults[_i].length; _j++) {
-                _setUnderlyingTokenToRPToVaults(_underlyingTokens[_j], _riskProfiles[_i], _vaults[_i][_j]);
+                _setUnderlyingAssetHashToRPToVaults(
+                    keccak256(abi.encodePacked(_underlyingTokens[_j])),
+                    _riskProfiles[_i],
+                    _vaults[_i][_j]
+                );
             }
         }
         return true;
@@ -813,18 +817,20 @@ contract Registry is ModifiersController {
         return hash;
     }
 
-    function _setUnderlyingTokenToRPToVaults(
-        address _underlyingToken,
+    function _setUnderlyingAssetHashToRPToVaults(
+        bytes32 _underlyingAssetHash,
         string memory _riskProfile,
         address _vault
     ) internal returns (bool) {
-        require(_underlyingToken != address(0), "!address(0)");
-        require(address(_underlyingToken).isContract(), "!isContract");
+        require(
+            _underlyingAssetHash != 0x0000000000000000000000000000000000000000000000000000000000000000,
+            "!underlyingAssetHash"
+        );
         require(bytes(_riskProfile).length > 0, "RP_empty.");
         require(_vault != address(0), "!address(0)");
         require(address(_vault).isContract(), "!isContract");
-        underlyingTokenToRPToVaults[_underlyingToken][_riskProfile] = _vault;
-        emit LogUnderlyingTokenRPVault(_underlyingToken, _riskProfile, _vault, msg.sender);
+        underlyingAssetHashToRPToVaults[_underlyingAssetHash][_riskProfile] = _vault;
+        emit LogUnderlyingAssetHashToRPToVaults(_underlyingAssetHash, _riskProfile, _vault, msg.sender);
         return true;
     }
 
