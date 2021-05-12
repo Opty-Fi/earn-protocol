@@ -5,12 +5,15 @@ pragma experimental ABIEncoderV2;
 
 import { Modifiers } from "./Modifiers.sol";
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { SafeMath } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 /**
  * @dev Serves as an oracle service of opty-fi's earn protocol
  *      for best strategy
  */
 contract StrategyProvider is Modifiers {
+    using SafeMath for uint256;
+
     mapping(string => mapping(bytes32 => bytes32)) public rpToTokenToBestStrategy;
     mapping(string => mapping(bytes32 => bytes32)) public rpToTokenToDefaultStrategy;
     mapping(bytes32 => DataTypes.VaultRewardStrategy) public vaultRewardTokenHashToVaultRewardTokenStrategy;
@@ -64,8 +67,11 @@ contract StrategyProvider is Modifiers {
         );
         uint256 _index = registryContract.tokensHashToTokens(_vaultRewardTokenHash);
         require(registryContract.tokensHashIndexes(_index) == _vaultRewardTokenHash, "!VaultRewardTokenHashExists");
-        require(_vaultRewardStrategy.hold > 0, "hold!>0");
-        require(_vaultRewardStrategy.convert > 0, "convert!>0");
+        require(
+            (_vaultRewardStrategy.hold.add(_vaultRewardStrategy.convert) == uint256(10000)) ||
+                (_vaultRewardStrategy.hold.add(_vaultRewardStrategy.convert) == uint256(0)),
+            "!HoldConvertBasisRange"
+        );
 
         vaultRewardTokenHashToVaultRewardTokenStrategy[_vaultRewardTokenHash].hold = _vaultRewardStrategy.hold;
         vaultRewardTokenHashToVaultRewardTokenStrategy[_vaultRewardTokenHash].convert = _vaultRewardStrategy.convert;
