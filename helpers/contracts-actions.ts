@@ -98,7 +98,7 @@ export async function approveVaultRewardTokens(
 export async function setBestBasicStrategy(
   strategy: STRATEGY_DATA[],
   tokensHash: string,
-  registry: Contract,
+  vaultStepInvestStrategyDefinitionRegistry: Contract,
   strategyProvider: Contract,
   riskProfile: string,
 ): Promise<void> {
@@ -117,7 +117,10 @@ export async function setBestBasicStrategy(
     strategySteps.push(tempArr);
   }
 
-  const strategies = await registry["setStrategy(bytes32,(address,address,bool)[])"](tokensHash, strategySteps);
+  const strategies = await vaultStepInvestStrategyDefinitionRegistry["setStrategy(bytes32,(address,address,bool)[])"](
+    tokensHash,
+    strategySteps,
+  );
   const strategyReceipt = await strategies.wait();
   const strategyHash = strategyReceipt.events[0].args[1];
   await strategyProvider.setBestStrategy(riskProfile, tokensHash, strategyHash);

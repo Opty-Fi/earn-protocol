@@ -84,7 +84,7 @@
           ]
         },
         {
-          "description": "Operator should be able to set Vault Reward Token Strategy",
+          "description": "Operator should be able to set VaultRewardTokenStrategy with Hold and Convert 5000 (50%)",
           "setActions": [
             {
               "contract": "strategyProvider",
@@ -109,6 +109,76 @@
               "message": ""
             }
           ]
+        },
+        {
+          "description": "Operator should be able to Re-set VaultRewardTokenStrategy with Hold and Convert 0%",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [0, 0]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "vaultRewardTokenHashToVaultRewardTokenStrategy(bytes32)",
+              "args": {},
+              "expectedValue": {
+                "vaultRewardStrategy": [0, 0]
+              },
+              "expect": "success",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "description": "VaultRewardTokenStrategy's Hold and Convert values should be sum of 10000 (max basis value) (100%)",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [3000, 7000]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "vaultRewardTokenHashToVaultRewardTokenStrategy(bytes32)",
+              "args": {},
+              "expectedValue": {
+                "vaultRewardStrategy": [3000, 7000]
+              },
+              "expect": "success",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "description": "VaultRewardTokenStrategy should NOT set if Hold and Convert values sum != 10000 (100%)",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [3000, 7500]
+              },
+              "executer": "owner",
+              "expect": "fail",
+              "message": "!HoldConvertBasisRange"
+            }
+          ],
+          "getActions": []
         },
         {
           "description": "Non-Operator shouldn't be able to set Vault Reward Token Strategy",
@@ -251,13 +321,255 @@
           ]
         },
         {
-          "description": "Vault shouldn't hold RewardTokens if VaultRewardTokenStrategy is set to 100%",
+          "description": "Vault shouldn't hold RewardTokens if VaultRewardTokenStrategy's Hold and Convert is RE-SET to 0%",
           "setActions": [
             {
               "contract": "strategyProvider",
               "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
               "args": {
-                "vaultRewardStrategy": [1, 10000]
+                "vaultRewardStrategy": [5000, 5000]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "addressName": "user1",
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "tokenErc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "addressName": "vault",
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawRebalance(uint256)",
+              "args": {
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [0, 0]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "addressName": "user1",
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "tokenErc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "addressName": "vault",
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawRebalance(uint256)",
+              "args": {
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "rewardTokenErc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "addressName": "vault"
+              },
+              "expectedValue": {
+                "balance": "0"
+              },
+              "expect": "success",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "description": "Vault should hold RewardTokens if VaultRewardTokenStrategy's Hold is set to 10000 (100%)",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [10000, 0]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "addressName": "user1",
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "tokenErc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "addressName": "vault",
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawRebalance(uint256)",
+              "args": {
+                "amount": {
+                  "DAI": "15000000000000000000",
+                  "USDC": "15000000",
+                  "USDT": "15000000"
+                }
+              },
+              "executer": "user1",
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "rewardTokenErc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "addressName": "vault"
+              },
+              "expectedValue": {
+                "balance": ">0"
+              },
+              "expect": "success",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "description": "Vault shouldn't hold RewardTokens if VaultRewardTokenStrategy's Convert is set to 10000 (100%)",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [0, 10000]
               },
               "executer": "owner",
               "expect": "success",

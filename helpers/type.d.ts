@@ -2,6 +2,7 @@ import { Contract } from "ethers";
 
 export type ESSENTIAL_CONTRACTS = {
   registry: Contract;
+  vaultStepInvestStrategyDefinitionRegistry: Contract;
   strategyProvider: Contract;
   harvestCodeProvider: Contract;
   riskManager: Contract;

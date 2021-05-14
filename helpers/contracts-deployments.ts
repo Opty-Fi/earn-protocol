@@ -43,6 +43,18 @@ export async function deployEssentialContracts(
     }
   }
 
+  const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
+    isDeployedOnce,
+    owner,
+    [registry.address],
+  );
+
+  await executeFunc(registry, owner, "setVaultStepInvestStrategyDefinitionRegistry(address)", [
+    vaultStepInvestStrategyDefinitionRegistry.address,
+  ]);
+
   const strategyProvider = await deployContract(
     hre,
     ESSENTIAL_CONTRACTS_DATA.STRATEGY_PROVIDER,
@@ -50,6 +62,8 @@ export async function deployEssentialContracts(
     owner,
     [registry.address],
   );
+
+  await executeFunc(registry, owner, "setStrategyProvider(address)", [strategyProvider.address]);
 
   const harvestCodeProvider = await deployContract(
     hre,
@@ -75,8 +89,6 @@ export async function deployEssentialContracts(
   await executeFunc(riskManager, owner, "become(address)", [riskManagerProxy.address]);
 
   riskManager = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER, riskManagerProxy.address, owner);
-
-  await executeFunc(riskManager, owner, "initialize(address)", [strategyProvider.address]);
 
   const strategyManager = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER, isDeployedOnce, owner, [
     registry.address,
@@ -161,6 +173,7 @@ export async function deployEssentialContracts(
 
   const essentialContracts: CONTRACTS = {
     registry,
+    vaultStepInvestStrategyDefinitionRegistry,
     strategyProvider,
     strategyManager,
     optyMinter,

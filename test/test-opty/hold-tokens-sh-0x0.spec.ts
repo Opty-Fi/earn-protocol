@@ -92,7 +92,7 @@ describe(scenarios.title, () => {
                 bestStrategyHash = await setBestBasicStrategy(
                   strategy.strategy,
                   tokensHash,
-                  essentialContracts.registry,
+                  essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
                   essentialContracts.strategyProvider,
                   vaultRiskProfile,
                 );

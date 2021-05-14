@@ -10,7 +10,7 @@
           "args": {
             "riskProfile": "RP1",
             "noOfSteps": 1,
-            "poolRatingsRange": [0, 10]
+            "poolRatingRange": [0, 10]
           },
           "expect": "success",
           "message": ""
@@ -18,14 +18,15 @@
       ],
       "getActions": [
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP1"
           },
           "expectedValue": {
             "noOfSteps": 1,
-            "poolRatingRange": [0, 10],
+            "lowerLimit": 0,
+            "upperLimit": 10,
             "exists": true
           }
         }
@@ -39,7 +40,7 @@
           "args": {
             "riskProfile": "RP1",
             "noOfSteps": 1,
-            "poolRatingsRange": [0, 10]
+            "poolRatingRange": [0, 10]
           },
           "expect": "fail",
           "message": "RP_already_exists"
@@ -55,7 +56,7 @@
           "args": {
             "riskProfile": "",
             "noOfSteps": 1,
-            "poolRatingsRange": [0, 10]
+            "poolRatingRange": [0, 10]
           },
           "expect": "fail",
           "message": "RP_Empty!"
@@ -78,14 +79,15 @@
       ],
       "getActions": [
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP1"
           },
           "expectedValue": {
             "noOfSteps": 2,
-            "poolRatingRange": [0, 10],
+            "lowerLimit": 0,
+            "upperLimit": 10,
             "exists": true
           }
         }
@@ -121,14 +123,15 @@
       ],
       "getActions": [
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP1"
           },
           "expectedValue": {
             "noOfSteps": 2,
-            "poolRatingRange": [0, 20],
+            "lowerLimit": 0,
+            "upperLimit": 20,
             "exists": true
           }
         }
@@ -163,14 +166,15 @@
       ],
       "getActions": [
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP1"
           },
           "expectedValue": {
             "noOfSteps": 0,
-            "poolRatingRange": [],
+            "lowerLimit": null,
+            "upperLimit": null,
             "exists": false
           }
         }
@@ -210,38 +214,41 @@
       ],
       "getActions": [
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP1"
           },
           "expectedValue": {
             "noOfSteps": 1,
-            "poolRatingRange": [0, 20],
+            "lowerLimit": 0,
+            "upperLimit": 20,
             "exists": true
           }
         },
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP2"
           },
           "expectedValue": {
             "noOfSteps": 2,
-            "poolRatingRange": [0, 40],
+            "lowerLimit": 0,
+            "upperLimit": 40,
             "exists": true
           }
         },
         {
-          "action": "getRiskProfile(string)",
+          "action": "riskProfiles(string)",
 
           "args": {
             "riskProfile": "RP3"
           },
           "expectedValue": {
             "noOfSteps": 3,
-            "poolRatingRange": [0, 60],
+            "lowerLimit": 0,
+            "upperLimit": 60,
             "exists": true
           }
         }
