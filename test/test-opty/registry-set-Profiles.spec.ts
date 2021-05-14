@@ -43,13 +43,13 @@ describe(scenario.title, () => {
             break;
           }
           case "addRiskProfile(string,uint8,(uint8,uint8))": {
-            const { riskProfile, noOfSteps, poolRatingsRange }: ARGUMENTS = action.args;
+            const { riskProfile, noOfSteps, poolRatingRange }: ARGUMENTS = action.args;
             if (riskProfile) {
               if (action.expect === "success") {
                 const _addRiskProfileTx = await registryContract[action.action](
                   riskProfile,
                   noOfSteps,
-                  poolRatingsRange,
+                  poolRatingRange,
                 );
                 const addRiskProfileTx = await _addRiskProfileTx.wait(1);
                 expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
@@ -59,12 +59,12 @@ describe(scenario.title, () => {
                 expect(addRiskProfileTx.events[0].args[3]).to.equal(caller);
                 expect(addRiskProfileTx.events[1].event).to.equal("LogRPPoolRatings");
                 expect(addRiskProfileTx.events[1].args[0]).to.equal(0);
-                expect(addRiskProfileTx.events[1].args[1]).to.equal(poolRatingsRange[0]);
-                expect(addRiskProfileTx.events[1].args[2]).to.equal(poolRatingsRange[1]);
+                expect(addRiskProfileTx.events[1].args[1]).to.equal(poolRatingRange[0]);
+                expect(addRiskProfileTx.events[1].args[2]).to.equal(poolRatingRange[1]);
                 expect(addRiskProfileTx.events[1].args[3]).to.equal(caller);
               } else {
                 await expect(
-                  registryContract[action.action](riskProfile, noOfSteps, poolRatingsRange),
+                  registryContract[action.action](riskProfile, noOfSteps, poolRatingRange),
                 ).to.be.revertedWith(action.message);
               }
             }
@@ -88,8 +88,8 @@ describe(scenario.title, () => {
           case "updateRPPoolRatings(string,(uint8,uint8))": {
             const { riskProfile, poolRatingRange }: ARGUMENTS = action.args;
             if (riskProfile) {
-              const value = await registryContract.getRiskProfile(riskProfile);
-              const riskProfileIndex = value._index;
+              const value = await registryContract.riskProfiles(riskProfile);
+              const riskProfileIndex = value.index;
               if (action.expect === "success") {
                 await expect(registryContract[action.action](riskProfile, poolRatingRange))
                   .to.emit(registryContract, "LogRPPoolRatings")
@@ -108,9 +108,9 @@ describe(scenario.title, () => {
             let riskProfileIndex;
             let riskProfileSteps;
             if (riskProfile) {
-              const value = await registryContract.getRiskProfile(riskProfile);
-              riskProfileIndex = value._index;
-              riskProfileSteps = value._noOfSteps;
+              const { index, steps } = await registryContract.riskProfiles(riskProfile);
+              riskProfileIndex = index;
+              riskProfileSteps = steps;
             }
             if (action.expect === "success") {
               await expect(registryContract[action.action](index ? index : riskProfileIndex))
@@ -132,18 +132,17 @@ describe(scenario.title, () => {
       for (let i = 0; i < story.getActions.length; i++) {
         const action = story.getActions[i];
         switch (action.action) {
-          case "getRiskProfile(string)": {
+          case "riskProfiles(string)": {
             const { riskProfile }: ARGUMENTS = action.args;
             if (riskProfile) {
               const value = await registryContract[action.action](riskProfile);
               if (action.expectedValue["exists"]) {
-                expect(value._noOfSteps).to.be.equal(action.expectedValue["noOfSteps"]);
-                expect([value._poolRatingsRange[0], value._poolRatingsRange[1]]).to.have.members(
-                  action.expectedValue["poolRatingRange"],
-                );
-                expect(value._exists).to.be.equal(action.expectedValue["exists"]);
+                expect(value.steps).to.be.equal(action.expectedValue["noOfSteps"]);
+                expect(value.lowerLimit).to.equal(action.expectedValue["lowerLimit"]);
+                expect(value.upperLimit).to.equal(action.expectedValue["upperLimit"]);
+                expect(value.exists).to.be.equal(action.expectedValue["exists"]);
               } else {
-                expect(value._exists).to.be.equal(action.expectedValue["exists"]);
+                expect(value.exists).to.be.equal(action.expectedValue["exists"]);
               }
             }
             break;

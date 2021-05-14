@@ -152,7 +152,7 @@
               },
               "executer": "user1",
               "expect": "fail",
-              "message": "caller is not the operator"
+              "message": "caller is not having governance"
             }
           ],
           "getActions": []

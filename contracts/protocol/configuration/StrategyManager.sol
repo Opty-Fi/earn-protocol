@@ -11,6 +11,9 @@ import { RegistryStorage } from "./RegistryStorage.sol";
 import { Modifiers } from "./Modifiers.sol";
 import { HarvestCodeProvider } from "./HarvestCodeProvider.sol";
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import {
+    IVaultStepInvestStrategyDefinitionRegistry
+} from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
 
 /**
  * @dev Central processing unit of the earn protocol
@@ -121,7 +124,9 @@ contract StrategyManager is Modifiers {
     }
 
     function _getStrategySteps(bytes32 _hash) internal view returns (DataTypes.StrategyStep[] memory _strategySteps) {
-        (, _strategySteps) = registryContract.getStrategy(_hash);
+        IVaultStepInvestStrategyDefinitionRegistry _vaultStepInvestStrategyDefinitionRegistry =
+            IVaultStepInvestStrategyDefinitionRegistry(registryContract.vaultStepInvestStrategyDefinitionRegistry());
+        (, _strategySteps) = _vaultStepInvestStrategyDefinitionRegistry.getStrategy(_hash);
     }
 
     function _getPoolDepositAllCodes(

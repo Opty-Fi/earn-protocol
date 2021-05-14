@@ -75,17 +75,16 @@ contract RegistryStorage is RegistryAdminStorage {
     mapping(bytes32 => DataTypes.Token) public tokensHashToTokens;
     mapping(address => DataTypes.LiquidityPool) public liquidityPools;
     mapping(address => DataTypes.LiquidityPool) public creditPools;
-    mapping(bytes32 => DataTypes.Strategy) public strategies;
-    mapping(bytes32 => bytes32[]) public tokenToStrategies;
-    mapping(address => mapping(address => bytes32)) public liquidityPoolToTokenHashes;
     mapping(address => address) public liquidityPoolToAdapter;
-    mapping(address => mapping(string => address)) public underlyingTokenToRPToVaults;
+    mapping(bytes32 => mapping(string => address)) public underlyingAssetHashToRPToVaults;
     mapping(address => bool) public vaultToDiscontinued;
     mapping(address => bool) public vaultToPaused;
     mapping(string => DataTypes.RiskProfile) public riskProfiles;
-    bytes32[] public strategyHashIndexes;
     bytes32[] public tokensHashIndexes;
     string[] public riskProfilesArray;
+    address public strategyProvider;
+    address public vaultStepInvestStrategyDefinitionRegistry;
+
     /**
      * @dev Emitted when `token` is approved or revoked.
      *
@@ -120,13 +119,6 @@ contract RegistryStorage is RegistryAdminStorage {
      * Note that `pool` cannot be zero address or EOA.
      */
     event LogRateCreditPool(address indexed pool, uint8 indexed rate, address indexed caller);
-
-    /**
-     * @dev Emitted when `hash` strategy is set.
-     *
-     * Note that `token` cannot be zero address or EOA.
-     */
-    event LogSetStrategy(bytes32 indexed tokensHash, bytes32 indexed hash, address indexed caller);
 
     /**
      * @dev Emitted when `hash` strategy is scored.
@@ -164,12 +156,12 @@ contract RegistryStorage is RegistryAdminStorage {
     event LogPauseVault(address indexed vault, bool indexed paused, address indexed caller);
 
     /**
-     * @dev Emitted when `setUnderlyingTokenToRPToVaults` function is called.
+     * @dev Emitted when `setUnderlyingAssetHashToRPToVaults` function is called.
      *
-     * Note that `underlyingToken` cannot be zero address or EOA.
+     * Note that `underlyingAssetHash` cannot be zero.
      */
-    event LogUnderlyingTokenRPVault(
-        address indexed underlyingToken,
+    event LogUnderlyingAssetHashToRPToVaults(
+        bytes32 indexed underlyingAssetHash,
         string indexed riskProfile,
         address indexed vault,
         address caller

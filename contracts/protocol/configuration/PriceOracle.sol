@@ -2,7 +2,7 @@
 
 pragma solidity ^0.6.10;
 
-import { AggregatorV3Interface } from "../../interfaces/chainlink/AggregatorV3Interface.sol";
+import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 import { Modifiers } from "./Modifiers.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 

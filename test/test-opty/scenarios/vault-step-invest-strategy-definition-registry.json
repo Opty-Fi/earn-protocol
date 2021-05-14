@@ -1,0 +1,53 @@
+{
+  "title": "VaultStepInvestStrategyDefinitionRegistry - setStrategy",
+  "description": "Test cases for VaultStepInvestStrategyDefinitionRegistry contract",
+  "stories": [
+    {
+      "description": "User should be able to set one strategy for one tokensHash",
+      "setActions": [
+        {
+          "action": "setStrategy(bytes32,(address,address,bool)[])",
+          "args": {
+            "tokensHash": "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80",
+            "strategySteps": [
+              ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", false]
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "getStrategy(bytes32)",
+          "args": {
+            "strategyHash": "0xf14294bb238069facb3da995a8d6e805967558c99956a61ce7aa8b53954db845"
+          },
+          "expectedValue": {
+            "index": 0,
+            "strategySteps": [
+              ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", false]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "description": "User should not be able to set same one strategy for one tokensHash",
+      "setActions": [
+        {
+          "action": "setStrategy(bytes32,(address,address,bool)[])",
+          "args": {
+            "tokensHash": "0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80",
+            "strategySteps": [
+              ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", false]
+            ]
+          },
+          "expect": "fail",
+          "message": "isNewStrategy"
+        }
+      ],
+      "getActions": []
+    }
+  ]
+}

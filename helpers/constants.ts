@@ -2,6 +2,7 @@ import { DATA_OBJECT, REWARD_TOKEN_DATA_OBJECT, RISK_PROFILE_DATA } from "./type
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   REGISTRY: "Registry",
   REGISTRY_PROXY: "RegistryProxy",
+  VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY: "VaultStepInvestStrategyDefinitionRegistry",
   STRATEGY_MANAGER: "StrategyManager",
   OPTY: "OPTY",
   OPTY_MINTER: "OPTYMinter",

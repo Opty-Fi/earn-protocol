@@ -284,12 +284,13 @@ contract Vault is
         (, , address _rewardToken) = strategyManagerContract.getLpAdapterRewardToken(_investStrategyHash);
         if (_rewardToken != address(0)) {
             bytes32 _vaultRewardTokenHash = keccak256(abi.encodePacked([address(this), _rewardToken]));
-            (uint256 _hold, uint256 _convert) = riskManagerContract.getVaultRewardTokenStrategy(_vaultRewardTokenHash);
+            DataTypes.VaultRewardStrategy memory _vaultRewardStrategy =
+                riskManagerContract.getVaultRewardTokenStrategy(_vaultRewardTokenHash);
 
             uint8 _harvestSteps = strategyManagerContract.getHarvestRewardStepsCount(_investStrategyHash);
             for (uint8 _i = 0; _i < _harvestSteps; _i++) {
                 bytes[] memory _codes =
-                    (_hold == uint256(0) && _convert == uint256(0))
+                    (_vaultRewardStrategy.hold == uint256(0) && _vaultRewardStrategy.convert == uint256(0))
                         ? strategyManagerContract.getPoolHarvestAllRewardCodes(
                             payable(address(this)),
                             underlyingToken,
@@ -301,7 +302,7 @@ contract Vault is
                             payable(address(this)),
                             underlyingToken,
                             _investStrategyHash,
-                            _convert,
+                            _vaultRewardStrategy.convert,
                             _i,
                             _harvestSteps
                         );
