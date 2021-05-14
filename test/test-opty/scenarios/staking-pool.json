@@ -6,10 +6,12 @@
       "description": "User that is not the operator shouldn't be able to set the underlying token",
       "setActions": [
         {
+          "contract": "stakingPool1D",
           "action": "setToken(address)",
           "args": {
             "token": "0x6b175474e89094c44da98b954eedeac495271d0f"
           },
+          "executor": "user1",
           "expect": "fail",
           "message": "caller is not the operator"
         }
@@ -20,10 +22,12 @@
       "description": "User that is not the operator shouldn't be able to set the OPTYMinter",
       "setActions": [
         {
+          "contract": "stakingPool1D",
           "action": "setOPTYMinter(address)",
           "args": {
             "OPTYMinter": "0x6b175474e89094c44da98b954eedeac495271d0f"
           },
+          "executor": "user1",
           "expect": "fail",
           "message": "caller is not the operator"
         }
@@ -31,67 +35,139 @@
       "getActions": []
     },
     {
-      "description": "User that is not the operator shouldn't be able to set the Opty rate",
+      "description": "User shouldn't be able to approve non-contract addresses",
       "setActions": [
         {
-          "action": "setOptyRatePerSecond(uint256)",
+          "contract": "stakingPool1D",
+          "action": "setOPTYMinter(address)",
           "args": {
-            "rate": "10000000000000000000"
+            "OPTYMinter": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
           },
+          "executor": "owner",
           "expect": "fail",
-          "message": "caller is not the operator"
+          "message": "!_optyMinter.isContract"
+        },
+        {
+          "contract": "stakingPool1D",
+          "action": "setToken(address)",
+          "args": {
+            "token": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
+          },
+          "executor": "owner",
+          "expect": "fail",
+          "message": "!_underlyingToken.isContract"
+        },
+        {
+          "contract": "stakingPool1D",
+          "action": "setOPTYStakingRateBalancer(address)",
+          "args": {
+            "OPTYStakingRateBalancer": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
+          },
+          "executor": "owner",
+          "expect": "fail",
+          "message": "!_optyStakingRateBalancer.isContract"
         }
       ],
       "getActions": []
     },
     {
-      "description": "Operator should be able to set the Opty rate",
+      "description": "User should be able to stake OPTY tokens",
       "setActions": [
         {
-          "action": "setOptyRatePerSecond(uint256)",
+          "contract": "opty",
+          "action": "approve(address,uint256)",
           "args": {
-            "rate": "10000000000000000000"
+            "stakedOPTY": "100000000"
           },
+          "executor": "owner",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "stakingPool1D",
+          "action": "userStake(uint256)",
+          "args": {
+            "stakedOPTY": "100000000"
+          },
+          "executor": "owner",
           "expect": "success",
           "message": ""
         }
       ],
       "getActions": [
         {
-          "action": "optyRatePerSecond()",
-          "expectedValue": "10000000000000000000"
+          "contract": "stakingPool1D",
+          "action": "balance()",
+          "expectedValue": "100000000"
+        },
+        {
+          "contract": "stakingPool1D",
+          "action": "balanceOf(address)",
+          "expectedValue": "100000000"
         }
       ]
     },
     {
-      "description": "User shouldn't be able to approve non-contract address",
+      "description": "User should be able to unstake OPTY tokens after the locking period has ended",
       "setActions": [
         {
-          "action": "setOPTYMinter(address)",
+          "contract": "opty",
+          "action": "approve(address,uint256)",
           "args": {
-            "OPTYMinter": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
+            "stakedOPTY": "100000000"
           },
-          "expect": "fail",
-          "message": "!_optyMinter.isContract"
+          "executor": "owner",
+          "expect": "success",
+          "message": ""
         },
         {
-          "action": "setToken(address)",
+          "contract": "stakingPool1D",
+          "action": "userStake(uint256)",
           "args": {
-            "token": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
+            "stakedOPTY": "100000000"
           },
-          "expect": "fail",
-          "message": "!_underlyingToken.isContract"
+          "executor": "owner",
+          "expect": "success",
+          "message": ""
         },
         {
-          "action": "setOPTYStakingRateBalancer(address)",
+          "contract": "stakingPool1D",
+          "action": "approve(address,uint256)",
           "args": {
-            "OPTYStakingRateBalancer": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
+            "stakedOPTY": "200000000"
           },
-          "expect": "fail",
-          "message": "!_optyStakingRateBalancer.isContract"
+          "executor": "owner",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "stakingPool1D",
+          "action": "userUnstake(uint256)",
+          "args": {
+            "stakedOPTY": "200000000"
+          },
+          "executor": "owner",
+          "expect": "success",
+          "message": ""
         }
       ],
-      "getActions": []
+      "getActions": [
+        {
+          "contract": "stakingPool1D",
+          "action": "balance()",
+          "expectedValue": "0"
+        },
+        {
+          "contract": "stakingPool1D",
+          "action": "balanceOf(address)",
+          "expectedValue": "0"
+        },
+        {
+          "contract": "opty",
+          "action": "balanceOf(address)",
+          "expectedValue": "964040000000000"
+        }
+      ]
     }
   ]
 }

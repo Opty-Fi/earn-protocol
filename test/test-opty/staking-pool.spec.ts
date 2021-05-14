@@ -1,39 +1,34 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
-import { Contract, Signer } from "ethers";
+import { Signer } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import scenario from "./scenarios/staking-pool.json";
+import { getBlockTimestamp } from "../../helpers/contracts-actions";
 
 type ARGUMENTS = {
-  [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  token?: string;
+  OPTYMinter?: string;
+  rate?: string;
+  OPTYStakingRateBalancer?: string;
+  stakedOPTY?: string;
 };
+
 describe(scenario.title, () => {
-  let optyStakingPool: Contract;
-  let optyStakingRateBalancer: Contract;
   let essentialContracts: CONTRACTS;
-  let owner, user1: Signer;
+  const contracts: CONTRACTS = {};
+  let users: { [key: string]: Signer };
   before(async () => {
     try {
-      [owner, user1] = await hre.ethers.getSigners();
+      const [owner, user1] = await hre.ethers.getSigners();
+      users = { owner, user1 };
       [essentialContracts,] = await setUp(owner);
-      console.log(essentialContracts.registry.address);
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
-      const OPTYStakingRateBalancer = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_RATE_BALANCER);
-      optyStakingRateBalancer = await OPTYStakingRateBalancer.connect(owner).deploy(essentialContracts.registry.address);
-      const OPTYStakingPool = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL);
-      optyStakingPool = await OPTYStakingPool.connect(owner)
-        .deploy(
-          essentialContracts.registry.address,
-          essentialContracts.opty.address,
-          essentialContracts.optyMinter.address,
-          0,
-          optyStakingRateBalancer.address,
-          "opty Staking Pool NoLock",
-          "opSPNoLock"
-        );
-      console.log(optyStakingPool.address);
+      contracts["stakingPool1D"] = essentialContracts.optyStakingPool1D;
+      contracts["stakingPool30D"] = essentialContracts.optyStakingPool30D;
+      contracts["stakingPool60D"] = essentialContracts.optyStakingPool60D;
+      contracts["stakingPool180D"] = essentialContracts.optyStakingPool180D;
+      contracts["opty"] = essentialContracts.opty;
     } catch (error) {
       console.log(error);
     }
@@ -49,13 +44,9 @@ describe(scenario.title, () => {
             const { token }: ARGUMENTS = action.args;
             if (token) {
               if (action.expect === "success") {
-                await expect(optyStakingPool[action.action](token));
+                await contracts[action.contract].connect(users[action.executor])[action.action](token);
               } else {
-                if(action.message === "!_underlyingToken.isContract") {
-                  await expect(optyStakingPool[action.action](token)).to.be.revertedWith(action.message);
-                } else {
-                  await expect(optyStakingPool.connect(user1)[action.action](token)).to.be.revertedWith(action.message);
-                }
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](token)).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
@@ -65,13 +56,9 @@ describe(scenario.title, () => {
             const { OPTYMinter }: ARGUMENTS = action.args;
             if (OPTYMinter) {
               if (action.expect === "success") {
-                await expect(optyStakingPool[action.action](OPTYMinter));
+                await contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter);
               } else {
-                if(action.message === "!_optyMinter.isContract") {
-                  await expect(optyStakingPool[action.action](OPTYMinter)).to.be.revertedWith(action.message);
-                } else {
-                  await expect(optyStakingPool.connect(user1)[action.action](OPTYMinter)).to.be.revertedWith(action.message);
-                }
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter)).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(OPTYMinter, `args is wrong in ${action.action} testcase`);
@@ -81,12 +68,52 @@ describe(scenario.title, () => {
             const { rate }: ARGUMENTS = action.args;
             if (rate) {
               if (action.expect === "success") {
-                await expect(optyStakingPool[action.action](rate));
+                await contracts[action.contract].connect(users[action.executor])[action.action](rate);
               } else {
-                await expect(optyStakingPool.connect(user1)[action.action](rate)).to.be.revertedWith(action.message);
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](rate)).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(rate, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "approve(address,uint256)": {
+            const { stakedOPTY }: ARGUMENTS = action.args;
+            console.log("Calling approve...");
+            if (stakedOPTY) {
+              if (action.expect === "success") {
+                await contracts[action.contract].connect(users[action.executor])[action.action](essentialContracts.optyStakingPool1D.address,stakedOPTY);
+              } else {
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](essentialContracts.optyStakingPool1D.address,stakedOPTY)).to.be.revertedWith(action.message);
+              }
+            }
+            assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "userStake(uint256)": {
+            const { stakedOPTY }: ARGUMENTS = action.args;
+            if (stakedOPTY) {
+              if (action.expect === "success") {
+                await contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY);
+              } else {
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY)).to.be.revertedWith(action.message);
+              }
+            }
+            assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "userUnstake(uint256)": {
+            const { stakedOPTY }: ARGUMENTS = action.args;
+            if (stakedOPTY) {
+              if (action.expect === "success") {               
+                const time = await getBlockTimestamp(hre) + 86400;
+                await hre.ethers.provider.send("evm_setNextBlockTimestamp", [time]);
+                await hre.ethers.provider.send("evm_mine", []);
+                await contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY);
+              } else {
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY)).to.be.revertedWith(action.message);
+              }
+            }
+            assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
             break;
           }
           default:
@@ -98,12 +125,22 @@ describe(scenario.title, () => {
         const action = story.getActions[i];
         switch (action.action) {
           case "optyRatePerSecond()": {
-            const value = await optyStakingPool[action.action]();
+            const value = await essentialContracts.optyStakingPool1D[action.action]();
+            expect(value).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "balance()": {
+            const value = await contracts[action.contract][action.action]();
+            expect(value).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "balanceOf(address)": {
+            const value = await contracts[action.contract][action.action](users["owner"].getAddress());
             expect(value).to.be.equal(action.expectedValue);
             break;
           }
           default:
-            break;
+          break;
         }
       }
     });

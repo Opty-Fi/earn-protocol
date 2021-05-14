@@ -11,6 +11,7 @@ import { OPTYStakingPoolStorage } from "./OPTYStakingPoolStorage.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
+import "hardhat/console.sol";
 
 /**
  * @dev Opty.Fi's Staking Pool contract for OPTY
@@ -39,7 +40,13 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         setOPTYStakingRateBalancer(_optyStakingRateBalancer);
     }
 
+    modifier onlyStakingRateBalancer() {
+        require(msg.sender == optyStakingRateBalancer, "caller is not the optyStakingRateBalancer");
+        _;
+    }
+
     function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
+        require(_timelock >= uint256(86400), "Timelock should be at least 1 day.");
         timelockPeriod = _timelock;
         _success = true;
     }
@@ -57,7 +64,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         _success = true;
     }
 
-    function setOptyRatePerSecond(uint256 _rate) public onlyOperator returns (bool _success) {
+    function setOptyRatePerSecond(uint256 _rate) public onlyStakingRateBalancer returns (bool _success) {
         optyRatePerSecond = _rate;
         _success = true;
     }
@@ -149,9 +156,11 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
             "stakingpool:userUnstake"
         );
         updatePool();
+        console.log("Balance after updating: ", balance());
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         _burn(msg.sender, _redeemAmount);
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
+        console.log("Balance after transferring tokens to user: ", balance());
         userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }

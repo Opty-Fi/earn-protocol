@@ -8,7 +8,7 @@ import { OPTYStakingRateBalancerStorage } from "./OPTYStakingRateBalancerStorage
 /**
  * @title OPTYStakingRateBalancerCore
  * @dev Storage for the OPTYStakingRateBalancer is at this address,
- *      while execution is delegated to the `OPTYStakingRateBalancerImplementation`.
+ * while execution is delegated to the `optyStakingRateBalancerImplementation`.
  * OPTYStakingRateBalancer should reference this contract as their controller.
  */
 contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifiers {
@@ -18,15 +18,12 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
     event NewPendingImplementation(address oldPendingImplementation, address newPendingImplementation);
 
     /**
-     * @notice Emitted when pendingOPTYStakingRateBalancerImplementation is accepted,
-     *         which means OPTYStakingRateBalancer implementation is updated
+     * @notice Emitted when OPTYStakingRateBalancer implementation is updated
      */
     event NewImplementation(address oldImplementation, address newImplementation);
 
-    /* solhint-disable no-empty-blocks */
+    // solhint-disable no-empty-blocks
     constructor(address _registry) public Modifiers(_registry) {}
-
-    /* solhint-disable no-empty-blocks */
 
     /*** Admin Functions ***/
     function setPendingImplementation(address newPendingImplementation) public onlyOperator {

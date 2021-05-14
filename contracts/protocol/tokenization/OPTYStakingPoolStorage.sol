@@ -2,7 +2,6 @@
 
 pragma solidity ^0.6.10;
 
-import { RiskManager } from "../configuration/RiskManager.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
 
 /**

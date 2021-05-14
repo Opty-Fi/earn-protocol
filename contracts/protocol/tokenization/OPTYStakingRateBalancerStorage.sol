@@ -14,8 +14,8 @@ contract OPTYStakingRateBalancerStorage {
      */
     address public pendingOPTYStakingRateBalancerImplementation;
 
-    /// @notice This variable stores the no locking term's staking pool address
-    address public stakingPoolNoLockingTerm;
+    /// @notice This variable stores the 1 day locking term's staking pool address
+    address public stakingPool1DLockingTerm;
     /// @notice This variable stores the 30 days locking term's staking pool address
     address public stakingPool30DLockingTerm;
     /// @notice This variable stores the 60 days locking term's staking pool address
