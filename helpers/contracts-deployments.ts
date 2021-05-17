@@ -165,8 +165,7 @@ export async function deployEssentialContracts(
       optyMinter.address,
       86400,
       optyStakingRateBalancer.address,
-      "opty Staking Pool 1D",
-      "opSP1D",
+      "1D",
     ],
   );
 
@@ -181,8 +180,7 @@ export async function deployEssentialContracts(
       optyMinter.address,
       2592000,
       optyStakingRateBalancer.address,
-      "opty Staking Pool 30D",
-      "opSP30D",
+      "30D",
     ],
   );
 
@@ -197,8 +195,7 @@ export async function deployEssentialContracts(
       optyMinter.address,
       5184000,
       optyStakingRateBalancer.address,
-      "opty Staking Pool 60D",
-      "opSP60D",
+      "60D",
     ],
   );
 
@@ -213,8 +210,7 @@ export async function deployEssentialContracts(
       optyMinter.address,
       15552000,
       optyStakingRateBalancer.address,
-      "opty Staking Pool 180D",
-      "opSP180D",
+      "180D",
     ],
   );
 

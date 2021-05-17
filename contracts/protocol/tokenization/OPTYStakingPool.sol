@@ -30,9 +30,15 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         address _optyMinter,
         uint256 _timelock,
         address _optyStakingRateBalancer,
-        string memory _name,
-        string memory _symbol
-    ) public ERC20(_name, _symbol) Modifiers(_registry) {
+        string memory _numberOfDays
+    )
+        public
+        ERC20(
+            string(abi.encodePacked("opty ", _numberOfDays, " Staking Pool")),
+            string(abi.encodePacked("StkOPTY", _numberOfDays))
+        )
+        Modifiers(_registry)
+    {
         setToken(_underlyingToken); /* underlying token contract address (for example DAI) */
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
