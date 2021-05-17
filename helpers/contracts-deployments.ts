@@ -159,14 +159,7 @@ export async function deployEssentialContracts(
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
     owner,
-    [
-      registry.address,
-      opty.address,
-      optyMinter.address,
-      86400,
-      optyStakingRateBalancer.address,
-      "1D",
-    ],
+    [registry.address, opty.address, optyMinter.address, 86400, optyStakingRateBalancer.address, "1D"],
   );
 
   const optyStakingPool30D = await deployContract(
@@ -174,14 +167,7 @@ export async function deployEssentialContracts(
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
     owner,
-    [
-      registry.address,
-      opty.address,
-      optyMinter.address,
-      2592000,
-      optyStakingRateBalancer.address,
-      "30D",
-    ],
+    [registry.address, opty.address, optyMinter.address, 2592000, optyStakingRateBalancer.address, "30D"],
   );
 
   const optyStakingPool60D = await deployContract(
@@ -189,14 +175,7 @@ export async function deployEssentialContracts(
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
     owner,
-    [
-      registry.address,
-      opty.address,
-      optyMinter.address,
-      5184000,
-      optyStakingRateBalancer.address,
-      "60D",
-    ],
+    [registry.address, opty.address, optyMinter.address, 5184000, optyStakingRateBalancer.address, "60D"],
   );
 
   const optyStakingPool180D = await deployContract(
@@ -204,14 +183,7 @@ export async function deployEssentialContracts(
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
     owner,
-    [
-      registry.address,
-      opty.address,
-      optyMinter.address,
-      15552000,
-      optyStakingRateBalancer.address,
-      "180D",
-    ],
+    [registry.address, opty.address, optyMinter.address, 15552000, optyStakingRateBalancer.address, "180D"],
   );
 
   await executeFunc(registry, owner, "setMinter(address)", [optyMinter.address]);
