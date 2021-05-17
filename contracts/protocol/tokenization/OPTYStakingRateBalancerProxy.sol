@@ -22,7 +22,7 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
      */
     event NewImplementation(address oldImplementation, address newImplementation);
 
-    // solhint-disable no-empty-blocks
+    /* solhint-disable no-empty-blocks */
     constructor(address _registry) public Modifiers(_registry) {}
 
     /*** Admin Functions ***/
@@ -39,14 +39,14 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
      * @dev Governance function for new implementation to accept it's role as implementation
      */
     function acceptImplementation() public returns (uint256) {
-        // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
+        /* Check caller is pendingImplementation and pendingImplementation ≠ address(0) */
         require(
             msg.sender == pendingOPTYStakingRateBalancerImplementation &&
                 pendingOPTYStakingRateBalancerImplementation != address(0),
             "!pendingOPTYStakingRateBalancerImplementation"
         );
 
-        // Save current values for inclusion in log
+        /* Save current values for inclusion in log */
         address oldImplementation = optyStakingRateBalancerImplementation;
         address oldPendingImplementation = pendingOPTYStakingRateBalancerImplementation;
 
@@ -71,7 +71,7 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
      * or forwards reverts.
      */
     fallback() external payable {
-        // delegate all other functions to current implementation
+        /* delegate all other functions to current implementation */
         (bool success, ) = optyStakingRateBalancerImplementation.delegatecall(msg.data);
 
         assembly {

@@ -33,7 +33,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         string memory _name,
         string memory _symbol
     ) public ERC20(_name, _symbol) Modifiers(_registry) {
-        setToken(_underlyingToken); //  underlying token contract address (for example DAI)
+        setToken(_underlyingToken); /* underlying token contract address (for example DAI) */
         setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
         setOPTYStakingRateBalancer(_optyStakingRateBalancer);
