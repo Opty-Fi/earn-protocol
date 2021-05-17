@@ -11,7 +11,6 @@ import { OPTYStakingPoolStorage } from "./OPTYStakingPoolStorage.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
-import "hardhat/console.sol";
 
 /**
  * @dev Opty.Fi's Staking Pool contract for OPTY
@@ -148,7 +147,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
     {
         require(
             getBlockTimestamp().sub(userLastUpdate[msg.sender]) > timelockPeriod,
-            "you can't unstake until timelockPeriod has passed"
+            "you can't unstake until timelockPeriod has ended"
         );
         require(_redeemAmount > 0, "!_redeemAmount>0");
         require(
@@ -156,11 +155,12 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
             "stakingpool:userUnstake"
         );
         updatePool();
-        console.log("Balance after updating: ", balance());
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         _burn(msg.sender, _redeemAmount);
+        if (totalSupply() == 0) {
+            lastPoolUpdate = uint256(0);
+        }
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
-        console.log("Balance after transferring tokens to user: ", balance());
         userLastUpdate[msg.sender] = getBlockTimestamp();
         _success = true;
     }

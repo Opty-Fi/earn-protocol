@@ -11,6 +11,7 @@ type ARGUMENTS = {
   OPTYMinter?: string;
   rate?: string;
   OPTYStakingRateBalancer?: string;
+  spender?: string;
   stakedOPTY?: string;
 };
 
@@ -77,13 +78,12 @@ describe(scenario.title, () => {
             break;
           }
           case "approve(address,uint256)": {
-            const { stakedOPTY }: ARGUMENTS = action.args;
-            console.log("Calling approve...");
-            if (stakedOPTY) {
+            const { spender, stakedOPTY }: ARGUMENTS = action.args;
+            if (spender && stakedOPTY) {
               if (action.expect === "success") {
-                await contracts[action.contract].connect(users[action.executor])[action.action](essentialContracts.optyStakingPool1D.address,stakedOPTY);
+                await contracts[action.contract].connect(users[action.executor])[action.action](contracts[spender].address,stakedOPTY);
               } else {
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](essentialContracts.optyStakingPool1D.address,stakedOPTY)).to.be.revertedWith(action.message);
+                await expect(contracts[action.contract].connect(users[action.executor])[action.action](contracts[spender].address,stakedOPTY)).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
@@ -110,6 +110,9 @@ describe(scenario.title, () => {
                 await hre.ethers.provider.send("evm_mine", []);
                 await contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY);
               } else {
+                const time = await getBlockTimestamp(hre) + 86300;
+                await hre.ethers.provider.send("evm_setNextBlockTimestamp", [time]);
+                await hre.ethers.provider.send("evm_mine", []);
                 await expect(contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY)).to.be.revertedWith(action.message);
               }
             }
@@ -125,7 +128,7 @@ describe(scenario.title, () => {
         const action = story.getActions[i];
         switch (action.action) {
           case "optyRatePerSecond()": {
-            const value = await essentialContracts.optyStakingPool1D[action.action]();
+            const value = await contracts[action.contract][action.action]();
             expect(value).to.be.equal(action.expectedValue);
             break;
           }

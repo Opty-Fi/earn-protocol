@@ -8,7 +8,6 @@ import { SafeERC20, IERC20, SafeMath } from "@openzeppelin/contracts/token/ERC20
 import { OPTYStakingRateBalancerStorage } from "./OPTYStakingRateBalancerStorage.sol";
 import { OPTYStakingRateBalancerProxy } from "./OPTYStakingRateBalancerProxy.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
-import "hardhat/console.sol";
 
 contract OPTYStakingRateBalancer is OPTYStakingRateBalancerStorage, Modifiers {
     using SafeERC20 for IERC20;
