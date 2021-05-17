@@ -23,7 +23,7 @@ describe(scenario.title, () => {
     try {
       const [owner, user1] = await hre.ethers.getSigners();
       users = { owner, user1 };
-      [essentialContracts,] = await setUp(owner);
+      [essentialContracts] = await setUp(owner);
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       contracts["stakingPool1D"] = essentialContracts.optyStakingPool1D;
       contracts["stakingPool30D"] = essentialContracts.optyStakingPool30D;
@@ -47,7 +47,9 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await contracts[action.contract].connect(users[action.executor])[action.action](token);
               } else {
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](token)).to.be.revertedWith(action.message);
+                await expect(
+                  contracts[action.contract].connect(users[action.executor])[action.action](token),
+                ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
@@ -59,7 +61,9 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter);
               } else {
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter)).to.be.revertedWith(action.message);
+                await expect(
+                  contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter),
+                ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(OPTYMinter, `args is wrong in ${action.action} testcase`);
@@ -71,7 +75,9 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await contracts[action.contract].connect(users[action.executor])[action.action](rate);
               } else {
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](rate)).to.be.revertedWith(action.message);
+                await expect(
+                  contracts[action.contract].connect(users[action.executor])[action.action](rate),
+                ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(rate, `args is wrong in ${action.action} testcase`);
@@ -81,9 +87,15 @@ describe(scenario.title, () => {
             const { spender, stakedOPTY }: ARGUMENTS = action.args;
             if (spender && stakedOPTY) {
               if (action.expect === "success") {
-                await contracts[action.contract].connect(users[action.executor])[action.action](contracts[spender].address,stakedOPTY);
+                await contracts[action.contract]
+                  .connect(users[action.executor])
+                  [action.action](contracts[spender].address, stakedOPTY);
               } else {
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](contracts[spender].address,stakedOPTY)).to.be.revertedWith(action.message);
+                await expect(
+                  contracts[action.contract]
+                    .connect(users[action.executor])
+                    [action.action](contracts[spender].address, stakedOPTY),
+                ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
@@ -95,7 +107,9 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY);
               } else {
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY)).to.be.revertedWith(action.message);
+                await expect(
+                  contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY),
+                ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
@@ -104,23 +118,25 @@ describe(scenario.title, () => {
           case "userUnstake(uint256)": {
             const { stakedOPTY }: ARGUMENTS = action.args;
             if (stakedOPTY) {
-              if (action.expect === "success") {               
-                const time = await getBlockTimestamp(hre) + 86400;
+              if (action.expect === "success") {
+                const time = (await getBlockTimestamp(hre)) + 86400;
                 await hre.ethers.provider.send("evm_setNextBlockTimestamp", [time]);
                 await hre.ethers.provider.send("evm_mine", []);
                 await contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY);
               } else {
-                const time = await getBlockTimestamp(hre) + 86300;
+                const time = (await getBlockTimestamp(hre)) + 86300;
                 await hre.ethers.provider.send("evm_setNextBlockTimestamp", [time]);
                 await hre.ethers.provider.send("evm_mine", []);
-                await expect(contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY)).to.be.revertedWith(action.message);
+                await expect(
+                  contracts[action.contract].connect(users[action.executor])[action.action](stakedOPTY),
+                ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(stakedOPTY, `args is wrong in ${action.action} testcase`);
             break;
           }
           default:
-          break;
+            break;
         }
       }
 
@@ -143,7 +159,7 @@ describe(scenario.title, () => {
             break;
           }
           default:
-          break;
+            break;
         }
       }
     });

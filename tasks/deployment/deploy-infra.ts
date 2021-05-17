@@ -4,7 +4,6 @@ import { CONTRACTS } from "../../helpers/type";
 import { deployEssentialContracts, deployAdapters } from "../../helpers/contracts-deployments";
 import { approveLiquidityPoolAndMapAdapters, approveTokens } from "../../helpers/contracts-actions";
 import { insertContractIntoDB } from "../../helpers/db";
-import "@nomiclabs/hardhat-ethers";
 task("deploy-infra", "Deploy infrastructure contracts")
   .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .setAction(async ({ deployedOnce }, hre) => {
