@@ -12,6 +12,7 @@ import "hardhat-deploy";
 import { NETWORKS_RPC_URL, NETWORKS_DEFAULT_GAS, eEthereumNetwork } from "./helper-hardhat-config";
 
 require("./tasks/deployment/deploy-infra");
+require("./tasks/deployment/deploy-adapters");
 require("./tasks/deployment/deploy-vault");
 require("./tasks/deployment/deploy-vaults");
 require("./tasks/accounts");
@@ -69,7 +70,7 @@ const buidlerConfig: HardhatUserConfig = {
   solidity: {
     version: "0.6.10",
     settings: {
-      optimizer: { enabled: true, runs: 1 },
+      optimizer: { enabled: true, runs: 200 },
       evmVersion: "istanbul",
     },
   },
@@ -82,6 +83,7 @@ const buidlerConfig: HardhatUserConfig = {
       url: NETWORKS_RPC_URL[eEthereumNetwork.hardhat],
       chainId: chainIds.ganache,
     },
+    kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, chainIds.kovan),
     hardhat: {
       forking: {
         blockNumber: 12200321,

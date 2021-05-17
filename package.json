@@ -83,9 +83,12 @@
     "gas-report": "env REPORT_GAS=true yarn test",
     "hardhat:local": "hardhat --network localhost",
     "hardhat:staging": "hardhat --network staging",
+    "hardhat:kovan": "hardhat --network kovan",
     "deploy-infra": "hardhat deploy-infra",
     "deploy-infra:local": "npm run hardhat:local deploy-infra",
-    "deploy-infra:staging": "npm run hardhat:staging deploy-infra"
+    "deploy-infra:staging": "npm run hardhat:staging deploy-infra",
+    "deploy-adapters": "hardhat deploy-adapters",
+    "deploy-adapters:kovan": "npm run hardhat:kovan deploy-adapters --"
   },
   "publishConfig": {
     "access": "public"
