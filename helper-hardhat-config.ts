@@ -19,7 +19,7 @@ export type iEthereumParamsPerNetwork<T> = {
 };
 
 export const NETWORKS_RPC_URL: iEthereumParamsPerNetwork<string> = {
-  [eEthereumNetwork.kovan]: "",
+  [eEthereumNetwork.kovan]: process.env.KOVAN_NODE_URL ? process.env.KOVAN_NODE_URL : "",
   [eEthereumNetwork.ropsten]: "",
   [eEthereumNetwork.main]: "",
   [eEthereumNetwork.staging]: process.env.STAGING_NETWORK_URL ? process.env.STAGING_NETWORK_URL : "",

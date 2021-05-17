@@ -1,7 +1,12 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Contract, Signer } from "ethers";
-import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
+import {
+  deployAdapters,
+  deployHarvestCodeProvider,
+  deployPriceOracle,
+  deployRegistry,
+} from "../../helpers/contracts-deployments";
 import { CONTRACTS } from "../../helpers/type";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import scenario from "./scenarios/registry.json";
@@ -13,6 +18,7 @@ type ARGUMENTS = {
 describe(scenario.title, () => {
   let registryContract: Contract;
   let harvestCodeProvider: Contract;
+  let priceOracle;
   let adapters: CONTRACTS;
   let owner: Signer;
   let caller: string;
@@ -20,13 +26,19 @@ describe(scenario.title, () => {
     try {
       [owner] = await hre.ethers.getSigners();
       registryContract = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
-      const HarvestCodeProvider = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER);
-      harvestCodeProvider = await HarvestCodeProvider.connect(owner).deploy(registryContract.address);
+      harvestCodeProvider = await deployHarvestCodeProvider(
+        hre,
+        owner,
+        registryContract.address,
+        TESTING_DEPLOYMENT_ONCE,
+      );
+      priceOracle = await deployPriceOracle(hre, owner, registryContract.address, TESTING_DEPLOYMENT_ONCE);
       adapters = await deployAdapters(
         hre,
         owner,
         registryContract.address,
         harvestCodeProvider.address,
+        priceOracle.address,
         TESTING_DEPLOYMENT_ONCE,
       );
       caller = await owner.getAddress();

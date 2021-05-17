@@ -12,6 +12,7 @@ export async function setUp(owner: Signer): Promise<[CONTRACTS, CONTRACTS]> {
     owner,
     contracts.registry.address,
     contracts.harvestCodeProvider.address,
+    contracts.priceOracle.address,
     TESTING_DEPLOYMENT_ONCE,
   );
   return [contracts, adapters];
