@@ -8,7 +8,7 @@ import { OPTYStakingRateBalancerStorage } from "./OPTYStakingRateBalancerStorage
 /**
  * @title OPTYStakingRateBalancerCore
  * @dev Storage for the OPTYStakingRateBalancer is at this address,
- *      while execution is delegated to the `OPTYStakingRateBalancerImplementation`.
+ * while execution is delegated to the `optyStakingRateBalancerImplementation`.
  * OPTYStakingRateBalancer should reference this contract as their controller.
  */
 contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifiers {
@@ -18,15 +18,12 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
     event NewPendingImplementation(address oldPendingImplementation, address newPendingImplementation);
 
     /**
-     * @notice Emitted when pendingOPTYStakingRateBalancerImplementation is accepted,
-     *         which means OPTYStakingRateBalancer implementation is updated
+     * @notice Emitted when OPTYStakingRateBalancer implementation is updated
      */
     event NewImplementation(address oldImplementation, address newImplementation);
 
     /* solhint-disable no-empty-blocks */
     constructor(address _registry) public Modifiers(_registry) {}
-
-    /* solhint-disable no-empty-blocks */
 
     /*** Admin Functions ***/
     function setPendingImplementation(address newPendingImplementation) public onlyOperator {
@@ -42,14 +39,14 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
      * @dev Governance function for new implementation to accept it's role as implementation
      */
     function acceptImplementation() public returns (uint256) {
-        // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
+        /* Check caller is pendingImplementation and pendingImplementation ≠ address(0) */
         require(
             msg.sender == pendingOPTYStakingRateBalancerImplementation &&
                 pendingOPTYStakingRateBalancerImplementation != address(0),
             "!pendingOPTYStakingRateBalancerImplementation"
         );
 
-        // Save current values for inclusion in log
+        /* Save current values for inclusion in log */
         address oldImplementation = optyStakingRateBalancerImplementation;
         address oldPendingImplementation = pendingOPTYStakingRateBalancerImplementation;
 
@@ -74,7 +71,7 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
      * or forwards reverts.
      */
     fallback() external payable {
-        // delegate all other functions to current implementation
+        /* delegate all other functions to current implementation */
         (bool success, ) = optyStakingRateBalancerImplementation.delegatecall(msg.data);
 
         assembly {

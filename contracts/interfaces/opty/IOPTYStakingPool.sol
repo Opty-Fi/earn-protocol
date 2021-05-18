@@ -7,5 +7,5 @@ pragma experimental ABIEncoderV2;
  * @dev Interface of the Opty.fi staking pool.
  */
 interface IOPTYStakingPool {
-    function setOptyRatePerBlock(uint256 _rate) external returns (bool _success);
+    function setOptyRatePerSecond(uint256 _rate) external returns (bool _success);
 }

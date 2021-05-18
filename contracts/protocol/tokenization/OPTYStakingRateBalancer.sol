@@ -9,7 +9,7 @@ import { OPTYStakingRateBalancerStorage } from "./OPTYStakingRateBalancerStorage
 import { OPTYStakingRateBalancerProxy } from "./OPTYStakingRateBalancerProxy.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
 
-contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
+contract OPTYStakingRateBalancer is OPTYStakingRateBalancerStorage, Modifiers {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -23,16 +23,16 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
      *
      */
     function initialize(
-        address _stakingPoolNoLockingPeriod,
+        address _stakingPool1DLockingTerm,
         address _stakingPool30DLockingTerm,
         address _stakingPool60DLockingTerm,
         address _stakingPool180DLockingTerm
     ) public onlyGovernance {
-        stakingPoolNoLockingTerm = _stakingPoolNoLockingPeriod;
+        stakingPool1DLockingTerm = _stakingPool1DLockingTerm;
         stakingPool30DLockingTerm = _stakingPool30DLockingTerm;
         stakingPool60DLockingTerm = _stakingPool60DLockingTerm;
         stakingPool180DLockingTerm = _stakingPool180DLockingTerm;
-        stakingPools[stakingPoolNoLockingTerm] = true;
+        stakingPools[stakingPool1DLockingTerm] = true;
         stakingPools[stakingPool30DLockingTerm] = true;
         stakingPools[stakingPool60DLockingTerm] = true;
         stakingPools[stakingPool180DLockingTerm] = true;
@@ -61,13 +61,13 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
     }
 
     function updateOptyRates() public onlyStakingPools returns (bool) {
-        uint256 _stakingPoolNoLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPoolNoLockingTerm];
+        uint256 _stakingPool1DLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPool1DLockingTerm];
         uint256 _stakingPool30DLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPool30DLockingTerm];
         uint256 _stakingPool60DLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPool60DLockingTerm];
         uint256 _stakingPool180DLockingTermStakedOPTY = stakingPoolToStakedOPTY[stakingPool180DLockingTerm];
 
-        uint256 _weightedNoLockingTermStakedOPTY =
-            stakingPoolMultipliers[stakingPoolNoLockingTerm].mul(_stakingPoolNoLockingTermStakedOPTY);
+        uint256 _weighted1DLockingTermStakedOPTY =
+            stakingPoolMultipliers[stakingPool1DLockingTerm].mul(_stakingPool1DLockingTermStakedOPTY);
         uint256 _weighted30DLockingTermStakedOPTY =
             stakingPoolMultipliers[stakingPool30DLockingTerm].mul(_stakingPool30DLockingTermStakedOPTY);
         uint256 _weighted60DLockingTermStakedOPTY =
@@ -76,32 +76,46 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
             stakingPoolMultipliers[stakingPool180DLockingTerm].mul(_stakingPool180DLockingTermStakedOPTY);
 
         uint256 _totalWeightedStakedOPTY =
-            _weightedNoLockingTermStakedOPTY
+            _weighted1DLockingTermStakedOPTY
                 .add(_weighted30DLockingTermStakedOPTY)
                 .add(_weighted60DLockingTermStakedOPTY)
                 .add(_weighted180DLockingTermStakedOPTY);
-        uint256 _rateNoLock =
-            stakingPoolOPTYAllocation.mul(_weightedNoLockingTermStakedOPTY).div(_totalWeightedStakedOPTY);
-        uint256 _rate30DLock =
-            stakingPoolOPTYAllocation.mul(_weighted30DLockingTermStakedOPTY).div(_totalWeightedStakedOPTY);
-        uint256 _rate60DLock =
-            stakingPoolOPTYAllocation.mul(_weighted60DLockingTermStakedOPTY).div(_totalWeightedStakedOPTY);
-        uint256 _rate180DLock =
-            stakingPoolOPTYAllocation.mul(_weighted180DLockingTermStakedOPTY).div(_totalWeightedStakedOPTY);
+        uint256 _rate1DLock;
+        uint256 _rate30DLock;
+        uint256 _rate60DLock;
+        uint256 _rate180DLock;
+        if (_totalWeightedStakedOPTY == uint256(0)) {
+            _rate1DLock = uint256(0);
+            _rate30DLock = uint256(0);
+            _rate60DLock = uint256(0);
+            _rate180DLock = uint256(0);
+        } else {
+            _rate1DLock = stakingPoolOPTYAllocation.mul(_weighted1DLockingTermStakedOPTY).div(_totalWeightedStakedOPTY);
+            _rate30DLock = stakingPoolOPTYAllocation.mul(_weighted30DLockingTermStakedOPTY).div(
+                _totalWeightedStakedOPTY
+            );
+            _rate60DLock = stakingPoolOPTYAllocation.mul(_weighted60DLockingTermStakedOPTY).div(
+                _totalWeightedStakedOPTY
+            );
+            _rate180DLock = stakingPoolOPTYAllocation.mul(_weighted180DLockingTermStakedOPTY).div(
+                _totalWeightedStakedOPTY
+            );
+        }
+
         require(
-            IOPTYStakingPool(stakingPoolNoLockingTerm).setOptyRatePerBlock(_rateNoLock),
-            "updateOptyRates:nolockingterm"
+            IOPTYStakingPool(stakingPool1DLockingTerm).setOptyRatePerSecond(_rate1DLock),
+            "updateOptyRates:1Dlockingterm"
         );
         require(
-            IOPTYStakingPool(stakingPool30DLockingTerm).setOptyRatePerBlock(_rate30DLock),
+            IOPTYStakingPool(stakingPool30DLockingTerm).setOptyRatePerSecond(_rate30DLock),
             "updateOptyRates:30Dlockingterm"
         );
         require(
-            IOPTYStakingPool(stakingPool60DLockingTerm).setOptyRatePerBlock(_rate60DLock),
+            IOPTYStakingPool(stakingPool60DLockingTerm).setOptyRatePerSecond(_rate60DLock),
             "updateOptyRates:160Dlockingterm"
         );
         require(
-            IOPTYStakingPool(stakingPool180DLockingTerm).setOptyRatePerBlock(_rate180DLock),
+            IOPTYStakingPool(stakingPool180DLockingTerm).setOptyRatePerSecond(_rate180DLock),
             "updateOptyRates:180Dlockingterm"
         );
         return true;
@@ -126,5 +140,6 @@ contract OPTYStakingRateBalancer is Modifiers, OPTYStakingRateBalancerStorage {
             );
         }
         stakingPoolToStakedOPTY[msg.sender] = stakingPoolToStakedOPTY[msg.sender].sub(_amount);
+        return true;
     }
 }

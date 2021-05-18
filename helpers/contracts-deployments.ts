@@ -21,6 +21,34 @@ export async function deployRegistry(
   return registry;
 }
 
+export async function deployHarvestCodeProvider(
+  hre: HardhatRuntimeEnvironment,
+  owner: Signer,
+  registryAddr: string,
+  isDeployedOnce: boolean,
+): Promise<Contract> {
+  const harvestCodeProvider = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER,
+    isDeployedOnce,
+    owner,
+    [registryAddr],
+  );
+  return harvestCodeProvider;
+}
+
+export async function deployPriceOracle(
+  hre: HardhatRuntimeEnvironment,
+  owner: Signer,
+  registryAddr: string,
+  isDeployedOnce: boolean,
+): Promise<Contract> {
+  const priceOracle = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.PRICE_ORACLE, isDeployedOnce, owner, [
+    registryAddr,
+  ]);
+  return priceOracle;
+}
+
 export async function deployEssentialContracts(
   hre: HardhatRuntimeEnvironment,
   owner: Signer,
@@ -65,13 +93,7 @@ export async function deployEssentialContracts(
 
   await executeFunc(registry, owner, "setStrategyProvider(address)", [strategyProvider.address]);
 
-  const harvestCodeProvider = await deployContract(
-    hre,
-    ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER,
-    isDeployedOnce,
-    owner,
-    [registry.address],
-  );
+  const harvestCodeProvider = await deployHarvestCodeProvider(hre, owner, registry.address, isDeployedOnce);
 
   let riskManager = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.RISK_MANAGER, isDeployedOnce, owner, [
     registry.address,
@@ -95,12 +117,105 @@ export async function deployEssentialContracts(
     harvestCodeProvider.address,
   ]);
 
-  const opty = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.OPTY, isDeployedOnce, owner, [registry.address, 0]);
+  const opty = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.OPTY, isDeployedOnce, owner, [
+    registry.address,
+    100000000000000,
+  ]);
 
   const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.OPTY_MINTER, isDeployedOnce, owner, [
     registry.address,
     opty.address,
   ]);
+
+  let optyStakingRateBalancer = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_RATE_BALANCER,
+    isDeployedOnce,
+    owner,
+    [registry.address],
+  );
+
+  const optyStakingRateBalancerProxy = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_RATE_BALANCER_PROXY,
+    isDeployedOnce,
+    owner,
+    [registry.address],
+  );
+
+  await executeFunc(optyStakingRateBalancerProxy, owner, "setPendingImplementation(address)", [
+    optyStakingRateBalancer.address,
+  ]);
+  await executeFunc(optyStakingRateBalancer, owner, "become(address)", [optyStakingRateBalancerProxy.address]);
+
+  optyStakingRateBalancer = await hre.ethers.getContractAt(
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_RATE_BALANCER,
+    optyStakingRateBalancerProxy.address,
+    owner,
+  );
+
+  const optyStakingPool1D = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    isDeployedOnce,
+    owner,
+    [registry.address, opty.address, optyMinter.address, 86400, optyStakingRateBalancer.address, "1D"],
+  );
+
+  const optyStakingPool30D = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    isDeployedOnce,
+    owner,
+    [registry.address, opty.address, optyMinter.address, 2592000, optyStakingRateBalancer.address, "30D"],
+  );
+
+  const optyStakingPool60D = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    isDeployedOnce,
+    owner,
+    [registry.address, opty.address, optyMinter.address, 5184000, optyStakingRateBalancer.address, "60D"],
+  );
+
+  const optyStakingPool180D = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    isDeployedOnce,
+    owner,
+    [registry.address, opty.address, optyMinter.address, 15552000, optyStakingRateBalancer.address, "180D"],
+  );
+
+  await executeFunc(registry, owner, "setMinter(address)", [optyMinter.address]);
+  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool1D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool30D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool60D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool180D.address, true]);
+  await executeFunc(optyStakingRateBalancer, owner, "initialize(address,address,address,address)", [
+    optyStakingPool1D.address,
+    optyStakingPool30D.address,
+    optyStakingPool60D.address,
+    optyStakingPool180D.address,
+  ]);
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
+    optyStakingPool1D.address,
+    10000,
+  ]);
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
+    optyStakingPool30D.address,
+    12000,
+  ]);
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
+    optyStakingPool60D.address,
+    15000,
+  ]);
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
+    optyStakingPool180D.address,
+    20000,
+  ]);
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolOPTYAllocation(uint256)", [10000000000]);
+
+  const priceOracle = await deployPriceOracle(hre, owner, registry.address, isDeployedOnce);
 
   const essentialContracts: CONTRACTS = {
     registry,
@@ -111,6 +226,12 @@ export async function deployEssentialContracts(
     opty,
     riskManager,
     harvestCodeProvider,
+    optyStakingRateBalancer,
+    optyStakingPool1D,
+    optyStakingPool30D,
+    optyStakingPool60D,
+    optyStakingPool180D,
+    priceOracle,
   };
   return essentialContracts;
 }
@@ -120,6 +241,7 @@ export async function deployAdapters(
   owner: Signer,
   registryAddr: string,
   harvestAddr: string,
+  priceOracleAddr: string,
   isDeployedOnce: boolean,
 ): Promise<CONTRACTS> {
   const data: CONTRACTS = {};
@@ -130,7 +252,12 @@ export async function deployAdapters(
         contract = await deployContract(hre, adapter, isDeployedOnce, owner, [registryAddr]);
         data[adapter] = contract;
       } else if (["CurvePoolAdapter"].includes(adapter)) {
-        // TODO : handle deployment of CurvePoolAdapter
+        contract = await deployContract(hre, adapter, isDeployedOnce, owner, [
+          registryAddr,
+          harvestAddr,
+          priceOracleAddr,
+        ]);
+        data[adapter] = contract;
       } else {
         contract = await deployContract(hre, adapter, isDeployedOnce, owner, [registryAddr, harvestAddr]);
         data[adapter] = contract;
@@ -217,6 +344,15 @@ export async function deployVault(
     underlyingTokenSymbol,
     riskProfile,
   ]);
+
+  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.REGISTRY, registry, owner);
+
+  await executeFunc(registryContract, owner, "setUnderlyingAssetHashToRPToVaults(address[],string,address)", [
+    [underlyingToken],
+    riskProfile,
+    vault.address,
+  ]);
+
   return vault;
 }
 

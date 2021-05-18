@@ -664,6 +664,7 @@ contract Registry is ModifiersController {
         require(bytes(_riskProfile).length > 0, "RP_empty.");
         require(_vault != address(0), "!address(0)");
         require(address(_vault).isContract(), "!isContract");
+        require(riskProfiles[_riskProfile].exists, "!RP");
         underlyingAssetHashToRPToVaults[_underlyingAssetHash][_riskProfile] = _vault;
         emit LogUnderlyingAssetHashToRPToVaults(_underlyingAssetHash, _riskProfile, _vault, msg.sender);
         return true;

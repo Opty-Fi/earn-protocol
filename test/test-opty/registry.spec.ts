@@ -1,7 +1,12 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Contract, Signer } from "ethers";
-import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
+import {
+  deployAdapters,
+  deployHarvestCodeProvider,
+  deployPriceOracle,
+  deployRegistry,
+} from "../../helpers/contracts-deployments";
 import { CONTRACTS } from "../../helpers/type";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import scenario from "./scenarios/registry.json";
@@ -13,20 +18,28 @@ type ARGUMENTS = {
 describe(scenario.title, () => {
   let registryContract: Contract;
   let harvestCodeProvider: Contract;
+  let priceOracle;
   let adapters: CONTRACTS;
   let owner: Signer;
+  let users: Signer[];
   let caller: string;
   beforeEach(async () => {
     try {
-      [owner] = await hre.ethers.getSigners();
+      [owner, ...users] = await hre.ethers.getSigners();
       registryContract = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
-      const HarvestCodeProvider = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER);
-      harvestCodeProvider = await HarvestCodeProvider.connect(owner).deploy(registryContract.address);
+      harvestCodeProvider = await deployHarvestCodeProvider(
+        hre,
+        owner,
+        registryContract.address,
+        TESTING_DEPLOYMENT_ONCE,
+      );
+      priceOracle = await deployPriceOracle(hre, owner, registryContract.address, TESTING_DEPLOYMENT_ONCE);
       adapters = await deployAdapters(
         hre,
         owner,
         registryContract.address,
         harvestCodeProvider.address,
+        priceOracle.address,
         TESTING_DEPLOYMENT_ONCE,
       );
       caller = await owner.getAddress();
@@ -44,6 +57,19 @@ describe(scenario.title, () => {
       for (let i = 0; i < story.setActions.length; i++) {
         const action = story.setActions[i];
         switch (action.action) {
+          case "setOperator(address)": {
+            const { userIndex }: ARGUMENTS = action.args;
+            const userAddr = await users[userIndex].getAddress();
+            if (userIndex) {
+              if (action.expect === "success") {
+                await registryContract[action.action](userAddr);
+              } else {
+                await expect(registryContract[action.action](userAddr)).to.be.revertedWith(action.message);
+              }
+            }
+            assert.isDefined(userIndex, `args is wrong in ${action.action} testcase`);
+            break;
+          }
           case "approveToken(address[])":
           case "approveToken(address)": {
             const { tokens }: ARGUMENTS = action.args;
@@ -200,6 +226,134 @@ describe(scenario.title, () => {
             assert.isDefined(tokensHash, `args is wrong in ${action.action} testcase`);
             break;
           }
+          case "addRiskProfile(string[],uint8[],(uint8,uint8)[])": {
+            const { riskProfile, noOfSteps, poolRatingsRange }: ARGUMENTS = action.args;
+            if (riskProfile) {
+              if (action.expect === "success") {
+                await registryContract[action.action](riskProfile, noOfSteps, poolRatingsRange);
+              } else {
+                await expect(
+                  registryContract[action.action](riskProfile, noOfSteps, poolRatingsRange),
+                ).to.be.revertedWith(action.message);
+              }
+            }
+            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "addRiskProfile(string,uint8,(uint8,uint8))": {
+            const { riskProfile, noOfSteps, poolRatingRange }: ARGUMENTS = action.args;
+            if (riskProfile) {
+              if (action.expect === "success") {
+                const _addRiskProfileTx = await registryContract[action.action](
+                  riskProfile,
+                  noOfSteps,
+                  poolRatingRange,
+                );
+                const addRiskProfileTx = await _addRiskProfileTx.wait(1);
+                expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
+                expect(addRiskProfileTx.events[0].args[0]).to.equal(0);
+                expect(addRiskProfileTx.events[0].args[1]).to.equal(true);
+                expect(addRiskProfileTx.events[0].args[2]).to.equal(noOfSteps);
+                expect(addRiskProfileTx.events[0].args[3]).to.equal(caller);
+                expect(addRiskProfileTx.events[1].event).to.equal("LogRPPoolRatings");
+                expect(addRiskProfileTx.events[1].args[0]).to.equal(0);
+                expect(addRiskProfileTx.events[1].args[1]).to.equal(poolRatingRange[0]);
+                expect(addRiskProfileTx.events[1].args[2]).to.equal(poolRatingRange[1]);
+                expect(addRiskProfileTx.events[1].args[3]).to.equal(caller);
+              } else {
+                await expect(
+                  registryContract[action.action](riskProfile, noOfSteps, poolRatingRange),
+                ).to.be.revertedWith(action.message);
+              }
+            }
+            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "updateRiskProfileSteps(string,uint8)": {
+            const { riskProfile, noOfSteps }: ARGUMENTS = action.args;
+            if (riskProfile) {
+              if (action.expect === "success") {
+                await registryContract[action.action](riskProfile, noOfSteps);
+              } else {
+                await expect(registryContract[action.action](riskProfile, noOfSteps)).to.be.revertedWith(
+                  action.message,
+                );
+              }
+            }
+            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "updateRPPoolRatings(string,(uint8,uint8))": {
+            const { riskProfile, poolRatingRange }: ARGUMENTS = action.args;
+            if (riskProfile) {
+              const value = await registryContract.riskProfiles(riskProfile);
+              const riskProfileIndex = value.index;
+              if (action.expect === "success") {
+                await expect(registryContract[action.action](riskProfile, poolRatingRange))
+                  .to.emit(registryContract, "LogRPPoolRatings")
+                  .withArgs(riskProfileIndex, poolRatingRange[0], poolRatingRange[1], caller);
+              } else {
+                await expect(registryContract[action.action](riskProfile, poolRatingRange)).to.be.revertedWith(
+                  action.message,
+                );
+              }
+            }
+            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "removeRiskProfile(uint256)": {
+            const { riskProfile, index }: ARGUMENTS = action.args;
+            let riskProfileIndex;
+            let riskProfileSteps;
+            if (riskProfile) {
+              const { index, steps } = await registryContract.riskProfiles(riskProfile);
+              riskProfileIndex = index;
+              riskProfileSteps = steps;
+            }
+            if (action.expect === "success") {
+              await expect(registryContract[action.action](index ? index : riskProfileIndex))
+                .to.emit(registryContract, "LogRiskProfile")
+                .withArgs(riskProfileIndex, false, riskProfileSteps, caller);
+            } else {
+              await expect(registryContract[action.action](index ? index : riskProfileIndex)).to.be.revertedWith(
+                action.message,
+              );
+            }
+            assert.isDefined(riskProfile ? riskProfile : index, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "setUnderlyingAssetHashToRPToVaults(address[],string,address)": {
+            const { tokens, riskProfile, vault }: ARGUMENTS = action.args;
+            if (tokens && riskProfile && vault) {
+              if (action.expect === "success") {
+                await registryContract[action.action](tokens, riskProfile, vault);
+              } else {
+                await expect(registryContract[action.action](tokens, riskProfile, vault)).to.be.revertedWith(
+                  action.message,
+                );
+              }
+            }
+            assert.isDefined(tokens, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(vault, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "setUnderlyingAssetHashToRPToVaults(address[][],string[],address[][])": {
+            const { multiTokens, riskProfiles, vaults }: ARGUMENTS = action.args;
+            if (multiTokens && riskProfiles && vaults) {
+              if (action.expect === "success") {
+                await registryContract[action.action](multiTokens, riskProfiles, vaults);
+              } else {
+                await expect(registryContract[action.action](multiTokens, riskProfiles, vaults)).to.be.revertedWith(
+                  action.message,
+                );
+              }
+            }
+            assert.isDefined(multiTokens, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfiles, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(vaults, `args is wrong in ${action.action} testcase`);
+            break;
+          }
           default:
             break;
         }
@@ -213,6 +367,15 @@ describe(scenario.title, () => {
             if (address) {
               const value = await registryContract[action.action](address);
               expect(value).to.be.equal(action.expectedValue);
+            }
+            assert.isDefined(address, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "liquidityPoolToAdapter(address)": {
+            const { address }: ARGUMENTS = action.args;
+            if (address) {
+              const value = await registryContract[action.action](address);
+              expect(value).to.be.equal(adapters[action.expectedValue.toString()].address);
             }
             assert.isDefined(address, `args is wrong in ${action.action} testcase`);
             break;
@@ -235,6 +398,34 @@ describe(scenario.title, () => {
               expect(value).to.be.equal(action.expectedValue);
             }
             assert.isDefined(index, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "riskProfiles(string)": {
+            const { riskProfile }: ARGUMENTS = action.args;
+            const { exists, noOfSteps, lowerLimit, upperLimit }: ARGUMENTS = action.expectedMultiValues;
+
+            if (riskProfile) {
+              const value = await registryContract[action.action](riskProfile);
+              if (exists) {
+                expect(value.steps).to.be.equal(noOfSteps);
+                expect(value.lowerLimit).to.equal(lowerLimit);
+                expect(value.upperLimit).to.equal(upperLimit);
+                expect(value.exists).to.be.equal(exists);
+              } else {
+                expect(value.exists).to.be.equal(exists);
+              }
+            }
+            break;
+          }
+          case "underlyingAssetHashToRPToVaults(bytes32,string)": {
+            const { tokens, riskProfile }: ARGUMENTS = action.args;
+            const tokensHash = getSoliditySHA3Hash(["address[]"], [tokens]);
+            if (tokens && riskProfile) {
+              const value = await registryContract[action.action](tokensHash, riskProfile);
+              expect(value).to.be.equal(action.expectedValue);
+            }
+            assert.isDefined(tokens, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
             break;
           }
           default:

@@ -1,6 +1,7 @@
 import { Contract, Signer, ContractFactory } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-
+import { STRATEGY_DATA } from "./type";
+import { getSoliditySHA3Hash } from "./utils";
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
@@ -84,4 +85,16 @@ export async function getContractInstance(
 ): Promise<any> {
   const contract = await hre.ethers.getContractAt(contractName, tokenAddress);
   return contract;
+}
+
+export function generateStrategyHash(strategy: STRATEGY_DATA[], tokenAddress: string): string {
+  const strategyStepsHash: string[] = [];
+  const tokensHash = getSoliditySHA3Hash(["address[]"], [[tokenAddress]]);
+  for (let index = 0; index < strategy.length; index++) {
+    strategyStepsHash[index] = getSoliditySHA3Hash(
+      ["address", "address", "bool"],
+      [strategy[index].contract, strategy[index].outputToken, strategy[index].isBorrow],
+    );
+  }
+  return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
 }

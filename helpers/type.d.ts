@@ -40,7 +40,7 @@ export type REWARD_TOKEN_DATA_OBJECT = {
 
 export type STRATEGY_DATA = {
   contract: string;
-  outputTokenSymbol: string;
+  outputTokenSymbol?: string;
   outputToken: string;
   isBorrow: boolean;
 };

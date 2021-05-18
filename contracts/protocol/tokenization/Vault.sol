@@ -79,7 +79,7 @@ contract Vault is
         registryContract = Registry(registry);
         setProfile(_riskProfile);
         setRiskManager(_riskManager);
-        setToken(_underlyingToken); //  underlying token contract address (for example DAI)
+        setToken(_underlyingToken);
         setStrategyManager(_strategyManager);
         setOPTYMinter(_optyMinter);
         _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile, " vault")));
@@ -110,6 +110,7 @@ contract Vault is
 
     function setToken(address _underlyingToken) public override onlyOperator returns (bool _success) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
+        require(registryContract.tokens(_underlyingToken), "!tokens");
         underlyingToken = _underlyingToken;
         _success = true;
     }
@@ -134,8 +135,6 @@ contract Vault is
         uint256 _tokenBalance = IERC20(underlyingToken).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
         _batchMintAndBurn();
-        first = 1;
-        last = 0;
         uint8 _steps = strategyManagerContract.getDepositAllStepCount(investStrategyHash);
         for (uint8 _i = 0; _i < _steps; _i++) {
             bytes[] memory _codes =
@@ -162,11 +161,9 @@ contract Vault is
             _gasInitial = gasleft();
         }
 
-        require(totalSupply() > 0, "!totalSupply()>0");
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = underlyingToken;
         bytes32 newStrategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
-
         if (
             keccak256(abi.encodePacked(newStrategyHash)) != keccak256(abi.encodePacked(investStrategyHash)) &&
             investStrategyHash != ZERO_BYTES32
@@ -189,10 +186,8 @@ contract Vault is
 
         investStrategyHash = newStrategyHash;
 
-        uint256 _balance = _balance();
-
-        if (_balance > 0) {
-            _emergencyBrake(_balance);
+        if (_balance() > 0) {
+            _emergencyBrake(_balance());
             investStrategyHash = riskManagerContract.getBestStrategy(profile, _underlyingTokens);
             _supplyAll();
         }
@@ -340,11 +335,10 @@ contract Vault is
     {
         require(_amount > 0, "!(_amount>0)");
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
-        last++;
-        queue[last] = DataTypes.Operation(msg.sender, true, _amount);
+        queue.push(DataTypes.Operation(msg.sender, true, _amount));
         pendingDeposits[msg.sender] += _amount;
         depositQueue += _amount;
-        emit DepositQueue(msg.sender, last, _amount);
+        emit DepositQueue(msg.sender, queue.length, _amount);
         _success = true;
     }
 
@@ -382,28 +376,21 @@ contract Vault is
     }
 
     function _batchMintAndBurn() internal returns (bool _success) {
-        uint256 iterator = first;
-        while (last >= iterator) {
-            optyMinterContract.updateUserRewards(address(this), queue[iterator].account);
-            if (queue[iterator].isDeposit) {
-                _mintShares(queue[iterator].account, _balance(), queue[iterator].value);
-                pendingDeposits[msg.sender] -= queue[iterator].value;
-                depositQueue -= queue[iterator].value;
+        for (uint256 i = 0; i < queue.length; i++) {
+            if (queue[i].isDeposit) {
+                _mintShares(queue[i].account, _balance(), queue[i].value);
+                pendingDeposits[msg.sender] -= queue[i].value;
+                depositQueue -= queue[i].value;
             } else {
-                _redeemAndBurn(queue[iterator].account, _balance(), queue[iterator].value);
-                pendingWithdraws[msg.sender] -= queue[iterator].value;
-                withdrawQueue -= queue[iterator].value;
+                _redeemAndBurn(queue[i].account, _balance(), queue[i].value);
+                pendingWithdraws[msg.sender] -= queue[i].value;
+                withdrawQueue -= queue[i].value;
             }
-            iterator++;
+            optyMinterContract.updateUserStateInVault(address(this), queue[i].account);
         }
         optyMinterContract.updateOptyVaultRatePerSecondAndVaultToken(address(this));
         optyMinterContract.updateOptyVaultIndex(address(this));
-        while (last >= first) {
-            optyMinterContract.updateUserStateInVault(address(this), queue[first].account);
-            delete queue[first];
-            first++;
-        }
-
+        delete queue;
         _success = true;
     }
 
@@ -659,7 +646,9 @@ contract Vault is
         uint256 _balanceInUnderlyingToken,
         uint256 _depositAmount
     ) private {
-        _mint(_account, (_depositAmount.mul(totalSupply())).div(_balanceInUnderlyingToken.sub(depositQueue)));
+        if (_balanceInUnderlyingToken > depositQueue) {
+            _mint(_account, (_depositAmount.mul(totalSupply())).div(_balanceInUnderlyingToken.sub(depositQueue)));
+        }
     }
 
     function getPricePerFullShare() public view override returns (uint256) {
