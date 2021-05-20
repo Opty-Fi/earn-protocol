@@ -102,7 +102,11 @@ contract RiskManager is RiskManagerStorage, Modifiers {
             !_isLiquidityPool ||
             !(_rating >= _lowerLimit && _rating <= _upperLimit)
         ) {
-            return _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
+            if (_strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash) != ZERO_BYTES32) {
+                return _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
+            } else {
+                return IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
+            }
         }
 
         return _strategyHash;

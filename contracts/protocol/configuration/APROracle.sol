@@ -164,6 +164,7 @@ contract APRWithPoolOracle is Modifiers {
     using Address for address;
 
     uint256 public constant DECIMAL = 10**18;
+    bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     address public aaveV1;
     address public aaveV2LendingPool;
@@ -302,7 +303,7 @@ contract APRWithPoolOracle is Modifiers {
             compoundAPR = uint256(0);
         }
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
-            return bytes32(0);
+            return ZERO_BYTES32;
         } else {
             if (aaveV1APR > compoundAPR) {
                 if (aaveV1APR > aaveV2APR) {
