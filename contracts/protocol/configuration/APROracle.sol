@@ -291,10 +291,16 @@ contract APRWithPoolOracle is Modifiers {
         address aToken;
         (aToken, aaveV1APR) = getAaveV1APR(tokens[0]);
         uint256 compoundAPR;
-        address cToken = Compound(compound).getTokenConfigByUnderlying(tokens[0]).cToken;
-        compoundAPR = getCompoundAPR(cToken);
+        address cToken;
         bytes32 stepsHash;
         bytes32 bestStrategyHash;
+        try Compound(compound).getTokenConfigByUnderlying(tokens[0]) returns (Compound.TokenConfig memory tokenConfig) {
+            cToken = tokenConfig.cToken;
+            compoundAPR = getCompoundAPR(cToken);
+        } catch {
+            cToken = address(0);
+            compoundAPR = uint256(0);
+        }
         if (aaveV1APR > compoundAPR) {
             if (aaveV1APR > aaveV2APR) {
                 stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
@@ -308,7 +314,11 @@ contract APRWithPoolOracle is Modifiers {
                 stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
             }
         }
-        bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
+        if (stepsHash != bytes32(0)) {
+            bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
+        } else {
+            bestStrategyHash = bytes32(0);
+        }
         return bestStrategyHash;
     }
 
