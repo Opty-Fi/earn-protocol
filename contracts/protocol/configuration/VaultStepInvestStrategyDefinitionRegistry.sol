@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import { Modifiers } from "./Modifiers.sol";
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import "hardhat/console.sol";
 
 /**
  * @title VaultStepInvestStrategyDefinitionRegistry
@@ -140,6 +141,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
         }
         bytes32 hash = keccak256(abi.encodePacked(_tokensHash, hashes));
         require(_isNewStrategy(hash), "isNewStrategy");
+        console.log("Is new strategy...");
         for (uint8 _i = 0; _i < uint8(_strategySteps.length); _i++) {
             strategies[hash].strategySteps.push(
                 DataTypes.StrategyStep(

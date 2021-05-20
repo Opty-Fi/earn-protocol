@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
+import "hardhat/console.sol";
 
 // Compound
 interface Compound {
@@ -159,7 +160,7 @@ interface InterestRateModel {
     ) external view returns (uint256);
 }
 
-contract APRWithPoolOracle is Modifiers {
+contract APROracle is Modifiers {
     using SafeMath for uint256;
     using Address for address;
 
@@ -197,40 +198,10 @@ contract APRWithPoolOracle is Modifiers {
         return Compound(token).supplyRatePerBlock().mul(blocksPerYear);
     }
 
-    function getCompoundAPRAdjusted(address token, uint256 _supply) public view returns (uint256) {
-        Compound c = Compound(token);
-        address model = Compound(token).interestRateModel();
-        if (model == address(0)) {
-            return c.supplyRatePerBlock().mul(blocksPerYear);
-        }
-        InterestRateModel i = InterestRateModel(model);
-        uint256 cashPrior = c.getCash().add(_supply);
-        return
-            i.getSupplyRate(cashPrior, c.totalBorrows(), c.totalReserves().add(_supply), c.reserveFactorMantissa()).mul(
-                blocksPerYear
-            );
-    }
-
     function getAaveV1APR(address token) public view returns (address, uint256) {
         LendingPoolCore core = LendingPoolCore(LendingPoolAddressesProviderV1(aaveV1).getLendingPoolCore());
         address aToken = core.getReserveATokenAddress(token);
         return (aToken, core.getReserveCurrentLiquidityRate(token).div(1e9));
-    }
-
-    function getAaveV1APRAdjusted(address token, uint256 _supply) public view returns (address, uint256) {
-        LendingPoolCore core = LendingPoolCore(LendingPoolAddressesProviderV1(aaveV1).getLendingPoolCore());
-        address aToken = core.getReserveATokenAddress(token);
-        IReserveInterestRateStrategyV1 apr =
-            IReserveInterestRateStrategyV1(core.getReserveInterestRateStrategyAddress(token));
-        (uint256 newLiquidityRate, , ) =
-            apr.calculateInterestRates(
-                token,
-                core.getReserveAvailableLiquidity(token).add(_supply),
-                core.getReserveTotalBorrowsStable(token),
-                core.getReserveTotalBorrowsVariable(token),
-                core.getReserveCurrentAverageStableBorrowRate(token)
-            );
-        return (aToken, newLiquidityRate.div(1e9));
     }
 
     function getAaveV2APR(address token) public view returns (address, uint256) {
@@ -266,45 +237,16 @@ contract APRWithPoolOracle is Modifiers {
         return (reserveConfig, aToken, interestRateStrategy);
     }
 
-    function getAaveV2APRAdjusted(address token, uint256 _supply) public view returns (address, uint256) {
-        DataProvider dataProvider = DataProvider(aaveV2DataProvider);
-        (LendingPool.ReserveConfigurationMap memory reserveConfig, address aToken, address interestRateStrategy) =
-            getReserveDataFromAaveV2(token);
-        (
-            uint256 availableLiquidity,
-            uint256 totalStableDebt,
-            uint256 totalVariableDebt,
-            ,
-            ,
-            ,
-            uint256 averageStableBorrowRate,
-            ,
-            ,
-
-        ) = dataProvider.getReserveData(token);
-        uint256 maskedReserveFactor = reserveConfig.data;
-        uint16 reserveFactor = uint16((maskedReserveFactor >> 64) & 15);
-        IReserveInterestRateStrategyV2 apr = IReserveInterestRateStrategyV2(interestRateStrategy);
-        (uint256 newLiquidityRate, , ) =
-            apr.calculateInterestRates(
-                token,
-                availableLiquidity.add(_supply),
-                totalStableDebt,
-                totalVariableDebt,
-                averageStableBorrowRate,
-                uint256(reserveFactor)
-            );
-        return (aToken, newLiquidityRate.div(1e9));
-    }
-
     function getBestAPR(bytes32 _tokensHash) public view returns (bytes32) {
         address[] memory tokens = registryContract.getTokensHashToTokens(_tokensHash);
         uint256 aaveV2APR;
         address aTokenV2;
         (aTokenV2, aaveV2APR) = getAaveV2APR(tokens[0]);
+        console.log("AaveV2 APR: ", aaveV2APR);
         uint256 aaveV1APR;
         address aToken;
         (aToken, aaveV1APR) = getAaveV1APR(tokens[0]);
+        console.log("AaveV1 APR: ", aaveV1APR);
         uint256 compoundAPR;
         address cToken;
         bytes32 stepsHash;
@@ -316,55 +258,30 @@ contract APRWithPoolOracle is Modifiers {
             cToken = address(0);
             compoundAPR = uint256(0);
         }
+        console.log("Compound APR: ", compoundAPR);
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
             return ZERO_BYTES32;
         } else {
             if (aaveV1APR > compoundAPR) {
                 if (aaveV1APR > aaveV2APR) {
+                    console.log("Selecting AaveV1...");
                     stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
                 } else {
+                    console.log("Selecting Compound...");
                     stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
                 }
             } else {
                 if (compoundAPR > aaveV2APR) {
+                    console.log("Selecting Compound...");
                     stepsHash = keccak256(abi.encodePacked(cToken, cToken, false));
                 } else {
+                    console.log("Selecting AaveV2...");
                     stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
                 }
             }
             bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
             return bestStrategyHash;
         }
-    }
-
-    function getBestAPRAdjusted(bytes32 _tokensHash, uint256 _supply) public view returns (bytes32) {
-        address[] memory tokens = registryContract.getTokensHashToTokens(_tokensHash);
-        uint256 aaveV2APR;
-        address aTokenV2;
-        (aTokenV2, aaveV2APR) = getAaveV2APRAdjusted(tokens[0], _supply);
-        uint256 aaveV1APR;
-        address aToken;
-        (aToken, aaveV1APR) = getAaveV1APRAdjusted(tokens[0], _supply);
-        uint256 compoundAPR;
-        address cToken = Compound(compound).getTokenConfigByUnderlying(tokens[0]).cToken;
-        compoundAPR = getCompoundAPRAdjusted(cToken, _supply);
-        bytes32 stepsHash;
-        bytes32 bestStrategyHash;
-        if (aaveV1APR > compoundAPR) {
-            if (aaveV1APR > aaveV2APR) {
-                stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
-            } else {
-                stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
-            }
-        } else {
-            if (compoundAPR > aaveV2APR) {
-                stepsHash = keccak256(abi.encodePacked(cToken, cToken, false));
-            } else {
-                stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
-            }
-        }
-        bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
-        return bestStrategyHash;
     }
 
     // incase of half-way error

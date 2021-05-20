@@ -16,6 +16,7 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   OPTY_STAKING_POOL: "OPTYStakingPool",
   OPTY_STAKING_RATE_BALANCER: "OPTYStakingRateBalancer",
   OPTY_STAKING_RATE_BALANCER_PROXY: "OPTYStakingRateBalancerProxy",
+  APR_ORACLE: "APROracle",
 };
 
 export const ADAPTER = [

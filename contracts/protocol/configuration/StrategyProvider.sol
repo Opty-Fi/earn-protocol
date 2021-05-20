@@ -17,9 +17,12 @@ contract StrategyProvider is Modifiers {
     mapping(string => mapping(bytes32 => bytes32)) public rpToTokenToBestStrategy;
     mapping(string => mapping(bytes32 => bytes32)) public rpToTokenToDefaultStrategy;
     mapping(bytes32 => DataTypes.VaultRewardStrategy) public vaultRewardTokenHashToVaultRewardTokenStrategy;
+    DataTypes.DefaultStrategyState public defaultStrategyState;
 
     /* solhint-disable no-empty-blocks */
-    constructor(address _registry) public Modifiers(_registry) {}
+    constructor(address _registry) public Modifiers(_registry) {
+        setDefaultStrategyState(DataTypes.DefaultStrategyState.CompoundOrAave);
+    }
 
     /* solhint-disable no-empty-blocks */
     function setBestStrategy(
@@ -80,5 +83,13 @@ contract StrategyProvider is Modifiers {
         vaultRewardTokenHashToVaultRewardTokenStrategy[_vaultRewardTokenHash].hold = _vaultRewardStrategy.hold;
         vaultRewardTokenHashToVaultRewardTokenStrategy[_vaultRewardTokenHash].convert = _vaultRewardStrategy.convert;
         return vaultRewardTokenHashToVaultRewardTokenStrategy[_vaultRewardTokenHash];
+    }
+
+    function setDefaultStrategyState(DataTypes.DefaultStrategyState _defaultStrategyState) public onlyGovernance {
+        defaultStrategyState = _defaultStrategyState;
+    }
+
+    function getDefaultStrategyState() external view returns (DataTypes.DefaultStrategyState) {
+        return defaultStrategyState;
     }
 }

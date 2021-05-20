@@ -49,4 +49,6 @@ interface IStrategyProvider {
         bytes32 _vaultRewardTokenHash,
         DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
     ) external returns (DataTypes.VaultRewardStrategy memory);
+
+    function getDefaultStrategyState() external view returns (DataTypes.DefaultStrategyState);
 }

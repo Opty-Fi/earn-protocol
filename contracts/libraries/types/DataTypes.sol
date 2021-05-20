@@ -65,6 +65,8 @@ library DataTypes {
 
     enum MaxExposure { Number, Pct }
 
+    enum DefaultStrategyState { Zero, CompoundOrAave }
+
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
     struct ODEFIState {
