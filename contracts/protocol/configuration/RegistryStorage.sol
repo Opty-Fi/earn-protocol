@@ -84,6 +84,7 @@ contract RegistryStorage is RegistryAdminStorage {
     string[] public riskProfilesArray;
     address public strategyProvider;
     address public vaultStepInvestStrategyDefinitionRegistry;
+    address public aprOracle;
 
     /**
      * @dev Emitted when `token` is approved or revoked.

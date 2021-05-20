@@ -13,6 +13,7 @@ import {
     IVaultStepInvestStrategyDefinitionRegistry
 } from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
 import { IStrategyProvider } from "../../interfaces/opty/IStrategyProvider.sol";
+import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
 
 /**
  * @dev An extra protection for the best strategy of the opty-fi vault's
@@ -86,7 +87,7 @@ contract RiskManager is RiskManagerStorage, Modifiers {
         if (_strategyHash == ZERO_BYTES32) {
             _strategyHash = _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
             if (_strategyHash == ZERO_BYTES32) {
-                return ZERO_BYTES32;
+                return IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
             }
         }
         require(_strategyHash != ZERO_BYTES32, "!bestStrategyHash");
