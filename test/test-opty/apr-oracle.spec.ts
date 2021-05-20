@@ -45,13 +45,9 @@ describe(scenario.title, () => {
 
       await executeFunc(registry, owner, "setStrategyProvider(address)", [strategyProvider.address]);
 
-      const aprOracle = await deployContract(
-        hre,
-        ESSENTIAL_CONTRACTS.APR_ORACLE,
-        TESTING_DEPLOYMENT_ONCE,
-        owner,
-        [registry.address],
-      );      
+      const aprOracle = await deployContract(hre, ESSENTIAL_CONTRACTS.APR_ORACLE, TESTING_DEPLOYMENT_ONCE, owner, [
+        registry.address
+      ]);      
 
       await executeFunc(registry, owner, "setAPROracle(address)", [aprOracle.address]);
 
