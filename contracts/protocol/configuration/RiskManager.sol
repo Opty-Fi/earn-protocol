@@ -87,7 +87,13 @@ contract RiskManager is RiskManagerStorage, Modifiers {
         if (_strategyHash == ZERO_BYTES32) {
             _strategyHash = _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
             if (_strategyHash == ZERO_BYTES32) {
-                return IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
+                _strategyHash = IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
+                (uint256 _strategyIndex, ) = _vaultStepInvestStrategyDefinitionRegistry.getStrategy(_strategyHash);
+                if (_strategyIndex == uint256(0)) {
+                    return ZERO_BYTES32;
+                } else {
+                    return _strategyHash;
+                }
             }
         }
         require(_strategyHash != ZERO_BYTES32, "!bestStrategyHash");
@@ -105,7 +111,13 @@ contract RiskManager is RiskManagerStorage, Modifiers {
             if (_strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash) != ZERO_BYTES32) {
                 return _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
             } else {
-                return IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
+                _strategyHash = IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
+                (uint256 _strategyIndex, ) = _vaultStepInvestStrategyDefinitionRegistry.getStrategy(_strategyHash);
+                if (_strategyIndex != uint256(0)) {
+                    return IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
+                } else {
+                    return ZERO_BYTES32;
+                }
             }
         }
 
