@@ -54,6 +54,17 @@ contract Registry is ModifiersController {
     }
 
     /**
+     * @dev set the APROracle contract address.
+     * Can only be called by the current governance.
+     */
+
+    function setAPROracle(address _aprOracle) external onlyGovernance returns (bool) {
+        require(_aprOracle != address(0), "!address(0)");
+        aprOracle = _aprOracle;
+        return true;
+    }
+
+    /**
      * @dev set the StrategyProvider contract address.
      * Can only be called by the current governance.
      */
