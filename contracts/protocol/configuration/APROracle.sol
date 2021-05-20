@@ -301,25 +301,25 @@ contract APRWithPoolOracle is Modifiers {
             cToken = address(0);
             compoundAPR = uint256(0);
         }
-        if (aaveV1APR > compoundAPR) {
-            if (aaveV1APR > aaveV2APR) {
-                stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
-            } else {
-                stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
-            }
+        if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
+            return bytes32(0);
         } else {
-            if (compoundAPR > aaveV2APR) {
-                stepsHash = keccak256(abi.encodePacked(cToken, cToken, false));
+            if (aaveV1APR > compoundAPR) {
+                if (aaveV1APR > aaveV2APR) {
+                    stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
+                } else {
+                    stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
+                }
             } else {
-                stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
+                if (compoundAPR > aaveV2APR) {
+                    stepsHash = keccak256(abi.encodePacked(cToken, cToken, false));
+                } else {
+                    stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
+                }
             }
-        }
-        if (stepsHash != bytes32(0)) {
             bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
-        } else {
-            bestStrategyHash = bytes32(0);
+            return bestStrategyHash;
         }
-        return bestStrategyHash;
     }
 
     function getBestAPRAdjusted(bytes32 _tokensHash, uint256 _supply) public view returns (bytes32) {
