@@ -239,9 +239,16 @@ contract APRWithPoolOracle is Modifiers {
         return (aToken, uint256(liquidityRate).div(1e9));
     }
 
-    function getAaveV2APRAdjusted(address token, uint256 _supply) public view returns (address, uint256) {
+    function getReserveDataFromAaveV2(address token)
+        internal
+        view
+        returns (
+            LendingPool.ReserveConfigurationMap memory,
+            address,
+            address
+        )
+    {
         LendingPool lendingPool = LendingPool(aaveV2LendingPool);
-        DataProvider dataProvider = DataProvider(aaveV2DataProvider);
         (
             LendingPool.ReserveConfigurationMap memory reserveConfig,
             ,
@@ -256,6 +263,13 @@ contract APRWithPoolOracle is Modifiers {
             address interestRateStrategy,
 
         ) = lendingPool.getReserveData(token);
+        return (reserveConfig, aToken, interestRateStrategy);
+    }
+
+    function getAaveV2APRAdjusted(address token, uint256 _supply) public view returns (address, uint256) {
+        DataProvider dataProvider = DataProvider(aaveV2DataProvider);
+        (LendingPool.ReserveConfigurationMap memory reserveConfig, address aToken, address interestRateStrategy) =
+            getReserveDataFromAaveV2(token);
         (
             uint256 availableLiquidity,
             uint256 totalStableDebt,
@@ -278,7 +292,7 @@ contract APRWithPoolOracle is Modifiers {
                 totalStableDebt,
                 totalVariableDebt,
                 averageStableBorrowRate,
-                reserveFactor
+                uint256(reserveFactor)
             );
         return (aToken, newLiquidityRate.div(1e9));
     }
