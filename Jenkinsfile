@@ -5,8 +5,7 @@ pipeline {
         stage('lint') {
             steps {
               nodejs("Node-12.22.1"){
-                sh 'printenv | sort'
-                sh 'yarn install'
+                sh 'yarn install --frozen-lockfile'
                 sh 'yarn lint'
               }
             }
@@ -14,7 +13,7 @@ pipeline {
         stage('Compile') {
             steps {
                 nodejs("Node-12.22.1"){
-                sh 'yarn install'
+                sh 'yarn install --frozen-lockfile'
                 sh 'yarn compile'
               }
             }
@@ -22,19 +21,11 @@ pipeline {
         stage('Test') {
             steps {
                 nodejs("Node-12.22.1"){
-                sh 'yarn install'
-                sh 'yarn test'
+                sh 'yarn install --frozen-lockfile'
+                sh 'export NODE_OPTIONS="--max-old-space-size=8192"'
+                sh 'yarn test-fast'
               }
             }
         }
-    }
-    post {
-        success {
-          googlechatnotification url: '${GOOGLE_CHAT_WEBHOOK}', message: '${JOB_NAME} is ${BUILD_STATUS} by ${CHANGE_AUTHOR} [ SUCCESS ]'
-        }
-        failure {
-            googlechatnotification url: '${GOOGLE_CHAT_WEBHOOK}', message: '${JOB_NAME} is ${BUILD_STATUS} by ${CHANGE_AUTHOR} [ FAIL ] '
-        }
-
     }
 }
