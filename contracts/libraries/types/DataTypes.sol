@@ -72,7 +72,7 @@ library DataTypes {
         uint32 timestamp;
     }
 
-    struct TokenizationContract {
+    struct VaultActivityState {
         bool discontinued;
         bool unpaused;
     }

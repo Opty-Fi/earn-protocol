@@ -67,7 +67,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -99,7 +99,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": false
               },
@@ -122,7 +122,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -140,7 +140,7 @@
             },
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": false
               },
@@ -163,7 +163,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -181,7 +181,7 @@
             },
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": false
               },
@@ -204,7 +204,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -231,7 +231,7 @@
             },
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": false
               },
@@ -254,7 +254,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -290,7 +290,7 @@
             },
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": false
               },
@@ -313,7 +313,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -340,7 +340,7 @@
             },
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": false
               },
@@ -358,7 +358,7 @@
             },
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },
@@ -390,7 +390,7 @@
           "actions": [
             {
               "contract": "Registry",
-              "action": "unpauseTokenizationContract(address,bool)",
+              "action": "unpauseVaultContract(address,bool)",
               "args": {
                 "unpause": true
               },

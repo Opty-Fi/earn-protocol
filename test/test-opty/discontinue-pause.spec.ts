@@ -126,10 +126,10 @@ describe(scenario.title, () => {
                 break;
               }
               case "discontinue(address)":
-              case "unpauseTokenizationContract(address,bool)": {
+              case "unpauseVaultContract(address,bool)": {
                 const args = action.args;
                 if (action.expect === "success") {
-                  action.action === "unpauseTokenizationContract(address,bool)"
+                  action.action === "unpauseVaultContract(address,bool)"
                     ? await contracts[action.contract.toLowerCase()][action.action](vault.address, args?.unpause)
                     : await contracts[action.contract.toLowerCase()][action.action](vault.address);
                 }

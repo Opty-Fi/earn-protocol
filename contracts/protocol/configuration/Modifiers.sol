@@ -72,14 +72,14 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier ifNotDiscontinued(address _tokenizationContract) {
-        (bool _discontinued, ) = registryContract.tokenizationContracts(_tokenizationContract);
+    modifier ifNotDiscontinued(address _vaultContract) {
+        (bool _discontinued, ) = registryContract.vaultToVaultActivityState(_vaultContract);
         require(!_discontinued, "discontinued");
         _;
     }
 
-    modifier ifNotPaused(address _tokenizationContract) {
-        (, bool _unpaused) = registryContract.tokenizationContracts(_tokenizationContract);
+    modifier ifNotPaused(address _vaultContract) {
+        (, bool _unpaused) = registryContract.vaultToVaultActivityState(_vaultContract);
         require(_unpaused, "paused");
         _;
     }
