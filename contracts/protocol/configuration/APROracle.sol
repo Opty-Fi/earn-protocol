@@ -3,7 +3,6 @@ pragma experimental ABIEncoderV2;
 
 import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
-import "hardhat/console.sol";
 
 // Compound
 interface Compound {
@@ -242,11 +241,9 @@ contract APROracle is Modifiers {
         uint256 aaveV2APR;
         address aTokenV2;
         (aTokenV2, aaveV2APR) = getAaveV2APR(tokens[0]);
-        console.log("AaveV2 APR: ", aaveV2APR);
         uint256 aaveV1APR;
         address aToken;
         (aToken, aaveV1APR) = getAaveV1APR(tokens[0]);
-        console.log("AaveV1 APR: ", aaveV1APR);
         uint256 compoundAPR;
         address cToken;
         bytes32 stepsHash;
@@ -258,24 +255,19 @@ contract APROracle is Modifiers {
             cToken = address(0);
             compoundAPR = uint256(0);
         }
-        console.log("Compound APR: ", compoundAPR);
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
             return ZERO_BYTES32;
         } else {
             if (aaveV1APR > compoundAPR) {
                 if (aaveV1APR > aaveV2APR) {
-                    console.log("Selecting AaveV1...");
                     stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
                 } else {
-                    console.log("Selecting Compound...");
                     stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
                 }
             } else {
                 if (compoundAPR > aaveV2APR) {
-                    console.log("Selecting Compound...");
                     stepsHash = keccak256(abi.encodePacked(cToken, cToken, false));
                 } else {
-                    console.log("Selecting AaveV2...");
                     stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
                 }
             }

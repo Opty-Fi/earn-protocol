@@ -1,5 +1,6 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
+import { Signer } from "ethers";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { generateStrategyHash, deployContract, executeFunc } from "../../helpers/helpers";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
@@ -15,13 +16,16 @@ type ARGUMENTS = {
   token?: string;
   tokens?: string[];
   score?: number;
+  defaultStrategyState?: number;
 };
 
 describe(scenario.title, () => {
   let contracts: CONTRACTS = {};
+  let users: { [key: string]: Signer };
   beforeEach(async () => {
     try {
-      const [owner] = await hre.ethers.getSigners();
+      const [owner, user1] = await hre.ethers.getSigners();
+      users = { owner, user1 };
       const registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
       const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
         hre,
@@ -185,6 +189,16 @@ describe(scenario.title, () => {
             assert.isDefined(strategy, `args is wrong in ${action.action} testcase`);
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
             assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "setDefaultStrategyState(uint8)": {
+            const { defaultStrategyState }: ARGUMENTS = action.args;
+            if (action.expect === "success") {
+              await contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState);
+              console.log("Changing default strategy state to ", defaultStrategyState);
+            } else {
+              await expect(contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState)).to.be.revertedWith(action.message);
+            }
             break;
           }
         }

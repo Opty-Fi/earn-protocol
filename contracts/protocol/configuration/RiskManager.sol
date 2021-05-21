@@ -14,7 +14,6 @@ import {
 } from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
 import { IStrategyProvider } from "../../interfaces/opty/IStrategyProvider.sol";
 import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
-import "hardhat/console.sol";
 
 /**
  * @dev An extra protection for the best strategy of the opty-fi vault's
@@ -83,14 +82,10 @@ contract RiskManager is RiskManagerStorage, Modifiers {
 
         // getbeststrategy from strategyProvider
         bytes32 _strategyHash = _strategyProvider.rpToTokenToBestStrategy(_riskProfile, _tokensHash);
-        console.log("Strategy hash before check:");
-        console.logBytes32(_strategyHash);
 
         // fallback to default strategy if best strategy is not available
         if (_strategyHash == ZERO_BYTES32) {
             _strategyHash = _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
-            console.log("Strategy hash after first check:");
-            console.logBytes32(_strategyHash);
             if (
                 _strategyHash == ZERO_BYTES32 &&
                 _strategyProvider.getDefaultStrategyState() == DataTypes.DefaultStrategyState.Zero
@@ -101,10 +96,7 @@ contract RiskManager is RiskManagerStorage, Modifiers {
                 _strategyProvider.getDefaultStrategyState() == DataTypes.DefaultStrategyState.CompoundOrAave
             ) {
                 _strategyHash = IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
-                console.log("Strategy hash after APROracle call:");
-                console.logBytes32(_strategyHash);
                 (uint256 _strategyIndex, ) = _vaultStepInvestStrategyDefinitionRegistry.getStrategy(_strategyHash);
-                console.log("Strategy index: ", _strategyIndex);
                 if (_strategyIndex == uint256(0)) {
                     return ZERO_BYTES32;
                 } else {
@@ -112,8 +104,6 @@ contract RiskManager is RiskManagerStorage, Modifiers {
                 }
             }
         }
-        console.log("Strategy hash before require:");
-        console.logBytes32(_strategyHash);
         require(_strategyHash != ZERO_BYTES32, "!bestStrategyHash");
 
         (, DataTypes.StrategyStep[] memory _strategySteps) =
@@ -121,28 +111,20 @@ contract RiskManager is RiskManagerStorage, Modifiers {
 
         (uint8 _rating, bool _isLiquidityPool) = registryContract.liquidityPools(_strategySteps[0].pool);
         // validate strategy profile
-        console.log("Is liquidity pool: ", _isLiquidityPool);
         if (
             uint8(_strategySteps.length) > _permittedSteps ||
             !_isLiquidityPool ||
             !(_rating >= _lowerLimit && _rating <= _upperLimit)
         ) {
-            console.log("Entering the second check...");
             if (_strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash) != ZERO_BYTES32) {
                 return _strategyProvider.rpToTokenToDefaultStrategy(_riskProfile, _tokensHash);
             } else {
                 if (_strategyProvider.getDefaultStrategyState() == DataTypes.DefaultStrategyState.CompoundOrAave) {
-                    console.log("Entering else statement...");
                     _strategyHash = IAPROracle(registryContract.aprOracle()).getBestAPR(_tokensHash);
-                    console.log("Strategy hash in else statement:");
-                    console.logBytes32(_strategyHash);
                     (uint256 _strategyIndex, ) = _vaultStepInvestStrategyDefinitionRegistry.getStrategy(_strategyHash);
-                    console.log("Strategy index in else statement: ", _strategyIndex);
                     if (_strategyIndex != uint256(0)) {
-                        console.log("Returning best strategy among Compound and Aave...");
                         return _strategyHash;
                     } else {
-                        console.log("Returning ZERO_BYTES32...");
                         return ZERO_BYTES32;
                     }
                 } else {
