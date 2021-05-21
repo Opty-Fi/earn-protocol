@@ -1,6 +1,6 @@
 {
-  "title": "Staking Pool",
-  "description": "Test cases for Staking Pool contract",
+  "title": "Staking Vault",
+  "description": "Test cases for Staking Vault contract",
   "stories": [
     {
       "description": "User that is not the operator shouldn't be able to set the underlying token",

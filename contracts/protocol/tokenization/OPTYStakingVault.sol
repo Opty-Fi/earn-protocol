@@ -7,15 +7,15 @@ import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/to
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { RiskManager } from "../configuration/RiskManager.sol";
-import { OPTYStakingPoolStorage } from "./OPTYStakingPoolStorage.sol";
+import { OPTYStakingVaultStorage } from "./OPTYStakingVaultStorage.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
 
 /**
- * @dev Opty.Fi's Staking Pool contract for OPTY
+ * @dev Opty.Fi's Staking Vault contract for OPTY
  */
-contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolStorage {
+contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVaultStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -34,7 +34,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
     )
         public
         ERC20(
-            string(abi.encodePacked("opty ", _numberOfDays, " Staking Pool")),
+            string(abi.encodePacked("opty ", _numberOfDays, " Staking Vault")),
             string(abi.encodePacked("StkOPTY", _numberOfDays))
         )
         Modifiers(_registry)
@@ -122,7 +122,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         _mint(msg.sender, shares);
         require(
             IOPTYStakingRateBalancer(optyStakingRateBalancer).updateStakedOPTY(msg.sender, _amount),
-            "stakingpool:userStake"
+            "stakingVault:userStake"
         );
         updatePool();
         userLastUpdate[msg.sender] = getBlockTimestamp();
@@ -158,7 +158,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
         require(_redeemAmount > 0, "!_redeemAmount>0");
         require(
             IOPTYStakingRateBalancer(optyStakingRateBalancer).updateUnstakedOPTY(msg.sender, _redeemAmount),
-            "stakingpool:userUnstake"
+            "stakingVault:userUnstake"
         );
         updatePool();
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
@@ -180,7 +180,7 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
             lastPoolUpdate = getBlockTimestamp();
             optyMinterContract.mintOpty(address(this), optyAccrued);
         }
-        require(IOPTYStakingRateBalancer(optyStakingRateBalancer).updateOptyRates(), "stakingpool:updatePool");
+        require(IOPTYStakingRateBalancer(optyStakingRateBalancer).updateOptyRates(), "stakingVault:updatePool");
         _success = true;
     }
 

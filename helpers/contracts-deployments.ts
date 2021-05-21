@@ -142,7 +142,7 @@ export async function deployEssentialContracts(
     owner,
   );
 
-  const optyStakingPool1D = await deployContract(
+  const optyStakingVault1D = await deployContract(
     hre,
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
@@ -150,7 +150,7 @@ export async function deployEssentialContracts(
     [registry.address, opty.address, optyMinter.address, 86400, optyStakingRateBalancer.address, "1D"],
   );
 
-  const optyStakingPool30D = await deployContract(
+  const optyStakingVault30D = await deployContract(
     hre,
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
@@ -158,7 +158,7 @@ export async function deployEssentialContracts(
     [registry.address, opty.address, optyMinter.address, 2592000, optyStakingRateBalancer.address, "30D"],
   );
 
-  const optyStakingPool60D = await deployContract(
+  const optyStakingVault60D = await deployContract(
     hre,
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
@@ -166,7 +166,7 @@ export async function deployEssentialContracts(
     [registry.address, opty.address, optyMinter.address, 5184000, optyStakingRateBalancer.address, "60D"],
   );
 
-  const optyStakingPool180D = await deployContract(
+  const optyStakingVault180D = await deployContract(
     hre,
     ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
     isDeployedOnce,
@@ -175,33 +175,33 @@ export async function deployEssentialContracts(
   );
 
   await executeFunc(registry, owner, "setMinter(address)", [optyMinter.address]);
-  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool1D.address, true]);
-  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool30D.address, true]);
-  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool60D.address, true]);
-  await executeFunc(optyMinter, owner, "setStakingPool(address,bool)", [optyStakingPool180D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingVault(address,bool)", [optyStakingVault1D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingVault(address,bool)", [optyStakingVault30D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingVault(address,bool)", [optyStakingVault60D.address, true]);
+  await executeFunc(optyMinter, owner, "setStakingVault(address,bool)", [optyStakingVault180D.address, true]);
   await executeFunc(optyStakingRateBalancer, owner, "initialize(address,address,address,address)", [
-    optyStakingPool1D.address,
-    optyStakingPool30D.address,
-    optyStakingPool60D.address,
-    optyStakingPool180D.address,
+    optyStakingVault1D.address,
+    optyStakingVault30D.address,
+    optyStakingVault60D.address,
+    optyStakingVault180D.address,
   ]);
-  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
-    optyStakingPool1D.address,
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultMultipliers(address,uint256)", [
+    optyStakingVault1D.address,
     10000,
   ]);
-  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
-    optyStakingPool30D.address,
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultMultipliers(address,uint256)", [
+    optyStakingVault30D.address,
     12000,
   ]);
-  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
-    optyStakingPool60D.address,
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultMultipliers(address,uint256)", [
+    optyStakingVault60D.address,
     15000,
   ]);
-  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolMultipliers(address,uint256)", [
-    optyStakingPool180D.address,
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultMultipliers(address,uint256)", [
+    optyStakingVault180D.address,
     20000,
   ]);
-  await executeFunc(optyStakingRateBalancer, owner, "setStakingPoolOPTYAllocation(uint256)", [10000000000]);
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultOPTYAllocation(uint256)", [10000000000]);
 
   const priceOracle = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.PRICE_ORACLE, isDeployedOnce, owner, [
     registry.address,
@@ -217,10 +217,10 @@ export async function deployEssentialContracts(
     riskManager,
     harvestCodeProvider,
     optyStakingRateBalancer,
-    optyStakingPool1D,
-    optyStakingPool30D,
-    optyStakingPool60D,
-    optyStakingPool180D,
+    optyStakingVault1D,
+    optyStakingVault30D,
+    optyStakingVault60D,
+    optyStakingVault180D,
     priceOracle,
   };
 

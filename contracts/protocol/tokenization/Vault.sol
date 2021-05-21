@@ -15,7 +15,7 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
 import { VaultStorage } from "./VaultStorage.sol";
 import { Registry } from "../configuration/Registry.sol";
 import { OPTYMinter } from "./OPTYMinter.sol";
-import { OPTYStakingPool } from "./OPTYStakingPool.sol";
+import { OPTYStakingVault } from "./OPTYStakingVault.sol";
 import { RiskManager } from "../configuration/RiskManager.sol";
 import { StrategyManager } from "../configuration/StrategyManager.sol";
 
@@ -342,11 +342,11 @@ contract Vault is
         _success = true;
     }
 
-    function userDepositAndStake(uint256 _amount, address _stakingPool) external override returns (bool) {
-        _userDepositAndStake(_amount, _stakingPool);
+    function userDepositAndStake(uint256 _amount, address _stakingVault) external override returns (bool) {
+        _userDepositAndStake(_amount, _stakingVault);
     }
 
-    function _userDepositAndStake(uint256 _amount, address _stakingPool)
+    function _userDepositAndStake(uint256 _amount, address _stakingVault)
         internal
         ifNotDiscontinued(address(this))
         ifNotPaused(address(this))
@@ -355,23 +355,23 @@ contract Vault is
     {
         _userDeposit(_amount);
         uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
-        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
-        _optyStakingPool.userStake(_optyAmount);
+        OPTYStakingVault _optyStakingVault = OPTYStakingVault(_stakingVault);
+        _optyStakingVault.userStake(_optyAmount);
         _success = true;
     }
 
-    function userDepositAllAndStake(address _stakingPool) external override returns (bool) {
-        _userDepositAllAndStake(_stakingPool);
+    function userDepositAllAndStake(address _stakingVault) external override returns (bool) {
+        _userDepositAllAndStake(_stakingVault);
     }
 
-    function _userDepositAllAndStake(address _stakingPool)
+    function _userDepositAllAndStake(address _stakingVault)
         internal
         ifNotDiscontinued(address(this))
         ifNotPaused(address(this))
         nonReentrant
         returns (bool _success)
     {
-        _userDepositAndStake(IERC20(underlyingToken).balanceOf(msg.sender), _stakingPool);
+        _userDepositAndStake(IERC20(underlyingToken).balanceOf(msg.sender), _stakingVault);
         _success = true;
     }
 
@@ -450,11 +450,11 @@ contract Vault is
         _success = true;
     }
 
-    function userDepositRebalanceAndStake(uint256 _amount, address _stakingPool) external override returns (bool) {
-        _userDepositRebalanceAndStake(_amount, _stakingPool);
+    function userDepositRebalanceAndStake(uint256 _amount, address _stakingVault) external override returns (bool) {
+        _userDepositRebalanceAndStake(_amount, _stakingVault);
     }
 
-    function _userDepositRebalanceAndStake(uint256 _amount, address _stakingPool)
+    function _userDepositRebalanceAndStake(uint256 _amount, address _stakingVault)
         internal
         ifNotDiscontinued(address(this))
         ifNotPaused(address(this))
@@ -463,16 +463,16 @@ contract Vault is
     {
         _userDepositRebalance(_amount);
         uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
-        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
-        _optyStakingPool.userStake(_optyAmount);
+        OPTYStakingVault _optyStakingVault = OPTYStakingVault(_stakingVault);
+        _optyStakingVault.userStake(_optyAmount);
         _success = true;
     }
 
-    function userDepositAllRebalanceAndStake(address _stakingPool) external override returns (bool) {
-        _userDepositAllRebalanceAndStake(_stakingPool);
+    function userDepositAllRebalanceAndStake(address _stakingVault) external override returns (bool) {
+        _userDepositAllRebalanceAndStake(_stakingVault);
     }
 
-    function _userDepositAllRebalanceAndStake(address _stakingPool)
+    function _userDepositAllRebalanceAndStake(address _stakingVault)
         internal
         ifNotDiscontinued(address(this))
         ifNotPaused(address(this))
@@ -481,8 +481,8 @@ contract Vault is
     {
         _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
         uint256 _optyAmount = optyMinterContract.claimOpty(msg.sender);
-        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
-        _optyStakingPool.userStake(_optyAmount);
+        OPTYStakingVault _optyStakingVault = OPTYStakingVault(_stakingVault);
+        _optyStakingVault.userStake(_optyAmount);
         _success = true;
     }
 
@@ -541,16 +541,16 @@ contract Vault is
         _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
-    function userDepositAllAndStakeWithCHI(address _stakingPool) external override discountCHI {
-        _userDepositAllAndStake(_stakingPool);
+    function userDepositAllAndStakeWithCHI(address _stakingVault) external override discountCHI {
+        _userDepositAllAndStake(_stakingVault);
     }
 
     function userDepositWithCHI(uint256 _amount) external override discountCHI {
         _userDeposit(_amount);
     }
 
-    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingPool) external override discountCHI {
-        _userDepositAndStake(_amount, _stakingPool);
+    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingVault) external override discountCHI {
+        _userDepositAndStake(_amount, _stakingVault);
     }
 
     function userDepositAllRebalanceWithCHI() external override discountCHI {
@@ -561,12 +561,12 @@ contract Vault is
         _userDepositRebalance(_amount);
     }
 
-    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingPool) external override discountCHI {
-        _userDepositRebalanceAndStake(_amount, _stakingPool);
+    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingVault) external override discountCHI {
+        _userDepositRebalanceAndStake(_amount, _stakingVault);
     }
 
-    function userDepositAllRebalanceAndStakeWithCHI(address _stakingPool) external override discountCHI {
-        _userDepositAllRebalanceAndStake(_stakingPool);
+    function userDepositAllRebalanceAndStakeWithCHI(address _stakingVault) external override discountCHI {
+        _userDepositAllRebalanceAndStake(_stakingVault);
     }
 
     function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI {

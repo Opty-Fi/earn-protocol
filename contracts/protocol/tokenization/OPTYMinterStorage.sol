@@ -2,14 +2,14 @@
 
 pragma solidity ^0.6.10;
 
-import { OPTYStakingPool } from "./OPTYStakingPool.sol";
+import { OPTYStakingVault } from "./OPTYStakingVault.sol";
 
 /**
  * @dev Contract to store the OPTYMinter's state variables
  */
 
 contract OPTYMinterStorage {
-    mapping(address => bool) public stakingPools;
+    mapping(address => bool) public stakingVaults;
     /// @notice The market's last index
     /// @notice The block number the index was last updated at
     struct OptyState {
