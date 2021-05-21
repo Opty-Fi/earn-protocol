@@ -1,6 +1,6 @@
 {
-  "title": "RiskManager",
-  "description": "Test cases for RiskManager and StrategyProvider contract",
+  "title": "APROracle",
+  "description": "Test cases for APROracle integration in RiskManager and StrategyProvider",
   "stories": [
     {
       "description": "getBestStrategy should return 0x00 strategy by default if the token is not supported by Aave or Compound and the default strategy state is CompoundOrAave",
