@@ -595,7 +595,7 @@
       ]
     },
     {
-      "description": "Operator should be able to set liquidity pool to adapter",
+      "description": "Governance should be able to set liquidity pool to adapter",
       "setActions": [
         {
           "action": "approveLiquidityPool(address)",
@@ -629,7 +629,25 @@
       ]
     },
     {
-      "description": "Operator should be able to set mutiple liquidity pools to adapters",
+      "description": "Non-Governance shouldn't be able to set liquidity pool to adapter",
+      "setActions": [
+        {
+          "action": "setLiquidityPoolToAdapter(address,address)",
+          "args": {
+            "userIndex": "1",
+            "lqs": {
+              "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+              "adapterName": "CompoundAdapter"
+            }
+          },
+          "expect": "fail",
+          "message": "caller is not having governance"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "Governance should be able to set mutiple liquidity pools to adapters",
       "setActions": [
         {
           "action": "approveLiquidityPool(address[])",
@@ -677,7 +695,7 @@
       ]
     },
     {
-      "description": "Operator shouldn't be able to set mutiple non-approved liquidity pools to adapters",
+      "description": "Governance shouldn't be able to set mutiple non-approved liquidity pools to adapters",
       "setActions": [
         {
           "action": "setLiquidityPoolToAdapter((address,address)[])",
@@ -695,6 +713,30 @@
           },
           "expect": "fail",
           "message": "!liquidityPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "Non-Governance shouldn't be able to set multiple liquidity pools to adapters",
+      "setActions": [
+        {
+          "action": "setLiquidityPoolToAdapter((address,address)[])",
+          "args": {
+            "userIndex": "1",
+            "lqs": [
+              {
+                "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+                "adapterName": "CompoundAdapter"
+              },
+              {
+                "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                "adapterName": "AaveV1Adapter"
+              }
+            ]
+          },
+          "expect": "fail",
+          "message": "caller is not having governance"
         }
       ],
       "getActions": []

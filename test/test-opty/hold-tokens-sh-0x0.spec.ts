@@ -60,7 +60,7 @@ describe(scenarios.title, () => {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
             const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[strategy.token]]]);
-            let bestStrategyHash: void;
+            let bestStrategyHash: string;
             let vaultRiskProfile: string;
             const contracts: CONTRACTS = {};
             before(async () => {

@@ -305,7 +305,7 @@ contract Registry is ModifiersController {
      */
     function setLiquidityPoolToAdapter(DataTypes.PoolAdapter[] memory _poolAdapters)
         external
-        onlyOperator
+        onlyGovernance
         returns (bool)
     {
         for (uint8 _i = 0; _i < _poolAdapters.length; _i++) {
@@ -327,7 +327,7 @@ contract Registry is ModifiersController {
      * - msg.sender should be governance.
      * - `_adapter` should be contract
      */
-    function setLiquidityPoolToAdapter(address _pool, address _adapter) external onlyOperator returns (bool) {
+    function setLiquidityPoolToAdapter(address _pool, address _adapter) external onlyGovernance returns (bool) {
         _setLiquidityPoolToAdapter(_pool, _adapter);
         return true;
     }
