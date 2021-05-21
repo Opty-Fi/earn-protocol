@@ -197,7 +197,7 @@ describe(scenario.title, () => {
               await contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState);
             } else {
               await expect(
-                contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState)
+                contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState),
               ).to.be.revertedWith(action.message);
             }
             break;
