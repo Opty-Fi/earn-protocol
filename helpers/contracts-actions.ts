@@ -99,13 +99,11 @@ export async function approveVaultRewardTokens(
   }
 }
 
-export async function setBestBasicStrategy(
+export async function setStrategy(
   strategy: STRATEGY_DATA[],
   tokensHash: string,
   vaultStepInvestStrategyDefinitionRegistry: Contract,
-  strategyProvider: Contract,
-  riskProfile: string,
-): Promise<void> {
+): Promise<string> {
   const strategySteps: [string, string, boolean][] = [];
 
   for (let index = 0; index < strategy.length; index++) {
@@ -121,9 +119,18 @@ export async function setBestBasicStrategy(
     tokensHash,
     strategySteps,
   );
-
   const strategyReceipt = await strategies.wait();
-  const strategyHash = strategyReceipt.events[0].args[1];
+  return strategyReceipt.events[0].args[1];
+}
+
+export async function setBestBasicStrategy(
+  strategy: STRATEGY_DATA[],
+  tokensHash: string,
+  vaultStepInvestStrategyDefinitionRegistry: Contract,
+  strategyProvider: Contract,
+  riskProfile: string,
+): Promise<string> {
+  const strategyHash = await setStrategy(strategy, tokensHash, vaultStepInvestStrategyDefinitionRegistry);
   await strategyProvider.setBestStrategy(riskProfile, tokensHash, strategyHash);
   const strategyProviderStrategy = await strategyProvider.rpToTokenToBestStrategy(riskProfile, tokensHash);
   expect(strategyProviderStrategy).to.equal(strategyHash);

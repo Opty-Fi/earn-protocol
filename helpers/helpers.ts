@@ -1,4 +1,4 @@
-import { Contract, Signer, ContractFactory } from "ethers";
+import { Contract, Signer, ContractFactory, utils } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { STRATEGY_DATA } from "./type";
 import { getSoliditySHA3Hash } from "./utils";
@@ -74,15 +74,39 @@ export async function getExistingContractAddress(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
 ): Promise<string> {
-  const contract = await hre.deployments.get(contractName);
-  return contract.address;
+  let address;
+  try {
+    const deployedContract = await hre.deployments.get(contractName);
+    address = deployedContract.address;
+  } catch (error) {
+    address = "";
+  }
+  return address;
+}
+
+export async function getContract(
+  hre: HardhatRuntimeEnvironment,
+  contractName: string,
+  address: string,
+  contractProxy?: string,
+): Promise<Contract | undefined> {
+  let contract: Contract | undefined;
+  if (address === "") {
+    address = await getExistingContractAddress(hre, contractProxy ? contractProxy : contractName);
+  }
+  if (address !== "") {
+    contract = await getContractInstance(hre, contractName, address);
+  } else {
+    contract = undefined;
+  }
+  return contract;
 }
 
 export async function getContractInstance(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
   tokenAddress: string,
-): Promise<any> {
+): Promise<Contract> {
   const contract = await hre.ethers.getContractAt(contractName, tokenAddress);
   return contract;
 }
@@ -97,4 +121,15 @@ export function generateStrategyHash(strategy: STRATEGY_DATA[], tokenAddress: st
     );
   }
   return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
+}
+
+export function isAddress(address: string): boolean {
+  return utils.isAddress(address);
+}
+
+export async function moveToNextBlock(hre: HardhatRuntimeEnvironment): Promise<void> {
+  const blockNumber = await hre.ethers.provider.getBlockNumber();
+  const block = await hre.ethers.provider.getBlock(blockNumber);
+  await hre.network.provider.send("evm_setNextBlockTimestamp", [block.timestamp + 1]);
+  await hre.network.provider.send("evm_mine");
 }

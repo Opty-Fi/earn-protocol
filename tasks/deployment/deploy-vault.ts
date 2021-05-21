@@ -2,8 +2,8 @@ import { task, types } from "hardhat/config";
 import { deployVault } from "../../helpers/contracts-deployments";
 import { getTokenInforWithAddress } from "../../helpers/contracts-actions";
 import { insertContractIntoDB } from "../../helpers/db";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { getExistingContractAddress } from "../../helpers/helpers";
+import { isAddress } from "../../helpers/helpers";
+import { RISK_PROFILES } from "../../helpers/constants";
 task("deploy-vault", "Deploy Vault")
   .addParam("token", "the address of underlying token", "", types.string)
   .addParam("riskprofile", "the address of underlying token", "", types.string)
@@ -11,28 +11,60 @@ task("deploy-vault", "Deploy Vault")
   .addParam("riskmanager", "the address of riskManager", "", types.string)
   .addParam("strategymanager", "the address of strategyManager", "", types.string)
   .addParam("optyminter", "the address of opty Minter", "", types.string)
-  .setAction(async ({ token, riskprofile, registry, riskmanager, strategymanager, optyminter }, hre) => {
+  .addParam("insertindb", "allow inserting to database", false, types.boolean)
+  .setAction(async ({ token, riskprofile, registry, riskmanager, strategymanager, optyminter, insertindb }, hre) => {
     const [owner, admin] = await hre.ethers.getSigners();
+
     if (token === "") {
       throw new Error("token cannot be empty");
+    }
+
+    if (!isAddress(token)) {
+      throw new Error("token address is invalid");
     }
 
     if (riskprofile === "") {
       throw new Error("riskProfile cannot be empty");
     }
-    registry = registry === "" ? await getExistingContractAddress(hre, ESSENTIAL_CONTRACTS.REGISTRY_PROXY) : registry;
-    riskmanager =
-      riskmanager === "" ? await getExistingContractAddress(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY) : riskmanager;
-    strategymanager =
-      strategymanager === ""
-        ? await getExistingContractAddress(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER)
-        : strategymanager;
-    optyminter =
-      optyminter === "" ? await getExistingContractAddress(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER) : optyminter;
-    if (registry === "" || riskmanager === "" || strategymanager === "" || optyminter === "") {
-      throw new Error("Contracts were not deployed or set up properly");
+
+    if (!Object.keys(RISK_PROFILES).includes(riskprofile)) {
+      throw new Error("riskProfile is invalid");
     }
+
+    if (registry === "") {
+      throw new Error("registry cannot be empty");
+    }
+
+    if (!isAddress(registry)) {
+      throw new Error("registry address is invalid");
+    }
+
+    if (riskmanager === "") {
+      throw new Error("riskmanager cannot be empty");
+    }
+
+    if (!isAddress(riskmanager)) {
+      throw new Error("riskmanager address is invalid");
+    }
+
+    if (strategymanager === "") {
+      throw new Error("strategymanager cannot be empty");
+    }
+
+    if (!isAddress(strategymanager)) {
+      throw new Error("strategymanager address is invalid");
+    }
+
+    if (optyminter === "") {
+      throw new Error("optyminter cannot be empty");
+    }
+
+    if (!isAddress(optyminter)) {
+      throw new Error("optyminter address is invalid");
+    }
+
     const { name, symbol } = await getTokenInforWithAddress(hre, token);
+
     const vault = await deployVault(
       hre,
       registry,
@@ -47,9 +79,13 @@ task("deploy-vault", "Deploy Vault")
       riskprofile,
       false,
     );
+
     console.log(`Contract ${symbol}-${riskprofile}: ${vault.address}`);
-    const err = await insertContractIntoDB(`${symbol}-${riskprofile}`, vault.address);
-    if (err !== "") {
-      console.log(err);
+
+    if (insertindb) {
+      const err = await insertContractIntoDB(`${symbol}-${riskprofile}`, vault.address);
+      if (err !== "") {
+        console.log(err);
+      }
     }
   });
