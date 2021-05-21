@@ -25,13 +25,13 @@ describe(scenario.title, () => {
       users = { owner, user1 };
       [essentialContracts] = await setUp(owner);
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
-      contracts["stakingPool1D"] = essentialContracts.optyStakingVault1D;
-      contracts["stakingPool30D"] = essentialContracts.optyStakingVault30D;
-      contracts["stakingPool60D"] = essentialContracts.optyStakingVault60D;
-      contracts["stakingPool180D"] = essentialContracts.optyStakingVault180D;
-      const stakingPoolNames = Object.keys(contracts);
-      for (let i = 0; i < stakingPoolNames.length; i++) {
-        await unpauseVault(owner, essentialContracts.registry, contracts[stakingPoolNames[i]].address, true);
+      contracts["stakingVault1D"] = essentialContracts.optyStakingVault1D;
+      contracts["stakingVault30D"] = essentialContracts.optyStakingVault30D;
+      contracts["stakingVault60D"] = essentialContracts.optyStakingVault60D;
+      contracts["stakingVault180D"] = essentialContracts.optyStakingVault180D;
+      const stakingVaultNames = Object.keys(contracts);
+      for (let i = 0; i < stakingVaultNames.length; i++) {
+        await unpauseVault(owner, essentialContracts.registry, contracts[stakingVaultNames[i]].address, true);
       }
       contracts["opty"] = essentialContracts.opty;
     } catch (error) {
