@@ -193,7 +193,9 @@ describe(scenario.title, () => {
             if (action.expect === "success") {
               await contracts[action.contract][action.action](defaultStrategyState);
             } else {
-              await expect(contracts[action.contract][action.action](defaultStrategyState)).to.be.revertedWith(action.message);
+              await expect(contracts[action.contract][action.action](defaultStrategyState)).to.be.revertedWith(
+                action.message,
+              );
             }
             assert.isDefined(defaultStrategyState, `args is wrong in ${action.action} testcase`);
             break;
