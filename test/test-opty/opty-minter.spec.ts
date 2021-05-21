@@ -16,6 +16,7 @@ import {
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
+  unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/opty-minter.json";
 type ARGUMENTS = {
@@ -90,6 +91,7 @@ describe(scenario.title, () => {
       "RP1",
       TESTING_DEPLOYMENT_ONCE,
     );
+    await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
     const Vault2 = await deployVault(
       hre,
@@ -105,6 +107,7 @@ describe(scenario.title, () => {
       "RP1",
       TESTING_DEPLOYMENT_ONCE,
     );
+    await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
 
     const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
 
