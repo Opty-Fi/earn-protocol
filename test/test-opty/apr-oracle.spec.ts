@@ -195,9 +195,10 @@ describe(scenario.title, () => {
             const { defaultStrategyState }: ARGUMENTS = action.args;
             if (action.expect === "success") {
               await contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState);
-              console.log("Changing default strategy state to ", defaultStrategyState);
             } else {
-              await expect(contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState)).to.be.revertedWith(action.message);
+              await expect(
+                contracts[action.contract].connect(users[action.executor])[action.action](defaultStrategyState)
+              ).to.be.revertedWith(action.message);
             }
             break;
           }
