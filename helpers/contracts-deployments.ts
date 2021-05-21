@@ -144,7 +144,7 @@ export async function deployEssentialContracts(
 
   const optyStakingVault1D = await deployContract(
     hre,
-    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_VAULT,
     isDeployedOnce,
     owner,
     [registry.address, opty.address, optyMinter.address, 86400, optyStakingRateBalancer.address, "1D"],
@@ -152,7 +152,7 @@ export async function deployEssentialContracts(
 
   const optyStakingVault30D = await deployContract(
     hre,
-    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_VAULT,
     isDeployedOnce,
     owner,
     [registry.address, opty.address, optyMinter.address, 2592000, optyStakingRateBalancer.address, "30D"],
@@ -160,7 +160,7 @@ export async function deployEssentialContracts(
 
   const optyStakingVault60D = await deployContract(
     hre,
-    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_VAULT,
     isDeployedOnce,
     owner,
     [registry.address, opty.address, optyMinter.address, 5184000, optyStakingRateBalancer.address, "60D"],
@@ -168,7 +168,7 @@ export async function deployEssentialContracts(
 
   const optyStakingVault180D = await deployContract(
     hre,
-    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_POOL,
+    ESSENTIAL_CONTRACTS_DATA.OPTY_STAKING_VAULT,
     isDeployedOnce,
     owner,
     [registry.address, opty.address, optyMinter.address, 15552000, optyStakingRateBalancer.address, "180D"],

@@ -29,9 +29,9 @@ contract DForceAdapter is IAdapter, Modifiers {
     address public constant DAI_DEPOSIT_POOL = address(0x02285AcaafEB533e03A7306C55EC031297df9224);
 
     // staking vaults
-    address public constant USDT_STAKING_POOL = address(0x324EebDAa45829c6A8eE903aFBc7B61AF48538df);
-    address public constant USDC_STAKING_POOL = address(0xB71dEFDd6240c45746EC58314a01dd6D833fD3b5);
-    address public constant DAI_STAKING_POOL = address(0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B);
+    address public constant USDT_STAKING_VAULT = address(0x324EebDAa45829c6A8eE903aFBc7B61AF48538df);
+    address public constant USDC_STAKING_VAULT = address(0xB71dEFDd6240c45746EC58314a01dd6D833fD3b5);
+    address public constant DAI_STAKING_VAULT = address(0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B);
 
     HarvestCodeProvider public harvestCodeProviderContract;
     DataTypes.MaxExposure public maxExposureType;
@@ -42,9 +42,9 @@ contract DForceAdapter is IAdapter, Modifiers {
     constructor(address _registry, address _harvestCodeProvider) public Modifiers(_registry) {
         setHarvestCodeProvider(_harvestCodeProvider);
         setRewardToken(address(0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0));
-        setLiquidityPoolToStakingVault(USDT_DEPOSIT_POOL, USDT_STAKING_POOL);
-        setLiquidityPoolToStakingVault(USDC_DEPOSIT_POOL, USDC_STAKING_POOL);
-        setLiquidityPoolToStakingVault(DAI_DEPOSIT_POOL, DAI_STAKING_POOL);
+        setLiquidityPoolToStakingVault(USDT_DEPOSIT_POOL, USDT_STAKING_VAULT);
+        setLiquidityPoolToStakingVault(USDC_DEPOSIT_POOL, USDC_STAKING_VAULT);
+        setLiquidityPoolToStakingVault(DAI_DEPOSIT_POOL, DAI_STAKING_VAULT);
         setMaxDepositPoolPctDefault(uint256(10000)); // 100%
         setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
