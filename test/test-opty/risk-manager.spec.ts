@@ -15,6 +15,7 @@ type ARGUMENTS = {
   token?: string;
   tokens?: string[];
   score?: number;
+  defaultStrategyState?: number;
 };
 
 describe(scenario.title, () => {
@@ -44,6 +45,12 @@ describe(scenario.title, () => {
       );
 
       await executeFunc(registry, owner, "setStrategyProvider(address)", [strategyProvider.address]);
+
+      const aprOracle = await deployContract(hre, ESSENTIAL_CONTRACTS.APR_ORACLE, TESTING_DEPLOYMENT_ONCE, owner, [
+        registry.address,
+      ]);
+
+      await executeFunc(registry, owner, "setAPROracle(address)", [aprOracle.address]);
 
       let riskManager = await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER, TESTING_DEPLOYMENT_ONCE, owner, [
         registry.address,
@@ -179,6 +186,16 @@ describe(scenario.title, () => {
             assert.isDefined(strategy, `args is wrong in ${action.action} testcase`);
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
             assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "setDefaultStrategyState(uint8)": {
+            const { defaultStrategyState }: ARGUMENTS = action.args;
+            if (action.expect === "success") {
+              await contracts[action.contract][action.action](defaultStrategyState);
+            } else {
+              await expect(contracts[action.contract][action.action](defaultStrategyState)).to.be.revertedWith(action.message);
+            }
+            assert.isDefined(defaultStrategyState, `args is wrong in ${action.action} testcase`);
             break;
           }
         }

@@ -309,8 +309,17 @@
       ]
     },
     {
-      "description": "GetBestStrategy should return empty in StrategyProvider if strategy is not qualified and defaultStrategy is not set",
+      "description": "GetBestStrategy should return empty in StrategyProvider if strategy is not qualified, defaultStrategy is not set and defaultStrategyState is Zero ",
       "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setDefaultStrategyState(uint8)",
+          "args": {
+            "defaultStrategyState": 0
+          },
+          "expect": "success",
+          "message": ""
+        },
         {
           "contract": "registry",
           "action": "addRiskProfile(string,uint8,(uint8,uint8))",
