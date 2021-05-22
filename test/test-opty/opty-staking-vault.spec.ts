@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Signer } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import scenario from "./scenarios/staking-pool.json";
+import scenario from "./scenarios/opty-staking-vault.json";
 import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions";
 
 type ARGUMENTS = {
