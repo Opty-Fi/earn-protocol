@@ -14,8 +14,15 @@ import { OPTYStakingPool } from "./OPTYStakingPool.sol";
  */
 
 contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
-    constructor(address _registry, address _opty) public Modifiers(_registry) {
+    uint256 public immutable maxUnlockClaimOPTYTimestamp;
+
+    constructor(
+        address _registry,
+        address _opty,
+        uint256 _maxUnlockClaimOPTYTimestamp
+    ) public Modifiers(_registry) {
         _setOptyAddress(_opty);
+        maxUnlockClaimOPTYTimestamp = _maxUnlockClaimOPTYTimestamp;
     }
 
     /**
@@ -24,6 +31,27 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     modifier onlyStakingPool() {
         require(stakingPools[msg.sender] == true, "caller is not a staking pool");
         _;
+    }
+
+    modifier isOperatorTimeLockPeriodEnded() {
+        require(
+            _getBlockTimestamp() > operatorUnlockClaimOPTYTimestamp,
+            "you should wait until operatorUnlockClaimOPTYTimestamp"
+        );
+        _;
+    }
+
+    function setOperatorUnlockClaimOPTYTimestamp(uint256 _operatorUnlockClaimOPTYTimestamp)
+        public
+        onlyOperator
+        returns (bool)
+    {
+        require(
+            _operatorUnlockClaimOPTYTimestamp <= maxUnlockClaimOPTYTimestamp,
+            "operatorUnlockClaimOPTYTimestamp > maxUnlockClaimOPTYTimestamp"
+        );
+        operatorUnlockClaimOPTYTimestamp = _operatorUnlockClaimOPTYTimestamp;
+        return true;
     }
 
     /**
@@ -41,8 +69,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         optyAddress = _opty;
     }
 
-    function claimAndStake(address _stakingPool) public {
-        uint256 _amount = claimOpty(msg.sender);
+    function claimAndStake(address _stakingPool) external isOperatorTimeLockPeriodEnded {
+        address[] memory holders = new address[](1);
+        holders[0] = msg.sender;
+        uint256 _amount = _claimOpty(holders, allOptyVaults);
         OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
         _optyStakingPool.userStake(_amount);
     }
@@ -51,8 +81,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Claim all the OPTY accrued by holder in all markets
      * @param _holder The address to claim OPTY for
      */
-    function claimOpty(address _holder) public returns (uint256) {
-        claimOpty(_holder, allOptyVaults);
+    function claimOpty(address _holder) external isOperatorTimeLockPeriodEnded returns (uint256) {
+        address[] memory holders = new address[](1);
+        holders[0] = _holder;
+        _claimOpty(holders, allOptyVaults);
     }
 
     /**
@@ -60,10 +92,22 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _holder The address to claim OPTY for
      * @param _optyVaults The list of vaults to claim OPTY in
      */
-    function claimOpty(address _holder, address[] memory _optyVaults) public returns (uint256) {
+    function claimOpty(address _holder, address[] memory _optyVaults)
+        external
+        isOperatorTimeLockPeriodEnded
+        returns (uint256)
+    {
         address[] memory holders = new address[](1);
         holders[0] = _holder;
-        claimOpty(holders, _optyVaults);
+        _claimOpty(holders, _optyVaults);
+    }
+
+    function claimOpty(address[] memory _holders, address[] memory _optyVaults)
+        external
+        isOperatorTimeLockPeriodEnded
+        returns (uint256)
+    {
+        _claimOpty(_holders, _optyVaults);
     }
 
     /**
@@ -71,7 +115,11 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _holders The addresses to claim OPTY for
      * @param _optyVaults The list of vaults to claim OPTY in
      */
-    function claimOpty(address[] memory _holders, address[] memory _optyVaults) public returns (uint256) {
+    function _claimOpty(address[] memory _holders, address[] memory _optyVaults)
+        internal
+        isOperatorTimeLockPeriodEnded
+        returns (uint256)
+    {
         uint256 _total;
         for (uint256 i = 0; i < _optyVaults.length; i++) {
             address _optyVault = _optyVaults[i];
@@ -123,7 +171,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                         sub_(
                             mul_(
                                 _currentOptyVaultIndex,
-                                sub_(getBlockTimestamp(), optyVaultStartTimestamp[_optyVault])
+                                sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_optyVault])
                             ),
                             mul_(optyUserStateInVault[_optyVault][_holder].index, _deltaSecondsUser)
                         )
@@ -135,8 +183,8 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
 
     function currentOptyVaultIndex(address _optyVault) public view returns (uint256) {
-        uint256 _deltaSecondsSinceStart = sub_(getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
-        uint256 _deltaSeconds = sub_(getBlockTimestamp(), uint256(optyVaultState[_optyVault].timestamp));
+        uint256 _deltaSecondsSinceStart = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
+        uint256 _deltaSeconds = sub_(_getBlockTimestamp(), uint256(optyVaultState[_optyVault].timestamp));
         uint256 _supplyTokens = IERC20(_optyVault).totalSupply();
         uint256 _optyAccrued = mul_(_deltaSeconds, optyVaultRatePerSecond[_optyVault]);
         uint256 _ratio = _supplyTokens > 0 ? div_(mul_(_optyAccrued, 1e18), _supplyTokens) : uint256(0);
@@ -160,8 +208,8 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      */
     function updateUserRewards(address _optyVault, address _user) public {
         if (optyVaultRatePerSecond[_optyVault] > 0) {
-            if (IERC20(_optyVault).balanceOf(_user) > 0 && lastUserUpdate[_optyVault][_user] != getBlockTimestamp()) {
-                uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
+            if (IERC20(_optyVault).balanceOf(_user) > 0 && lastUserUpdate[_optyVault][_user] != _getBlockTimestamp()) {
+                uint256 _deltaSecondsVault = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
                 uint256 _deltaSecondsUser;
                 if (
                     lastUserUpdate[_optyVault][_user] != uint256(0) &&
@@ -187,7 +235,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                 uint256 _userAccrued = add_(optyAccrued[_user], _userDelta);
                 optyAccrued[_user] = _userAccrued;
             }
-            lastUserUpdate[_optyVault][_user] = getBlockTimestamp();
+            lastUserUpdate[_optyVault][_user] = _getBlockTimestamp();
         }
     }
 
@@ -218,14 +266,14 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     function updateOptyVaultIndex(address _optyVault) public returns (uint224) {
         if (optyVaultRatePerSecond[_optyVault] > 0) {
             if (optyVaultState[_optyVault].index == uint224(0)) {
-                optyVaultStartTimestamp[_optyVault] = getBlockTimestamp();
+                optyVaultStartTimestamp[_optyVault] = _getBlockTimestamp();
                 optyVaultState[_optyVault].timestamp = uint32(optyVaultStartTimestamp[_optyVault]);
                 optyVaultState[_optyVault].index = uint224(optyVaultRatePerSecondAndVaultToken[_optyVault]);
                 return optyVaultState[_optyVault].index;
             } else {
-                uint256 _deltaSeconds = sub_(getBlockTimestamp(), uint256(optyVaultState[_optyVault].timestamp));
+                uint256 _deltaSeconds = sub_(_getBlockTimestamp(), uint256(optyVaultState[_optyVault].timestamp));
                 if (_deltaSeconds > 0) {
-                    uint256 _deltaSecondsSinceStart = sub_(getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
+                    uint256 _deltaSecondsSinceStart = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
                     uint256 _supplyTokens = IERC20(_optyVault).totalSupply();
                     uint256 _optyAccrued = mul_(_deltaSeconds, optyVaultRatePerSecond[_optyVault]);
                     uint256 _ratio = _supplyTokens > 0 ? div_(mul_(_optyAccrued, 1e18), _supplyTokens) : uint256(0);
@@ -245,7 +293,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
                         );
                     optyVaultState[_optyVault] = OptyState({
                         index: safe224(_index, "new index exceeds 224 bits"),
-                        timestamp: safe32(getBlockTimestamp(), "block number exceeds 32 bits")
+                        timestamp: safe32(_getBlockTimestamp(), "block number exceeds 32 bits")
                     });
                 }
                 return optyVaultState[_optyVault].index;
@@ -296,7 +344,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         return optyAddress;
     }
 
-    function getBlockTimestamp() public view returns (uint256) {
+    function _getBlockTimestamp() internal view returns (uint256) {
         return block.timestamp;
     }
 }
