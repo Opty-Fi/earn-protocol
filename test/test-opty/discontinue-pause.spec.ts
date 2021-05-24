@@ -16,10 +16,11 @@ import {
   getTokenSymbol,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/discontinue-pause.json";
+
 describe(scenario.title, () => {
   // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
   const token = "DAI";
-  const MAX_AMOUNT = 100000000;
+  const MAX_AMOUNT = "100000000000000000000";
   let essentialContracts: CONTRACTS;
   let contracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -82,8 +83,9 @@ describe(scenario.title, () => {
           );
 
           const timestamp = (await getBlockTimestamp(hre)) * 2;
-          await fundWalletToken(hre, TOKENS[token], owner, BigNumber.from(MAX_AMOUNT * 100), timestamp);
+          await fundWalletToken(hre, TOKENS[token], owner, BigNumber.from(MAX_AMOUNT), timestamp);
           ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKENS[token]);
+          contracts["erc20"] = ERC20Instance;
         } catch (error) {
           console.error(error);
         }
@@ -93,33 +95,71 @@ describe(scenario.title, () => {
         const story = vaults.stories[i];
         it(story.description, async () => {
           for (let j = 0; j < story.actions.length; j++) {
-            if (
-              story.actions[j].action === "userDepositRebalance(uint256)" ||
-              story.actions[j].action === "userWithdrawRebalanceAll()"
-            ) {
-              const args = story.actions[j].args;
-              if (story.actions[j].expect === "success") {
-                await ERC20Instance.connect(owner).approve(
-                  contracts[story.actions[j].contract.toLowerCase()].address,
-                  BigNumber.from(MAX_AMOUNT * 2),
-                );
-                story.actions[j].action === "userDepositRebalance(uint256)"
-                  ? await contracts[story.actions[j].contract.toLowerCase()][story.actions[j].action](args?.amount)
-                  : await contracts[story.actions[j].contract.toLowerCase()][story.actions[j].action];
-              } else {
-                await expect(
-                  contracts[story.actions[j].contract.toLowerCase()][story.actions[j].action](args?.amount),
-                ).to.be.revertedWith(story.actions[j].message);
+            const action = story.actions[j];
+            switch (action.action) {
+              case "userDepositRebalance(uint256)":
+              case "userDepositAllRebalance()":
+              case "userWithdrawRebalance(uint256)":
+              case "userWithdrawAllRebalance()": {
+                const args = action.args;
+                if (action.expect === "success") {
+                  await ERC20Instance.connect(owner).approve(
+                    contracts[action.contract.toLowerCase()].address,
+                    BigNumber.from(MAX_AMOUNT),
+                  );
+                  action.action === "userDepositRebalance(uint256)" ||
+                  action.action === "userWithdrawRebalance(uint256)"
+                    ? await contracts[action.contract.toLowerCase()][action.action](BigNumber.from(args?.amount))
+                    : await contracts[action.contract.toLowerCase()][action.action]();
+                } else {
+                  action.action === "userDepositRebalance(uint256)" ||
+                  action.action === "userWithdrawRebalance(uint256)"
+                    ? await expect(
+                        contracts[action.contract.toLowerCase()][action.action](args?.amount),
+                      ).to.be.revertedWith(action.message)
+                    : await expect(contracts[action.contract.toLowerCase()][action.action]()).to.be.revertedWith(
+                        action.message,
+                      );
+                }
+
+                assert.isDefined(args, `args is wrong in ${action.action} testcase`);
+                break;
               }
-            } else {
-              const args = story.actions[j].args;
-              if (story.actions[j].expect === "success") {
-                story.actions[j].action === "setPause(address,bool)"
-                  ? await contracts[story.actions[j].contract.toLowerCase()][story.actions[j].action](
-                      vault.address,
-                      args?.pause,
-                    )
-                  : await contracts[story.actions[j].contract.toLowerCase()][story.actions[j].action](vault.address);
+              case "discontinue(address)":
+              case "unpauseVaultContract(address,bool)": {
+                const args = action.args;
+                if (action.expect === "success") {
+                  action.action === "unpauseVaultContract(address,bool)"
+                    ? await contracts[action.contract.toLowerCase()][action.action](vault.address, args?.unpause)
+                    : await contracts[action.contract.toLowerCase()][action.action](vault.address);
+                }
+                assert.isDefined(args, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "balance()": {
+                const args = action.args;
+                if (action.expect === "success") {
+                  const expectedValue = <string>args[<keyof typeof args>"expectedValue"];
+                  const balance = await contracts[action.contract.toLowerCase()][action.action]();
+                  expectedValue === "0"
+                    ? expect(+balance).to.equal(+expectedValue)
+                    : expect(+balance).to.be.gte(+expectedValue.split(">=")[1]);
+                }
+                assert.isDefined(args, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "balanceOf(address)": {
+                const args = action.args;
+                if (action.expect === "success") {
+                  const expectedValue = <string>args[<keyof typeof args>"expectedValue"];
+                  const addr = await owner.getAddress();
+                  const balance = await contracts[action.contract.toLowerCase()][action.action](addr);
+                  expectedValue === "0"
+                    ? expect(+balance).to.equal(+expectedValue)
+                    : expect(+balance).to.be.gte(+MAX_AMOUNT);
+                }
+                assert.isDefined(args, `args is wrong in ${action.action} testcase`);
+                break;
               }
             }
           }

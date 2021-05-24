@@ -38,6 +38,12 @@ export type REWARD_TOKEN_DATA_OBJECT = {
   };
 };
 
+export type STRATEGY = {
+  strategyName: string;
+  token: string;
+  strategy: STRATEGY_DATA[];
+};
+
 export type STRATEGY_DATA = {
   contract: string;
   outputTokenSymbol?: string;
@@ -56,14 +62,5 @@ export type DEFI_POOLS_DATA = {
 };
 
 export type ADAPTER_WITH_STRATEGIES_DATA = {
-  [key: string]: {
-    strategyName: string;
-    token: string;
-    strategy: {
-      contract: string;
-      outputTokenSymbol: string;
-      outputToken: string;
-      isBorrow: boolean;
-    }[];
-  }[];
+  [key: string]: STRATEGY[];
 };

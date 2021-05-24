@@ -512,7 +512,8 @@ contract Vault is
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "!!balance");
 
-        if (!registryContract.vaultToDiscontinued(address(this)) && investStrategyHash != ZERO_BYTES32) {
+        (bool _discontinued, ) = registryContract.vaultToVaultActivityState(address(this));
+        if (!_discontinued && investStrategyHash != ZERO_BYTES32) {
             _withdrawAll();
             _harvest(investStrategyHash);
         }
@@ -526,7 +527,7 @@ contract Vault is
         optyMinterContract.updateOptyVaultIndex(address(this));
         optyMinterContract.updateUserStateInVault(address(this), msg.sender);
 
-        if (!registryContract.vaultToDiscontinued(address(this)) && (_balance() > 0)) {
+        if (!_discontinued && (_balance() > 0)) {
             _emergencyBrake(_balance());
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = underlyingToken;
@@ -665,8 +666,8 @@ contract Vault is
         }
     }
 
-    function setPaused(bool _paused) public override onlyRegistry {
-        if (_paused && investStrategyHash != ZERO_BYTES32) {
+    function setUnpaused(bool _unpaused) public override onlyRegistry {
+        if (!_unpaused && investStrategyHash != ZERO_BYTES32) {
             _withdrawAll();
             _harvest(investStrategyHash);
         }

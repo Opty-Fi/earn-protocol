@@ -14,6 +14,7 @@ import {
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
+  unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/withdrawal-fee.json";
 
@@ -91,6 +92,7 @@ describe(scenario.title, () => {
             profile,
             TESTING_DEPLOYMENT_ONCE,
           );
+          await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
           ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKENS[token]);
           contracts["vault"] = Vault;

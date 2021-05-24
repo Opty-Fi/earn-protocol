@@ -1,4 +1,4 @@
-name: Earn protocol Install, lint and test pipeline
+name: Earn protocol Install, lint, test and deploy pipeline
 
 on:
   pull_request:
@@ -80,7 +80,7 @@ jobs:
           name: Compile
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
           status: ${{ job.status }}
-  test:
+  test-deploy:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -91,6 +91,7 @@ jobs:
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       REPORT_GAS: true
       MY_METAMASK_MNEMONIC: ${{ secrets.MY_METAMASK_MNEMONIC}}
+      STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -102,17 +103,30 @@ jobs:
           path: '**/node_modules'
           key: npm-v2-${{ hashFiles('**/yarn.lock') }}
           restore-keys: npm-v2-
+      - name: Add public IP to AWS security group
+        uses: sohelamin/aws-security-group-add-ip-action@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'us-east-1'
+          aws-security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
+          port: '22'
+          to-port: '8545'
+          protocol: 'tcp'
+          description: 'GitHub Action'
       - name: Install
         run: |
           yarn install --frozen-lockfile
       - name: Test
         run: |
           yarn test
+      - name: Deploy
+        run: |
+          yarn deploy-infra:staging
       - name: Google Chat Notification
         uses: Co-qn/google-chat-notification@releases/v1
         if: always()
         with:
-          name: Test
+          name: Test & Deploy
           url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
           status: ${{ job.status }}
-          

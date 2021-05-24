@@ -15,6 +15,7 @@ import {
   getTokenName,
   getTokenSymbol,
   approveVaultRewardTokens,
+  unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { getContractInstance } from "../../helpers/helpers";
@@ -93,6 +94,8 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+              await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
+
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
                 await approveVaultRewardTokens(
                   users["owner"],

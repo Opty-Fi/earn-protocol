@@ -14,6 +14,7 @@ import {
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
+  unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/invest-limitation.json";
 type ARGUMENTS = {
@@ -79,6 +80,7 @@ describe(scenarios.title, () => {
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
                 );
+                await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
                 await approveLiquidityPoolAndMapAdapter(
                   users["owner"],
                   essentialContracts.registry,

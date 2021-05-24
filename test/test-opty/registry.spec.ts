@@ -1,13 +1,9 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Contract, Signer } from "ethers";
-import {
-  deployAdapters,
-  deployHarvestCodeProvider,
-  deployPriceOracle,
-  deployRegistry,
-} from "../../helpers/contracts-deployments";
+import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS } from "../../helpers/type";
+import { deployContract } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import scenario from "./scenarios/registry.json";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
@@ -27,13 +23,16 @@ describe(scenario.title, () => {
     try {
       [owner, ...users] = await hre.ethers.getSigners();
       registryContract = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
-      harvestCodeProvider = await deployHarvestCodeProvider(
+      harvestCodeProvider = await deployContract(
         hre,
-        owner,
-        registryContract.address,
+        ESSENTIAL_CONTRACTS_DATA.HARVEST_CODE_PROVIDER,
         TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [registryContract.address],
       );
-      priceOracle = await deployPriceOracle(hre, owner, registryContract.address, TESTING_DEPLOYMENT_ONCE);
+      priceOracle = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.PRICE_ORACLE, TESTING_DEPLOYMENT_ONCE, owner, [
+        registryContract.address,
+      ]);
       adapters = await deployAdapters(
         hre,
         owner,
@@ -176,7 +175,7 @@ describe(scenario.title, () => {
             break;
           }
           case "setLiquidityPoolToAdapter((address,address)[])": {
-            const { lqs }: ARGUMENTS = action.args;
+            const { lqs, userIndex }: ARGUMENTS = action.args;
             if (lqs) {
               const args: [string, string][] = [];
               for (let i = 0; i < lqs.length; i++) {
@@ -185,23 +184,33 @@ describe(scenario.title, () => {
               if (action.expect === "success") {
                 await registryContract[action.action](args);
               } else {
-                await expect(registryContract[action.action](args)).to.be.revertedWith(action.message);
+                (await userIndex)
+                  ? await expect(registryContract.connect(users[userIndex])[action.action](args)).to.be.revertedWith(
+                      action.message,
+                    )
+                  : await expect(registryContract[action.action](args)).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(lqs, `args is wrong in ${action.action} testcase`);
             break;
           }
           case "setLiquidityPoolToAdapter(address,address)": {
-            const { lqs }: ARGUMENTS = action.args;
+            const { lqs, userIndex }: ARGUMENTS = action.args;
             if (lqs) {
               if (action.expect === "success") {
                 await expect(registryContract[action.action](lqs.liquidityPool, adapters[lqs.adapterName].address))
                   .to.emit(registryContract, "LogLiquidityPoolToDepositToken")
                   .withArgs(hre.ethers.utils.getAddress(lqs.liquidityPool), adapters[lqs.adapterName].address, caller);
               } else {
-                await expect(
-                  registryContract[action.action](lqs.liquidityPool, adapters[lqs.adapterName].address),
-                ).to.be.revertedWith(action.message);
+                (await userIndex)
+                  ? await expect(
+                      registryContract
+                        .connect(users[userIndex])
+                        [action.action](lqs.liquidityPool, adapters[lqs.adapterName].address),
+                    ).to.be.revertedWith(action.message)
+                  : await expect(
+                      registryContract[action.action](lqs.liquidityPool, adapters[lqs.adapterName].address),
+                    ).to.be.revertedWith(action.message);
               }
             }
             assert.isDefined(lqs, `args is wrong in ${action.action} testcase`);

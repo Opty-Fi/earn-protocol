@@ -87,7 +87,10 @@
     "deploy-infra:local": "npm run hardhat:local deploy-infra",
     "deploy-infra:staging": "npm run hardhat:staging deploy-infra",
     "deploy-adapters": "hardhat deploy-adapters",
-    "deploy-adapters:kovan": "npm run hardhat:kovan deploy-adapters --"
+    "deploy-adapters:kovan": "npm run hardhat:kovan deploy-adapters --",
+    "setup": "hardhat setup",
+    "setup:local": "npm run hardhat:local setup",
+    "setup:staging": "npm run hardhat:staging setup"
   },
   "publishConfig": {
     "access": "public"

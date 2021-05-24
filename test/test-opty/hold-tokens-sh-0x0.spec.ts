@@ -14,6 +14,7 @@ import {
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
+  unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 type ARGUMENTS = {
@@ -60,7 +61,7 @@ describe(scenarios.title, () => {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
             const tokensHash = getSoliditySHA3Hash(["address[]"], [[TOKENS[strategy.token]]]);
-            let bestStrategyHash: void;
+            let bestStrategyHash: string;
             let vaultRiskProfile: string;
             const contracts: CONTRACTS = {};
             before(async () => {
@@ -82,6 +83,7 @@ describe(scenarios.title, () => {
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
                 );
+                await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
                 await approveLiquidityPoolAndMapAdapter(
                   users["owner"],
                   essentialContracts.registry,

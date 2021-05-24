@@ -595,7 +595,7 @@
       ]
     },
     {
-      "description": "Operator should be able to set liquidity pool to adapter",
+      "description": "Governance should be able to set liquidity pool to adapter",
       "setActions": [
         {
           "action": "approveLiquidityPool(address)",
@@ -629,7 +629,25 @@
       ]
     },
     {
-      "description": "Operator should be able to set mutiple liquidity pools to adapters",
+      "description": "Non-Governance shouldn't be able to set liquidity pool to adapter",
+      "setActions": [
+        {
+          "action": "setLiquidityPoolToAdapter(address,address)",
+          "args": {
+            "userIndex": "1",
+            "lqs": {
+              "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+              "adapterName": "CompoundAdapter"
+            }
+          },
+          "expect": "fail",
+          "message": "caller is not having governance"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "Governance should be able to set mutiple liquidity pools to adapters",
       "setActions": [
         {
           "action": "approveLiquidityPool(address[])",
@@ -677,7 +695,7 @@
       ]
     },
     {
-      "description": "Operator shouldn't be able to set mutiple non-approved liquidity pools to adapters",
+      "description": "Governance shouldn't be able to set mutiple non-approved liquidity pools to adapters",
       "setActions": [
         {
           "action": "setLiquidityPoolToAdapter((address,address)[])",
@@ -695,6 +713,30 @@
           },
           "expect": "fail",
           "message": "!liquidityPools"
+        }
+      ],
+      "getActions": []
+    },
+    {
+      "description": "Non-Governance shouldn't be able to set multiple liquidity pools to adapters",
+      "setActions": [
+        {
+          "action": "setLiquidityPoolToAdapter((address,address)[])",
+          "args": {
+            "userIndex": "1",
+            "lqs": [
+              {
+                "liquidityPool": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+                "adapterName": "CompoundAdapter"
+              },
+              {
+                "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                "adapterName": "AaveV1Adapter"
+              }
+            ]
+          },
+          "expect": "fail",
+          "message": "caller is not having governance"
         }
       ],
       "getActions": []
@@ -729,6 +771,77 @@
           "expectedMultiValues": {}
         }
       ]
+    },
+    {
+      "description": "Operator should be able to set token hash to multiple tokens",
+      "setActions": [
+        {
+          "action": "approveToken(address[])",
+          "args": {
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTokensHashToTokens(address[][])",
+          "args": {
+            "tokensHash": [
+              ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"],
+              ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "0x6b175474e89094c44da98b954eedeac495271d0f"]
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "0"
+          },
+          "expectedValue": "0x8bb515c59c8ed89250b9316105ba225d5aebd720e87e69f2ba78fad8fab9ea7d",
+          "expectedMultiValues": {}
+        },
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "1"
+          },
+          "expectedValue": "0x358484c2a974d5a47260a9016e4e8bb7e9d5f88f41b8fdc74351bba825e62b4c",
+          "expectedMultiValues": {}
+        }
+      ]
+    },
+    {
+      "description": "Operator shouldn't be able to set token hash to multiple tokens (including non-approve token)",
+      "setActions": [
+        {
+          "action": "approveToken(address[])",
+          "args": {
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTokensHashToTokens(address[][])",
+          "args": {
+            "tokensHash": [
+              [
+                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "0xdac17f958d2ee523a2206206994597c13d831ec7"
+              ],
+              ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "0x6b175474e89094c44da98b954eedeac495271d0f"]
+            ]
+          },
+          "expect": "fail",
+          "message": "!tokens"
+        }
+      ],
+      "getActions": []
     },
     {
       "description": "Operator should be able to set token hash to tokens",

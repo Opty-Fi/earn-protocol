@@ -73,4 +73,9 @@ library DataTypes {
         uint224 index;
         uint32 timestamp;
     }
+
+    struct VaultActivityState {
+        bool discontinued;
+        bool unpaused;
+    }
 }
