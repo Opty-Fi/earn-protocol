@@ -74,7 +74,7 @@
           "contract": "optyMinter",
           "action": "claimOpty(address)",
           "args": {
-            "holder": "owner"
+            "addressName": "owner"
           },
           "executer": "owner",
           "expect": "fail",
@@ -85,53 +85,6 @@
     },
     {
       "description": "User should be able to claim OPTY after operatorUnlockClaimOPTYTimestamp",
-      "setActions": [
-        {
-          "contract": "optyMinter",
-          "action": "addOptyVault(address)",
-          "args": {
-            "contractName": "vault"
-          },
-          "executer": "owner",
-          "expect": "success",
-          "message": ""
-        },
-        {
-          "contract": "optyMinter",
-          "action": "setOptyVaultRate(address,uint256)",
-          "args": {
-            "contractName": "vault",
-            "rate": "100"
-          },
-          "executer": "owner",
-          "expect": "success",
-          "message": ""
-        },
-        {
-          "contract": "optyMinter",
-          "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
-          "args": {
-            "operatorUnlockClaimOPTYTimestamp": 1621863987
-          },
-          "executer": "owner",
-          "expect": "success",
-          "message": ""
-        },
-        {
-          "contract": "optyMinter",
-          "action": "claimOpty(address)",
-          "args": {
-            "holder": "owner"
-          },
-          "executer": "owner",
-          "expect": "success",
-          "message": ""
-        }
-      ],
-      "getActions": []
-    },
-    {
-      "description": "Operator can set opty vault rate",
       "setActions": [
         {
           "contract": "optyMinter",
@@ -166,6 +119,16 @@
           "message": ""
         },
         {
+          "contract": "optyMinter",
+          "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
+          "args": {
+            "operatorUnlockClaimOPTYTimestamp": 1621863987
+          },
+          "executer": "owner",
+          "expect": "success",
+          "message": ""
+        },
+        {
           "contract": "erc20",
           "action": "approve(address,uint256)",
           "args": {
@@ -185,18 +148,19 @@
           "executer": "owner",
           "expect": "success",
           "message": ""
-        }
-      ],
-      "getActions": [
+        },
         {
           "contract": "optyMinter",
-          "action": "optyVaultRatePerSecond(address)",
+          "action": "claimOpty(address)",
           "args": {
-            "contractName": "vault"
+            "addressName": "owner"
           },
-          "expectedValue": "100"
+          "executer": "owner",
+          "expect": "fail",
+          "message": "you should wait until operatorUnlockClaimOPTYTimestamp"
         }
-      ]
+      ],
+      "getActions": []
     }
   ]
 }

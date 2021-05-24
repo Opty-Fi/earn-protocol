@@ -113,6 +113,7 @@ export async function deployEssentialContracts(
   const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.OPTY_MINTER, isDeployedOnce, owner, [
     registry.address,
     opty.address,
+    1700000000,
   ]);
 
   let optyStakingRateBalancer = await deployContract(

@@ -7,7 +7,7 @@ import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { deployContract, executeFunc, moveToNextBlock } from "../../helpers/helpers";
+import { deployContract, executeFunc } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestBasicStrategy,
@@ -26,7 +26,7 @@ type ARGUMENTS = {
   index?: number;
   rate?: string;
   isEnabled?: boolean;
-  operatorUnlockClaimOPTYTimestamp?: string;
+  operatorUnlockClaimOPTYTimestamp?: number;
 };
 describe(scenario.title, () => {
   const token = "DAI";
@@ -38,7 +38,6 @@ describe(scenario.title, () => {
   let users: { [key: string]: Signer };
   const tokensHash = getSoliditySHA3Hash(["address[]"], [[tokenAddr]]);
   const TOKEN_STRATEGY = TypedAdapterStrategies["CompoundAdapter"][0];
-  let currentOpty = 0;
   before(async () => {
     try {
       const [owner, admin, user1] = await hre.ethers.getSigners();
@@ -76,7 +75,10 @@ describe(scenario.title, () => {
     const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, users["owner"], [
       essentialContracts["registry"].address,
       opty.address,
+      1700000000,
     ]);
+
+    await executeFunc(essentialContracts.registry, users["owner"], "setMinter(address)", [optyMinter.address]);
 
     const Vault = await deployVault(
       hre,
@@ -94,22 +96,6 @@ describe(scenario.title, () => {
     );
     await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
-    const Vault2 = await deployVault(
-      hre,
-      essentialContracts.registry.address,
-      essentialContracts.riskManager.address,
-      essentialContracts.strategyManager.address,
-      optyMinter.address,
-      tokenAddr,
-      users["owner"],
-      users["admin"],
-      underlyingTokenName,
-      underlyingTokenSymbol,
-      "RP1",
-      TESTING_DEPLOYMENT_ONCE,
-    );
-    await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
-
     const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
 
     contracts["registry"] = essentialContracts.registry;
@@ -117,8 +103,6 @@ describe(scenario.title, () => {
     contracts["optyMinter"] = optyMinter;
 
     contracts["vault"] = Vault;
-
-    contracts["vault2"] = Vault2;
 
     contracts["erc20"] = ERC20Instance;
 
@@ -130,8 +114,7 @@ describe(scenario.title, () => {
       for (let i = 0; i < story.setActions.length; i++) {
         const action = story.setActions[i];
         switch (action.action) {
-          case "addOptyVault(address)":
-          case "setMinter(address)": {
+          case "addOptyVault(address)": {
             const { contractName }: ARGUMENTS = action.args;
             if (contractName) {
               if (action.expect === "success") {
@@ -213,38 +196,7 @@ describe(scenario.title, () => {
             assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
             break;
           }
-          case "transfer(address,uint256)": {
-            const { addressName, amount }: ARGUMENTS = action.args;
-            if (addressName && amount) {
-              const fromAddr = await users[action.executer].getAddress();
-              const toAddr = await users[addressName].getAddress();
-              if (action.expect === "success") {
-                await executeFunc(contracts[action.contract], users[action.executer], action.action, [toAddr, amount]);
-              } else {
-                await expect(
-                  executeFunc(contracts[action.contract], users[action.executer], action.action, [toAddr, amount]),
-                ).to.be.revertedWith(action.message);
-              }
-              if (action.contract === "vault") {
-                await moveToNextBlock(hre);
-                currentOpty = await contracts["optyMinter"]["claimableOpty(address)"](fromAddr);
-              }
-            }
-            assert.isDefined(amount, `args is wrong in ${action.action} testcase`);
-            break;
-          }
-          case "rebalance()": {
-            if (action.expect === "success") {
-              await executeFunc(contracts[action.contract], users[action.executer], action.action, []);
-            } else {
-              await expect(
-                executeFunc(contracts[action.contract], users[action.executer], action.action, []),
-              ).to.be.revertedWith(action.message);
-            }
-            break;
-          }
-          case "userDepositRebalance(uint256)":
-          case "userDeposit(uint256)": {
+          case "userDepositRebalance(uint256)": {
             const { amount }: ARGUMENTS = action.args;
             if (amount) {
               if (action.expect === "success") {
@@ -258,32 +210,14 @@ describe(scenario.title, () => {
             assert.isDefined(amount, `args is wrong in ${action.action} testcase`);
             break;
           }
-          case "mint(address,uint256)":
-          case "mintOpty(address,uint256)": {
-            const { addressName, amount }: ARGUMENTS = action.args;
-            if (addressName && amount) {
-              const userAddr = await users[addressName].getAddress();
-              if (action.expect === "success") {
-                await executeFunc(contracts[action.contract], users[action.executer], action.action, [
-                  userAddr,
-                  amount,
-                ]);
-              } else {
-                await expect(
-                  executeFunc(contracts[action.contract], users[action.executer], action.action, [userAddr, amount]),
-                ).to.be.revertedWith(action.message);
-              }
-            }
-            assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
-            assert.isDefined(amount, `args is wrong in ${action.action} testcase`);
-            break;
-          }
           case "claimOpty(address)": {
             const { addressName }: ARGUMENTS = action.args;
             if (addressName) {
-              await moveToNextBlock(hre);
               const userAddr = await users[addressName].getAddress();
               if (action.expect === "success") {
+                const time = 1700000001;
+                await hre.ethers.provider.send("evm_setNextBlockTimestamp", [time]);
+                await hre.ethers.provider.send("evm_mine", []);
                 await executeFunc(contracts[action.contract], users[action.executer], action.action, [userAddr]);
               } else {
                 await expect(
@@ -317,58 +251,6 @@ describe(scenario.title, () => {
       for (let i = 0; i < story.getActions.length; i++) {
         const action = story.getActions[i];
         switch (action.action) {
-          case "allOptyVaults(uint256)": {
-            const { index }: ARGUMENTS = action.args;
-            if (index) {
-              const value = await contracts[action.contract][action.action](index);
-              expect(value).to.be.equal(contracts[action.expectedValue.toString()].address);
-            }
-            assert.isDefined(index, `args is wrong in ${action.action} testcase`);
-            break;
-          }
-          case "optyVaultEnabled(address)": {
-            const { contractName }: ARGUMENTS = action.args;
-            if (contractName) {
-              const value = await contracts[action.contract][action.action](contracts[contractName].address);
-              expect(value).to.be.equal(action.expectedValue);
-            }
-            assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
-            break;
-          }
-          case "optyVaultRatePerSecond(address)": {
-            const { contractName }: ARGUMENTS = action.args;
-            if (contractName) {
-              const value = await contracts[action.contract][action.action](contracts[contractName].address);
-              expect(value).to.be.equal(action.expectedValue);
-            }
-            assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
-            break;
-          }
-          case "claimableOpty(address)": {
-            const { addressName }: ARGUMENTS = action.args;
-            if (addressName) {
-              await moveToNextBlock(hre);
-              const addr = await users[addressName].getAddress();
-              const value = await contracts[action.contract][action.action](addr);
-              if (action.expectedValue === "") {
-                expect(value.toString()).to.be.equal(currentOpty.toString());
-              } else {
-                expect(+value).to.be.gte(+action.expectedValue);
-              }
-            }
-            assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
-            break;
-          }
-          case "balanceOf(address)": {
-            const { addressName }: ARGUMENTS = action.args;
-            if (addressName) {
-              const addr = await users[addressName].getAddress();
-              const value = await contracts[action.contract][action.action](addr);
-              expect(+value).to.be.gte(+action.expectedValue);
-            }
-            assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
-            break;
-          }
           case "operatorUnlockClaimOPTYTimestamp()": {
             const value = await contracts[action.contract][action.action]();
             expect(+value).to.be.equal(+action.expectedValue);
