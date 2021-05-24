@@ -298,10 +298,14 @@ describe(scenario.title, () => {
             const { operatorUnlockClaimOPTYTimestamp }: ARGUMENTS = action.args;
             if (operatorUnlockClaimOPTYTimestamp) {
               if (action.expect === "success") {
-                await executeFunc(contracts[action.contract], users[action.executer], action.action, [operatorUnlockClaimOPTYTimestamp]);
+                await executeFunc(contracts[action.contract], users[action.executer], action.action, [
+                  operatorUnlockClaimOPTYTimestamp,
+                ]);
               } else {
                 await expect(
-                  executeFunc(contracts[action.contract], users[action.executer], action.action, [operatorUnlockClaimOPTYTimestamp]),
+                  executeFunc(contracts[action.contract], users[action.executer], action.action, [
+                    operatorUnlockClaimOPTYTimestamp,
+                  ]),
                 ).to.be.revertedWith(action.message);
               }
             }
