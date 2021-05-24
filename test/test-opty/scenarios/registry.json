@@ -773,6 +773,77 @@
       ]
     },
     {
+      "description": "Operator should be able to set token hash to multiple tokens",
+      "setActions": [
+        {
+          "action": "approveToken(address[])",
+          "args": {
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTokensHashToTokens(address[][])",
+          "args": {
+            "tokensHash": [
+              ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"],
+              ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "0x6b175474e89094c44da98b954eedeac495271d0f"]
+            ]
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "0"
+          },
+          "expectedValue": "0x8bb515c59c8ed89250b9316105ba225d5aebd720e87e69f2ba78fad8fab9ea7d",
+          "expectedMultiValues": {}
+        },
+        {
+          "action": "tokensHashIndexes(uint256)",
+          "args": {
+            "index": "1"
+          },
+          "expectedValue": "0x358484c2a974d5a47260a9016e4e8bb7e9d5f88f41b8fdc74351bba825e62b4c",
+          "expectedMultiValues": {}
+        }
+      ]
+    },
+    {
+      "description": "Operator shouldn't be able to set token hash to multiple tokens (including non-approve token)",
+      "setActions": [
+        {
+          "action": "approveToken(address[])",
+          "args": {
+            "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"]
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTokensHashToTokens(address[][])",
+          "args": {
+            "tokensHash": [
+              [
+                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "0xdac17f958d2ee523a2206206994597c13d831ec7"
+              ],
+              ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "0x6b175474e89094c44da98b954eedeac495271d0f"]
+            ]
+          },
+          "expect": "fail",
+          "message": "!tokens"
+        }
+      ],
+      "getActions": []
+    },
+    {
       "description": "Operator should be able to set token hash to tokens",
       "setActions": [
         {

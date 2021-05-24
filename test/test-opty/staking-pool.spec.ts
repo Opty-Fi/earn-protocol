@@ -4,7 +4,7 @@ import { Signer } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import scenario from "./scenarios/staking-pool.json";
-import { getBlockTimestamp } from "../../helpers/contracts-actions";
+import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions";
 
 type ARGUMENTS = {
   token?: string;
@@ -29,6 +29,10 @@ describe(scenario.title, () => {
       contracts["stakingPool30D"] = essentialContracts.optyStakingPool30D;
       contracts["stakingPool60D"] = essentialContracts.optyStakingPool60D;
       contracts["stakingPool180D"] = essentialContracts.optyStakingPool180D;
+      const stakingPoolNames = Object.keys(contracts);
+      for (let i = 0; i < stakingPoolNames.length; i++) {
+        await unpauseVault(owner, essentialContracts.registry, contracts[stakingPoolNames[i]].address, true);
+      }
       contracts["opty"] = essentialContracts.opty;
     } catch (error) {
       console.log(error);

@@ -209,6 +209,6 @@ contract OPTYStakingPool is ERC20, Modifiers, ReentrancyGuard, OPTYStakingPoolSt
     /* solhint-disable no-empty-blocks */
     function discontinue() public onlyRegistry {}
 
-    function setPaused(bool _paused) public onlyRegistry {}
+    function setUnpaused(bool _unpaused) public onlyRegistry {}
     /* solhint-disable no-empty-blocks */
 }

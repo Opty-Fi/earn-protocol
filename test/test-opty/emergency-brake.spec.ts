@@ -14,6 +14,7 @@ import {
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
+  unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/emergency-brake-negative.json";
 describe(scenario.title, () => {
@@ -64,6 +65,7 @@ describe(scenario.title, () => {
             profile,
             TESTING_DEPLOYMENT_ONCE,
           );
+          await unpauseVault(owner, essentialContracts.registry, Vault.address, true);
           await approveLiquidityPoolAndMapAdapter(
             owner,
             essentialContracts.registry,
