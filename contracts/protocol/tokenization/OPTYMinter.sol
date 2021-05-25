@@ -73,7 +73,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         address[] memory holders = new address[](1);
         holders[0] = msg.sender;
         uint256 _amount = _claimOpty(holders, allOptyVaults);
-        OPTYStakingPool _optyStakingPool = OPTYStakingPool(_stakingPool);
+        OPTYStakingVault _optyStakingPool = OPTYStakingVault(_stakingPool);
         _optyStakingPool.userStake(_amount);
     }
 
