@@ -75,6 +75,7 @@ describe(scenario.title, () => {
     const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, users["owner"], [
       essentialContracts["registry"].address,
       opty.address,
+      await getBlockTimestamp(hre),
     ]);
 
     const Vault = await deployVault(
