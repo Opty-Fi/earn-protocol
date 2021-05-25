@@ -4,8 +4,8 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 /**
- * @dev Interface of the Opty.fi staking pool.
+ * @dev Interface of the Opty.fi staking vault.
  */
-interface IOPTYStakingPool {
+interface IOPTYStakingVault {
     function setOptyRatePerSecond(uint256 _rate) external returns (bool _success);
 }

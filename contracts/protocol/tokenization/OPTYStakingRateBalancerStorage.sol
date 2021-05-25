@@ -15,41 +15,41 @@ contract OPTYStakingRateBalancerStorage {
     address public pendingOPTYStakingRateBalancerImplementation;
 
     /**
-     * @notice This variable stores the 1 day locking term's staking pool address
+     * @notice This variable stores the 1 day locking term's staking vault address
      */
-    address public stakingPool1DLockingTerm;
+    address public stakingVault1DLockingTerm;
 
     /**
-     * @notice This variable stores the 30 days locking term's staking pool address
+     * @notice This variable stores the 30 days locking term's staking vault address
      */
-    address public stakingPool30DLockingTerm;
+    address public stakingVault30DLockingTerm;
 
     /**
-     * @notice This variable stores the 60 days locking term's staking pool address
+     * @notice This variable stores the 60 days locking term's staking vault address
      */
-    address public stakingPool60DLockingTerm;
+    address public stakingVault60DLockingTerm;
 
     /**
-     * @notice This variable stores the 180 days locking term's staking pool address
+     * @notice This variable stores the 180 days locking term's staking vault address
      */
-    address public stakingPool180DLockingTerm;
+    address public stakingVault180DLockingTerm;
 
     /**
-     * @notice This variable stores active staking pools
+     * @notice This variable stores active staking vaults
      */
-    mapping(address => bool) public stakingPools;
+    mapping(address => bool) public stakingVaults;
 
     /**
-     * @notice This variable stores $OPTY staked in staking pool
+     * @notice This variable stores $OPTY staked in staking vault
      */
-    mapping(address => uint256) public stakingPoolToStakedOPTY;
+    mapping(address => uint256) public stakingVaultToStakedOPTY;
 
     /**
-     * @notice This variable stores $OPTY staked in staking pool per user
+     * @notice This variable stores $OPTY staked in staking vault per user
      */
-    mapping(address => mapping(address => uint256)) public stakingPoolToUserStakedOPTY;
+    mapping(address => mapping(address => uint256)) public stakingVaultToUserStakedOPTY;
 
-    mapping(address => uint256) public stakingPoolMultipliers;
+    mapping(address => uint256) public stakingVaultMultipliers;
 
-    uint256 public stakingPoolOPTYAllocation;
+    uint256 public stakingVaultOPTYAllocation;
 }

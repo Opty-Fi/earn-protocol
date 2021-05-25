@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Signer } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import scenario from "./scenarios/staking-pool.json";
+import scenario from "./scenarios/opty-staking-vault.json";
 import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions";
 
 type ARGUMENTS = {
@@ -25,13 +25,13 @@ describe(scenario.title, () => {
       users = { owner, user1 };
       [essentialContracts] = await setUp(owner);
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
-      contracts["stakingPool1D"] = essentialContracts.optyStakingPool1D;
-      contracts["stakingPool30D"] = essentialContracts.optyStakingPool30D;
-      contracts["stakingPool60D"] = essentialContracts.optyStakingPool60D;
-      contracts["stakingPool180D"] = essentialContracts.optyStakingPool180D;
-      const stakingPoolNames = Object.keys(contracts);
-      for (let i = 0; i < stakingPoolNames.length; i++) {
-        await unpauseVault(owner, essentialContracts.registry, contracts[stakingPoolNames[i]].address, true);
+      contracts["stakingVault1D"] = essentialContracts.optyStakingVault1D;
+      contracts["stakingVault30D"] = essentialContracts.optyStakingVault30D;
+      contracts["stakingVault60D"] = essentialContracts.optyStakingVault60D;
+      contracts["stakingVault180D"] = essentialContracts.optyStakingVault180D;
+      const stakingVaultNames = Object.keys(contracts);
+      for (let i = 0; i < stakingVaultNames.length; i++) {
+        await unpauseVault(owner, essentialContracts.registry, contracts[stakingVaultNames[i]].address, true);
       }
       contracts["opty"] = essentialContracts.opty;
     } catch (error) {

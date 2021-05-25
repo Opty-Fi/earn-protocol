@@ -536,7 +536,7 @@
           },
           "executer": "admin",
           "expect": "fail",
-          "message": "caller is not a staking pool"
+          "message": "caller is not a staking vault"
         }
       ],
       "getActions": []

@@ -589,7 +589,7 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
      * @dev Calls the appropriate deploy function depending on N_COINS
      *
      * @dev This function needs an address _underlyingToken argument to get how many _underlyingToken equal
-     *      the user's balance in _liquidityPoolToken in staking pool(gauge)
+     *      the user's balance in _liquidityPoolToken in staking vault(gauge)
      */
     function getAllAmountInTokenStake(
         address payable _optyVault,

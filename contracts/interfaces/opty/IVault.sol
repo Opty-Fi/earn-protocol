@@ -39,19 +39,19 @@ interface IVault {
 
     function userDepositAll() external;
 
-    function userDepositAllAndStake(address _stakingPool) external returns (bool _success);
+    function userDepositAllAndStake(address _stakingVault) external returns (bool _success);
 
     function userDeposit(uint256 _amount) external returns (bool _success);
 
-    function userDepositAndStake(uint256 _amount, address _stakingPool) external returns (bool _success);
+    function userDepositAndStake(uint256 _amount, address _stakingVault) external returns (bool _success);
 
     function userDepositAllRebalance() external;
 
-    function userDepositAllRebalanceAndStake(address _stakingPool) external returns (bool _success);
+    function userDepositAllRebalanceAndStake(address _stakingVault) external returns (bool _success);
 
     function userDepositRebalance(uint256 _amount) external returns (bool _success);
 
-    function userDepositRebalanceAndStake(uint256 _amount, address _stakingPool) external returns (bool _success);
+    function userDepositRebalanceAndStake(uint256 _amount, address _stakingVault) external returns (bool _success);
 
     function userWithdrawAllRebalance() external;
 
@@ -61,19 +61,19 @@ interface IVault {
 
     function userDepositAllWithCHI() external;
 
-    function userDepositAllAndStakeWithCHI(address _stakingPool) external;
+    function userDepositAllAndStakeWithCHI(address _stakingVault) external;
 
     function userDepositWithCHI(uint256 _amount) external;
 
-    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingPool) external;
+    function userDepositAndStakeWithCHI(uint256 _amount, address _stakingVault) external;
 
     function userDepositAllRebalanceWithCHI() external;
 
-    function userDepositAllRebalanceAndStakeWithCHI(address _stakingPool) external;
+    function userDepositAllRebalanceAndStakeWithCHI(address _stakingVault) external;
 
     function userDepositRebalanceWithCHI(uint256 _amount) external;
 
-    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingPool) external;
+    function userDepositRebalanceAndStakeWithCHI(uint256 _amount, address _stakingVault) external;
 
     function userWithdrawAllRebalanceWithCHI() external;
 

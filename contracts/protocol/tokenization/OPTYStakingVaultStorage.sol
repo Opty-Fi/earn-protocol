@@ -5,10 +5,10 @@ pragma solidity ^0.6.10;
 import { OPTYMinter } from "./OPTYMinter.sol";
 
 /**
- * @dev Control to store state variables of Staking pool
+ * @dev Control to store state variables of Staking Vault
  */
 
-contract OPTYStakingPoolStorage {
+contract OPTYStakingVaultStorage {
     mapping(address => uint256) public userLastUpdate;
     uint256 public lastPoolUpdate;
     uint256 public optyRatePerSecond;

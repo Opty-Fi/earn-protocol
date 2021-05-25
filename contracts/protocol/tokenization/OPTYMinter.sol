@@ -7,7 +7,7 @@ import { ExponentialNoError } from "../../dependencies/compound/ExponentialNoErr
 import { Modifiers } from "../configuration/Modifiers.sol";
 import { OPTY } from "./OPTY.sol";
 import { OPTYMinterStorage } from "./OPTYMinterStorage.sol";
-import { OPTYStakingPool } from "./OPTYStakingPool.sol";
+import { OPTYStakingVault } from "./OPTYStakingVault.sol";
 
 /**
  * @dev Contract distributing $OPTY to opty-fi earn protocol's users
@@ -26,10 +26,10 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
 
     /**
-     * @dev Modifier to check caller is staking pool or not
+     * @dev Modifier to check caller is staking vault or not
      */
-    modifier onlyStakingPool() {
-        require(stakingPools[msg.sender] == true, "caller is not a staking pool");
+    modifier onlyStakingVault() {
+        require(stakingVaults[msg.sender] == true, "caller is not a staking vault");
         _;
     }
 
@@ -55,12 +55,12 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
     }
 
     /**
-     * @dev Maps staking pool to a boolean variable that indicates wether the staking pool is enabled`or not
+     * @dev Maps staking vault to a boolean variable that indicates wether the staking vault is enabled`or not
      *
      */
-    function setStakingPool(address _stakingPool, bool _enable) public onlyOperator returns (bool) {
-        require(_stakingPool != address(0), "Invalid address");
-        stakingPools[_stakingPool] = _enable;
+    function setStakingVault(address _stakingVault, bool _enable) public onlyOperator returns (bool) {
+        require(_stakingVault != address(0), "Invalid address");
+        stakingVaults[_stakingVault] = _enable;
         return true;
     }
 
@@ -301,7 +301,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         }
     }
 
-    function mintOpty(address _user, uint256 _amount) external onlyStakingPool returns (uint256) {
+    function mintOpty(address _user, uint256 _amount) external onlyStakingVault returns (uint256) {
         _mintOpty(_user, _amount);
     }
 

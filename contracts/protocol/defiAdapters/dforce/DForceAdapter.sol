@@ -19,7 +19,7 @@ import { HarvestCodeProvider } from "../../configuration/HarvestCodeProvider.sol
 contract DForceAdapter is IAdapter, Modifiers {
     using SafeMath for uint256;
 
-    mapping(address => address) public liquidityPoolToStakingPool;
+    mapping(address => address) public liquidityPoolToStakingVault;
     mapping(address => uint256) public maxDepositPoolPct; // basis points
     mapping(address => uint256) public maxDepositAmount;
 
@@ -28,10 +28,10 @@ contract DForceAdapter is IAdapter, Modifiers {
     address public constant USDC_DEPOSIT_POOL = address(0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179);
     address public constant DAI_DEPOSIT_POOL = address(0x02285AcaafEB533e03A7306C55EC031297df9224);
 
-    // staking pools
-    address public constant USDT_STAKING_POOL = address(0x324EebDAa45829c6A8eE903aFBc7B61AF48538df);
-    address public constant USDC_STAKING_POOL = address(0xB71dEFDd6240c45746EC58314a01dd6D833fD3b5);
-    address public constant DAI_STAKING_POOL = address(0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B);
+    // staking vaults
+    address public constant USDT_STAKING_VAULT = address(0x324EebDAa45829c6A8eE903aFBc7B61AF48538df);
+    address public constant USDC_STAKING_VAULT = address(0xB71dEFDd6240c45746EC58314a01dd6D833fD3b5);
+    address public constant DAI_STAKING_VAULT = address(0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B);
 
     HarvestCodeProvider public harvestCodeProviderContract;
     DataTypes.MaxExposure public maxExposureType;
@@ -42,9 +42,9 @@ contract DForceAdapter is IAdapter, Modifiers {
     constructor(address _registry, address _harvestCodeProvider) public Modifiers(_registry) {
         setHarvestCodeProvider(_harvestCodeProvider);
         setRewardToken(address(0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0));
-        setLiquidityPoolToStakingPool(USDT_DEPOSIT_POOL, USDT_STAKING_POOL);
-        setLiquidityPoolToStakingPool(USDC_DEPOSIT_POOL, USDC_STAKING_POOL);
-        setLiquidityPoolToStakingPool(DAI_DEPOSIT_POOL, DAI_STAKING_POOL);
+        setLiquidityPoolToStakingVault(USDT_DEPOSIT_POOL, USDT_STAKING_VAULT);
+        setLiquidityPoolToStakingVault(USDC_DEPOSIT_POOL, USDC_STAKING_VAULT);
+        setLiquidityPoolToStakingVault(DAI_DEPOSIT_POOL, DAI_STAKING_VAULT);
         setMaxDepositPoolPctDefault(uint256(10000)); // 100%
         setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
@@ -236,7 +236,7 @@ contract DForceAdapter is IAdapter, Modifiers {
         override
         returns (uint256)
     {
-        return IDForceStake(liquidityPoolToStakingPool[_liquidityPool]).earned(_optyVault);
+        return IDForceStake(liquidityPoolToStakingVault[_liquidityPool]).earned(_optyVault);
     }
 
     function getClaimRewardTokenCode(address payable, address _liquidityPool)
@@ -245,9 +245,9 @@ contract DForceAdapter is IAdapter, Modifiers {
         override
         returns (bytes[] memory _codes)
     {
-        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+        address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
         _codes = new bytes[](1);
-        _codes[0] = abi.encode(_stakingPool, abi.encodeWithSignature("getReward()"));
+        _codes[0] = abi.encode(_stakingVault, abi.encodeWithSignature("getReward()"));
     }
 
     function getHarvestSomeCodes(
@@ -285,18 +285,18 @@ contract DForceAdapter is IAdapter, Modifiers {
         returns (bytes[] memory _codes)
     {
         if (_shares > 0) {
-            address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+            address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
             address _liquidityPoolToken = getLiquidityPoolToken(address(0), _liquidityPool);
             _codes = new bytes[](3);
             _codes[0] = abi.encode(
                 _liquidityPoolToken,
-                abi.encodeWithSignature("approve(address,uint256)", _stakingPool, uint256(0))
+                abi.encodeWithSignature("approve(address,uint256)", _stakingVault, uint256(0))
             );
             _codes[1] = abi.encode(
                 _liquidityPoolToken,
-                abi.encodeWithSignature("approve(address,uint256)", _stakingPool, _shares)
+                abi.encodeWithSignature("approve(address,uint256)", _stakingVault, _shares)
             );
-            _codes[2] = abi.encode(_stakingPool, abi.encodeWithSignature("stake(uint256)", _shares));
+            _codes[2] = abi.encode(_stakingVault, abi.encodeWithSignature("stake(uint256)", _shares));
         }
     }
 
@@ -316,9 +316,9 @@ contract DForceAdapter is IAdapter, Modifiers {
         returns (bytes[] memory _codes)
     {
         if (_shares > 0) {
-            address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
+            address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
             _codes = new bytes[](1);
-            _codes[0] = abi.encode(_stakingPool, abi.encodeWithSignature("withdraw(uint256)", _shares));
+            _codes[0] = abi.encode(_stakingVault, abi.encodeWithSignature("withdraw(uint256)", _shares));
         }
     }
 
@@ -337,8 +337,8 @@ contract DForceAdapter is IAdapter, Modifiers {
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
-        uint256 b = IERC20(_stakingPool).balanceOf(_optyVault);
+        address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
+        uint256 b = IERC20(_stakingVault).balanceOf(_optyVault);
         if (b > 0) {
             b = b.mul(IDForceDeposit(getLiquidityPoolToken(_underlyingToken, _liquidityPool)).getExchangeRate()).div(
                 1e18
@@ -363,8 +363,8 @@ contract DForceAdapter is IAdapter, Modifiers {
         override
         returns (uint256)
     {
-        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
-        return IERC20(_stakingPool).balanceOf(_optyVault);
+        address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
+        return IERC20(_stakingVault).balanceOf(_optyVault);
     }
 
     function calculateRedeemableLPTokenAmountStake(
@@ -373,8 +373,8 @@ contract DForceAdapter is IAdapter, Modifiers {
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (uint256 _amount) {
-        address _stakingPool = liquidityPoolToStakingPool[_liquidityPool];
-        uint256 _liquidityPoolTokenBalance = IERC20(_stakingPool).balanceOf(_optyVault);
+        address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
+        uint256 _liquidityPoolTokenBalance = IERC20(_stakingVault).balanceOf(_optyVault);
         uint256 _balanceInTokenStake = getAllAmountInTokenStake(_optyVault, address(0), _liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInTokenStake).add(1);
@@ -412,9 +412,12 @@ contract DForceAdapter is IAdapter, Modifiers {
         return getUnstakeAndWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount);
     }
 
-    function setLiquidityPoolToStakingPool(address _liquidityPool, address _stakingPool) public onlyOperator {
-        require(liquidityPoolToStakingPool[_liquidityPool] != _stakingPool, "liquidityPoolToStakingPool already set");
-        liquidityPoolToStakingPool[_liquidityPool] = _stakingPool;
+    function setLiquidityPoolToStakingVault(address _liquidityPool, address _stakingVault) public onlyOperator {
+        require(
+            liquidityPoolToStakingVault[_liquidityPool] != _stakingVault,
+            "liquidityPoolToStakingVault already set"
+        );
+        liquidityPoolToStakingVault[_liquidityPool] = _stakingVault;
     }
 
     function setHarvestCodeProvider(address _harvestCodeProvider) public onlyOperator {
