@@ -159,6 +159,9 @@ interface InterestRateModel {
     ) external view returns (uint256);
 }
 
+/*
+ * @author OptyFi inspired on yearn.finance APROracle contract
+ */
 contract APROracle is Modifiers {
     using SafeMath for uint256;
     using Address for address;
@@ -167,8 +170,6 @@ contract APROracle is Modifiers {
     bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     address public aaveV1;
-    address public aaveV2LendingPool;
-    address public aaveV2DataProvider;
     address public aaveV2AddressProvider;
     address public compound;
 
@@ -177,8 +178,6 @@ contract APROracle is Modifiers {
 
     constructor(address _registry) public Modifiers(_registry) {
         aaveV1 = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
-        aaveV2LendingPool = address(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
-        aaveV2DataProvider = address(0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d);
         aaveV2AddressProvider = address(0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5);
         compound = address(0x922018674c12a7F0D394ebEEf9B58F186CdE13c1);
         // 3153600 seconds div 13 second blocks
@@ -207,33 +206,6 @@ contract APROracle is Modifiers {
         LendingPool lendingPool = LendingPool(LendingPoolAddressesProviderV2(aaveV2AddressProvider).getLendingPool());
         (, , , uint128 liquidityRate, , , , address aToken, , , , ) = lendingPool.getReserveData(token);
         return (aToken, uint256(liquidityRate).div(1e9));
-    }
-
-    function getReserveDataFromAaveV2(address token)
-        internal
-        view
-        returns (
-            LendingPool.ReserveConfigurationMap memory,
-            address,
-            address
-        )
-    {
-        LendingPool lendingPool = LendingPool(aaveV2LendingPool);
-        (
-            LendingPool.ReserveConfigurationMap memory reserveConfig,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            address aToken,
-            ,
-            ,
-            address interestRateStrategy,
-
-        ) = lendingPool.getReserveData(token);
-        return (reserveConfig, aToken, interestRateStrategy);
     }
 
     function getBestAPR(bytes32 _tokensHash) public view returns (bytes32) {
