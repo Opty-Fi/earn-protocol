@@ -74,8 +74,15 @@ library DataTypes {
         uint32 timestamp;
     }
 
-    struct VaultActivityState {
+    struct TreasuryShare {
+        address treasury;
+        uint256 share; //  should be in basis eg: 5% means 500
+    }
+
+    struct VaultConfiguration {
         bool discontinued;
         bool unpaused;
+        uint256 withdrawlFee;
+        TreasuryShare[] treasuryShares;
     }
 }

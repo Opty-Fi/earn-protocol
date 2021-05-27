@@ -90,3 +90,5 @@ export const RISK_PROFILES: RISK_PROFILE_DATA = {
 };
 
 export const TESTING_DEPLOYMENT_ONCE = false; // accept deploy contracts once for testing
+
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";

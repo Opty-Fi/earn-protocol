@@ -19,8 +19,6 @@ interface IVault {
 
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external returns (bool _success);
 
-    function setWithdrawalFee(uint256 _withdrawalFee) external returns (bool _success);
-
     function rebalance() external;
 
     function balance() external view returns (uint256);

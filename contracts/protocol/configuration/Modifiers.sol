@@ -72,14 +72,14 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier ifNotDiscontinued(address _vaultContract) {
-        (bool _discontinued, ) = registryContract.vaultToVaultActivityState(_vaultContract);
+    modifier ifNotDiscontinued(address _vault) {
+        (bool _discontinued, , ) = registryContract.vaultToVaultConfiguration(_vault);
         require(!_discontinued, "discontinued");
         _;
     }
 
-    modifier ifNotPaused(address _vaultContract) {
-        (, bool _unpaused) = registryContract.vaultToVaultActivityState(_vaultContract);
+    modifier ifNotPaused(address _vault) {
+        (, bool _unpaused, ) = registryContract.vaultToVaultConfiguration(_vault);
         require(_unpaused, "paused");
         _;
     }

@@ -18,6 +18,7 @@ import { OPTYMinter } from "./OPTYMinter.sol";
 import { OPTYStakingVault } from "./OPTYStakingVault.sol";
 import { RiskManager } from "../configuration/RiskManager.sol";
 import { StrategyManager } from "../configuration/StrategyManager.sol";
+import { MultiCall } from "../../utils/MultiCall.sol";
 
 /**
  * @title Vault
@@ -30,6 +31,7 @@ contract Vault is
     VersionedInitializable,
     IVault,
     IncentivisedERC20,
+    MultiCall,
     Modifiers,
     ReentrancyGuard,
     VaultStorage,
@@ -126,11 +128,6 @@ contract Vault is
         _success = true;
     }
 
-    function setWithdrawalFee(uint256 _withdrawalFee) public override onlyGovernance returns (bool _success) {
-        withdrawalFee = _withdrawalFee;
-        _success = true;
-    }
-
     function _supplyAll() internal ifNotDiscontinued(address(this)) ifNotPaused(address(this)) {
         uint256 _tokenBalance = IERC20(underlyingToken).balanceOf(address(this));
         require(_tokenBalance > 0, "!amount>0");
@@ -145,11 +142,7 @@ contract Vault is
                     _i,
                     _steps
                 );
-            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
-                (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
-                (bool success, ) = pool.call(data); //solhint-disable-line avoid-low-level-calls
-                require(success, "!_supplyAll");
-            }
+            executeCodes(_codes, "!_supplyAll");
         }
         vaultValue = _calVaultValueInUnderlyingToken();
     }
@@ -247,11 +240,7 @@ contract Vault is
                     _iterator,
                     _steps
                 );
-            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
-                (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
-                (bool _success, ) = pool.call(data); //solhint-disable-line avoid-low-level-calls
-                require(_success, "!_withdrawAll");
-            }
+            executeCodes(_codes, "!_withdrawAll");
         }
     }
 
@@ -269,11 +258,7 @@ contract Vault is
                     _i,
                     _claimRewardSteps
                 );
-            for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
-                (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
-                (bool success, ) = pool.call(data); //solhint-disable-line avoid-low-level-calls
-                require(success, "!claim");
-            }
+            executeCodes(_codes, "!claim");
         }
 
         (, , address _rewardToken) = strategyManagerContract.getLpAdapterRewardToken(_investStrategyHash);
@@ -301,11 +286,7 @@ contract Vault is
                             _i,
                             _harvestSteps
                         );
-                for (uint8 _j = 0; _j < uint8(_codes.length); _j++) {
-                    (address pool, bytes memory data) = abi.decode(_codes[_j], (address, bytes));
-                    (bool success, ) = pool.call(data); //solhint-disable-line avoid-low-level-calls
-                    require(success, "!harvest");
-                }
+                executeCodes(_codes, "!harvest");
             }
         }
     }
@@ -512,7 +493,7 @@ contract Vault is
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "!!balance");
 
-        (bool _discontinued, ) = registryContract.vaultToVaultActivityState(address(this));
+        (bool _discontinued, , ) = registryContract.vaultToVaultConfiguration(address(this));
         if (!_discontinued && investStrategyHash != ZERO_BYTES32) {
             _withdrawAll();
             _harvest(investStrategyHash);
@@ -630,15 +611,23 @@ contract Vault is
         uint256 _redeemAmount
     ) private {
         uint256 redeemAmountInToken = (_balanceInUnderlyingToken.mul(_redeemAmount)).div(totalSupply());
-        address _treasury = registryContract.treasury();
-        uint256 _fee = 0;
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
-        if (_treasury != address(0) && withdrawalFee > 0) {
-            _fee = ((redeemAmountInToken).mul(withdrawalFee)).div(WITHDRAWAL_MAX);
-            IERC20(underlyingToken).safeTransfer(_treasury, _fee);
+        (, , uint256 _withdrawalFee) = registryContract.vaultToVaultConfiguration(address(this));
+        (bytes[] memory _treasuryCodes, bytes memory _accountCode) =
+            strategyManagerContract.getFeeTransferAllCodes(
+                registryContract.getTreasuryShares(address(this)),
+                _account,
+                underlyingToken,
+                redeemAmountInToken,
+                _withdrawalFee
+            );
+        if (_treasuryCodes.length > 0) {
+            executeCodes(_treasuryCodes, "!TreasuryRedeemAmt");
         }
-        IERC20(underlyingToken).safeTransfer(_account, redeemAmountInToken.sub(_fee));
+        if (_accountCode.length > 0) {
+            executeCode(_accountCode, "!CallerRedeemAmt");
+        }
     }
 
     function _mintShares(

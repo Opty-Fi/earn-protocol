@@ -3,7 +3,7 @@
 pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { Address, SafeMath } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { ModifiersController } from "./ModifiersController.sol";
 import { RegistryProxy } from "./RegistryProxy.sol";
 import { IVault } from "../../interfaces/opty/IVault.sol";
@@ -18,6 +18,7 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  */
 contract Registry is ModifiersController {
     using Address for address;
+    using SafeMath for uint256;
 
     /**
      * @dev Set RegistryProxy to act as Registry
@@ -25,17 +26,6 @@ contract Registry is ModifiersController {
     function become(RegistryProxy _registryProxy) public {
         require(msg.sender == _registryProxy.governance(), "!governance");
         require(_registryProxy.acceptImplementation() == 0, "!unauthorized");
-    }
-
-    /**
-     * @dev Transfers treasury to a new account (`_strategist`).
-     * Can only be called by the current governance.
-     */
-
-    function setTreasury(address _treasury) external onlyGovernance returns (bool) {
-        require(_treasury != address(0), "!address(0)");
-        treasury = _treasury;
-        return true;
     }
 
     /**
@@ -393,6 +383,72 @@ contract Registry is ModifiersController {
     }
 
     /**
+     * @dev Set the withdrawal fee for the vault contract.
+     *
+     * @param _vault Vault contract address
+     * @param _withdrawalFee Withdrawal fee to be set for vault contract
+     *
+     * @return _success Returns a boolean value indicating whether the operation succeeded
+     *
+     * Requirements:
+     *  - `msg.sender` Can only be current governance.
+     */
+    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) public onlyGovernance returns (bool _success) {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        require(_withdrawalFee >= 0 && _withdrawalFee <= 10000, "!BasisRange");
+        vaultToVaultConfiguration[_vault].withdrawlFee = _withdrawalFee;
+        _success = true;
+    }
+
+    /**
+     * @dev Set the treasury accounts along with  their fee shares corresponding to vault contract.
+     *
+     * @param _vault Vault contract address
+     * @param _treasuryShares Array of treasuries and their fee shares
+     *
+     * @return Returns a boolean value indicating whether the operation succeeded
+     *
+     * Requirements:
+     *  - `msg.sender` Can only be current governance.
+     */
+    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
+        external
+        onlyGovernance
+        returns (bool)
+    {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        require(_treasuryShares.length > 0, "length!>0");
+        uint256 _sharesSum = 0;
+        for (uint8 _i = 0; _i < uint8(_treasuryShares.length); _i++) {
+            require(_treasuryShares[_i].treasury != address(0), "!address(0)");
+            _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
+        }
+        require(_sharesSum == vaultToVaultConfiguration[_vault].withdrawlFee, "FeeShares!=WithdrawalFee");
+
+        //  delete the existing the treasury accounts if any to reset them
+        if (vaultToVaultConfiguration[_vault].treasuryShares.length > 0) {
+            delete vaultToVaultConfiguration[_vault].treasuryShares;
+        }
+        for (uint8 _i = 0; _i < uint8(_treasuryShares.length); _i++) {
+            vaultToVaultConfiguration[_vault].treasuryShares.push(_treasuryShares[_i]);
+        }
+        return true;
+    }
+
+    /**
+     * @dev Set the treasury accounts along with  their fee shares corresponding to vault contract.
+     *
+     * @param _vault Vault contract address
+     *
+     * @return Returns Treasuries along with their fee shares
+     */
+    function getTreasuryShares(address _vault) external view returns (DataTypes.TreasuryShare[] memory) {
+        return vaultToVaultConfiguration[_vault].treasuryShares;
+    }
+
+    /**
      * @dev Sets bunch of `Vaults`/`LP_vaults` contract for the corresponding `_underlyingTokens`
      *      and `_riskProfiles`in one transaction
      *
@@ -438,8 +494,11 @@ contract Registry is ModifiersController {
      * - `_vault` cannot be a zero address
      * - `msg.sender` (caller) should be governance
      */
-    function discontinue(address _vaultContract) external onlyGovernance returns (bool) {
-        _discontinue(_vaultContract);
+    function discontinue(address _vault) external onlyGovernance returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        vaultToVaultConfiguration[_vault].discontinued = true;
+        IVault(_vault).discontinue();
+        emit LogDiscontinueVault(_vault, vaultToVaultConfiguration[_vault].discontinued, msg.sender);
         return true;
     }
 
@@ -455,8 +514,11 @@ contract Registry is ModifiersController {
      * - `_vault` cannot be a zero address
      * - `msg.sender` (caller) should be governance
      */
-    function unpauseVaultContract(address _vaultContract, bool _unpaused) external onlyGovernance returns (bool) {
-        _unpauseVaultContract(_vaultContract, _unpaused);
+    function unpauseVaultContract(address _vault, bool _unpaused) external onlyGovernance returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        vaultToVaultConfiguration[_vault].unpaused = _unpaused;
+        IVault(_vault).setUnpaused(vaultToVaultConfiguration[_vault].unpaused);
+        emit LogUnpauseVault(_vault, vaultToVaultConfiguration[_vault].unpaused, msg.sender);
         return true;
     }
 
@@ -719,22 +781,6 @@ contract Registry is ModifiersController {
             riskProfiles[_riskProfile].upperLimit,
             msg.sender
         );
-        return true;
-    }
-
-    function _discontinue(address _vaultContract) internal returns (bool) {
-        require(_vaultContract != address(0), "!address(0)");
-        vaultToVaultActivityState[_vaultContract].discontinued = true;
-        IVault(_vaultContract).discontinue();
-        emit LogDiscontinueVault(_vaultContract, vaultToVaultActivityState[_vaultContract].discontinued, msg.sender);
-        return true;
-    }
-
-    function _unpauseVaultContract(address _vaultContract, bool _unpaused) internal returns (bool) {
-        require(_vaultContract != address(0), "!address(0)");
-        vaultToVaultActivityState[_vaultContract].unpaused = _unpaused;
-        IVault(_vaultContract).setUnpaused(vaultToVaultActivityState[_vaultContract].unpaused);
-        emit LogUnpauseVault(_vaultContract, vaultToVaultActivityState[_vaultContract].unpaused, msg.sender);
         return true;
     }
 
