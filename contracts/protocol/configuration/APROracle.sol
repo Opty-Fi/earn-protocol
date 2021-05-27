@@ -44,18 +44,18 @@ contract APROracle is IAPROracle, Modifiers {
         blocksPerYear = _newBlocksPerYear;
     }
 
-    function getCompoundAPR(address token) public view returns (uint256) {
+    function getCompoundAPR(address token) public view override returns (uint256) {
         return ICompound(token).supplyRatePerBlock().mul(blocksPerYear);
     }
 
-    function getAaveV1APR(address token) public view returns (address, uint256) {
+    function getAaveV1APR(address token) public view override returns (address, uint256) {
         IAaveV1LendingPoolCore core =
             IAaveV1LendingPoolCore(IAaveV1LendingPoolAddressesProvider(aaveV1).getLendingPoolCore());
         address aToken = core.getReserveATokenAddress(token);
         return (aToken, core.getReserveCurrentLiquidityRate(token).div(1e9));
     }
 
-    function getAaveV2APR(address token) public view returns (address, uint256) {
+    function getAaveV2APR(address token) public view override returns (address, uint256) {
         IAaveV2 lendingPool = IAaveV2(IAaveV2LendingPoolAddressesProvider(aaveV2AddressProvider).getLendingPool());
         ReserveDataV2 memory reserveData = lendingPool.getReserveData(token);
         return (reserveData.aTokenAddress, uint256(reserveData.currentLiquidityRate).div(1e9));
