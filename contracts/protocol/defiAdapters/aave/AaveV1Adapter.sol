@@ -15,7 +15,7 @@ import {
     IAaveV1,
     UserReserveData,
     ReserveConfigurationData,
-    ReserveData,
+    ReserveDataV1,
     UserAccountData
 } from "../../../interfaces/aave/v1/IAaveV1.sol";
 import { IAaveV1Token } from "../../../interfaces/aave/v1/IAaveV1Token.sol";
@@ -237,7 +237,7 @@ contract AaveV1Adapter is IAdapter, Modifiers {
         returns (address)
     {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProvider);
-        ReserveData memory _reserveData = IAaveV1(_lendingPool).getReserveData(_underlyingToken);
+        ReserveDataV1 memory _reserveData = IAaveV1(_lendingPool).getReserveData(_underlyingToken);
         return _reserveData.aTokenAddress;
     }
 

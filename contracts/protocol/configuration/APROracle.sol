@@ -3,161 +3,12 @@ pragma experimental ABIEncoderV2;
 
 import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
-
-// Compound
-interface Compound {
-    enum PriceSource {
-        FIXED_ETH, /// implies the fixedPrice is a constant multiple of the ETH price (which varies)
-        FIXED_USD, /// implies the fixedPrice is a constant multiple of the USD price (which is 1)
-        REPORTER /// implies the price is set by the reporter
-    }
-    struct TokenConfig {
-        address cToken;
-        address underlying;
-        bytes32 symbolHash;
-        uint256 baseUnit;
-        PriceSource priceSource;
-        uint256 fixedPrice;
-        address uniswapMarket;
-        bool isUniswapReversed;
-    }
-
-    function interestRateModel() external view returns (address);
-
-    function reserveFactorMantissa() external view returns (uint256);
-
-    function totalBorrows() external view returns (uint256);
-
-    function totalReserves() external view returns (uint256);
-
-    function getTokenConfigByUnderlying(address) external view returns (TokenConfig memory);
-
-    function supplyRatePerBlock() external view returns (uint256);
-
-    function getCash() external view returns (uint256);
-}
-
-interface LendingPoolAddressesProviderV1 {
-    function getLendingPoolCore() external view returns (address);
-}
-
-interface LendingPoolAddressesProviderV2 {
-    function getLendingPool() external view returns (address);
-}
-
-interface LendingPoolCore {
-    function getReserveCurrentLiquidityRate(address _reserve) external view returns (uint256 liquidityRate);
-
-    function getReserveATokenAddress(address _reserve) external view returns (address);
-
-    function getReserveInterestRateStrategyAddress(address _reserve) external view returns (address);
-
-    function getReserveTotalBorrows(address _reserve) external view returns (uint256);
-
-    function getReserveTotalBorrowsStable(address _reserve) external view returns (uint256);
-
-    function getReserveTotalBorrowsVariable(address _reserve) external view returns (uint256);
-
-    function getReserveCurrentAverageStableBorrowRate(address _reserve) external view returns (uint256);
-
-    function getReserveAvailableLiquidity(address _reserve) external view returns (uint256);
-}
-
-interface DataProvider {
-    function getReserveData(address token)
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint40
-        );
-}
-
-interface LendingPool {
-    struct ReserveConfigurationMap {
-        //bit 0-15: LTV
-        //bit 16-31: Liq. threshold
-        //bit 32-47: Liq. bonus
-        //bit 48-55: Decimals
-        //bit 56: Reserve is active
-        //bit 57: reserve is frozen
-        //bit 58: borrowing is enabled
-        //bit 59: stable rate borrowing enabled
-        //bit 60-63: reserved
-        //bit 64-79: reserve factor
-        uint256 data;
-    }
-
-    function getReserveData(address _reserve)
-        external
-        view
-        returns (
-            ReserveConfigurationMap memory,
-            uint128,
-            uint128,
-            uint128,
-            uint128,
-            uint128,
-            uint40,
-            address,
-            address,
-            address,
-            address,
-            uint8
-        );
-}
-
-interface IReserveInterestRateStrategyV1 {
-    function calculateInterestRates(
-        address _reserve,
-        uint256 _utilizationRate,
-        uint256 _totalBorrowsStable,
-        uint256 _totalBorrowsVariable,
-        uint256 _averageStableBorrowRate
-    )
-        external
-        view
-        returns (
-            uint256 liquidityRate,
-            uint256 stableBorrowRate,
-            uint256 variableBorrowRate
-        );
-}
-
-interface IReserveInterestRateStrategyV2 {
-    function calculateInterestRates(
-        address _reserve,
-        uint256 _utilizationRate,
-        uint256 _totalBorrowsStable,
-        uint256 _totalBorrowsVariable,
-        uint256 _averageStableBorrowRate,
-        uint256 _reserveFactor
-    )
-        external
-        view
-        returns (
-            uint256 liquidityRate,
-            uint256 stableBorrowRate,
-            uint256 variableBorrowRate
-        );
-}
-
-interface InterestRateModel {
-    function getSupplyRate(
-        uint256 cash,
-        uint256 borrows,
-        uint256 reserves,
-        uint256 reserveFactorMantissa
-    ) external view returns (uint256);
-}
+import { ReserveDataV1, IAaveV1 } from "../../interfaces/aave/v1/IAaveV1.sol";
+import { IAaveV1LendingPoolAddressesProvider } from "../../interfaces/aave/v1/IAaveV1LendingPoolAddressesProvider.sol";
+import { IAaveV1LendingPoolCore } from "../../interfaces/aave/v1/IAaveV1LendingPoolCore.sol";
+import { ReserveDataV2, IAaveV2 } from "../../interfaces/aave/v2/IAaveV2.sol";
+import { IAaveV2LendingPoolAddressesProvider } from "../../interfaces/aave/v2/IAaveV2LendingPoolAddressesProvider.sol";
+import { ICompound } from "../../interfaces/compound/ICompound.sol";
 
 /*
  * @author OptyFi inspired on yearn.finance APROracle contract
@@ -193,19 +44,20 @@ contract APROracle is Modifiers {
     }
 
     function getCompoundAPR(address token) public view returns (uint256) {
-        return Compound(token).supplyRatePerBlock().mul(blocksPerYear);
+        return ICompound(token).supplyRatePerBlock().mul(blocksPerYear);
     }
 
     function getAaveV1APR(address token) public view returns (address, uint256) {
-        LendingPoolCore core = LendingPoolCore(LendingPoolAddressesProviderV1(aaveV1).getLendingPoolCore());
+        IAaveV1LendingPoolCore core =
+            IAaveV1LendingPoolCore(IAaveV1LendingPoolAddressesProvider(aaveV1).getLendingPoolCore());
         address aToken = core.getReserveATokenAddress(token);
         return (aToken, core.getReserveCurrentLiquidityRate(token).div(1e9));
     }
 
     function getAaveV2APR(address token) public view returns (address, uint256) {
-        LendingPool lendingPool = LendingPool(LendingPoolAddressesProviderV2(aaveV2AddressProvider).getLendingPool());
-        (, , , uint128 liquidityRate, , , , address aToken, , , , ) = lendingPool.getReserveData(token);
-        return (aToken, uint256(liquidityRate).div(1e9));
+        IAaveV2 lendingPool = IAaveV2(IAaveV2LendingPoolAddressesProvider(aaveV2AddressProvider).getLendingPool());
+        ReserveDataV2 memory reserveData = lendingPool.getReserveData(token);
+        return (reserveData.aTokenAddress, uint256(reserveData.currentLiquidityRate).div(1e9));
     }
 
     function getBestAPR(bytes32 _tokensHash) public view returns (bytes32) {
@@ -220,7 +72,9 @@ contract APROracle is Modifiers {
         address cToken;
         bytes32 stepsHash;
         bytes32 bestStrategyHash;
-        try Compound(compound).getTokenConfigByUnderlying(tokens[0]) returns (Compound.TokenConfig memory tokenConfig) {
+        try ICompound(compound).getTokenConfigByUnderlying(tokens[0]) returns (
+            ICompound.TokenConfig memory tokenConfig
+        ) {
             cToken = tokenConfig.cToken;
             compoundAPR = getCompoundAPR(cToken);
         } catch {
@@ -246,19 +100,5 @@ contract APROracle is Modifiers {
             bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
             return bestStrategyHash;
         }
-    }
-
-    // incase of half-way error
-    function inCaseTokenGetsStuck(IERC20 _tokenAddress) public onlyOperator {
-        uint256 qty = _tokenAddress.balanceOf(address(this));
-        _tokenAddress.transfer(msg.sender, qty);
-    }
-
-    // incase of half-way error
-    function inCaseETHGetsStuck() public onlyOperator {
-        /* solhint-disable avoid-low-level-calls */
-        (bool result, ) = msg.sender.call{ value: address(this).balance }("");
-        /* solhint-disable avoid-low-level-calls */
-        require(result, "transfer of ETH failed");
     }
 }
