@@ -36,39 +36,55 @@ contract APROracle is IAPROracle, Modifiers {
         blocksPerYear = 242584;
     }
 
-    function setNewAaveV1(address _newAaveV1) public onlyOperator {
+    function setNewAaveV1(address _newAaveV1) external onlyOperator {
         aaveV1 = _newAaveV1;
     }
 
-    function setNewBlocksPerYear(uint256 _newBlocksPerYear) public onlyOperator {
+    function setNewBlocksPerYear(uint256 _newBlocksPerYear) external onlyOperator {
         blocksPerYear = _newBlocksPerYear;
     }
 
-    function getCompoundAPR(address token) public view override returns (uint256) {
+    function getCompoundAPR(address token) external view override returns (uint256) {
+        return _getCompoundAPR(token);
+    }
+
+    function _getCompoundAPR(address token) internal view returns (uint256) {
         return ICompound(token).supplyRatePerBlock().mul(blocksPerYear);
     }
 
-    function getAaveV1APR(address token) public view override returns (address, uint256) {
+    function getAaveV1APR(address token) external view override returns (address, uint256) {
+        return _getAaveV1APR(token);
+    }
+
+    function _getAaveV1APR(address token) internal view returns (address, uint256) {
         IAaveV1LendingPoolCore core =
             IAaveV1LendingPoolCore(IAaveV1LendingPoolAddressesProvider(aaveV1).getLendingPoolCore());
         address aToken = core.getReserveATokenAddress(token);
         return (aToken, core.getReserveCurrentLiquidityRate(token).div(1e9));
     }
 
-    function getAaveV2APR(address token) public view override returns (address, uint256) {
+    function getAaveV2APR(address token) external view override returns (address, uint256) {
+        return _getAaveV2APR(token);
+    }
+
+    function _getAaveV2APR(address token) internal view returns (address, uint256) {
         IAaveV2 lendingPool = IAaveV2(IAaveV2LendingPoolAddressesProvider(aaveV2AddressProvider).getLendingPool());
         ReserveDataV2 memory reserveData = lendingPool.getReserveData(token);
         return (reserveData.aTokenAddress, uint256(reserveData.currentLiquidityRate).div(1e9));
     }
 
-    function getBestAPR(bytes32 _tokensHash) public view override returns (bytes32) {
+    function getBestAPR(bytes32 _tokensHash) external view override returns (bytes32) {
+        return _getBestAPR(_tokensHash);
+    }
+
+    function _getBestAPR(bytes32 _tokensHash) internal view returns (bytes32) {
         address[] memory tokens = registryContract.getTokensHashToTokens(_tokensHash);
         uint256 aaveV2APR;
         address aTokenV2;
-        (aTokenV2, aaveV2APR) = getAaveV2APR(tokens[0]);
+        (aTokenV2, aaveV2APR) = _getAaveV2APR(tokens[0]);
         uint256 aaveV1APR;
         address aToken;
-        (aToken, aaveV1APR) = getAaveV1APR(tokens[0]);
+        (aToken, aaveV1APR) = _getAaveV1APR(tokens[0]);
         uint256 compoundAPR;
         address cToken;
         bytes32 stepsHash;
@@ -77,7 +93,7 @@ contract APROracle is IAPROracle, Modifiers {
             ICompound.TokenConfig memory tokenConfig
         ) {
             cToken = tokenConfig.cToken;
-            compoundAPR = getCompoundAPR(cToken);
+            compoundAPR = _getCompoundAPR(cToken);
         } catch {
             cToken = address(0);
             compoundAPR = uint256(0);
