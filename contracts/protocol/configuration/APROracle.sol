@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
+import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
 import { ReserveDataV1, IAaveV1 } from "../../interfaces/aave/v1/IAaveV1.sol";
 import { IAaveV1LendingPoolAddressesProvider } from "../../interfaces/aave/v1/IAaveV1LendingPoolAddressesProvider.sol";
 import { IAaveV1LendingPoolCore } from "../../interfaces/aave/v1/IAaveV1LendingPoolCore.sol";
@@ -13,7 +14,7 @@ import { ICompound } from "../../interfaces/compound/ICompound.sol";
 /*
  * @author OptyFi inspired on yearn.finance APROracle contract
  */
-contract APROracle is Modifiers {
+contract APROracle is IAPROracle, Modifiers {
     using SafeMath for uint256;
     using Address for address;
 
@@ -60,7 +61,7 @@ contract APROracle is Modifiers {
         return (reserveData.aTokenAddress, uint256(reserveData.currentLiquidityRate).div(1e9));
     }
 
-    function getBestAPR(bytes32 _tokensHash) public view returns (bytes32) {
+    function getBestAPR(bytes32 _tokensHash) public view override returns (bytes32) {
         address[] memory tokens = registryContract.getTokensHashToTokens(_tokensHash);
         uint256 aaveV2APR;
         address aTokenV2;
