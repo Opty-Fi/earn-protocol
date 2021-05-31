@@ -4,7 +4,11 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 interface IAPROracle {
-    function getBestAPR(bytes32 tokensHash) external view returns (bytes32);
+    function getCompoundAPR(address token) external view returns (uint256);
 
-    function getBestAPRAdjusted(bytes32 tokensHash, uint256 _supply) external view returns (bytes32);
+    function getAaveV1APR(address token) external view returns (address, uint256);
+
+    function getAaveV2APR(address token) external view returns (address, uint256);
+
+    function getBestAPR(bytes32 tokensHash) external view returns (bytes32);
 }

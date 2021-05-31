@@ -6,12 +6,13 @@ pragma experimental ABIEncoderV2;
 import { IUniswapV2Router02 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import { SafeERC20, IERC20, SafeMath } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
+import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
 
 /**
  * @dev Abstraction layer to DeFi exchanges like Uniswap
  */
 
-contract HarvestCodeProvider is Modifiers {
+contract HarvestCodeProvider is IHarvestCodeProvider, Modifiers {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -27,7 +28,7 @@ contract HarvestCodeProvider is Modifiers {
         address _rewardToken,
         address _underlyingToken,
         uint256 _rewardTokenAmount
-    ) public view returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory _codes) {
         address _weth = uniswapV2Router02.WETH();
         if (_rewardTokenAmount > 0) {
             address[] memory _path;
@@ -73,7 +74,7 @@ contract HarvestCodeProvider is Modifiers {
         address _borrowToken,
         address _underlyingToken,
         uint256 _borrowTokenAmount
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         address _weth = uniswapV2Router02.WETH();
         if (_borrowTokenAmount > 0) {
             address[] memory _path;
@@ -104,7 +105,7 @@ contract HarvestCodeProvider is Modifiers {
         address _rewardToken,
         address _underlyingToken,
         uint256 _amount
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         address _weth = uniswapV2Router02.WETH();
         uint256[] memory amounts = new uint256[](3);
         address[] memory path = new address[](3);

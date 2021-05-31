@@ -7,8 +7,9 @@ task("deploy-vaults", "Deploy Core Vaults")
   .addParam("riskmanager", "the address of riskManager", "", types.string)
   .addParam("strategymanager", "the address of strategyManager", "", types.string)
   .addParam("optyminter", "the address of opty Minter", "", types.string)
+  .addParam("unpause", "unpause vault", false, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ registry, riskmanager, strategymanager, optyminter, insertindb }, hre) => {
+  .setAction(async ({ registry, riskmanager, strategymanager, optyminter, insertindb, unpause }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -53,6 +54,7 @@ task("deploy-vaults", "Deploy Core Vaults")
           riskmanager: riskmanager,
           strategymanager: strategymanager,
           optyminter: optyminter,
+          unpause: unpause,
           insertindb: insertindb,
         });
       }

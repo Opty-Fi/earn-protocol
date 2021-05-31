@@ -6,16 +6,16 @@ pragma experimental ABIEncoderV2;
 import { SafeERC20, IERC20, SafeMath, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { RiskManager } from "../configuration/RiskManager.sol";
 import { OPTYStakingVaultStorage } from "./OPTYStakingVaultStorage.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
-import { OPTYMinter } from "./OPTYMinter.sol";
+import { IOPTYMinter } from "../../interfaces/opty/IOPTYMinter.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
+import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
 
 /**
  * @dev Opty.Fi's Staking Vault contract for OPTY
  */
-contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVaultStorage {
+contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuard, OPTYStakingVaultStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -27,9 +27,7 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
     constructor(
         address _registry,
         address _underlyingToken,
-        address _optyMinter,
         uint256 _timelock,
-        address _optyStakingRateBalancer,
         string memory _numberOfDays
     )
         public
@@ -40,58 +38,46 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
         Modifiers(_registry)
     {
         setToken(_underlyingToken); /* underlying token contract address (for example DAI) */
-        setOPTYMinter(_optyMinter);
         setTimelockPeriod(_timelock);
-        setOPTYStakingRateBalancer(_optyStakingRateBalancer);
     }
 
     modifier onlyStakingRateBalancer() {
-        require(msg.sender == optyStakingRateBalancer, "caller is not the optyStakingRateBalancer");
+        require(
+            msg.sender == registryContract.getOPTYStakingRateBalancer(),
+            "caller is not the optyStakingRateBalancer"
+        );
         _;
     }
 
-    function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool _success) {
+    function setTimelockPeriod(uint256 _timelock) public override onlyOperator returns (bool _success) {
         require(_timelock >= uint256(86400), "Timelock should be at least 1 day.");
         timelockPeriod = _timelock;
         _success = true;
     }
 
-    function setOPTYMinter(address _optyMinter) public onlyOperator returns (bool _success) {
-        require(_optyMinter != address(0), "!_optyMinter");
-        require(_optyMinter.isContract(), "!_optyMinter.isContract");
-        optyMinterContract = OPTYMinter(_optyMinter);
-        _success = true;
-    }
-
-    function setToken(address _underlyingToken) public onlyOperator returns (bool _success) {
+    function setToken(address _underlyingToken) public override onlyOperator returns (bool _success) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         token = _underlyingToken;
         _success = true;
     }
 
-    function setOptyRatePerSecond(uint256 _rate) public onlyStakingRateBalancer returns (bool _success) {
+    function setOptyRatePerSecond(uint256 _rate) public override onlyStakingRateBalancer returns (bool _success) {
         optyRatePerSecond = _rate;
-        _success = true;
-    }
-
-    function setOPTYStakingRateBalancer(address _optyStakingRateBalancer) public onlyOperator returns (bool _success) {
-        require(_optyStakingRateBalancer.isContract(), "!_optyStakingRateBalancer.isContract");
-        optyStakingRateBalancer = _optyStakingRateBalancer;
         _success = true;
     }
 
     /**
      * @dev Function to get the underlying token balance of OptyPool Contract
      */
-    function balance() public view returns (uint256) {
+    function balance() public view override returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
-    function userStakeAll() external returns (bool) {
+    function userStakeAll() external override returns (bool) {
         _userStake(IERC20(token).balanceOf(msg.sender));
     }
 
-    function userStake(uint256 _amount) external returns (bool) {
+    function userStake(uint256 _amount) external override returns (bool) {
         _userStake(_amount);
     }
 
@@ -121,7 +107,10 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
         }
         _mint(msg.sender, shares);
         require(
-            IOPTYStakingRateBalancer(optyStakingRateBalancer).updateStakedOPTY(msg.sender, _amount),
+            IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateStakedOPTY(
+                msg.sender,
+                _amount
+            ),
             "stakingVault:userStake"
         );
         updatePool();
@@ -129,11 +118,11 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
         _success = true;
     }
 
-    function userUnstakeAll() external returns (bool) {
+    function userUnstakeAll() external override returns (bool) {
         _userUnstake(balanceOf(msg.sender));
     }
 
-    function userUnstake(uint256 _redeemAmount) external returns (bool) {
+    function userUnstake(uint256 _redeemAmount) external override returns (bool) {
         _userUnstake(_redeemAmount);
     }
 
@@ -157,7 +146,10 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
         );
         require(_redeemAmount > 0, "!_redeemAmount>0");
         require(
-            IOPTYStakingRateBalancer(optyStakingRateBalancer).updateUnstakedOPTY(msg.sender, _redeemAmount),
+            IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateUnstakedOPTY(
+                msg.sender,
+                _redeemAmount
+            ),
             "stakingVault:userUnstake"
         );
         updatePool();
@@ -171,27 +163,31 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
         _success = true;
     }
 
-    function updatePool() public ifNotPaused(address(this)) returns (bool _success) {
+    function updatePool() public override ifNotPaused(address(this)) returns (bool _success) {
         if (lastPoolUpdate == uint256(0)) {
             lastPoolUpdate = getBlockTimestamp();
         } else {
             uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
             uint256 optyAccrued = _deltaBlocks.mul(optyRatePerSecond);
             lastPoolUpdate = getBlockTimestamp();
-            optyMinterContract.mintOpty(address(this), optyAccrued);
+            IOPTYMinter _optyMinterContract = IOPTYMinter(registryContract.getOptyMinter());
+            _optyMinterContract.mintOpty(address(this), optyAccrued);
         }
-        require(IOPTYStakingRateBalancer(optyStakingRateBalancer).updateOptyRates(), "stakingVault:updatePool");
+        require(
+            IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateOptyRates(),
+            "stakingVault:updatePool"
+        );
         _success = true;
     }
 
-    function getPricePerFullShare() public view returns (uint256) {
+    function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
             return balance().div(totalSupply());
         }
         return uint256(0);
     }
 
-    function balanceInOpty(address _user) public view returns (uint256) {
+    function balanceInOpty(address _user) public view override returns (uint256) {
         if (balanceOf(_user) != uint256(0)) {
             uint256 _balanceInOpty =
                 balanceOf(_user).mul(balance().add(optyRatePerSecond.mul(getBlockTimestamp().sub(lastPoolUpdate)))).div(
@@ -202,7 +198,7 @@ contract OPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVault
         return uint256(0);
     }
 
-    function getBlockTimestamp() public view returns (uint256) {
+    function getBlockTimestamp() public view override returns (uint256) {
         return block.timestamp;
     }
 

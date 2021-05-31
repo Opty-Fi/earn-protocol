@@ -122,7 +122,7 @@ jobs:
           yarn test
       - name: Deploy
         run: |
-          yarn deploy-infra:staging
+          yarn setup:staging
       - name: Google Chat Notification
         uses: Co-qn/google-chat-notification@releases/v1
         if: always()

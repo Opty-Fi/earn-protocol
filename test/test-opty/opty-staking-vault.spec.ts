@@ -59,20 +59,6 @@ describe(scenario.title, () => {
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
             break;
           }
-          case "setOPTYMinter(address)": {
-            const { OPTYMinter }: ARGUMENTS = action.args;
-            if (OPTYMinter) {
-              if (action.expect === "success") {
-                await contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter);
-              } else {
-                await expect(
-                  contracts[action.contract].connect(users[action.executor])[action.action](OPTYMinter),
-                ).to.be.revertedWith(action.message);
-              }
-            }
-            assert.isDefined(OPTYMinter, `args is wrong in ${action.action} testcase`);
-            break;
-          }
           case "setOptyRatePerSecond(uint256)": {
             const { rate }: ARGUMENTS = action.args;
             if (rate) {

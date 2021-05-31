@@ -5,6 +5,9 @@ pragma experimental ABIEncoderV2;
 
 import { Modifiers } from "./Modifiers.sol";
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import {
+    IVaultStepInvestStrategyDefinitionRegistry
+} from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
 
 /**
  * @title VaultStepInvestStrategyDefinitionRegistry
@@ -13,7 +16,7 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  *
  * @dev Contract to persist vault's step invest strategy definition
  */
-contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
+contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDefinitionRegistry, Modifiers {
     mapping(bytes32 => bytes32[]) public tokenToStrategies;
     mapping(bytes32 => DataTypes.Strategy) public strategies;
     bytes32[] public strategyHashIndexes;
@@ -45,6 +48,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
      */
     function setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[] memory _strategySteps)
         external
+        override
         onlyOperator
         returns (bool)
     {
@@ -65,6 +69,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
      */
     function setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[][] memory _strategySteps)
         external
+        override
         onlyOperator
         returns (bool)
     {
@@ -88,6 +93,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
      */
     function setStrategy(bytes32[] memory _tokensHash, DataTypes.StrategyStep[][] memory _strategySteps)
         external
+        override
         onlyOperator
         returns (bool)
     {
@@ -105,6 +111,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
     function getStrategy(bytes32 _hash)
         public
         view
+        override
         returns (uint256 _index, DataTypes.StrategyStep[] memory _strategySteps)
     {
         _index = strategies[_hash].index;
@@ -114,7 +121,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is Modifiers {
     /**
      * @dev Returns the list of strategy hashes by `_token`.
      */
-    function getTokenToStrategies(bytes32 _tokensHash) public view returns (bytes32[] memory) {
+    function getTokenToStrategies(bytes32 _tokensHash) public view override returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];
     }
 

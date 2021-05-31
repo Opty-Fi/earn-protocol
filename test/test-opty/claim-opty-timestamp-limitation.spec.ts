@@ -78,7 +78,7 @@ describe(scenario.title, () => {
       1700000000,
     ]);
 
-    await executeFunc(essentialContracts.registry, users["owner"], "setMinter(address)", [optyMinter.address]);
+    await executeFunc(essentialContracts.registry, users["owner"], "setOPTYMinter(address)", [optyMinter.address]);
 
     const Vault = await deployVault(
       hre,

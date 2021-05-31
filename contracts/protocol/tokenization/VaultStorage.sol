@@ -3,9 +3,6 @@
 
 pragma solidity ^0.6.10;
 
-import { RiskManager } from "../configuration/RiskManager.sol";
-import { StrategyManager } from "../configuration/StrategyManager.sol";
-import { OPTYMinter } from "./OPTYMinter.sol";
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
 contract VaultStorage {
@@ -13,9 +10,6 @@ contract VaultStorage {
     mapping(address => uint256) public pendingDeposits;
     mapping(address => uint256) public pendingWithdraws;
     mapping(uint256 => DataTypes.BlockVaultValue[]) public blockToBlockVaultValues;
-    StrategyManager public strategyManagerContract;
-    RiskManager public riskManagerContract;
-    OPTYMinter public optyMinterContract;
     bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
     bytes32 public investStrategyHash;
     uint256 public vaultValue;
@@ -25,4 +19,7 @@ contract VaultStorage {
     uint256 public maxVaultValueJump; // basis points
     address public underlyingToken; //  store the underlying token contract address (for example DAI)
     string public profile;
+
+    event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
+    event WithdrawQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
 }

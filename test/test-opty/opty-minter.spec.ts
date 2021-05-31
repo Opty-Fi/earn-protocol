@@ -131,7 +131,7 @@ describe(scenario.title, () => {
         const action = story.setActions[i];
         switch (action.action) {
           case "addOptyVault(address)":
-          case "setMinter(address)": {
+          case "setOPTYMinter(address)": {
             const { contractName }: ARGUMENTS = action.args;
             if (contractName) {
               if (action.expect === "success") {

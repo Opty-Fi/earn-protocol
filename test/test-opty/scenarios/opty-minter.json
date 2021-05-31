@@ -675,7 +675,7 @@
       "setActions": [
         {
           "contract": "registry",
-          "action": "setMinter(address)",
+          "action": "setOPTYMinter(address)",
           "args": {
             "contractName": "optyMinter"
           },

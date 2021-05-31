@@ -27,7 +27,7 @@ struct UserAccountData {
     uint256 healthFactor;
 }
 
-struct ReserveData {
+struct ReserveDataV1 {
     uint256 totalLiquidity;
     uint256 availableLiquidity;
     uint256 totalBorrowsStable;
@@ -82,5 +82,5 @@ interface IAaveV1 {
 
     function getUserReserveData(address _reserve, address _user) external view returns (UserReserveData memory);
 
-    function getReserveData(address _reserve) external view returns (ReserveData memory);
+    function getReserveData(address _reserve) external view returns (ReserveDataV1 memory);
 }

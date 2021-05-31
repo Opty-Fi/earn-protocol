@@ -11,7 +11,7 @@ import {
 import {
     IAaveV2LendingPoolAddressProviderRegistry
 } from "../../../interfaces/aave/v2/IAaveV2LendingPoolAddressProviderRegistry.sol";
-import { IAaveV2, ReserveData, UserAccountData } from "../../../interfaces/aave/v2/IAaveV2.sol";
+import { IAaveV2, ReserveDataV2, UserAccountData } from "../../../interfaces/aave/v2/IAaveV2.sol";
 import { IAaveV2Token } from "../../../interfaces/aave/v2/IAaveV2Token.sol";
 import {
     IAaveV2ProtocolDataProvider,
@@ -286,7 +286,7 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         returns (address)
     {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
-        ReserveData memory _reserveData = IAaveV2(_lendingPool).getReserveData(_underlyingToken);
+        ReserveDataV2 memory _reserveData = IAaveV2(_lendingPool).getReserveData(_underlyingToken);
         return _reserveData.aTokenAddress;
     }
 

@@ -252,7 +252,7 @@ describe(scenario.title, () => {
                   const value = await contracts[action.contract][action.action](
                     contracts[addressName.toString().toLowerCase()].address,
                   );
-                  expect(+value.withdrawlFee).to.equal(+action.expectedValue);
+                  expect(+value.withdrawalFee).to.equal(+action.expectedValue);
                   assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
                   break;
                 }

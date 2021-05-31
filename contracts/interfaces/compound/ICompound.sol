@@ -4,6 +4,23 @@ pragma solidity ^0.6.10;
 pragma experimental ABIEncoderV2;
 
 interface ICompound {
+    enum PriceSource {
+        FIXED_ETH, /// implies the fixedPrice is a constant multiple of the ETH price (which varies)
+        FIXED_USD, /// implies the fixedPrice is a constant multiple of the USD price (which is 1)
+        REPORTER /// implies the price is set by the reporter
+    }
+
+    struct TokenConfig {
+        address cToken;
+        address underlying;
+        bytes32 symbolHash;
+        uint256 baseUnit;
+        PriceSource priceSource;
+        uint256 fixedPrice;
+        address uniswapMarket;
+        bool isUniswapReversed;
+    }
+
     struct CompBalanceMetadata {
         uint256 balance;
         uint256 votes;
@@ -48,4 +65,8 @@ interface ICompound {
     function decimals() external view returns (uint8);
 
     function compAccrued(address holder) external view returns (uint256);
+
+    function getTokenConfigByUnderlying(address) external view returns (TokenConfig memory);
+
+    function supplyRatePerBlock() external view returns (uint256);
 }

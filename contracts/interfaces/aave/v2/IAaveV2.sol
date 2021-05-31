@@ -12,7 +12,7 @@ struct UserAccountData {
     uint256 healthFactor;
 }
 
-struct ReserveData {
+struct ReserveDataV2 {
     ReserveConfigurationMap configuration;
     uint128 liquidityIndex;
     uint128 variableBorrowIndex;
@@ -78,7 +78,7 @@ interface IAaveV2 {
 
     function getUserConfiguration(address user) external view returns (ReserveConfigurationMap memory);
 
-    function getReserveData(address _asset) external view returns (ReserveData memory);
+    function getReserveData(address _asset) external view returns (ReserveDataV2 memory);
 
     function paused() external view returns (bool);
 
