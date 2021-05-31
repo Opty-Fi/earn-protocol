@@ -4,14 +4,14 @@ pragma solidity ^0.6.10;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract DummyTokenTransferFee is ERC20 {
+contract TestDummyTokenTransferFee is ERC20 {
     uint256 public constant FEE = uint256(500);
 
-    constructor(uint256 initialSupply) public ERC20("DummyTokenTransferFee", "DTTF") {
+    constructor(uint256 initialSupply) public ERC20("TestDummyTokenTransferFee", "TDTTF") {
         _mint(msg.sender, initialSupply);
     }
 
-    function mint(address to, uint256 amount) public {
+    function mint(address to, uint256 amount) external {
         _mint(to, amount);
     }
 

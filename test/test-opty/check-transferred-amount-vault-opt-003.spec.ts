@@ -56,7 +56,7 @@ describe(scenario.title, () => {
       contracts["strategyProvider"] = essentialContracts.strategyProvider;
     });
     beforeEach(async () => {
-      const dummyToken = await deployContract(hre, TESTING_CONTRACTS.DUMMY_TOKEN_TRANSFER_FEE, false, operator, [
+      const dummyToken = await deployContract(hre, TESTING_CONTRACTS.TEST_DUMMY_TOKEN_TRANSFER_FEE, false, operator, [
         1500000000000000,
       ]);
 
