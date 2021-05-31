@@ -82,7 +82,20 @@ library DataTypes {
     struct VaultConfiguration {
         bool discontinued;
         bool unpaused;
-        uint256 withdrawlFee;
+        uint256 withdrawalFee;
         TreasuryShare[] treasuryShares;
+    }
+
+    struct StrategyConfiguration {
+        address vaultStepInvestStrategyDefinitionRegistry;
+        address strategyProvider;
+        address aprOracle;
+    }
+
+    struct VaultStrategyConfiguration {
+        address strategyManager;
+        address riskManager;
+        address optyMinter;
+        address operator;
     }
 }

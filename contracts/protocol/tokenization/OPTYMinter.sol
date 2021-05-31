@@ -5,15 +5,16 @@ pragma solidity ^0.6.10;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ExponentialNoError } from "../../dependencies/compound/ExponentialNoError.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
-import { OPTY } from "./OPTY.sol";
 import { OPTYMinterStorage } from "./OPTYMinterStorage.sol";
-import { OPTYStakingVault } from "./OPTYStakingVault.sol";
+import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
+import { IOPTY } from "../../interfaces/opty/IOPTY.sol";
+import { IOPTYMinter } from "../../interfaces/opty/IOPTYMinter.sol";
 
 /**
  * @dev Contract distributing $OPTY to opty-fi earn protocol's users
  */
 
-contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
+contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modifiers {
     uint256 public immutable maxUnlockClaimOPTYTimestamp;
 
     constructor(
@@ -43,6 +44,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
 
     function setOperatorUnlockClaimOPTYTimestamp(uint256 _operatorUnlockClaimOPTYTimestamp)
         public
+        override
         onlyOperator
         returns (bool)
     {
@@ -58,7 +60,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @dev Maps staking vault to a boolean variable that indicates wether the staking vault is enabled`or not
      *
      */
-    function setStakingVault(address _stakingVault, bool _enable) public onlyOperator returns (bool) {
+    function setStakingVault(address _stakingVault, bool _enable) public override onlyOperator returns (bool) {
         require(_stakingVault != address(0), "Invalid address");
         stakingVaults[_stakingVault] = _enable;
         return true;
@@ -69,19 +71,19 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         optyAddress = _opty;
     }
 
-    function claimAndStake(address _stakingPool) external isOperatorTimeLockPeriodEnded {
+    function claimAndStake(address _stakingPool) external override isOperatorTimeLockPeriodEnded {
         address[] memory holders = new address[](1);
         holders[0] = msg.sender;
         uint256 _amount = _claimOpty(holders, allOptyVaults);
-        OPTYStakingVault _optyStakingPool = OPTYStakingVault(_stakingPool);
-        _optyStakingPool.userStake(_amount);
+        IOPTYStakingVault _optyStakingVaultContract = IOPTYStakingVault(_stakingPool);
+        _optyStakingVaultContract.userStake(_amount);
     }
 
     /**
      * @notice Claim all the OPTY accrued by holder in all markets
      * @param _holder The address to claim OPTY for
      */
-    function claimOpty(address _holder) external isOperatorTimeLockPeriodEnded returns (uint256) {
+    function claimOpty(address _holder) external override isOperatorTimeLockPeriodEnded returns (uint256) {
         address[] memory holders = new address[](1);
         holders[0] = _holder;
         _claimOpty(holders, allOptyVaults);
@@ -94,6 +96,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      */
     function claimOpty(address _holder, address[] memory _optyVaults)
         external
+        override
         isOperatorTimeLockPeriodEnded
         returns (uint256)
     {
@@ -104,6 +107,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
 
     function claimOpty(address[] memory _holders, address[] memory _optyVaults)
         external
+        override
         isOperatorTimeLockPeriodEnded
         returns (uint256)
     {
@@ -138,7 +142,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Claim all the opty accrued by holder in all markets
      * @param _holder The address to claim OPTY for
      */
-    function claimableOpty(address _holder) public view returns (uint256) {
+    function claimableOpty(address _holder) public view override returns (uint256) {
         return claimableOpty(_holder, allOptyVaults);
     }
 
@@ -147,7 +151,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @param _holder The address to claim OPTY for
      * @param _optyVaults The list of vaults to claim OPTY in
      */
-    function claimableOpty(address _holder, address[] memory _optyVaults) public view returns (uint256) {
+    function claimableOpty(address _holder, address[] memory _optyVaults) public view override returns (uint256) {
         uint256 claimableOptyAmount;
         for (uint256 i = 0; i < _optyVaults.length; i++) {
             address _optyVault = _optyVaults[i];
@@ -182,7 +186,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         return div_(add_(claimableOptyAmount, optyAccrued[_holder]), 1e18);
     }
 
-    function currentOptyVaultIndex(address _optyVault) public view returns (uint256) {
+    function currentOptyVaultIndex(address _optyVault) public view override returns (uint256) {
         uint256 _deltaSecondsSinceStart = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
         uint256 _deltaSeconds = sub_(_getBlockTimestamp(), uint256(optyVaultState[_optyVault].timestamp));
         uint256 _supplyTokens = IERC20(_optyVault).totalSupply();
@@ -206,7 +210,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Calculate additional accrued OPTY for a contributor since last accrual
      * @param _user The address to calculate contributor rewards for
      */
-    function updateUserRewards(address _optyVault, address _user) public {
+    function updateUserRewards(address _optyVault, address _user) public override {
         if (optyVaultRatePerSecond[_optyVault] > 0) {
             if (IERC20(_optyVault).balanceOf(_user) > 0 && lastUserUpdate[_optyVault][_user] != _getBlockTimestamp()) {
                 uint256 _deltaSecondsVault = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_optyVault]);
@@ -239,7 +243,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         }
     }
 
-    function updateUserStateInVault(address _optyVault, address _user) public {
+    function updateUserStateInVault(address _optyVault, address _user) public override {
         if (optyVaultRatePerSecond[_optyVault] > 0) {
             optyUserStateInVault[_optyVault][_user].index = optyVaultState[_optyVault].index;
             optyUserStateInVault[_optyVault][_user].timestamp = optyVaultState[_optyVault].timestamp;
@@ -250,7 +254,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Set the OPTY rate for a specific pool
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function updateOptyVaultRatePerSecondAndVaultToken(address _optyVault) public returns (bool) {
+    function updateOptyVaultRatePerSecondAndVaultToken(address _optyVault) public override returns (bool) {
         if (optyVaultRatePerSecond[_optyVault] > 0) {
             optyVaultRatePerSecondAndVaultToken[_optyVault] = IERC20(_optyVault).totalSupply() > 0
                 ? div_(mul_(optyVaultRatePerSecond[_optyVault], 1e18), IERC20(_optyVault).totalSupply())
@@ -263,7 +267,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Accrue OPTY to the market by updating the supply index
      * @param _optyVault The market whose index to update
      */
-    function updateOptyVaultIndex(address _optyVault) public returns (uint224) {
+    function updateOptyVaultIndex(address _optyVault) public override returns (uint224) {
         if (optyVaultRatePerSecond[_optyVault] > 0) {
             if (optyVaultState[_optyVault].index == uint224(0)) {
                 optyVaultStartTimestamp[_optyVault] = _getBlockTimestamp();
@@ -301,7 +305,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
         }
     }
 
-    function mintOpty(address _user, uint256 _amount) external onlyStakingVault returns (uint256) {
+    function mintOpty(address _user, uint256 _amount) external override onlyStakingVault returns (uint256) {
         _mintOpty(_user, _amount);
     }
 
@@ -313,7 +317,7 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @return The amount of OPTY which was NOT transferred to the user
      */
     function _mintOpty(address _user, uint256 _amount) internal returns (uint256) {
-        OPTY _opty = OPTY(getOptyAddress());
+        IOPTY _opty = IOPTY(getOptyAddress());
         require(_amount > 0 && _user != address(0), "Insufficient amount or invalid address");
         _opty.mint(_user, _amount);
         return _amount;
@@ -323,24 +327,24 @@ contract OPTYMinter is OPTYMinterStorage, ExponentialNoError, Modifiers {
      * @notice Set the OPTY rate for a specific pool
      * @return The amount of OPTY which was NOT transferred to the user
      */
-    function setOptyVaultRate(address _optyVault, uint256 _rate) public onlyOperator returns (bool) {
+    function setOptyVaultRate(address _optyVault, uint256 _rate) public override onlyOperator returns (bool) {
         optyVaultRatePerSecond[_optyVault] = _rate;
         return true;
     }
 
-    function addOptyVault(address _optyVault) public onlyOperator returns (bool) {
+    function addOptyVault(address _optyVault) public override onlyOperator returns (bool) {
         for (uint256 i = 0; i < allOptyVaults.length; i++) {
             require(allOptyVaults[i] != _optyVault, "optyVault already added");
         }
         allOptyVaults.push(_optyVault);
     }
 
-    function setOptyVault(address _optyVault, bool _enable) public onlyOperator returns (bool) {
+    function setOptyVault(address _optyVault, bool _enable) public override onlyOperator returns (bool) {
         optyVaultEnabled[_optyVault] = _enable;
         return true;
     }
 
-    function getOptyAddress() public view returns (address) {
+    function getOptyAddress() public view override returns (address) {
         return optyAddress;
     }
 

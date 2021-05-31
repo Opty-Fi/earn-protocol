@@ -7,6 +7,10 @@ pragma experimental ABIEncoderV2;
  * @dev Interface of the Opty.fi staking rate balancer.
  */
 interface IOPTYStakingRateBalancer {
+    function setStakingVaultMultipliers(address _stakingVault, uint256 _multiplier) external returns (bool);
+
+    function setStakingVaultOPTYAllocation(uint256 _stakingVaultOPTYAllocation) external returns (bool);
+
     function updateOptyRates() external returns (bool);
 
     function updateStakedOPTY(address _staker, uint256 _amount) external returns (bool);

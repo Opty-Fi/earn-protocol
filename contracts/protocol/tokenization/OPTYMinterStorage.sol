@@ -2,8 +2,6 @@
 
 pragma solidity ^0.6.10;
 
-import { OPTYStakingVault } from "./OPTYStakingVault.sol";
-
 /**
  * @dev Contract to store the OPTYMinter's state variables
  */

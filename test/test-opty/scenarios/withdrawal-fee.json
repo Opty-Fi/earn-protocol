@@ -1,6 +1,6 @@
 {
   "title": "Charge Withdrawal Fee",
-  "description": "Test cases for _chargeWithdrawlFee",
+  "description": "Test cases for _chargeWithdrawalFee",
   "vaults": [
     {
       "name": "Vault",

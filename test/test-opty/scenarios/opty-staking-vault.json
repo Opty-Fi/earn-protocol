@@ -19,34 +19,8 @@
       "getActions": []
     },
     {
-      "description": "User that is not the operator shouldn't be able to set the OPTYMinter",
-      "setActions": [
-        {
-          "contract": "stakingVault1D",
-          "action": "setOPTYMinter(address)",
-          "args": {
-            "OPTYMinter": "0x6b175474e89094c44da98b954eedeac495271d0f"
-          },
-          "executor": "user1",
-          "expect": "fail",
-          "message": "caller is not the operator"
-        }
-      ],
-      "getActions": []
-    },
-    {
       "description": "User shouldn't be able to approve non-contract addresses",
       "setActions": [
-        {
-          "contract": "stakingVault1D",
-          "action": "setOPTYMinter(address)",
-          "args": {
-            "OPTYMinter": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
-          },
-          "executor": "owner",
-          "expect": "fail",
-          "message": "!_optyMinter.isContract"
-        },
         {
           "contract": "stakingVault1D",
           "action": "setToken(address)",
@@ -56,16 +30,6 @@
           "executor": "owner",
           "expect": "fail",
           "message": "!_underlyingToken.isContract"
-        },
-        {
-          "contract": "stakingVault1D",
-          "action": "setOPTYStakingRateBalancer(address)",
-          "args": {
-            "OPTYStakingRateBalancer": "0x25b972807A54bBbCE0A206A76eA68f3c556c1a8B"
-          },
-          "executor": "owner",
-          "expect": "fail",
-          "message": "!_optyStakingRateBalancer.isContract"
         }
       ],
       "getActions": []
