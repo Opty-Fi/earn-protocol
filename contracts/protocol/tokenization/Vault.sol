@@ -173,6 +173,7 @@ contract Vault is
                         _path
                     );
                 uint256 _gasToTransfer = _amounts[1];
+                gasOwedToOperator = uint256(0);
                 IERC20(underlyingToken).safeTransfer(registryContract.operator(), _gasToTransfer);
             }
         }
