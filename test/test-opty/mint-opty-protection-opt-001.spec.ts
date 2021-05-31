@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Signer } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import {  executeFunc } from "../../helpers/helpers";
+import { executeFunc } from "../../helpers/helpers";
 import scenario from "./scenarios/mint-opty-protection-opt-001.json";
 type ARGUMENTS = {
   contractName?: string;
@@ -46,7 +46,10 @@ describe(scenario.title, () => {
                 ]);
               } else {
                 await expect(
-                  executeFunc(contracts[action.contract], users[action.executor], action.action, [contractAddr, amount]),
+                  executeFunc(contracts[action.contract], users[action.executor], action.action, [
+                    contractAddr,
+                    amount,
+                  ]),
                 ).to.be.revertedWith(action.message);
               }
             }
