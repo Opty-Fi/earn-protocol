@@ -83,8 +83,8 @@ describe(scenario.title, () => {
         dummyToken.address,
         operator,
         admin,
-        "DummyTokenTransferFee",
-        "DTTF",
+        "TestDummyTokenTransferFee",
+        "TDTTF",
         "RP1",
         TESTING_DEPLOYMENT_ONCE,
       );
