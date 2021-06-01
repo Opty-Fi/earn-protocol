@@ -6,7 +6,7 @@ pragma solidity ^0.6.10;
 import { Vault } from "../protocol/tokenization/Vault.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract EmergencyBrake {
+contract TestEmergencyBrake {
     ERC20 tokenAddr;
     Vault vaultAddr;
 
@@ -15,23 +15,18 @@ contract EmergencyBrake {
         tokenAddr = _erc20;
     }
 
-    function getBalance() public view returns (uint256) {
-        uint256 balance = vaultAddr.balance();
-        return balance;
-    }
-
-    function runDepositRebalance(uint256 amount) public {
+    function runDepositRebalance(uint256 amount) external {
         tokenAddr.approve(address(vaultAddr), amount);
         vaultAddr.userDepositRebalance(amount);
     }
 
-    function runTwoTxnDepositRebalance(uint256 minAmount, uint256 maxAmount) public {
+    function runTwoTxnDepositRebalance(uint256 minAmount, uint256 maxAmount) external {
         tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
         vaultAddr.userDepositRebalance(maxAmount);
         vaultAddr.userDepositRebalance(minAmount);
     }
 
-    function runTwoTxnWithdrawRebalance(uint256 minAmount, uint256 maxAmount) public {
+    function runTwoTxnWithdrawRebalance(uint256 minAmount, uint256 maxAmount) external {
         tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
         tokenAddr.transfer(address(vaultAddr), maxAmount);
         vaultAddr.userWithdrawRebalance(maxAmount);
@@ -39,7 +34,7 @@ contract EmergencyBrake {
         vaultAddr.userWithdrawRebalance(minAmount);
     }
 
-    function runTwoTxnWithdrawRebalanceNoDeposit(uint256 minAmount, uint256 maxAmount) public {
+    function runTwoTxnWithdrawRebalanceNoDeposit(uint256 minAmount, uint256 maxAmount) external {
         tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
         tokenAddr.transfer(address(vaultAddr), maxAmount);
         vaultAddr.userWithdrawRebalance(maxAmount);
@@ -47,7 +42,7 @@ contract EmergencyBrake {
         vaultAddr.userWithdrawRebalance(minAmount);
     }
 
-    function runTwoTxnRebalance(uint256 minAmount, uint256 maxAmount) public {
+    function runTwoTxnRebalance(uint256 minAmount, uint256 maxAmount) external {
         tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
         tokenAddr.transfer(address(vaultAddr), maxAmount);
         vaultAddr.rebalance();
@@ -55,10 +50,15 @@ contract EmergencyBrake {
         vaultAddr.rebalance();
     }
 
-    function runTwoTxnWithdrawAndDepositRebalance(uint256 minAmount, uint256 maxAmount) public {
+    function runTwoTxnWithdrawAndDepositRebalance(uint256 minAmount, uint256 maxAmount) external {
         tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
         vaultAddr.userDepositRebalance(maxAmount);
         tokenAddr.transfer(address(vaultAddr), minAmount);
         vaultAddr.userWithdrawRebalance(minAmount);
+    }
+
+    function getBalance() external view returns (uint256) {
+        uint256 balance = vaultAddr.balance();
+        return balance;
     }
 }

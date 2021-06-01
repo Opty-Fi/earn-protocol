@@ -55,52 +55,23 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
 
-    function getPoolValue(address _liquidityPoolAddressProviderRegistry, address _underlyingToken)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return _getReserveData(_liquidityPoolAddressProviderRegistry, _underlyingToken).availableLiquidity;
+    function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) external onlyGovernance {
+        maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
     }
 
-    function getDepositSomeCodes(
-        address payable _optyVault,
-        address[] memory _underlyingTokens,
-        address _liquidityPoolAddressProviderRegistry,
-        uint256[] memory _amounts
-    ) public view override returns (bytes[] memory _codes) {
-        if (_amounts[0] > 0) {
-            address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
-            uint256 _depositAmount =
-                _getDepositAmount(_liquidityPoolAddressProviderRegistry, _underlyingTokens[0], _amounts[0]);
-            _codes = new bytes[](3);
-            _codes[0] = abi.encode(
-                _underlyingTokens[0],
-                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, uint256(0))
-            );
-            _codes[1] = abi.encode(
-                _underlyingTokens[0],
-                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _depositAmount)
-            );
-            _codes[2] = abi.encode(
-                _lendingPool,
-                abi.encodeWithSignature(
-                    "deposit(address,uint256,address,uint16)",
-                    _underlyingTokens[0],
-                    _depositAmount,
-                    _optyVault,
-                    uint16(0)
-                )
-            );
-        }
+    function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) external onlyGovernance {
+        maxDepositAmountDefault = _maxDepositAmountDefault;
+    }
+
+    function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) external onlyGovernance {
+        maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
     function getDepositAllCodes(
         address payable _optyVault,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProviderRegistry
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         uint256[] memory _amounts = new uint256[](1);
         _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyVault);
         return getDepositSomeCodes(_optyVault, _underlyingTokens, _liquidityPoolAddressProviderRegistry, _amounts);
@@ -111,7 +82,7 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProviderRegistry,
         address _outputToken
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
         ReserveConfigurationData memory _reserveConfigurationData =
             IAaveV2ProtocolDataProvider(_getProtocolDataProvider(_liquidityPoolAddressProviderRegistry))
@@ -175,7 +146,7 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProviderRegistry,
         address _outputToken
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
         uint256 _liquidityPoolTokenBalance =
             getLiquidityPoolTokenBalance(_optyVault, _underlyingTokens[0], _liquidityPoolAddressProviderRegistry);
@@ -242,41 +213,193 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         }
     }
 
-    function getWithdrawSomeCodes(
-        address payable _optyVault,
-        address[] memory _underlyingTokens,
-        address _liquidityPoolAddressProviderRegistry,
-        uint256 _amount
-    ) public view override returns (bytes[] memory _codes) {
-        if (_amount > 0) {
-            address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
-            address _liquidityPoolToken =
-                getLiquidityPoolToken(_underlyingTokens[0], _liquidityPoolAddressProviderRegistry);
-            _codes = new bytes[](3);
-            _codes[0] = abi.encode(
-                _liquidityPoolToken,
-                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, uint256(0))
-            );
-            _codes[1] = abi.encode(
-                _liquidityPoolToken,
-                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _amount)
-            );
-            _codes[2] = abi.encode(
-                _lendingPool,
-                abi.encodeWithSignature("withdraw(address,uint256,address)", _underlyingTokens[0], _amount, _optyVault)
-            );
-        }
-    }
-
     function getWithdrawAllCodes(
         address payable _optyVault,
         address[] memory _underlyingTokens,
         address _liquidityPoolAddressProviderRegistry
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         uint256 _redeemAmount =
             getLiquidityPoolTokenBalance(_optyVault, _underlyingTokens[0], _liquidityPoolAddressProviderRegistry);
         return
             getWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPoolAddressProviderRegistry, _redeemAmount);
+    }
+
+    function getUnderlyingTokens(address, address _liquidityPoolToken)
+        external
+        view
+        override
+        returns (address[] memory _underlyingTokens)
+    {
+        _underlyingTokens = new address[](1);
+        _underlyingTokens[0] = IAaveV2Token(_liquidityPoolToken).UNDERLYING_ASSET_ADDRESS();
+    }
+
+    function getSomeAmountInToken(
+        address,
+        address,
+        uint256 _liquidityPoolTokenAmount
+    ) external view override returns (uint256) {
+        return _liquidityPoolTokenAmount;
+    }
+
+    function getAllAmountInTokenBorrow(
+        address payable _optyVault,
+        address _underlyingToken,
+        address _liquidityPoolAddressProviderRegistry,
+        address _borrowToken,
+        uint256 _borrowAmount
+    ) external view override returns (uint256) {
+        uint256 _liquidityPoolTokenBalance =
+            getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPoolAddressProviderRegistry);
+        return
+            getSomeAmountInTokenBorrow(
+                _optyVault,
+                _underlyingToken,
+                _liquidityPoolAddressProviderRegistry,
+                _liquidityPoolTokenBalance,
+                _borrowToken,
+                _borrowAmount
+            );
+    }
+
+    function calculateAmountInLPToken(
+        address,
+        address,
+        uint256 _underlyingTokenAmount
+    ) external view override returns (uint256) {
+        return _underlyingTokenAmount;
+    }
+
+    function calculateRedeemableLPTokenAmount(
+        address payable,
+        address,
+        address,
+        uint256 _redeemAmount
+    ) external view override returns (uint256) {
+        return _redeemAmount;
+    }
+
+    function isRedeemableAmountSufficient(
+        address payable _optyVault,
+        address _underlyingToken,
+        address _liquidityPoolAddressProviderRegistry,
+        uint256 _redeemAmount
+    ) external view override returns (bool) {
+        uint256 _balanceInToken =
+            getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPoolAddressProviderRegistry);
+        return _balanceInToken >= _redeemAmount;
+    }
+
+    function getRewardToken(address) external view override returns (address) {
+        return address(0);
+    }
+
+    function getUnclaimedRewardTokenAmount(address payable, address) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function getClaimRewardTokenCode(address payable, address) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getHarvestSomeCodes(
+        address payable,
+        address,
+        address,
+        uint256
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getHarvestAllCodes(
+        address payable,
+        address,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function canStake(address) external view override returns (bool) {
+        return false;
+    }
+
+    function getStakeSomeCodes(address, uint256) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getStakeAllCodes(
+        address payable,
+        address[] memory,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getUnstakeSomeCodes(address, uint256) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getUnstakeAllCodes(address payable, address) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getAllAmountInTokenStake(
+        address payable,
+        address,
+        address
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function getLiquidityPoolTokenBalanceStake(address payable, address) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function calculateRedeemableLPTokenAmountStake(
+        address payable,
+        address,
+        address,
+        uint256
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function isRedeemableAmountSufficientStake(
+        address payable,
+        address,
+        address,
+        uint256
+    ) external view override returns (bool) {
+        revert("!empty");
+    }
+
+    function getUnstakeAndWithdrawSomeCodes(
+        address payable,
+        address[] memory,
+        address,
+        uint256
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getUnstakeAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function setHarvestCodeProvider(address _harvestCodeProvider) public onlyOperator {
+        harvestCodeProviderContract = HarvestCodeProvider(_harvestCodeProvider);
+    }
+
+    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
+        maxExposureType = _type;
+    }
+
+    function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
+        maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
     }
 
     function getLiquidityPoolToken(address _underlyingToken, address _liquidityPoolAddressProviderRegistry)
@@ -288,16 +411,6 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
         ReserveDataV2 memory _reserveData = IAaveV2(_lendingPool).getReserveData(_underlyingToken);
         return _reserveData.aTokenAddress;
-    }
-
-    function getUnderlyingTokens(address, address _liquidityPoolToken)
-        public
-        view
-        override
-        returns (address[] memory _underlyingTokens)
-    {
-        _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = IAaveV2Token(_liquidityPoolToken).UNDERLYING_ASSET_ADDRESS();
     }
 
     function getAllAmountInToken(
@@ -317,14 +430,6 @@ contract AaveV2Adapter is IAdapter, Modifiers {
             IERC20(getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProviderRegistry)).balanceOf(
                 _optyVault
             );
-    }
-
-    function getSomeAmountInToken(
-        address,
-        address,
-        uint256 _liquidityPoolTokenAmount
-    ) public view override returns (uint256) {
-        return _liquidityPoolTokenAmount;
     }
 
     function getSomeAmountInTokenBorrow(
@@ -354,176 +459,71 @@ contract AaveV2Adapter is IAdapter, Modifiers {
         }
     }
 
-    function getAllAmountInTokenBorrow(
+    function getPoolValue(address _liquidityPoolAddressProviderRegistry, address _underlyingToken)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _getReserveData(_liquidityPoolAddressProviderRegistry, _underlyingToken).availableLiquidity;
+    }
+
+    function getDepositSomeCodes(
         address payable _optyVault,
-        address _underlyingToken,
+        address[] memory _underlyingTokens,
         address _liquidityPoolAddressProviderRegistry,
-        address _borrowToken,
-        uint256 _borrowAmount
-    ) public view override returns (uint256) {
-        uint256 _liquidityPoolTokenBalance =
-            getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPoolAddressProviderRegistry);
-        return
-            getSomeAmountInTokenBorrow(
-                _optyVault,
-                _underlyingToken,
-                _liquidityPoolAddressProviderRegistry,
-                _liquidityPoolTokenBalance,
-                _borrowToken,
-                _borrowAmount
+        uint256[] memory _amounts
+    ) public view override returns (bytes[] memory _codes) {
+        if (_amounts[0] > 0) {
+            address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
+            uint256 _depositAmount =
+                _getDepositAmount(_liquidityPoolAddressProviderRegistry, _underlyingTokens[0], _amounts[0]);
+            _codes = new bytes[](3);
+            _codes[0] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, uint256(0))
             );
+            _codes[1] = abi.encode(
+                _underlyingTokens[0],
+                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _depositAmount)
+            );
+            _codes[2] = abi.encode(
+                _lendingPool,
+                abi.encodeWithSignature(
+                    "deposit(address,uint256,address,uint16)",
+                    _underlyingTokens[0],
+                    _depositAmount,
+                    _optyVault,
+                    uint16(0)
+                )
+            );
+        }
     }
 
-    function calculateAmountInLPToken(
-        address,
-        address,
-        uint256 _underlyingTokenAmount
-    ) public view override returns (uint256) {
-        return _underlyingTokenAmount;
-    }
-
-    function calculateRedeemableLPTokenAmount(
-        address payable,
-        address,
-        address,
-        uint256 _redeemAmount
-    ) public view override returns (uint256) {
-        return _redeemAmount;
-    }
-
-    function isRedeemableAmountSufficient(
+    function getWithdrawSomeCodes(
         address payable _optyVault,
-        address _underlyingToken,
+        address[] memory _underlyingTokens,
         address _liquidityPoolAddressProviderRegistry,
-        uint256 _redeemAmount
-    ) public view override returns (bool) {
-        uint256 _balanceInToken =
-            getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPoolAddressProviderRegistry);
-        return _balanceInToken >= _redeemAmount;
-    }
-
-    function getRewardToken(address) public view override returns (address) {
-        return address(0);
-    }
-
-    function getUnclaimedRewardTokenAmount(address payable, address) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function getClaimRewardTokenCode(address payable, address) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getHarvestSomeCodes(
-        address payable,
-        address,
-        address,
-        uint256
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getHarvestAllCodes(
-        address payable,
-        address,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function canStake(address) public view override returns (bool) {
-        return false;
-    }
-
-    function getStakeSomeCodes(address, uint256) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getStakeAllCodes(
-        address payable,
-        address[] memory,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getUnstakeSomeCodes(address, uint256) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getUnstakeAllCodes(address payable, address) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getAllAmountInTokenStake(
-        address payable,
-        address,
-        address
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function getLiquidityPoolTokenBalanceStake(address payable, address) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function calculateRedeemableLPTokenAmountStake(
-        address payable,
-        address,
-        address,
-        uint256
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function isRedeemableAmountSufficientStake(
-        address payable,
-        address,
-        address,
-        uint256
-    ) public view override returns (bool) {
-        revert("!empty");
-    }
-
-    function getUnstakeAndWithdrawSomeCodes(
-        address payable,
-        address[] memory,
-        address,
-        uint256
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getUnstakeAndWithdrawAllCodes(
-        address payable,
-        address[] memory,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function setHarvestCodeProvider(address _harvestCodeProvider) public onlyOperator {
-        harvestCodeProviderContract = HarvestCodeProvider(_harvestCodeProvider);
-    }
-
-    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
-        maxExposureType = _type;
-    }
-
-    function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
-        maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
-    }
-
-    function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) public onlyGovernance {
-        maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
-    }
-
-    function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) public onlyGovernance {
-        maxDepositAmountDefault = _maxDepositAmountDefault;
-    }
-
-    function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) public onlyGovernance {
-        maxDepositAmount[_liquidityPool] = _maxDepositAmount;
+        uint256 _amount
+    ) public view override returns (bytes[] memory _codes) {
+        if (_amount > 0) {
+            address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
+            address _liquidityPoolToken =
+                getLiquidityPoolToken(_underlyingTokens[0], _liquidityPoolAddressProviderRegistry);
+            _codes = new bytes[](3);
+            _codes[0] = abi.encode(
+                _liquidityPoolToken,
+                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _liquidityPoolToken,
+                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _amount)
+            );
+            _codes[2] = abi.encode(
+                _lendingPool,
+                abi.encodeWithSignature("withdraw(address,uint256,address)", _underlyingTokens[0], _amount, _optyVault)
+            );
+        }
     }
 
     function _getLendingPool(address _lendingPoolAddressProviderRegistry) internal view returns (address) {

@@ -31,7 +31,7 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
     /**
      * @dev Set RiskManagerProxy to act as RiskManager
      */
-    function become(RiskManagerProxy _riskManagerProxy) public onlyGovernance {
+    function become(RiskManagerProxy _riskManagerProxy) external onlyGovernance {
         require(_riskManagerProxy.acceptImplementation() == 0, "!unauthorized");
     }
 
@@ -49,7 +49,7 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
      *
      */
     function getBestStrategy(string memory _profile, address[] memory _underlyingTokens)
-        public
+        external
         view
         override
         returns (bytes32)
@@ -64,6 +64,27 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
         DataTypes.StrategyConfiguration memory _strategyConfiguration = registryContract.getStrategyConfiguration();
         bytes32 _strategyHash = _getBestStrategy(_profile, tokensHash, _strategyConfiguration);
         return _strategyHash;
+    }
+
+    /**
+     * @dev Get the VaultRewardToken strategy for respective VaultRewardToken hash
+     *
+     * Returns the hash of the VaultRewardToken strategy corresponding to the `_vaultRewardTokenHash` provided
+     *
+     * Requirements:
+     *
+     * - `_vaultRewardTokenHash` is the hash of Vault and RewardToken addresses
+     *      - Can not be empty
+     */
+    function getVaultRewardTokenStrategy(bytes32 _vaultRewardTokenHash)
+        external
+        view
+        override
+        returns (DataTypes.VaultRewardStrategy memory _vaultRewardStrategy)
+    {
+        require(_vaultRewardTokenHash != ZERO_BYTES32, "vRtHash!=0x0");
+        _vaultRewardStrategy = IStrategyProvider(registryContract.getStrategyProvider())
+            .getVaultRewardTokenHashToVaultRewardTokenStrategy(_vaultRewardTokenHash);
     }
 
     /**
@@ -171,26 +192,5 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
         }
 
         return _strategyHash;
-    }
-
-    /**
-     * @dev Get the VaultRewardToken strategy for respective VaultRewardToken hash
-     *
-     * Returns the hash of the VaultRewardToken strategy corresponding to the `_vaultRewardTokenHash` provided
-     *
-     * Requirements:
-     *
-     * - `_vaultRewardTokenHash` is the hash of Vault and RewardToken addresses
-     *      - Can not be empty
-     */
-    function getVaultRewardTokenStrategy(bytes32 _vaultRewardTokenHash)
-        public
-        view
-        override
-        returns (DataTypes.VaultRewardStrategy memory _vaultRewardStrategy)
-    {
-        require(_vaultRewardTokenHash != ZERO_BYTES32, "vRtHash!=0x0");
-        _vaultRewardStrategy = IStrategyProvider(registryContract.getStrategyProvider())
-            .getVaultRewardTokenHashToVaultRewardTokenStrategy(_vaultRewardTokenHash);
     }
 }

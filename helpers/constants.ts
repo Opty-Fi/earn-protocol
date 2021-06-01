@@ -66,7 +66,7 @@ export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
 };
 
 export const TESTING_CONTRACTS: DATA_OBJECT = {
-  TESTING_EMERGENCY_BRAKE: "EmergencyBrake",
+  TESTING_EMERGENCY_BRAKE: "TestEmergencyBrake",
   TEST_DUMMY_TOKEN_TRANSFER_FEE: "TestDummyTokenTransferFee",
 };
 

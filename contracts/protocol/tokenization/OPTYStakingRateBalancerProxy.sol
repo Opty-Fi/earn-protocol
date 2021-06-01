@@ -26,7 +26,7 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
     constructor(address _registry) public Modifiers(_registry) {}
 
     /*** Admin Functions ***/
-    function setPendingImplementation(address newPendingImplementation) public onlyOperator {
+    function setPendingImplementation(address newPendingImplementation) external onlyOperator {
         address oldPendingImplementation = pendingOPTYStakingRateBalancerImplementation;
 
         pendingOPTYStakingRateBalancerImplementation = newPendingImplementation;
@@ -38,7 +38,7 @@ contract OPTYStakingRateBalancerProxy is OPTYStakingRateBalancerStorage, Modifie
      * @notice Accepts new implementation of OPTYStakingRateBalancer. msg.sender must be pendingImplementation
      * @dev Governance function for new implementation to accept it's role as implementation
      */
-    function acceptImplementation() public returns (uint256) {
+    function acceptImplementation() external returns (uint256) {
         /* Check caller is pendingImplementation and pendingImplementation ≠ address(0) */
         require(
             msg.sender == pendingOPTYStakingRateBalancerImplementation &&

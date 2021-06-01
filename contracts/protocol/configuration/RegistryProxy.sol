@@ -40,7 +40,7 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
     }
 
     /*** Admin Functions ***/
-    function setPendingImplementation(address newPendingImplementation) public onlyOperator {
+    function setPendingImplementation(address newPendingImplementation) external onlyOperator {
         address oldPendingImplementation = pendingRegistryImplementation;
 
         pendingRegistryImplementation = newPendingImplementation;
@@ -52,7 +52,7 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
      * @notice Accepts new implementation of registry. msg.sender must be pendingImplementation
      * @dev Governance function for new implementation to accept it's role as implementation
      */
-    function acceptImplementation() public returns (uint256) {
+    function acceptImplementation() external returns (uint256) {
         // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
         require(
             msg.sender == pendingRegistryImplementation && pendingRegistryImplementation != address(0),
@@ -82,7 +82,7 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
      *      to finalize the transfer.
      * @param newPendingGovernance New pending governance.
      */
-    function setPendingGovernance(address newPendingGovernance) public onlyOperator {
+    function setPendingGovernance(address newPendingGovernance) external onlyOperator {
         // Save current value, if any, for inclusion in log
         address oldPendingGovernance = pendingGovernance;
 
@@ -97,7 +97,7 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
      * @notice Accepts transfer of Governance rights. msg.sender must be pendingGovernance
      * @dev Governance function for pending governance to accept role and update Governance
      */
-    function acceptGovernance() public returns (uint256) {
+    function acceptGovernance() external returns (uint256) {
         require(msg.sender == pendingGovernance && msg.sender != address(0), "!pendingGovernance");
 
         // Save current values for inclusion in log

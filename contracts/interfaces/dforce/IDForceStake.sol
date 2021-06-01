@@ -9,11 +9,11 @@ interface IDForceStake {
 
     function exit() external;
 
+    function getReward() external;
+
     function earned(address _holder) external view returns (uint256);
 
     function balanceOf(address _account) external view returns (uint256);
-
-    function getReward() external;
 
     function decimals() external view returns (uint256);
 }

@@ -26,21 +26,6 @@ interface IVaultBooster {
     function claimODEFI(address[] memory _holders, address[] memory _odefiVaults) external returns (uint256);
 
     /**
-     * @notice Claim all the odefi accrued by holder in all markets
-     * @param _holder The address to claim ODEFI for
-     */
-    function claimableODEFI(address _holder) external view returns (uint256);
-
-    /**
-     * @notice Claim all the odefi accrued by holder in the specified markets
-     * @param _holder The address to claim ODEFI for
-     * @param _odefiVaults The list of vaults to claim ODEFI in
-     */
-    function claimableODEFI(address _holder, address[] memory _odefiVaults) external view returns (uint256);
-
-    function currentOdefiVaultIndex(address _odefiVault) external view returns (uint256);
-
-    /**
      * @notice Calculate additional accrued ODEFI for a contributor since last accrual
      * @param _user The address to calculate contributor rewards for
      */
@@ -70,11 +55,26 @@ interface IVaultBooster {
 
     function addOdefiVault(address _odefiVault) external returns (bool);
 
+    function setOdefiVault(address _odefiVault, bool _enable) external returns (bool);
+
+    /**
+     * @notice Claim all the odefi accrued by holder in all markets
+     * @param _holder The address to claim ODEFI for
+     */
+    function claimableODEFI(address _holder) external view returns (uint256);
+
+    /**
+     * @notice Claim all the odefi accrued by holder in the specified markets
+     * @param _holder The address to claim ODEFI for
+     * @param _odefiVaults The list of vaults to claim ODEFI in
+     */
+    function claimableODEFI(address _holder, address[] memory _odefiVaults) external view returns (uint256);
+
+    function currentOdefiVaultIndex(address _odefiVault) external view returns (uint256);
+
     function balance() external view returns (uint256);
 
     function rewardDepletionSeconds(address _odefiVault) external view returns (uint256);
-
-    function setOdefiVault(address _odefiVault, bool _enable) external returns (bool);
 
     function getOdefiAddress() external view returns (address);
 

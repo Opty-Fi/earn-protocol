@@ -65,14 +65,6 @@ interface IStrategyManager {
         uint8 _stepCount
     ) external view returns (bytes[] memory _codes);
 
-    function getFeeTransferAllCodes(
-        DataTypes.TreasuryShare[] memory _treasuryShares,
-        address _account,
-        address _underlyingToken,
-        uint256 _redeemAmountInToken,
-        uint256 _withdrawalFee
-    ) external pure returns (bytes[] memory _treasuryCodes, bytes memory _accountCode);
-
     function getLpAdapterRewardToken(bytes32 _investStrategyHash)
         external
         view
@@ -81,4 +73,12 @@ interface IStrategyManager {
             address _optyAdapter,
             address _rewardToken
         );
+
+    function getFeeTransferAllCodes(
+        DataTypes.TreasuryShare[] memory _treasuryShares,
+        address _account,
+        address _underlyingToken,
+        uint256 _redeemAmountInToken,
+        uint256 _withdrawalFee
+    ) external pure returns (bytes[] memory _treasuryCodes, bytes memory _accountCode);
 }

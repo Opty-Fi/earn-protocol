@@ -45,7 +45,7 @@ contract PriceOracle is IPriceOracle, Modifiers {
      * Returns the latest price
      */
     function getUnderlyingTokenAmountInUSD(uint256 _amount, address _underlyingToken)
-        public
+        external
         view
         override
         returns (uint256)
@@ -57,7 +57,7 @@ contract PriceOracle is IPriceOracle, Modifiers {
     }
 
     function getUSDAmountInUnderlyingToken(uint256 _amount, address _underlyingToken)
-        public
+        external
         view
         override
         returns (uint256)

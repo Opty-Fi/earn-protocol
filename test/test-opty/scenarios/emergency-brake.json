@@ -11,7 +11,7 @@
           "description": "[Double deposit in one block] Should pass when the pool value doesn't deviate from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnDepositRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 100000,
@@ -26,7 +26,7 @@
           "description": "[Double deposit in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnDepositRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 100000,
@@ -41,7 +41,7 @@
           "description": "[Double withDraw in one block] Should pass when the pool value doesn't deviate from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runDepositRebalance(uint256)",
               "args": {
                 "amount": 20000
@@ -50,7 +50,7 @@
               "message": ""
             },
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnWithdrawRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 10000,
@@ -65,7 +65,7 @@
           "description": "[Double withDraw in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runDepositRebalance(uint256)",
               "args": {
                 "amount": 20000
@@ -74,7 +74,7 @@
               "message": ""
             },
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnWithdrawRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 10000,
@@ -89,7 +89,7 @@
           "description": "[Double rebalance in one block] Should pass when the pool value doesn't deviate from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 10000,
@@ -104,7 +104,7 @@
           "description": "[Double rebalance in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 10000,
@@ -119,7 +119,7 @@
           "description": "[Deposit and withdraw in one block] Should pass when the pool value doesn't deviates from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnWithdrawAndDepositRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 10000,
@@ -134,7 +134,7 @@
           "description": "[Deposit and withdraw in one block] Should throw an error when the pool value deviates from 1%, maxJumpAllowed=1%",
           "actions": [
             {
-              "contract": "emergencyBrake",
+              "contract": "testEmergencyBrake",
               "action": "runTwoTxnWithdrawAndDepositRebalance(uint256,uint256)",
               "args": {
                 "max_amount": 10000,

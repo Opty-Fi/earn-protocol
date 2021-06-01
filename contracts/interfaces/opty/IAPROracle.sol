@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.10;
-pragma experimental ABIEncoderV2;
 
 interface IAPROracle {
     function getCompoundAPR(address token) external view returns (uint256);

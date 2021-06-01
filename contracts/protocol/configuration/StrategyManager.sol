@@ -30,19 +30,19 @@ contract StrategyManager is IStrategyManager, Modifiers {
 
     /* solhint-disable no-empty-blocks */
 
-    function getWithdrawAllStepsCount(bytes32 _hash) public view override returns (uint8) {
+    function getWithdrawAllStepsCount(bytes32 _hash) external view override returns (uint8) {
         return _getWithdrawAllStepsCount(_hash);
     }
 
-    function getDepositAllStepCount(bytes32 _hash) public view override returns (uint8) {
+    function getDepositAllStepCount(bytes32 _hash) external view override returns (uint8) {
         return _getDepositAllStepCount(_hash);
     }
 
-    function getClaimRewardStepsCount(bytes32 _hash) public view override returns (uint8) {
+    function getClaimRewardStepsCount(bytes32 _hash) external view override returns (uint8) {
         return _getClaimRewardStepsCount(_hash);
     }
 
-    function getHarvestRewardStepsCount(bytes32 _hash) public view override returns (uint8) {
+    function getHarvestRewardStepsCount(bytes32 _hash) external view override returns (uint8) {
         return _getHarvestRewardStepsCount(_hash);
     }
 
@@ -50,7 +50,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address payable _optyVault,
         address _underlyingToken,
         bytes32 _hash
-    ) public view override returns (uint256 _balance) {
+    ) external view override returns (uint256 _balance) {
         return _getBalanceInUnderlyingToken(_optyVault, _underlyingToken, _hash);
     }
 
@@ -60,7 +60,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         bytes32 _hash,
         uint8 _stepIndex,
         uint8 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         _codes = _getPoolDepositAllCodes(_optyVault, _underlyingToken, _hash, _stepIndex, _stepCount);
     }
 
@@ -70,7 +70,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         bytes32 _hash,
         uint8 _stepIndex,
         uint8 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         _codes = _getPoolWithdrawAllCodes(_optyVault, _underlyingToken, _hash, _stepIndex, _stepCount);
     }
 
@@ -79,7 +79,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         bytes32 _hash,
         uint8 _stepIndex,
         uint8 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         _codes = _getPoolClaimAllRewardCodes(_optyVault, _hash, _stepIndex, _stepCount);
     }
 
@@ -89,7 +89,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         bytes32 _investStrategyHash,
         uint8 _stepIndex,
         uint8 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         _codes = _getPoolHarvestAllRewardCodes(
             _optyVault,
             _underlyingToken,
@@ -106,7 +106,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         uint256 _convertRewardTokensPercent,
         uint8 _stepIndex,
         uint8 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
+    ) external view override returns (bytes[] memory _codes) {
         _codes = _getPoolHarvestSomeRewardCodes(
             _optyVault,
             _underlyingToken,
@@ -151,6 +151,22 @@ contract StrategyManager is IStrategyManager, Modifiers {
                 abi.encodeWithSignature("transfer(address,uint256)", _account, _redeemAmountInToken.sub(_fee))
             );
         }
+    }
+
+    function getLpAdapterRewardToken(bytes32 _investStrategyHash)
+        public
+        view
+        override
+        returns (
+            address _liquidityPool,
+            address _optyAdapter,
+            address _rewardToken
+        )
+    {
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyHash);
+        _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
+        _optyAdapter = registryContract.getLiquidityPoolToAdapter(_liquidityPool);
+        _rewardToken = IAdapter(_optyAdapter).getRewardToken(_liquidityPool);
     }
 
     function _getStrategySteps(bytes32 _hash) internal view returns (DataTypes.StrategyStep[] memory _strategySteps) {
@@ -322,22 +338,6 @@ contract StrategyManager is IStrategyManager, Modifiers {
             _liquidityPool,
             _redeemRewardTokens
         );
-    }
-
-    function getLpAdapterRewardToken(bytes32 _investStrategyHash)
-        public
-        view
-        override
-        returns (
-            address _liquidityPool,
-            address _optyAdapter,
-            address _rewardToken
-        )
-    {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyHash);
-        _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
-        _optyAdapter = registryContract.getLiquidityPoolToAdapter(_liquidityPool);
-        _rewardToken = IAdapter(_optyAdapter).getRewardToken(_liquidityPool);
     }
 
     function _getPoolClaimAllRewardCodes(

@@ -56,8 +56,251 @@ contract DyDxAdapter is IAdapter, Modifiers {
         setMaxDepositPoolType(DataTypes.MaxExposure.Number);
     }
 
-    function getPoolValue(address _liquidityPool, address _underlyingToken) public view override returns (uint256) {
-        return uint256(IdYdX(_liquidityPool).getMarketTotalPar(marketToIndexes[_underlyingToken]).supply);
+    function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) external onlyGovernance {
+        maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
+    }
+
+    function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) external onlyGovernance {
+        maxDepositAmountDefault = _maxDepositAmountDefault;
+    }
+
+    function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) external onlyGovernance {
+        maxDepositAmount[_liquidityPool] = _maxDepositAmount;
+    }
+
+    function getDepositAllCodes(
+        address payable _optyVault,
+        address[] memory _underlyingTokens,
+        address _liquidityPool
+    ) external view override returns (bytes[] memory _codes) {
+        uint256[] memory _amounts = new uint256[](liquidityPoolToUnderlyingTokens[_liquidityPool].length);
+        for (uint256 i = 0; i < liquidityPoolToUnderlyingTokens[_liquidityPool].length; i++) {
+            if (liquidityPoolToUnderlyingTokens[_liquidityPool][i] == _underlyingTokens[0]) {
+                _amounts[i] = IERC20(_underlyingTokens[0]).balanceOf(_optyVault);
+            }
+        }
+        return
+            getDepositSomeCodes(_optyVault, liquidityPoolToUnderlyingTokens[_liquidityPool], _liquidityPool, _amounts);
+    }
+
+    function getBorrowAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getRepayAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getWithdrawAllCodes(
+        address payable _optyVault,
+        address[] memory _underlyingTokens,
+        address _liquidityPool
+    ) external view override returns (bytes[] memory _codes) {
+        uint256 _redeemAmount = getAllAmountInToken(_optyVault, _underlyingTokens[0], _liquidityPool);
+        return getWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount);
+    }
+
+    function getLiquidityPoolToken(address, address) external view override returns (address) {
+        return address(0);
+    }
+
+    function getUnderlyingTokens(address _liquidityPool, address)
+        external
+        view
+        override
+        returns (address[] memory _underlyingTokens)
+    {
+        _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
+    }
+
+    function getLiquidityPoolTokenBalance(
+        address payable _optyVault,
+        address _underlyingToken,
+        address _liquidityPool
+    ) external view override returns (uint256) {
+        return getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
+    }
+
+    function getSomeAmountInToken(
+        address,
+        address,
+        uint256
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function getSomeAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        uint256,
+        address,
+        uint256
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function getAllAmountInTokenBorrow(
+        address payable,
+        address,
+        address,
+        address,
+        uint256
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function calculateAmountInLPToken(
+        address,
+        address,
+        uint256
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function calculateRedeemableLPTokenAmount(
+        address payable,
+        address,
+        address,
+        uint256 _redeemAmount
+    ) external view override returns (uint256) {
+        return _redeemAmount;
+    }
+
+    function isRedeemableAmountSufficient(
+        address payable _optyVault,
+        address _underlyingToken,
+        address _liquidityPool,
+        uint256 _redeemAmount
+    ) external view override returns (bool) {
+        uint256 _balanceInToken = getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
+        return _balanceInToken >= _redeemAmount;
+    }
+
+    function getRewardToken(address) external view override returns (address) {
+        return address(0);
+    }
+
+    function getUnclaimedRewardTokenAmount(address payable, address) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function getClaimRewardTokenCode(address payable, address) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getHarvestSomeCodes(
+        address payable,
+        address,
+        address,
+        uint256
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getHarvestAllCodes(
+        address payable,
+        address,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function canStake(address) external view override returns (bool) {
+        return false;
+    }
+
+    function getStakeSomeCodes(address, uint256) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getStakeAllCodes(
+        address payable,
+        address[] memory,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getUnstakeSomeCodes(address, uint256) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getUnstakeAllCodes(address payable, address) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getAllAmountInTokenStake(
+        address payable,
+        address,
+        address
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function getLiquidityPoolTokenBalanceStake(address payable, address) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function calculateRedeemableLPTokenAmountStake(
+        address payable,
+        address,
+        address,
+        uint256
+    ) external view override returns (uint256) {
+        revert("!empty");
+    }
+
+    function isRedeemableAmountSufficientStake(
+        address payable,
+        address,
+        address,
+        uint256
+    ) external view override returns (bool) {
+        revert("!empty");
+    }
+
+    function getUnstakeAndWithdrawSomeCodes(
+        address payable,
+        address[] memory,
+        address,
+        uint256
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function getUnstakeAndWithdrawAllCodes(
+        address payable,
+        address[] memory,
+        address
+    ) external view override returns (bytes[] memory) {
+        revert("!empty");
+    }
+
+    function addMarket(address _underlyingToken, uint256 _marketIndex) public onlyOperator {
+        marketToIndexes[_underlyingToken] = _marketIndex;
+    }
+
+    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyOperator {
+        liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
+    }
+
+    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
+        maxExposureType = _type;
+    }
+
+    function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
+        maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
     }
 
     function getDepositSomeCodes(
@@ -113,39 +356,6 @@ contract DyDxAdapter is IAdapter, Modifiers {
         }
     }
 
-    function getDepositAllCodes(
-        address payable _optyVault,
-        address[] memory _underlyingTokens,
-        address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
-        uint256[] memory _amounts = new uint256[](liquidityPoolToUnderlyingTokens[_liquidityPool].length);
-        for (uint256 i = 0; i < liquidityPoolToUnderlyingTokens[_liquidityPool].length; i++) {
-            if (liquidityPoolToUnderlyingTokens[_liquidityPool][i] == _underlyingTokens[0]) {
-                _amounts[i] = IERC20(_underlyingTokens[0]).balanceOf(_optyVault);
-            }
-        }
-        return
-            getDepositSomeCodes(_optyVault, liquidityPoolToUnderlyingTokens[_liquidityPool], _liquidityPool, _amounts);
-    }
-
-    function getBorrowAllCodes(
-        address payable,
-        address[] memory,
-        address,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getRepayAndWithdrawAllCodes(
-        address payable,
-        address[] memory,
-        address,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
     function getWithdrawSomeCodes(
         address payable _optyVault,
         address[] memory _underlyingTokens,
@@ -178,26 +388,8 @@ contract DyDxAdapter is IAdapter, Modifiers {
         }
     }
 
-    function getWithdrawAllCodes(
-        address payable _optyVault,
-        address[] memory _underlyingTokens,
-        address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
-        uint256 _redeemAmount = getAllAmountInToken(_optyVault, _underlyingTokens[0], _liquidityPool);
-        return getWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount);
-    }
-
-    function getLiquidityPoolToken(address, address) public view override returns (address) {
-        return address(0);
-    }
-
-    function getUnderlyingTokens(address _liquidityPool, address)
-        public
-        view
-        override
-        returns (address[] memory _underlyingTokens)
-    {
-        _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
+    function getPoolValue(address _liquidityPool, address _underlyingToken) public view override returns (uint256) {
+        return uint256(IdYdX(_liquidityPool).getMarketTotalPar(marketToIndexes[_underlyingToken]).supply);
     }
 
     function getAllAmountInToken(
@@ -209,198 +401,6 @@ contract DyDxAdapter is IAdapter, Modifiers {
         AccountInfo memory _accountInfo = AccountInfo(_optyVault, uint256(0));
         (, uint256 value) = IdYdX(_liquidityPool).getAccountWei(_accountInfo, _underlyingTokenIndex);
         return value;
-    }
-
-    function getLiquidityPoolTokenBalance(
-        address payable _optyVault,
-        address _underlyingToken,
-        address _liquidityPool
-    ) public view override returns (uint256) {
-        return getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
-    }
-
-    function getSomeAmountInToken(
-        address,
-        address,
-        uint256
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function getSomeAmountInTokenBorrow(
-        address payable,
-        address,
-        address,
-        uint256,
-        address,
-        uint256
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function getAllAmountInTokenBorrow(
-        address payable,
-        address,
-        address,
-        address,
-        uint256
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function calculateAmountInLPToken(
-        address,
-        address,
-        uint256
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function calculateRedeemableLPTokenAmount(
-        address payable,
-        address,
-        address,
-        uint256 _redeemAmount
-    ) public view override returns (uint256) {
-        return _redeemAmount;
-    }
-
-    function isRedeemableAmountSufficient(
-        address payable _optyVault,
-        address _underlyingToken,
-        address _liquidityPool,
-        uint256 _redeemAmount
-    ) public view override returns (bool) {
-        uint256 _balanceInToken = getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
-        return _balanceInToken >= _redeemAmount;
-    }
-
-    function getRewardToken(address) public view override returns (address) {
-        return address(0);
-    }
-
-    function getUnclaimedRewardTokenAmount(address payable, address) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function getClaimRewardTokenCode(address payable, address) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getHarvestSomeCodes(
-        address payable,
-        address,
-        address,
-        uint256
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getHarvestAllCodes(
-        address payable,
-        address,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function canStake(address) public view override returns (bool) {
-        return false;
-    }
-
-    function getStakeSomeCodes(address, uint256) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getStakeAllCodes(
-        address payable,
-        address[] memory,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getUnstakeSomeCodes(address, uint256) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getUnstakeAllCodes(address payable, address) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getAllAmountInTokenStake(
-        address payable,
-        address,
-        address
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function getLiquidityPoolTokenBalanceStake(address payable, address) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function calculateRedeemableLPTokenAmountStake(
-        address payable,
-        address,
-        address,
-        uint256
-    ) public view override returns (uint256) {
-        revert("!empty");
-    }
-
-    function isRedeemableAmountSufficientStake(
-        address payable,
-        address,
-        address,
-        uint256
-    ) public view override returns (bool) {
-        revert("!empty");
-    }
-
-    function getUnstakeAndWithdrawSomeCodes(
-        address payable,
-        address[] memory,
-        address,
-        uint256
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function getUnstakeAndWithdrawAllCodes(
-        address payable,
-        address[] memory,
-        address
-    ) public view override returns (bytes[] memory) {
-        revert("!empty");
-    }
-
-    function addMarket(address _underlyingToken, uint256 _marketIndex) public onlyOperator {
-        marketToIndexes[_underlyingToken] = _marketIndex;
-    }
-
-    function setLiquidityPoolToUnderlyingTokens(address _lendingPool, address[] memory _tokens) public onlyOperator {
-        liquidityPoolToUnderlyingTokens[_lendingPool] = _tokens;
-    }
-
-    function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
-        maxExposureType = _type;
-    }
-
-    function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
-        maxDepositPoolPctDefault = _maxDepositPoolPctDefault;
-    }
-
-    function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) public onlyGovernance {
-        maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
-    }
-
-    function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) public onlyGovernance {
-        maxDepositAmountDefault = _maxDepositAmountDefault;
-    }
-
-    function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) public onlyGovernance {
-        maxDepositAmount[_liquidityPool] = _maxDepositAmount;
     }
 
     function _getDepositAmount(

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.10;
-pragma experimental ABIEncoderV2;
 
 /**
  * @dev Interface of the Opty.fi Vaults.
@@ -15,17 +14,17 @@ interface IVault {
 
     function rebalance() external;
 
-    function balance() external view returns (uint256);
-
     function harvest(bytes32 _hash) external;
-
-    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) external view returns (bool);
-
-    function getPricePerFullShare() external view returns (uint256);
 
     function discontinue() external;
 
     function setUnpaused(bool _unpaused) external;
+
+    function balance() external view returns (uint256);
+
+    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) external view returns (bool);
+
+    function getPricePerFullShare() external view returns (uint256);
 
     // no CHI functions
 

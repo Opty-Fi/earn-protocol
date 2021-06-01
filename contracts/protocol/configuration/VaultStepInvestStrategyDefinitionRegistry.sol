@@ -109,7 +109,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
      * @dev Returns the Strategy by `_hash`.
      */
     function getStrategy(bytes32 _hash)
-        public
+        external
         view
         override
         returns (uint256 _index, DataTypes.StrategyStep[] memory _strategySteps)
@@ -121,7 +121,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
     /**
      * @dev Returns the list of strategy hashes by `_token`.
      */
-    function getTokenToStrategies(bytes32 _tokensHash) public view override returns (bytes32[] memory) {
+    function getTokenToStrategies(bytes32 _tokensHash) external view override returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];
     }
 

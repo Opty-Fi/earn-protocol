@@ -18,6 +18,11 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
     /* solhint-disable no-empty-blocks */
     constructor(address _registry) public Modifiers(_registry) {}
 
+    modifier onlyStakingVaults() {
+        require(stakingVaults[msg.sender], "!stakingVaults");
+        _;
+    }
+
     /* solhint-disable no-empty-blocks */
 
     /**
@@ -29,7 +34,7 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
         address _stakingVault30DLockingTerm,
         address _stakingVault60DLockingTerm,
         address _stakingVault180DLockingTerm
-    ) public onlyGovernance {
+    ) external onlyGovernance {
         stakingVault1DLockingTerm = _stakingVault1DLockingTerm;
         stakingVault30DLockingTerm = _stakingVault30DLockingTerm;
         stakingVault60DLockingTerm = _stakingVault60DLockingTerm;
@@ -44,17 +49,12 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
      * @dev Set OPTYStakingRateBalancerProxy to act as OPTYStakingRateBalancer
      *
      */
-    function become(OPTYStakingRateBalancerProxy _optyStakingRateBalancerProxy) public onlyGovernance {
+    function become(OPTYStakingRateBalancerProxy _optyStakingRateBalancerProxy) external onlyGovernance {
         require(_optyStakingRateBalancerProxy.acceptImplementation() == 0, "!unauthorized");
     }
 
-    modifier onlyStakingVaults() {
-        require(stakingVaults[msg.sender], "!stakingVaults");
-        _;
-    }
-
     function setStakingVaultMultipliers(address _stakingVault, uint256 _multiplier)
-        public
+        external
         override
         onlyGovernance
         returns (bool)
@@ -64,7 +64,7 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
     }
 
     function setStakingVaultOPTYAllocation(uint256 _stakingVaultOPTYAllocation)
-        public
+        external
         override
         onlyGovernance
         returns (bool)
@@ -72,7 +72,7 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
         stakingVaultOPTYAllocation = _stakingVaultOPTYAllocation;
     }
 
-    function updateOptyRates() public override onlyStakingVaults returns (bool) {
+    function updateOptyRates() external override onlyStakingVaults returns (bool) {
         uint256 _stakingVault1DLockingTermStakedOPTY = stakingVaultToStakedOPTY[stakingVault1DLockingTerm];
         uint256 _stakingVault30DLockingTermStakedOPTY = stakingVaultToStakedOPTY[stakingVault30DLockingTerm];
         uint256 _stakingVault60DLockingTermStakedOPTY = stakingVaultToStakedOPTY[stakingVault60DLockingTerm];
@@ -135,7 +135,7 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
         return true;
     }
 
-    function updateStakedOPTY(address _staker, uint256 _amount) public override onlyStakingVaults returns (bool) {
+    function updateStakedOPTY(address _staker, uint256 _amount) external override onlyStakingVaults returns (bool) {
         stakingVaultToUserStakedOPTY[msg.sender][_staker] = stakingVaultToUserStakedOPTY[msg.sender][_staker].add(
             _amount
         );
@@ -143,7 +143,7 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
         return true;
     }
 
-    function updateUnstakedOPTY(address _staker, uint256 _shares) public override onlyStakingVaults returns (bool) {
+    function updateUnstakedOPTY(address _staker, uint256 _shares) external override onlyStakingVaults returns (bool) {
         uint256 _stakerStakedAmount = stakingVaultToUserStakedOPTY[msg.sender][_staker];
         uint256 _amount = _shares.mul(_stakerStakedAmount).div(stakingVaultToStakedOPTY[msg.sender]);
         if (_shares == IERC20(msg.sender).balanceOf(_staker)) {

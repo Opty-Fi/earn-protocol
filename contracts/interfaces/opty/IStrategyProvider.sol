@@ -9,15 +9,6 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  * @dev Interface for strategy provider
  */
 interface IStrategyProvider {
-    function rpToTokenToBestStrategy(string memory _riskProfile, bytes32 _tokenHash) external view returns (bytes32);
-
-    function rpToTokenToDefaultStrategy(string memory _riskProfile, bytes32 _tokenHash) external view returns (bytes32);
-
-    function getVaultRewardTokenHashToVaultRewardTokenStrategy(bytes32 _tokensHash)
-        external
-        view
-        returns (DataTypes.VaultRewardStrategy memory);
-
     function setBestStrategy(
         string memory _riskProfile,
         bytes32 _tokenHash,
@@ -51,6 +42,15 @@ interface IStrategyProvider {
     ) external returns (DataTypes.VaultRewardStrategy memory);
 
     function setDefaultStrategyState(DataTypes.DefaultStrategyState _defaultStrategyState) external;
+
+    function rpToTokenToBestStrategy(string memory _riskProfile, bytes32 _tokenHash) external view returns (bytes32);
+
+    function rpToTokenToDefaultStrategy(string memory _riskProfile, bytes32 _tokenHash) external view returns (bytes32);
+
+    function getVaultRewardTokenHashToVaultRewardTokenStrategy(bytes32 _tokensHash)
+        external
+        view
+        returns (DataTypes.VaultRewardStrategy memory);
 
     function getDefaultStrategyState() external view returns (DataTypes.DefaultStrategyState);
 }

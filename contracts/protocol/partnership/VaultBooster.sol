@@ -15,17 +15,111 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
         _setODEFIAddress(_odefi);
     }
 
-    function _setODEFIAddress(address _odefi) internal {
-        require(_odefi != address(0), "!zeroAddress");
-        odefiAddress = _odefi;
-    }
-
     /**
      * @notice Claim all the ODEFI accrued by holder in all markets
      * @param _holder The address to claim ODEFI for
      */
-    function claimODEFI(address _holder) public returns (uint256) {
+    function claimODEFI(address _holder) external returns (uint256) {
         claimODEFI(_holder, allOdefiVaults);
+    }
+
+    function updateUserStateInVault(address _odefiVault, address _user) external {
+        odefiUserStateInVault[_odefiVault][_user].index = odefiVaultState[_odefiVault].index;
+        odefiUserStateInVault[_odefiVault][_user].timestamp = odefiVaultState[_odefiVault].timestamp;
+    }
+
+    /**
+     * @notice Set the ODEFI rate for a specific pool
+     * @return The amount of ODEFI which was NOT transferred to the user
+     */
+    function updateOdefiVaultRatePerSecondAndVaultToken(address _odefiVault) external returns (bool) {
+        odefiVaultRatePerSecondAndVaultToken[_odefiVault] = IERC20(_odefiVault).totalSupply() > 0
+            ? div_(mul_(odefiVaultRatePerSecond[_odefiVault], 1e18), IERC20(_odefiVault).totalSupply())
+            : uint256(0);
+        return true;
+    }
+
+    /**
+     * @notice Accrue ODEFI to the market by updating the supply index
+     * @param _odefiVault The market whose index to update
+     */
+    function updateOdefiVaultIndex(address _odefiVault) external returns (uint224) {
+        if (odefiVaultState[_odefiVault].index == uint224(0)) {
+            odefiVaultStartTimestamp[_odefiVault] = getBlockTimestamp();
+            odefiVaultState[_odefiVault].timestamp = uint32(odefiVaultStartTimestamp[_odefiVault]);
+            odefiVaultState[_odefiVault].index = uint224(odefiVaultRatePerSecondAndVaultToken[_odefiVault]);
+            return odefiVaultState[_odefiVault].index;
+        } else {
+            uint256 _deltaSeconds = sub_(getBlockTimestamp(), uint256(odefiVaultState[_odefiVault].timestamp));
+            if (_deltaSeconds > 0) {
+                uint256 _deltaSecondsSinceStart = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
+                uint256 _supplyTokens = IERC20(_odefiVault).totalSupply();
+                uint256 _odefiAccrued = mul_(_deltaSeconds, odefiVaultRatePerSecond[_odefiVault]);
+                uint256 _ratio = _supplyTokens > 0 ? div_(mul_(_odefiAccrued, 1e18), _supplyTokens) : uint256(0);
+                uint256 _index =
+                    div_(
+                        add_(
+                            mul_(
+                                odefiVaultState[_odefiVault].index,
+                                sub_(
+                                    uint256(odefiVaultState[_odefiVault].timestamp),
+                                    odefiVaultStartTimestamp[_odefiVault]
+                                )
+                            ),
+                            _ratio
+                        ),
+                        _deltaSecondsSinceStart
+                    );
+                odefiVaultState[_odefiVault] = DataTypes.ODEFIState({
+                    index: safe224(_index, "new index exceeds 224 bits"),
+                    timestamp: safe32(getBlockTimestamp(), "block number exceeds 32 bits")
+                });
+            }
+            return odefiVaultState[_odefiVault].index;
+        }
+    }
+
+    /**
+     * @notice Set the ODEFI rate for a specific pool
+     * @return The amount of ODEFI which was NOT transferred to the user
+     */
+    function setRewardRate(address _odefiVault, uint256 _rate) external returns (bool) {
+        require(msg.sender == rewarders[_odefiVault], "!rewarder");
+        odefiVaultRatePerSecond[_odefiVault] = _rate;
+        return true;
+    }
+
+    function setRewarder(address _odefiVault, address _rewarder) external onlyOperator returns (bool) {
+        rewarders[_odefiVault] = _rewarder;
+        return true;
+    }
+
+    function addOdefiVault(address _odefiVault) external onlyOperator returns (bool) {
+        for (uint256 i = 0; i < allOdefiVaults.length; i++) {
+            require(allOdefiVaults[i] != _odefiVault, "odefiVault already added");
+        }
+        allOdefiVaults.push(_odefiVault);
+    }
+
+    function setOdefiVault(address _odefiVault, bool _enable) external onlyOperator returns (bool) {
+        odefiVaultEnabled[_odefiVault] = _enable;
+        return true;
+    }
+
+    function getOdefiAddress() external view returns (address) {
+        return odefiAddress;
+    }
+
+    function rewardDepletionSeconds(address _odefiVault) external view returns (uint256) {
+        return div_(balance(), odefiVaultRatePerSecond[_odefiVault]);
+    }
+
+    /**
+     * @notice Claim all the odefi accrued by holder in all markets
+     * @param _holder The address to claim ODEFI for
+     */
+    function claimableODEFI(address _holder) external view returns (uint256) {
+        return claimableODEFI(_holder, allOdefiVaults);
     }
 
     /**
@@ -61,11 +155,38 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
     }
 
     /**
-     * @notice Claim all the odefi accrued by holder in all markets
-     * @param _holder The address to claim ODEFI for
+     * @notice Calculate additional accrued ODEFI for a contributor since last accrual
+     * @param _user The address to calculate contributor rewards for
      */
-    function claimableODEFI(address _holder) public view returns (uint256) {
-        return claimableODEFI(_holder, allOdefiVaults);
+    function updateUserRewards(address _odefiVault, address _user) public {
+        if (IERC20(_odefiVault).balanceOf(_user) > 0 && lastUserUpdate[_odefiVault][_user] != getBlockTimestamp()) {
+            uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
+            uint256 _deltaSecondsUser;
+            if (
+                lastUserUpdate[_odefiVault][_user] != uint256(0) &&
+                lastUserUpdate[_odefiVault][_user] > odefiVaultStartTimestamp[_odefiVault]
+            ) {
+                _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_user], odefiVaultStartTimestamp[_odefiVault]);
+            } else {
+                _deltaSecondsUser = sub_(
+                    odefiUserStateInVault[_odefiVault][_user].timestamp,
+                    odefiVaultStartTimestamp[_odefiVault]
+                );
+            }
+            uint256 _userTokens = IERC20(_odefiVault).balanceOf(_user);
+            uint256 _currentOdefiVaultIndex = currentOdefiVaultIndex(_odefiVault);
+            uint256 _userDelta =
+                mul_(
+                    _userTokens,
+                    sub_(
+                        mul_(_currentOdefiVaultIndex, _deltaSecondsVault),
+                        mul_(odefiUserStateInVault[_odefiVault][_user].index, _deltaSecondsUser)
+                    )
+                );
+            uint256 _userAccrued = add_(odefiAccrued[_user], _userDelta);
+            odefiAccrued[_user] = _userAccrued;
+        }
+        lastUserUpdate[_odefiVault][_user] = getBlockTimestamp();
     }
 
     /**
@@ -131,137 +252,16 @@ contract VaultBooster is VaultBoosterStorage, ExponentialNoError, Modifiers {
         return _index;
     }
 
-    /**
-     * @notice Calculate additional accrued ODEFI for a contributor since last accrual
-     * @param _user The address to calculate contributor rewards for
-     */
-    function updateUserRewards(address _odefiVault, address _user) public {
-        if (IERC20(_odefiVault).balanceOf(_user) > 0 && lastUserUpdate[_odefiVault][_user] != getBlockTimestamp()) {
-            uint256 _deltaSecondsVault = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
-            uint256 _deltaSecondsUser;
-            if (
-                lastUserUpdate[_odefiVault][_user] != uint256(0) &&
-                lastUserUpdate[_odefiVault][_user] > odefiVaultStartTimestamp[_odefiVault]
-            ) {
-                _deltaSecondsUser = sub_(lastUserUpdate[_odefiVault][_user], odefiVaultStartTimestamp[_odefiVault]);
-            } else {
-                _deltaSecondsUser = sub_(
-                    odefiUserStateInVault[_odefiVault][_user].timestamp,
-                    odefiVaultStartTimestamp[_odefiVault]
-                );
-            }
-            uint256 _userTokens = IERC20(_odefiVault).balanceOf(_user);
-            uint256 _currentOdefiVaultIndex = currentOdefiVaultIndex(_odefiVault);
-            uint256 _userDelta =
-                mul_(
-                    _userTokens,
-                    sub_(
-                        mul_(_currentOdefiVaultIndex, _deltaSecondsVault),
-                        mul_(odefiUserStateInVault[_odefiVault][_user].index, _deltaSecondsUser)
-                    )
-                );
-            uint256 _userAccrued = add_(odefiAccrued[_user], _userDelta);
-            odefiAccrued[_user] = _userAccrued;
-        }
-        lastUserUpdate[_odefiVault][_user] = getBlockTimestamp();
-    }
-
-    function updateUserStateInVault(address _odefiVault, address _user) public {
-        odefiUserStateInVault[_odefiVault][_user].index = odefiVaultState[_odefiVault].index;
-        odefiUserStateInVault[_odefiVault][_user].timestamp = odefiVaultState[_odefiVault].timestamp;
-    }
-
-    /**
-     * @notice Set the ODEFI rate for a specific pool
-     * @return The amount of ODEFI which was NOT transferred to the user
-     */
-    function updateOdefiVaultRatePerSecondAndVaultToken(address _odefiVault) public returns (bool) {
-        odefiVaultRatePerSecondAndVaultToken[_odefiVault] = IERC20(_odefiVault).totalSupply() > 0
-            ? div_(mul_(odefiVaultRatePerSecond[_odefiVault], 1e18), IERC20(_odefiVault).totalSupply())
-            : uint256(0);
-        return true;
-    }
-
-    /**
-     * @notice Accrue ODEFI to the market by updating the supply index
-     * @param _odefiVault The market whose index to update
-     */
-    function updateOdefiVaultIndex(address _odefiVault) public returns (uint224) {
-        if (odefiVaultState[_odefiVault].index == uint224(0)) {
-            odefiVaultStartTimestamp[_odefiVault] = getBlockTimestamp();
-            odefiVaultState[_odefiVault].timestamp = uint32(odefiVaultStartTimestamp[_odefiVault]);
-            odefiVaultState[_odefiVault].index = uint224(odefiVaultRatePerSecondAndVaultToken[_odefiVault]);
-            return odefiVaultState[_odefiVault].index;
-        } else {
-            uint256 _deltaSeconds = sub_(getBlockTimestamp(), uint256(odefiVaultState[_odefiVault].timestamp));
-            if (_deltaSeconds > 0) {
-                uint256 _deltaSecondsSinceStart = sub_(getBlockTimestamp(), odefiVaultStartTimestamp[_odefiVault]);
-                uint256 _supplyTokens = IERC20(_odefiVault).totalSupply();
-                uint256 _odefiAccrued = mul_(_deltaSeconds, odefiVaultRatePerSecond[_odefiVault]);
-                uint256 _ratio = _supplyTokens > 0 ? div_(mul_(_odefiAccrued, 1e18), _supplyTokens) : uint256(0);
-                uint256 _index =
-                    div_(
-                        add_(
-                            mul_(
-                                odefiVaultState[_odefiVault].index,
-                                sub_(
-                                    uint256(odefiVaultState[_odefiVault].timestamp),
-                                    odefiVaultStartTimestamp[_odefiVault]
-                                )
-                            ),
-                            _ratio
-                        ),
-                        _deltaSecondsSinceStart
-                    );
-                odefiVaultState[_odefiVault] = DataTypes.ODEFIState({
-                    index: safe224(_index, "new index exceeds 224 bits"),
-                    timestamp: safe32(getBlockTimestamp(), "block number exceeds 32 bits")
-                });
-            }
-            return odefiVaultState[_odefiVault].index;
-        }
-    }
-
-    /**
-     * @notice Set the ODEFI rate for a specific pool
-     * @return The amount of ODEFI which was NOT transferred to the user
-     */
-    function setRewardRate(address _odefiVault, uint256 _rate) public returns (bool) {
-        require(msg.sender == rewarders[_odefiVault], "!rewarder");
-        odefiVaultRatePerSecond[_odefiVault] = _rate;
-        return true;
-    }
-
-    function setRewarder(address _odefiVault, address _rewarder) public onlyOperator returns (bool) {
-        rewarders[_odefiVault] = _rewarder;
-        return true;
-    }
-
-    function addOdefiVault(address _odefiVault) public onlyOperator returns (bool) {
-        for (uint256 i = 0; i < allOdefiVaults.length; i++) {
-            require(allOdefiVaults[i] != _odefiVault, "odefiVault already added");
-        }
-        allOdefiVaults.push(_odefiVault);
-    }
-
     function balance() public view returns (uint256) {
         return IERC20(odefiAddress).balanceOf(address(this));
     }
 
-    function rewardDepletionSeconds(address _odefiVault) public view returns (uint256) {
-        return div_(balance(), odefiVaultRatePerSecond[_odefiVault]);
-    }
-
-    function setOdefiVault(address _odefiVault, bool _enable) public onlyOperator returns (bool) {
-        odefiVaultEnabled[_odefiVault] = _enable;
-        return true;
-    }
-
-    function getOdefiAddress() public view returns (address) {
-        return odefiAddress;
-    }
-
     function getBlockTimestamp() public view returns (uint256) {
         return block.timestamp;
+    }
+
+    function _setODEFIAddress(address _odefi) internal {
+        require(_odefi != address(0), "!zeroAddress");
+        odefiAddress = _odefi;
     }
 }

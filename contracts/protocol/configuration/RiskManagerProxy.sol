@@ -25,7 +25,7 @@ contract RiskManagerProxy is RiskManagerStorage, Modifiers {
     constructor(address _registry) public Modifiers(_registry) {}
 
     /*** Admin Functions ***/
-    function setPendingImplementation(address newPendingImplementation) public onlyOperator {
+    function setPendingImplementation(address newPendingImplementation) external onlyOperator {
         address oldPendingImplementation = pendingRiskManagerImplementation;
 
         pendingRiskManagerImplementation = newPendingImplementation;
@@ -37,7 +37,7 @@ contract RiskManagerProxy is RiskManagerStorage, Modifiers {
      * @notice Accepts new implementation of riskManager. msg.sender must be pendingImplementation
      * @dev Governance function for new implementation to accept it's role as implementation
      */
-    function acceptImplementation() public returns (uint256) {
+    function acceptImplementation() external returns (uint256) {
         // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
         require(
             msg.sender == pendingRiskManagerImplementation && pendingRiskManagerImplementation != address(0),

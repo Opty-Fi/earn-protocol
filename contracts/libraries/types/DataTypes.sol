@@ -82,7 +82,7 @@ library DataTypes {
     struct VaultConfiguration {
         bool discontinued;
         bool unpaused;
-        uint256 withdrawalFee;
+        uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
         TreasuryShare[] treasuryShares;
     }
 
