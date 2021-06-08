@@ -11,6 +11,7 @@ lib/
 node_modules/
 typechain/
 bin/
+specification_docs/
 
 # files
 *.env
