@@ -3,23 +3,67 @@
 
 pragma solidity ^0.6.12;
 
+// library
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
+/**
+ * @title Vault state that can change
+ * @author opty.fi
+ * @dev The storage contract for opty.fi's interest bearing vault token
+ */
+
 contract VaultStorage {
-    DataTypes.Operation[] public queue;
+    /**
+     * @dev A list to maintain sequence of unprocessed deposits
+     */
+    DataTypes.UserDepositOperation[] public queue;
+
+    /**
+     * @dev Mapping of user account who has not received shares against deposited amount
+     */
     mapping(address => uint256) public pendingDeposits;
-    mapping(address => uint256) public pendingWithdraws;
+
+    /**
+     * @dev Map the underlying token in vault to the current block for emergency brakes
+     */
     mapping(uint256 => DataTypes.BlockVaultValue[]) public blockToBlockVaultValues;
-    bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
+
+    /**
+     * @dev Current vault invest strategy
+     */
     bytes32 public investStrategyHash;
-    uint256 public vaultValue;
+
+    /**
+     * @dev Operational cost for rebalance owed by the vault to operator
+     */
     uint256 public gasOwedToOperator;
+
+    /**
+     * @dev Total amount of unprocessed deposit till next rebalance
+     */
     uint256 public depositQueue;
-    uint256 public withdrawQueue;
-    uint256 public maxVaultValueJump; // basis points
-    address public underlyingToken; //  store the underlying token contract address (for example DAI)
+
+    /**
+     * @dev The standard deviation allowed for vault value
+     */
+    uint256 public maxVaultValueJump = 100; // basis points
+
+    /**
+     * @dev store the underlying token contract address (for example DAI)
+     */
+    address public underlyingToken;
+
+    /**
+     * @dev The risk profile name of the vault
+     */
     string public profile;
 
+    /**
+     * @notice Log an event when user calls user deposit underlying asset without rebalance
+     * @dev the shares are not minted until next rebalance
+     * @param sender the account address of the user
+     * @param index the position of user in the queue
+     * @param amount the amount of underlying asset deposit
+     */
     event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
-    event WithdrawQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
 }

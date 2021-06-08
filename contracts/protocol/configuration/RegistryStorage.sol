@@ -154,6 +154,7 @@ contract RegistryStorage is RegistryAdminStorage {
      * @notice optyStakingRateBalancer contract address
      */
     address public optyStakingRateBalancer;
+    address public odefiVaultBooster;
 
     /**
      * @notice Emitted when token is approved or revoked

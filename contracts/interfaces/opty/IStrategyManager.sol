@@ -144,12 +144,31 @@ interface IStrategyManager {
     ) external pure returns (bytes[] memory _treasuryCodes);
 
     /**
-     * @dev Provides the codes to update the reward tokens distribution state
-     * @param _vault Vault contract address (Eg: op<RP><Token>Vault)
-     * @param _from User's address
-     * @return _codes Returns the codes to update the reward tokens distribution state
+     * @dev Get the codes for updating the rewards accrued by a user in a vault
+     * @param _vault Vault contract address
+     * @param _from User's (msg.sender) address whose rewards are going to be updated
+     * @return _codes Returns codes for updating the rewards of a user in a vault
      */
-    function getUserRewardCodes(address _vault, address _from) external view returns (bytes[] memory _codes);
+    function getUpdateUserRewardsCodes(address _vault, address _from) external view returns (bytes[] memory _codes);
+
+    /**
+     * @dev Get the codes for updating the user state in a vault
+     * @dev User state includes the latest vault index and the user's last interaction timestamp
+     * @param _vault Vault contract address
+     * @param _from User's (msg.sender) address whose state is going to be updated
+     * @return _codes Returns codes for updating the state of a user in a vault
+     */
+    function getUpdateUserStateInVaultCodes(address _vault, address _from)
+        external
+        view
+        returns (bytes[] memory _codes);
+
+    /**
+     * @dev Get the codes for updating the $OPTY rate for a vault and the vault index
+     * @param _vault Vault contract address
+     * @return _codes Returns codes for updating the $OPTY rate for a vault and the vault index
+     */
+    function getUpdateRewardVaultRateAndIndexCodes(address _vault) external view returns (bytes[] memory _codes);
 
     /**
      * @notice Get the reward token for the given strategy hash

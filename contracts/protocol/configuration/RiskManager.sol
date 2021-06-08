@@ -19,6 +19,7 @@ import {
 import { IStrategyProvider } from "../../interfaces/opty/IStrategyProvider.sol";
 import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
 import { IRiskManager } from "../../interfaces/opty/IRiskManager.sol";
+import { Constants } from "../../utils/Constants.sol";
 
 /**
  * @title RiskManager Contract
@@ -69,7 +70,7 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
         override
         returns (DataTypes.VaultRewardStrategy memory _vaultRewardStrategy)
     {
-        require(_vaultRewardTokenHash != ZERO_BYTES32, "vRtHash!=0x0");
+        require(_vaultRewardTokenHash != Constants.ZERO_BYTES32, "vRtHash!=0x0");
         _vaultRewardStrategy = IStrategyProvider(registryContract.getStrategyProvider())
             .getVaultRewardTokenHashToVaultRewardTokenStrategy(_vaultRewardTokenHash);
     }
@@ -90,19 +91,19 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
             );
 
         // fallback to default strategy if best strategy is not available
-        if (_strategyHash == ZERO_BYTES32) {
+        if (_strategyHash == Constants.ZERO_BYTES32) {
             _strategyHash = IStrategyProvider(_strategyConfiguration.strategyProvider).rpToTokenToDefaultStrategy(
                 _riskProfile,
                 _tokensHash
             );
             if (
-                _strategyHash == ZERO_BYTES32 &&
+                _strategyHash == Constants.ZERO_BYTES32 &&
                 IStrategyProvider(_strategyConfiguration.strategyProvider).getDefaultStrategyState() ==
                 DataTypes.DefaultStrategyState.Zero
             ) {
-                return ZERO_BYTES32;
+                return Constants.ZERO_BYTES32;
             } else if (
-                _strategyHash == ZERO_BYTES32 &&
+                _strategyHash == Constants.ZERO_BYTES32 &&
                 IStrategyProvider(_strategyConfiguration.strategyProvider).getDefaultStrategyState() ==
                 DataTypes.DefaultStrategyState.CompoundOrAave
             ) {
@@ -114,13 +115,13 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
                     )
                         .getStrategy(_strategyHash);
                 if (_strategyIndex == uint256(0)) {
-                    return ZERO_BYTES32;
+                    return Constants.ZERO_BYTES32;
                 } else {
                     return _strategyHash;
                 }
             }
         }
-        require(_strategyHash != ZERO_BYTES32, "!bestStrategyHash");
+        require(_strategyHash != Constants.ZERO_BYTES32, "!bestStrategyHash");
 
         (, DataTypes.StrategyStep[] memory _strategySteps) =
             IVaultStepInvestStrategyDefinitionRegistry(_strategyConfiguration.vaultStepInvestStrategyDefinitionRegistry)
@@ -138,7 +139,7 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
                 IStrategyProvider(_strategyConfiguration.strategyProvider).rpToTokenToDefaultStrategy(
                     _riskProfile,
                     _tokensHash
-                ) != ZERO_BYTES32
+                ) != Constants.ZERO_BYTES32
             ) {
                 return
                     IStrategyProvider(_strategyConfiguration.strategyProvider).rpToTokenToDefaultStrategy(
@@ -160,10 +161,10 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
                     if (_strategyIndex != uint256(0)) {
                         return _strategyHash;
                     } else {
-                        return ZERO_BYTES32;
+                        return Constants.ZERO_BYTES32;
                     }
                 } else {
-                    return ZERO_BYTES32;
+                    return Constants.ZERO_BYTES32;
                 }
             }
         }

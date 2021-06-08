@@ -10,7 +10,7 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  * @author Opty.fi
  * @notice Contract stores VaultBooster's state variables data
  */
-contract VaultBoosterStorage {
+contract ODEFIVaultBoosterStorage {
     /** @notice ODEFI token address */
     address public odefiAddress;
 
@@ -39,10 +39,10 @@ contract VaultBoosterStorage {
     mapping(address => uint256) public odefiAccrued;
 
     /** @notice The ODEFI market supply state for each pool */
-    mapping(address => DataTypes.ODEFIState) public odefiVaultState;
+    mapping(address => DataTypes.RewardsState) public odefiVaultState;
 
     /** @notice The ODEFI index for each market for each user as of the last time they accrued ODEFI */
-    mapping(address => mapping(address => DataTypes.ODEFIState)) public odefiUserStateInVault;
+    mapping(address => mapping(address => DataTypes.RewardsState)) public odefiUserStateInVault;
 
     /** @notice Mapping of ODEFI vault address to user address to user last interaction timestamp */
     mapping(address => mapping(address => uint256)) public lastUserUpdate;

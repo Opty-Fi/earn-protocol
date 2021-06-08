@@ -8,9 +8,8 @@ library DataTypes {
      * @param isDeposit True if it is deposit and false if it withdraw
      * @param value Amount to deposit/withdraw
      */
-    struct Operation {
+    struct UserDepositOperation {
         address account;
-        bool isDeposit;
         uint256 value;
     }
 
@@ -135,7 +134,7 @@ library DataTypes {
      * @param index The market's last index
      * @param timestamp The block number the index was last updated at
      */
-    struct ODEFIState {
+    struct RewardsState {
         uint224 index;
         uint32 timestamp;
     }
@@ -187,6 +186,7 @@ library DataTypes {
         address strategyManager;
         address riskManager;
         address optyMinter;
+        address odefiVaultBooster;
         address operator;
     }
 }

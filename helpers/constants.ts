@@ -17,6 +17,7 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   OPTY_STAKING_RATE_BALANCER: "OPTYStakingRateBalancer",
   OPTY_STAKING_RATE_BALANCER_PROXY: "OPTYStakingRateBalancerProxy",
   APR_ORACLE: "APROracle",
+  ODEFI_VAULT_BOOSTER: "ODEFIVaultBooster",
 };
 
 export const ADAPTER = [
@@ -67,6 +68,7 @@ export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
 
 export const TESTING_CONTRACTS: DATA_OBJECT = {
   TESTING_EMERGENCY_BRAKE: "TestEmergencyBrake",
+  TEST_DUMMY_TOKEN: "TestDummyToken",
   TEST_DUMMY_TOKEN_TRANSFER_FEE: "TestDummyTokenTransferFee",
 };
 

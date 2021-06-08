@@ -12,6 +12,7 @@ import { Modifiers } from "./Modifiers.sol";
 
 //  interfaces
 import { IStrategyProvider } from "../../interfaces/opty/IStrategyProvider.sol";
+import { Constants } from "../../utils/Constants.sol";
 
 /**
  * @title StrategyProvider Contract
@@ -86,7 +87,7 @@ contract StrategyProvider is IStrategyProvider, Modifiers {
         bytes32 _vaultRewardTokenHash,
         DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
     ) external override onlyOperator returns (DataTypes.VaultRewardStrategy memory) {
-        require(_vaultRewardTokenHash != ZERO_BYTES32, "!bytes32(0)");
+        require(_vaultRewardTokenHash != Constants.ZERO_BYTES32, "!bytes32(0)");
         uint256 _index = registryContract.getTokensHashIndexByHash(_vaultRewardTokenHash);
         require(registryContract.getTokensHashByIndex(_index) == _vaultRewardTokenHash, "!VaultRewardTokenHashExists");
         require(

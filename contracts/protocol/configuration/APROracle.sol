@@ -17,6 +17,7 @@ import { IAaveV1LendingPoolCore } from "../../interfaces/aave/v1/IAaveV1LendingP
 import { ReserveDataV2, IAaveV2 } from "../../interfaces/aave/v2/IAaveV2.sol";
 import { IAaveV2LendingPoolAddressesProvider } from "../../interfaces/aave/v2/IAaveV2LendingPoolAddressesProvider.sol";
 import { ICompound } from "../../interfaces/compound/ICompound.sol";
+import { Constants } from "../../utils/Constants.sol";
 import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
 import { ReserveDataV1, IAaveV1 } from "../../interfaces/aave/v1/IAaveV1.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -30,12 +31,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract APROracle is IAPROracle, Modifiers {
     using SafeMath for uint256;
     using Address for address;
-
-    /** @notice Decimals considered upto 10**18 */
-    uint256 public constant DECIMAL = 10**18;
-
-    /** @notice Zero value constant for bytes32 */
-    bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     /** @notice Store AaveV1 LendingPoolProvider address */
     address public aaveV1;
@@ -141,7 +136,7 @@ contract APROracle is IAPROracle, Modifiers {
             compoundAPR = uint256(0);
         }
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
-            return ZERO_BYTES32;
+            return Constants.ZERO_BYTES32;
         } else {
             if (aaveV1APR > compoundAPR) {
                 if (aaveV1APR > aaveV2APR) {

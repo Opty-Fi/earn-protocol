@@ -19,6 +19,7 @@ import {
 } from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
 import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
+import { Constants } from "../../utils/Constants.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -32,11 +33,6 @@ contract StrategyManager is IStrategyManager, Modifiers {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
-
-    /**
-     * @notice Zero bytes32 type Constant
-     */
-    bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     /* solhint-disable no-empty-blocks */
     constructor(address _registry) public Modifiers(_registry) {}
@@ -144,20 +140,6 @@ contract StrategyManager is IStrategyManager, Modifiers {
     /**
      * @inheritdoc IStrategyManager
      */
-    function getUserRewardCodes(address _vault, address _from) public view override returns (bytes[] memory _codes) {
-        _codes = _getUserRewardCodes(_vault, _from);
-    }
-
-    /**
-     * @inheritdoc IStrategyManager
-     */
-    function getRewardToken(bytes32 _investStrategyHash) public view override returns (address _rewardToken) {
-        (, , _rewardToken) = _getLastStepLiquidityPool(_investStrategyHash);
-    }
-
-    /**
-     * @inheritdoc IStrategyManager
-     */
     function getSplitPaymentCode(
         DataTypes.TreasuryShare[] memory _treasuryShares,
         address _account,
@@ -165,6 +147,49 @@ contract StrategyManager is IStrategyManager, Modifiers {
         uint256 _redeemAmountInToken
     ) public pure override returns (bytes[] memory _treasuryCodes) {
         _treasuryCodes = _getSplitPaymentCode(_treasuryShares, _account, _underlyingToken, _redeemAmountInToken);
+    }
+
+    /**
+     * @inheritdoc IStrategyManager
+     */
+    function getUpdateUserRewardsCodes(address _vault, address _from)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
+        _codes = _getUpdateUserRewardsCodes(_vault, _from);
+    }
+
+    /**
+     * @inheritdoc IStrategyManager
+     */
+    function getUpdateUserStateInVaultCodes(address _vault, address _from)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
+        _codes = _getUpdateUserStateInVaultCodes(_vault, _from);
+    }
+
+    /**
+     * @inheritdoc IStrategyManager
+     */
+    function getUpdateRewardVaultRateAndIndexCodes(address _vault)
+        public
+        view
+        override
+        returns (bytes[] memory _codes)
+    {
+        _codes = _getUpdateRewardVaultRateAndIndexCodes(_vault);
+    }
+
+    /**
+     * @inheritdoc IStrategyManager
+     */
+    function getRewardToken(bytes32 _investStrategyHash) public view override returns (address _rewardToken) {
+        (, , _rewardToken) = _getLastStepLiquidityPool(_investStrategyHash);
     }
 
     function _getStrategySteps(bytes32 _hash) internal view returns (DataTypes.StrategyStep[] memory _strategySteps) {
@@ -412,7 +437,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
     }
 
     function _getDepositAllStepCount(bytes32 _investStrategyhash) internal view returns (uint8) {
-        if (_investStrategyhash == ZERO_BYTES32) {
+        if (_investStrategyhash == Constants.ZERO_BYTES32) {
             return uint8(0);
         }
         DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
@@ -432,7 +457,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
     }
 
     function _getWithdrawAllStepsCount(bytes32 _investStrategyhash) internal view returns (uint8) {
-        if (_investStrategyhash == ZERO_BYTES32) {
+        if (_investStrategyhash == Constants.ZERO_BYTES32) {
             return uint8(0);
         }
         DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
@@ -480,20 +505,50 @@ contract StrategyManager is IStrategyManager, Modifiers {
         }
     }
 
-    function _getUserRewardCodes(address _vault, address _from) internal view returns (bytes[] memory _codes) {
-        _codes = new bytes[](4);
+    function _getUpdateUserRewardsCodes(address _vault, address _from) internal view returns (bytes[] memory _codes) {
+        _codes = new bytes[](2);
         address _optyMinter = registryContract.getOptyMinter();
+        address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
         _codes[0] = abi.encode(
             _optyMinter,
             abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
         );
         _codes[1] = abi.encode(
+            _odefiVaultBooster,
+            abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
+        );
+    }
+
+    function _getUpdateRewardVaultRateAndIndexCodes(address _vault) internal view returns (bytes[] memory _codes) {
+        _codes = new bytes[](4);
+        address _optyMinter = registryContract.getOptyMinter();
+        address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
+        _codes[0] = abi.encode(
             _optyMinter,
             abi.encodeWithSignature("updateOptyVaultRatePerSecondAndVaultToken(address)", _vault)
         );
-        _codes[2] = abi.encode(_optyMinter, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
-        _codes[3] = abi.encode(
+        _codes[1] = abi.encode(_optyMinter, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
+        _codes[2] = abi.encode(
+            _odefiVaultBooster,
+            abi.encodeWithSignature("updateOdefiVaultRatePerSecondAndVaultToken(address)", _vault)
+        );
+        _codes[3] = abi.encode(_odefiVaultBooster, abi.encodeWithSignature("updateOdefiVaultIndex(address)", _vault));
+    }
+
+    function _getUpdateUserStateInVaultCodes(address _vault, address _from)
+        internal
+        view
+        returns (bytes[] memory _codes)
+    {
+        _codes = new bytes[](2);
+        address _optyMinter = registryContract.getOptyMinter();
+        address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
+        _codes[0] = abi.encode(
             _optyMinter,
+            abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
+        );
+        _codes[1] = abi.encode(
+            _odefiVaultBooster,
             abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
         );
     }

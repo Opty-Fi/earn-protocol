@@ -17,9 +17,4 @@ contract RiskManagerStorage {
      * @notice Pending brains of Risk Manager
      */
     address public pendingRiskManagerImplementation;
-
-    /**
-     * @notice Zero bytes32 type Constant
-     */
-    bytes32 public constant ZERO_BYTES32 = 0x0000000000000000000000000000000000000000000000000000000000000000;
 }

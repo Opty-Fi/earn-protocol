@@ -6,11 +6,11 @@ pragma solidity ^0.6.12;
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
 /**
- * @title Interface for VaultBooster Contract
+ * @title Interface for ODEFIVaultBooster Contract
  * @author Opty.fi inspired by Compound.finance
  * @notice Interface for managing the ODEFI rewards
  */
-interface IVaultBooster {
+interface IODEFIVaultBooster {
     /**
      * @notice Claim all the ODEFI accrued by holder in all markets
      * @param _holder User's address to claim ODEFI
@@ -27,9 +27,9 @@ interface IVaultBooster {
     function claimODEFI(address _holder, address[] memory _odefiVaults) external returns (uint256);
 
     /**
-     * @notice Claim all odefi accrued by the holders in specified odefiVaults
-     * @param _holders list of User addresses to claim ODEFI
-     * @param _odefiVaults The list of ODEFI vaults to claim ODEFI
+     * @notice Claim all ODEFI accrued by the holders
+     * @param _holders The addresses to claim ODEFI for
+     * @param _odefiVaults The list of vaults to claim ODEFI in
      * @return Total No. of ODEFI tokens accrued by holders in specified odefiVaults
      */
     function claimODEFI(address[] memory _holders, address[] memory _odefiVaults) external returns (uint256);
@@ -73,15 +73,7 @@ interface IVaultBooster {
      * @param _rate Rate to be set for ODEFI token
      * @return Returns a boolean whether opertaion succeeded or not
      */
-    function setRewardRate(address _odefiVault, uint256 _rate) external returns (bool);
-
-    /**
-     * @notice Set the rewarder account address as ODEFI community
-     * @param _odefiVault ODEFI Vault's address
-     * @param _rewarder ODEFI community address
-     * @return Returns a boolean whether opertaion is succeeded or not
-     */
-    function setRewarder(address _odefiVault, address _rewarder) external returns (bool);
+    function setOdefiVaultRate(address _odefiVault, uint256 _rate) external returns (bool);
 
     /**
      * @notice Adding new ODEFI vault address
@@ -99,15 +91,15 @@ interface IVaultBooster {
     function setOdefiVault(address _odefiVault, bool _enable) external returns (bool);
 
     /**
-     * @notice Get the total amount of claimable ODEFI tokens in all markets
-     * @param _holder User's address to check claimable ODEFI tokens
+     * @notice Claim all the ODEFI accrued by holder in all markets
+     * @param _holder The address to claim ODEFI for
      * @return Returns the no. of claimable ODEFI tokens
      */
     function claimableODEFI(address _holder) external view returns (uint256);
 
     /**
-     * @notice Get the total amount of claimable ODEFI tokens in the specified markets
-     * @param _holder User's address to check claimable ODEFI tokens
+     * @notice Claim all the ODEFI accrued by holder in the specified markets
+     * @param _holder The address to claim ODEFI for
      * @param _odefiVaults The list of vaults to claim ODEFI in
      * @return Returns the no. of claimable ODEFI tokens
      */
@@ -128,20 +120,14 @@ interface IVaultBooster {
 
     /**
      * @notice Get the no. of seconds until the ODEFI distribution has ended
-     * @dev Divides the ODEFI tokens balance by ODEFI rate per second in a specific vault
-     * @return Returns the no. of seconds until ODEFI distribution has ended in a specific vault
+     * @dev Divides the ODEFI tokens balance by the sum of all the ODEFI rates per second in all the vaults
+     * @return Returns the no. of seconds until ODEFI distribution has ended
      */
-    function rewardDepletionSeconds(address _odefiVault) external view returns (uint256);
+    function rewardDepletionSeconds() external view returns (uint256);
 
     /**
      * @notice Get the ODEFI token address
      * @return Returns the address of ODEFI token
      */
     function getOdefiAddress() external view returns (address);
-
-    /**
-     * @notice Get the current block timestamp
-     * @return Returns the current block timestamp
-     */
-    function getBlockTimestamp() external view returns (uint256);
 }

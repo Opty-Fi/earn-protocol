@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import { SafeERC20, IERC20, Address } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { VaultBooster } from "../../protocol/partnership/VaultBooster.sol";
+import { ODEFIVaultBooster } from "../../protocol/partnership/ODEFIVaultBooster.sol";
 import { IncentivisedERC20 } from "../../protocol/tokenization/IncentivisedERC20.sol";
 
 contract TestOpenDefiVault is IncentivisedERC20 {
@@ -14,7 +14,7 @@ contract TestOpenDefiVault is IncentivisedERC20 {
 
     uint256 public constant opTOKEN_REVISION = 0x1;
     address public underlyingToken; //  store the underlying token contract address (for example DAI)
-    VaultBooster public vaultBoosterContract;
+    ODEFIVaultBooster public odefiVaultBoosterContract;
 
     /* solhint-disable no-empty-blocks */
     constructor(address _underlyingToken)
@@ -27,12 +27,12 @@ contract TestOpenDefiVault is IncentivisedERC20 {
 
     /* solhint-disable no-empty-blocks */
 
-    function initialize(address _underlyingToken, address _vaultBoosterContract) external virtual {
+    function initialize(address _underlyingToken, address _odefiVaultBoosterContract) external virtual {
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
         _setName(string(abi.encodePacked("op ", ERC20(_underlyingToken).name(), " Open", " Vault")));
         _setSymbol(string(abi.encodePacked("op", ERC20(_underlyingToken).symbol(), "OpenVault")));
         _setDecimals(ERC20(_underlyingToken).decimals());
-        vaultBoosterContract = VaultBooster(_vaultBoosterContract);
+        odefiVaultBoosterContract = ODEFIVaultBooster(_odefiVaultBoosterContract);
     }
 
     function userDeposit(uint256 _amount) external returns (bool _success) {
@@ -46,11 +46,11 @@ contract TestOpenDefiVault is IncentivisedERC20 {
             shares = (_amount.mul(totalSupply())).div((_tokenBalance));
         }
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
-        vaultBoosterContract.updateUserRewards(address(this), msg.sender);
+        odefiVaultBoosterContract.updateUserRewards(address(this), msg.sender);
         _mint(msg.sender, shares);
-        vaultBoosterContract.updateOdefiVaultRatePerSecondAndVaultToken(address(this));
-        vaultBoosterContract.updateOdefiVaultIndex(address(this));
-        vaultBoosterContract.updateUserStateInVault(address(this), msg.sender);
+        odefiVaultBoosterContract.updateOdefiVaultRatePerSecondAndVaultToken(address(this));
+        odefiVaultBoosterContract.updateOdefiVaultIndex(address(this));
+        odefiVaultBoosterContract.updateUserStateInVault(address(this), msg.sender);
         return true;
     }
 

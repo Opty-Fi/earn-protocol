@@ -2,46 +2,83 @@
 
 pragma solidity ^0.6.12;
 
+import { DataTypes } from "../../libraries/types/DataTypes.sol";
+
 /**
- * @dev Contract to store the OPTYMinter's state variables
+ * @title OPTY Minter state that can change
+ * @author opty.fi
+ * @dev The storage contract for the $OPTY minter's state variables.
  */
 
 contract OPTYMinterStorage {
+    /**
+     * @notice Whitelisted $OPTY staking vaults
+     */
     mapping(address => bool) public stakingVaults;
-    /// @notice The market's last index
-    /// @notice The block number the index was last updated at
-    struct OptyState {
-        uint224 index;
-        uint32 timestamp;
-    }
 
+    /**
+     * @notice The $OPTY token's address
+     */
     address public optyAddress;
 
+    /**
+     * @notice Store the timestamp when vault invokes
+     *         updateOptyVaultIndex for first time
+     */
     mapping(address => uint256) public optyVaultStartTimestamp;
 
+    /**
+     * @notice Store the list of all interest bearing vault
+     */
     address[] public allOptyVaults;
 
+    /**
+     * @notice Whitelisted interest bearing vaults
+     */
     mapping(address => bool) public optyVaultEnabled;
 
-    /// @notice The rate at which the flywheel distributes OPTY, per block
-    uint256 public optyTotalRate;
-
-    /// @notice The portion of optyRate that each market currently receives
+    /**
+     * @notice $OPTY's rate received by vaults per second
+     */
     mapping(address => uint256) public optyVaultRatePerSecond;
 
-    /// @notice The portion of optyRate that each market currently receives divided by the amount of LP tokens
+    /**
+     * @notice $OPTY's rate receive by each market per second per
+     *         interest bearing token.
+     */
     mapping(address => uint256) public optyVaultRatePerSecondAndVaultToken;
 
-    /// @notice The OPTY accrued but not yet transferred to each user
+    /**
+     * @notice $OPTY accrued by account but not claimed
+     */
     mapping(address => uint256) public optyAccrued;
 
-    /// @notice The OPTY market supply state for each optyPool
-    mapping(address => OptyState) public optyVaultState;
+    /**
+     * @notice Persist the state of $OPTY per vault
+     */
+    mapping(address => DataTypes.RewardsState) public optyVaultState;
 
-    /// @notice The OPTY index for each market for each user as of the last time they accrued OPTY
-    mapping(address => mapping(address => OptyState)) public optyUserStateInVault;
+    /**
+     * @notice The $OPTY index for each market for each
+     *         user as of the last time they accrued OPTY
+     */
+    mapping(address => mapping(address => DataTypes.RewardsState)) public optyUserStateInVault;
 
+    /**
+     * @notice  The time at which the rewards of the user
+     *          get updated via vault
+     */
     mapping(address => mapping(address => uint256)) public lastUserUpdate;
 
+    /**
+     * @notice Period till $OPTY cannot be unlocked
+     *         This period cannot exceed maxUnlockClaimOPTYTimestamp
+     */
     uint256 public operatorUnlockClaimOPTYTimestamp;
+
+    /**
+     * @notice Master lock period after which $OPTY
+     *         can be claimed
+     */
+    uint256 public maxUnlockClaimOPTYTimestamp;
 }

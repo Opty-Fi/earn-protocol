@@ -15,6 +15,7 @@ import { RegistryProxy } from "./RegistryProxy.sol";
 //  interfaces
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../../interfaces/opty/IRegistry.sol";
+import { Constants } from "../../utils/Constants.sol";
 
 /**
  * @title Registry Contract
@@ -130,6 +131,16 @@ contract Registry is IRegistry, ModifiersController {
         require(_optyStakingRateBalancer != address(0), "!address(0)");
         require(_optyStakingRateBalancer.isContract(), "!isContract");
         optyStakingRateBalancer = _optyStakingRateBalancer;
+        return true;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setODEFIVaultBooster(address _odefiVaultBooster) external override onlyGovernance returns (bool) {
+        require(_odefiVaultBooster != address(0), "!address(0)");
+        require(_odefiVaultBooster.isContract(), "!isContract");
+        odefiVaultBooster = _odefiVaultBooster;
         return true;
     }
 
@@ -600,6 +611,13 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
+    function getODEFIVaultBooster() external view override returns (address) {
+        return odefiVaultBooster;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
     function getGovernance() public view override returns (address) {
         return governance;
     }
@@ -663,6 +681,7 @@ contract Registry is IRegistry, ModifiersController {
         _vaultStrategyConfiguration.strategyManager = strategyManager;
         _vaultStrategyConfiguration.riskManager = riskManager;
         _vaultStrategyConfiguration.optyMinter = minter;
+        _vaultStrategyConfiguration.odefiVaultBooster = odefiVaultBooster;
         _vaultStrategyConfiguration.operator = operator;
     }
 
@@ -770,10 +789,7 @@ contract Registry is IRegistry, ModifiersController {
         string memory _riskProfile,
         address _vault
     ) internal returns (bool) {
-        require(
-            _underlyingAssetHash != 0x0000000000000000000000000000000000000000000000000000000000000000,
-            "!underlyingAssetHash"
-        );
+        require(_underlyingAssetHash != Constants.ZERO_BYTES32, "!underlyingAssetHash");
         require(bytes(_riskProfile).length > 0, "RP_empty.");
         require(_vault != address(0), "!address(0)");
         require(address(_vault).isContract(), "!isContract");
