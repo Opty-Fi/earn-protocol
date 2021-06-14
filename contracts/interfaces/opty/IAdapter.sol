@@ -15,7 +15,8 @@ pragma experimental ABIEncoderV2;
  */
 interface IAdapter {
     /**
-     * @notice Returns pool value in underlying token for the given lp and underlyingToken
+     * @notice Returns pool value in underlying token (for all adapters except Curve for which the poolValue is
+     * in US dollar) for the given lp and underlyingToken
      * @dev poolValue can be in US dollar (eg. Curve etc.) and in underlyingTokens (eg. Compound etc.)
      * @param _liquidityPool lp address from where to get the pool value
      * @param _underlyingToken address of underlying token for which to get the pool value
