@@ -80,6 +80,9 @@ describe(scenario.title, () => {
     ]);
 
     const odefi = await deployContract(hre, TESTING_CONTRACTS.TEST_DUMMY_TOKEN, false, users["owner"], [
+      "ODEFI",
+      "ODEFI",
+      18,
       2000000000000000,
     ]);
 
