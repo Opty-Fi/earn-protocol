@@ -75,6 +75,11 @@ export const TESTING_CONTRACTS: DATA_OBJECT = {
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export const RISK_PROFILES: RISK_PROFILE_DATA = {
+  RP0: {
+    name: "RP0",
+    steps: 0,
+    poolRating: [0, 0],
+  },
   RP1: {
     name: "RP1",
     steps: 1,
