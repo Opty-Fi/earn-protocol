@@ -307,8 +307,8 @@ contract CurveSwapAdapter is IAdapter, Modifiers {
     }
 
     /**
-     * @notice Sets the max deposit value (in munber) for the given liquidity pool
-     * @param _liquidityPool liquidity pool address for which to set max deposit value (in number)
+     * @notice Sets the max deposit value (in absolute value) for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
      * @param _maxDepositAmount Array of 2 Pool's Max deposit value in number to be set for the given liquidity pool
      */
     function setMaxDeposit2Amount(address _liquidityPool, uint256[2] memory _maxDepositAmount) external onlyGovernance {
@@ -316,8 +316,8 @@ contract CurveSwapAdapter is IAdapter, Modifiers {
     }
 
     /**
-     * @notice Sets the max deposit value (in munber) for the given liquidity pool
-     * @param _liquidityPool liquidity pool address for which to set max deposit value (in number)
+     * @notice Sets the max deposit value (in absolute value) for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
      * @param _maxDepositAmount Array of 3 Pool's Max deposit value in number to be set for the given liquidity pool
      */
     function setMaxDeposit3Amount(address _liquidityPool, uint256[3] memory _maxDepositAmount) external onlyGovernance {
@@ -325,8 +325,8 @@ contract CurveSwapAdapter is IAdapter, Modifiers {
     }
 
     /**
-     * @notice Sets the max deposit value (in munber) for the given liquidity pool
-     * @param _liquidityPool liquidity pool address for which to set max deposit value (in number)
+     * @notice Sets the max deposit value (in absolute value) for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
      * @param _maxDepositAmount Array of 4 Pool's Max deposit value in number to be set for the given liquidity pool
      */
     function setMaxDeposit4Amount(address _liquidityPool, uint256[4] memory _maxDepositAmount) external onlyGovernance {
@@ -360,7 +360,7 @@ contract CurveSwapAdapter is IAdapter, Modifiers {
     }
 
     /**
-     * @notice Maps the curve swap pool with the curve' gauge contract address
+     * @notice Maps the curve swap pool with its gauge contract address
      * @param _pool Curve's Swap pool address
      * @param _gauge Curve's gauge contract address corresponding to the given swap pool
      */
@@ -392,7 +392,7 @@ contract CurveSwapAdapter is IAdapter, Modifiers {
 
     /**
      * @notice Sets the default percentage of max deposit pool value
-     * @param _maxDepositPoolPctDefault Pool's Max deposit percentage to be set as default value
+     * @param _maxDepositPoolPctDefault Pool's Max deposit percentage (in basis points) to be set as default value
      */
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;

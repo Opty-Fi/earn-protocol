@@ -29,7 +29,7 @@ contract CreamAdapter is IAdapter, Modifiers {
     HarvestCodeProvider public harvestCodeProviderContract;
     /** @notice  Maps liquidityPool to max deposit value in percentage */
     mapping(address => uint256) public maxDepositPoolPct; // basis points
-    /** @notice  Maps liquidityPool to max deposit value in number */
+    /** @notice  Maps liquidityPool to max deposit value in absolute value */
     mapping(address => uint256) public maxDepositAmount;
 
     address public constant HBTC = address(0x0316EB71485b0Ab14103307bf65a021042c6d380);
@@ -70,9 +70,9 @@ contract CreamAdapter is IAdapter, Modifiers {
     }
 
     /**
-     * @notice Sets the max deposit value (in munber) for the given liquidity pool
-     * @param _liquidityPool liquidity pool address for which to set max deposit value (in number)
-     * @param _maxDepositAmount Pool's Max deposit value in number to be set for the given liquidity pool
+     * @notice Sets the max deposit value (in absolute value) for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
+     * @param _maxDepositAmount Pool's Max deposit value in absolute value to be set for the given liquidity pool
      */
     function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) external onlyGovernance {
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
@@ -105,7 +105,7 @@ contract CreamAdapter is IAdapter, Modifiers {
     /**
      * @notice Sets the max deposit amount's data type
      * @dev Types (can be number or percentage) supported for the maxDeposit value
-     * @param _type Type of maxDeposit to be set (can be Number or percentage)
+     * @param _type Type of maxDeposit to be set (can be absolute value or percentage)
      */
     function setMaxDepositPoolType(DataTypes.MaxExposure _type) public onlyGovernance {
         maxExposureType = _type;
@@ -113,7 +113,7 @@ contract CreamAdapter is IAdapter, Modifiers {
 
     /**
      * @notice Sets the default percentage of max deposit pool value
-     * @param _maxDepositPoolPctDefault Pool's Max deposit percentage to be set as default value
+     * @param _maxDepositPoolPctDefault Pool's Max deposit percentage (in basis points) to be set as default value
      */
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;

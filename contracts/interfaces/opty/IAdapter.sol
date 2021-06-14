@@ -4,11 +4,11 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 /**
- * @title Interface for all the defi adapters
+ * @title Interface for all the DeFi adapters
  * @author Opty.fi
- * @notice Interface of the Defi protocol code provider/adapter
- * @dev Abstraction layer to different defi protocols like AaveV1, Compound etc.
- * It is used as an interface layer for any new defi protocol
+ * @notice Interface of the DeFi protocol code provider/adapter
+ * @dev Abstraction layer to different DeFi protocols like AaveV1, Compound, etc.
+ * It is used as an interface layer for any new DeFi protocol
  * Conventions used:
  *  - lp: liquidityPool
  *  - lpToken: liquidityPool token
@@ -28,7 +28,7 @@ interface IAdapter {
      * @dev Get batch of function calls for depositing specified amount of underlying token in the lp provided
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPool lp address where to depsoit
+     * @param _liquidityPool lp address where to deposit
      * @param _amounts  List of underlying token amounts
      * @return _codes Returns a bytes value to be executed
      */
@@ -69,7 +69,7 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @dev Return batch of function calls require to reapy debt, unlock collateral and redeem shares from the given lp
+     * @dev Return batch of function calls require to repay debt, unlock collateral and redeem shares from the given lp
      * @param _vault Address of vault contract
      * @param _underlyingTokens List of underlying tokens supported by the given lp
      * @param _liquidityPoolAddressProvider address of lp address provider where to repay collateral
@@ -85,7 +85,7 @@ interface IAdapter {
 
     /**
      * @notice Get batch of function calls for redeeming specified amount of lpTokens held in the vault
-     * @dev Redeem speicified `amount` of `liquidityPoolToken` and sends the `underlyingToken` to the caller`
+     * @dev Redeem specified `amount` of `liquidityPoolToken` and send the `underlyingToken` to the caller`
      * @param _vault Address of vault contract
      * @param _underlyingTokens List of underlying tokens supported by the given lp
      * @param _liquidityPool lp address from where to withdraw
@@ -101,7 +101,7 @@ interface IAdapter {
 
     /**
      * @notice Get batch of function calls for redeeming full balance of lpTokens held in the vault
-     * @dev Redeem full `amount` of `liquidityPoolToken` and sends the `underlyingToken` to the caller`
+     * @dev Redeem full `amount` of `liquidityPoolToken` and send the `underlyingToken` to the caller`
      * @param _vault Address of vault contract
      * @param _underlyingTokens List of underlying tokens supported by the given lp
      * @param _liquidityPool lp address from where to withdraw
@@ -122,7 +122,7 @@ interface IAdapter {
     function getLiquidityPoolToken(address _underlyingToken, address _liquidityPool) external view returns (address);
 
     /**
-     * @notice Get the underlying token addresses given the lp
+     * @notice Get the underlying token addresses given the lp/lpToken
      * @param _liquidityPool lp address from where to get the lpToken
      * @param _liquidityPoolToken lp's token address
      * @return _underlyingTokens Returns the array of underlying token addresses
@@ -133,7 +133,7 @@ interface IAdapter {
         returns (address[] memory _underlyingTokens);
 
     /**
-     * @dev Returns the market price in underlying for all the shares held in a specified lp
+     * @dev Returns the market value in underlying for all the shares held in a specified lp
      * @param _vault Address of vault contract
      * @param _underlyingToken Underlying token address for which to get the balance
      * @param _liquidityPool lp address which holds the given underlying token
@@ -179,7 +179,7 @@ interface IAdapter {
      * @param _underlyingToken Underlying token address for the given lp
      * @param _liquidityPoolAddressProvider lp address from where to borrow the tokens
      * @param _borrowToken address of token to borrow
-     * @param _borrowAmount amount of token to be borrowed
+     * @param _borrowAmount amount of token to borrow
      * @return Returns the amount in underlying token that can be received if borrowed token is repaid
      */
     function getSomeAmountInTokenBorrow(
@@ -199,8 +199,8 @@ interface IAdapter {
      * @param _underlyingToken Underlying token address for the given lp
      * @param _liquidityPoolAddressProvider lp address from where to borrow the tokens
      * @param _borrowToken address of token to borrow
-     * @param _borrowAmount amount of token to be borrowed
-     * @return Returns the amount in underlying token that you'll receive if whole bal of vault borrowed token is repaid
+     * @param _borrowAmount amount of token to borrow
+     * @return Returns amount in underlyingToken that you'll receive if whole balance of vault borrowed token is repaid
      */
     function getAllAmountInTokenBorrow(
         address payable _vault,
@@ -255,7 +255,7 @@ interface IAdapter {
 
     /**
      * @notice Returns reward token address for the lp provided
-     * @param _liquidityPool lp address for which to get the rewatf token address
+     * @param _liquidityPool lp address for which to get the reward token address
      * @return Returns the reward token supported by given lp
      */
     function getRewardToken(address _liquidityPool) external view returns (address);
@@ -263,7 +263,7 @@ interface IAdapter {
     /**
      * @notice Returns the amount of accrued reward tokens
      * @param _vault Vault contract address
-     * @param _liquidityPool lp address from where to unclaim reward tokens
+     * @param _liquidityPool lp address from where to claim reward tokens
      * @return _codes Returns a bytes value to be executed
      */
     function getUnclaimedRewardTokenAmount(address payable _vault, address _liquidityPool)
@@ -287,7 +287,7 @@ interface IAdapter {
      * via DEX like Uniswap
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPool lp address where to harvest some lp tokens
+     * @param _liquidityPool lp address where the vault's deposit is generating rewards
      * @param _rewardTokenAmount amount of reward token to be harvested to underlyingTokens via DEX
      * @return _codes Returns a bytes value to be executed
      */
@@ -303,7 +303,7 @@ interface IAdapter {
      * via DEX like Uniswap
      * @param _vault Vault contract address
      * @param _underlyingToken List of underlying token addresses for the given lp
-     * @param _liquidityPool lp address where to harvest all lp tokens
+     * @param _liquidityPool lp address where the vault's deposit is generating rewards
      * @return _codes Returns a bytes value to be executed
      */
     function getHarvestAllCodes(
@@ -321,7 +321,8 @@ interface IAdapter {
 
     /**
      * @notice Return batch of function calls for staking specified amount of lp token held in a vault
-     * @param _liquidityPool lp address where to stake some lp tokens
+     * @param _liquidityPool lp address where the vault has deposited and which is associated to a staking pool
+     * where to stake some lp tokens
      * @param _stakeAmount amount of lpToken (held in vault) to be staked
      * @return _codes Returns a bytes value to be executed
      */
@@ -334,7 +335,8 @@ interface IAdapter {
      * @notice Return batch of function calls for staking full balance of lp tokens held in a vault
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying token addresses for the given lp
-     * @param _liquidityPool lp address where to stake all lp tokens
+     * @param _liquidityPool lp address where the vault has deposited and which is associated to a staking pool
+     * where to stake all lp tokens
      * @return _codes Returns a bytes value to be executed
      */
     function getStakeAllCodes(
@@ -345,7 +347,8 @@ interface IAdapter {
 
     /**
      * @notice Return batch of function calls for unstaking specified amount of lp tokens held in a vault
-     * @param _liquidityPool lp address from where to unstake some lp tokens
+     * @param _liquidityPool lp address where the vault has deposited and which is associated to a staking pool
+     * where to unstake some lp tokens
      * @param _unstakeAmount amount of lpToken (held in a vault) to be unstaked
      * @return _codes Returns a bytes value to be executed
      */
@@ -357,7 +360,8 @@ interface IAdapter {
     /**
      * @notice Returns the batch of function calls for unstaking whole balance of lp tokens held in a vault
      * @param _vault Vault contract address
-     * @param _liquidityPool lp address from where to unstake all lp tokens
+     * @param _liquidityPool lp address where the vault has deposited and which is associated to a staking pool
+     * where to unstake all lp tokens
      * @return _codes Returns a bytes value to be executed
      */
     function getUnstakeAllCodes(address payable _vault, address _liquidityPool)
@@ -369,7 +373,7 @@ interface IAdapter {
      * @notice Returns the balance in underlying for staked liquidityPoolToken balance of vault
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPool lp address from where to get the amount of staked lpToken
+     * @param _liquidityPool lp address which is associated with staking pool from where to get amount of staked lpToken
      * @return Returns the underlying token amount for the staked lpToken
      */
     function getAllAmountInTokenStake(
@@ -405,7 +409,7 @@ interface IAdapter {
     ) external view returns (uint256 _amount);
 
     /**
-     * @notice Checks whether the amount specified underlying token can be received for full balance of staked lpToken
+     * @notice Checks whether the given amount of underlying token can be received for full balance of staked lpToken
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given lp
      * @param _liquidityPool lp address where to check the redeem amt is enough to stake
@@ -423,7 +427,7 @@ interface IAdapter {
      * @notice Returns the batch of function calls for unstake and redeem specified amount of shares
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying token addresses for the given lp
-     * @param _liquidityPool lp address from where to unstake and withdraw
+     * @param _liquidityPool lp address associated to a staking pool from where to unstake and then withdraw
      * @param _redeemAmount amount of lp token to unstake and redeem
      * @return _codes Returns a bytes value to be executed
      */
@@ -438,7 +442,7 @@ interface IAdapter {
      * @notice Returns the batch of function calls for unstake and redeem whole balance of shares held in a vault
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying token addresses for the given lp
-     * @param _liquidityPool lp address from where to unstake and withdraw
+     * @param _liquidityPool lp address associated to a staking pool from where to unstake and then withdraw
      * @return _codes Returns a bytes value to be executed
      */
     function getUnstakeAndWithdrawAllCodes(
