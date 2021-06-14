@@ -88,13 +88,13 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getDepositAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
         uint256[] memory _amounts = new uint256[](1);
-        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyVault);
-        return getDepositSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _amounts);
+        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_vault);
+        return getDepositSomeCodes(_vault, _underlyingTokens, _liquidityPool, _amounts);
     }
 
     /**
@@ -127,12 +127,12 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getWithdrawAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _redeemAmount = getLiquidityPoolTokenBalance(_optyVault, _underlyingTokens[0], _liquidityPool);
-        return getWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount);
+        uint256 _redeemAmount = getLiquidityPoolTokenBalance(_vault, _underlyingTokens[0], _liquidityPool);
+        return getWithdrawSomeCodes(_vault, _underlyingTokens, _liquidityPool, _redeemAmount);
     }
 
     /**
@@ -215,13 +215,13 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function calculateRedeemableLPTokenAmount(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (uint256 _amount) {
-        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool);
-        uint256 _balanceInToken = getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
@@ -230,12 +230,12 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function isRedeemableAmountSufficient(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (bool) {
-        uint256 _balanceInToken = getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
 
@@ -405,7 +405,7 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getDepositSomeCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256[] memory _amounts
@@ -423,7 +423,7 @@ contract FulcrumAdapter is IAdapter, Modifiers {
             );
             _codes[2] = abi.encode(
                 _liquidityPool,
-                abi.encodeWithSignature("mint(address,uint256)", _optyVault, _depositAmount)
+                abi.encodeWithSignature("mint(address,uint256)", _vault, _depositAmount)
             );
         }
     }
@@ -432,7 +432,7 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getWithdrawSomeCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory,
         address _liquidityPool,
         uint256 _burnAmount
@@ -441,7 +441,7 @@ contract FulcrumAdapter is IAdapter, Modifiers {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
                 _liquidityPool,
-                abi.encodeWithSignature("burn(address,uint256)", _optyVault, _burnAmount)
+                abi.encodeWithSignature("burn(address,uint256)", _vault, _burnAmount)
             );
         }
     }
@@ -457,13 +457,13 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getAllAmountInToken(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool);
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
         if (_liquidityPoolTokenBalance > 0) {
-            _liquidityPoolTokenBalance = IFulcrum(_liquidityPool).assetBalanceOf(_optyVault);
+            _liquidityPoolTokenBalance = IFulcrum(_liquidityPool).assetBalanceOf(_vault);
         }
         return _liquidityPoolTokenBalance;
     }
@@ -472,11 +472,11 @@ contract FulcrumAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getLiquidityPoolTokenBalance(
-        address payable _optyVault,
+        address payable _vault,
         address,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return IERC20(_liquidityPool).balanceOf(_optyVault);
+        return IERC20(_liquidityPool).balanceOf(_vault);
     }
 
     function _getDepositAmount(address _liquidityPool, uint256 _amount) internal view returns (uint256 _depositAmount) {

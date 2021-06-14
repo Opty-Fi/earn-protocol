@@ -146,13 +146,13 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getDepositAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
         uint256[] memory _amounts = new uint256[](1);
-        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_optyVault);
-        return getDepositSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _amounts);
+        _amounts[0] = IERC20(_underlyingTokens[0]).balanceOf(_vault);
+        return getDepositSomeCodes(_vault, _underlyingTokens, _liquidityPool, _amounts);
     }
 
     /**
@@ -183,12 +183,12 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getWithdrawAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _redeemAmount = getLiquidityPoolTokenBalance(_optyVault, _underlyingTokens[0], _liquidityPool);
-        return getWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount);
+        uint256 _redeemAmount = getLiquidityPoolTokenBalance(_vault, _underlyingTokens[0], _liquidityPool);
+        return getWithdrawSomeCodes(_vault, _underlyingTokens, _liquidityPool, _redeemAmount);
     }
 
     /**
@@ -265,13 +265,13 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function calculateRedeemableLPTokenAmount(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (uint256 _amount) {
-        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_optyVault, _underlyingToken, _liquidityPool);
-        uint256 _balanceInToken = getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
@@ -280,12 +280,12 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function isRedeemableAmountSufficient(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (bool) {
-        uint256 _balanceInToken = getAllAmountInToken(_optyVault, _underlyingToken, _liquidityPool);
+        uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         return _balanceInToken >= _redeemAmount;
     }
 
@@ -307,12 +307,12 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getHarvestAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _rewardTokenAmount = IERC20(getRewardToken(_liquidityPool)).balanceOf(_optyVault);
-        return getHarvestSomeCodes(_optyVault, _underlyingToken, _liquidityPool, _rewardTokenAmount);
+        uint256 _rewardTokenAmount = IERC20(getRewardToken(_liquidityPool)).balanceOf(_vault);
+        return getHarvestSomeCodes(_vault, _underlyingToken, _liquidityPool, _rewardTokenAmount);
     }
 
     /**
@@ -326,24 +326,24 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getStakeAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _stakeAmount = getLiquidityPoolTokenBalance(_optyVault, _underlyingTokens[0], _liquidityPool);
+        uint256 _stakeAmount = getLiquidityPoolTokenBalance(_vault, _underlyingTokens[0], _liquidityPool);
         return getStakeSomeCodes(_liquidityPool, _stakeAmount);
     }
 
     /**
      * @inheritdoc IAdapter
      */
-    function getUnstakeAllCodes(address payable _optyVault, address _liquidityPool)
+    function getUnstakeAllCodes(address payable _vault, address _liquidityPool)
         public
         view
         override
         returns (bytes[] memory _codes)
     {
-        uint256 _unstakeAmount = getLiquidityPoolTokenBalanceStake(_optyVault, _liquidityPool);
+        uint256 _unstakeAmount = getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool);
         return getUnstakeSomeCodes(_liquidityPool, _unstakeAmount);
     }
 
@@ -351,14 +351,14 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function calculateRedeemableLPTokenAmountStake(
-        address payable _optyVault,
+        address payable _vault,
         address,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (uint256 _amount) {
         address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
-        uint256 _liquidityPoolTokenBalance = IERC20(_stakingVault).balanceOf(_optyVault);
-        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_optyVault, address(0), _liquidityPool);
+        uint256 _liquidityPoolTokenBalance = IERC20(_stakingVault).balanceOf(_vault);
+        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_vault, address(0), _liquidityPool);
         // can have unintentional rounding errors
         _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInTokenStake).add(1);
     }
@@ -367,12 +367,12 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function isRedeemableAmountSufficientStake(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (bool) {
-        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_optyVault, _underlyingToken, _liquidityPool);
+        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_vault, _underlyingToken, _liquidityPool);
         return _balanceInTokenStake >= _redeemAmount;
     }
 
@@ -380,19 +380,19 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getUnstakeAndWithdrawAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool
     ) public view override returns (bytes[] memory _codes) {
-        uint256 _redeemAmount = getLiquidityPoolTokenBalanceStake(_optyVault, _liquidityPool);
-        return getUnstakeAndWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount);
+        uint256 _redeemAmount = getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool);
+        return getUnstakeAndWithdrawSomeCodes(_vault, _underlyingTokens, _liquidityPool, _redeemAmount);
     }
 
     /**
      * @inheritdoc IAdapter
      */
     function getDepositSomeCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256[] memory _amounts
@@ -410,7 +410,7 @@ contract DForceAdapter is IAdapter, Modifiers {
             );
             _codes[2] = abi.encode(
                 _liquidityPool,
-                abi.encodeWithSignature("mint(address,uint256)", _optyVault, _depositAmount)
+                abi.encodeWithSignature("mint(address,uint256)", _vault, _depositAmount)
             );
         }
     }
@@ -419,7 +419,7 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getWithdrawSomeCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -428,7 +428,7 @@ contract DForceAdapter is IAdapter, Modifiers {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
                 getLiquidityPoolToken(_underlyingTokens[0], _liquidityPool),
-                abi.encodeWithSignature("redeem(address,uint256)", _optyVault, _redeemAmount)
+                abi.encodeWithSignature("redeem(address,uint256)", _vault, _redeemAmount)
             );
         }
     }
@@ -451,22 +451,22 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getAllAmountInToken(
-        address payable _optyVault,
+        address payable _vault,
         address,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return IDForceDeposit(_liquidityPool).getTokenBalance(_optyVault);
+        return IDForceDeposit(_liquidityPool).getTokenBalance(_vault);
     }
 
     /**
      * @inheritdoc IAdapter
      */
     function getLiquidityPoolTokenBalance(
-        address payable _optyVault,
+        address payable _vault,
         address,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return IERC20(_liquidityPool).balanceOf(_optyVault);
+        return IERC20(_liquidityPool).balanceOf(_vault);
     }
 
     /**
@@ -479,27 +479,27 @@ contract DForceAdapter is IAdapter, Modifiers {
     /**
      * @inheritdoc IAdapter
      */
-    function getUnclaimedRewardTokenAmount(address payable _optyVault, address _liquidityPool)
+    function getUnclaimedRewardTokenAmount(address payable _vault, address _liquidityPool)
         public
         view
         override
         returns (uint256)
     {
-        return IDForceStake(liquidityPoolToStakingVault[_liquidityPool]).earned(_optyVault);
+        return IDForceStake(liquidityPoolToStakingVault[_liquidityPool]).earned(_vault);
     }
 
     /**
      * @inheritdoc IAdapter
      */
     function getHarvestSomeCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _rewardTokenAmount
     ) public view override returns (bytes[] memory _codes) {
         return
             harvestCodeProviderContract.getHarvestCodes(
-                _optyVault,
+                _vault,
                 getRewardToken(_liquidityPool),
                 _underlyingToken,
                 _rewardTokenAmount
@@ -551,18 +551,18 @@ contract DForceAdapter is IAdapter, Modifiers {
      * @inheritdoc IAdapter
      */
     function getAllAmountInTokenStake(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
         address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
-        uint256 b = IERC20(_stakingVault).balanceOf(_optyVault);
+        uint256 b = IERC20(_stakingVault).balanceOf(_vault);
         if (b > 0) {
             b = b.mul(IDForceDeposit(getLiquidityPoolToken(_underlyingToken, _liquidityPool)).getExchangeRate()).div(
                 1e18
             );
         }
-        uint256 _unclaimedReward = getUnclaimedRewardTokenAmount(_optyVault, _liquidityPool);
+        uint256 _unclaimedReward = getUnclaimedRewardTokenAmount(_vault, _liquidityPool);
         if (_unclaimedReward > 0) {
             b = b.add(
                 harvestCodeProviderContract.rewardBalanceInUnderlyingTokens(
@@ -578,21 +578,21 @@ contract DForceAdapter is IAdapter, Modifiers {
     /**
      * @inheritdoc IAdapter
      */
-    function getLiquidityPoolTokenBalanceStake(address payable _optyVault, address _liquidityPool)
+    function getLiquidityPoolTokenBalanceStake(address payable _vault, address _liquidityPool)
         public
         view
         override
         returns (uint256)
     {
         address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
-        return IERC20(_stakingVault).balanceOf(_optyVault);
+        return IERC20(_stakingVault).balanceOf(_vault);
     }
 
     /**
      * @inheritdoc IAdapter
      */
     function getUnstakeAndWithdrawSomeCodes(
-        address payable _optyVault,
+        address payable _vault,
         address[] memory _underlyingTokens,
         address _liquidityPool,
         uint256 _redeemAmount
@@ -600,7 +600,7 @@ contract DForceAdapter is IAdapter, Modifiers {
         if (_redeemAmount > 0) {
             _codes = new bytes[](2);
             _codes[0] = getUnstakeSomeCodes(_liquidityPool, _redeemAmount)[0];
-            _codes[1] = getWithdrawSomeCodes(_optyVault, _underlyingTokens, _liquidityPool, _redeemAmount)[0];
+            _codes[1] = getWithdrawSomeCodes(_vault, _underlyingTokens, _liquidityPool, _redeemAmount)[0];
         }
     }
 
