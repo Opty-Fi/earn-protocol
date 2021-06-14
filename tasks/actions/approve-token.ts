@@ -28,5 +28,5 @@ task("approve-token", "Approve Token")
     const registryContract = await getContractInstance(hre, ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
     await approveToken(owner, registryContract, [token]);
-    await executeFunc(registryContract, owner, "setTokensHashToTokens(address[][])", [[token]]);
+    await executeFunc(registryContract, owner, "setTokensHashToTokens(address[])", [[token]]);
   });
