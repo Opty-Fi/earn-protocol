@@ -86,7 +86,7 @@ contract AaveV2Adapter is IAdapter, Modifiers {
     /**
      * @notice Sets the percentage of max deposit value for the given liquidity pool
      * @param _liquidityPool liquidity pool address
-     * @param _maxDepositPoolPct liquidity pool's max deposit percentage
+     * @param _maxDepositPoolPct liquidity pool's max deposit percentage (in basis points, For eg: 50% means 5000)
      */
     function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) external onlyGovernance {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
@@ -130,7 +130,8 @@ contract AaveV2Adapter is IAdapter, Modifiers {
 
     /**
      * @notice Sets the default percentage of max deposit pool value
-     * @param _maxDepositPoolPctDefault Pool's max deposit percentage (in basis points) to be set as default value
+     * @param _maxDepositPoolPctDefault Pool's max deposit percentage (in basis points, For eg: 50% means 5000)
+     * to be set as default value
      */
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) public onlyGovernance {
         maxDepositPoolPctDefault = _maxDepositPoolPctDefault;

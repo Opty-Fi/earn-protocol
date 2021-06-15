@@ -10,7 +10,7 @@ pragma experimental ABIEncoderV2;
  * @dev Abstraction layer to different DeFi protocols like AaveV1, Compound, etc.
  * It is used as an interface layer for any new DeFi protocol
  * Conventions used:
- *  - lpToken: lpToken
+ *  - lpToken: liquidity pool token
  */
 interface IAdapter {
     /**
@@ -69,18 +69,18 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @dev Get batch of function calls require to repay debt, unlock collateral and redeem shares from the
-     * given liquidity pool
+     * @dev Get batch of function calls require to repay debt, unlock collateral and redeem lpToken
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
-     * @param _liquidityPoolAddressProvider Address of liquidity pool address provider where to repay collateral
+     * @param _liquidityPool Liquidity pool's contract address for all protocols except for aave where it is
+     * liquidity pool address provider's contract address
      * @param _outputToken Token address to borrow
      * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getRepayAndWithdrawAllCodes(
         address payable _vault,
         address[] memory _underlyingTokens,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPool,
         address _outputToken
     ) external view returns (bytes[] memory _codes);
 
@@ -123,7 +123,8 @@ interface IAdapter {
     function getLiquidityPoolToken(address _underlyingToken, address _liquidityPool) external view returns (address);
 
     /**
-     * @notice Get the underlying token addresses given the liquidity pool/lpToken
+     * @notice Get the underlying token addresses given the liquidity pool and/or lpToken
+     * @dev there are some defi pools which requires liqudiity pool and lpToken's address to return underlying token
      * @param _liquidityPool Liquidity pool's contract address from where to get the lpToken
      * @param _liquidityPoolToken LpToken's address
      * @return _underlyingTokens Returns the array of underlying token addresses
@@ -134,7 +135,7 @@ interface IAdapter {
         returns (address[] memory _underlyingTokens);
 
     /**
-     * @dev Returns the market value in underlying for all the shares held in a specified liquidity pool
+     * @dev Returns the market value in underlying for all the lpTokens held in a specified liquidity pool
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for which to get the balance
      * @param _liquidityPool Liquidity pool's contract address which holds the given underlying token
@@ -147,7 +148,7 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @notice Get the amount of shares in the specified liquidity pool
+     * @notice Get the balance of vault in lpTokens in the specified liquidity pool
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address supported by given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address from where to get the balance of lpToken
@@ -160,7 +161,7 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @notice Returns the equivalent value of underlying token for given liquidityPoolTokenAmount
+     * @notice Returns the equivalent value of underlying token for given amount of lpToken
      * @param _underlyingToken Underlying token address supported by given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address from where to get the balance of lpToken
      * @param _liquidityPoolTokenAmount LpToken amount for which to get equivalent underlyingToken amount
@@ -178,7 +179,7 @@ interface IAdapter {
      * _borrowAmount in _borrowToken is repaid.
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given liquidity pool
-     * @param _liquidityPoolAddressProvider Liquidity pool's contract address from where to borrow the tokens
+     * @param _liquidityPool Liquidity pool's contract address from where to borrow the tokens
      * @param _borrowToken Token address to borrow
      * @param _borrowAmount Amount of token to borrow
      * @return Returns the amount in underlying token that can be received if borrowed token is repaid
@@ -186,7 +187,7 @@ interface IAdapter {
     function getSomeAmountInTokenBorrow(
         address payable _vault,
         address _underlyingToken,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPool,
         uint256 _liquidityPoolTokenAmount,
         address _borrowToken,
         uint256 _borrowAmount
@@ -198,7 +199,7 @@ interface IAdapter {
      * _borrowAmount in _borrowToken is repaid.
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given liquidity pool
-     * @param _liquidityPoolAddressProvider Liquidity pool's contract address from where to borrow the tokens
+     * @param _liquidityPool Liquidity pool's contract address from where to borrow the tokens
      * @param _borrowToken Token address to borrow
      * @param _borrowAmount Amount of token to borrow
      * @return Returns amount in underlyingToken that you'll receive if whole balance of vault borrowed token is repaid
@@ -206,7 +207,7 @@ interface IAdapter {
     function getAllAmountInTokenBorrow(
         address payable _vault,
         address _underlyingToken,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPool,
         address _borrowToken,
         uint256 _borrowAmount
     ) external view returns (uint256);
@@ -371,7 +372,7 @@ interface IAdapter {
         returns (bytes[] memory _codes);
 
     /**
-     * @notice Returns the balance in underlying for staked liquidityPoolToken balance of vault
+     * @notice Returns the balance in underlying for staked lpToken balance of vault
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address which is associated with staking pool from where to
