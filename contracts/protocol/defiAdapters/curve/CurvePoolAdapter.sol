@@ -868,9 +868,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Deploy function for a pool with 2 tokens
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amounts Quantity of _underlyingToken to deposit
      */
     function _getDeposit2Code(
         address[] memory _underlyingTokens,
@@ -926,9 +923,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Deploy function for a pool with 3 tokens
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amounts Quantity of _underlyingToken to deposit
      */
     function _getDeposit3Code(
         address[] memory _underlyingTokens,
@@ -984,9 +978,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Deploy function for a pool with 4 tokens
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amounts Quantity of _underlyingToken to deposit
      */
     function _getDeposit4Code(
         address[] memory _underlyingTokens,
@@ -1042,9 +1033,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw1Code(
         address _underlyingToken,
@@ -1084,9 +1072,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw2Code(address _liquidityPool, uint256 _amount) internal view returns (bytes[] memory _codes) {
         if (_amount > 0) {
@@ -1110,9 +1095,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw3Code(address _liquidityPool, uint256 _amount) internal view returns (bytes[] memory _codes) {
         if (_amount > 0) {
@@ -1136,9 +1118,6 @@ contract CurvePoolAdapter is IAdapter, Modifiers {
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw4Code(address _liquidityPool, uint256 _amount) internal view returns (bytes[] memory _codes) {
         if (_amount > 0) {
