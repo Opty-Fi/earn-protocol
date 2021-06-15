@@ -273,7 +273,7 @@ interface IAdapter {
         returns (uint256 _codes);
 
     /**
-     * @notice Return batch of function calls for claiming the reward tokens (eg: COMP etc.)
+     * @notice Get batch of function calls for claiming the reward tokens (eg: COMP etc.)
      * @param _vault Vault contract address
      * @param _liquidityPool Liquidity pool's contract address from where to claim reward tokens
      * @return _codes Returns an array of bytes in sequence that can be executed by vault
@@ -284,7 +284,7 @@ interface IAdapter {
         returns (bytes[] memory _codes);
 
     /**
-     * @dev Return batch of function calls for swapping specified amount of rewards in vault to underlying tokens
+     * @dev Get batch of function calls for swapping specified amount of rewards in vault to underlying tokens
      * via DEX like Uniswap
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for the given liquidity pool
@@ -300,7 +300,7 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @dev Return batch of function calls for swapping full balance of rewards in vault to underlying tokens
+     * @dev Get batch of function calls for swapping full balance of rewards in vault to underlying tokens
      * via DEX like Uniswap
      * @param _vault Vault contract address
      * @param _underlyingToken List of underlying token addresses for the given liquidity pool
@@ -321,7 +321,7 @@ interface IAdapter {
     function canStake(address _liquidityPool) external view returns (bool);
 
     /**
-     * @notice Return batch of function calls for staking specified amount of lpToken held in a vault
+     * @notice Get batch of function calls for staking specified amount of lpToken held in a vault
      * @param _liquidityPool Liquidity pool's contract address where the vault has deposited and which is associated
      * to a staking pool where to stake some lpTokens
      * @param _stakeAmount Amount of lpToken (held in vault) to be staked
@@ -333,7 +333,7 @@ interface IAdapter {
         returns (bytes[] memory _codes);
 
     /**
-     * @notice Return batch of function calls for staking full balance of lpTokens held in a vault
+     * @notice Get batch of function calls for staking full balance of lpTokens held in a vault
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying token addresses for the given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address where the vault has deposited and which is associated
@@ -347,7 +347,7 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @notice Return batch of function calls for unstaking specified amount of lpTokens held in a vault
+     * @notice Get batch of function calls for unstaking specified amount of lpTokens held in a vault
      * @param _liquidityPool Liquidity pool's contract address where the vault has deposited and which is associated
      * to a staking pool where to unstake some lpTokens
      * @param _unstakeAmount Amount of lpToken (held in a vault) to be unstaked
@@ -359,7 +359,7 @@ interface IAdapter {
         returns (bytes[] memory _codes);
 
     /**
-     * @notice Returns the batch of function calls for unstaking whole balance of lpTokens held in a vault
+     * @notice Get the batch of function calls for unstaking whole balance of lpTokens held in a vault
      * @param _vault Vault contract address
      * @param _liquidityPool Liquidity pool's contract address where the vault has deposited and which is associated
      * to a staking pool where to unstake all lpTokens
@@ -426,7 +426,7 @@ interface IAdapter {
     ) external view returns (bool);
 
     /**
-     * @notice Returns the batch of function calls for unstake and redeem specified amount of shares
+     * @notice Get the batch of function calls for unstake and redeem specified amount of shares
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying token addresses for the given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address associated to a staking pool from where to unstake
@@ -442,7 +442,7 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @notice Returns the batch of function calls for unstake and redeem whole balance of shares held in a vault
+     * @notice Get the batch of function calls for unstake and redeem whole balance of shares held in a vault
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying token addresses for the given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address associated to a staking pool from where to unstake

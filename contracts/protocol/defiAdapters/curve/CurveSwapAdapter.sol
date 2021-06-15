@@ -882,6 +882,9 @@ contract CurveSwapAdapter is IAdapter, Modifiers {
         }
     }
 
+    /**
+     * @notice Get the Curve Minter's address
+     */
     function getMinter(address _gauge) public view returns (address) {
         return ICurveGauge(_gauge).minter();
     }
