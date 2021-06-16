@@ -72,7 +72,7 @@ interface IAdapter {
      * @dev Get batch of function calls require to repay debt, unlock collateral and redeem lpToken
      * @param _vault Vault contract address
      * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
-     * @param _liquidityPool Liquidity pool's contract address for all protocols except for aave where it is
+     * @param _liquidityPool Liquidity pool's contract address for all protocols except for Aave where it is
      * liquidity pool address provider's contract address
      * @param _outputToken Token address to borrow
      * @return _codes Returns an array of bytes in sequence that can be executed by vault

@@ -32,7 +32,7 @@ import { IAdapter } from "../../../interfaces/opty/IAdapter.sol";
 /**
  * @title Adapter for AaveV1 protocol
  * @author Opty.fi
- * @dev Abstraction layer to Aave V1's pools
+ * @dev Abstraction layer to AaveV1's pools
  */
 contract AaveV1Adapter is IAdapter, Modifiers {
     using SafeMath for uint256;
