@@ -10,27 +10,27 @@ pragma experimental ABIEncoderV2;
  * @dev Abstraction layer to different DeFi protocols like AaveV1, Compound etc.
  * It is used as a layer for adding any new function which will be used in all DeFi adapters
  * Conventions used:
- *  - lp: liquidityPool
- *  - lpToken: liquidityPool token
+ *  - lpToken: liquidity pool token
  */
 interface IAdapter {
     /**
      * @notice Returns pool value in underlying token (for all adapters except Curve for which the poolValue is
-     * in US dollar) for the given lp and underlyingToken
-     * @dev poolValue can be in US dollar (eg. Curve etc.) and in underlyingTokens (eg. Compound etc.)
-     * @param _liquidityPool lp address from where to get the pool value
-     * @param _underlyingToken address of underlying token for which to get the pool value
-     * @return pool value in underlying token for the given lp and underlying token
+     * in US dollar) for the given liquidity pool and underlyingToken
+     * @dev poolValue can be in US dollar for protocols like Curve if explicitly specified, underlyingToken otherwise
+     * for protocols like Compound etc.
+     * @param _liquidityPool Liquidity pool's contract address
+     * @param _underlyingToken Contract address of the liquidity pool's underlying token
+     * @return Pool value in underlying token for the given liquidity pool and underlying token
      */
     function getPoolValue(address _liquidityPool, address _underlyingToken) external view returns (uint256);
 
     /**
-     * @dev Get batch of function calls for depositing specified amount of underlying token in the lp provided
+     * @dev Get batch of function calls for depositing specified amount of underlying token in given liquidity pool
      * @param _vault Vault contract address
-     * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPool lp address where to deposit
-     * @param _amounts  List of underlying token amounts
-     * @return _codes Returns a bytes value to be executed
+     * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address where to deposit
+     * @param _amounts List of underlying token amounts
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getDepositSomeCodes(
         address payable _vault,
@@ -40,11 +40,11 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @dev Get batch of function calls for depositing vault's full balance in underlying tokens in the specified lp
+     * @dev Get batch of function calls for depositing vault's full balance in underlying tokens in given liquidity pool
      * @param _vault Vault contract address
-     * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPool lp address where to deposit
-     * @return _codes Returns a bytes value to be executed
+     * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address where to deposit
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getDepositAllCodes(
         address payable _vault,
@@ -55,11 +55,11 @@ interface IAdapter {
     /**
      * @notice Get batch of function calls for redeeming specified amount of lpTokens held in the vault
      * @dev Redeem specified `amount` of `liquidityPoolToken` and send the `underlyingToken` to the caller`
-     * @param _vault Address of vault contract
-     * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPool lp address from where to withdraw
-     * @param _amount amount of underlying token to redeem from the given lp
-     * @return _codes Returns a bytes value to be executed
+     * @param _vault Vault contract address
+     * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to withdraw
+     * @param _amount Amount of underlying token to redeem from the given liquidity pool
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getWithdrawSomeCodes(
         address payable _vault,
@@ -71,10 +71,10 @@ interface IAdapter {
     /**
      * @notice Get batch of function calls for redeeming full balance of lpTokens held in the vault
      * @dev Redeem full `amount` of `liquidityPoolToken` and send the `underlyingToken` to the caller`
-     * @param _vault Address of vault contract
-     * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPool lp address from where to withdraw
-     * @return _codes Returns a bytes value to be executed
+     * @param _vault Vault contract address
+     * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to withdraw
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getWithdrawAllCodes(
         address payable _vault,
@@ -83,17 +83,18 @@ interface IAdapter {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @notice Get the lp token address
+     * @notice Get the lpToken address
      * @param _underlyingToken Underlying token address
-     * @param _liquidityPool Liquidity Pool address from where to get the lpToken
-     * @return Returns the lp token address
+     * @param _liquidityPool Liquidity pool's contract address from where to get the lpToken
+     * @return Returns the lpToken address
      */
     function getLiquidityPoolToken(address _underlyingToken, address _liquidityPool) external view returns (address);
 
     /**
-     * @notice Get the underlying token addresses given the lp/lpToken
-     * @param _liquidityPool Liquidity Pool address from where to get the lpToken
-     * @param _liquidityPoolToken lp's token address
+     * @notice Get the underlying token addresses given the liquidity pool and/or lpToken
+     * @dev there are some defi pools which requires liqudiity pool and lpToken's address to return underlying token
+     * @param _liquidityPool Liquidity pool's contract address from where to get the lpToken
+     * @param _liquidityPoolToken LpToken's address
      * @return _underlyingTokens Returns the array of underlying token addresses
      */
     function getUnderlyingTokens(address _liquidityPool, address _liquidityPoolToken)
@@ -102,10 +103,10 @@ interface IAdapter {
         returns (address[] memory _underlyingTokens);
 
     /**
-     * @dev Returns the market value in underlying for all the shares held in a specified lp
-     * @param _vault Address of vault contract
+     * @dev Returns the market value in underlying for all the lpTokens held in a specified liquidity pool
+     * @param _vault Vault contract address
      * @param _underlyingToken Underlying token address for which to get the balance
-     * @param _liquidityPool lp address which holds the given underlying token
+     * @param _liquidityPool Liquidity pool's contract address which holds the given underlying token
      * @return Returns the amount of underlying token balance
      */
     function getAllAmountInToken(
@@ -115,11 +116,11 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @notice Get the amount of shares in the specified lp
+     * @notice Get the balance of vault in lpTokens in the specified liquidity pool
      * @param _vault Vault contract address
-     * @param _underlyingToken Underlying token address supported by given lp
-     * @param _liquidityPool lp address from where to get the balance of lpToken
-     * @return Returns the balance of lp token (lpToken)
+     * @param _underlyingToken Underlying token address supported by given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to get the balance of lpToken
+     * @return Returns the balance of lpToken (lpToken)
      */
     function getLiquidityPoolTokenBalance(
         address payable _vault,
@@ -128,11 +129,11 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @notice Returns the equivalent value of underlying token for given liquidityPoolTokenAmount
-     * @param _underlyingToken Underlying token address supported by given lp
-     * @param _liquidityPool lp address from where to get the balance of lpToken
-     * @param _liquidityPoolTokenAmount lpToken amount for which to get equivalent underlyingToken amount
-     * @return Returns the equivalent amount of underlying token for given liquidityPoolTokenAmount
+     * @notice Returns the equivalent value of underlying token for given amount of lpToken
+     * @param _underlyingToken Underlying token address supported by given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to get the balance of lpToken
+     * @param _liquidityPoolTokenAmount LpToken amount for which to get equivalent underlyingToken amount
+     * @return Returns the equivalent amount of underlying token for given lpToken amount
      */
     function getSomeAmountInToken(
         address _underlyingToken,
@@ -141,11 +142,11 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @dev Returns the equivalent value of liquidityPoolToken for given underlyingTokenAmount
-     * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPool lp address from where to redeem the tokens
-     * @param _underlyingTokenAmount amount of underlying token to be calculated w.r.t. lpToken
-     * @return Returns the calculated amount lpToken equivalent to underlyingTokenAmount
+     * @dev Returns the equivalent value of lpToken for given amount of underlying token
+     * @param _underlyingToken Underlying token address for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to redeem the tokens
+     * @param _underlyingTokenAmount Amount of underlying token to be calculated w.r.t. lpToken
+     * @return Returns the calculated amount of lpToken equivalent to underlyingTokenAmount
      */
     function calculateAmountInLPToken(
         address _underlyingToken,
@@ -154,12 +155,12 @@ interface IAdapter {
     ) external view returns (uint256);
 
     /**
-     * @dev Returns the market value in underlying token of the shares in the specified lp
+     * @dev Returns the market value in underlying token of the shares in the specified liquidity pool
      * @param _vault Vault contract address
-     * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPool lp address from where to redeem the tokens
-     * @param _redeemAmount amount of token to be redeemed
-     * @return _amount Returns the market value in underlying token of the shares in the given lp
+     * @param _underlyingToken Underlying token address for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to redeem the tokens
+     * @param _redeemAmount Amount of token to be redeemed
+     * @return _amount Returns the market value in underlying token of the shares in the given liquidity pool
      */
     function calculateRedeemableLPTokenAmount(
         address payable _vault,
@@ -169,11 +170,11 @@ interface IAdapter {
     ) external view returns (uint256 _amount);
 
     /**
-     * @notice Checks whether the vault has enough lp token (+ rewards) to redeem for the specified amount of shares
+     * @notice Checks whether the vault has enough lpToken (+ rewards) to redeem for the specified amount of shares
      * @param _vault Vault contract address
-     * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPool lp address from where to redeem the tokens
-     * @param _redeemAmount amount of lpToken (+ rewards) enough to redeem
+     * @param _underlyingToken Underlying token address for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to redeem the tokens
+     * @param _redeemAmount Amount of lpToken (+ rewards) enough to redeem
      * @return Returns a boolean true if lpToken (+ rewards) to redeem for given amount is enough else it returns false
      */
     function isRedeemableAmountSufficient(
@@ -184,29 +185,30 @@ interface IAdapter {
     ) external view returns (bool);
 
     /**
-     * @notice Returns reward token address for the lp provided
-     * @param _liquidityPool lp address for which to get the reward token address
-     * @return Returns the reward token supported by given lp
+     * @notice Returns reward token address for the liquidity pool provided
+     * @param _liquidityPool Liquidity pool's contract address for which to get the reward token address
+     * @return Returns the reward token supported by given liquidity pool
      */
     function getRewardToken(address _liquidityPool) external view returns (address);
 
     /**
-     * @notice Returns whether the protocol can stake lp token
-     * @param _liquidityPool lp address for which to check if staking is enabled or not
-     * @return Returns a boolean true if lp token staking is allowed else false if it not enabled
+     * @notice Returns whether the protocol can stake lpToken
+     * @param _liquidityPool Liquidity pool's contract address for which to check if staking is enabled or not
+     * @return Returns a boolean true if lpToken staking is allowed else false if it not enabled
      */
     function canStake(address _liquidityPool) external view returns (bool);
 
     /**
-     * @notice Sets the percentage of max deposit value for the given lp
-     * @param _liquidityPool lp address for which to set max deposit percentage
-     * @param _maxDepositPoolPct Pool's Max deposit percentage to be set for the given lp
+     * @notice Sets the percentage of max deposit value for the given liquidity pool
+     * @param _liquidityPool liquidity pool address
+     * @param _maxDepositPoolPct liquidity pool's max deposit percentage (in basis points, For eg: 50% means 5000)
      */
     function setMaxDepositPoolPct(address _liquidityPool, uint256 _maxDepositPoolPct) external;
 
     /**
      * @notice Sets the default percentage of max deposit pool value
-     * @param _maxDepositPoolPctDefault Pool's Max deposit percentage (in basis points) to be set as default value
+     * @param _maxDepositPoolPctDefault Pool's max deposit percentage (in basis points, For eg: 50% means 5000)
+     * to be set as default value
      */
     function setMaxDepositPoolPctDefault(uint256 _maxDepositPoolPctDefault) external;
 }

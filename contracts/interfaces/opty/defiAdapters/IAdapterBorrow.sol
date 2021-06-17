@@ -16,11 +16,11 @@ interface IAdapterBorrow {
     /**
      * @dev Get batch of function calls for token amount that can be borrowed safely against the underlying token
      * when kept as collateral
-     * @param _vault Address of vault contract
-     * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPool lp address from where to borrow
-     * @param _outputToken token address to borrow
-     * @return _codes Returns a bytes value to be executed
+     * @param _vault Vault contract address
+     * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to borrow
+     * @param _outputToken Token address to borrow
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getBorrowAllCodes(
         address payable _vault,
@@ -30,17 +30,18 @@ interface IAdapterBorrow {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @dev Return batch of function calls require to repay debt, unlock collateral and redeem shares from the given lp
-     * @param _vault Address of vault contract
-     * @param _underlyingTokens List of underlying tokens supported by the given lp
-     * @param _liquidityPoolAddressProvider address of lp address provider where to repay collateral
-     * @param _outputToken token address to borrow
-     * @return _codes Returns a bytes value to be executed
+     * @dev Get batch of function calls require to repay debt, unlock collateral and redeem lpToken
+     * @param _vault Vault contract address
+     * @param _underlyingTokens List of underlying tokens supported by the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address for all protocols except for Aave where it is
+     * liquidity pool address provider's contract address
+     * @param _outputToken Token address to borrow
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getRepayAndWithdrawAllCodes(
         address payable _vault,
         address[] memory _underlyingTokens,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPool,
         address _outputToken
     ) external view returns (bytes[] memory _codes);
 
@@ -49,16 +50,16 @@ interface IAdapterBorrow {
      * @dev Returns the amount in underlying token for _liquidityPoolTokenAmount collateral if
      * _borrowAmount in _borrowToken is repaid.
      * @param _vault Vault contract address
-     * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPoolAddressProvider lp address from where to borrow the tokens
-     * @param _borrowToken address of token to borrow
-     * @param _borrowAmount amount of token to borrow
+     * @param _underlyingToken Underlying token address for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to borrow the tokens
+     * @param _borrowToken Token address to borrow
+     * @param _borrowAmount Amount of token to borrow
      * @return Returns the amount in underlying token that can be received if borrowed token is repaid
      */
     function getSomeAmountInTokenBorrow(
         address payable _vault,
         address _underlyingToken,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPool,
         uint256 _liquidityPoolTokenAmount,
         address _borrowToken,
         uint256 _borrowAmount
@@ -69,16 +70,16 @@ interface IAdapterBorrow {
      * @dev Returns the amount in underlying token for whole collateral of _vault balance if
      * _borrowAmount in _borrowToken is repaid.
      * @param _vault Vault contract address
-     * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPoolAddressProvider lp address from where to borrow the tokens
-     * @param _borrowToken address of token to borrow
-     * @param _borrowAmount amount of token to borrow
+     * @param _underlyingToken Underlying token address for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address from where to borrow the tokens
+     * @param _borrowToken Token address to borrow
+     * @param _borrowAmount Amount of token to borrow
      * @return Returns amount in underlyingToken that you'll receive if whole balance of vault borrowed token is repaid
      */
     function getAllAmountInTokenBorrow(
         address payable _vault,
         address _underlyingToken,
-        address _liquidityPoolAddressProvider,
+        address _liquidityPool,
         address _borrowToken,
         uint256 _borrowAmount
     ) external view returns (uint256);

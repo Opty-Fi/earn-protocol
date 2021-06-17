@@ -40,7 +40,7 @@ import { IAdapterBorrow } from "../../../interfaces/opty/defiAdapters/IAdapterBo
 /**
  * @title Adapter for AaveV2 protocol
  * @author Opty.fi
- * @dev Abstraction layer to Aave V2's pools
+ * @dev Abstraction layer to AaveV2's pools
  */
 contract AaveV2Adapter is IAdapter, IAdapterBorrow, IAdapterProtocolConfig, IAdapterInvestLimit, Modifiers {
     using SafeMath for uint256;
@@ -68,7 +68,7 @@ contract AaveV2Adapter is IAdapter, IAdapterBorrow, IAdapterProtocolConfig, IAda
     uint256 public healthFactor = 2;
 
     /**
-     * @notice  Pct of the value in USD of the collateral we can borrow
+     * @notice  Percentage of the value in USD of the collateral we can borrow
      * @dev ltv defines as loan-to-value
      */
     uint256 public ltv = 65;

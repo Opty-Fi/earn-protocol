@@ -16,21 +16,23 @@ import { DataTypes } from "../../../libraries/types/DataTypes.sol";
  */
 interface IAdapterInvestLimit {
     /**
-     * @notice Sets the default max deposit value (in absolute value)
-     * @param _maxDepositAmountDefault Pool's Max deposit value in absolute value to be set as default value
+     * @notice Sets the default absolute max deposit value in underlying
+     * @param _maxDepositAmountDefault absolute max deposit value in underlying to be set as default value
      */
     function setMaxDepositAmountDefault(uint256 _maxDepositAmountDefault) external;
 
     /**
-     * @notice Sets the max deposit value (in absolute value) for the given lp
-     * @param _liquidityPool lp address for which to set max deposit value (in absolute value)
-     * @param _maxDepositAmount Pool's Max deposit value in absolute value to be set for the given lp
+     * @notice Sets the absolute max deposit value in underlying for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
+     * @param _maxDepositAmount absolute max deposit amount in underlying to be set for given liquidity pool
      */
     function setMaxDepositAmount(address _liquidityPool, uint256 _maxDepositAmount) external;
 
     /**
-     * @notice Sets the max deposit amount's data type
-     * @dev Types (can be absolute value or percentage) supported for the maxDeposit value
+     * @notice Sets the type of investment limit
+     *                  1. Percentage of pool value
+     *                  2. Amount in underlying token
+     * @dev Types (can be number or percentage) supported for the maxDeposit value
      * @param _type Type of maxDeposit to be set (can be absolute value or percentage)
      */
     function setMaxDepositPoolType(DataTypes.MaxExposure _type) external;

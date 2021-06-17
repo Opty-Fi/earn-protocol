@@ -14,29 +14,29 @@ pragma experimental ABIEncoderV2;
  */
 interface IAdapterCurveInvestLimit {
     /**
-     * @notice Sets the default max deposit value (in absolute value)
-     * @param _maxDepositAmountDefault Pool's Max deposit value in absolute value to be set as default value
+     * @notice Sets the default absolute max deposit value in underlying
+     * @param _maxDepositAmountDefault array of 4 absolute max deposit values in underlying to be set as default value
      */
     function setMaxDepositAmountDefault(uint256[4] memory _maxDepositAmountDefault) external;
 
     /**
-     * @notice Sets the max deposit value (in absolute value) for the given lp
-     * @param _liquidityPool lp address for which to set max deposit value (in absolute value)
-     * @param _maxDepositAmount Array of 2 Pool's Max deposit value in absolute value to be set for the given lp
+     * @notice Sets the absolute max deposit value in underlying for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
+     * @param _maxDepositAmount Array of 2 Pool's max deposit value in number to be set for the given liquidity pool
      */
     function setMaxDeposit2Amount(address _liquidityPool, uint256[2] memory _maxDepositAmount) external;
 
     /**
-     * @notice Sets the max deposit value (in absolute value) for the given lp
-     * @param _liquidityPool lp address for which to set max deposit value (in absolute value)
-     * @param _maxDepositAmount Array of 3 Pool's Max deposit value in absolute value to be set for the given lp
+     * @notice Sets the absolute max deposit value in underlying for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
+     * @param _maxDepositAmount Array of 3 Pool's max deposit value in number to be set for the given liquidity pool
      */
     function setMaxDeposit3Amount(address _liquidityPool, uint256[3] memory _maxDepositAmount) external;
 
     /**
-     * @notice Sets the max deposit value (in absolute value) for the given lp
-     * @param _liquidityPool lp address for which to set max deposit value (in absolute value)
-     * @param _maxDepositAmount Array of 4 Pool's Max deposit value in absolute value to be set for the given lp
+     * @notice Sets the absolute max deposit value in underlying for the given liquidity pool
+     * @param _liquidityPool liquidity pool address for which to set max deposit value (in absolute value)
+     * @param _maxDepositAmount Array of 4 Pool's max deposit value in number to be set for the given liquidity pool
      */
     function setMaxDeposit4Amount(address _liquidityPool, uint256[4] memory _maxDepositAmount) external;
 }

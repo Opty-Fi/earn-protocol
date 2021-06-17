@@ -382,9 +382,7 @@ contract CurveSwapAdapter is
     }
 
     /**
-     * @notice Inverse the allowance of removing the liquidity for 1 coin
-     * @dev If the balance of the coin to withdraw is too low in the swap pool, we
-     * shouldn't remove_liquidity_one_coin. Otherwise, we will get penalized
+     * @dev Store's boolean whether curve's swap pool contracts has ability to remove liquidity for a single coin or not
      * @param _pool Curve's Swap pool address
      */
     function toggleNoRemoveLiquidityOneCoin(address _pool) public onlyOperator {
@@ -849,9 +847,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Deploy function for a pool with 2 tokens
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amounts Quantity of _underlyingToken to deposit
      */
     function _getDeposit2Code(
         address[] memory _underlyingTokens,
@@ -907,9 +902,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Deploy function for a pool with 3 tokens
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amounts Quantity of _underlyingToken to deposit
      */
     function _getDeposit3Code(
         address[] memory _underlyingTokens,
@@ -965,9 +957,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Deploy function for a pool with 4 tokens
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amounts Quantity of _underlyingToken to deposit
      */
     function _getDeposit4Code(
         address[] memory _underlyingTokens,
@@ -1023,9 +1012,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw1Code(
         address _underlyingToken,
@@ -1066,9 +1052,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw2Code(address _liquidityPool, uint256 _amount) internal view returns (bytes[] memory _codes) {
         if (_amount > 0) {
@@ -1092,9 +1075,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw3Code(address _liquidityPool, uint256 _amount) internal view returns (bytes[] memory _codes) {
         if (_amount > 0) {
@@ -1118,9 +1098,6 @@ contract CurveSwapAdapter is
 
     /**
      * @dev Swaps _amount of _liquidityPoolToken for a certain quantity of each underlying token
-     *
-     * @param _liquidityPool Address of the pool deposit (or swap, in some cases) contract
-     * @param _amount Quantity of _liquidityPoolToken to swap for underlying tokens
      */
     function _getWithdraw4Code(address _liquidityPool, uint256 _amount) internal view returns (bytes[] memory _codes) {
         if (_amount > 0) {

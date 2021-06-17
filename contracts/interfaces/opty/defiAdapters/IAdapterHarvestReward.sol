@@ -17,8 +17,8 @@ interface IAdapterHarvestReward {
     /**
      * @notice Returns the amount of accrued reward tokens
      * @param _vault Vault contract address
-     * @param _liquidityPool lp address from where to claim reward tokens
-     * @return _codes Returns a bytes value to be executed
+     * @param _liquidityPool Liquidity pool's contract address from where to claim reward tokens
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getUnclaimedRewardTokenAmount(address payable _vault, address _liquidityPool)
         external
@@ -26,10 +26,10 @@ interface IAdapterHarvestReward {
         returns (uint256 _codes);
 
     /**
-     * @notice Return codes for claiming the reward tokens (eg: COMP etc.)
+     * @notice Get batch of function calls for claiming the reward tokens (eg: COMP etc.)
      * @param _vault Vault contract address
-     * @param _liquidityPool lp address from where to claim reward tokens
-     * @return _codes Returns a bytes value to be executed
+     * @param _liquidityPool Liquidity pool's contract address from where to claim reward tokens
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getClaimRewardTokenCode(address payable _vault, address _liquidityPool)
         external
@@ -37,12 +37,13 @@ interface IAdapterHarvestReward {
         returns (bytes[] memory _codes);
 
     /**
-     * @dev Return codes for swapping specified amount of rewards in vault to underlying tokens via DEX like Uniswap
+     * @dev Get batch of function calls for swapping specified amount of rewards in vault to underlying tokens
+     * via DEX like Uniswap
      * @param _vault Vault contract address
-     * @param _underlyingToken Underlying token address for the given lp
-     * @param _liquidityPool lp address where the vault's deposit is generating rewards
-     * @param _rewardTokenAmount amount of reward token to be harvested to underlyingTokens via DEX
-     * @return _codes Returns a bytes value to be executed
+     * @param _underlyingToken Underlying token address for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address where the vault's deposit is generating rewards
+     * @param _rewardTokenAmount Amount of reward token to be harvested to underlyingTokens via DEX
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getHarvestSomeCodes(
         address payable _vault,
@@ -52,11 +53,12 @@ interface IAdapterHarvestReward {
     ) external view returns (bytes[] memory _codes);
 
     /**
-     * @dev Return codes for swapping full balance of rewards in vault to underlying tokens via DEX like Uniswap
+     * @dev Get batch of function calls for swapping full balance of rewards in vault to underlying tokens
+     * via DEX like Uniswap
      * @param _vault Vault contract address
-     * @param _underlyingToken List of underlying token addresses for the given lp
-     * @param _liquidityPool lp address where the vault's deposit is generating rewards
-     * @return _codes Returns a bytes value to be executed
+     * @param _underlyingToken List of underlying token addresses for the given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address where the vault's deposit is generating rewards
+     * @return _codes Returns an array of bytes in sequence that can be executed by vault
      */
     function getHarvestAllCodes(
         address payable _vault,
