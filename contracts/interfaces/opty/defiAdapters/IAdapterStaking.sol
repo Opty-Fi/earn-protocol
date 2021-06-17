@@ -10,8 +10,7 @@ pragma experimental ABIEncoderV2;
  * @dev Abstraction layer to different DeFi protocols like Harvest.finance, DForce etc.
  * It is used as a layer for adding any new staking functions being used in DeFi adapters.
  * Conventions used:
- *  - lp: liquidityPool
- *  - lpToken: liquidityPool token
+ *  - lpToken: liquidity pool token
  */
 interface IAdapterStaking {
     /**

@@ -9,8 +9,6 @@ pragma experimental ABIEncoderV2;
  * @notice Interface for Curve adapters for setting invest limit for deposit
  * @dev Abstraction layer to Curve Adapters.
  * It is used as an interface layer for setting max invest limit and its type in number or percentage for Curve adapters
- * Conventions used:
- *  - lp: liquidityPool
  */
 interface IAdapterCurveInvestLimit {
     /**

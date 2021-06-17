@@ -10,7 +10,7 @@ pragma experimental ABIEncoderV2;
  * @dev Abstraction layer to different DeFi protocols like AaveV1, AaveV2 etc. which has borrow feature
  * It is used as a layer for adding any new functions in DeFi adapters if they include borrow functionality
  * Conventions used:
- *  - lp: liquidityPool
+ *  - lpToken: liquidity pool token
  */
 interface IAdapterBorrow {
     /**

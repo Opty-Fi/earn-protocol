@@ -11,8 +11,6 @@ import { DataTypes } from "../../../libraries/types/DataTypes.sol";
  * @notice Interface of the DeFi protocol adapter for setting invest limit for deposit
  * @dev Abstraction layer to different DeFi protocols like AaveV1, Compound etc except Curve.
  * It is used as an interface layer for setting max invest limit and its type in number or percentage for DeFi adapters
- * Conventions used:
- *  - lp: liquidityPool
  */
 interface IAdapterInvestLimit {
     /**

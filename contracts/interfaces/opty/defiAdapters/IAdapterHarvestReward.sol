@@ -10,8 +10,6 @@ pragma experimental ABIEncoderV2;
  * @dev Abstraction layer to different DeFi protocols like Compound, Cream etc.
  * It is used as a layer for adding any new function related to reward token feature to be used in DeFi-adapters.
  * It is also used as a middleware for adding functionality of swapping/harvesting of tokens used in DeFi-adapters.
- * Conventions used:
- *  - lp: liquidityPool
  */
 interface IAdapterHarvestReward {
     /**
