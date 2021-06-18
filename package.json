@@ -81,6 +81,7 @@
     "typechain": "hardhat typechain",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol ",
     "gas-report": "env REPORT_GAS=true yarn test",
+    "generate-doc": "env GENERATE_DOC_ON_COMPILE=true yarn compile",
     "hardhat:local": "hardhat --network localhost",
     "hardhat:staging": "hardhat --network staging",
     "hardhat:kovan": "hardhat --network kovan",
