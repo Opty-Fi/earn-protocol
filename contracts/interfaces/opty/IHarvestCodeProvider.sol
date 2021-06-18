@@ -12,14 +12,14 @@ pragma experimental ABIEncoderV2;
 interface IHarvestCodeProvider {
     /**
      * @dev Get the codes for harvesting the tokens using uniswap router
-     * @param _optyVault Address of Vault Contract
+     * @param _vault Vault contract address
      * @param _rewardToken Reward token address
      * @param _underlyingToken Token address acting as underlying Asset for the vault contract
      * @param _rewardTokenAmount reward token amount to harvest
      * @return _codes List of harvest codes for harvesting reward tokens
      */
     function getHarvestCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _rewardToken,
         address _underlyingToken,
         uint256 _rewardTokenAmount

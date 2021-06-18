@@ -43,20 +43,20 @@ interface IStrategyManager {
 
     /**
      * @notice Get the balance of vault in underlyingToken provided
-     * @param _optyVault Vault contract address
+     * @param _vault Vault contract address
      * @param _underlyingToken Underlying token (eg: DAI, USDC etc.) address
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @return _balance Returns the balance of vault in underlyingToken provided
      */
     function getBalanceInUnderlyingToken(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash
     ) external view returns (uint256 _balance);
 
     /**
      * @dev Get codes for depositing all balance in the pool for the given strategy hash
-     * @param _optyVault Vault contract address
+     * @param _vault Vault contract address
      * @param _underlyingToken Underlying token (eg: DAI, USDC etc.) address
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @param _stepIndex The index corresponding to the strategy step
@@ -64,7 +64,7 @@ interface IStrategyManager {
      * @return _codes Returns codes for depositing all balance in pool for the given strategy hash
      */
     function getPoolDepositAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash,
         uint256 _stepIndex,
@@ -73,7 +73,7 @@ interface IStrategyManager {
 
     /**
      * @dev Get codes for withdrawing all balance from the pool for the given strategy hash
-     * @param _optyVault Vault contract address
+     * @param _vault Vault contract address
      * @param _underlyingToken Underlying token (eg: DAI, USDC etc.) address
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @param _stepIndex The index corresponding to the strategy step
@@ -81,7 +81,7 @@ interface IStrategyManager {
      * @return _codes Returns codes for withdrawing all balance from the pool for the given strategy hash
      */
     function getPoolWithdrawAllCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash,
         uint256 _stepIndex,
@@ -90,24 +90,24 @@ interface IStrategyManager {
 
     /**
      * @dev Get codes for claiming all reward tokens from pool for the given strategy hash
-     * @param _optyVault Vault contract address
+     * @param _vault Vault contract address
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @return _codes Returns codes for claiming all reward tokens from pool for the given strategy hash
      */
-    function getPoolClaimAllRewardCodes(address payable _optyVault, bytes32 _investStrategyHash)
+    function getPoolClaimAllRewardCodes(address payable _vault, bytes32 _investStrategyHash)
         external
         view
         returns (bytes[] memory _codes);
 
     /**
      * @dev Get codes for harvesting all reward tokens from pool for the given strategy hash
-     * @param _optyVault Vault contract address
+     * @param _vault Vault contract address
      * @param _underlyingToken Underlying token (eg: DAI, USDC etc.) address
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @return _codes Returns codes for harvesting all reward tokens from pool for the given strategy hash
      */
     function getPoolHarvestAllRewardCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash
     ) external view returns (bytes[] memory _codes);
@@ -115,14 +115,14 @@ interface IStrategyManager {
     /**
      * @dev Get codes for harvesting some reward tokens from pool for the given strategy hash
      * @dev Amount of reward tokens to be harvest depends upon on convert percentage
-     * @param _optyVault Vault contract address
+     * @param _vault Vault contract address
      * @param _underlyingToken Underlying token (eg: DAI, USDC etc.) address
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @param _vaultRewardStrategy Vault Reward strategy to get convert Percent (in basis)]
      * @return _codes Returns codes for harvesting some reward tokens from pool for the given strategy hash
      */
     function getPoolHarvestSomeRewardCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash,
         DataTypes.VaultRewardStrategy memory _vaultRewardStrategy

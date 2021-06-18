@@ -39,7 +39,7 @@ contract HarvestCodeProvider is IHarvestCodeProvider, Modifiers {
      * @inheritdoc IHarvestCodeProvider
      */
     function getHarvestCodes(
-        address payable _optyVault,
+        address payable _vault,
         address _rewardToken,
         address _underlyingToken,
         uint256 _rewardTokenAmount
@@ -77,7 +77,7 @@ contract HarvestCodeProvider is IHarvestCodeProvider, Modifiers {
                         _rewardTokenAmount,
                         uint256(0),
                         _path,
-                        _optyVault,
+                        _vault,
                         uint256(-1)
                     )
                 );
