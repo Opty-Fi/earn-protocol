@@ -70,6 +70,15 @@ describe(scenario.title, () => {
             underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
             underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
             const adapter = adapters[ADAPTER_NAME];
+            console.log(
+              Object.keys(essentialContracts).map(key => {
+                essentialContracts[key].address;
+              }),
+            );
+            console.log(`registry : ${essentialContracts.registry.address}`);
+            console.log(`riskManager : ${essentialContracts.riskManager.address}`);
+            console.log(`strategyManager : ${essentialContracts.strategyManager.address}`);
+            console.log(`optyMinter : ${essentialContracts.optyMinter.address}`);
             Vault = await deployVault(
               hre,
               essentialContracts.registry.address,
