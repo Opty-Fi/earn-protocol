@@ -6,7 +6,7 @@ import { approveLiquidityPoolAndMapAdapters, approveTokens } from "../helpers/co
 import { insertContractIntoDB } from "../helpers/db";
 
 task("setup", "Deploy infrastructure, adapter and vault contracts and setup all necessary actions")
-  .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
+  .addParam("deployedonce", "allow checking whether contracts were deployed previously", false, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ deployedonce, insertindb }, hre) => {
     console.log(`\tDeploying Infrastructure contracts ...`);

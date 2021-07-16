@@ -83,9 +83,6 @@ describe(scenario.title, () => {
     const Vault = await deployVault(
       hre,
       essentialContracts.registry.address,
-      essentialContracts.riskManager.address,
-      essentialContracts.strategyManager.address,
-      optyMinter.address,
       tokenAddr,
       users["owner"],
       users["admin"],

@@ -15,7 +15,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/gas-fees-owed-opt-009.json";
-import { generateStrategyHash, getContractInstance, deployContract } from "../../helpers/helpers";
+import { generateStrategyHash, getContractInstance } from "../../helpers/helpers";
 
 type ARGUMENTS = {
   contractName?: string;
@@ -84,23 +84,9 @@ describe(scenario.title, () => {
       contracts["strategyProvider"] = essentialContracts.strategyProvider;
     });
     beforeEach(async () => {
-      const opty = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY, false, operator, [
-        essentialContracts["registry"].address,
-        0,
-      ]);
-
-      const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, operator, [
-        essentialContracts["registry"].address,
-        opty.address,
-        await getBlockTimestamp(hre),
-      ]);
-
       Vault = await deployVault(
         hre,
         essentialContracts.registry.address,
-        essentialContracts.riskManager.address,
-        essentialContracts.strategyManager.address,
-        optyMinter.address,
         TOKENS[TOKEN_STRATEGY.token],
         operator,
         admin,

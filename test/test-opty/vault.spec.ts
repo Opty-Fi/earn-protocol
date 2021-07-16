@@ -18,7 +18,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault.json";
-import { getContractInstance, deployContract, executeFunc } from "../../helpers/helpers";
+import { getContractInstance, executeFunc } from "../../helpers/helpers";
 
 type ARGUMENTS = {
   contractName?: string;
@@ -102,23 +102,9 @@ describe(scenario.title, () => {
           contracts["chi"] = CHIInstance;
         });
         beforeEach(async () => {
-          const opty = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY, false, users[0], [
-            essentialContracts["registry"].address,
-            0,
-          ]);
-
-          const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, users[0], [
-            essentialContracts["registry"].address,
-            opty.address,
-            await getBlockTimestamp(hre),
-          ]);
-
           Vault = await deployVault(
             hre,
             essentialContracts.registry.address,
-            essentialContracts.riskManager.address,
-            essentialContracts.strategyManager.address,
-            optyMinter.address,
             TOKENS[TOKEN_STRATEGY.token],
             users[0],
             users[1],

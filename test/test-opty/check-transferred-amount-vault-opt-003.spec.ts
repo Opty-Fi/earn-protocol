@@ -7,7 +7,7 @@ import { TOKENS, TESTING_DEPLOYMENT_ONCE, TESTING_CONTRACTS, ESSENTIAL_CONTRACTS
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
-import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions";
+import { unpauseVault } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/check-transferred-amount-vault-opt-003.json";
 import { getContractInstance, deployContract, executeFunc } from "../../helpers/helpers";
 
@@ -63,23 +63,10 @@ describe(scenario.title, () => {
       await executeFunc(contracts["registry"], operator, "approveToken(address)", [dummyToken.address]);
 
       contracts["erc20"] = dummyToken;
-      const opty = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY, false, operator, [
-        essentialContracts["registry"].address,
-        0,
-      ]);
-
-      const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, operator, [
-        essentialContracts["registry"].address,
-        opty.address,
-        await getBlockTimestamp(hre),
-      ]);
 
       Vault = await deployVault(
         hre,
         essentialContracts.registry.address,
-        essentialContracts.riskManager.address,
-        essentialContracts.strategyManager.address,
-        optyMinter.address,
         dummyToken.address,
         operator,
         admin,

@@ -16,7 +16,7 @@ import {
   getTokenSymbol,
   unpauseVault,
 } from "../../helpers/contracts-actions";
-import scenarios from "./scenarios/invest-limitation.json";
+import scenarios from "./scenarios/curve-deposit-invest-limitation.json";
 type ARGUMENTS = {
   amount?: { [key: string]: string };
   type?: number;
@@ -52,10 +52,8 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       const stories = vault.stories;
       const profile = vault.profile;
-      // For all adapters except CurvePool and CurveSwap
-      // @reason : CurvePool and CurveSwap don't follow the same approach for invest limitation compared to other adapters.
-      const adaptersName = Object.keys(TypedAdapterStrategies).filter(
-        strategy => !["CurvePoolAdapter", "CurveSwapAdapter"].includes(strategy),
+      const adaptersName = Object.keys(TypedAdapterStrategies).filter(strategy =>
+        ["CurveDepositPoolAdapter"].includes(strategy),
       );
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
