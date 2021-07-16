@@ -15,8 +15,8 @@ interface IModifiersController {
     function setOperator(address _operator) external;
 
     /**
-     * @notice Transfers minter to a new account (`_minter`)
-     * @param _minter address of minter's account
+     * @notice Transfers optyDistributor to a new account (`_optyDistributor`)
+     * @param _optyDistributor address of optyDistributor's account
      */
-    function setOPTYMinter(address _minter) external;
+    function setOPTYDistributor(address _optyDistributor) external;
 }

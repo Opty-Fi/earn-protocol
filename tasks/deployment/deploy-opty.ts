@@ -21,17 +21,17 @@ task("deploy-opty", "Deploy Opty")
 
     const opty = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY, deployedonce, owner, [registry, 100000000000000]);
 
-    const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, deployedonce, owner, [
+    const optyDistributor = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, deployedonce, owner, [
       registry,
       opty.address,
     ]);
 
     console.log(`Contract opty : ${opty.address}`);
-    console.log(`Contract optyMinter : ${optyMinter.address}`);
+    console.log(`Contract optyDistributor : ${optyDistributor.address}`);
 
     if (insertindb) {
       let err = await insertContractIntoDB(`opty`, opty.address);
-      err = await insertContractIntoDB(`optyMinter`, optyMinter.address);
+      err = await insertContractIntoDB(`optyDistributor`, optyDistributor.address);
       if (err !== "") {
         console.log(err);
       }

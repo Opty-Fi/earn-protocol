@@ -72,13 +72,15 @@ describe(scenario.title, () => {
       0,
     ]);
 
-    const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, users["owner"], [
+    const optyDistributor = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, false, users["owner"], [
       essentialContracts["registry"].address,
       opty.address,
       1700000000,
     ]);
 
-    await executeFunc(essentialContracts.registry, users["owner"], "setOPTYMinter(address)", [optyMinter.address]);
+    await executeFunc(essentialContracts.registry, users["owner"], "setOPTYDistributor(address)", [
+      optyDistributor.address,
+    ]);
 
     const Vault = await deployVault(
       hre,
@@ -97,7 +99,7 @@ describe(scenario.title, () => {
 
     contracts["registry"] = essentialContracts.registry;
 
-    contracts["optyMinter"] = optyMinter;
+    contracts["optyDistributor"] = optyDistributor;
 
     contracts["vault"] = Vault;
 

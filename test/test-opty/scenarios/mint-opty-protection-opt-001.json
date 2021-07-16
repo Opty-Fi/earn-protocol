@@ -1,12 +1,12 @@
 {
-  "title": "Protection of mintOpty function (OPTYMinter)",
+  "title": "Protection of mintOpty function (OPTYDistributor)",
   "description": "Test cases to check that non-staking pools addresses can't mint OPTY tokens",
   "stories": [
     {
-      "description": "Non-staking vault addresses shouldn't be able to mint OPTY tokens from OPTYMinter",
+      "description": "Non-staking vault addresses shouldn't be able to mint OPTY tokens from OPTYDistributor",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "mintOpty(address,uint256)",
           "args": {
             "contractName": "priceOracle",

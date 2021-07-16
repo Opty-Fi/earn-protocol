@@ -3,12 +3,12 @@
 pragma solidity ^0.6.12;
 
 /**
- * @title The interface for OPTY minter
+ * @title The interface for OPTY distributor
  * @author opty.fi
- * @notice The OPTY minter mints the governance token earned by loyal opty.fi users
+ * @notice The OPTY distributor mints the governance token earned by loyal opty.fi users
  */
 
-interface IOPTYMinter {
+interface IOPTYDistributor {
     /**
      * @notice Set the period to keep $OPTY locked within maximum period set during deployment
      * @param _operatorUnlockClaimOPTYTimestamp The timestamp until which $OPTY cannot be claimed
@@ -61,14 +61,14 @@ interface IOPTYMinter {
 
     /**
      * @notice Calculate additional accrued OPTY for a contributor since last accrual
-     * @dev Updates the state of the OPTYMinter related to $OPTY rewards
+     * @dev Updates the state of the OPTYDistributor related to $OPTY rewards
      * @param _vault the vault to claim $OPTY in
      * @param _user The address to calculate contributor rewards for
      */
     function updateUserRewards(address _vault, address _user) external;
 
     /**
-     * @notice Update the state of the OPTYMinter related to a market and an user
+     * @notice Update the state of the OPTYDistributor related to a market and an user
      * @param _vault the vault for which user state will be updated
      * @param _user the account address of the user
      */

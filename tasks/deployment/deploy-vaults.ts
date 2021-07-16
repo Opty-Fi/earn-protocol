@@ -6,10 +6,10 @@ task("deploy-vaults", "Deploy Core Vaults")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("riskmanager", "the address of riskManager", "", types.string)
   .addParam("strategymanager", "the address of strategyManager", "", types.string)
-  .addParam("optyminter", "the address of opty Minter", "", types.string)
+  .addParam("optydistributor", "the address of opty Distributor", "", types.string)
   .addParam("unpause", "unpause vault", false, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ registry, riskmanager, strategymanager, optyminter, insertindb, unpause }, hre) => {
+  .setAction(async ({ registry, riskmanager, strategymanager, optydistributor, insertindb, unpause }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -34,12 +34,12 @@ task("deploy-vaults", "Deploy Core Vaults")
       throw new Error("strategymanager address is invalid");
     }
 
-    if (optyminter === "") {
-      throw new Error("optyminter cannot be empty");
+    if (optydistributor === "") {
+      throw new Error("optydistributor cannot be empty");
     }
 
-    if (!isAddress(optyminter)) {
-      throw new Error("optyminter address is invalid");
+    if (!isAddress(optydistributor)) {
+      throw new Error("optydistributor address is invalid");
     }
 
     for (const token in TOKENS) {
@@ -53,7 +53,7 @@ task("deploy-vaults", "Deploy Core Vaults")
           registry: registry,
           riskmanager: riskmanager,
           strategymanager: strategymanager,
-          optyminter: optyminter,
+          optydistributor: optydistributor,
           unpause: unpause,
           insertindb: insertindb,
         });

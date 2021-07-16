@@ -538,10 +538,10 @@ contract StrategyManager is IStrategyManager, Modifiers {
 
     function _getUpdateUserRewardsCodes(address _vault, address _from) internal view returns (bytes[] memory _codes) {
         _codes = new bytes[](2);
-        address _optyMinter = registryContract.getOptyMinter();
+        address _optyDistributor = registryContract.getOPTYDistributor();
         address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
         _codes[0] = abi.encode(
-            _optyMinter,
+            _optyDistributor,
             abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
         );
         _codes[1] = abi.encode(
@@ -552,13 +552,13 @@ contract StrategyManager is IStrategyManager, Modifiers {
 
     function _getUpdateRewardVaultRateAndIndexCodes(address _vault) internal view returns (bytes[] memory _codes) {
         _codes = new bytes[](4);
-        address _optyMinter = registryContract.getOptyMinter();
+        address _optyDistributor = registryContract.getOPTYDistributor();
         address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
         _codes[0] = abi.encode(
-            _optyMinter,
+            _optyDistributor,
             abi.encodeWithSignature("updateOptyVaultRatePerSecondAndVaultToken(address)", _vault)
         );
-        _codes[1] = abi.encode(_optyMinter, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
+        _codes[1] = abi.encode(_optyDistributor, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
         _codes[2] = abi.encode(
             _odefiVaultBooster,
             abi.encodeWithSignature("updateOdefiVaultRatePerSecondAndVaultToken(address)", _vault)
@@ -572,10 +572,10 @@ contract StrategyManager is IStrategyManager, Modifiers {
         returns (bytes[] memory _codes)
     {
         _codes = new bytes[](2);
-        address _optyMinter = registryContract.getOptyMinter();
+        address _optyDistributor = registryContract.getOPTYDistributor();
         address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
         _codes[0] = abi.encode(
-            _optyMinter,
+            _optyDistributor,
             abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
         );
         _codes[1] = abi.encode(

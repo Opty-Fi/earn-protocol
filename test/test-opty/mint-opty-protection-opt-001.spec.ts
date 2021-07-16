@@ -24,7 +24,7 @@ describe(scenario.title, () => {
       assert.isDefined(adapters, "Adapters not deployed");
       contracts["priceOracle"] = essentialContracts.priceOracle;
 
-      contracts["optyMinter"] = essentialContracts.optyMinter;
+      contracts["optyDistributor"] = essentialContracts.optyDistributor;
     } catch (error) {
       console.log(error);
     }

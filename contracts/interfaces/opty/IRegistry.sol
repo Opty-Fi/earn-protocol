@@ -383,10 +383,10 @@ interface IRegistry {
     function getRiskManager() external view returns (address);
 
     /**
-     * @notice Get the OptyMinter contract address
-     * @return Returns the OptyMinter contract address
+     * @notice Get the OPTYDistributor contract address
+     * @return Returns the OPTYDistributor contract address
      */
-    function getOptyMinter() external view returns (address);
+    function getOPTYDistributor() external view returns (address);
 
     /**
      * @notice Get the ODEFIVaultBooster contract address

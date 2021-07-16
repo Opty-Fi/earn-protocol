@@ -1,12 +1,12 @@
 {
   "title": "Claim OPTY Timestamp Limitation",
-  "description": "Test cases for Claim OPTY timestamp limitation in Opty Minter contract",
+  "description": "Test cases for Claim OPTY timestamp limitation in Opty Distributor contract",
   "stories": [
     {
       "description": "Non-Operator can't set operatorUnlockClaimOPTYTimestamp",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
             "operatorUnlockClaimOPTYTimestamp": 1631863987
@@ -22,7 +22,7 @@
       "description": "Operator can't set operatorUnlockClaimOPTYTimestamp to a value greater than maxUnlockClaimOPTYTimestamp",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
             "operatorUnlockClaimOPTYTimestamp": 1700000001
@@ -38,7 +38,7 @@
       "description": "Operator can set operatorUnlockClaimOPTYTimestamp",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
             "operatorUnlockClaimOPTYTimestamp": 1631863987
@@ -50,7 +50,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "operatorUnlockClaimOPTYTimestamp()",
           "args": {},
           "expectedValue": 1631863987
@@ -61,7 +61,7 @@
       "description": "User shouldn't be able to claim OPTY before operatorUnlockClaimOPTYTimestamp",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
             "operatorUnlockClaimOPTYTimestamp": 1631863987
@@ -71,7 +71,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimOpty(address)",
           "args": {
             "addressName": "owner"
@@ -87,7 +87,7 @@
       "description": "User should be able to claim OPTY after operatorUnlockClaimOPTYTimestamp",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -97,7 +97,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -108,7 +108,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -119,7 +119,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
             "operatorUnlockClaimOPTYTimestamp": 1621863987
@@ -150,7 +150,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimOpty(address)",
           "args": {
             "addressName": "owner"

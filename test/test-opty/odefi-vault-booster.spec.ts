@@ -73,7 +73,7 @@ describe(scenario.title, () => {
       0,
     ]);
 
-    const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, users["owner"], [
+    const optyDistributor = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, false, users["owner"], [
       essentialContracts["registry"].address,
       opty.address,
       await getBlockTimestamp(hre),
@@ -129,7 +129,7 @@ describe(scenario.title, () => {
 
     contracts["registry"] = essentialContracts.registry;
 
-    contracts["optyMinter"] = optyMinter;
+    contracts["optyDistributor"] = optyDistributor;
 
     contracts["vault"] = Vault;
 

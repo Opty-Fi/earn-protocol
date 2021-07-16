@@ -5,7 +5,7 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY: "VaultStepInvestStrategyDefinitionRegistry",
   STRATEGY_MANAGER: "StrategyManager",
   OPTY: "OPTY",
-  OPTY_MINTER: "OPTYMinter",
+  OPTY_DISTRIBUTOR: "OPTYDistributor",
   RISK_MANAGER: "RiskManager",
   STRATEGY_PROVIDER: "StrategyProvider",
   HARVEST_CODE_PROVIDER: "HarvestCodeProvider",

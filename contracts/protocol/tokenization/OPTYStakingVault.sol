@@ -15,7 +15,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 // interfaces
-import { IOPTYMinter } from "../../interfaces/opty/IOPTYMinter.sol";
+import { IOPTYDistributor } from "../../interfaces/opty/IOPTYDistributor.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
 import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -246,8 +246,8 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
             uint256 _deltaBlocks = getBlockTimestamp().sub(lastPoolUpdate);
             uint256 optyAccrued = _deltaBlocks.mul(optyRatePerSecond);
             lastPoolUpdate = getBlockTimestamp();
-            IOPTYMinter _optyMinterContract = IOPTYMinter(registryContract.getOptyMinter());
-            _optyMinterContract.mintOpty(address(this), optyAccrued);
+            IOPTYDistributor _optyDistributorContract = IOPTYDistributor(registryContract.getOPTYDistributor());
+            _optyDistributorContract.mintOpty(address(this), optyAccrued);
         }
         require(
             IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateOptyRates(),

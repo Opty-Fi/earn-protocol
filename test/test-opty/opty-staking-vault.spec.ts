@@ -8,7 +8,7 @@ import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions
 
 type ARGUMENTS = {
   token?: string;
-  OPTYMinter?: string;
+  OPTYDistributor?: string;
   rate?: string;
   OPTYStakingRateBalancer?: string;
   spender?: string;

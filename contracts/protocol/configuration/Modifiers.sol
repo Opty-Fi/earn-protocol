@@ -60,10 +60,10 @@ abstract contract Modifiers is IModifiers {
     }
 
     /**
-     * @notice Modifier to check caller is minter or not
+     * @notice Modifier to check caller is optyDistributor or not
      */
-    modifier onlyMinter() {
-        require(msg.sender == registryContract.getOptyMinter(), "!minter");
+    modifier onlyOPTYDistributor() {
+        require(msg.sender == registryContract.getOPTYDistributor(), "!optyDistributor");
         _;
     }
 

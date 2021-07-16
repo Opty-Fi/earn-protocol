@@ -34,7 +34,7 @@ describe(scenario.title, () => {
 
     await executeFunc(essentialContracts.registry, users["owner"], "approveToken(address)", [opty.address]);
 
-    const optyMinter = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_MINTER, false, users["owner"], [
+    const optyDistributor = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, false, users["owner"], [
       essentialContracts.registry.address,
       opty.address,
       await getBlockTimestamp(hre),
@@ -72,11 +72,22 @@ describe(scenario.title, () => {
       [essentialContracts.registry.address, opty.address, 15552000, "180D"],
     );
 
-    await executeFunc(essentialContracts.registry, users["owner"], "setOPTYMinter(address)", [optyMinter.address]);
-    await executeFunc(optyMinter, users["owner"], "setStakingVault(address,bool)", [optyStakingVault1D.address, true]);
-    await executeFunc(optyMinter, users["owner"], "setStakingVault(address,bool)", [optyStakingVault30D.address, true]);
-    await executeFunc(optyMinter, users["owner"], "setStakingVault(address,bool)", [optyStakingVault60D.address, true]);
-    await executeFunc(optyMinter, users["owner"], "setStakingVault(address,bool)", [
+    await executeFunc(essentialContracts.registry, users["owner"], "setOPTYDistributor(address)", [
+      optyDistributor.address,
+    ]);
+    await executeFunc(optyDistributor, users["owner"], "setStakingVault(address,bool)", [
+      optyStakingVault1D.address,
+      true,
+    ]);
+    await executeFunc(optyDistributor, users["owner"], "setStakingVault(address,bool)", [
+      optyStakingVault30D.address,
+      true,
+    ]);
+    await executeFunc(optyDistributor, users["owner"], "setStakingVault(address,bool)", [
+      optyStakingVault60D.address,
+      true,
+    ]);
+    await executeFunc(optyDistributor, users["owner"], "setStakingVault(address,bool)", [
       optyStakingVault180D.address,
       true,
     ]);
@@ -132,7 +143,7 @@ describe(scenario.title, () => {
       await unpauseVault(users["owner"], essentialContracts.registry, contracts[stakingVaultNames[i]].address, true);
     }
 
-    contracts["optyMinter"] = optyMinter;
+    contracts["optyDistributor"] = optyDistributor;
 
     contracts["opty"] = opty;
   });

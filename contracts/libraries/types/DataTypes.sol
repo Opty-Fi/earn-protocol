@@ -179,13 +179,13 @@ library DataTypes {
      * @notice Container for persisting contract addresses required by vault contract
      * @param strategyManager strategyManager contract address
      * @param riskManager riskManager contract address
-     * @param optyMinter optyMinter contract address
+     * @param optyDistributor optyDistributor contract address
      * @param operator operator contract address
      */
     struct VaultStrategyConfiguration {
         address strategyManager;
         address riskManager;
-        address optyMinter;
+        address optyDistributor;
         address odefiVaultBooster;
         address operator;
     }

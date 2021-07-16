@@ -15,7 +15,7 @@ import { IModifiersController } from "../../interfaces/opty/IModifiersController
  * @title ModifiersController Contract
  * @author Opty.fi
  * @notice Contract used by registry contract and acts as source of truth
- * @dev It manages operator, minter addresses as well as modifiers
+ * @dev It manages operator, optyDistributor addresses as well as modifiers
  */
 abstract contract ModifiersController is IModifiersController, RegistryStorage {
     using Address for address;
@@ -32,10 +32,10 @@ abstract contract ModifiersController is IModifiersController, RegistryStorage {
     /**
      * @inheritdoc IModifiersController
      */
-    function setOPTYMinter(address _minter) public override onlyGovernance {
-        require(_minter != address(0), "!address(0)");
-        minter = _minter;
-        emit TransferOPTYMinter(minter, msg.sender);
+    function setOPTYDistributor(address _optyDistributor) public override onlyGovernance {
+        require(_optyDistributor != address(0), "!address(0)");
+        optyDistributor = _optyDistributor;
+        emit TransferOPTYDistributor(optyDistributor, msg.sender);
     }
 
     /**
@@ -55,10 +55,10 @@ abstract contract ModifiersController is IModifiersController, RegistryStorage {
     }
 
     /**
-     * @notice Modifier to check caller is minter or not
+     * @notice Modifier to check caller is optyDistributor or not
      */
-    modifier onlyMinter() {
-        require(msg.sender == minter, "caller is not the minter");
+    modifier onlyOptyDistributor() {
+        require(msg.sender == optyDistributor, "caller is not the optyDistributor");
         _;
     }
 }

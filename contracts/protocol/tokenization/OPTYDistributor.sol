@@ -5,23 +5,23 @@ pragma solidity ^0.6.12;
 // helper contracts
 import { ExponentialNoError } from "../../dependencies/compound/ExponentialNoError.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
-import { OPTYMinterStorage } from "./OPTYMinterStorage.sol";
+import { OPTYDistributorStorage } from "./OPTYDistributorStorage.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
 import { IOPTY } from "../../interfaces/opty/IOPTY.sol";
-import { IOPTYMinter } from "../../interfaces/opty/IOPTYMinter.sol";
+import { IOPTYDistributor } from "../../interfaces/opty/IOPTYDistributor.sol";
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
 /**
- * @title OPTYMinter inspired from compound.finance
+ * @title OPTYDistributor inspired from compound.finance
  * @author opty.fi
  * @notice This contract distributes $OPTY to opty.fi's earn protocol users
  * @dev This contract keeps accounts of, claim and stake $OPTY tokens.
  */
 
-contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modifiers {
+contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, ExponentialNoError, Modifiers {
     constructor(
         address _registry,
         address _opty,
@@ -52,7 +52,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function setOperatorUnlockClaimOPTYTimestamp(uint256 _operatorUnlockClaimOPTYTimestamp)
         external
@@ -69,7 +69,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function setStakingVault(address _stakingVault, bool _enable)
         external
@@ -83,7 +83,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function claimAndStake(address _stakingVault) external override isOperatorTimeLockPeriodEnded {
         address[] memory holders = new address[](1);
@@ -94,7 +94,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function claimOpty(address _holder) external override isOperatorTimeLockPeriodEnded returns (uint256 _amount) {
         address[] memory holders = new address[](1);
@@ -103,7 +103,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function claimOpty(address _holder, address[] memory _vaults)
         external
@@ -117,7 +117,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function claimOpty(address[] memory _holders, address[] memory _vaults)
         external
@@ -129,7 +129,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function updateUserStateInVault(address _vault, address _user) external override {
         if (optyVaultRatePerSecond[_vault] > 0) {
@@ -139,7 +139,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function updateOptyVaultRatePerSecondAndVaultToken(address _vault) external override returns (bool) {
         if (optyVaultRatePerSecond[_vault] > 0) {
@@ -151,7 +151,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function updateOptyVaultIndex(address _vault) external override returns (uint224) {
         if (optyVaultRatePerSecond[_vault] > 0) {
@@ -189,7 +189,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function mintOpty(address _user, uint256 _amount)
         external
@@ -201,7 +201,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function setOptyVaultRate(address _vault, uint256 _rate) external override onlyOperator returns (bool _success) {
         optyVaultRatePerSecond[_vault] = _rate;
@@ -209,7 +209,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function addOptyVault(address _vault) external override onlyOperator returns (bool _success) {
         for (uint256 i = 0; i < allOptyVaults.length; i++) {
@@ -220,7 +220,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function setOptyVault(address _vault, bool _enable) external override onlyOperator returns (bool _success) {
         optyVaultEnabled[_vault] = _enable;
@@ -228,14 +228,14 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function claimableOpty(address _holder) external view override returns (uint256 _amount) {
         _amount = claimableOpty(_holder, allOptyVaults);
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function updateUserRewards(address _vault, address _user) public override {
         if (optyVaultRatePerSecond[_vault] > 0) {
@@ -271,14 +271,14 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function getOptyAddress() public view override returns (address) {
         return optyAddress;
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function claimableOpty(address _holder, address[] memory _vaults) public view override returns (uint256) {
         uint256 claimableOptyAmount;
@@ -313,7 +313,7 @@ contract OPTYMinter is IOPTYMinter, OPTYMinterStorage, ExponentialNoError, Modif
     }
 
     /**
-     * @inheritdoc IOPTYMinter
+     * @inheritdoc IOPTYDistributor
      */
     function currentOptyVaultIndex(address _vault) public view override returns (uint256 _index) {
         uint256 _deltaSecondsSinceStart = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_vault]);

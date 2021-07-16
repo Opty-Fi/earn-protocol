@@ -8,7 +8,7 @@ export type ESSENTIAL_CONTRACTS = {
   riskManager: Contract;
   strategyManager: Contract;
   opty: Contract;
-  optyMinter: Contract;
+  optyDistributor: Contract;
   priceOracle: Contract;
 };
 

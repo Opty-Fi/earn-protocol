@@ -5,12 +5,12 @@ pragma solidity ^0.6.12;
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
 /**
- * @title OPTY Minter state that can change
+ * @title OPTY Distributor state that can change
  * @author opty.fi
- * @dev The storage contract for the $OPTY minter's state variables.
+ * @dev The storage contract for the $OPTY distributor's state variables.
  */
 
-contract OPTYMinterStorage {
+contract OPTYDistributorStorage {
     /**
      * @notice Whitelisted $OPTY staking vaults
      */

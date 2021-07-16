@@ -1,12 +1,12 @@
 {
-  "title": "Opty Minter",
-  "description": "Test cases for Opty Minter contract",
+  "title": "Opty Distributor",
+  "description": "Test cases for OptyDistributor contract",
   "stories": [
     {
       "description": "Operator can add opty vault",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -18,7 +18,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "allOptyVaults(uint256)",
           "args": {
             "index": 0
@@ -31,7 +31,7 @@
       "description": "Non-Operator can't add opty vault",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -47,7 +47,7 @@
       "description": "Operator can set opty vault",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -57,7 +57,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -70,7 +70,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "optyVaultEnabled(address)",
           "args": {
             "contractName": "vault"
@@ -83,7 +83,7 @@
       "description": "Non-Operator can't set opty vault",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -93,7 +93,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -110,7 +110,7 @@
       "description": "Operator can set opty vault rate",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -120,7 +120,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -133,7 +133,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "optyVaultRatePerSecond(address)",
           "args": {
             "contractName": "vault"
@@ -146,7 +146,7 @@
       "description": "Non-Operator can't set opty vault rate",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -156,7 +156,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -173,7 +173,7 @@
       "description": "User should have opty token equal its rate after running userDepositReBalance",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -183,7 +183,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -194,7 +194,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -228,7 +228,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -241,7 +241,7 @@
       "description": "User shouldn't earn opty if Vault isn't enabled",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -251,7 +251,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -262,7 +262,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -296,7 +296,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -309,7 +309,7 @@
       "description": "User shouldn't earn any more opty after transfering all vault token",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -319,7 +319,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -330,7 +330,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -375,7 +375,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -383,7 +383,7 @@
           "expectedValue": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -396,7 +396,7 @@
       "description": "User should earn opty from both registered vaults",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -406,7 +406,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -417,7 +417,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -428,7 +428,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault2"
@@ -438,7 +438,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault2",
@@ -449,7 +449,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault2",
@@ -504,7 +504,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -514,7 +514,7 @@
       ]
     },
     {
-      "description": "User cannot mint opty if the user is not minter",
+      "description": "User cannot mint opty if the user is not optyDistributor",
       "setActions": [
         {
           "contract": "opty",
@@ -525,10 +525,10 @@
           },
           "executer": "admin",
           "expect": "fail",
-          "message": "!minter"
+          "message": "!optyDistributor"
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "mintOpty(address,uint256)",
           "args": {
             "addressName": "admin",
@@ -545,7 +545,7 @@
       "description": "User1 and User2 deposit, User1 depositRebalance. Then, both of them should have opty token",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -555,7 +555,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -566,7 +566,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -653,7 +653,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -661,7 +661,7 @@
           "expectedValue": "50"
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "user1"
@@ -675,16 +675,16 @@
       "setActions": [
         {
           "contract": "registry",
-          "action": "setOPTYMinter(address)",
+          "action": "setOPTYDistributor(address)",
           "args": {
-            "contractName": "optyMinter"
+            "contractName": "optyDistributor"
           },
           "executer": "owner",
           "expect": "success",
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -694,7 +694,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -705,7 +705,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -737,7 +737,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimOpty(address)",
           "args": {
             "addressName": "owner"
@@ -749,7 +749,7 @@
       ],
       "getActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimableOpty(address)",
           "args": {
             "addressName": "owner"
@@ -767,10 +767,10 @@
       ]
     },
     {
-      "description": "User shouldn't able to claim opty token if optyMinter address is not set as Minter in Registry",
+      "description": "User shouldn't able to claim opty token if optyDistributor address is not set as OptyDistributor in Registry",
       "setActions": [
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "addOptyVault(address)",
           "args": {
             "contractName": "vault"
@@ -780,7 +780,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVault(address,bool)",
           "args": {
             "contractName": "vault",
@@ -791,7 +791,7 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "setOptyVaultRate(address,uint256)",
           "args": {
             "contractName": "vault",
@@ -823,14 +823,14 @@
           "message": ""
         },
         {
-          "contract": "optyMinter",
+          "contract": "optyDistributor",
           "action": "claimOpty(address)",
           "args": {
             "addressName": "owner"
           },
           "executer": "owner",
           "expect": "fail",
-          "message": "!minter"
+          "message": "!optyDistributor"
         }
       ],
       "getActions": []
