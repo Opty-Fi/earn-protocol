@@ -482,7 +482,7 @@ contract Registry is IRegistry, ModifiersController {
     function updateRiskProfileSteps(string memory _riskProfile, uint8 _noOfSteps)
         external
         override
-        onlyOperator
+        onlyRiskOperator
         returns (bool)
     {
         _updateRiskProfileSteps(_riskProfile, _noOfSteps);
@@ -495,7 +495,7 @@ contract Registry is IRegistry, ModifiersController {
     function updateRPPoolRatings(string memory _riskProfile, DataTypes.PoolRatingsRange memory _poolRatingRange)
         external
         override
-        onlyOperator
+        onlyRiskOperator
         returns (bool)
     {
         _updateRPPoolRatings(_riskProfile, _poolRatingRange);

@@ -2089,7 +2089,25 @@
       "cleanActions": []
     },
     {
-      "description": "Operator should be able to update no. of steps for Risk Profile",
+      "description": "Non-RiskOperator shouldn't be able to add a Risk Profile",
+      "setActions": [
+        {
+          "action": "addRiskProfile(string,uint8,(uint8,uint8))",
+          "args": {
+            "riskProfile": "RP1",
+            "noOfSteps": 1,
+            "poolRatingRange": [0, 10]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the risk operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "RiskOperator should be able to update no. of steps for Risk Profile",
       "setActions": [
         {
           "action": "addRiskProfile(string,uint8,(uint8,uint8))",
@@ -2108,7 +2126,7 @@
             "riskProfile": "RP3",
             "noOfSteps": 2
           },
-          "executor": "operator",
+          "executor": "riskOperator",
           "expect": "success",
           "message": ""
         }
@@ -2132,7 +2150,7 @@
       "cleanActions": []
     },
     {
-      "description": "Operator shouldn't be able to update no. of steps for non-existing Risk Profile",
+      "description": "RiskOperator shouldn't be able to update no. of steps for non-existing Risk Profile",
       "setActions": [
         {
           "action": "updateRiskProfileSteps(string,uint8)",
@@ -2140,7 +2158,7 @@
             "riskProfile": "Non-Existing-RP",
             "noOfSteps": 2
           },
-          "executor": "operator",
+          "executor": "riskOperator",
           "expect": "fail",
           "message": "!Rp_Exists"
         }
@@ -2149,7 +2167,7 @@
       "cleanActions": []
     },
     {
-      "description": "Operator should be able to update pool ratings for Risk Profile",
+      "description": "Non-RiskOperator should be able to update no. of steps for Risk Profile",
       "setActions": [
         {
           "action": "addRiskProfile(string,uint8,(uint8,uint8))",
@@ -2163,53 +2181,21 @@
           "message": ""
         },
         {
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "action": "updateRiskProfileSteps(string,uint8)",
           "args": {
             "riskProfile": "RP4",
-            "poolRatingRange": [0, 20]
+            "noOfSteps": 2
           },
-          "executor": "operator",
-          "expect": "success",
-          "message": ""
-        }
-      ],
-      "getActions": [
-        {
-          "action": "riskProfiles(string)",
-
-          "args": {
-            "riskProfile": "RP4"
-          },
-          "expectedMultiValues": {
-            "noOfSteps": 1,
-            "lowerLimit": 0,
-            "upperLimit": 20,
-            "exists": true
-          },
-          "expectedValue": ""
-        }
-      ],
-      "cleanActions": []
-    },
-    {
-      "description": "Operator shouldn't be able to update pool ratings for non-existing Risk Profile",
-      "setActions": [
-        {
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
-          "args": {
-            "riskProfile": "Non-Existing-RP",
-            "poolRatingRange": [0, 20]
-          },
-          "executor": "operator",
+          "executor": "user1",
           "expect": "fail",
-          "message": "!Rp_Exists"
+          "message": "caller is not the risk operator"
         }
       ],
       "getActions": [],
       "cleanActions": []
     },
     {
-      "description": "RiskOperator should be able to remove the Risk Profile",
+      "description": "RiskOperator should be able to update pool ratings for Risk Profile",
       "setActions": [
         {
           "action": "addRiskProfile(string,uint8,(uint8,uint8))",
@@ -2223,9 +2209,96 @@
           "message": ""
         },
         {
-          "action": "removeRiskProfile(uint256)",
+          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "args": {
+            "riskProfile": "RP5",
+            "poolRatingRange": [0, 20]
+          },
+          "executor": "riskOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "riskProfiles(string)",
           "args": {
             "riskProfile": "RP5"
+          },
+          "expectedMultiValues": {
+            "noOfSteps": 1,
+            "lowerLimit": 0,
+            "upperLimit": 20,
+            "exists": true
+          },
+          "expectedValue": ""
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "RiskOperator shouldn't be able to update pool ratings for non-existing Risk Profile",
+      "setActions": [
+        {
+          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "args": {
+            "riskProfile": "Non-Existing-RP",
+            "poolRatingRange": [0, 20]
+          },
+          "executor": "riskOperator",
+          "expect": "fail",
+          "message": "!Rp_Exists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-RiskOperator shouldn't be able to update pool ratings for Risk Profile",
+      "setActions": [
+        {
+          "action": "addRiskProfile(string,uint8,(uint8,uint8))",
+          "args": {
+            "riskProfile": "RP6",
+            "noOfSteps": 1,
+            "poolRatingRange": [0, 10]
+          },
+          "executor": "riskOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "args": {
+            "riskProfile": "RP6",
+            "poolRatingRange": [0, 20]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the risk operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "RiskOperator should be able to remove the Risk Profile",
+      "setActions": [
+        {
+          "action": "addRiskProfile(string,uint8,(uint8,uint8))",
+          "args": {
+            "riskProfile": "RP7",
+            "noOfSteps": 1,
+            "poolRatingRange": [0, 10]
+          },
+          "executor": "riskOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "removeRiskProfile(uint256)",
+          "args": {
+            "riskProfile": "RP7"
           },
           "executor": "riskOperator",
           "expect": "success",
@@ -2237,7 +2310,7 @@
           "action": "riskProfiles(string)",
 
           "args": {
-            "riskProfile": "RP5"
+            "riskProfile": "RP7"
           },
           "expectedMultiValues": {
             "noOfSteps": 0,
@@ -2267,12 +2340,39 @@
       "cleanActions": []
     },
     {
+      "description": "Non-RiskOperator should be able to remove the Risk Profile",
+      "setActions": [
+        {
+          "action": "addRiskProfile(string,uint8,(uint8,uint8))",
+          "args": {
+            "riskProfile": "RP8",
+            "noOfSteps": 1,
+            "poolRatingRange": [0, 10]
+          },
+          "executor": "riskOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "removeRiskProfile(uint256)",
+          "args": {
+            "riskProfile": "RP8"
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the risk operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "RiskOperator should be able to set a multiple Risk Profiles",
       "setActions": [
         {
           "action": "addRiskProfile(string[],uint8[],(uint8,uint8)[])",
           "args": {
-            "riskProfile": ["RP6", "RP7", "RP8"],
+            "riskProfile": ["RP9", "RP10", "RP11"],
             "noOfSteps": [1, 2, 3],
             "poolRatingsRange": [
               [0, 20],
@@ -2289,7 +2389,7 @@
         {
           "action": "riskProfiles(string)",
           "args": {
-            "riskProfile": "RP6"
+            "riskProfile": "RP9"
           },
           "expectedMultiValues": {
             "noOfSteps": 1,
@@ -2302,7 +2402,7 @@
         {
           "action": "riskProfiles(string)",
           "args": {
-            "riskProfile": "RP7"
+            "riskProfile": "RP10"
           },
           "expectedMultiValues": {
             "noOfSteps": 2,
@@ -2315,7 +2415,7 @@
         {
           "action": "riskProfiles(string)",
           "args": {
-            "riskProfile": "RP8"
+            "riskProfile": "RP11"
           },
           "expectedMultiValues": {
             "noOfSteps": 3,
@@ -2326,6 +2426,28 @@
           "expectedValue": ""
         }
       ],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-RiskOperator shouldn't be able to set a multiple Risk Profiles",
+      "setActions": [
+        {
+          "action": "addRiskProfile(string[],uint8[],(uint8,uint8)[])",
+          "args": {
+            "riskProfile": ["RP1", "RP2", "RP3"],
+            "noOfSteps": [1, 2, 3],
+            "poolRatingsRange": [
+              [0, 20],
+              [0, 40],
+              [0, 60]
+            ]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the risk operator"
+        }
+      ],
+      "getActions": [],
       "cleanActions": []
     },
     {
@@ -2410,7 +2532,7 @@
         {
           "action": "addRiskProfile(string,uint8,(uint8,uint8))",
           "args": {
-            "riskProfile": "RP9",
+            "riskProfile": "RP12",
             "noOfSteps": 1,
             "poolRatingRange": [0, 10]
           },
@@ -2422,7 +2544,7 @@
           "action": "setUnderlyingAssetHashToRPToVaults(address[],string,address)",
           "args": {
             "tokens": ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-            "riskProfile": "RP9",
+            "riskProfile": "RP12",
             "vault": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
           },
           "executor": "operator",
@@ -2435,7 +2557,7 @@
           "action": "underlyingAssetHashToRPToVaults(bytes32,string)",
           "args": {
             "tokens": ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-            "riskProfile": "RP9"
+            "riskProfile": "RP12"
           },
           "expectedValue": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
           "expectedMultiValues": {}
@@ -2449,7 +2571,7 @@
         {
           "action": "addRiskProfile(string,uint8,(uint8,uint8))",
           "args": {
-            "riskProfile": "RP10",
+            "riskProfile": "RP13",
             "noOfSteps": 1,
             "poolRatingRange": [0, 10]
           },
@@ -2464,7 +2586,7 @@
               ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
               ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
             ],
-            "riskProfiles": ["RP10"],
+            "riskProfiles": ["RP13"],
             "vaults": [["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x797AAB1ce7c01eB727ab980762bA88e7133d2157"]]
           },
           "executor": "operator",
@@ -2477,7 +2599,7 @@
           "action": "underlyingAssetHashToRPToVaults(bytes32,string)",
           "args": {
             "tokens": ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-            "riskProfile": "RP10"
+            "riskProfile": "RP13"
           },
           "expectedValue": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
           "expectedMultiValues": {}
@@ -2486,7 +2608,7 @@
           "action": "underlyingAssetHashToRPToVaults(bytes32,string)",
           "args": {
             "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"],
-            "riskProfile": "RP10"
+            "riskProfile": "RP13"
           },
           "expectedValue": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
           "expectedMultiValues": {}
