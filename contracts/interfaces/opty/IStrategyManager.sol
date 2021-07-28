@@ -49,13 +49,6 @@ interface IStrategyManager {
     function getClaimRewardStepsCount(bytes32 _investStrategyHash) external view returns (uint8);
 
     /**
-     * @dev Get the harvest reward token codes steps count for the given stretagy hash
-     * @param _investStrategyHash Hash of the strategy being used in vault contract
-     * @return Returns the harvest reward token codes steps count for the given stretagy hash
-     */
-    function getHarvestRewardStepsCount(bytes32 _investStrategyHash) external view returns (uint8);
-
-    /**
      * @notice Get the balance of vault in underlyingToken provided
      * @param _vault Vault contract address
      * @param _underlyingToken Underlying token (eg: DAI, USDC etc.) address

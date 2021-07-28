@@ -72,13 +72,6 @@ contract StrategyManager is IStrategyManager, Modifiers {
     /**
      * @inheritdoc IStrategyManager
      */
-    function getHarvestRewardStepsCount(bytes32 _investStrategyhash) public view override returns (uint8) {
-        return _getHarvestRewardStepsCount(_investStrategyhash);
-    }
-
-    /**
-     * @inheritdoc IStrategyManager
-     */
     function getBalanceInUnderlyingToken(
         address payable _vault,
         address _underlyingToken,
@@ -478,17 +471,6 @@ contract StrategyManager is IStrategyManager, Modifiers {
             } // borrow
             _outputTokenAmount = _balance;
         }
-    }
-
-    function _getHarvestRewardStepsCount(bytes32 _hash) internal view returns (uint8) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_hash);
-        uint256 _lastStepIndex = uint8(_strategySteps.length) - 1;
-        address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
-        address _lastStepOptyAdapter = registryContract.getLiquidityPoolToAdapter(_lastStepLiquidityPool);
-        if (IAdapterFull(_lastStepOptyAdapter).getRewardToken(_lastStepLiquidityPool) != address(0)) {
-            return uint8(1);
-        }
-        return uint8(0);
     }
 
     function _getClaimRewardStepsCount(bytes32 _investStrategyhash) internal view returns (uint8) {
