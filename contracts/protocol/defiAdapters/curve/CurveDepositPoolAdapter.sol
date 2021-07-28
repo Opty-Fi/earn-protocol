@@ -137,13 +137,13 @@ contract CurveDepositPoolAdapter is
             address _gauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
             _liquidityPoolTokenAmount = ICurveGauge(_gauge).balanceOf(_vault);
         }
-        int128 tokenIndex = 0;
+        int128 tokenIndex;
         for (uint8 i = 0; i < _underlyingTokens.length; i++) {
             if (_underlyingTokens[i] == _underlyingToken) {
                 tokenIndex = i;
             }
         }
-        uint256 _b = 0;
+        uint256 _b;
         if (_liquidityPoolTokenAmount > 0) {
             _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
         }
