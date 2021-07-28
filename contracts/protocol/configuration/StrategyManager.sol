@@ -44,7 +44,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash
-    ) external override returns (uint256 _balance) {
+    ) external override returns (uint256) {
         return _getBalanceInUnderlyingTokenWrite(_vault, _underlyingToken, _investStrategyhash);
     }
 
