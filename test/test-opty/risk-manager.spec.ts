@@ -1,5 +1,6 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
+import { Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
 import {
@@ -23,14 +24,11 @@ type ARGUMENTS = {
 
 describe(scenario.title, () => {
   let contracts: CONTRACTS = {};
-  const daiStrategies = TypedStrategies.filter(strategy => strategy.token === "DAI");
-  const defaultStrategy = daiStrategies[0];
   const riskProfile = "RP1";
-  const tokenHash = generateTokenHash([TypedTokens["DAI"]]);
-  const defaultStrategyHash = generateStrategyHash(defaultStrategy.strategy, TypedTokens["DAI"]);
+  let owner: Signer;
   before(async () => {
     try {
-      const [owner] = await hre.ethers.getSigners();
+      [owner] = await hre.ethers.getSigners();
       const registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
       const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
         hre,
@@ -65,28 +63,57 @@ describe(scenario.title, () => {
       contracts = { registry, vaultStepInvestStrategyDefinitionRegistry, strategyProvider, riskManager };
 
       await registry["addRiskProfile(string,bool,(uint8,uint8))"](riskProfile, false, [0, 10]);
-      await approveToken(owner, registry, [TypedTokens["DAI"]]);
 
-      const defaultStrategySteps = generateStrategyStep(defaultStrategy.strategy);
-      await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
-        tokenHash,
-        defaultStrategySteps,
+      const usedTokens = TypedStrategies.map(item => item.token).filter(
+        (value, index, self) => self.indexOf(value) === index,
       );
+      for (let i = 0; i < usedTokens.length; i++) {
+        try {
+          await approveToken(owner, contracts["registry"], [TypedTokens[usedTokens[i].toUpperCase()]]);
+        } catch (error) {
+          continue;
+        }
+      }
     } catch (error) {
       console.log(error);
     }
   });
 
-  for (let i = 1; i < daiStrategies.length; i++) {
-    const strategy = daiStrategies[i];
-    const strategyHash = generateStrategyHash(strategy.strategy, TypedTokens[strategy.token]);
+  for (let i = 0; i < TypedStrategies.length; i++) {
+    const strategy = TypedStrategies[i];
+    const tokenHash = generateTokenHash([TypedTokens[strategy.token.toUpperCase()]]);
+    const strategyHash = generateStrategyHash(strategy.strategy, TypedTokens[strategy.token.toUpperCase()]);
+    const defaultStrategy = TypedStrategies.filter(
+      item => item.token === strategy.token && item.strategyName !== strategy.strategyName,
+    )[0];
+    if (!defaultStrategy) {
+      continue;
+    }
+    const defaultStrategyHash = generateStrategyHash(
+      defaultStrategy.strategy,
+      TypedTokens[defaultStrategy.token.toUpperCase()],
+    );
     let isCheckDefault = false;
     before(async () => {
-      const strategySteps = generateStrategyStep(strategy.strategy);
-      await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
-        tokenHash,
-        strategySteps,
-      );
+      const setDefaultStrategy = (
+        await contracts["vaultStepInvestStrategyDefinitionRegistry"].getStrategy(defaultStrategyHash)
+      )._strategySteps[0];
+      if (!setDefaultStrategy) {
+        const defaultStrategySteps = generateStrategyStep(defaultStrategy.strategy);
+        await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
+          tokenHash,
+          defaultStrategySteps,
+        );
+      }
+      const setStrategy = (await contracts["vaultStepInvestStrategyDefinitionRegistry"].getStrategy(strategyHash))
+        ._strategySteps[0];
+      if (!setStrategy) {
+        const strategySteps = generateStrategyStep(strategy.strategy);
+        await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
+          tokenHash,
+          strategySteps,
+        );
+      }
     });
     describe(strategy.strategyName, () => {
       for (let i = 0; i < scenario.stories.length; i++) {
@@ -144,24 +171,27 @@ describe(scenario.title, () => {
                     contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash),
                   ).to.be.revertedWith(action.message);
                 }
-
                 break;
               }
               case "setBestDefaultStrategy(string,bytes32,bytes32)": {
                 const { score }: ARGUMENTS = action.args;
                 const scoredPools: [string, number][] = [];
-                const lpPools: string[] = [];
                 if (score) {
                   for (let i = 0; i < defaultStrategy.strategy.length; i++) {
                     const strategy = defaultStrategy.strategy[i];
-                    lpPools.push(strategy.contract);
+                    try {
+                      await contracts["registry"]["approveLiquidityPool(address)"](strategy.contract);
+                      usedLps.push(strategy.contract);
+                    } catch (error) {
+                      // Ignore an approved liquidity pool
+                      expect(error.message).to.equal(
+                        "VM Exception while processing transaction: revert !liquidityPools",
+                      );
+                    }
                     scoredPools.push([strategy.contract, score[i]]);
                   }
-
-                  await contracts["registry"]["approveLiquidityPool(address[])"](lpPools);
                   await contracts["registry"]["rateLiquidityPool((address,uint8)[])"](scoredPools);
                 }
-
                 if (action.expect === "success") {
                   await contracts[action.contract][action.action](riskProfile, tokenHash, defaultStrategyHash);
                 } else {
@@ -170,7 +200,6 @@ describe(scenario.title, () => {
                   ).to.be.revertedWith(action.message);
                 }
                 isCheckDefault = true;
-                usedLps.push(...lpPools);
                 assert.isDefined(score, `args is wrong in ${action.action} testcase`);
                 break;
               }

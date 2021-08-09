@@ -1,6 +1,6 @@
 {
   "title": "RiskManager",
-  "description": "Test cases for RiskManager and StrategyProvider contract",
+  "description": "Test cases for RiskManager contract",
   "stories": [
     {
       "description": "GetBestStrategy should return empty in StrategyProvider if strategy is not qualified, defaultStrategy is not set and defaultStrategyState is Zero ",
