@@ -5,7 +5,8 @@ import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
-import { getSoliditySHA3Hash, delay } from "../../helpers/utils";
+import { generateTokenHash } from "../../helpers/helpers";
+import { delay } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   fundWalletToken,
@@ -157,7 +158,7 @@ describe(scenario.title, () => {
                   strategySteps.push(tempArr);
                 }
 
-                const tokenHash = getSoliditySHA3Hash(["address[]"], [[token]]);
+                const tokenHash = generateTokenHash([token]);
 
                 if (action.expect === "success") {
                   await contracts[action.contract][action.action](tokenHash, strategySteps);
@@ -264,7 +265,7 @@ describe(scenario.title, () => {
 
               if (strategy && token && riskProfile) {
                 const strategyHash = generateStrategyHash(strategy, token);
-                const tokenHash = getSoliditySHA3Hash(["address[]"], [[token]]);
+                const tokenHash = generateTokenHash([token]);
 
                 if (action.expect === "success") {
                   await contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash);

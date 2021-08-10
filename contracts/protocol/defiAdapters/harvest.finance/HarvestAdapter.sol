@@ -110,6 +110,7 @@ contract HarvestAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAd
         onlyRiskOperator
     {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
+        emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
 
     /**
@@ -121,6 +122,7 @@ contract HarvestAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAd
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
         maxDepositAmount[_liquidityPool][_underlyingToken] = _maxDepositAmount;
+        emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool][_underlyingToken], msg.sender);
     }
 
     /**
@@ -148,6 +150,7 @@ contract HarvestAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAd
      */
     function setMaxDepositProtocolMode(DataTypes.MaxExposure _mode) public override onlyRiskOperator {
         maxDepositProtocolMode = _mode;
+        emit LogMaxDepositProtocolMode(maxDepositProtocolMode, msg.sender);
     }
 
     /**
@@ -155,6 +158,7 @@ contract HarvestAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAd
      */
     function setMaxDepositProtocolPct(uint256 _maxDepositProtocolPct) public override onlyRiskOperator {
         maxDepositProtocolPct = _maxDepositProtocolPct;
+        emit LogMaxDepositProtocolPct(maxDepositProtocolPct, msg.sender);
     }
 
     /**

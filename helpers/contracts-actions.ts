@@ -8,7 +8,7 @@ import {
   TypedCurveDepositPoolGauges,
   TypedCurveSwapPools,
 } from "./data";
-import { executeFunc, getEthValueGasOverrideOptions } from "./helpers";
+import { executeFunc, generateStrategyStep, getEthValueGasOverrideOptions } from "./helpers";
 import { amountInHex, removeDuplicateFromStringArray } from "./utils";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import exchange from "./data/exchange.json";
@@ -112,16 +112,7 @@ export async function setStrategy(
   tokensHash: string,
   vaultStepInvestStrategyDefinitionRegistry: Contract,
 ): Promise<string> {
-  const strategySteps: [string, string, boolean][] = [];
-
-  for (let index = 0; index < strategy.length; index++) {
-    const tempArr: [string, string, boolean] = [
-      strategy[index].contract,
-      strategy[index].outputToken,
-      strategy[index].isBorrow,
-    ];
-    strategySteps.push(tempArr);
-  }
+  const strategySteps: [string, string, boolean][] = generateStrategyStep(strategy);
 
   const strategies = await vaultStepInvestStrategyDefinitionRegistry["setStrategy(bytes32,(address,address,bool)[])"](
     tokensHash,

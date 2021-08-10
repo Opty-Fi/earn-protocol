@@ -4,6 +4,7 @@ import { STRATEGY_DATA } from "./type";
 import { getSoliditySHA3Hash } from "./utils";
 import { getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "./data";
+import { expect } from "chai";
 
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
@@ -117,7 +118,7 @@ export async function getContractInstance(
 
 export function generateStrategyHash(strategy: STRATEGY_DATA[], tokenAddress: string): string {
   const strategyStepsHash: string[] = [];
-  const tokensHash = getSoliditySHA3Hash(["address[]"], [[tokenAddress]]);
+  const tokensHash = generateTokenHash([tokenAddress]);
   for (let index = 0; index < strategy.length; index++) {
     strategyStepsHash[index] = getSoliditySHA3Hash(
       ["address", "address", "bool"],
@@ -125,6 +126,19 @@ export function generateStrategyHash(strategy: STRATEGY_DATA[], tokenAddress: st
     );
   }
   return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
+}
+
+export function generateStrategyStep(strategy: STRATEGY_DATA[]): [string, string, boolean][] {
+  const strategySteps: [string, string, boolean][] = [];
+  for (let index = 0; index < strategy.length; index++) {
+    const tempArr: [string, string, boolean] = [
+      strategy[index].contract,
+      strategy[index].outputToken,
+      strategy[index].isBorrow,
+    ];
+    strategySteps.push(tempArr);
+  }
+  return strategySteps;
 }
 
 export function isAddress(address: string): boolean {
@@ -163,7 +177,10 @@ export function getDefaultFundAmount(underlyingTokenAddress: string): BigNumber 
   return defaultFundAmount;
 }
 
-export function getEthValueGasOverrideOptions(hre: HardhatRuntimeEnvironment, parseEthAmount: string) {
+export function getEthValueGasOverrideOptions(
+  hre: HardhatRuntimeEnvironment,
+  parseEthAmount: string,
+): { value: any; gasLimit: number } {
   const ETH_VALUE_GAS_OVERRIDE_OPTIONS = {
     value: hre.ethers.utils.hexlify(hre.ethers.utils.parseEther(parseEthAmount)),
     gasLimit: 6721975,
@@ -174,4 +191,20 @@ export function getEthValueGasOverrideOptions(hre: HardhatRuntimeEnvironment, pa
 //  function to generate the token/list of tokens's hash
 export function generateTokenHash(addresses: string[]): string {
   return getSoliditySHA3Hash(["address[]"], [addresses]);
+}
+
+//  function to test max deposit invest limitation events
+export function expectInvestLimitEvents(
+  transaction: any,
+  expectedEventName: string,
+  expectedEventSignature: string,
+  expectedAdapterAddress: string,
+  expectedCallerAddress: string,
+  expectedMaxDepositTypeOrPctOrAmt: string | number,
+) {
+  expect(transaction.events[0].event).to.equal(expectedEventName);
+  expect(transaction.events[0].eventSignature).to.equal(expectedEventSignature);
+  expect(transaction.events[0].address).to.equal(expectedAdapterAddress);
+  expect(+transaction.events[0].args[0]).to.equal(+expectedMaxDepositTypeOrPctOrAmt);
+  expect(transaction.events[0].args[1]).to.equal(expectedCallerAddress);
 }

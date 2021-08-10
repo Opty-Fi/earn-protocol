@@ -76,6 +76,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
         onlyRiskOperator
     {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
+        emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
 
     /**
@@ -87,6 +88,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
         maxDepositAmount[_liquidityPool][_underlyingToken] = _maxDepositAmount;
+        emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool][_underlyingToken], msg.sender);
     }
 
     /**
@@ -114,6 +116,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
      */
     function setMaxDepositProtocolMode(DataTypes.MaxExposure _mode) public override onlyRiskOperator {
         maxDepositProtocolMode = _mode;
+        emit LogMaxDepositProtocolMode(maxDepositProtocolMode, msg.sender);
     }
 
     /**
@@ -121,6 +124,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
      */
     function setMaxDepositProtocolPct(uint256 _maxDepositProtocolPct) public override onlyRiskOperator {
         maxDepositProtocolPct = _maxDepositProtocolPct;
+        emit LogMaxDepositProtocolPct(maxDepositProtocolPct, msg.sender);
     }
 
     /**

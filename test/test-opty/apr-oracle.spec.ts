@@ -2,8 +2,7 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Signer } from "ethers";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
-import { generateStrategyHash, deployContract, executeFunc } from "../../helpers/helpers";
-import { getSoliditySHA3Hash } from "../../helpers/utils";
+import { generateStrategyHash, deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { deployRegistry } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/apr-oracle.json";
@@ -155,7 +154,7 @@ describe(scenario.title, () => {
                 strategySteps.push(tempArr);
               }
 
-              const tokenHash = getSoliditySHA3Hash(["address[]"], [[token]]);
+              const tokenHash = generateTokenHash([token]);
 
               if (action.expect === "success") {
                 await contracts[action.contract][action.action](tokenHash, strategySteps);
@@ -176,7 +175,7 @@ describe(scenario.title, () => {
 
             if (strategy && token && riskProfile) {
               const strategyHash = generateStrategyHash(strategy, token);
-              const tokenHash = getSoliditySHA3Hash(["address[]"], [[token]]);
+              const tokenHash = generateTokenHash([token]);
 
               if (action.expect === "success") {
                 await contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash);
