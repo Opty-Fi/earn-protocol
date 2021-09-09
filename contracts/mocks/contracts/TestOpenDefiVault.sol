@@ -35,7 +35,7 @@ contract TestOpenDefiVault is IncentivisedERC20 {
         odefiVaultBoosterContract = ODEFIVaultBooster(_odefiVaultBoosterContract);
     }
 
-    function userDeposit(uint256 _amount) external returns (bool _success) {
+    function userDeposit(uint256 _amount) external returns (bool) {
         require(_amount > 0, "!(_amount>0)");
         uint256 _tokenBalance = balance();
         uint256 shares = 0;
@@ -54,10 +54,10 @@ contract TestOpenDefiVault is IncentivisedERC20 {
         return true;
     }
 
-    function setToken(address _underlyingToken) public returns (bool _success) {
+    function setToken(address _underlyingToken) public returns (bool) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         underlyingToken = _underlyingToken;
-        _success = true;
+        return true;
     }
 
     /**

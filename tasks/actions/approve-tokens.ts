@@ -2,8 +2,9 @@ import { task, types } from "hardhat/config";
 import { getContractInstance, isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { approveTokens } from "../../helpers/contracts-actions";
+import { APPROVE_TOKENS } from "../task-names";
 
-task("approve-tokens", "Approve Tokens")
+task(APPROVE_TOKENS, "Approve Tokens")
   .addParam("registry", "the address of registry", "", types.string)
   .setAction(async ({ registry }, hre) => {
     const [owner] = await hre.ethers.getSigners();

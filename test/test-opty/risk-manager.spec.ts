@@ -185,7 +185,7 @@ describe(scenario.title, () => {
                     } catch (error) {
                       // Ignore an approved liquidity pool
                       expect(error.message).to.equal(
-                        "VM Exception while processing transaction: revert !liquidityPools",
+                        "VM Exception while processing transaction: reverted with reason string '!liquidityPools'",
                       );
                     }
                     scoredPools.push([strategy.contract, score[i]]);

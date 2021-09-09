@@ -3,8 +3,9 @@ import { getContractInstance, isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { ethers } from "ethers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
+import { VAULT_ACTIONS } from "../task-names";
 
-task("vault-actions", "perform actions in Vault")
+task(VAULT_ACTIONS, "perform actions in Vault")
   .addParam("vault", "the address of vault", "", types.string)
   .addParam("action", "deposit, withdraw or rebalance", "DEPOSIT" || "WITHDRAW" || "REBALANCE", types.string)
   .addParam("user", "account address of the user", "", types.string)
@@ -79,7 +80,7 @@ task("vault-actions", "perform actions in Vault")
           if (withrebalance) {
             let strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
-            console.log("depositing with rebalance..");
+            console.log(`depositing ${checkedAmount.toString()} with rebalance..`);
             const depositTx = await vaultContract.connect(userSigner).userDepositRebalance(checkedAmount.toString());
             await depositTx.wait(1);
             const vaultShareBalance = await vaultContract.balanceOf(user);
@@ -116,7 +117,7 @@ task("vault-actions", "perform actions in Vault")
         try {
           let strategyHash = await vaultContract.investStrategyHash();
           console.log(`Invest strategy : ${strategyHash}`);
-          console.log("withdrawing with rebalance..");
+          console.log(`withdrawing ${checkedAmount.toString()} with rebalance..`);
           const withdrawTx = await vaultContract.connect(userSigner).userWithdrawRebalance(checkedAmount.toString());
           await withdrawTx.wait(1);
           const vaultShareBalance = await vaultContract.balanceOf(user);

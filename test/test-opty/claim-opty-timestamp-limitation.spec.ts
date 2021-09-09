@@ -19,6 +19,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/claim-opty-timestamp-limitation.json";
+
 type ARGUMENTS = {
   contractName?: string;
   addressName?: string;
@@ -214,9 +215,6 @@ describe(scenario.title, () => {
             if (addressName) {
               const userAddr = await users[addressName].getAddress();
               if (action.expect === "success") {
-                const time = 1700000001;
-                await hre.ethers.provider.send("evm_setNextBlockTimestamp", [time]);
-                await hre.ethers.provider.send("evm_mine", []);
                 await executeFunc(contracts[action.contract], users[action.executer], action.action, [userAddr]);
               } else {
                 await expect(

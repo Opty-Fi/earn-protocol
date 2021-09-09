@@ -11,12 +11,17 @@ import "hardhat-watcher";
 import "solidity-coverage";
 import "hardhat-deploy";
 import "hardhat-docgen";
-import { NETWORKS_RPC_URL, NETWORKS_DEFAULT_GAS, eEthereumNetwork } from "./helper-hardhat-config";
+import {
+  NETWORKS_RPC_URL,
+  NETWORKS_DEFAULT_GAS,
+  eEthereumNetwork,
+  CURRENT_BLOCK_NUMBER,
+} from "./helper-hardhat-config";
 
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
 const DEFAULT_BLOCK_GAS_LIMIT = 0x1fffffffffffff;
 const DEFAULT_GAS_MUL = 5;
-const HARDFORK = "istanbul";
+const HARDFORK = "london";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 
 if (!SKIP_LOAD) {
@@ -85,19 +90,20 @@ const buidlerConfig: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   networks: {
-    staging: getCommonNetworkConfig(eEthereumNetwork.staging, chainIds.ganache),
+    staging: getCommonNetworkConfig(eEthereumNetwork.staging, chainIds.mainnet),
     localhost: {
       url: NETWORKS_RPC_URL[eEthereumNetwork.hardhat],
       chainId: chainIds.ganache,
     },
     kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, chainIds.kovan),
     hardhat: {
+      initialBaseFeePerGas: 1_00_000_000,
+      gasPrice: "auto",
       forking: {
-        blockNumber: 12200321,
+        blockNumber: CURRENT_BLOCK_NUMBER,
         url: chainstackMainnetUrl,
       },
       allowUnlimitedContractSize: true,
-      blockGasLimit: 0x1fffffffffffff,
       chainId: chainIds.ganache,
       accounts: {
         mnemonic,

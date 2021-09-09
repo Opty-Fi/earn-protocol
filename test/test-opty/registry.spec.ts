@@ -506,7 +506,7 @@ describe(scenario.title, () => {
                 .connect(signers[action.executor])
                 [action.action](lqs.liquidityPool, adapters[lqs.adapterName].address),
             )
-              .to.emit(registryContract, "LogLiquidityPoolToDepositToken")
+              .to.emit(registryContract, "LogLiquidityPoolToAdapter")
               .withArgs(
                 hre.ethers.utils.getAddress(lqs.liquidityPool),
                 adapters[lqs.adapterName].address,

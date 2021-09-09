@@ -31,8 +31,11 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
 
     /**
      * @notice Emitted when hash strategy is set
+     * @param tokensHash Hash of token/list of tokens for which strategy is set
+     * @param strategyHash Hash of strategy steps which is set for the above tokensHash
+     * @param caller Address of user who has called the respective function to trigger this event
      */
-    event LogSetVaultInvestStrategy(bytes32 indexed tokensHash, bytes32 indexed hash, address indexed caller);
+    event LogSetVaultInvestStrategy(bytes32 indexed tokensHash, bytes32 indexed strategyHash, address indexed caller);
 
     /* solhint-disable no-empty-blocks */
     constructor(address _registry) public Modifiers(_registry) {}

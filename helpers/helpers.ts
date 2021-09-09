@@ -147,7 +147,11 @@ export function isAddress(address: string): boolean {
 export async function moveToNextBlock(hre: HardhatRuntimeEnvironment): Promise<void> {
   const blockNumber = await hre.ethers.provider.getBlockNumber();
   const block = await hre.ethers.provider.getBlock(blockNumber);
-  await hre.network.provider.send("evm_setNextBlockTimestamp", [block.timestamp + 1]);
+  await moveToSpecificBlock(hre, block.timestamp);
+}
+
+export async function moveToSpecificBlock(hre: HardhatRuntimeEnvironment, timestamp: number): Promise<void> {
+  await hre.network.provider.send("evm_setNextBlockTimestamp", [timestamp + 1]);
   await hre.network.provider.send("evm_mine");
 }
 
@@ -160,6 +164,8 @@ export function getDefaultFundAmount(underlyingTokenAddress: string): BigNumber 
     underlyingTokenAddress == getAddress(TypedTokens.REP) ||
     underlyingTokenAddress == getAddress(TypedTokens.ETH) ||
     underlyingTokenAddress == getAddress(TypedTokens.WETH) ||
+    underlyingTokenAddress == getAddress(TypedTokens.TUSD) ||
+    underlyingTokenAddress == getAddress(TypedTokens.USDN) ||
     underlyingTokenAddress == getAddress(TypedTokens.DUSD) ||
     underlyingTokenAddress == getAddress(TypedTokens.HUSD) ||
     underlyingTokenAddress == getAddress(TypedTokens.MUSD) ||

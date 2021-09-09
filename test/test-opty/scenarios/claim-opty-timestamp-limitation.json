@@ -156,8 +156,8 @@
             "addressName": "owner"
           },
           "executer": "owner",
-          "expect": "fail",
-          "message": "you should wait until operatorUnlockClaimOPTYTimestamp"
+          "expect": "success",
+          "message": ""
         }
       ],
       "getActions": []

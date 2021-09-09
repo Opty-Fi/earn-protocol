@@ -18,21 +18,29 @@ import { ModifiersController } from "./ModifiersController.sol";
 contract RegistryProxy is RegistryStorage, ModifiersController {
     /**
      * @notice Emitted when pendingComptrollerImplementation is changed
+     * @param oldPendingImplementation Old Registry contract's implementation address which is still pending
+     * @param newPendingImplementation New Registry contract's implementation address which is still pending
      */
     event NewPendingImplementation(address oldPendingImplementation, address newPendingImplementation);
 
     /**
      * @notice Emitted when pendingComptrollerImplementation is updated
+     * @param oldImplementation Old Registry Contract's implementation address
+     * @param newImplementation New Registry Contract's implementation address
      */
     event NewImplementation(address oldImplementation, address newImplementation);
 
     /**
      * @notice Emitted when pendingGovernance is changed
+     * @param oldPendingGovernance Old Governance's address which is still pending
+     * @param newPendingGovernance New Governance's address which is still pending
      */
     event NewPendingGovernance(address oldPendingGovernance, address newPendingGovernance);
 
     /**
      * @notice Emitted when pendingGovernance is accepted, which means governance is updated
+     * @param oldGovernance Old Governance's address
+     * @param newGovernance New Governance's address
      */
     event NewGovernance(address oldGovernance, address newGovernance);
 

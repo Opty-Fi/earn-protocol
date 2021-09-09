@@ -9,7 +9,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -17,7 +17,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolPct(uint256)",
           "args": {
-            "maxDepositProtocolPct": 10000
+            "maxDepositProtocolPct": "10000"
           },
           "expect": "success",
           "message": ""
@@ -67,7 +67,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -75,7 +75,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolPct(uint256)",
           "args": {
-            "maxDepositProtocolPct": 10
+            "maxDepositProtocolPct": "10"
           },
           "expect": "success",
           "message": ""
@@ -125,7 +125,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -133,7 +133,7 @@
           "contract": "adapter",
           "action": "setMaxDepositPoolPct(address,uint256)",
           "args": {
-            "maxDepositPoolPct": 10000
+            "maxDepositPoolPct": "10000"
           },
           "expect": "success",
           "message": ""
@@ -183,7 +183,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -191,7 +191,7 @@
           "contract": "adapter",
           "action": "setMaxDepositPoolPct(address,uint256)",
           "args": {
-            "maxDepositPoolPct": 90
+            "maxDepositPoolPct": "90"
           },
           "expect": "success",
           "message": ""
@@ -241,7 +241,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 0
+            "mode": "0"
           },
           "executer": "owner"
         },
@@ -249,7 +249,7 @@
           "contract": "adapter",
           "action": "setMaxDepositAmount(address,address,uint256)",
           "args": {
-            "maxDepositAmount": 0
+            "maxDepositAmount": "0"
           },
           "expect": "success",
           "message": ""
@@ -299,7 +299,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 0
+            "mode": "0"
           },
           "executer": "owner"
         },
@@ -307,7 +307,7 @@
           "contract": "adapter",
           "action": "setMaxDepositAmount(address,address,uint256)",
           "args": {
-            "maxDepositAmount": 20
+            "maxDepositAmount": "20"
           },
           "expect": "success",
           "message": ""
@@ -357,7 +357,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 0
+            "mode": "0"
           },
           "executer": "owner"
         },
@@ -365,7 +365,7 @@
           "contract": "adapter",
           "action": "setMaxDepositAmount(address,address,uint256)",
           "args": {
-            "maxDepositAmount": 300000
+            "maxDepositAmount": "300000"
           },
           "expect": "success",
           "message": ""
@@ -415,7 +415,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -423,7 +423,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolPct(uint256)",
           "args": {
-            "maxDepositProtocolPct": 10000
+            "maxDepositProtocolPct": "10000"
           },
           "expect": "success",
           "message": ""
@@ -472,7 +472,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -480,7 +480,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolPct(uint256)",
           "args": {
-            "maxDepositProtocolPct": 10000
+            "maxDepositProtocolPct": "10000"
           },
           "expect": "success",
           "message": ""
@@ -494,6 +494,7 @@
         {
           "contract": "TestDeFiAdapter",
           "action": "testGetDepositSomeCodes(address,address,address,uint256)",
+          "args": {},
           "executer": "owner",
           "expect": "success",
           "message": ""
@@ -530,7 +531,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -538,7 +539,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolPct(uint256)",
           "args": {
-            "maxDepositProtocolPct": 10
+            "maxDepositProtocolPct": "10"
           },
           "expect": "success",
           "message": ""
@@ -588,7 +589,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -596,7 +597,7 @@
           "contract": "adapter",
           "action": "setMaxDepositPoolPct(address,uint256)",
           "args": {
-            "maxDepositPoolPct": 10000
+            "maxDepositPoolPct": "10000"
           },
           "expect": "success",
           "message": ""
@@ -646,7 +647,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -654,7 +655,7 @@
           "contract": "adapter",
           "action": "setMaxDepositPoolPct(address,uint256)",
           "args": {
-            "maxDepositPoolPct": 90
+            "maxDepositPoolPct": "90"
           },
           "expect": "success",
           "message": ""
@@ -704,7 +705,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 0
+            "mode": "0"
           },
           "executer": "owner"
         },
@@ -712,7 +713,7 @@
           "contract": "adapter",
           "action": "setMaxDepositAmount(address,address,uint256)",
           "args": {
-            "maxDepositAmount": 0
+            "maxDepositAmount": "0"
           },
           "expect": "success",
           "message": ""
@@ -762,7 +763,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 0
+            "mode": "0"
           },
           "expect": "success",
           "message": ""
@@ -771,7 +772,7 @@
           "contract": "adapter",
           "action": "setMaxDepositAmount(address,address,uint256)",
           "args": {
-            "maxDepositAmount": 20
+            "maxDepositAmount": "20"
           },
           "expect": "success",
           "message": ""
@@ -821,7 +822,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 0
+            "mode": "0"
           },
           "executer": "owner"
         },
@@ -829,7 +830,7 @@
           "contract": "adapter",
           "action": "setMaxDepositAmount(address,address,uint256)",
           "args": {
-            "maxDepositAmount": 300000
+            "maxDepositAmount": "300000"
           },
           "expect": "success",
           "message": ""
@@ -879,7 +880,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolMode(uint8)",
           "args": {
-            "mode": 1
+            "mode": "1"
           },
           "executer": "owner"
         },
@@ -887,7 +888,7 @@
           "contract": "adapter",
           "action": "setMaxDepositProtocolPct(uint256)",
           "args": {
-            "maxDepositProtocolPct": 10000
+            "maxDepositProtocolPct": "10000"
           },
           "expect": "success",
           "message": ""
@@ -925,6 +926,88 @@
           "action": "balanceOf(address)",
           "executer": "owner",
           "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "TestDeFiAdapter",
+          "action": "testGetWithdrawAllCodes(address,address,address)",
+          "executer": "owner",
+          "expect": "success",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "getHarvestAllCodes() should harvest all reward tokens to underlying",
+      "setActions": [
+        {
+          "contract": "",
+          "action": "fundTestDefiContractWithRewardToken()",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "TestDeFiAdapter",
+          "action": "testGetHarvestAllCodes(address,address,address)",
+          "executer": "owner",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "erc20",
+          "action": "balanceOf(address)",
+          "executer": "owner",
+          "expectedValue": ">0"
+        },
+        {
+          "contract": "erc20",
+          "action": "getRewardTokenBalance(address)",
+          "executer": "owner",
+          "expectedValue": "=0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "TestDeFiAdapter",
+          "action": "testGetWithdrawAllCodes(address,address,address)",
+          "executer": "owner",
+          "expect": "success",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "getHarvestSomeCodes() should harvest specific amount of reward tokens to underlying",
+      "setActions": [
+        {
+          "contract": "",
+          "action": "fundTestDefiContractWithRewardToken()",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "TestDeFiAdapter",
+          "action": "testGetHarvestSomeCodes(address,address,address,uint256)",
+          "executer": "owner",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "erc20",
+          "action": "balanceOf(address)",
+          "executer": "owner",
+          "expectedValue": ">0"
+        },
+        {
+          "contract": "erc20",
+          "action": "getRewardTokenBalance(address)",
+          "executer": "owner",
+          "expectedValue": "<"
         }
       ],
       "cleanActions": [

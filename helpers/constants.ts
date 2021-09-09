@@ -74,7 +74,7 @@ export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
   DForceAdapter: {
     tokenName: "DF",
     tokenAddress: TypedTokens["DF"],
-    distributionActive: true,
+    distributionActive: false,
   },
   HarvestAdapter: {
     tokenName: "FARM",

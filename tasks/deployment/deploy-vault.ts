@@ -4,7 +4,9 @@ import { getTokenInforWithAddress, unpauseVault } from "../../helpers/contracts-
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress, getContractInstance } from "../../helpers/helpers";
 import { RISK_PROFILES, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-task("deploy-vault", "Deploy Vault")
+import { DEPLOY_VAULT } from "../task-names";
+
+task(DEPLOY_VAULT, "Deploy Vault")
   .addParam("token", "the address of underlying token", "", types.string)
   .addParam("riskprofile", "the address of underlying token", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)

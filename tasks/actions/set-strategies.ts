@@ -5,7 +5,7 @@ import { ESSENTIAL_CONTRACTS, TOKENS } from "../../helpers/constants";
 import { TypedStrategies } from "../../helpers/data";
 import { STRATEGY } from "../../helpers/type";
 import fs from "fs";
-
+import { SET_STRATEGIES } from "../task-names";
 /**
  * strategy.json structure
  * [
@@ -38,7 +38,7 @@ import fs from "fs";
       }
     ]
  */
-task("set-strategies", "Set strategies")
+task(SET_STRATEGIES, "Set strategies")
   .addParam("strategyregistry", "the address of vaultStepInvestStrategyDefinitionRegistry", "", types.string)
   .addParam("fromfile", "path to strategies json file", "", types.string)
   .setAction(async ({ strategyregistry, fromfile }, hre) => {

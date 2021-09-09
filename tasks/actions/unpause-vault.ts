@@ -2,8 +2,9 @@ import { task, types } from "hardhat/config";
 import { getContractInstance, isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { unpauseVault } from "../../helpers/contracts-actions";
+import { UNPAUSE_VAULT } from "../task-names";
 
-task("unpause-vault", "Unpause Vault")
+task(UNPAUSE_VAULT, "Unpause Vault")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("vault", "the address of vault", "", types.string)
   .setAction(async ({ registry, vault }, hre) => {

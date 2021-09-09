@@ -1,8 +1,9 @@
 import { task, types } from "hardhat/config";
 import { ADAPTER } from "../../helpers/constants";
 import { isAddress } from "../../helpers/helpers";
+import { DEPLOY_ADAPTERS } from "../task-names";
 
-task("deploy-adapters", "Deploy Adapter contracts")
+task(DEPLOY_ADAPTERS, "Deploy Adapter contracts")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "insert the deployed contract addresses in DB", false, types.boolean)

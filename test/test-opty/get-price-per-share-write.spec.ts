@@ -14,7 +14,7 @@ import {
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
-  approveVaultRewardTokens,
+  setAndApproveVaultRewardToken,
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/get-price-per-share-write.json";
@@ -84,7 +84,7 @@ describe(scenario.title, () => {
             await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
             if (rewardTokenAdapterNames.includes(ADAPTER_NAME.toLowerCase())) {
-              await approveVaultRewardTokens(
+              await setAndApproveVaultRewardToken(
                 users["owner"],
                 Vault.address,
                 <string>REWARD_TOKENS[ADAPTER_NAME].tokenAddress,
@@ -146,7 +146,7 @@ describe(scenario.title, () => {
                         assert.isUndefined(error);
                       } else {
                         expect(error.message).to.equal(
-                          `VM Exception while processing transaction: revert ${action.message}`,
+                          `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                         );
                       }
                     }
@@ -167,7 +167,7 @@ describe(scenario.title, () => {
                         assert.isUndefined(error);
                       } else {
                         expect(error.message).to.equal(
-                          `VM Exception while processing transaction: revert ${action.message}`,
+                          `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                         );
                       }
                     }
@@ -188,7 +188,7 @@ describe(scenario.title, () => {
                         assert.isUndefined(error);
                       } else {
                         expect(error.message).to.equal(
-                          `VM Exception while processing transaction: revert ${action.message}`,
+                          `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                         );
                       }
                     }
@@ -206,7 +206,7 @@ describe(scenario.title, () => {
                         assert.isUndefined(error);
                       } else {
                         expect(error.message).to.equal(
-                          `VM Exception while processing transaction: revert ${action.message}`,
+                          `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                         );
                       }
                     }

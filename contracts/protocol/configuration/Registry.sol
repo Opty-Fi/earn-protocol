@@ -364,13 +364,13 @@ contract Registry is IRegistry, ModifiersController {
         external
         override
         onlyFinanceOperator
-        returns (bool _success)
+        returns (bool)
     {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         require(_withdrawalFee >= 0 && _withdrawalFee <= 10000, "!BasisRange");
         vaultToVaultConfiguration[_vault].withdrawalFee = _withdrawalFee;
-        _success = true;
+        return true;
     }
 
     /**
@@ -533,13 +533,8 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function getVaultConfiguration(address _vault)
-        public
-        view
-        override
-        returns (DataTypes.VaultConfiguration memory _vaultConfiguration)
-    {
-        _vaultConfiguration = vaultToVaultConfiguration[_vault];
+    function getVaultConfiguration(address _vault) public view override returns (DataTypes.VaultConfiguration memory) {
+        return vaultToVaultConfiguration[_vault];
     }
 
     /**
@@ -552,22 +547,22 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function getTokensHashIndexByHash(bytes32 _tokensHash) public view override returns (uint256 _index) {
-        _index = tokensHashToTokens[_tokensHash].index;
+    function getTokensHashIndexByHash(bytes32 _tokensHash) public view override returns (uint256) {
+        return tokensHashToTokens[_tokensHash].index;
     }
 
     /**
      * @inheritdoc IRegistry
      */
-    function getTokensHashByIndex(uint256 _index) public view override returns (bytes32 _tokensHash) {
-        _tokensHash = tokensHashIndexes[_index];
+    function getTokensHashByIndex(uint256 _index) public view override returns (bytes32) {
+        return tokensHashIndexes[_index];
     }
 
     /**
      * @inheritdoc IRegistry
      */
-    function isApprovedToken(address _token) public view override returns (bool _isTokenApproved) {
-        _isTokenApproved = tokens[_token];
+    function isApprovedToken(address _token) public view override returns (bool) {
+        return tokens[_token];
     }
 
     /**
@@ -598,9 +593,9 @@ contract Registry is IRegistry, ModifiersController {
         public
         view
         override
-        returns (DataTypes.RiskProfile memory _riskProfile)
+        returns (DataTypes.RiskProfile memory)
     {
-        _riskProfile = riskProfiles[_riskProfileName];
+        return riskProfiles[_riskProfileName];
     }
 
     /**
@@ -676,13 +671,8 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function getLiquidityPool(address _pool)
-        public
-        view
-        override
-        returns (DataTypes.LiquidityPool memory _liquidityPool)
-    {
-        _liquidityPool = liquidityPools[_pool];
+    function getLiquidityPool(address _pool) public view override returns (DataTypes.LiquidityPool memory) {
+        return liquidityPools[_pool];
     }
 
     /**
@@ -718,8 +708,8 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function getLiquidityPoolToAdapter(address _pool) public view override returns (address _adapter) {
-        _adapter = liquidityPoolToAdapter[_pool];
+    function getLiquidityPoolToAdapter(address _pool) public view override returns (address) {
+        return liquidityPoolToAdapter[_pool];
     }
 
     /**
@@ -795,7 +785,7 @@ contract Registry is IRegistry, ModifiersController {
         require(_adapter.isContract(), "!_adapter.isContract()");
         require(liquidityPools[_pool].isLiquidityPool || creditPools[_pool].isLiquidityPool, "!liquidityPools");
         liquidityPoolToAdapter[_pool] = _adapter;
-        emit LogLiquidityPoolToDepositToken(_pool, _adapter, msg.sender);
+        emit LogLiquidityPoolToAdapter(_pool, _adapter, msg.sender);
         return true;
     }
 

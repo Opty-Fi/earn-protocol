@@ -102,7 +102,9 @@ describe(scenario.title, () => {
                 if (action.expect === "success") {
                   assert.isUndefined(error);
                 } else {
-                  expect(error.message).to.equal(`VM Exception while processing transaction: revert ${action.message}`);
+                  expect(error.message).to.equal(
+                    `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
+                  );
                 }
               }
               assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
@@ -134,7 +136,9 @@ describe(scenario.title, () => {
                 if (action.expect === "success") {
                   assert.isUndefined(error);
                 } else {
-                  expect(error.message).to.equal(`VM Exception while processing transaction: revert ${action.message}`);
+                  expect(error.message).to.equal(
+                    `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
+                  );
                 }
               }
               assert.isDefined(amount, `args is wrong in ${action.action} testcase`);

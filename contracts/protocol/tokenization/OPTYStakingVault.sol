@@ -66,9 +66,9 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
     /**
      * @inheritdoc IOPTYStakingVault
      */
-    function setOptyRatePerSecond(uint256 _rate) external override onlyStakingRateBalancer returns (bool _success) {
+    function setOptyRatePerSecond(uint256 _rate) external override onlyStakingRateBalancer returns (bool) {
         optyRatePerSecond = _rate;
-        _success = true;
+        return true;
     }
 
     /**
@@ -133,25 +133,25 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
     /**
      * @inheritdoc IOPTYStakingVault
      */
-    function setTimelockPeriod(uint256 _timelock) public override onlyOperator returns (bool _success) {
+    function setTimelockPeriod(uint256 _timelock) public override onlyOperator returns (bool) {
         require(_timelock >= uint256(86400), "Timelock should be at least 1 day.");
         timelockPeriod = _timelock;
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYStakingVault
      */
-    function setToken(address _underlyingToken) public override onlyOperator returns (bool _success) {
+    function setToken(address _underlyingToken) public override onlyOperator returns (bool) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         token = _underlyingToken;
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYStakingVault
      */
-    function updatePool() external override returns (bool _success) {
+    function updatePool() external override returns (bool) {
         _isUnpaused(address(this));
         return _updatePool();
     }
@@ -179,7 +179,7 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
         internal
         ifNotPausedAndDiscontinued(address(this))
         nonReentrant
-        returns (bool _success)
+        returns (bool)
     {
         require(_amount > 0, "!(_amount>0)");
         uint256 _tokenBalanceBefore = balance();
@@ -202,7 +202,7 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
         );
         _updatePool();
         userLastUpdate[msg.sender] = getBlockTimestamp();
-        _success = true;
+        return true;
     }
 
     /**
@@ -210,7 +210,7 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
      * @param _redeemAmount Amount of $OPTY to unstake
      * @return _success returns true on successful unstake
      */
-    function _userUnstake(uint256 _redeemAmount) internal nonReentrant returns (bool _success) {
+    function _userUnstake(uint256 _redeemAmount) internal nonReentrant returns (bool) {
         _isUnpaused(address(this));
         require(
             getBlockTimestamp().sub(userLastUpdate[msg.sender]) > timelockPeriod,
@@ -232,14 +232,14 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
         }
         IERC20(token).safeTransfer(msg.sender, redeemAmountInToken);
         userLastUpdate[msg.sender] = getBlockTimestamp();
-        _success = true;
+        return true;
     }
 
     /**
      * @dev Modify the state during stake/unstake of $OPTY
      * @return _success returns true on successful vault update
      */
-    function _updatePool() internal returns (bool _success) {
+    function _updatePool() internal returns (bool) {
         if (lastPoolUpdate == uint256(0)) {
             lastPoolUpdate = getBlockTimestamp();
         } else {
@@ -253,6 +253,6 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
             IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateOptyRates(),
             "stakingVault:updatePool"
         );
-        _success = true;
+        return true;
     }
 }

@@ -1,8 +1,9 @@
 import { task, types } from "hardhat/config";
 import { RISK_PROFILES, TOKENS } from "../../helpers/constants";
 import { isAddress } from "../../helpers/helpers";
+import { DEPLOY_VAULTS } from "../task-names";
 
-task("deploy-vaults", "Deploy Core Vaults")
+task(DEPLOY_VAULTS, "Deploy Core Vaults")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("unpause", "unpause vault", false, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)

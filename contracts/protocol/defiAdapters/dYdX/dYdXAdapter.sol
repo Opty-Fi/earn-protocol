@@ -34,17 +34,8 @@ import { IAdapterInvestLimit } from "../../../interfaces/opty/defiAdapters/IAdap
 contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
     using SafeMath for uint256;
 
-    /** @notice  Maps liquidityPool to max deposit value in percentage */
-    mapping(address => uint256) public maxDepositPoolPct; // basis points
-
-    /** @notice  Maps liquidityPool to max deposit value in absolute value for a specific token */
-    mapping(address => mapping(address => uint256)) public maxDepositAmount;
-
-    /** @notice Maps underlyingToken address to its market index in dYdX protocol */
-    mapping(address => uint256) public marketToIndexes;
-
-    /** @notice Maps liquidityPool to the list of underlyingTokens */
-    mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
+    /** @notice max deposit value datatypes */
+    DataTypes.MaxExposure public maxDepositProtocolMode;
 
     address public constant DYDX_LIQUIIDTY_POOL = address(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
     address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
@@ -52,11 +43,20 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
     address public constant USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     address public constant DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
-    /** @notice max deposit value datatypes */
-    DataTypes.MaxExposure public maxDepositProtocolMode;
-
     /** @notice max deposit's protocol value in percentage */
     uint256 public maxDepositProtocolPct; // basis points
+
+    /** @notice  Maps liquidityPool to max deposit value in percentage */
+    mapping(address => uint256) public maxDepositPoolPct; // basis points
+
+    /** @notice Maps underlyingToken address to its market index in dYdX protocol */
+    mapping(address => uint256) public marketToIndexes;
+
+    /** @notice Maps liquidityPool to the list of underlyingTokens */
+    mapping(address => address[]) public liquidityPoolToUnderlyingTokens;
+
+    /** @notice  Maps liquidityPool to max deposit value in absolute value for a specific token */
+    mapping(address => mapping(address => uint256)) public maxDepositAmount;
 
     constructor(address _registry) public Modifiers(_registry) {
         address[] memory _dYdXUnderlyingTokens = new address[](4);
@@ -82,6 +82,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
         onlyRiskOperator
     {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
+        emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
 
     /**
@@ -93,6 +94,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
         maxDepositAmount[_liquidityPool][_underlyingToken] = _maxDepositAmount;
+        emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool][_underlyingToken], msg.sender);
     }
 
     /**
@@ -118,6 +120,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
      */
     function setMaxDepositProtocolMode(DataTypes.MaxExposure _mode) public override onlyRiskOperator {
         maxDepositProtocolMode = _mode;
+        emit LogMaxDepositProtocolMode(maxDepositProtocolMode, msg.sender);
     }
 
     /**
@@ -125,6 +128,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
      */
     function setMaxDepositProtocolPct(uint256 _maxDepositProtocolPct) public override onlyRiskOperator {
         maxDepositProtocolPct = _maxDepositProtocolPct;
+        emit LogMaxDepositProtocolPct(maxDepositProtocolPct, msg.sender);
     }
 
     /**
@@ -134,7 +138,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
         address payable _vault,
         address _underlyingToken,
         address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         uint256 _amount = ERC20(_underlyingToken).balanceOf(_vault);
         return getDepositSomeCodes(_vault, _underlyingToken, _liquidityPool, _amount);
     }
@@ -146,7 +150,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
         address payable _vault,
         address _underlyingToken,
         address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         uint256 _redeemAmount = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmount);
     }
@@ -161,13 +165,8 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
     /**
      * @inheritdoc IAdapter
      */
-    function getUnderlyingTokens(address _liquidityPool, address)
-        public
-        view
-        override
-        returns (address[] memory _underlyingTokens)
-    {
-        _underlyingTokens = liquidityPoolToUnderlyingTokens[_liquidityPool];
+    function getUnderlyingTokens(address _liquidityPool, address) public view override returns (address[] memory) {
+        return liquidityPoolToUnderlyingTokens[_liquidityPool];
     }
 
     /**
@@ -348,7 +347,7 @@ contract DyDxAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
         address _liquidityPool,
         address _underlyingToken,
         uint256 _amount
-    ) internal view returns (uint256 _depositAmount) {
+    ) internal view returns (uint256) {
         uint256 _limit =
             maxDepositProtocolMode == DataTypes.MaxExposure.Pct
                 ? _getMaxDepositAmountByPct(_liquidityPool, _underlyingToken)

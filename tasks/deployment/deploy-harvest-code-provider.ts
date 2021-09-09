@@ -3,8 +3,9 @@ import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { isAddress } from "../../helpers/helpers";
+import { DEPLOY_HARVEST_CODE_PROVIDER } from "../task-names";
 
-task("deploy-harvest-code-provider", "Deploy Harvest Code Provider")
+task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)

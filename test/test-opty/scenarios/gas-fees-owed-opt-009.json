@@ -30,7 +30,7 @@
           "contract": "registry",
           "action": "approveLiquidityPool(address)",
           "args": {
-            "token": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C"
+            "token": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"
           },
           "executor": "",
           "expect": "success",
@@ -40,8 +40,8 @@
           "contract": "registry",
           "action": "setLiquidityPoolToAdapter(address,address)",
           "args": {
-            "liquidityPool": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
-            "adapterName": "HarvestAdapter"
+            "liquidityPool": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+            "adapterName": "AaveV1Adapter"
           },
           "executor": "operator",
           "expect": "success",
@@ -51,7 +51,7 @@
           "contract": "registry",
           "action": "rateLiquidityPool(address,uint8)",
           "args": {
-            "token": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
+            "token": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
             "score": 1
           },
           "executor": "",
@@ -64,8 +64,8 @@
           "args": {
             "strategy": [
               {
-                "contract": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
-                "outputToken": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
+                "contract": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                "outputToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
                 "isBorrow": false
               }
             ],
@@ -81,8 +81,8 @@
           "args": {
             "strategy": [
               {
-                "contract": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
-                "outputToken": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
+                "contract": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+                "outputToken": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
                 "isBorrow": false
               }
             ],

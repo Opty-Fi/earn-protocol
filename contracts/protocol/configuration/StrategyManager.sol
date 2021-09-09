@@ -76,7 +76,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash
-    ) public view override returns (uint256 _balance) {
+    ) public view override returns (uint256) {
         return _getBalanceInUnderlyingToken(_vault, _underlyingToken, _investStrategyhash);
     }
 
@@ -89,8 +89,8 @@ contract StrategyManager is IStrategyManager, Modifiers {
         bytes32 _investStrategyhash,
         uint256 _stepIndex,
         uint256 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
-        _codes = _getPoolDepositAllCodes(_vault, _underlyingToken, _investStrategyhash, _stepIndex, _stepCount);
+    ) public view override returns (bytes[] memory) {
+        return _getPoolDepositAllCodes(_vault, _underlyingToken, _investStrategyhash, _stepIndex, _stepCount);
     }
 
     /**
@@ -102,8 +102,8 @@ contract StrategyManager is IStrategyManager, Modifiers {
         bytes32 _investStrategyhash,
         uint256 _stepIndex,
         uint256 _stepCount
-    ) public view override returns (bytes[] memory _codes) {
-        _codes = _getPoolWithdrawAllCodes(_vault, _underlyingToken, _investStrategyhash, _stepIndex, _stepCount);
+    ) public view override returns (bytes[] memory) {
+        return _getPoolWithdrawAllCodes(_vault, _underlyingToken, _investStrategyhash, _stepIndex, _stepCount);
     }
 
     /**
@@ -113,9 +113,9 @@ contract StrategyManager is IStrategyManager, Modifiers {
         public
         view
         override
-        returns (bytes[] memory _codes)
+        returns (bytes[] memory)
     {
-        _codes = _getPoolClaimAllRewardCodes(_vault, _investStrategyhash);
+        return _getPoolClaimAllRewardCodes(_vault, _investStrategyhash);
     }
 
     /**
@@ -125,8 +125,8 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash
-    ) public view override returns (bytes[] memory _codes) {
-        _codes = _getPoolHarvestAllRewardCodes(_vault, _underlyingToken, _investStrategyHash);
+    ) public view override returns (bytes[] memory) {
+        return _getPoolHarvestAllRewardCodes(_vault, _underlyingToken, _investStrategyHash);
     }
 
     /**
@@ -137,8 +137,8 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address _underlyingToken,
         bytes32 _investStrategyHash,
         DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
-    ) public view override returns (bytes[] memory _codes) {
-        _codes = _getPoolHarvestSomeRewardCodes(_vault, _underlyingToken, _investStrategyHash, _vaultRewardStrategy);
+    ) public view override returns (bytes[] memory) {
+        return _getPoolHarvestSomeRewardCodes(_vault, _underlyingToken, _investStrategyHash, _vaultRewardStrategy);
     }
 
     /**
@@ -148,8 +148,8 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash
-    ) public view override returns (bytes[] memory _codes) {
-        _codes = _getAddLiquidityCodes(_vault, _underlyingToken, _investStrategyHash);
+    ) public view override returns (bytes[] memory) {
+        return _getAddLiquidityCodes(_vault, _underlyingToken, _investStrategyHash);
     }
 
     /**
@@ -160,20 +160,15 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address _account,
         address _underlyingToken,
         uint256 _redeemAmountInToken
-    ) public pure override returns (bytes[] memory _treasuryCodes) {
-        _treasuryCodes = _getSplitPaymentCode(_treasuryShares, _account, _underlyingToken, _redeemAmountInToken);
+    ) public pure override returns (bytes[] memory) {
+        return _getSplitPaymentCode(_treasuryShares, _account, _underlyingToken, _redeemAmountInToken);
     }
 
     /**
      * @inheritdoc IStrategyManager
      */
-    function getUpdateUserRewardsCodes(address _vault, address _from)
-        public
-        view
-        override
-        returns (bytes[] memory _codes)
-    {
-        _codes = _getUpdateUserRewardsCodes(_vault, _from);
+    function getUpdateUserRewardsCodes(address _vault, address _from) public view override returns (bytes[] memory) {
+        return _getUpdateUserRewardsCodes(_vault, _from);
     }
 
     /**
@@ -183,21 +178,16 @@ contract StrategyManager is IStrategyManager, Modifiers {
         public
         view
         override
-        returns (bytes[] memory _codes)
+        returns (bytes[] memory)
     {
-        _codes = _getUpdateUserStateInVaultCodes(_vault, _from);
+        return _getUpdateUserStateInVaultCodes(_vault, _from);
     }
 
     /**
      * @inheritdoc IStrategyManager
      */
-    function getUpdateRewardVaultRateAndIndexCodes(address _vault)
-        public
-        view
-        override
-        returns (bytes[] memory _codes)
-    {
-        _codes = _getUpdateRewardVaultRateAndIndexCodes(_vault);
+    function getUpdateRewardVaultRateAndIndexCodes(address _vault) public view override returns (bytes[] memory) {
+        return _getUpdateRewardVaultRateAndIndexCodes(_vault);
     }
 
     /**
@@ -380,9 +370,9 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash
-    ) internal view returns (bytes[] memory _codes) {
+    ) internal view returns (bytes[] memory) {
         (address _liquidityPool, address _adapter, ) = _getLastStepLiquidityPool(_investStrategyHash);
-        _codes = IAdapterFull(_adapter).getHarvestAllCodes(_vault, _underlyingToken, _liquidityPool);
+        return IAdapterFull(_adapter).getHarvestAllCodes(_vault, _underlyingToken, _liquidityPool);
     }
 
     function _getPoolHarvestSomeRewardCodes(
@@ -390,7 +380,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         address _underlyingToken,
         bytes32 _investStrategyHash,
         DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
-    ) internal view returns (bytes[] memory _codes) {
+    ) internal view returns (bytes[] memory) {
         (address _liquidityPool, address _adapter, address _rewardToken) =
             _getLastStepLiquidityPool(_investStrategyHash);
         //  get reward token balance for vault
@@ -400,30 +390,31 @@ contract StrategyManager is IStrategyManager, Modifiers {
             _vaultRewardStrategy.hold == uint256(0) && _vaultRewardStrategy.convert == uint256(0)
                 ? _rewardTokenBalance
                 : _rewardTokenBalance.mul(_vaultRewardStrategy.convert).div(10000);
-        _codes = IAdapterFull(_adapter).getHarvestSomeCodes(
-            _vault,
-            _underlyingToken,
-            _liquidityPool,
-            _harvestableRewardTokens
-        );
+        return
+            IAdapterFull(_adapter).getHarvestSomeCodes(
+                _vault,
+                _underlyingToken,
+                _liquidityPool,
+                _harvestableRewardTokens
+            );
     }
 
     function _getAddLiquidityCodes(
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyHash
-    ) internal view returns (bytes[] memory _codes) {
+    ) internal view returns (bytes[] memory) {
         (, address _adapter, ) = _getLastStepLiquidityPool(_investStrategyHash);
-        _codes = IAdapterFull(_adapter).getAddLiquidityCodes(_vault, _underlyingToken);
+        return IAdapterFull(_adapter).getAddLiquidityCodes(_vault, _underlyingToken);
     }
 
     function _getPoolClaimAllRewardCodes(address payable _vault, bytes32 _investStrategyhash)
         internal
         view
-        returns (bytes[] memory _codes)
+        returns (bytes[] memory)
     {
         (address _liquidityPool, address _adapter, ) = _getLastStepLiquidityPool(_investStrategyhash);
-        _codes = IAdapterFull(_adapter).getClaimRewardTokenCode(_vault, _liquidityPool);
+        return IAdapterFull(_adapter).getClaimRewardTokenCode(_vault, _liquidityPool);
     }
 
     function _getBalanceInUnderlyingToken(

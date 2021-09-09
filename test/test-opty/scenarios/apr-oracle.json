@@ -224,7 +224,7 @@
             "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
           },
           "executor": "",
-          "expectedValue": "0x105c19a2eb0ad6a81cdac155ea97967b4c9a612a4ba1fcf19f4adce8f0595ef7"
+          "expectedValue": "0x2374c396f9c9606b60a1fd0da12749951230fb89a0228b47dd1bccaaaaa6251b"
         }
       ]
     },
@@ -388,7 +388,7 @@
             "riskProfile": "RP1",
             "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
           },
-          "expectedValue": "0x105c19a2eb0ad6a81cdac155ea97967b4c9a612a4ba1fcf19f4adce8f0595ef7"
+          "expectedValue": "0x2374c396f9c9606b60a1fd0da12749951230fb89a0228b47dd1bccaaaaa6251b"
         }
       ]
     },
@@ -573,7 +573,7 @@
             "riskProfile": "RP1",
             "tokens": ["0x6b175474e89094c44da98b954eedeac495271d0f"]
           },
-          "expectedValue": "0x105c19a2eb0ad6a81cdac155ea97967b4c9a612a4ba1fcf19f4adce8f0595ef7"
+          "expectedValue": "0x2374c396f9c9606b60a1fd0da12749951230fb89a0228b47dd1bccaaaaa6251b"
         }
       ]
     },

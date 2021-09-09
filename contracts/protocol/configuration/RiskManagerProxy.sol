@@ -17,11 +17,15 @@ import { RiskManagerStorage } from "./RiskManagerStorage.sol";
 contract RiskManagerProxy is RiskManagerStorage, Modifiers {
     /**
      * @notice Emitted when pendingRiskManagerImplementation is changed
+     * @param oldPendingImplementation Old RiskManager contract's implementation address which is still pending
+     * @param newPendingImplementation New RiskManager contract's implementation address which is still pending
      */
     event NewPendingImplementation(address oldPendingImplementation, address newPendingImplementation);
 
     /**
      * @notice Emitted when RiskManager implementation is updated
+     * @param oldImplementation Old RiskManager Contract's implementation address
+     * @param newImplementation New RiskManager Contract's implementation address
      */
     event NewImplementation(address oldImplementation, address newImplementation);
 

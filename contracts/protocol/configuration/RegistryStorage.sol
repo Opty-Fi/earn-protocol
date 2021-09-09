@@ -67,31 +67,43 @@ contract RegistryAdminStorage {
 
     /**
      * @notice notify when transfer operation of financeOperator occurs
+     * @param financeOperator address of Finance operator of optyfi's earn protocol
+     * @param caller address of user who has called the respective function to trigger this event
      */
     event TransferFinanceOperator(address indexed financeOperator, address indexed caller);
 
     /**
      * @notice notify when transfer operation of riskOperator occurs
+     * @param riskOperator address of Risk operator of optyfi's earn protocol
+     * @param caller address of user who has called the respective function to trigger this event
      */
     event TransferRiskOperator(address indexed riskOperator, address indexed caller);
 
     /**
      * @notice notify when transfer operation of strategyOperator occurs
+     * @param strategyOperator address of Strategy operator of optyfi's earn protocol
+     * @param caller address of user who has called the respective function to trigger this event
      */
     event TransferStrategyOperator(address indexed strategyOperator, address indexed caller);
 
     /**
      * @notice notify when transfer operation of operator occurs
+     * @param operator address of Operator of optyfi's earn protocol
+     * @param caller address of user who has called the respective function to trigger this event
      */
     event TransferOperator(address indexed operator, address indexed caller);
 
     /**
      * @notice notify when transfer operation of treasury occurs
+     * @param treasury address of Treasury of optyfi's earn protocol
+     * @param caller address of user who has called the respective function to trigger this event
      */
     event TransferTreasury(address indexed treasury, address indexed caller);
 
     /**
      * @notice notify when transfer operation of optyDistributor occurs
+     * @param optyDistributor address of Opty distributor of optyfi's earn protocol
+     * @param caller address of user who has called the respective function to trigger this event
      */
     event TransferOPTYDistributor(address indexed optyDistributor, address indexed caller);
 }
@@ -205,56 +217,81 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when token is approved or revoked
+     * @param token Underlying Token's address which is approved or revoked
+     * @param enabled Token is approved (true) or revoked (false)
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogToken(address indexed token, bool indexed enabled, address indexed caller);
 
     /**
-     * @notice Emitted when pool is approved or revoked
+     * @notice Emitted when pool is approved or revoked as liquidity pool
+     * @param pool Liquidity Pool's address which is approved or revoked
+     * @param enabled Liquidity Pool is approved (true) or revoked (false)
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogLiquidityPool(address indexed pool, bool indexed enabled, address indexed caller);
 
     /**
-     * @notice Emitted when credit pool is approved or revoked
+     * @notice Emitted when pool is approved or revoked as credit pool
+     * @param pool Credit Pool's address which is approved or revoked
+     * @param enabled Credit pool is approved (true) or revoked (false)
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogCreditPool(address indexed pool, bool indexed enabled, address indexed caller);
 
     /**
-     * @notice Emitted when pool is rated
+     * @notice Emitted when liquidity pool is rated
+     * @param pool Liquidity Pool's address which is rated
+     * @param rate Rating of Liquidity Pool set
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogRateLiquidityPool(address indexed pool, uint8 indexed rate, address indexed caller);
 
     /**
-     * @notice Emitted when pool is rated
+     * @notice Emitted when credit pool is rated
+     * @param pool Credit Pool's address which is rated
+     * @param rate Rating of Credit Pool set
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogRateCreditPool(address indexed pool, uint8 indexed rate, address indexed caller);
 
     /**
-     * @notice Emitted when hash strategy is scored
-     */
-    event LogScoreStrategy(address indexed caller, bytes32 indexed hash, uint8 indexed score);
-
-    /**
      * @notice Emitted when liquidity pool pool is assigned to adapter
+     * @param pool Liquidity Pool's address which is mapped to the adapter
+     * @param adapter Address of the respective OptyFi's defi-adapter contract which is mapped to the Liquidity Pool
+     * @param caller Address of user who has called the respective function to trigger this event
      */
-    event LogLiquidityPoolToDepositToken(address indexed pool, address indexed adapter, address indexed caller);
+    event LogLiquidityPoolToAdapter(address indexed pool, address indexed adapter, address indexed caller);
 
     /**
      * @notice Emitted when tokens are assigned to tokensHash
+     * @param tokensHash Hash of the token/list of tokens mapped to the provided token/list of tokens
+     * @param caller Address of user who has called the respective function to trigger this event
      */
-    event LogTokensToTokensHash(bytes32 indexed _tokensHash, address indexed caller);
+    event LogTokensToTokensHash(bytes32 indexed tokensHash, address indexed caller);
 
     /**
      * @dev Emitted when Discontinue over vault is activated
+     * @param vault OptyFi's Vault contract address which is discontinued from being operational
+     * @param discontinued Discontinue status (true) of OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogDiscontinueVault(address indexed vault, bool indexed discontinued, address indexed caller);
 
     /**
      * @notice Emitted when Pause over vault is activated/deactivated
+     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param unpaused Unpause status of OptyFi's Vault contract - false (if paused) and true (if unpaused)
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogUnpauseVault(address indexed vault, bool indexed unpaused, address indexed caller);
 
     /**
      * @notice Emitted when setUnderlyingAssetHashToRPToVaults function is called
+     * @param underlyingAssetHash Underlying token's hash mapped to risk profile and OptyFi's Vault contract address
+     * @param riskProfile Risk Profile used to map Underlying token hash and OptyFi's Vault contract address
+     * @param vault OptyFi's Vault contract address
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogUnderlyingAssetHashToRPToVaults(
         bytes32 indexed underlyingAssetHash,
@@ -265,11 +302,19 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when RiskProfile is added
+     * @param index Index of an array at which risk profile is added
+     * @param exists Status of risk profile if it exists (true) or not (false)
+     * @param canBorrow Borrow is allowed (true) or not (false) for the specified risk profile
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogRiskProfile(uint256 indexed index, bool indexed exists, bool indexed canBorrow, address caller);
 
     /**
-     * @notice Emitted when Risk profile is set
+     * @notice Emitted when Risk profile is added/updated
+     * @param index Index of an array at which risk profile is added or updated
+     * @param lowerLimit Lower limit of the pool for the specified risk profile
+     * @param upperLimit Upper limit of the pool for the specified risk profile
+     * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogRPPoolRatings(uint256 indexed index, uint8 indexed lowerLimit, uint8 indexed upperLimit, address caller);
 }

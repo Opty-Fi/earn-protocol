@@ -90,11 +90,11 @@ contract TestDeFiAdapter is MultiCall {
         );
     }
 
-    function testGetHarvestSomeReward(
+    function testGetHarvestSomeCodes(
         address _liquidityPool,
         address _underlyingToken,
-        uint256 _rewardTokenAmount,
-        address _adapter
+        address _adapter,
+        uint256 _rewardTokenAmount
     ) external {
         executeCodes(
             IAdapterFull(_adapter).getHarvestSomeCodes(

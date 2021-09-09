@@ -75,10 +75,10 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
         external
         override
         onlyFinanceOperator
-        returns (bool _success)
+        returns (bool)
     {
         stakingVaultMultipliers[_stakingVault] = _multiplier;
-        _success = true;
+        return true;
     }
 
     /**
@@ -88,16 +88,16 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
         external
         override
         onlyFinanceOperator
-        returns (bool _success)
+        returns (bool)
     {
         stakingVaultOPTYAllocation = _stakingVaultOPTYAllocation;
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYStakingRateBalancer
      */
-    function updateOptyRates() external override onlyStakingVaults returns (bool _success) {
+    function updateOptyRates() external override onlyStakingVaults returns (bool) {
         uint256 _stakingVault1DLockingTermStakedOPTY = stakingVaultToStakedOPTY[stakingVault1DLockingTerm];
         uint256 _stakingVault30DLockingTermStakedOPTY = stakingVaultToStakedOPTY[stakingVault30DLockingTerm];
         uint256 _stakingVault60DLockingTermStakedOPTY = stakingVaultToStakedOPTY[stakingVault60DLockingTerm];
@@ -157,34 +157,24 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
             IOPTYStakingVault(stakingVault180DLockingTerm).setOptyRatePerSecond(_rate180DLock),
             "updateOptyRates:180Dlockingterm"
         );
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYStakingRateBalancer
      */
-    function updateStakedOPTY(address _staker, uint256 _amount)
-        external
-        override
-        onlyStakingVaults
-        returns (bool _success)
-    {
+    function updateStakedOPTY(address _staker, uint256 _amount) external override onlyStakingVaults returns (bool) {
         stakingVaultToUserStakedOPTY[msg.sender][_staker] = stakingVaultToUserStakedOPTY[msg.sender][_staker].add(
             _amount
         );
         stakingVaultToStakedOPTY[msg.sender] = stakingVaultToStakedOPTY[msg.sender].add(_amount);
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYStakingRateBalancer
      */
-    function updateUnstakedOPTY(address _staker, uint256 _shares)
-        external
-        override
-        onlyStakingVaults
-        returns (bool _success)
-    {
+    function updateUnstakedOPTY(address _staker, uint256 _shares) external override onlyStakingVaults returns (bool) {
         uint256 _stakerStakedAmount = stakingVaultToUserStakedOPTY[msg.sender][_staker];
         uint256 _amount = _shares.mul(_stakerStakedAmount).div(stakingVaultToStakedOPTY[msg.sender]);
         if (_shares == IERC20(msg.sender).balanceOf(_staker)) {
@@ -195,6 +185,6 @@ contract OPTYStakingRateBalancer is IOPTYStakingRateBalancer, OPTYStakingRateBal
             );
         }
         stakingVaultToStakedOPTY[msg.sender] = stakingVaultToStakedOPTY[msg.sender].sub(_amount);
-        _success = true;
+        return true;
     }
 }

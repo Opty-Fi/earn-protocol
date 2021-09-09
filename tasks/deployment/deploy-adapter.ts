@@ -4,8 +4,9 @@ import { deployAdapter } from "../../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
 import { ADAPTER } from "../../helpers/constants";
+import { DEPLOY_ADAPTER } from "../task-names";
 
-task("deploy-adapter", "Deploy Adapter contract")
+task(DEPLOY_ADAPTER, "Deploy Adapter contract")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("name", "the name of adapter", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)

@@ -6,8 +6,9 @@ import { approveLiquidityPoolAndMapAdapters, approveTokens, approveToken } from 
 import { insertContractIntoDB } from "../helpers/db";
 import { TESTING_CONTRACTS } from "../helpers/constants";
 import { deployContract } from "../helpers/helpers";
+import { SETUP } from "./task-names";
 
-task("setup", "Deploy infrastructure, adapter and vault contracts and setup all necessary actions")
+task(SETUP, "Deploy infrastructure, adapter and vault contracts and setup all necessary actions")
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", false, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ deployedonce, insertindb }, hre) => {

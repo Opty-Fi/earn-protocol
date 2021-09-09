@@ -2,7 +2,9 @@ import { task, types } from "hardhat/config";
 import { deployContract } from "../../helpers/helpers";
 import { insertContractIntoDB } from "../../helpers/db";
 import { TESTING_CONTRACTS } from "../../helpers/constants";
-task("deploy-erc20", "Deploy ERC20")
+import { DEPLOY_ERC20 } from "../task-names";
+
+task(DEPLOY_ERC20, "Deploy ERC20")
   .addParam("name", "the name of token", "", types.string)
   .addParam("symbol", "the symbol of token", "", types.string)
   .addOptionalParam("total", "the totalSupply of token", "0", types.string)

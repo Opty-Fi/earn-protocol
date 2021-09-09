@@ -710,11 +710,8 @@ contract Vault is
      * @param _b value
      * @return _result absolute difference between _a and _b
      */
-    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256 _result) {
-        if (_a > _b) {
-            _result = _a.sub(_b);
-        }
-        _result = _b.sub(_a);
+    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        return _a > _b ? _a.sub(_b) : _b.sub(_a);
     }
 
     /**

@@ -165,7 +165,7 @@ describe(scenario.title, () => {
                           assert.isUndefined(error);
                         } else {
                           expect(error.message).to.equal(
-                            `VM Exception while processing transaction: revert ${action.message}`,
+                            `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                           );
                         }
                       }
@@ -191,7 +191,7 @@ describe(scenario.title, () => {
                           assert.isUndefined(error);
                         } else {
                           expect(error.message).to.equal(
-                            `VM Exception while processing transaction: revert ${action.message}`,
+                            `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                           );
                         }
                       }
@@ -212,7 +212,7 @@ describe(scenario.title, () => {
                           assert.isUndefined(error);
                         } else {
                           expect(error.message).to.equal(
-                            `VM Exception while processing transaction: revert ${action.message}`,
+                            `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                           );
                         }
                       }
@@ -232,7 +232,7 @@ describe(scenario.title, () => {
                           assert.isUndefined(error);
                         } else {
                           expect(error.message).to.equal(
-                            `VM Exception while processing transaction: revert ${action.message}`,
+                            `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                           );
                         }
                       }
@@ -255,7 +255,7 @@ describe(scenario.title, () => {
                           assert.isUndefined(error);
                         } else {
                           expect(error.message).to.equal(
-                            `VM Exception while processing transaction: revert ${action.message}`,
+                            `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                           );
                         }
                       }
@@ -283,7 +283,7 @@ describe(scenario.title, () => {
                           assert.isUndefined(error);
                         } else {
                           expect(error.message).to.equal(
-                            `VM Exception while processing transaction: revert ${action.message}`,
+                            `VM Exception while processing transaction: reverted with reason string '${action.message}'`,
                           );
                         }
                       }

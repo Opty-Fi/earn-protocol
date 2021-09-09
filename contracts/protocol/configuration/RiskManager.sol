@@ -68,11 +68,13 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
         public
         view
         override
-        returns (DataTypes.VaultRewardStrategy memory _vaultRewardStrategy)
+        returns (DataTypes.VaultRewardStrategy memory)
     {
         require(_vaultRewardTokenHash != Constants.ZERO_BYTES32, "vRtHash!=0x0");
-        _vaultRewardStrategy = IStrategyProvider(registryContract.getStrategyProvider())
-            .getVaultRewardTokenHashToVaultRewardTokenStrategy(_vaultRewardTokenHash);
+        return
+            IStrategyProvider(registryContract.getStrategyProvider()).getVaultRewardTokenHashToVaultRewardTokenStrategy(
+                _vaultRewardTokenHash
+            );
     }
 
     function _getBestStrategy(

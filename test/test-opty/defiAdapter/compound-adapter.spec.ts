@@ -1,14 +1,16 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
 import hre from "hardhat";
+import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber, utils, ethers } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE, COMPOUND_ADAPTER_NAME } from "../../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO, COMPOUND_ADAPTER_NAME } from "../../../helpers/constants";
 import { TypedAdapterStrategies, TypedTokens } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
 import scenarios from "../scenarios/adapters.json";
 import { TypedDefiPools } from "../../../helpers/data";
-import testDeFiAdaptersScenario from "../scenarios/test-defi-adapter.json";
+//  TODO: This file is temporarily being used until all the adapters testing doesn't adapt this file
+import testDeFiAdaptersScenario from "../scenarios/compound-temp-defi-adapter.json";
 import { deployContract, getDefaultFundAmount } from "../../../helpers/helpers";
 import { getAddress } from "ethers/lib/utils";
 import abis from "../../../helpers/data/abis.json";
@@ -23,6 +25,8 @@ type TEST_DEFI_ADAPTER_ARGUMENTS = {
   maxDepositPoolPct?: string;
   maxDepositAmount?: string;
 };
+
+chai.use(solidity);
 
 describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
   const strategies = TypedAdapterStrategies[COMPOUND_ADAPTER_NAME];
@@ -177,6 +181,11 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                 const liquidityPool = TypedDefiPools[COMPOUND_ADAPTER_NAME][pool].pool;
                 const ERC20Instance = await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
                 const LpERC20Instance = await hre.ethers.getContractAt("ERC20", liquidityPool);
+                const rewardTokenAddress = await compoundAdapter.getRewardToken(ADDRESS_ZERO);
+                let RewardTokenERC20Instance: Contract;
+                if (!(rewardTokenAddress == ADDRESS_ZERO)) {
+                  RewardTokenERC20Instance = await hre.ethers.getContractAt("ERC20", rewardTokenAddress);
+                }
                 //  @reason: Some LpToken contracts (like cLink's contract) are not detectable as Contract with the blockNumber being used in Hardhat config.
                 //  However, it works fine if existing blockNumber is removed with the latest blockNumber.
                 const getCode = await LpERC20Instance.provider.getCode(LpERC20Instance.address);
@@ -184,6 +193,7 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                   this.skip();
                 }
                 let underlyingBalanceBefore: BigNumber = ethers.BigNumber.from(0);
+                let rewardTokenBalanceBefore: BigNumber = ethers.BigNumber.from(0);
                 const decimals = await ERC20Instance.decimals();
                 const adapterAddress = compoundAdapter.address;
 
@@ -197,12 +207,13 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                 for (const action of story.setActions) {
                   switch (action.action) {
                     case "setMaxDepositProtocolMode(uint8)": {
-                      const { mode }: TEST_DEFI_ADAPTER_ARGUMENTS = action.args!;
+                      const { mode }: any = action.args!;
                       const existingMode = await compoundAdapter.maxDepositProtocolMode();
                       if (existingMode != mode) {
-                        await compoundAdapter[action.action](mode);
-                        const modeSet = await compoundAdapter.maxDepositProtocolMode();
-                        expect(+modeSet).to.be.eq(+mode!);
+                        await expect(compoundAdapter[action.action](mode))
+                          .to.emit(compoundAdapter, "LogMaxDepositProtocolMode")
+                          .withArgs(+mode, ownerAddress);
+                        expect(await compoundAdapter.maxDepositProtocolMode()).to.equal(+mode);
                       }
                       break;
                     }
@@ -210,15 +221,15 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                       const existingPoolPct: BigNumber = await compoundAdapter.maxDepositPoolPct(liquidityPool);
                       if (!existingPoolPct.eq(BigNumber.from(0))) {
                         await compoundAdapter.setMaxDepositPoolPct(liquidityPool, 0);
-                        const maxDepositPoolPctSetToZero = await compoundAdapter.maxDepositPoolPct(liquidityPool);
-                        expect(+maxDepositPoolPctSetToZero).to.be.eq(0);
+                        expect(await compoundAdapter.maxDepositPoolPct(liquidityPool)).to.be.eq(0);
                       }
-                      const { maxDepositProtocolPct }: TEST_DEFI_ADAPTER_ARGUMENTS = action.args!;
+                      const { maxDepositProtocolPct }: any = action.args!;
                       const existingProtocolPct: BigNumber = await compoundAdapter.maxDepositProtocolPct();
                       if (!existingProtocolPct.eq(BigNumber.from(maxDepositProtocolPct))) {
-                        await compoundAdapter[action.action](maxDepositProtocolPct);
-                        const maxDepositProtocolPctSet = await compoundAdapter.maxDepositProtocolPct();
-                        expect(+maxDepositProtocolPctSet).to.be.eq(+maxDepositProtocolPct!);
+                        await expect(compoundAdapter[action.action](maxDepositProtocolPct))
+                          .to.emit(compoundAdapter, "LogMaxDepositProtocolPct")
+                          .withArgs(+maxDepositProtocolPct, ownerAddress);
+                        expect(await compoundAdapter.maxDepositProtocolPct()).to.equal(+maxDepositProtocolPct);
                       }
                       limit = poolValue.mul(BigNumber.from(maxDepositProtocolPct)).div(BigNumber.from(10000));
                       defaultFundAmount = defaultFundAmount.lte(limit) ? defaultFundAmount : limit;
@@ -229,9 +240,10 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                       const { maxDepositPoolPct }: TEST_DEFI_ADAPTER_ARGUMENTS = action.args!;
                       const existingPoolPct: BigNumber = await compoundAdapter.maxDepositPoolPct(liquidityPool);
                       if (!existingPoolPct.eq(BigNumber.from(maxDepositPoolPct))) {
-                        await compoundAdapter[action.action](liquidityPool, maxDepositPoolPct);
-                        const maxDepositPoolPctSet = await compoundAdapter.maxDepositPoolPct(liquidityPool);
-                        expect(+maxDepositPoolPctSet).to.be.eq(+maxDepositPoolPct!);
+                        await expect(compoundAdapter[action.action](liquidityPool, maxDepositPoolPct))
+                          .to.emit(compoundAdapter, "LogMaxDepositPoolPct")
+                          .withArgs(maxDepositPoolPct, ownerAddress);
+                        expect(await compoundAdapter.maxDepositPoolPct(liquidityPool)).to.equal(maxDepositPoolPct);
                       }
                       limit = poolValue.mul(BigNumber.from(maxDepositPoolPct)).div(BigNumber.from(10000));
                       defaultFundAmount = defaultFundAmount.lte(limit) ? defaultFundAmount : limit;
@@ -246,12 +258,14 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                         underlyingTokenAddress,
                       );
                       if (!existingDepositAmount.eq(BigNumber.from(maxDepositAmount))) {
-                        await compoundAdapter[action.action](liquidityPool, underlyingTokenAddress, maxDepositAmount);
-                        const maxDepositAmountSet = await compoundAdapter.maxDepositAmount(
-                          liquidityPool,
-                          underlyingTokenAddress,
-                        );
-                        expect(+maxDepositAmountSet).to.be.eq(+maxDepositAmount);
+                        await expect(
+                          compoundAdapter[action.action](liquidityPool, underlyingTokenAddress, maxDepositAmount),
+                        )
+                          .to.emit(compoundAdapter, "LogMaxDepositAmount")
+                          .withArgs(maxDepositAmount, ownerAddress);
+                        expect(
+                          +(await compoundAdapter.maxDepositAmount(liquidityPool, underlyingTokenAddress)),
+                        ).to.equal(+maxDepositAmount);
                       }
                       limit = BigNumber.from(maxDepositAmount);
                       defaultFundAmount = defaultFundAmount.mul(BigNumber.from(10).pow(decimals));
@@ -270,6 +284,26 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                         );
                         underlyingBalance = await ERC20Instance.balanceOf(testDeFiAdapter.address);
                         expect(+underlyingBalance).to.be.gte(+defaultFundAmount);
+                      }
+                      break;
+                    }
+                    case "fundTestDefiContractWithRewardToken()": {
+                      if (!(rewardTokenAddress == ADDRESS_ZERO)) {
+                        let compUnderlyingBalance: BigNumber = await RewardTokenERC20Instance!.balanceOf(
+                          testDeFiAdapter.address,
+                        );
+                        if (+compUnderlyingBalance.lte(+0)) {
+                          await fundWalletToken(
+                            hre,
+                            RewardTokenERC20Instance!.address,
+                            users["owner"],
+                            getDefaultFundAmount(rewardTokenAddress).mul(BigNumber.from(10).pow(18)),
+                            timestamp,
+                            testDeFiAdapter.address,
+                          );
+                          compUnderlyingBalance = await RewardTokenERC20Instance!.balanceOf(testDeFiAdapter.address);
+                          expect(+compUnderlyingBalance).to.be.gt(+0);
+                        }
                       }
                       break;
                     }
@@ -308,41 +342,44 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                       );
                       break;
                     }
+                    case "testGetHarvestAllCodes(address,address,address)": {
+                      //  TODO: This condition has to be added in the contract (OPTY-339)
+                      if (getAddress(underlyingTokenAddress) == getAddress(TypedTokens.COMP)) {
+                        this.skip();
+                      }
+                      underlyingBalanceBefore = await ERC20Instance.balanceOf(testDeFiAdapter.address);
+                      rewardTokenBalanceBefore = await RewardTokenERC20Instance!.balanceOf(testDeFiAdapter.address);
+                      await testDeFiAdapter[action.action](liquidityPool, underlyingTokenAddress, adapterAddress);
+                      break;
+                    }
+                    case "testGetHarvestSomeCodes(address,address,address,uint256)": {
+                      //  TODO: This condition has to be added in the contract (OPTY-339)
+                      if (getAddress(underlyingTokenAddress) == getAddress(TypedTokens.COMP)) {
+                        this.skip();
+                      }
+                      underlyingBalanceBefore = await ERC20Instance.balanceOf(testDeFiAdapter.address);
+                      rewardTokenBalanceBefore = await RewardTokenERC20Instance!.balanceOf(testDeFiAdapter.address);
+                      await testDeFiAdapter[action.action](
+                        liquidityPool,
+                        underlyingTokenAddress,
+                        adapterAddress,
+                        rewardTokenBalanceBefore,
+                      );
+                      break;
+                    }
                   }
                 }
                 for (const action of story.getActions) {
                   switch (action.action) {
                     case "getLiquidityPoolTokenBalance(address,address,address)": {
-                      const expectedValue = action.expectedValue;
                       const expectedLpBalanceFromPool = await LpERC20Instance.balanceOf(testDeFiAdapter.address);
-                      const lpTokenBalance = await compoundAdapter[action.action](
-                        testDeFiAdapter.address,
-                        underlyingTokenAddress,
-                        liquidityPool,
-                      );
-                      expect(+lpTokenBalance).to.be.eq(+expectedLpBalanceFromPool);
-                      const existingMode = await compoundAdapter.maxDepositProtocolMode();
-                      if (existingMode == 0) {
-                        const existingDepositAmount: BigNumber = await compoundAdapter.maxDepositAmount(
-                          liquidityPool,
+                      expect(
+                        await compoundAdapter[action.action](
+                          testDeFiAdapter.address,
                           underlyingTokenAddress,
-                        );
-                        if (existingDepositAmount.eq(0)) {
-                          expect(lpTokenBalance).to.be.eq(0);
-                        } else {
-                          expect(lpTokenBalance).to.be.gt(0);
-                        }
-                      } else {
-                        const existingPoolPct: BigNumber = await compoundAdapter.maxDepositPoolPct(liquidityPool);
-                        const existingProtocolPct: BigNumber = await compoundAdapter.maxDepositProtocolPct();
-                        if (existingPoolPct.eq(0) && existingProtocolPct.eq(0)) {
-                          expect(lpTokenBalance).to.be.eq(0);
-                        } else if (!existingPoolPct.eq(0) || !existingProtocolPct.eq(0)) {
-                          expectedValue == "=0"
-                            ? expect(lpTokenBalance).to.be.eq(0)
-                            : expect(lpTokenBalance).to.be.gt(0);
-                        }
-                      }
+                          liquidityPool,
+                        ),
+                      ).to.be.eq(+expectedLpBalanceFromPool);
                       break;
                     }
                     case "balanceOf(address)": {
@@ -355,8 +392,22 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                           ? expect(+underlyingBalanceAfter).to.be.gt(+underlyingBalanceBefore)
                           : expect(underlyingBalanceAfter).to.be.eq(0);
                       } else {
-                        expect(underlyingBalanceAfter).to.be.eq(underlyingBalanceBefore.sub(limit));
+                        expectedValue == ">0"
+                          ? expect(+underlyingBalanceAfter).to.be.gt(+underlyingBalanceBefore)
+                          : expect(underlyingBalanceAfter).to.be.eq(underlyingBalanceBefore.sub(limit));
                       }
+                      break;
+                    }
+                    case "getRewardTokenBalance(address)": {
+                      const rewardTokenBalanceAfter: BigNumber = await RewardTokenERC20Instance!.balanceOf(
+                        testDeFiAdapter.address,
+                      );
+                      const expectedValue = action.expectedValue;
+                      expectedValue == ">0"
+                        ? expect(+rewardTokenBalanceAfter).to.be.gt(+rewardTokenBalanceBefore)
+                        : expectedValue == "=0"
+                        ? expect(+rewardTokenBalanceAfter).to.be.eq(0)
+                        : expect(+rewardTokenBalanceAfter).to.be.lt(+rewardTokenBalanceBefore);
                       break;
                     }
                   }
@@ -372,17 +423,18 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                 for (const action of story.getActions) {
                   switch (action.action) {
                     case "getLiquidityPoolTokenBalance(address,address,address)": {
-                      const lpTokenBalance = await compoundAdapter[action.action](
-                        testDeFiAdapter.address,
-                        underlyingTokenAddress,
-                        liquidityPool,
-                      );
-                      expect(lpTokenBalance).to.be.eq(0);
+                      // const lpTokenBalance =
+                      expect(
+                        await compoundAdapter[action.action](
+                          testDeFiAdapter.address,
+                          underlyingTokenAddress,
+                          liquidityPool,
+                        ),
+                      ).to.be.eq(0);
                       break;
                     }
-                    case "balanceOf(address": {
-                      const underlyingBalance: BigNumber = await ERC20Instance.balanceOf(testDeFiAdapter.address);
-                      expect(underlyingBalance).to.be.gt(0);
+                    case "balanceOf(address)": {
+                      expect(await ERC20Instance.balanceOf(testDeFiAdapter.address)).to.be.gt(0);
                       break;
                     }
                   }

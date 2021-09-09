@@ -1,9 +1,10 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
 import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
+import { solidity } from "ethereum-waffle";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -17,6 +18,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/invest-limitation.json";
+
 type ARGUMENTS = {
   amount?: { [key: string]: string };
   type?: number;
@@ -25,6 +27,7 @@ type ARGUMENTS = {
 type EXPECTED_ARGUMENTS = {
   [key: string]: string | number;
 };
+chai.use(solidity);
 describe(scenarios.title, () => {
   const MAX_AMOUNT: { [key: string]: BigNumber } = {
     DAI: BigNumber.from("20000000000000000000"),
@@ -35,12 +38,16 @@ describe(scenarios.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   let users: { [key: string]: Signer };
+  const userAddresses: { [key: string]: string } = {};
 
   before(async () => {
     try {
       const [owner, admin] = await hre.ethers.getSigners();
       const riskOperator = owner;
       users = { owner, admin, riskOperator };
+      userAddresses["owner"] = await users.owner.getAddress();
+      userAddresses["admin"] = await users.admin.getAddress();
+      userAddresses["riskOperator"] = await users.riskOperator.getAddress();
       [essentialContracts, adapters] = await setUp(users["owner"]);
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
@@ -139,7 +146,11 @@ describe(scenarios.title, () => {
                     case "setMaxDepositProtocolMode(uint8)": {
                       const { type }: ARGUMENTS = setAction.args;
                       if (setAction.expect === "success") {
-                        await contracts[setAction.contract].connect(users[setAction.executer])[setAction.action](type);
+                        await expect(
+                          contracts[setAction.contract].connect(users[setAction.executer])[setAction.action](type),
+                        )
+                          .to.emit(contracts[setAction.contract], "LogMaxDepositProtocolMode")
+                          .withArgs(type, userAddresses[setAction.executer]);
                       } else {
                         await expect(
                           contracts[setAction.contract].connect(users[setAction.executer])[setAction.action](type),
@@ -149,53 +160,60 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositAmount(address,address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
+                      const maxDepositAmount = amount ? amount[strategy.token] : "0";
                       if (setAction.expect === "success") {
-                        await contracts[setAction.contract]
-                          .connect(users[setAction.executer])
-                          [setAction.action](
-                            strategy.strategy[0].contract,
-                            token,
-                            amount ? amount[strategy.token] : "0",
-                          );
+                        await expect(
+                          contracts[setAction.contract]
+                            .connect(users[setAction.executer])
+                            [setAction.action](strategy.strategy[0].contract, token, maxDepositAmount),
+                        )
+                          .to.emit(contracts[setAction.contract], "LogMaxDepositAmount")
+                          .withArgs(maxDepositAmount, userAddresses[setAction.executer]);
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](
-                              strategy.strategy[0].contract,
-                              token,
-                              amount ? amount[strategy.token] : "0",
-                            ),
+                            [setAction.action](strategy.strategy[0].contract, token, maxDepositAmount),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;
                     }
                     case "setMaxDepositPoolPct(address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
+                      const maxDepositPoolPct = amount ? amount[strategy.token] : "0";
                       if (setAction.expect === "success") {
-                        await contracts[setAction.contract]
-                          .connect(users[setAction.executer])
-                          [setAction.action](strategy.strategy[0].contract, amount ? amount[strategy.token] : "0");
+                        await expect(
+                          contracts[setAction.contract]
+                            .connect(users[setAction.executer])
+                            [setAction.action](strategy.strategy[0].contract, maxDepositPoolPct),
+                        )
+                          .to.emit(contracts[setAction.contract], "LogMaxDepositPoolPct")
+                          .withArgs(maxDepositPoolPct, userAddresses[setAction.executer]);
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](strategy.strategy[0].contract, amount ? amount[strategy.token] : "0"),
+                            [setAction.action](strategy.strategy[0].contract, maxDepositPoolPct),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;
                     }
                     case "setMaxDepositProtocolPct(uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
+                      const maxDepositProtocolPct = amount ? amount[strategy.token] : "0";
                       if (setAction.expect === "success") {
-                        await contracts[setAction.contract]
-                          .connect(users[setAction.executer])
-                          [setAction.action](amount ? amount[strategy.token] : "0");
+                        await expect(
+                          contracts[setAction.contract]
+                            .connect(users[setAction.executer])
+                            [setAction.action](maxDepositProtocolPct),
+                        )
+                          .to.emit(contracts[setAction.contract], "LogMaxDepositProtocolPct")
+                          .withArgs(maxDepositProtocolPct, userAddresses[setAction.executer]);
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](amount ? amount[strategy.token] : "0"),
+                            [setAction.action](maxDepositProtocolPct),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;

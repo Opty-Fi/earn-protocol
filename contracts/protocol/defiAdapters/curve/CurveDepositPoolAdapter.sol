@@ -43,6 +43,9 @@ contract CurveDepositPoolAdapter is
 {
     using SafeMath for uint256;
 
+    /** @notice max deposit value datatypes */
+    DataTypes.MaxExposure public maxDepositProtocolMode;
+
     /** @notice  Curve Registry Address Provider */
     address public constant ADDRESS_PROVIDER = address(0x0000000022D53366457F9d5E68Ec105046FC4383);
 
@@ -69,9 +72,6 @@ contract CurveDepositPoolAdapter is
 
     /** @notice max deposit's default value in percentage */
     uint256 public maxDepositProtocolPct; // basis points
-
-    /** @notice max deposit value datatypes */
-    DataTypes.MaxExposure public maxDepositProtocolMode;
 
     /** @dev deposit addresses that uses old API */
     mapping(address => bool) public isOldDepositZap;
@@ -105,6 +105,7 @@ contract CurveDepositPoolAdapter is
         onlyRiskOperator
     {
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
+        emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
 
     /**
@@ -117,6 +118,7 @@ contract CurveDepositPoolAdapter is
     ) external override onlyRiskOperator {
         // Note: We are using 18 as decimals for USD and BTC
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
+        emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool], msg.sender);
     }
 
     /**
@@ -177,6 +179,7 @@ contract CurveDepositPoolAdapter is
      */
     function setMaxDepositProtocolPct(uint256 _maxDepositProtocolPct) public override onlyRiskOperator {
         maxDepositProtocolPct = _maxDepositProtocolPct;
+        emit LogMaxDepositProtocolPct(maxDepositProtocolPct, msg.sender);
     }
 
     /**
@@ -184,6 +187,7 @@ contract CurveDepositPoolAdapter is
      */
     function setMaxDepositProtocolMode(DataTypes.MaxExposure _mode) public override onlyRiskOperator {
         maxDepositProtocolMode = _mode;
+        emit LogMaxDepositProtocolMode(maxDepositProtocolMode, msg.sender);
     }
 
     /**
@@ -205,9 +209,9 @@ contract CurveDepositPoolAdapter is
         address payable _vault,
         address _underlyingToken,
         address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         uint256 _amount = ERC20(_underlyingToken).balanceOf(_vault);
-        _codes = _getDepositCode(_underlyingToken, _liquidityPool, _amount);
+        return _getDepositCode(_underlyingToken, _liquidityPool, _amount);
     }
 
     /**
@@ -261,11 +265,11 @@ contract CurveDepositPoolAdapter is
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
-    ) public view override returns (uint256 _amount) {
+    ) public view override returns (uint256) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
         uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         // can have unintentional rounding errors
-        _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
+        return (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
 
     /**
@@ -308,7 +312,7 @@ contract CurveDepositPoolAdapter is
         address payable _vault,
         address _underlyingToken,
         address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         uint256 _rewardTokenAmount = ERC20(getRewardToken(_liquidityPool)).balanceOf(_vault);
         return getHarvestSomeCodes(_vault, _underlyingToken, _liquidityPool, _rewardTokenAmount);
     }
@@ -331,7 +335,7 @@ contract CurveDepositPoolAdapter is
         address payable _vault,
         address _underlyingToken,
         address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         uint256 _stakeAmount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
         return getStakeSomeCodes(_liquidityPool, _stakeAmount);
     }
@@ -343,7 +347,7 @@ contract CurveDepositPoolAdapter is
         public
         view
         override
-        returns (bytes[] memory _codes)
+        returns (bytes[] memory)
     {
         uint256 _unstakeAmount = getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool);
         return getUnstakeSomeCodes(_liquidityPool, _unstakeAmount);
@@ -357,11 +361,11 @@ contract CurveDepositPoolAdapter is
         address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
-    ) public view override returns (uint256 _amount) {
+    ) public view override returns (uint256) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool);
         uint256 _balanceInToken = getAllAmountInTokenStake(_vault, _underlyingToken, _liquidityPool);
         // can have unintentional rounding errors
-        _amount = (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
+        return (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
 
     /**
@@ -384,7 +388,7 @@ contract CurveDepositPoolAdapter is
         address payable _vault,
         address _underlyingToken,
         address _liquidityPool
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         uint256 _redeemAmount = getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool);
         return getUnstakeAndWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmount);
     }
@@ -397,8 +401,8 @@ contract CurveDepositPoolAdapter is
         address _underlyingToken,
         address _liquidityPool,
         uint256 _amount
-    ) public view override returns (bytes[] memory _codes) {
-        _codes = _getDepositCode(_underlyingToken, _liquidityPool, _amount);
+    ) public view override returns (bytes[] memory) {
+        return _getDepositCode(_underlyingToken, _liquidityPool, _amount);
     }
 
     /**
@@ -522,7 +526,7 @@ contract CurveDepositPoolAdapter is
         address _underlyingToken,
         address _liquidityPool,
         uint256 _rewardTokenAmount
-    ) public view override returns (bytes[] memory _codes) {
+    ) public view override returns (bytes[] memory) {
         return
             IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).getHarvestCodes(
                 _vault,
@@ -663,14 +667,14 @@ contract CurveDepositPoolAdapter is
      * @param _swapPool swap pool address
      * @return _tokenIndex index of coin in swap pool
      */
-    function _getTokenIndex(address _swapPool, address _underlyingToken) internal view returns (int128 _tokenIndex) {
+    function _getTokenIndex(address _swapPool, address _underlyingToken) internal view returns (int128) {
         address[8] memory _underlyingTokens = _getUnderlyingTokens(_swapPool, _getCurveRegistry());
         for (uint256 _i = 0; _i < _underlyingTokens.length; _i++) {
             if (_underlyingTokens[_i] == _underlyingToken) {
-                _tokenIndex = int128(_i);
-                break;
+                return int128(_i);
             }
         }
+        return int128(0);
     }
 
     /*

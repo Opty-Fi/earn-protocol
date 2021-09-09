@@ -27,14 +27,11 @@ import { IAdapterHarvestReward } from "../../../interfaces/opty/defiAdapters/IAd
 contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestReward, Modifiers {
     using SafeMath for uint256;
 
-    /** @notice Maps liquidityPool to max deposit value in percentage */
-    mapping(address => uint256) public maxDepositPoolPct; // basis points
+    /** @notice max deposit value datatypes */
+    DataTypes.MaxExposure public maxDepositProtocolMode;
 
-    /** @notice Maps liquidityPool to max deposit value in absolute value for a specific token */
-    mapping(address => mapping(address => uint256)) public maxDepositAmount;
-
-    /** @notice Maps underlyingToken to the ID of its pool */
-    mapping(address => mapping(address => uint256)) public underlyingTokenToMasterChefToPid;
+    /** @notice Sushiswap's reward token address */
+    address public rewardToken;
 
     /** @notice SUSHI token contract address */
     address public constant SUSHI = address(0x6B3595068778DD592e39A122f4f5a5cF09C90fE2);
@@ -45,14 +42,17 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
     /** @notice Sushiswap WETH-USDC pair contract address */
     address public constant SUSHI_WETH_USDC = address(0x397FF1542f962076d0BFE58eA045FfA2d347ACa0);
 
-    /** @notice max deposit value datatypes */
-    DataTypes.MaxExposure public maxDepositProtocolMode;
-
-    /** @notice Sushiswap's reward token address */
-    address public rewardToken;
-
     /** @notice max deposit's protocol value in percentage */
     uint256 public maxDepositProtocolPct; // basis points
+
+    /** @notice Maps liquidityPool to max deposit value in percentage */
+    mapping(address => uint256) public maxDepositPoolPct; // basis points
+
+    /** @notice Maps liquidityPool to max deposit value in absolute value for a specific token */
+    mapping(address => mapping(address => uint256)) public maxDepositAmount;
+
+    /** @notice Maps underlyingToken to the ID of its pool */
+    mapping(address => mapping(address => uint256)) public underlyingTokenToMasterChefToPid;
 
     constructor(address _registry) public Modifiers(_registry) {
         setRewardToken(SUSHI);
@@ -74,6 +74,7 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         onlyRiskOperator
     {
         maxDepositPoolPct[_underlyingToken] = _maxDepositPoolPct;
+        emit LogMaxDepositPoolPct(maxDepositPoolPct[_underlyingToken], msg.sender);
     }
 
     /**
@@ -85,6 +86,7 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
         maxDepositAmount[_masterChef][_underlyingToken] = _maxDepositAmount;
+        emit LogMaxDepositAmount(maxDepositAmount[_masterChef][_underlyingToken], msg.sender);
     }
 
     /**
@@ -148,9 +150,9 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         address _underlyingToken,
         address _masterChef,
         uint256
-    ) external view override returns (uint256 _amount) {
+    ) external view override returns (uint256) {
         uint256 _pid = underlyingTokenToMasterChefToPid[_underlyingToken][_masterChef];
-        _amount = ISushiswapMasterChef(_masterChef).userInfo(_pid, _vault).amount;
+        return ISushiswapMasterChef(_masterChef).userInfo(_pid, _vault).amount;
     }
 
     /**
@@ -224,6 +226,7 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
      */
     function setMaxDepositProtocolMode(DataTypes.MaxExposure _mode) public override onlyRiskOperator {
         maxDepositProtocolMode = _mode;
+        emit LogMaxDepositProtocolMode(maxDepositProtocolMode, msg.sender);
     }
 
     /**
@@ -231,6 +234,7 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
      */
     function setMaxDepositProtocolPct(uint256 _maxDepositProtocolPct) public override onlyRiskOperator {
         maxDepositProtocolPct = _maxDepositProtocolPct;
+        emit LogMaxDepositProtocolPct(maxDepositProtocolPct, msg.sender);
     }
 
     /* solhint-disable no-unused-vars */
@@ -396,43 +400,21 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         address _masterChef,
         address _underlyingToken,
         uint256 _amount
-    ) internal view returns (uint256 _depositAmount) {
-        _depositAmount = _amount;
+    ) internal view returns (uint256) {
         uint256 _limit =
             maxDepositProtocolMode == DataTypes.MaxExposure.Pct
-                ? _getMaxDepositAmountByPct(_masterChef, _underlyingToken, _amount)
-                : _getMaxDepositAmount(_masterChef, _underlyingToken, _amount);
-        if (_depositAmount > _limit) {
-            _depositAmount = _limit;
-        }
+                ? _getMaxDepositAmountByPct(_masterChef, _underlyingToken)
+                : maxDepositAmount[_masterChef][_underlyingToken];
+        return _amount > _limit ? _limit : _amount;
     }
 
-    function _getMaxDepositAmountByPct(
-        address _masterChef,
-        address _underlyingToken,
-        uint256 _amount
-    ) internal view returns (uint256 _depositAmount) {
-        _depositAmount = _amount;
+    function _getMaxDepositAmountByPct(address _masterChef, address _underlyingToken) internal view returns (uint256) {
         uint256 _poolValue = getPoolValue(_masterChef, _underlyingToken);
-        uint256 maxPct = maxDepositPoolPct[_underlyingToken];
-        if (maxPct == 0) {
-            maxPct = maxDepositProtocolPct;
-        }
-        uint256 _limit = (_poolValue.mul(maxPct)).div(uint256(10000));
-        if (_depositAmount > _limit) {
-            _depositAmount = _limit;
-        }
-    }
-
-    function _getMaxDepositAmount(
-        address _masterChef,
-        address _underlyingToken,
-        uint256 _amount
-    ) internal view returns (uint256 _depositAmount) {
-        _depositAmount = _amount;
-        uint256 maxDeposit = maxDepositAmount[_masterChef][_underlyingToken];
-        if (_depositAmount > maxDeposit) {
-            _depositAmount = maxDeposit;
-        }
+        uint256 _poolPct = maxDepositPoolPct[_underlyingToken];
+        uint256 _limit =
+            _poolPct == 0
+                ? _poolValue.mul(maxDepositProtocolPct).div(uint256(10000))
+                : _poolValue.mul(_poolPct).div(uint256(10000));
+        return _limit;
     }
 }

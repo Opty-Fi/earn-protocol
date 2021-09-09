@@ -2,8 +2,9 @@ import { task, types } from "hardhat/config";
 import { CONTRACTS } from "../../helpers/type";
 import { deployEssentialContracts } from "../../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../../helpers/db";
+import { DEPLOY_INFRA } from "../task-names";
 
-task("deploy-infra", "Deploy infrastructure contracts")
+task(DEPLOY_INFRA, "Deploy infrastructure contracts")
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ deployedonce, insertindb }, hre) => {

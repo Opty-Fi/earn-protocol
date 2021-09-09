@@ -58,28 +58,23 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
         external
         override
         onlyOperator
-        returns (bool _success)
+        returns (bool)
     {
         require(
             _operatorUnlockClaimOPTYTimestamp <= maxUnlockClaimOPTYTimestamp,
             "operatorUnlockClaimOPTYTimestamp > maxUnlockClaimOPTYTimestamp"
         );
         operatorUnlockClaimOPTYTimestamp = _operatorUnlockClaimOPTYTimestamp;
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function setStakingVault(address _stakingVault, bool _enable)
-        external
-        override
-        onlyOperator
-        returns (bool _success)
-    {
+    function setStakingVault(address _stakingVault, bool _enable) external override onlyOperator returns (bool) {
         require(_stakingVault != address(0), "Invalid address");
         stakingVaults[_stakingVault] = _enable;
-        _success = true;
+        return true;
     }
 
     /**
@@ -96,10 +91,10 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function claimOpty(address _holder) external override isOperatorTimeLockPeriodEnded returns (uint256 _amount) {
+    function claimOpty(address _holder) external override isOperatorTimeLockPeriodEnded returns (uint256) {
         address[] memory holders = new address[](1);
         holders[0] = _holder;
-        _amount = _claimOpty(holders, allOptyVaults);
+        return _claimOpty(holders, allOptyVaults);
     }
 
     /**
@@ -109,11 +104,11 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
         external
         override
         isOperatorTimeLockPeriodEnded
-        returns (uint256 _amount)
+        returns (uint256)
     {
         address[] memory holders = new address[](1);
         holders[0] = _holder;
-        _amount = _claimOpty(holders, _vaults);
+        return _claimOpty(holders, _vaults);
     }
 
     /**
@@ -123,9 +118,9 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
         external
         override
         isOperatorTimeLockPeriodEnded
-        returns (uint256 _amount)
+        returns (uint256)
     {
-        _amount = _claimOpty(_holders, _vaults);
+        return _claimOpty(_holders, _vaults);
     }
 
     /**
@@ -191,47 +186,42 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function mintOpty(address _user, uint256 _amount)
-        external
-        override
-        onlyStakingVault
-        returns (uint256 _mintedAmount)
-    {
-        _mintedAmount = _mintOpty(_user, _amount);
+    function mintOpty(address _user, uint256 _amount) external override onlyStakingVault returns (uint256) {
+        return _mintOpty(_user, _amount);
     }
 
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function setOptyVaultRate(address _vault, uint256 _rate) external override onlyOperator returns (bool _success) {
+    function setOptyVaultRate(address _vault, uint256 _rate) external override onlyOperator returns (bool) {
         optyVaultRatePerSecond[_vault] = _rate;
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function addOptyVault(address _vault) external override onlyOperator returns (bool _success) {
+    function addOptyVault(address _vault) external override onlyOperator returns (bool) {
         for (uint256 i = 0; i < allOptyVaults.length; i++) {
             require(allOptyVaults[i] != _vault, "optyVault already added");
         }
         allOptyVaults.push(_vault);
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function setOptyVault(address _vault, bool _enable) external override onlyOperator returns (bool _success) {
+    function setOptyVault(address _vault, bool _enable) external override onlyOperator returns (bool) {
         optyVaultEnabled[_vault] = _enable;
-        _success = true;
+        return true;
     }
 
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function claimableOpty(address _holder) external view override returns (uint256 _amount) {
-        _amount = claimableOpty(_holder, allOptyVaults);
+    function claimableOpty(address _holder) external view override returns (uint256) {
+        return claimableOpty(_holder, allOptyVaults);
     }
 
     /**
@@ -315,22 +305,23 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function currentOptyVaultIndex(address _vault) public view override returns (uint256 _index) {
+    function currentOptyVaultIndex(address _vault) public view override returns (uint256) {
         uint256 _deltaSecondsSinceStart = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_vault]);
         uint256 _deltaSeconds = sub_(_getBlockTimestamp(), uint256(optyVaultState[_vault].timestamp));
         uint256 _supplyTokens = IERC20(_vault).totalSupply();
         uint256 _optyAccrued = mul_(_deltaSeconds, optyVaultRatePerSecond[_vault]);
         uint256 _ratio = _supplyTokens > 0 ? div_(mul_(_optyAccrued, 1e18), _supplyTokens) : uint256(0);
-        _index = div_(
-            add_(
-                mul_(
-                    optyVaultState[_vault].index,
-                    sub_(uint256(optyVaultState[_vault].timestamp), optyVaultStartTimestamp[_vault])
+        return
+            div_(
+                add_(
+                    mul_(
+                        optyVaultState[_vault].index,
+                        sub_(uint256(optyVaultState[_vault].timestamp), optyVaultStartTimestamp[_vault])
+                    ),
+                    _ratio
                 ),
-                _ratio
-            ),
-            _deltaSecondsSinceStart
-        );
+                _deltaSecondsSinceStart
+            );
     }
 
     /**
@@ -340,11 +331,11 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @param _amount The amount of OPTY to (possibly) transfer
      * @return _mintAmount The amount of OPTY which was transferred to the user
      */
-    function _mintOpty(address _user, uint256 _amount) internal returns (uint256 _mintAmount) {
+    function _mintOpty(address _user, uint256 _amount) internal returns (uint256) {
         IOPTY _opty = IOPTY(getOptyAddress());
         require(_amount > 0 && _user != address(0), "Insufficient amount or invalid address");
         _opty.mint(_user, _amount);
-        _mintAmount = _amount;
+        return _amount;
     }
 
     /**
@@ -384,7 +375,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @dev Retrieve the current block timestamp from the chain
      * @return _timestamp current block timestamp in seconds since unix epoch
      */
-    function _getBlockTimestamp() internal view returns (uint256 _timestamp) {
-        _timestamp = block.timestamp;
+    function _getBlockTimestamp() internal view returns (uint256) {
+        return block.timestamp;
     }
 }

@@ -3,8 +3,9 @@ import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { isAddress } from "../../helpers/helpers";
+import { DEPLOY_OPTY } from "../task-names";
 
-task("deploy-opty", "Deploy Opty")
+task(DEPLOY_OPTY, "Deploy Opty")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
