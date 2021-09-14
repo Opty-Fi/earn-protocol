@@ -9,9 +9,7 @@
           "contract": "strategyProvider",
           "action": "setBestStrategy(string,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-COMPOUND-cDAI"
+            "riskProfile": "RP1"
           },
           "executor": "strategyOperator",
           "expect": "success",
@@ -23,13 +21,9 @@
           "contract": "strategyProvider",
           "action": "rpToTokenToBestStrategy(string,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI"
+            "riskProfile": "RP1"
           },
-          "expectedValue": {
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-COMPOUND-cDAI"
-          }
+          "expectedValue": {}
         }
       ],
       "cleanActions": []
@@ -41,9 +35,7 @@
           "contract": "strategyProvider",
           "action": "setBestStrategy(string,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-COMPOUND-cDAI"
+            "riskProfile": "RP1"
           },
           "executor": "user1",
           "expect": "fail",
@@ -70,9 +62,7 @@
           "contract": "strategyProvider",
           "action": "setBestStrategy(string,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-COMPOUND-cDAI"
+            "riskProfile": "RP1"
           },
           "executor": "strategyOperator",
           "expect": "fail",
@@ -94,15 +84,48 @@
       ]
     },
     {
+      "description": "[SetBestStrategy] - Cannot set best strategy for non-exist risk profile",
+      "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "args": {
+            "riskProfile": "RP2"
+          },
+          "executor": "strategyOperator",
+          "expect": "fail",
+          "message": "!Rp_Exists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "[SetBestStrategy] - Cannot set best strategy for non-exist token",
+      "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "args": {
+            "riskProfile": "RP1",
+            "isNonApprovedToken": true
+          },
+          "executor": "strategyOperator",
+          "expect": "fail",
+          "message": "!TokenHashExists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "[setBestDefaultStrategy] - StrategyOperator should be able to set best default strategy",
       "setActions": [
         {
           "contract": "strategyProvider",
           "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-AAVE-aDAI"
+            "riskProfile": "RP1"
           },
           "executor": "strategyOperator",
           "expect": "success",
@@ -114,13 +137,9 @@
           "contract": "strategyProvider",
           "action": "rpToTokenToDefaultStrategy(string,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI"
+            "riskProfile": "RP1"
           },
-          "expectedValue": {
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-AAVE-aDAI"
-          }
+          "expectedValue": {}
         }
       ],
       "cleanActions": []
@@ -132,9 +151,7 @@
           "contract": "strategyProvider",
           "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-AAVE-aDAI"
+            "riskProfile": "RP1"
           },
           "executor": "user1",
           "expect": "fail",
@@ -145,7 +162,7 @@
       "cleanActions": []
     },
     {
-      "description": "[SetBestStrategy] - Old StrategyOperator shouldn't be able to set best default strategy",
+      "description": "[setBestDefaultStrategy] - Old StrategyOperator shouldn't be able to set best default strategy",
       "setActions": [
         {
           "contract": "registry",
@@ -161,9 +178,7 @@
           "contract": "strategyProvider",
           "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
-            "tokenName": "DAI",
-            "strategyName": "DAI-deposit-AAVE-aDAI"
+            "riskProfile": "RP1"
           },
           "executor": "strategyOperator",
           "expect": "fail",
@@ -183,6 +198,41 @@
           "message": ""
         }
       ]
+    },
+    {
+      "description": "[setBestDefaultStrategy] - Cannot set best default strategy for non-exist risk profile",
+      "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "args": {
+            "riskProfile": "RP2"
+          },
+          "executor": "strategyOperator",
+          "expect": "fail",
+          "message": "!Rp_Exists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "[setBestDefaultStrategy] - Cannot set best default strategy for non-exist token",
+      "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "args": {
+            "riskProfile": "RP1",
+            "isNonApprovedToken": true
+          },
+          "executor": "strategyOperator",
+          "expect": "fail",
+          "message": "!TokenHashExists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
     },
     {
       "description": "[setVaultRewardStrategy] - StrategyOperator should be able to set best Vault Reward strategy",
@@ -228,7 +278,7 @@
       "cleanActions": []
     },
     {
-      "description": "[SetBestStrategy] - Old StrategyOperator shouldn't be able to set best Vault Reward strategy",
+      "description": "[setVaultRewardStrategy] - Old StrategyOperator shouldn't be able to set best Vault Reward strategy",
       "setActions": [
         {
           "contract": "registry",
@@ -264,6 +314,41 @@
           "message": ""
         }
       ]
+    },
+    {
+      "description": "[setVaultRewardStrategy] - Cannot set best Vault Reward strategy with non-exist reward token",
+      "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+          "args": {
+            "vaultRewardStrategy": [5000, 5000],
+            "isNonApprovedToken": true
+          },
+          "executor": "strategyOperator",
+          "expect": "fail",
+          "message": "!VaultRewardTokenHashExists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "[setVaultRewardStrategy] - Cannot set best Vault Reward strategy with unqualified vaultRewardStrategy",
+      "setActions": [
+        {
+          "contract": "strategyProvider",
+          "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+          "args": {
+            "vaultRewardStrategy": [1000, 1000]
+          },
+          "executor": "strategyOperator",
+          "expect": "fail",
+          "message": "!HoldConvertBasisRange"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
     },
     {
       "description": "[setDefaultStrategyState] StrategyOperator should be able to set Default Strategy state",
