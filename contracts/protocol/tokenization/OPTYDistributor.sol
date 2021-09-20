@@ -6,6 +6,7 @@ pragma solidity ^0.6.12;
 import { ExponentialNoError } from "../../dependencies/compound/ExponentialNoError.sol";
 import { Modifiers } from "../configuration/Modifiers.sol";
 import { OPTYDistributorStorage } from "./OPTYDistributorStorage.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -22,6 +23,8 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  */
 
 contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, ExponentialNoError, Modifiers {
+    using Address for address;
+
     constructor(
         address _registry,
         address _opty,
@@ -72,7 +75,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function setStakingVault(address _stakingVault, bool _enable) external override onlyOperator returns (bool) {
-        require(_stakingVault != address(0), "Invalid address");
+        require(_stakingVault.isContract(), "!isContract");
         stakingVaults[_stakingVault] = _enable;
         return true;
     }
@@ -81,6 +84,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function claimAndStake(address _stakingVault) external override isOperatorTimeLockPeriodEnded {
+        require(_stakingVault.isContract(), "!isContract");
         address[] memory holders = new address[](1);
         holders[0] = msg.sender;
         uint256 _amount = _claimOpty(holders, allOptyVaults);
@@ -127,6 +131,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function updateUserStateInVault(address _vault, address _user) external override {
+        require(_vault.isContract(), "!isContract");
         if (optyVaultRatePerSecond[_vault] > 0) {
             optyUserStateInVault[_vault][_user].index = optyVaultState[_vault].index;
             optyUserStateInVault[_vault][_user].timestamp = optyVaultState[_vault].timestamp;
@@ -137,6 +142,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function updateOptyVaultRatePerSecondAndVaultToken(address _vault) external override returns (bool) {
+        require(_vault.isContract(), "!isContract");
         if (optyVaultRatePerSecond[_vault] > 0) {
             optyVaultRatePerSecondAndVaultToken[_vault] = IERC20(_vault).totalSupply() > 0
                 ? div_(mul_(optyVaultRatePerSecond[_vault], 1e18), IERC20(_vault).totalSupply())
@@ -149,6 +155,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function updateOptyVaultIndex(address _vault) external override returns (uint224) {
+        require(_vault.isContract(), "!isContract");
         if (optyVaultRatePerSecond[_vault] > 0) {
             if (optyVaultState[_vault].index == uint224(0)) {
                 optyVaultStartTimestamp[_vault] = _getBlockTimestamp();
@@ -194,6 +201,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function setOptyVaultRate(address _vault, uint256 _rate) external override onlyOperator returns (bool) {
+        require(_vault.isContract(), "!isContract");
         optyVaultRatePerSecond[_vault] = _rate;
         return true;
     }
@@ -202,6 +210,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function addOptyVault(address _vault) external override onlyOperator returns (bool) {
+        require(_vault.isContract(), "!isContract");
         for (uint256 i = 0; i < allOptyVaults.length; i++) {
             require(allOptyVaults[i] != _vault, "optyVault already added");
         }
@@ -213,6 +222,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function setOptyVault(address _vault, bool _enable) external override onlyOperator returns (bool) {
+        require(_vault.isContract(), "!isContract");
         optyVaultEnabled[_vault] = _enable;
         return true;
     }
@@ -228,6 +238,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
      * @inheritdoc IOPTYDistributor
      */
     function updateUserRewards(address _vault, address _user) public override {
+        require(_vault.isContract(), "!isContract");
         if (optyVaultRatePerSecond[_vault] > 0) {
             if (IERC20(_vault).balanceOf(_user) > 0 && lastUserUpdate[_vault][_user] != _getBlockTimestamp()) {
                 uint256 _deltaSecondsVault = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_vault]);

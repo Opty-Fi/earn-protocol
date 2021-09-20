@@ -36,7 +36,7 @@ contract APROracle is IAPROracle, Modifiers {
     address public aaveV1;
 
     /** @notice Store AaveV2 LendingPoolProvider address */
-    address public aaveV2AddressProvider;
+    address public aaveV2;
 
     /** @notice Store Compound address */
     address public compound;
@@ -45,19 +45,11 @@ contract APROracle is IAPROracle, Modifiers {
     uint256 public blocksPerYear;
 
     constructor(address _registry) public Modifiers(_registry) {
-        aaveV1 = address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8);
-        aaveV2AddressProvider = address(0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5);
-        compound = address(0x922018674c12a7F0D394ebEEf9B58F186CdE13c1);
+        setNewAaveV1(address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8));
+        setNewAaveV2(address(0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5));
+        setNewCompound(address(0x922018674c12a7F0D394ebEEf9B58F186CdE13c1));
         // 3153600 seconds div 13 second blocks
-        blocksPerYear = 242584;
-    }
-
-    /**
-     * @notice Sets the new Aave protocol lending pool address
-     * @param _newAaveV1 Address of new Aave Lending pool
-     */
-    function setNewAaveV1(address _newAaveV1) external onlyOperator {
-        aaveV1 = _newAaveV1;
+        setNewBlocksPerYear(242584);
     }
 
     /**
@@ -65,8 +57,35 @@ contract APROracle is IAPROracle, Modifiers {
      * @dev Formula used = noOfSecondsInAYear/blockMintNoOfSeconds Eg: _newBlocksPerYear = 3153600/13 = 242584
      * @param _newBlocksPerYear New No. of blocks value estimated per year
      */
-    function setNewBlocksPerYear(uint256 _newBlocksPerYear) external onlyOperator {
+    function setNewBlocksPerYear(uint256 _newBlocksPerYear) public onlyOperator {
         blocksPerYear = _newBlocksPerYear;
+    }
+
+    /**
+     * @notice Sets the new Aave v1 protocol lending pool address
+     * @param _newAaveV1 Address of new Aave V1 Lending pool
+     */
+    function setNewAaveV1(address _newAaveV1) public onlyOperator {
+        require(_newAaveV1.isContract(), "!isContract");
+        aaveV1 = _newAaveV1;
+    }
+
+    /**
+     * @notice Sets the new Aave v2 protocol lending pool address
+     * @param _newAaveV2 Address of new Aave V2 Lending pool
+     */
+    function setNewAaveV2(address _newAaveV2) public onlyOperator {
+        require(_newAaveV2.isContract(), "!isContract");
+        aaveV2 = _newAaveV2;
+    }
+
+    /**
+     * @notice Sets the new Compound protocol lending pool address
+     * @param _newCompound Address of new Compound Lending pool
+     */
+    function setNewCompound(address _newCompound) public onlyOperator {
+        require(_newCompound.isContract(), "!isContract");
+        compound = _newCompound;
     }
 
     /**
@@ -109,7 +128,7 @@ contract APROracle is IAPROracle, Modifiers {
     }
 
     function _getAaveV2APR(address token) internal view returns (address, uint256) {
-        IAaveV2 lendingPool = IAaveV2(IAaveV2LendingPoolAddressesProvider(aaveV2AddressProvider).getLendingPool());
+        IAaveV2 lendingPool = IAaveV2(IAaveV2LendingPoolAddressesProvider(aaveV2).getLendingPool());
         ReserveDataV2 memory reserveData = lendingPool.getReserveData(token);
         return (reserveData.aTokenAddress, uint256(reserveData.currentLiquidityRate).div(1e9));
     }

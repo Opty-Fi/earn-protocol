@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 // libraries
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { DataTypes } from "../../../libraries/types/DataTypes.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 // helper contracts
 import { Modifiers } from "../../configuration/Modifiers.sol";
@@ -42,6 +43,7 @@ contract CurveDepositPoolAdapter is
     Modifiers
 {
     using SafeMath for uint256;
+    using Address for address;
 
     /** @notice max deposit value datatypes */
     DataTypes.MaxExposure public maxDepositProtocolMode;
@@ -104,6 +106,7 @@ contract CurveDepositPoolAdapter is
         override
         onlyRiskOperator
     {
+        require(_liquidityPool.isContract(), "!isContract");
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
         emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
@@ -116,6 +119,7 @@ contract CurveDepositPoolAdapter is
         address,
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
+        require(_liquidityPool.isContract(), "!isContract");
         // Note: We are using 18 as decimals for USD and BTC
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
         emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool], msg.sender);

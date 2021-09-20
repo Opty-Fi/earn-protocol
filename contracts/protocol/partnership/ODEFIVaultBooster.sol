@@ -4,6 +4,7 @@ pragma solidity ^0.6.12;
 
 //  libraries
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 //  helper contracts
 import { ODEFIVaultBoosterStorage } from "./ODEFIVaultBoosterStorage.sol";
@@ -23,6 +24,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, ExponentialNoError, Modifiers {
     using SafeERC20 for IERC20;
+    using Address for address;
 
     constructor(address _registry, address _odefi) public Modifiers(_registry) {
         _setODEFIAddress(_odefi);
@@ -41,6 +43,8 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      * @inheritdoc IODEFIVaultBooster
      */
     function updateUserStateInVault(address _odefiVault, address _user) external override {
+        require(_odefiVault.isContract(), "!isContract");
+        require(_user != address(0), "!_user.address(0)");
         if (odefiVaultRatePerSecond[_odefiVault] > 0) {
             odefiUserStateInVault[_odefiVault][_user].index = odefiVaultState[_odefiVault].index;
             odefiUserStateInVault[_odefiVault][_user].timestamp = odefiVaultState[_odefiVault].timestamp;
@@ -51,6 +55,7 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      * @inheritdoc IODEFIVaultBooster
      */
     function updateOdefiVaultRatePerSecondAndVaultToken(address _odefiVault) external override returns (bool) {
+        require(_odefiVault.isContract(), "!isContract");
         if (odefiVaultRatePerSecond[_odefiVault] > 0) {
             odefiVaultRatePerSecondAndVaultToken[_odefiVault] = IERC20(_odefiVault).totalSupply() > 0
                 ? div_(mul_(odefiVaultRatePerSecond[_odefiVault], 1e18), IERC20(_odefiVault).totalSupply())
@@ -63,6 +68,7 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      * @inheritdoc IODEFIVaultBooster
      */
     function updateOdefiVaultIndex(address _odefiVault) external override returns (uint224) {
+        require(_odefiVault.isContract(), "!isContract");
         if (odefiVaultRatePerSecond[_odefiVault] > 0) {
             if (odefiVaultState[_odefiVault].index == uint224(0)) {
                 odefiVaultStartTimestamp[_odefiVault] = _getBlockTimestamp();
@@ -104,12 +110,15 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      * @inheritdoc IODEFIVaultBooster
      */
     function setOdefiVaultRate(address _odefiVault, uint256 _rate) external override returns (bool) {
+        require(_odefiVault.isContract(), "!isContract");
         require(msg.sender == rewarders[_odefiVault], "!rewarder");
         odefiVaultRatePerSecond[_odefiVault] = _rate;
         return true;
     }
 
     function setODEFIRewarder(address _odefiVault, address _rewarder) external onlyOperator returns (bool) {
+        require(_odefiVault.isContract(), "!isContract");
+        require(_rewarder != address(0), "!_rewarder.address(0)");
         rewarders[_odefiVault] = _rewarder;
         return true;
     }
@@ -118,6 +127,7 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      * @inheritdoc IODEFIVaultBooster
      */
     function addOdefiVault(address _odefiVault) external override onlyOperator returns (bool) {
+        require(_odefiVault.isContract(), "!isContract");
         for (uint256 i = 0; i < allOdefiVaults.length; i++) {
             require(allOdefiVaults[i] != _odefiVault, "odefiVault already added");
         }
@@ -128,6 +138,7 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      * @inheritdoc IODEFIVaultBooster
      */
     function setOdefiVault(address _odefiVault, bool _enable) external override onlyOperator returns (bool) {
+        require(_odefiVault.isContract(), "!isContract");
         odefiVaultEnabled[_odefiVault] = _enable;
         return true;
     }

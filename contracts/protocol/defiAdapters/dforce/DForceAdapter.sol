@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 //  libraries
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { DataTypes } from "../../../libraries/types/DataTypes.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 //  helper contracts
 import { Modifiers } from "../../configuration/Modifiers.sol";
@@ -29,6 +30,7 @@ import { IAdapterInvestLimit } from "../../../interfaces/opty/defiAdapters/IAdap
 
 contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAdapterInvestLimit, Modifiers {
     using SafeMath for uint256;
+    using Address for address;
 
     /** @notice max deposit value datatypes */
     DataTypes.MaxExposure public maxDepositProtocolMode;
@@ -75,6 +77,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
         override
         onlyRiskOperator
     {
+        require(_liquidityPool.isContract(), "!isContract");
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
         emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
@@ -87,6 +90,8 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
         address _underlyingToken,
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
+        require(_liquidityPool.isContract(), "!_liquidityPool.isContract()");
+        require(_underlyingToken.isContract(), "!_underlyingToken.isContract()");
         maxDepositAmount[_liquidityPool][_underlyingToken] = _maxDepositAmount;
         emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool][_underlyingToken], msg.sender);
     }
@@ -97,6 +102,8 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
      * @param _stakingVault staking vault address to be linked with liquidity pool
      */
     function setLiquidityPoolToStakingVault(address _liquidityPool, address _stakingVault) public onlyOperator {
+        require(_liquidityPool.isContract(), "!_liquidityPool.isContract()");
+        require(_stakingVault.isContract(), "!_stakingVault.isContract()");
         require(
             liquidityPoolToStakingVault[_liquidityPool] != _stakingVault,
             "liquidityPoolToStakingVault already set"
@@ -108,6 +115,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
      * @inheritdoc IAdapterHarvestReward
      */
     function setRewardToken(address _rewardToken) public override onlyOperator {
+        require(_rewardToken.isContract(), "!isContract");
         rewardToken = _rewardToken;
     }
 

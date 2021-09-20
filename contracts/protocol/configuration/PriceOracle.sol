@@ -4,6 +4,7 @@ pragma solidity ^0.6.12;
 
 //  libraries
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 //  helper contracts
 import { Modifiers } from "./Modifiers.sol";
@@ -20,6 +21,7 @@ import { IPriceOracle } from "../../interfaces/opty/IPriceOracle.sol";
  */
 contract PriceOracle is IPriceOracle, Modifiers {
     using SafeMath for uint256;
+    using Address for address;
 
     /** @dev Underlying Token Addresses */
     address private constant DAI = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -52,6 +54,8 @@ contract PriceOracle is IPriceOracle, Modifiers {
      * @inheritdoc IPriceOracle
      */
     function setOracle(address _underlyingToken, address _oracle) public override onlyOperator returns (bool) {
+        require(_underlyingToken.isContract(), "!_underlyingToken.isContract()");
+        require(_oracle.isContract(), "!_oracle.isContract()");
         underlyingTokenToPriceFeed[_underlyingToken] = _oracle;
         return true;
     }

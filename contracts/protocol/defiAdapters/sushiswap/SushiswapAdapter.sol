@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 // libraries
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { DataTypes } from "../../../libraries/types/DataTypes.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 // helper contracts
 import { Modifiers } from "../../configuration/Modifiers.sol";
@@ -26,6 +27,7 @@ import { IAdapterHarvestReward } from "../../../interfaces/opty/defiAdapters/IAd
 
 contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestReward, Modifiers {
     using SafeMath for uint256;
+    using Address for address;
 
     /** @notice max deposit value datatypes */
     DataTypes.MaxExposure public maxDepositProtocolMode;
@@ -73,6 +75,7 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         override
         onlyRiskOperator
     {
+        require(_underlyingToken.isContract(), "!isContract");
         maxDepositPoolPct[_underlyingToken] = _maxDepositPoolPct;
         emit LogMaxDepositPoolPct(maxDepositPoolPct[_underlyingToken], msg.sender);
     }
@@ -85,6 +88,8 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         address _underlyingToken,
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
+        require(_masterChef.isContract(), "!_masterChef.isContract()");
+        require(_underlyingToken.isContract(), "!_underlyingToken.isContract()");
         maxDepositAmount[_masterChef][_underlyingToken] = _maxDepositAmount;
         emit LogMaxDepositAmount(maxDepositAmount[_masterChef][_underlyingToken], msg.sender);
     }

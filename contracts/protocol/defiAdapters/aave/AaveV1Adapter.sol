@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 //  libraries
 import { DataTypes } from "../../../libraries/types/DataTypes.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 //  helper contracts
 import { Modifiers } from "../../configuration/Modifiers.sol";
@@ -38,6 +39,7 @@ import { IAdapterInvestLimit } from "../../../interfaces/opty/defiAdapters/IAdap
  */
 contract AaveV1Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifiers {
     using SafeMath for uint256;
+    using Address for address;
 
     /** @notice max deposit value datatypes */
     DataTypes.MaxExposure public maxDepositProtocolMode;
@@ -79,6 +81,7 @@ contract AaveV1Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifie
         override
         onlyRiskOperator
     {
+        require(_liquidityPool.isContract(), "!isContract");
         maxDepositPoolPct[_liquidityPool] = _maxDepositPoolPct;
         emit LogMaxDepositPoolPct(maxDepositPoolPct[_liquidityPool], msg.sender);
     }
@@ -91,6 +94,8 @@ contract AaveV1Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifie
         address _underlyingToken,
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
+        require(_liquidityPool.isContract(), "!_liquidityPool.isContract()");
+        require(_underlyingToken.isContract(), "!_underlyingToken.isContract()");
         maxDepositAmount[_liquidityPool][_underlyingToken] = _maxDepositAmount;
         emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool][_underlyingToken], msg.sender);
     }

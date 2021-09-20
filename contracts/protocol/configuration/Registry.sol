@@ -65,6 +65,7 @@ contract Registry is IRegistry, ModifiersController {
      */
     function setAPROracle(address _aprOracle) external override onlyOperator returns (bool) {
         require(_aprOracle != address(0), "!address(0)");
+        require(_aprOracle.isContract(), "!isContract");
         aprOracle = _aprOracle;
         return true;
     }
@@ -429,6 +430,7 @@ contract Registry is IRegistry, ModifiersController {
      */
     function discontinue(address _vault) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
         vaultToVaultConfiguration[_vault].discontinued = true;
         IVault(_vault).discontinue();
         emit LogDiscontinueVault(_vault, vaultToVaultConfiguration[_vault].discontinued, msg.sender);
@@ -440,6 +442,7 @@ contract Registry is IRegistry, ModifiersController {
      */
     function unpauseVaultContract(address _vault, bool _unpaused) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
         vaultToVaultConfiguration[_vault].unpaused = _unpaused;
         IVault(_vault).setUnpaused(vaultToVaultConfiguration[_vault].unpaused);
         emit LogUnpauseVault(_vault, vaultToVaultConfiguration[_vault].unpaused, msg.sender);
@@ -721,7 +724,7 @@ contract Registry is IRegistry, ModifiersController {
 
     function _approveToken(address _token) internal returns (bool) {
         require(_token != address(0), "!address(0)");
-        require(address(_token).isContract(), "!isContract");
+        require(_token.isContract(), "!isContract");
         require(!tokens[_token], "!tokens");
         tokens[_token] = true;
         emit LogToken(_token, tokens[_token], msg.sender);
@@ -737,7 +740,7 @@ contract Registry is IRegistry, ModifiersController {
 
     function _approveLiquidityPool(address _pool) internal returns (bool) {
         require(_pool != address(0), "!address(0)");
-        require(address(_pool).isContract(), "!isContract");
+        require(_pool.isContract(), "!isContract");
         require(!liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
         liquidityPools[_pool].isLiquidityPool = true;
         emit LogLiquidityPool(_pool, liquidityPools[_pool].isLiquidityPool, msg.sender);
@@ -760,7 +763,7 @@ contract Registry is IRegistry, ModifiersController {
 
     function _approveCreditPool(address _pool) internal returns (bool) {
         require(_pool != address(0), "!address(0)");
-        require(address(_pool).isContract(), "!isContract");
+        require(_pool.isContract(), "!isContract");
         require(!creditPools[_pool].isLiquidityPool, "!creditPools");
         creditPools[_pool].isLiquidityPool = true;
         emit LogCreditPool(_pool, creditPools[_pool].isLiquidityPool, msg.sender);
@@ -812,7 +815,7 @@ contract Registry is IRegistry, ModifiersController {
         require(_underlyingAssetHash != Constants.ZERO_BYTES32, "!underlyingAssetHash");
         require(bytes(_riskProfile).length > 0, "RP_empty.");
         require(_vault != address(0), "!address(0)");
-        require(address(_vault).isContract(), "!isContract");
+        require(_vault.isContract(), "!isContract");
         require(riskProfiles[_riskProfile].exists, "!RP");
         underlyingAssetHashToRPToVaults[_underlyingAssetHash][_riskProfile] = _vault;
         emit LogUnderlyingAssetHashToRPToVaults(_underlyingAssetHash, _riskProfile, _vault, msg.sender);

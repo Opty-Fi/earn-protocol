@@ -32,6 +32,7 @@ abstract contract Modifiers is IModifiers {
      * @inheritdoc IModifiers
      */
     function setRegistry(address _registry) external override onlyOperator {
+        require(_registry.isContract(), "!isContract");
         registryContract = IRegistry(_registry);
     }
 
