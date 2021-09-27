@@ -5,9 +5,10 @@ import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
+import { generateTokenHash } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
-  setBestBasicStrategy,
+  setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
@@ -16,7 +17,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
-import { generateTokenHash } from "../../helpers/helpers";
+
 type ARGUMENTS = {
   amount?: { [key: string]: string };
   riskProfile?: string;
@@ -54,10 +55,10 @@ describe(scenarios.title, () => {
       const profile = vault.profile;
       const stories = vault.stories;
       const adaptersName = Object.keys(TypedAdapterStrategies);
+
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
-
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
@@ -89,12 +90,13 @@ describe(scenarios.title, () => {
                   strategy.strategy[0].contract,
                 );
                 vaultRiskProfile = await Vault.profile();
-                bestStrategyHash = await setBestBasicStrategy(
+                bestStrategyHash = await setBestStrategy(
                   strategy.strategy,
-                  [TOKENS[strategy.token]],
+                  TOKENS[strategy.token],
                   essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
                   essentialContracts.strategyProvider,
                   vaultRiskProfile,
+                  false,
                 );
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
                 await fundWalletToken(

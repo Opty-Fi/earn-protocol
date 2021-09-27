@@ -1,5 +1,5 @@
 import { task, types } from "hardhat/config";
-import { deployVault } from "../../helpers/contracts-deployments";
+import { deployVaultWithHash } from "../../helpers/contracts-deployments";
 import { getTokenInforWithAddress, unpauseVault } from "../../helpers/contracts-actions";
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
@@ -41,18 +41,23 @@ task(DEPLOY_VAULT, "Deploy Vault")
 
     const { name, symbol } = await getTokenInforWithAddress(hre, token);
 
-    const vault = await deployVault(hre, registry, token, owner, admin, name, symbol, riskprofile, false);
-
-    console.log(`Contract ${symbol}-${riskprofile}: ${vault.address}`);
-
+    const vault = await deployVaultWithHash(hre, registry, token, owner, admin, name, symbol, riskprofile);
+    console.log("----------------");
+    console.log(`Contract ${symbol}-${riskprofile} Vault`);
+    console.log(`Address : ${vault["vault"].contract.address}`);
+    console.log(`Hash : ${vault["vault"].hash}`);
+    console.log(`Contract ${symbol}-${riskprofile} Vault Proxy`);
+    console.log(`Address : ${vault["vaultProxy"].contract.address}`);
+    console.log(`Hash : ${vault["vaultProxy"].hash}`);
+    console.log("----------------");
     const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
     if (unpause) {
-      await unpauseVault(owner, registryContract, vault.address, true);
+      await unpauseVault(owner, registryContract, vault["vaultProxy"].contract.address, true);
     }
 
     if (insertindb) {
-      const err = await insertContractIntoDB(`${symbol}-${riskprofile}`, vault.address);
+      const err = await insertContractIntoDB(`${symbol}-${riskprofile}`, vault["vaultProxy"].contract.address);
       if (err !== "") {
         console.log(err);
       }

@@ -9,7 +9,7 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { deployContract, executeFunc, moveToNextBlock } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
-  setBestBasicStrategy,
+  setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
@@ -47,12 +47,13 @@ describe(scenario.title, () => {
         adapters["CompoundAdapter"].address,
         TOKEN_STRATEGY.strategy[0].contract,
       );
-      await setBestBasicStrategy(
+      await setBestStrategy(
         TOKEN_STRATEGY.strategy,
-        [tokenAddr],
+        tokenAddr,
         essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
         essentialContracts.strategyProvider,
         "RP1",
+        false,
       );
       const timestamp = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(hre, tokenAddr, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);

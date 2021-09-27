@@ -2,13 +2,14 @@ import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { isAddress, deployContract, executeFunc } from "../../helpers/helpers";
-import { DEPLOY_OPTY } from "../task-names";
+import { DEPLOY_ODEFI_VAULT_BOOSTER } from "../task-names";
 
-task(DEPLOY_OPTY, "Deploy Opty")
+task(DEPLOY_ODEFI_VAULT_BOOSTER, "Deploy Odefi Vault Booster")
   .addParam("registry", "the address of registry", "", types.string)
+  .addParam("odefi", "the address of odefi", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ deployedonce, insertindb, registry }, hre) => {
+  .setAction(async ({ deployedonce, insertindb, registry, odefi }, hre) => {
     const [owner] = await hre.ethers.getSigners();
 
     if (registry === "") {
@@ -19,18 +20,29 @@ task(DEPLOY_OPTY, "Deploy Opty")
       throw new Error("registry address is invalid");
     }
 
-    const opty = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY, deployedonce, owner, [registry, 100000000000000]);
+    if (odefi === "") {
+      throw new Error("odefi cannot be empty");
+    }
 
-    console.log("Finished deploying OPTY");
+    if (!isAddress(odefi)) {
+      throw new Error("odefi address is invalid");
+    }
 
-    console.log(`Contract opty : ${opty.address}`);
+    const odefiVaultBooster = await deployContract(hre, ESSENTIAL_CONTRACTS.ODEFI_VAULT_BOOSTER, deployedonce, owner, [
+      registry,
+      odefi,
+    ]);
+
+    console.log("Finished deploying ODEFIVaultBooster");
+
+    console.log(`Contract ODEFIVaultBooster : ${odefiVaultBooster.address}`);
 
     const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
-    await executeFunc(registryContract, owner, "setOPTY(address)", [opty.address]);
+    await executeFunc(registryContract, owner, "setODEFIVaultBooster(address)", [odefiVaultBooster.address]);
 
     if (insertindb) {
-      const err = await insertContractIntoDB(`opty`, opty.address);
+      const err = await insertContractIntoDB(`odefiVaultBooster`, odefiVaultBooster.address);
       if (err !== "") {
         console.log(err);
       }

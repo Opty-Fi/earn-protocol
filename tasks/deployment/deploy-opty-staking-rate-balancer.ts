@@ -1,10 +1,11 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
-import { deployContract, isAddress, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { DEPLOY_HARVEST_CODE_PROVIDER } from "../task-names";
+import { deployOptyStakingRateBalancer } from "../../helpers/contracts-deployments";
+import { isAddress, executeFunc } from "../../helpers/helpers";
+import { DEPLOY_OPTY_STAKING_RATE_BALANCER } from "../task-names";
 
-task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
+task(DEPLOY_OPTY_STAKING_RATE_BALANCER, "Deploy Opty Staking Rate Balancer")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
@@ -19,24 +20,20 @@ task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
       throw new Error("registry address is invalid");
     }
 
-    const harvestCodeProvider = await deployContract(
-      hre,
-      ESSENTIAL_CONTRACTS.HARVEST_CODE_PROVIDER,
-      deployedonce,
-      owner,
-      [registry],
-    );
+    const optyStakingRateBalancer = await deployOptyStakingRateBalancer(hre, owner, deployedonce, registry);
 
-    console.log("Finished deploying harvestCodeProvider");
+    console.log("Finished deploying OptyStakingRateBalancer");
 
-    console.log(`Contract harvestCodeProvider : ${harvestCodeProvider.address}`);
+    console.log(`Contract optyStakingRateBalancer : ${optyStakingRateBalancer.address}`);
 
     const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
-    await executeFunc(registryContract, owner, "setHarvestCodeProvider(address)", [harvestCodeProvider.address]);
+    await executeFunc(registryContract, owner, "setOPTYStakingRateBalancer(address)", [
+      optyStakingRateBalancer.address,
+    ]);
 
     if (insertindb) {
-      const err = await insertContractIntoDB(`harvestCodeProvider`, harvestCodeProvider.address);
+      const err = await insertContractIntoDB(`optyStakingRateBalancer`, optyStakingRateBalancer.address);
       if (err !== "") {
         console.log(err);
       }

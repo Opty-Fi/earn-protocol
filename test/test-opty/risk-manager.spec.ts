@@ -13,7 +13,7 @@ import {
 } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
-import { approveToken } from "../../helpers/contracts-actions";
+import { approveAndSetTokenHashToToken } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/risk-manager.json";
 import { smock } from "@defi-wonderland/smock";
 type ARGUMENTS = {
@@ -60,7 +60,7 @@ describe(scenario.title, () => {
     );
     for (let i = 0; i < usedTokens.length; i++) {
       try {
-        await approveToken(owner, registry, [TypedTokens[usedTokens[i].toUpperCase()]]);
+        await approveAndSetTokenHashToToken(owner, registry, TypedTokens[usedTokens[i].toUpperCase()]);
       } catch (error) {
         continue;
       }

@@ -4,7 +4,7 @@ import { BigNumber, Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE, TESTING_CONTRACTS } from "../../helpers/constants";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
-import { unpauseVault, approveToken } from "../../helpers/contracts-actions";
+import { unpauseVault, approveAndSetTokenHashToToken } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/check-transferred-amount-vault-opt-003.json";
 import { deployContract } from "../../helpers/helpers";
 
@@ -28,7 +28,7 @@ describe(scenario.title, () => {
       const dummyToken = await deployContract(hre, TESTING_CONTRACTS.TEST_DUMMY_TOKEN_TRANSFER_FEE, false, operator, [
         "30000000000000000",
       ]);
-      await approveToken(operator, essentialContracts["registry"], [dummyToken.address]);
+      await approveAndSetTokenHashToToken(operator, essentialContracts["registry"], dummyToken.address);
       const Vault = await deployVault(
         hre,
         essentialContracts.registry.address,
@@ -65,7 +65,7 @@ describe(scenario.title, () => {
                   .connect(operator)
                   [action.action](contracts[contractName].address, amount);
               }
-            } catch (error) {
+            } catch (error: any) {
               if (action.expect === "success") {
                 assert.isUndefined(error);
               } else {
@@ -86,7 +86,7 @@ describe(scenario.title, () => {
               if (amount) {
                 await contracts[action.contract].connect(operator)[action.action](amount);
               }
-            } catch (error) {
+            } catch (error: any) {
               if (action.expect === "success") {
                 assert.isUndefined(error);
               } else {

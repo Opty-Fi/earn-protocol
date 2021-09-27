@@ -5,7 +5,7 @@ import { CONTRACTS } from "../../helpers/type";
 import { TOKENS, TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import {
-  approveToken,
+  approveAndSetTokenHashToToken,
   fundWalletToken,
   getBlockTimestamp,
   getTokenName,
@@ -40,10 +40,9 @@ describe(scenario.title, () => {
       let emergencyBrake: Contract;
       before(async () => {
         try {
-          await approveToken(owner, essentialContracts.registry, [TOKENS[token]]);
+          await approveAndSetTokenHashToToken(owner, essentialContracts.registry, TOKENS[token]);
           const timestamp = (await getBlockTimestamp(hre)) * 2;
           await fundWalletToken(hre, TOKENS[token], owner, BigNumber.from(MAX_AMOUNT * 100), timestamp);
-
           underlyingTokenName = await getTokenName(hre, token);
           underlyingTokenSymbol = await getTokenSymbol(hre, token);
           Vault = await deployVault(

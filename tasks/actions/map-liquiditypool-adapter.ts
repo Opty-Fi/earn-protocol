@@ -1,6 +1,7 @@
 import { task, types } from "hardhat/config";
-import { isAddress, executeFunc } from "../../helpers/helpers";
+import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { approveLiquidityPoolAndMapAdapter } from "../../helpers/contracts-actions";
 import { MAP_LIQUIDITYPOOL_ADAPTER } from "../task-names";
 
 task(MAP_LIQUIDITYPOOL_ADAPTER, "Approve and map liquidity pool to adapter")
@@ -36,26 +37,15 @@ task(MAP_LIQUIDITYPOOL_ADAPTER, "Approve and map liquidity pool to adapter")
 
     const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
-    const { isLiquidityPool } = await registryContract.getLiquidityPool(liquiditypool);
-
-    if (!isLiquidityPool) {
-      try {
-        await executeFunc(registryContract, owner, "approveLiquidityPool(address)", [liquiditypool]);
-        console.log(`Liquidity pool ${liquiditypool} approved`);
-      } catch (error: any) {
-        console.error("approve liquidity pool errored with ", error.message);
-      }
-    } else {
-      console.log(`Liquidity pool ${liquiditypool} is already approved`);
-    }
+    console.log(`Start mapping liquidity pool to adapter.....`);
+    console.log(`Adapter: ${adapter}`);
+    console.log(`Liquidity pool: ${liquiditypool}`);
 
     try {
-      await executeFunc(registryContract, owner, "setLiquidityPoolToAdapter(address,address)", [
-        liquiditypool,
-        adapter,
-      ]);
-      console.log(`Mapped ${liquiditypool} to ${adapter}`);
-    } catch (error: any) {
-      console.error("map liquidity pool to adapter errored with ", error.message);
+      await approveLiquidityPoolAndMapAdapter(owner, registryContract, adapter, liquiditypool);
+    } catch (error) {
+      console.log(`Got error: ${error}`);
     }
+
+    console.log(`Finished mapping liquidity pool to adapter`);
   });

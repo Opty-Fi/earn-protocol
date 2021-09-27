@@ -1,10 +1,10 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
-import { deployContract, isAddress, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { DEPLOY_HARVEST_CODE_PROVIDER } from "../task-names";
+import { isAddress, deployContract, executeFunc } from "../../helpers/helpers";
+import { DEPLOY_APR_ORACLE } from "../task-names";
 
-task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
+task(DEPLOY_APR_ORACLE, "Deploy Apr Oracle")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
@@ -19,24 +19,18 @@ task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
       throw new Error("registry address is invalid");
     }
 
-    const harvestCodeProvider = await deployContract(
-      hre,
-      ESSENTIAL_CONTRACTS.HARVEST_CODE_PROVIDER,
-      deployedonce,
-      owner,
-      [registry],
-    );
+    const aprOracle = await deployContract(hre, ESSENTIAL_CONTRACTS.APR_ORACLE, deployedonce, owner, [registry]);
 
-    console.log("Finished deploying harvestCodeProvider");
+    console.log("Finished deploying AprOracle");
 
-    console.log(`Contract harvestCodeProvider : ${harvestCodeProvider.address}`);
+    console.log(`Contract aprOracle : ${aprOracle.address}`);
 
     const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
-    await executeFunc(registryContract, owner, "setHarvestCodeProvider(address)", [harvestCodeProvider.address]);
+    await executeFunc(registryContract, owner, "setAPROracle(address)", [aprOracle.address]);
 
     if (insertindb) {
-      const err = await insertContractIntoDB(`harvestCodeProvider`, harvestCodeProvider.address);
+      const err = await insertContractIntoDB(`aprOracle`, aprOracle.address);
       if (err !== "") {
         console.log(err);
       }

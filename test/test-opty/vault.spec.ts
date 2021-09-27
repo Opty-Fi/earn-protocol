@@ -3,18 +3,18 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
+import { executeFunc } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
-  setBestBasicStrategy,
+  setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
   getTokenName,
   getTokenSymbol,
-  approveToken,
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault.json";
@@ -81,24 +81,25 @@ describe(scenario.title, () => {
                 );
               }
 
-              await setBestBasicStrategy(
+              await setBestStrategy(
                 TOKEN_STRATEGY.strategy,
-                [TOKENS[TOKEN_STRATEGY.token]],
+                TOKENS[TOKEN_STRATEGY.token],
                 essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
                 essentialContracts.strategyProvider,
                 profile,
+                false,
               );
 
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
-                await approveToken(users[0], essentialContracts.registry, [
-                  REWARD_TOKENS[adapterName].tokenAddress.toString(),
+                await executeFunc(essentialContracts.registry, users[0], "approveToken(address)", [Vault.address]);
+                await executeFunc(essentialContracts.registry, users[0], "setTokensHashToTokens(address[])", [
+                  [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
                 ]);
               }
 
               const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKENS[TOKEN_STRATEGY.token]);
 
               const CHIInstance = await hre.ethers.getContractAt("IChi", TOKENS["CHI"]);
-
               Vault = await deployVault(
                 hre,
                 essentialContracts.registry.address,

@@ -8,7 +8,7 @@ import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
-  setBestBasicStrategy,
+  setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
@@ -85,12 +85,13 @@ describe(scenarios.title, () => {
                   adapter.address,
                   strategy.strategy[i].contract,
                 );
-                await setBestBasicStrategy(
+                await setBestStrategy(
                   strategy.strategy,
-                  [token],
+                  token,
                   essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
                   essentialContracts.strategyProvider,
                   profile,
+                  false,
                 );
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
                 await fundWalletToken(

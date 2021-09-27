@@ -1,6 +1,5 @@
 import { task, types } from "hardhat/config";
-import { getSoliditySHA3Hash } from "../../helpers/utils";
-import { isAddress } from "../../helpers/helpers";
+import { isAddress, generateTokenHash } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { GET_STRATEGIES } from "../task-names";
 
@@ -28,7 +27,7 @@ task(GET_STRATEGIES, "Get all available strategies for specific token")
       ESSENTIAL_CONTRACTS.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
       strategyregistry,
     );
-    const tokensHash = getSoliditySHA3Hash(["address[]"], [[token]]);
+    const tokensHash = generateTokenHash([token]);
     const strategies = await strategyRegistryContract.getTokenToStrategies(tokensHash);
     for (let i = 0; i < strategies.length; i++) {
       const strategyDetail = await strategyRegistryContract.getStrategy(strategies[i]);

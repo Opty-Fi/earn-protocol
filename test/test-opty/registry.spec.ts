@@ -3,10 +3,10 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS } from "../../helpers/type";
-import { deployContract, executeFunc } from "../../helpers/helpers";
+import { deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import scenario from "./scenarios/registry.json";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
+import scenario from "./scenarios/registry.json";
 
 type ARGUMENTS = {
   [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -193,7 +193,7 @@ describe(scenario.title, () => {
           }
           case "underlyingAssetHashToRPToVaults(bytes32,string)": {
             const { tokens, riskProfile }: ARGUMENTS = action.args;
-            const tokensHash = getSoliditySHA3Hash(["address[]"], [tokens]);
+            const tokensHash = generateTokenHash(tokens);
             if (tokens && riskProfile) {
               const value = await registryContract[action.action](tokensHash, riskProfile);
               expect(value).to.be.equal(action.expectedValue);
@@ -984,9 +984,8 @@ async function verifyDefaultData(contract: Contract, data: TESTING_DEFAULT_DATA[
         } else {
           expect(value).to.be.eq(getFunction.output);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(error.message);
-        console.log(getFunction);
       }
     }
   }

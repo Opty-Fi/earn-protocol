@@ -7,7 +7,7 @@ import { generateStrategyHash, deployContract, generateTokenHash } from "../../h
 import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants";
 import { deployRegistry } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/strategy-provider.json";
-import { setAndApproveVaultRewardToken } from "../../helpers/contracts-actions";
+import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
 
 chai.use(solidity);
@@ -62,7 +62,12 @@ describe(scenario.title, () => {
 
       const COMP_TOKEN = TypedTokens["COMP"];
       vaultRewardTokenHash = generateTokenHash([DUMMY_VAULT_EMPTY_CONTRACT.address, COMP_TOKEN]);
-      await setAndApproveVaultRewardToken(signers["owner"], DUMMY_VAULT_EMPTY_CONTRACT.address, COMP_TOKEN, registry);
+      await approveAndSetTokenHashToTokens(
+        signers["owner"],
+        registry,
+        [DUMMY_VAULT_EMPTY_CONTRACT.address, COMP_TOKEN],
+        false,
+      );
       contracts = { registry, strategyProvider };
     } catch (error) {
       console.log(error);

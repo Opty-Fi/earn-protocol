@@ -6,7 +6,7 @@ import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
-  setBestBasicStrategy,
+  setBestStrategy,
   fundWalletToken,
   getBlockTimestamp,
   getTokenName,
@@ -91,12 +91,13 @@ describe(scenario.title, () => {
                   TESTING_DEPLOYMENT_ONCE,
                 );
 
-                await setBestBasicStrategy(
+                await setBestStrategy(
                   strategy.strategy,
-                  [TOKENS[strategy.token]],
+                  TOKENS[strategy.token],
                   essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
                   essentialContracts.strategyProvider,
                   profile,
+                  false,
                 );
 
                 const timestamp = (await getBlockTimestamp(hre)) * 2;

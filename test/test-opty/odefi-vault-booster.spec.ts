@@ -12,7 +12,7 @@ import {
   getTokenName,
   getTokenSymbol,
   unpauseVault,
-  approveToken,
+  approveAndSetTokenHashToToken,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/odefi-vault-booster.json";
 type ARGUMENTS = {
@@ -38,7 +38,7 @@ describe(scenario.title, () => {
 
       essentialContracts = await deployEssentialContracts(hre, owner, TESTING_DEPLOYMENT_ONCE);
 
-      await approveToken(owner, essentialContracts["registry"], [tokenAddr]);
+      await approveAndSetTokenHashToToken(owner, essentialContracts["registry"], tokenAddr);
 
       const timestamp = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(hre, tokenAddr, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);

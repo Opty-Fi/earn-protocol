@@ -6,7 +6,7 @@ import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
 import { executeFunc } from "../../helpers/helpers";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import {
-  approveToken,
+  approveAndSetTokenHashToToken,
   fundWalletToken,
   getBlockTimestamp,
   getTokenName,
@@ -36,7 +36,7 @@ describe(scenario.title, () => {
       users = { owner, admin, user1 };
       contracts = await deployEssentialContracts(hre, owner, TESTING_DEPLOYMENT_ONCE);
 
-      await approveToken(owner, contracts["registry"], [tokenAddr]);
+      await approveAndSetTokenHashToToken(owner, contracts["registry"], tokenAddr);
       const timestamp = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(hre, tokenAddr, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
       const underlyingTokenName = await getTokenName(hre, token);

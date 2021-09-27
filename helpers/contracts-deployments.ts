@@ -1,10 +1,16 @@
-import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, RISK_PROFILES, ADAPTERS } from "./constants";
+import {
+  ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA,
+  RISK_PROFILES,
+  ADAPTERS,
+  TOKENS,
+  OPTY_STAKING_VAULTS,
+} from "./constants";
 import { Contract, Signer } from "ethers";
-import { CONTRACTS } from "./type";
+import { CONTRACTS, CONTRACTS_WITH_HASH } from "./type";
+import { getTokenName, getTokenSymbol, addRiskProfiles } from "./contracts-actions";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { deployContract, executeFunc } from "./helpers";
-import { OPTY_STAKING_VAULTS } from "./constants";
-import { addRiskProfiles } from "./contracts-actions";
+import { deployContract, executeFunc, deployContractWithHash } from "./helpers";
+
 export async function deployRegistry(
   hre: HardhatRuntimeEnvironment,
   owner: Signer,
@@ -126,7 +132,6 @@ export async function deployEssentialContracts(
   isDeployedOnce: boolean,
 ): Promise<CONTRACTS> {
   const registry = await deployRegistry(hre, owner, isDeployedOnce);
-
   await addRiskProfiles(owner, registry);
 
   const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
@@ -194,8 +199,6 @@ export async function deployEssentialContracts(
 
   await executeFunc(registry, owner, "setOPTYStakingRateBalancer(address)", [optyStakingRateBalancer.address]);
 
-  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultOPTYAllocation(uint256)", [10000000000]);
-
   const optyStakingVaults = await deployAndSetupOptyStakingVaults(
     hre,
     owner,
@@ -205,6 +208,8 @@ export async function deployEssentialContracts(
     optyStakingRateBalancer,
     optyDistributor,
   );
+
+  await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultOPTYAllocation(uint256)", [10000000000]);
 
   const priceOracle = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.PRICE_ORACLE, isDeployedOnce, owner, [
     registry.address,
@@ -330,4 +335,70 @@ export async function deployVault(
   ]);
 
   return vault;
+}
+
+export async function deployVaultsWithHash(
+  hre: HardhatRuntimeEnvironment,
+  registry: string,
+  owner: Signer,
+  admin: Signer,
+): Promise<CONTRACTS_WITH_HASH> {
+  const vaults: CONTRACTS_WITH_HASH = {};
+  for (const token in TOKENS) {
+    const name = await getTokenName(hre, token);
+    const symbol = await getTokenSymbol(hre, token);
+    for (const riskProfile of Object.keys(RISK_PROFILES)) {
+      const vault = await deployVaultWithHash(hre, registry, TOKENS[token], owner, admin, name, symbol, riskProfile);
+      vaults[`${symbol}-${riskProfile}`] = vault["vaultProxy"];
+    }
+  }
+  return vaults;
+}
+
+export async function deployVaultWithHash(
+  hre: HardhatRuntimeEnvironment,
+  registry: string,
+  underlyingToken: string,
+  owner: Signer,
+  admin: Signer,
+  underlyingTokenName: string,
+  underlyingTokenSymbol: string,
+  riskProfile: string,
+): Promise<{ [key: string]: { contract: Contract; hash: string } }> {
+  const VAULT_FACTORY = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.VAULT);
+  const vault = await deployContractWithHash(
+    VAULT_FACTORY,
+    [registry, underlyingTokenName, underlyingTokenSymbol, riskProfile],
+    owner,
+  );
+  const adminAddress = await admin.getAddress();
+
+  const VAULT_PROXY_FACTORY = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY);
+  const vaultProxy = await deployContractWithHash(VAULT_PROXY_FACTORY, [adminAddress], owner);
+
+  await executeFunc(vaultProxy.contract, admin, "upgradeTo(address)", [vault.contract.address]);
+
+  vaultProxy.contract = await hre.ethers.getContractAt(
+    ESSENTIAL_CONTRACTS_DATA.VAULT,
+    vaultProxy.contract.address,
+    owner,
+  );
+
+  await executeFunc(vaultProxy.contract, owner, "initialize(address,address,string,string,string)", [
+    registry,
+    underlyingToken,
+    underlyingTokenName,
+    underlyingTokenSymbol,
+    riskProfile,
+  ]);
+
+  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.REGISTRY, registry, owner);
+
+  await executeFunc(registryContract, owner, "setUnderlyingAssetHashToRPToVaults(address[],string,address)", [
+    [underlyingToken],
+    riskProfile,
+    vaultProxy.contract.address,
+  ]);
+
+  return { vault, vaultProxy };
 }

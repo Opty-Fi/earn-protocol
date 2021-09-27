@@ -13,7 +13,7 @@ import {
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, ZERO_BYTES32 } from "../../helpers/constants";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
-import { approveToken } from "../../helpers/contracts-actions";
+import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/apr-oracle.json";
 
 type ARGUMENTS = {
@@ -71,10 +71,11 @@ describe(scenario.title, async () => {
 
       await registry["addRiskProfile(string,bool,(uint8,uint8))"]("RP1", false, [0, 10]);
 
-      await approveToken(
+      await approveAndSetTokenHashToTokens(
         owner,
         registry,
         scenario.usedTokens.map(tokenName => TypedTokens[tokenName.toUpperCase()]),
+        true,
       );
 
       contracts = { registry, vaultStepInvestStrategyDefinitionRegistry, strategyProvider, riskManager, aprOracle };
