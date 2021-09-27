@@ -138,7 +138,7 @@ describe(scenario.title, () => {
                           timestamp,
                         );
                       }
-                    } catch (error) {
+                    } catch (error: any) {
                       if (action.expect === "success") {
                         assert.isUndefined(error);
                       } else {
@@ -159,7 +159,7 @@ describe(scenario.title, () => {
                           .connect(users[action.executer])
                           [action.action](contracts[addressName].address, amount[TOKEN_STRATEGY.token]);
                       }
-                    } catch (error) {
+                    } catch (error: any) {
                       if (action.expect === "success") {
                         assert.isUndefined(error);
                       } else {
@@ -180,7 +180,7 @@ describe(scenario.title, () => {
                           .connect(users[action.executer])
                           [action.action](amount[TOKEN_STRATEGY.token]);
                       }
-                    } catch (error) {
+                    } catch (error: any) {
                       if (action.expect === "success") {
                         assert.isUndefined(error);
                       } else {
@@ -198,7 +198,7 @@ describe(scenario.title, () => {
                         .connect(users[action.executer])
                         [action.action]();
                       await pricePerShare.wait();
-                    } catch (error) {
+                    } catch (error: any) {
                       if (action.expect === "success") {
                         assert.isUndefined(error);
                       } else {

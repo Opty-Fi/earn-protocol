@@ -136,7 +136,7 @@ describe(scenario.title, () => {
                         action.message,
                       );
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     expect(error.message).to.equal(
                       "VM Exception while processing transaction: reverted with reason string '!liquidityPools'",
                     );
@@ -221,7 +221,7 @@ describe(scenario.title, () => {
                       timestamp,
                     );
                   }
-                } catch (error) {
+                } catch (error: any) {
                   if (action.expect === "success") {
                     assert.isUndefined(error);
                   } else {
@@ -244,7 +244,7 @@ describe(scenario.title, () => {
                         BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals)),
                       );
                   }
-                } catch (error) {
+                } catch (error: any) {
                   if (action.expect === "success") {
                     assert.isUndefined(error);
                   } else {
@@ -265,7 +265,7 @@ describe(scenario.title, () => {
                       .connect(operator)
                       [action.action](BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals)));
                   }
-                } catch (error) {
+                } catch (error: any) {
                   if (action.expect === "success") {
                     assert.isUndefined(error);
                   } else {
@@ -294,7 +294,7 @@ describe(scenario.title, () => {
                   await contracts[action.contract].connect(operator)[action.action]();
                   gasOwed = await contracts[action.contract]["gasOwedToOperator()"]();
                   gasOwedTotal = gasOwedTotal.add(gasOwed);
-                } catch (error) {
+                } catch (error: any) {
                   if (action.expect === "success") {
                     assert.isUndefined(error);
                   } else {
