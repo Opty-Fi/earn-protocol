@@ -9,7 +9,6 @@ import {
   DFORCE_ADAPTER_NAME,
   ADDRESS_ZERO,
   TOKEN_HOLDERS,
-  ZERO_ADDRESS,
 } from "../../../helpers/constants";
 import { TypedAdapterStrategies, TypedTokens, TypedDefiPools } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
@@ -184,6 +183,9 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
 
     describe(`Test-${DFORCE_ADAPTER_NAME}`, () => {
       for (const pool of pools) {
+        if (pool !== "tusd") {
+          continue;
+        }
         const poolDetail = TypedDefiPools[DFORCE_ADAPTER_NAME][pool];
         const liquidityPool = poolDetail.pool;
         const underlyingTokenAddress =
@@ -199,7 +201,7 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
               const stakingAddress = await adapter.liquidityPoolToStakingVault(liquidityPool);
               let stopReward = false;
               let lpStakingContract: Contract | undefined;
-              if (stakingAddress !== ZERO_ADDRESS) {
+              if (stakingAddress !== ADDRESS_ZERO) {
                 lpStakingContract = await hre.ethers.getContractAt("IDForceStake", stakingAddress);
                 const lockedDetails = lpStakingContract ? await lpStakingContract.lockedDetails() : "0";
                 const currentTimestamp = await getBlockTimestamp(hre);
