@@ -540,16 +540,8 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
                     }
                     case "getUnderlyingTokens(address,address)": {
                       const _underlyingAddressFromAdapter = await adapter[action.action](liquidityPool, ADDRESS_ZERO);
-                      let _underlyingAddressFromPoolContract: string;
-                      //  @reason Underlying is considered WETH in case of lp = CETH and as CETH doesn't have underlying()
-                      //  function because CETH has ETH as underlying.
-                      if (getAddress(underlyingTokenAddress) == getAddress(TypedTokens.WETH)) {
-                        _underlyingAddressFromPoolContract = TypedTokens.WETH;
-                      } else {
-                        _underlyingAddressFromPoolContract = await lpContract.token();
-                      }
                       expect([getAddress(_underlyingAddressFromAdapter[0])]).to.have.members([
-                        getAddress(_underlyingAddressFromPoolContract),
+                        getAddress(await lpContract.token()),
                       ]);
                       break;
                     }
