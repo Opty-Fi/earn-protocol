@@ -16,4 +16,6 @@ interface IDForceStake {
     function balanceOf(address _account) external view returns (uint256);
 
     function decimals() external view returns (uint256);
+
+    function lockedDetails() external view returns (bool, uint256);
 }

@@ -213,6 +213,7 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
     ) public view override returns (uint256) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
         uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
+        require(_balanceInToken > 0, "!balance");
         // can have unintentional rounding errors
         return (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
@@ -293,13 +294,13 @@ contract DForceAdapter is IAdapter, IAdapterHarvestReward, IAdapterStaking, IAda
      */
     function calculateRedeemableLPTokenAmountStake(
         address payable _vault,
-        address,
+        address _underlyingToken,
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (uint256) {
-        address _stakingVault = liquidityPoolToStakingVault[_liquidityPool];
-        uint256 _liquidityPoolTokenBalance = IERC20(_stakingVault).balanceOf(_vault);
-        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_vault, address(0), _liquidityPool);
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool);
+        uint256 _balanceInTokenStake = getAllAmountInTokenStake(_vault, _underlyingToken, _liquidityPool);
+        require(_balanceInTokenStake > 0, "!balance");
         // can have unintentional rounding errors
         return (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInTokenStake).add(1);
     }

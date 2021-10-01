@@ -343,7 +343,7 @@
       "lpToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
       "tokens": ["0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"]
     },
-    "3crv": {
+    "three_crv": {
       "pool": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
       "lpToken": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
       "tokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
@@ -537,7 +537,7 @@
       "tokens": ["0xdAC17F958D2ee523a2206206994597C13D831ec7"],
       "deprecated": true
     },
-    "3crv": {
+    "three_crv": {
       "pool": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
       "lpToken": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
       "tokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"],
