@@ -134,7 +134,7 @@ describe(scenario.title, () => {
                   ).to.be.revertedWith(action.message);
                 }
               }
-            } catch (error) {
+            } catch (error: any) {
               expect(error.message).to.include("odefiVault already added");
             }
 

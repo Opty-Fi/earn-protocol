@@ -1,0 +1,44 @@
+{
+  "uni_eth_dpi": {
+    "address": "0x4d5ef58aAc27d99935E5b6B4A6778ff292059991"
+  },
+  "sushi_eth_sushi": {
+    "address": "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0"
+  },
+  "sushi_eth_dai": {
+    "address": "0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f"
+  },
+  "sushi_eth_usdc": {
+    "address": "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0"
+  },
+  "sushi_eth_usdt": {
+    "address": "0x06da0fd433C1A5d7a4faa01111c044910A184553"
+  },
+  "sushi_eth_wbtc": {
+    "address": "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58"
+  },
+  "uni_ust_maaple": {
+    "address": "0xB022e08aDc8bA2dE6bA4fECb59C6D502f66e953B",
+    "path1": ["UST"]
+  },
+  "uni_ust_mamzn": {
+    "address": "0x0Ae8cB1f57e3b1b7f4f5048743710084AA69E796",
+    "path0": ["UST"]
+  },
+  "uni_ust_mgoogl": {
+    "address": "0x4b70ccD1Cf9905BE1FaEd025EADbD3Ab124efe9a",
+    "path0": ["UST"]
+  },
+  "uni_ust_mtsla": {
+    "address": "0x5233349957586A8207c52693A959483F9aeAA50C",
+    "path0": ["UST"]
+  },
+  "uni_ust_mnflx": {
+    "address": "0xC99A74145682C4b4A6e9fa55d559eb49A6884F75",
+    "path1": ["UST"]
+  },
+  "uni_ust_mtwtr": {
+    "address": "0x34856be886A2dBa5F7c38c4df7FD86869aB08040",
+    "path1": ["UST"]
+  }
+}

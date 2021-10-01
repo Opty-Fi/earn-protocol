@@ -14,4 +14,6 @@ interface IYVault {
     function decimals() external view returns (uint256);
 
     function balance() external view returns (uint256);
+
+    function balanceOf(address _address) external view returns (uint256);
 }

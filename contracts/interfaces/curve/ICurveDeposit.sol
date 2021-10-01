@@ -35,4 +35,8 @@ interface ICurveDeposit {
 
     /// @dev returns swap contract from new curve deposit zap
     function pool() external view returns (address);
+
+    function base_coins(uint256 arg0) external view returns (address);
+
+    function underlying_coins(int128 arg0) external view returns (address);
 }

@@ -28,4 +28,6 @@ interface ICurveSwap {
     function calc_token_amount(uint256[] calldata amountsIn, bool deposit) external view returns (uint256);
 
     function get_virtual_price() external view returns (uint256);
+
+    function coins(uint256 arg0) external view returns (address);
 }

@@ -121,7 +121,7 @@ describe(scenario.title, () => {
                       const timestamp = (await getBlockTimestamp(hre)) * 2;
                       await fundWalletToken(hre, TOKENS[token], users[addressName], BigNumber.from(amount), timestamp);
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     if (action.expect === "success") {
                       assert.isUndefined(error);
                     } else {
@@ -149,7 +149,7 @@ describe(scenario.title, () => {
                           treasuryAccountsWithShares,
                         );
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     if (action.expect === "success") {
                       assert.isUndefined(error);
                     } else {
@@ -177,7 +177,7 @@ describe(scenario.title, () => {
                           fee,
                         );
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     if (action.expect === "success") {
                       assert.isUndefined(error);
                     } else {
@@ -203,7 +203,7 @@ describe(scenario.title, () => {
                       }
                       await contracts[action.contract].connect(users[action.executer])[action.action](address, amount);
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     if (action.expect === "success") {
                       assert.isUndefined(error);
                     } else {
@@ -227,7 +227,7 @@ describe(scenario.title, () => {
                     if (amount) {
                       await contracts[action.contract].connect(users[action.executer])[action.action](amount);
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     if (action.expect === "success") {
                       assert.isUndefined(error);
                     } else {

@@ -1,14 +1,9 @@
 name: Earn protocol Install, lint, test and deploy pipeline
 
 on:
-  pull_request:
-    branches:
-      - master
-      - dev
   push:
     branches:
       - master
-      - dev
 
 
 jobs:
