@@ -98,6 +98,16 @@ library DataTypes {
     }
 
     /**
+     * @notice Container for having limit range for withdrawal fee
+     * @param lowerLimit withdrawal fee's lower limit
+     * @param upperLimit withdrawal fee's upper limit
+     */
+    struct WithdrawalFeeRange {
+        uint256 lowerLimit;
+        uint256 upperLimit;
+    }
+
+    /**
      * @notice Container for containing risk Profile's configuration
      * @param index Index at which risk profile is stored
      * @param canBorrow True if borrow is allowed for the risk profile
@@ -163,12 +173,12 @@ library DataTypes {
 
     /**
      * @notice Container for persisting all strategy related contract's configuration
-     * @param vaultStepInvestStrategyDefinitionRegistry vaultStepInvestStrategyDefinitionRegistry contract address
+     * @param investStrategyRegistry investStrategyRegistry contract address
      * @param strategyProvider strategyProvider contract address
      * @param aprOracle aprOracle contract address
      */
     struct StrategyConfiguration {
-        address vaultStepInvestStrategyDefinitionRegistry;
+        address investStrategyRegistry;
         address strategyProvider;
         address aprOracle;
     }

@@ -1,5 +1,8 @@
-node_modules/
-additional-tests.sol
-contracts/libraries/*.sol
-contracts/utils/*.sol
-contracts/dependencies/**/*.sol
+# directories
+**/artifacts
+**/node_modules
+
+contracts/libraries/
+contracts/utils/
+contracts/dependencies/
+contracts/mocks/

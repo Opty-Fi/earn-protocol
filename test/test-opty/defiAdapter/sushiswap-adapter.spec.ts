@@ -1,4 +1,5 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, utils } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
@@ -6,6 +7,8 @@ import { TOKENS, TESTING_DEPLOYMENT_ONCE, SUSHISWAP_ADAPTER_NAME } from "../../.
 import { TypedAdapterStrategies } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import scenarios from "../scenarios/adapters.json";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   amount?: { [key: string]: string };

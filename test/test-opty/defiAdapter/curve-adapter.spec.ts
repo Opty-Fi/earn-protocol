@@ -2,6 +2,7 @@ import chai, { expect, assert } from "chai";
 import hre from "hardhat";
 import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber, utils, ethers } from "ethers";
+import { getAddress } from "ethers/lib/utils";
 import { CONTRACTS } from "../../../helpers/type";
 import {
   TOKENS,
@@ -16,7 +17,7 @@ import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-a
 import scenarios from "../scenarios/adapters.json";
 import testDeFiAdapterScenario from "../scenarios/test-defi-adapter.json";
 import { deployContract, getDefaultFundAmountInDecimal } from "../../../helpers/helpers";
-import { getAddress } from "ethers/lib/utils";
+import { ERC20 } from "../../../typechain/ERC20";
 
 chai.use(solidity);
 
@@ -239,7 +240,7 @@ describe("CurveAdapters Unit test", () => {
           ) {
             for (const story of testDeFiAdapterScenario.stories) {
               it(`${pool} - ${story.description}`, async () => {
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
+                const ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
                 const decimals = await ERC20Instance.decimals();
                 let defaultFundAmount: BigNumber = getDefaultFundAmountInDecimal(underlyingTokenAddress, decimals);
                 let limit: BigNumber;
@@ -441,9 +442,7 @@ describe("CurveAdapters Unit test", () => {
                     }
                     case "balanceOf(address)": {
                       const expectedValue = action.expectedValue;
-                      const underlyingBalanceAfter: BigNumber = await ERC20Instance[action.action](
-                        testDeFiAdapter.address,
-                      );
+                      const underlyingBalanceAfter: BigNumber = await ERC20Instance.balanceOf(testDeFiAdapter.address);
                       if (underlyingBalanceBefore.lt(limitInUnderlyingToken)) {
                         expectedValue == ">0"
                           ? expect(+underlyingBalanceAfter).to.be.gt(+underlyingBalanceBefore)

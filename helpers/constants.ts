@@ -1,10 +1,16 @@
-import { DATA_OBJECT, REWARD_TOKEN_DATA_OBJECT, RISK_PROFILE_DATA, OPTY_STAKING_VAULT } from "./type";
+import {
+  DATA_OBJECT,
+  REWARD_TOKEN_DATA_OBJECT,
+  RISK_PROFILE_DATA,
+  OPTY_STAKING_VAULT,
+  SUPPORTED_TOKENS_DATA,
+} from "./type";
 import { TypedTokens } from "./data";
 
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   REGISTRY: "Registry",
   REGISTRY_PROXY: "RegistryProxy",
-  VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY: "VaultStepInvestStrategyDefinitionRegistry",
+  INVEST_STRATEGY_REGISTRY: "InvestStrategyRegistry",
   STRATEGY_MANAGER: "StrategyManager",
   OPTY: "OPTY",
   OPTY_DISTRIBUTOR: "OPTYDistributor",
@@ -99,8 +105,11 @@ export const TESTING_CONTRACTS: DATA_OBJECT = {
   TEST_DUMMY_TOKEN: "TestDummyToken",
   TEST_DUMMY_TOKEN_TRANSFER_FEE: "TestDummyTokenTransferFee",
   TEST_DUMMY_EMPTY_CONTRACT: "TestDummyEmptyContract",
+  TESTING_DEFI_ADAPTER: "TestDeFiAdapter",
+  TESTING_HARVEST_CODE_PROVIDER: "TestHarvestCodeProvider",
   TEST_REGISTRY_NEW_IMPLEMENTATION: "TestRegistryNewImplementation",
   TEST_RISK_MANAGER_NEW_IMPLEMENTATION: "TestRiskManagerNewImplementation",
+  TEST_VAULT_NEW_IMPLEMENTATION: "TestVaultNewImplementation",
 };
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -189,3 +198,34 @@ export const CONTRACT_ADDRESSES: DATA_OBJECT = {
 export const UNISWAP_ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 export const SUSHISWAP_ROUTER = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";
 export const CURVE_REGISTRY = "0x90E00ACe148ca3b23Ac1bC8C240C2a7Dd9c2d7f5";
+
+export const SUPPORTED_TOKENS: SUPPORTED_TOKENS_DATA = {
+  DAI: {
+    address: TypedTokens["DAI"],
+    pair: false,
+  },
+  USDC: {
+    address: TypedTokens["USDC"],
+    pair: false,
+  },
+  USDT: {
+    address: TypedTokens["USDT"],
+    pair: false,
+  },
+  TUSD: {
+    address: TypedTokens["TUSD"],
+    pair: false,
+  },
+  WBTC: {
+    address: TypedTokens["WBTC"],
+    pair: false,
+  },
+  WETH: {
+    address: TypedTokens["WETH"],
+    pair: false,
+  },
+  SLP_WETH_USDC: {
+    address: TypedTokens["SLP_WETH_USDC"],
+    pair: true,
+  },
+};

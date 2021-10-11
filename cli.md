@@ -120,10 +120,10 @@ Options:
   --network localhost
 ```
 
-### deploy-vault-step-registry
+### deploy-invest-strategy-registry
 
 ```
-Usage: deploy VaultStepInvestStrategyDefinitionRegistry contract
+Usage: deploy InvestStrategyRegistry contract
 
 Options:
 --registry     required <address> the address of registry
@@ -135,7 +135,7 @@ Options:
 - Example:
 
 ```
-  yarn hardhat deploy-vault-step-registry \
+  yarn hardhat deploy-invest-strategy-registry \
   --registry 0x0000000000000000000000000000000000000000 \
   --deployedonce false \
   --network hardhat
@@ -413,7 +413,7 @@ To execute functions in a OptyFi's contract.
 Usage: set all current available strategies with file or default.
 
 Options:
---strategyregistry required <address> the address of vaultStepInvestStrategyDefinitionRegistry
+--investstrategyregistry required <address> the address of investStrategyRegistry
 --fromfile         required <string>  path to strategies json file
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
@@ -423,7 +423,7 @@ Options:
 ```
   yarn hardhat set-strategies \
   --network localhost \
-  --strategyregistry 0x0000000000000000000000000000000000000000 \
+  --investstrategyregistry 0x0000000000000000000000000000000000000000 \
   --fromfile /path/to/file.json
 ```
 
@@ -520,7 +520,7 @@ Usage: get a specific strategy
 
 Options:
 --strategyhash     required <string>  the keccak256 hash of strategy
---strategyregistry required <address> the address of vaultStepInvestStrategyDefinitionRegistry
+--investstrategyregistry required <address> the address of investStrategyRegistry
 --token            required <address> the address of token
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
@@ -531,7 +531,7 @@ Options:
   yarn hardhat get-strategy \
   --network localhost \
   --strategyhash 0x0000000000000000000000000000000000000000 \
-  --strategyregistry 0x0000000000000000000000000000000000000000 \
+  --investstrategyregistry 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000
 ```
 
@@ -541,7 +541,7 @@ Options:
 Usage: get all strategies for a specific token
 
 Options:
---strategyregistry required <address> the address of vaultStepInvestStrategyDefinitionRegistry
+--investstrategyregistry required <address> the address of investStrategyRegistry
 --token            required <address> the address of token
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
@@ -551,7 +551,7 @@ Options:
 ```
   yarn hardhat get-all-strategies \
   --network localhost \
-  --strategyregistry 0x0000000000000000000000000000000000000000 \
+  --investstrategyregistry 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000
 ```
 
@@ -605,24 +605,24 @@ Options:
   --isdefault true
 ```
 
-### set-vault-step-registry
+### set-invest-strategy-registry
 
 ```
-Usage: set vault step registry in registry contract
+Usage: set vault invest strategy registry in registry contract
 
 Options:
 --registry         required <address> the address of registry
---strategyregistry required <address> the address of vaultStepInvestStrategyDefinitionRegistry
+--investstrategyregistry required <address> the address of investStrategyRegistry
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
 
 ```
-  yarn hardhat set-vault-step-registry \
+  yarn hardhat set-invest-strategy-registry \
   --network localhost \
   --registry 0x0000000000000000000000000000000000000000 \
-  --strategyregistry 0x0000000000000000000000000000000000000000
+  --investstrategyregistry 0x0000000000000000000000000000000000000000
 ```
 
 ### unpause-vault

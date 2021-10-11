@@ -12,4 +12,3 @@ deployments/
 
 # files
 .solcover.js
-coverage.json

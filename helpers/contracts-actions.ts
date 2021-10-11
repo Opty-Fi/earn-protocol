@@ -116,11 +116,11 @@ export async function approveAndSetTokenHashToTokens(
 export async function setStrategy(
   strategy: STRATEGY_DATA[],
   tokens: string[],
-  vaultStepInvestStrategyDefinitionRegistry: Contract,
+  investStrategyRegistry: Contract,
 ): Promise<string> {
   const strategySteps: [string, string, boolean][] = generateStrategyStep(strategy);
   const tokensHash = generateTokenHash(tokens);
-  const strategies = await vaultStepInvestStrategyDefinitionRegistry["setStrategy(bytes32,(address,address,bool)[])"](
+  const strategies = await investStrategyRegistry["setStrategy(bytes32,(address,address,bool)[])"](
     tokensHash,
     strategySteps,
   );
@@ -132,7 +132,7 @@ export async function setStrategy(
 export async function setBestStrategy(
   strategy: STRATEGY_DATA[],
   tokenAddress: string,
-  vaultStepInvestStrategyDefinitionRegistry: Contract,
+  investStrategyRegistry: Contract,
   strategyProvider: Contract,
   riskProfile: string,
   isDefault: boolean,
@@ -141,10 +141,10 @@ export async function setBestStrategy(
 
   const tokenHash = generateTokenHash([tokenAddress]);
 
-  const strategyDetail = await vaultStepInvestStrategyDefinitionRegistry.getStrategy(strategyHash);
+  const strategyDetail = await investStrategyRegistry.getStrategy(strategyHash);
 
   if (strategyDetail[1].length === 0) {
-    await setStrategy(strategy, [tokenAddress], vaultStepInvestStrategyDefinitionRegistry);
+    await setStrategy(strategy, [tokenAddress], investStrategyRegistry);
   }
 
   if (isDefault) {

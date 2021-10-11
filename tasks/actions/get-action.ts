@@ -1,3 +1,4 @@
+import { Contract } from "@ethersproject/contracts";
 import { task, types } from "hardhat/config";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { isAddress } from "../../helpers/helpers";
@@ -31,7 +32,7 @@ task(GET_ACTION, "execute a get action in smart contract")
 
     const convertedParams = params === "" ? [] : params.split(",");
 
-    const contract = await hre.ethers.getContractAt(name, address);
+    const contract = <Contract>await hre.ethers.getContractAt(name, address);
 
     const value = await contract[functionabi](...convertedParams);
 

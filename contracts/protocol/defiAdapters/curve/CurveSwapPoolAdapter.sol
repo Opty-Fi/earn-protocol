@@ -108,13 +108,6 @@ contract CurveSwapPoolAdapter is
     }
 
     /**
-     * @inheritdoc IAdapterHarvestReward
-     */
-    function setRewardToken(address) public override onlyOperator {
-        revert("!empty");
-    }
-
-    /**
      * @inheritdoc IAdapterInvestLimit
      */
     function setMaxDepositProtocolPct(uint256 _maxDepositProtocolPct) public override onlyRiskOperator {

@@ -28,7 +28,7 @@ describe(scenario.title, () => {
   const callers: { [key: string]: string } = {};
   const contractNames = [
     "treasury",
-    "vaultStepInvestStrategyDefinitionRegistry",
+    "investStrategyRegistry",
     "aprOracle",
     "strategyProvider",
     "riskManager",
@@ -38,6 +38,7 @@ describe(scenario.title, () => {
     "priceOracle",
     "optyStakingRateBalancer",
     "odefiVaultBooster",
+    "vault",
   ];
   const callerNames = [
     "owner",
@@ -51,16 +52,8 @@ describe(scenario.title, () => {
   ];
   before(async () => {
     try {
-      [
-        owner,
-        financeOperator,
-        riskOperator,
-        strategyOperator,
-        operator,
-        optyDistributor,
-        user0,
-        user1,
-      ] = await hre.ethers.getSigners();
+      [owner, financeOperator, riskOperator, strategyOperator, operator, optyDistributor, user0, user1] =
+        await hre.ethers.getSigners();
       signers = { owner, financeOperator, riskOperator, strategyOperator, operator, optyDistributor, user0, user1 };
 
       registryContract = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
@@ -105,7 +98,7 @@ describe(scenario.title, () => {
         const action = story.getActions[i];
         switch (action.action) {
           case "treasury()":
-          case "getVaultStepInvestStrategyDefinitionRegistry()":
+          case "getInvestStrategyRegistry()":
           case "getAprOracle()":
           case "getStrategyProvider()":
           case "getRiskManager()":
@@ -210,6 +203,41 @@ describe(scenario.title, () => {
             await verifyDefaultData(registryContract, REGISTRY_TESTING_DEFAULT_DATA);
             break;
           }
+          case "withdrawalFeeRange()": {
+            const value = await registryContract[action.action]();
+            if (Array.isArray(action.expectedValue)) {
+              for (let i = 0; i < action.expectedValue.length; i++) {
+                expect(+value[i]).to.be.equal(+action.expectedValue[i]);
+              }
+            }
+            break;
+          }
+          case "getWithdrawFee(address)": {
+            const { contractName }: ARGUMENTS = action.args;
+            if (contractName) {
+              const value = await registryContract.vaultToVaultConfiguration(contracts[contractName].address);
+              expect(value.withdrawalFee).to.be.equal(action.expectedValue);
+            }
+            assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "getTreasuryShares(address)": {
+            const { contractName }: ARGUMENTS = action.args;
+            if (contractName) {
+              const value = await registryContract[action.action](contracts[contractName].address);
+              if (Array.isArray(action.expectedValue)) {
+                for (let i = 0; i < action.expectedValue.length; i++) {
+                  const expectedValue = action.expectedValue[i];
+                  if (Array.isArray(expectedValue)) {
+                    expect(value[i][0]).to.be.equal(expectedValue[0]);
+                    expect(+value[i][1]).to.be.equal(+expectedValue[1]);
+                  }
+                }
+              }
+            }
+            assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+            break;
+          }
           default:
             break;
         }
@@ -273,7 +301,7 @@ describe(scenario.title, () => {
         assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "setVaultStepInvestStrategyDefinitionRegistry(address)":
+      case "setInvestStrategyRegistry(address)":
       case "setAPROracle(address)":
       case "setStrategyProvider(address)":
       case "setRiskManager(address)":
@@ -718,6 +746,56 @@ describe(scenario.title, () => {
         assert.isDefined(vaults, `args is wrong in ${action.action} testcase`);
         break;
       }
+      case "setWithdrawalFeeRange((uint256,uint256))": {
+        const { range }: ARGUMENTS = action.args;
+        if (range) {
+          if (action.expect === "success") {
+            await registryContract.connect(signers[action.executor])[action.action](range);
+          } else {
+            await expect(registryContract.connect(signers[action.executor])[action.action](range)).to.be.revertedWith(
+              action.message,
+            );
+          }
+        }
+        assert.isDefined(range, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setWithdrawalFee(address,uint256)": {
+        const { contractName, fee }: ARGUMENTS = action.args;
+        if (contractName && fee) {
+          if (action.expect === "success") {
+            await registryContract
+              .connect(signers[action.executor])
+              [action.action](contracts[contractName].address, fee);
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts[contractName].address, fee),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(fee, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setTreasuryShares(address,(address,uint256)[])": {
+        const { contractName, treasuryShare }: ARGUMENTS = action.args;
+        if (contractName && treasuryShare) {
+          if (action.expect === "success") {
+            await registryContract
+              .connect(signers[action.executor])
+              [action.action](contracts[contractName].address, treasuryShare);
+          } else {
+            await expect(
+              registryContract
+                .connect(signers[action.executor])
+                [action.action](contracts[contractName].address, treasuryShare),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(treasuryShare, `args is wrong in ${action.action} testcase`);
+        break;
+      }
       default:
         break;
     }
@@ -747,11 +825,11 @@ const REGISTRY_TESTING_DEFAULT_DATA: TESTING_DEFAULT_DATA[] = [
     ],
   },
   {
-    setFunction: "setVaultStepInvestStrategyDefinitionRegistry(address)",
+    setFunction: "setInvestStrategyRegistry(address)",
     input: ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"],
     getFunction: [
       {
-        name: "vaultStepInvestStrategyDefinitionRegistry()",
+        name: "investStrategyRegistry()",
         input: [],
         output: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
       },
@@ -967,25 +1045,21 @@ async function verifyDefaultData(contract: Contract, data: TESTING_DEFAULT_DATA[
     for (let i = 0; i < action.getFunction.length; i++) {
       const getFunction = action.getFunction[i];
       const value = await contract[getFunction.name](...getFunction.input);
-      try {
-        if (Array.isArray(getFunction.output)) {
-          const objectValue: any[] = Object.values(value);
-          const half_length = Math.ceil(objectValue.length / 2);
-          const realValue = objectValue.splice(0, half_length);
-          if (getFunction.name === "getTokensHashByIndex(uint256)") {
-            expect(value.toString()).to.have.eq(getFunction.output[0]);
-          } else if (getFunction.name === "vaultToVaultConfiguration(address)") {
-            expect(realValue[0]).to.equal(getFunction.output[0]);
-            expect(realValue[1]).to.equal(getFunction.output[1]);
-            expect(+realValue[2]).to.equal(+getFunction.output[2]);
-          } else {
-            expect(realValue).to.have.members(getFunction.output);
-          }
+      if (Array.isArray(getFunction.output)) {
+        const objectValue: any[] = Object.values(value);
+        const half_length = Math.ceil(objectValue.length / 2);
+        const realValue = objectValue.splice(0, half_length);
+        if (getFunction.name === "getTokensHashByIndex(uint256)") {
+          expect(value.toString()).to.have.eq(getFunction.output[0]);
+        } else if (getFunction.name === "vaultToVaultConfiguration(address)") {
+          expect(realValue[0]).to.equal(getFunction.output[0]);
+          expect(realValue[1]).to.equal(getFunction.output[1]);
+          expect(+realValue[2]).to.equal(+getFunction.output[2]);
         } else {
-          expect(value).to.be.eq(getFunction.output);
+          expect(realValue).to.have.members(getFunction.output);
         }
-      } catch (error: any) {
-        console.log(error.message);
+      } else {
+        expect(value).to.be.eq(getFunction.output);
       }
     }
   }

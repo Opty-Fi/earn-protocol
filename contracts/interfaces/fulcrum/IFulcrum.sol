@@ -16,4 +16,6 @@ interface IFulcrum {
     function assetBalanceOf(address holder) external view returns (uint256);
 
     function marketLiquidity() external view returns (uint256);
+
+    function balanceOf(address _holder) external view returns (uint256);
 }

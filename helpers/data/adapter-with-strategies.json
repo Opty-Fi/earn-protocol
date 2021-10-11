@@ -6,7 +6,7 @@
       "strategy": [
         {
           "contract": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-          "outputTokenSymbol": "3Crv",
+          "outputTokenSymbol": "THREE_CRV",
           "outputToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
           "isBorrow": false
         }
@@ -120,6 +120,20 @@
           "contract": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
           "outputTokenSymbol": "yDAI",
           "outputToken": "0xACd43E627e64355f1861cEC6d3a6688B31a6F952",
+          "isBorrow": false
+        }
+      ]
+    }
+  ],
+  "FulcrumAdapter": [
+    {
+      "strategyName": "DAI-deposit-FULCRUM-iDAI",
+      "token": "DAI",
+      "strategy": [
+        {
+          "contract": "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
+          "outputTokenSymbol": "iDAI",
+          "outputToken": "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
           "isBorrow": false
         }
       ]

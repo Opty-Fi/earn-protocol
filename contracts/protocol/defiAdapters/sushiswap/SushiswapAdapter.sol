@@ -35,14 +35,14 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
     /** @notice Sushiswap's reward token address */
     address public rewardToken;
 
-    /** @notice SUSHI token contract address */
-    address public constant SUSHI = address(0x6B3595068778DD592e39A122f4f5a5cF09C90fE2);
-
     /** @notice Sushiswap router contract address */
     address public constant SUSHISWAP_ROUTER = address(0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F);
 
     /** @notice Sushiswap WETH-USDC pair contract address */
     address public constant SUSHI_WETH_USDC = address(0x397FF1542f962076d0BFE58eA045FfA2d347ACa0);
+
+    /** @notice Sushiswap MasterChef V1 contract address */
+    address public constant MASTERCHEF_V1 = address(0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd);
 
     /** @notice max deposit's protocol value in percentage */
     uint256 public maxDepositProtocolPct; // basis points
@@ -57,12 +57,11 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
     mapping(address => mapping(address => uint256)) public underlyingTokenToMasterChefToPid;
 
     constructor(address _registry) public Modifiers(_registry) {
-        setRewardToken(SUSHI);
         setMaxDepositProtocolPct(uint256(10000)); // 100%
         setMaxDepositProtocolMode(DataTypes.MaxExposure.Pct);
         setUnderlyingTokenToMasterChefToPid(
             SUSHI_WETH_USDC,
-            address(0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd), // MasterChef V1 contract address
+            MASTERCHEF_V1, // MasterChef V1 contract address
             uint256(1)
         );
     }
@@ -220,13 +219,6 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
     }
 
     /**
-     * @inheritdoc IAdapterHarvestReward
-     */
-    function setRewardToken(address _rewardToken) public override onlyOperator {
-        rewardToken = _rewardToken;
-    }
-
-    /**
      * @inheritdoc IAdapterInvestLimit
      */
     function setMaxDepositProtocolMode(DataTypes.MaxExposure _mode) public override onlyRiskOperator {
@@ -325,7 +317,7 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         if (_unclaimedReward > 0) {
             _balance = _balance.add(
                 IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).rewardBalanceInUnderlyingTokens(
-                    rewardToken,
+                    getRewardToken(_masterChef),
                     _underlyingToken,
                     _unclaimedReward
                 )
@@ -350,8 +342,8 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
     /**
      * @inheritdoc IAdapter
      */
-    function getRewardToken(address) public view override returns (address) {
-        return rewardToken;
+    function getRewardToken(address _masterChef) public view override returns (address) {
+        return ISushiswapMasterChef(_masterChef).sushi();
     }
 
     /**

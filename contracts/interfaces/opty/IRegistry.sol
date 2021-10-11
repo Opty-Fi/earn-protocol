@@ -31,13 +31,11 @@ interface IRegistry {
     function setTreasury(address _treasury) external returns (bool);
 
     /**
-     * @notice Set the VaultStepInvestStrategyDefinitionRegistry contract address
-     * @param _vaultStepInvestStrategyDefinitionRegistry VaultStepInvestStrategyDefinitionRegistry contract address
+     * @notice Set the investStrategyRegistry contract address
+     * @param _investStrategyRegistry InvestStrategyRegistry contract address
      * @return A boolean value indicating whether the operation succeeded
      */
-    function setVaultStepInvestStrategyDefinitionRegistry(address _vaultStepInvestStrategyDefinitionRegistry)
-        external
-        returns (bool);
+    function setInvestStrategyRegistry(address _investStrategyRegistry) external returns (bool);
 
     /**
      * @notice Set the APROracle contract address
@@ -261,6 +259,15 @@ interface IRegistry {
     ) external returns (bool);
 
     /**
+     * @notice Set the withdrawal fee's range
+     * @param _withdrawalFeeRange the withdrawal fee's range
+     * @return _success Returns a boolean value indicating whether the operation succeeded
+     */
+    function setWithdrawalFeeRange(DataTypes.WithdrawalFeeRange memory _withdrawalFeeRange)
+        external
+        returns (bool _success);
+
+    /**
      * @notice Set the withdrawal fee for the vault contract
      * @param _vault Vault contract address
      * @param _withdrawalFee Withdrawal fee to be set for vault contract
@@ -379,10 +386,10 @@ interface IRegistry {
     function getStrategyProvider() external view returns (address);
 
     /**
-     * @notice Retrieve the VaultStepInvestStrategyDefinitionRegistry contract address
-     * @return Returns the VaultStepInvestStrategyDefinitionRegistry contract address
+     * @notice Retrieve the InvestStrategyRegistry contract address
+     * @return Returns the InvestStrategyRegistry contract address
      */
-    function getVaultStepInvestStrategyDefinitionRegistry() external view returns (address);
+    function getInvestStrategyRegistry() external view returns (address);
 
     /**
      * @notice Retrieve the RiskManager contract address

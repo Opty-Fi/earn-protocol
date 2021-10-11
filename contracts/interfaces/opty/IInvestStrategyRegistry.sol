@@ -7,11 +7,11 @@ pragma experimental ABIEncoderV2;
 import { DataTypes } from "../../libraries/types/DataTypes.sol";
 
 /**
- * @title IVaultStepInvestStrategyDefinitionRegistry
+ * @title IInvestStrategyRegistry
  * @author Opty.fi
  * @notice Contains functionality to setting all the strategies for all tokens
  */
-interface IVaultStepInvestStrategyDefinitionRegistry {
+interface IInvestStrategyRegistry {
     /**
      * @dev Assign strategy in form of _strategySteps to the _tokensHash
      * @param  _tokensHash Hash of underlying token address/addresses

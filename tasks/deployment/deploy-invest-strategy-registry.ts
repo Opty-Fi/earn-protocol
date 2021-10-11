@@ -2,38 +2,31 @@ import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { DEPLOY_VAULT_STEP_REGISTRY } from "../task-names";
+import { DEPLOY_INVEST_STRATEGY_REGISTRY } from "../task-names";
 
-task(DEPLOY_VAULT_STEP_REGISTRY, "Deploy VaultStepInvestStrategyDefinitionRegistry")
+task(DEPLOY_INVEST_STRATEGY_REGISTRY, "Deploy InvestStrategyRegistry")
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ registry, deployedonce, insertindb }, hre) => {
     const [owner] = await hre.ethers.getSigners();
 
-    const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
+    const investStrategyRegistry = await deployContract(
       hre,
-      ESSENTIAL_CONTRACTS.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
+      ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
       deployedonce,
       owner,
       [registry],
     );
 
-    console.log(
-      `Contract vaultStepInvestStrategyDefinitionRegistry: ${vaultStepInvestStrategyDefinitionRegistry.address}`,
-    );
+    console.log(`Contract investStrategyRegistry: ${investStrategyRegistry.address}`);
 
     const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
 
-    await executeFunc(registryContract, owner, "setVaultStepInvestStrategyDefinitionRegistry(address)", [
-      vaultStepInvestStrategyDefinitionRegistry.address,
-    ]);
+    await executeFunc(registryContract, owner, "setInvestStrategyRegistry(address)", [investStrategyRegistry.address]);
 
     if (insertindb) {
-      const err = await insertContractIntoDB(
-        `vaultStepInvestStrategyDefinitionRegistry`,
-        vaultStepInvestStrategyDefinitionRegistry.address,
-      );
+      const err = await insertContractIntoDB(`investStrategyRegistry`, investStrategyRegistry.address);
       if (err !== "") {
         console.log(err);
       }

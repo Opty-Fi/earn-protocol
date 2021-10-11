@@ -1,4 +1,5 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
@@ -15,7 +16,7 @@ import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, ZERO_BYTES32 } from "../.
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/apr-oracle.json";
-
+chai.use(solidity);
 type ARGUMENTS = {
   riskProfile?: string;
   canBorrow?: boolean;
@@ -39,17 +40,15 @@ describe(scenario.title, async () => {
       const [owner, user1] = await hre.ethers.getSigners();
       users = { owner, user1 };
       const registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
-      const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
+      const investStrategyRegistry = await deployContract(
         hre,
-        ESSENTIAL_CONTRACTS.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
+        ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
         TESTING_DEPLOYMENT_ONCE,
         owner,
         [registry.address],
       );
 
-      await executeFunc(registry, owner, "setVaultStepInvestStrategyDefinitionRegistry(address)", [
-        vaultStepInvestStrategyDefinitionRegistry.address,
-      ]);
+      await executeFunc(registry, owner, "setInvestStrategyRegistry(address)", [investStrategyRegistry.address]);
 
       const strategyProvider = await deployContract(
         hre,
@@ -78,7 +77,7 @@ describe(scenario.title, async () => {
         true,
       );
 
-      contracts = { registry, vaultStepInvestStrategyDefinitionRegistry, strategyProvider, riskManager, aprOracle };
+      contracts = { registry, investStrategyRegistry, strategyProvider, riskManager, aprOracle };
     } catch (error) {
       console.log(error);
     }
@@ -96,7 +95,7 @@ describe(scenario.title, async () => {
             outputToken: TypedDefiPools[strategyInfo.adapterName][strategyInfo.token.toLowerCase()].lpToken,
             isBorrow: false,
           };
-          await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
+          await contracts["investStrategyRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
             generateTokenHash([TypedTokens[strategyInfo.token.toUpperCase()]]),
             generateStrategyStep([strategy]),
           );

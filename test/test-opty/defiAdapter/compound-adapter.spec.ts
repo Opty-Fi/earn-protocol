@@ -2,14 +2,9 @@ import chai, { expect, assert } from "chai";
 import hre from "hardhat";
 import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber, utils, ethers } from "ethers";
+import Compound from "@compound-finance/compound-js";
 import { CONTRACTS } from "../../../helpers/type";
-import {
-  TOKENS,
-  TESTING_DEPLOYMENT_ONCE,
-  ADDRESS_ZERO,
-  COMPOUND_ADAPTER_NAME,
-  CONTRACT_ADDRESSES,
-} from "../../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO, COMPOUND_ADAPTER_NAME } from "../../../helpers/constants";
 import { TypedAdapterStrategies, TypedTokens } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import {
@@ -20,12 +15,14 @@ import {
 } from "../../../helpers/contracts-actions";
 import scenarios from "../scenarios/adapters.json";
 import { TypedDefiPools } from "../../../helpers/data";
+import { ERC20 } from "../../../typechain/ERC20";
 //  TODO: This file is temporarily being used until all the adapters testing doesn't adapt this file
 import testDeFiAdaptersScenario from "../scenarios/compound-temp-defi-adapter.json";
 import { deployContract, getDefaultFundAmountInDecimal } from "../../../helpers/helpers";
 import { getAddress } from "ethers/lib/utils";
 import { to_10powNumber_BN } from "../../../helpers/utils";
-import Compound from "@compound-finance/compound-js";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   amount?: { [key: string]: string };
@@ -37,8 +34,6 @@ type TEST_DEFI_ADAPTER_ARGUMENTS = {
   maxDepositPoolPct?: string;
   maxDepositAmount?: string;
 };
-
-chai.use(solidity);
 
 describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
   const strategies = TypedAdapterStrategies[COMPOUND_ADAPTER_NAME];
@@ -184,20 +179,18 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
         if (TypedDefiPools[COMPOUND_ADAPTER_NAME][pool].tokens.length == 1) {
           for (let i = 0; i < testDeFiAdaptersScenario.stories.length; i++) {
             it(`${pool} - ${testDeFiAdaptersScenario.stories[i].description}`, async function () {
+              const story = testDeFiAdaptersScenario.stories[i];
+              const ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
+              const liquidityPool = TypedDefiPools[COMPOUND_ADAPTER_NAME][pool].pool;
+              const LpContractInstance = await hre.ethers.getContractAt(Compound.util.getAbi("cErc20"), liquidityPool);
+              const compTroller = await LpContractInstance.comptroller();
               const lpPauseStatus = await lpPausedStatus(
                 hre,
                 getAddress(TypedDefiPools[COMPOUND_ADAPTER_NAME][pool].pool),
-                CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER,
+                compTroller,
               );
               if (!lpPauseStatus) {
-                const story = testDeFiAdaptersScenario.stories[i];
-                const liquidityPool = TypedDefiPools[COMPOUND_ADAPTER_NAME][pool].pool;
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
-                const LpContractInstance = await hre.ethers.getContractAt(
-                  Compound.util.getAbi("cErc20"),
-                  liquidityPool,
-                );
-                const rewardTokenAddress = await compoundAdapter.getRewardToken(ADDRESS_ZERO);
+                const rewardTokenAddress = await compoundAdapter.getRewardToken(liquidityPool);
                 let RewardTokenERC20Instance: Contract;
                 if (!(rewardTokenAddress == ADDRESS_ZERO)) {
                   RewardTokenERC20Instance = await hre.ethers.getContractAt("ERC20", rewardTokenAddress);
@@ -390,11 +383,11 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                     }
                     case "getUnclaimedRewardTokenAmount(address,address,address)": {
                       expect(
-                        await compoundAdapter[action.action](testDeFiAdapter.address, ADDRESS_ZERO, ADDRESS_ZERO),
+                        await compoundAdapter[action.action](testDeFiAdapter.address, liquidityPool, ADDRESS_ZERO),
                       ).to.be.eq(
                         await executeComptrollerFunc(
                           hre,
-                          CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER,
+                          compTroller,
                           "function compAccrued(address) returns (uint256)",
                           [testDeFiAdapter.address],
                         ),
@@ -422,9 +415,7 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                     }
                     case "balanceOf(address)": {
                       const expectedValue = action.expectedValue;
-                      const underlyingBalanceAfter: BigNumber = await ERC20Instance[action.action](
-                        testDeFiAdapter.address,
-                      );
+                      const underlyingBalanceAfter: BigNumber = await ERC20Instance.balanceOf(testDeFiAdapter.address);
                       if (underlyingBalanceBefore.lt(limit)) {
                         expectedValue == ">0"
                           ? expect(+underlyingBalanceAfter).to.be.gt(+underlyingBalanceBefore)
@@ -585,6 +576,17 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
                       }
                       break;
                     }
+                    case "getRewardToken(address)": {
+                      expect(getAddress(await compoundAdapter[action.action](liquidityPool))).to.be.eq(
+                        await executeComptrollerFunc(
+                          hre,
+                          compTroller,
+                          "function getCompAddress() returns (address)",
+                          [],
+                        ),
+                      );
+                      break;
+                    }
                   }
                 }
                 for (const action of story.cleanActions) {
@@ -628,61 +630,6 @@ describe(`${COMPOUND_ADAPTER_NAME} Unit test`, () => {
             switch (action.action) {
               case "canStake(address)": {
                 expect(await compoundAdapter[action.action](ADDRESS_ZERO)).to.be.eq(false);
-                break;
-              }
-              case "setRewardToken(address)": {
-                if (action.expect == "success") {
-                  await compoundAdapter[action.action](TypedTokens.COMP);
-                } else {
-                  //  TODO: Add test scenario if operator is trying to set ZERO/EOA ADDRESS as reward token address
-                  await expect(
-                    compoundAdapter.connect(users[action.executer])[action.action](TypedTokens.COMP),
-                  ).to.be.revertedWith(action.message);
-                }
-                break;
-              }
-              case "setComptroller(address)": {
-                if (action.expect == "success") {
-                  await compoundAdapter[action.action](CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER);
-                } else {
-                  //  TODO: Add test scenario if operater is trying to set ZERO ADDRESS/EOA as comptroller's contract address
-                  await expect(
-                    compoundAdapter
-                      .connect(users[action.executer])
-                      [action.action](CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER),
-                  ).to.be.revertedWith(action.message);
-                }
-                break;
-              }
-            }
-          }
-          for (const action of story.getActions) {
-            switch (action.action) {
-              case "getRewardToken(address)": {
-                expect(await compoundAdapter[action.action](ADDRESS_ZERO)).to.be.eq(getAddress(TypedTokens.COMP));
-                break;
-              }
-              case "comptroller()": {
-                expect(getAddress(await compoundAdapter[action.action]())).to.be.eq(
-                  getAddress(CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER),
-                );
-              }
-            }
-          }
-          for (const action of story.cleanActions) {
-            switch (action.action) {
-              case "setRewardToken(address)": {
-                await compoundAdapter[action.action](TypedTokens.COMP);
-                expect(getAddress(await compoundAdapter.getRewardToken(ADDRESS_ZERO))).to.be.eq(
-                  getAddress(TypedTokens.COMP),
-                );
-                break;
-              }
-              case "setComptroller(address)": {
-                await compoundAdapter[action.action](CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER);
-                expect(getAddress(await compoundAdapter.comptroller())).to.be.eq(
-                  getAddress(CONTRACT_ADDRESSES.COMPOUND_COMPTROLLER),
-                );
                 break;
               }
             }

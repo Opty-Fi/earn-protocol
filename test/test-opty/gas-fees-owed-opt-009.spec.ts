@@ -1,4 +1,5 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
@@ -20,6 +21,8 @@ import {
   retrieveAdapterFromStrategyName,
   generateStrategyStep,
 } from "../../helpers/helpers";
+import { ERC20 } from "../../typechain/ERC20";
+chai.use(solidity);
 
 type ARGUMENTS = {
   contractName?: string;
@@ -65,7 +68,7 @@ describe(scenario.title, () => {
     }
     let strategyIndex = 0;
     const tokenHash = generateTokenHash([TOKENS[token]]);
-    let decimals: BigNumber;
+    let decimals: number;
     let underlyingTokenName: string;
     let underlyingTokenSymbol: string;
     const riskProfile = "RP1";
@@ -88,7 +91,7 @@ describe(scenario.title, () => {
 
         await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 
-        const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKENS[token]);
+        const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", TOKENS[token]);
 
         decimals = await Token_ERC20Instance.decimals();
 
@@ -100,8 +103,7 @@ describe(scenario.title, () => {
 
         contracts["registry"] = essentialContracts.registry;
 
-        contracts["vaultStepInvestStrategyDefinitionRegistry"] =
-          essentialContracts.vaultStepInvestStrategyDefinitionRegistry;
+        contracts["investStrategyRegistry"] = essentialContracts.investStrategyRegistry;
 
         contracts["strategyProvider"] = essentialContracts.strategyProvider;
 

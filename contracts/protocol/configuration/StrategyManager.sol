@@ -14,9 +14,7 @@ import { Modifiers } from "./Modifiers.sol";
 
 // interfaces
 import { IAdapterFull } from "../../interfaces/opty/defiAdapters/IAdapterFull.sol";
-import {
-    IVaultStepInvestStrategyDefinitionRegistry
-} from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
+import { IInvestStrategyRegistry } from "../../interfaces/opty/IInvestStrategyRegistry.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
 import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
 import { Constants } from "../../utils/Constants.sol";
@@ -249,9 +247,9 @@ contract StrategyManager is IStrategyManager, Modifiers {
     }
 
     function _getStrategySteps(bytes32 _hash) internal view returns (DataTypes.StrategyStep[] memory _strategySteps) {
-        IVaultStepInvestStrategyDefinitionRegistry _vaultStepInvestStrategyDefinitionRegistry =
-            IVaultStepInvestStrategyDefinitionRegistry(registryContract.getVaultStepInvestStrategyDefinitionRegistry());
-        (, _strategySteps) = _vaultStepInvestStrategyDefinitionRegistry.getStrategy(_hash);
+        IInvestStrategyRegistry _investStrategyRegistry =
+            IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry());
+        (, _strategySteps) = _investStrategyRegistry.getStrategy(_hash);
     }
 
     function _getPoolDepositAllCodes(

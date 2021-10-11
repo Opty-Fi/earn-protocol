@@ -26,7 +26,7 @@ $ yarn hardhat node
 - run `yarn setup:local`. Following is sample output
 
 ```console
-VAULTSTEPINVESTSTRATEGYDEFINITIONREGISTRY address : 0xa0D61133044ACB8Fb72Bc5a0378Fe13786538Dd0
+INVESTSTRATEGYREGISTRY address : 0xa0D61133044ACB8Fb72Bc5a0378Fe13786538Dd0
 STRATEGYPROVIDER address : 0x04Ef8a8d3B198749582896F3Bb133ACCc989bD78
 STRATEGYMANAGER address : 0xd16db0605d9050738A12698446c3310d4849A107
 OPTYDISTRIBUTOR address : 0x4193258197BE2D8ff8d23B23596e5672A7d6AAf9
@@ -54,112 +54,112 @@ YVAULTADAPTER address : 0xfb66B3FCCc886E754a0002f1e84d85a6b2b7aC82
 SUSHISWAPADAPTER address : 0xd70CF3AAB8C2DD7983474E3932f616D1D6ce7Fb2
 Started setting strategies
 -----------------
-Invest step strategy Name : DAI-deposit-COMPOUND-cDAI
-Invest step strategy Hash : 0xf14294bb238069facb3da995a8d6e805967558c99956a61ce7aa8b53954db845
+Invest strategy Name : DAI-deposit-COMPOUND-cDAI
+Invest strategy Hash : 0xf14294bb238069facb3da995a8d6e805967558c99956a61ce7aa8b53954db845
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-AAVE-aDAI
-Invest step strategy Hash : 0x96c4bb18025d9dc8a66aee1e9c88d3a896852ff155498bd92a62815c26aad9e6
+Invest strategy Name : DAI-deposit-AAVE-aDAI
+Invest strategy Hash : 0x96c4bb18025d9dc8a66aee1e9c88d3a896852ff155498bd92a62815c26aad9e6
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-AAVE_V2-aDAI
-Invest step strategy Hash : 0x5c8dded359cb64005826fb1e79204e7e93ab2514a5a8ed888165413ec1ba3695
+Invest strategy Name : DAI-deposit-AAVE_V2-aDAI
+Invest strategy Hash : 0x5c8dded359cb64005826fb1e79204e7e93ab2514a5a8ed888165413ec1ba3695
 -----------------
 -----------------
-Invest step strategy Name : USDT-deposit-CREAM-crUSDT
-Invest step strategy Hash : 0xcb61c52b021239e4103ddc1d729c72ae1b0fe87258ce407f1c5bc73d0fea6c21
+Invest strategy Name : USDT-deposit-CREAM-crUSDT
+Invest strategy Hash : 0xcb61c52b021239e4103ddc1d729c72ae1b0fe87258ce407f1c5bc73d0fea6c21
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-DFORCE-dDAI
-Invest step strategy Hash : 0xf9a1b96cc3cc8d7d5cd704e7c429a93a138a86bf323552599e56f97320e843f5
+Invest strategy Name : DAI-deposit-DFORCE-dDAI
+Invest strategy Hash : 0xf9a1b96cc3cc8d7d5cd704e7c429a93a138a86bf323552599e56f97320e843f5
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-DYDX-dyDAI
-Invest step strategy Hash : 0x72074c0428259c3c8f33f949bfae8389762be0d71d00b4bb4dccfbbc74998420
+Invest strategy Name : DAI-deposit-DYDX-dyDAI
+Invest strategy Hash : 0x72074c0428259c3c8f33f949bfae8389762be0d71d00b4bb4dccfbbc74998420
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-HARVEST-fDAI
-Invest step strategy Hash : 0x2c365ec0925c4400f3c0ad18ddcdd76c24a997ec8f0c2b4d35b6092783b6ac6a
+Invest strategy Name : DAI-deposit-HARVEST-fDAI
+Invest strategy Hash : 0x2c365ec0925c4400f3c0ad18ddcdd76c24a997ec8f0c2b4d35b6092783b6ac6a
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-YEARN-yDAI
-Invest step strategy Hash : 0x86c40601ee0b1a4fe5fe3a8360b49796a71f161cb964f4f71c64655ff93244bf
+Invest strategy Name : DAI-deposit-YEARN-yDAI
+Invest strategy Hash : 0x86c40601ee0b1a4fe5fe3a8360b49796a71f161cb964f4f71c64655ff93244bf
 -----------------
 -----------------
-Invest step strategy Name : WETH-USDC-deposit-SUSHISWAP-SLP
-Invest step strategy Hash : 0xc1b2246f219e1807b87105e63fa3038253a7acde41ac69bbbbbe6650259c6e40
+Invest strategy Name : WETH-USDC-deposit-SUSHISWAP-SLP
+Invest strategy Hash : 0xc1b2246f219e1807b87105e63fa3038253a7acde41ac69bbbbbe6650259c6e40
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-CURVE-cDAI+cUSDC
-Invest step strategy Hash : 0x3e076878da36b4a13cf8970e6908479b2125d0713952f1788554969a00dd75bb
+Invest strategy Name : DAI-deposit-CURVE-cDAI+cUSDC
+Invest strategy Hash : 0x3e076878da36b4a13cf8970e6908479b2125d0713952f1788554969a00dd75bb
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-CURVE-cDAI+cUSDC-deposit-HARVEST-fcDAI+cUSDC
-Invest step strategy Hash : 0xef9bba228e1763706f889b9ee7c5775e6c12d009000b9c7a792bd0c2a7b2bed0
+Invest strategy Name : DAI-deposit-CURVE-cDAI+cUSDC-deposit-HARVEST-fcDAI+cUSDC
+Invest strategy Hash : 0xef9bba228e1763706f889b9ee7c5775e6c12d009000b9c7a792bd0c2a7b2bed0
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
-Invest step strategy Hash : 0xbf9e62ee808c64ccb25a96ad68fb722b60394ce11fe8388cc98e9e19c498fc77
+Invest strategy Name : DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
+Invest strategy Hash : 0xbf9e62ee808c64ccb25a96ad68fb722b60394ce11fe8388cc98e9e19c498fc77
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV
-Invest step strategy Hash : 0xf203d1bd27d98f490126dd5ce1e8766e9d9678c33f7b97749000dcbf00557a25
+Invest strategy Name : DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV
+Invest strategy Hash : 0xf203d1bd27d98f490126dd5ce1e8766e9d9678c33f7b97749000dcbf00557a25
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD
-Invest step strategy Hash : 0xc7f81a410e3d1424f792645cc6f35063775650d6b4ef09b72fd700c6ea36da30
+Invest strategy Name : DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD
+Invest strategy Hash : 0xc7f81a410e3d1424f792645cc6f35063775650d6b4ef09b72fd700c6ea36da30
 -----------------
 -----------------
-Invest step strategy Name : DAI-deposit-CURVE-3Crv-deposit-HARVEST-f3CRV
-Invest step strategy Hash : 0x680de03bc39b6b526671d7a0cbb083a37afbc0955a32582495326f8850baabcf
+Invest strategy Name : DAI-deposit-CURVE-3Crv-deposit-HARVEST-f3CRV
+Invest strategy Hash : 0x680de03bc39b6b526671d7a0cbb083a37afbc0955a32582495326f8850baabcf
 -----------------
 -----------------
-Invest step strategy Name : USDC-deposit-CURVE-cDAI+cUSDC-deposit-HARVEST-fcDAI+cUSDC
-Invest step strategy Hash : 0x52c0e8c3c4d04530a324042d8d5986efded2f83959f702020077ebdcf975e705
+Invest strategy Name : USDC-deposit-CURVE-cDAI+cUSDC-deposit-HARVEST-fcDAI+cUSDC
+Invest strategy Hash : 0x52c0e8c3c4d04530a324042d8d5986efded2f83959f702020077ebdcf975e705
 -----------------
 -----------------
-Invest step strategy Name : USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
-Invest step strategy Hash : 0x90e92f4967378df6f1385581a043bb87c35098bb1e991c8a0aafcd2580a50d21
+Invest strategy Name : USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
+Invest strategy Hash : 0x90e92f4967378df6f1385581a043bb87c35098bb1e991c8a0aafcd2580a50d21
 -----------------
 -----------------
-Invest step strategy Name : USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV
-Invest step strategy Hash : 0x5eae362a2ee7242bde96a30344833cfdf37906282a19a548504e38da7e7d08d5
+Invest strategy Name : USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV
+Invest strategy Hash : 0x5eae362a2ee7242bde96a30344833cfdf37906282a19a548504e38da7e7d08d5
 -----------------
 -----------------
-Invest step strategy Name : USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD
-Invest step strategy Hash : 0x26dfdad3b9f305efe3f609975be8c408cd069f094112f4ebbfa1061dc1a9744d
+Invest strategy Name : USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD
+Invest strategy Hash : 0x26dfdad3b9f305efe3f609975be8c408cd069f094112f4ebbfa1061dc1a9744d
 -----------------
 -----------------
-Invest step strategy Name : USDC-deposit-CURVE-3Crv-deposit-HARVEST-f3CRV
-Invest step strategy Hash : 0xe6d475069b9db72eb4295971fd67e8853c5f2d3ecb4c42dacecf8959336fdcfb
+Invest strategy Name : USDC-deposit-CURVE-3Crv-deposit-HARVEST-f3CRV
+Invest strategy Hash : 0xe6d475069b9db72eb4295971fd67e8853c5f2d3ecb4c42dacecf8959336fdcfb
 -----------------
 -----------------
-Invest step strategy Name : USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
-Invest step strategy Hash : 0x794f76bed4b22aed54b34e8d52a6b53d0d62167b3ded7a3def93e8d08c931418
+Invest strategy Name : USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
+Invest strategy Hash : 0x794f76bed4b22aed54b34e8d52a6b53d0d62167b3ded7a3def93e8d08c931418
 -----------------
 -----------------
-Invest step strategy Name : USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD
-Invest step strategy Hash : 0x1e8e0c7bc0216fbd009ec343c780e1d6fbbf0c036b18f2373bb968488084985e
+Invest strategy Name : USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD
+Invest strategy Hash : 0x1e8e0c7bc0216fbd009ec343c780e1d6fbbf0c036b18f2373bb968488084985e
 -----------------
 -----------------
-Invest step strategy Name : WBTC-deposit-CURVE-crvRenWBTC-deposit-HARVEST-fcrvRenWBTC
-Invest step strategy Hash : 0x262edd4c90a565cf0da5bcad6d1000e4163634c252c3c6e80374d90860e3d857
+Invest strategy Name : WBTC-deposit-CURVE-crvRenWBTC-deposit-HARVEST-fcrvRenWBTC
+Invest strategy Hash : 0x262edd4c90a565cf0da5bcad6d1000e4163634c252c3c6e80374d90860e3d857
 -----------------
 -----------------
-Invest step strategy Name : TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
-Invest step strategy Hash : 0xb021b7fca169335937667eed08e789681bb405b78e1c088fa7af1209576843a2
+Invest strategy Name : TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV
+Invest strategy Hash : 0xb021b7fca169335937667eed08e789681bb405b78e1c088fa7af1209576843a2
 -----------------
 -----------------
-Invest step strategy Name : TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV
-Invest step strategy Hash : 0xb3ac00785dd825ff41e54595084e9b2bb693d47b9d2d572f3a2e15973899451a
+Invest strategy Name : TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV
+Invest strategy Hash : 0xb3ac00785dd825ff41e54595084e9b2bb693d47b9d2d572f3a2e15973899451a
 -----------------
 -----------------
-Invest step strategy Name : WETH-deposit-YEARN-yWETH-deposit-CREAM-crYETH
-Invest step strategy Hash : 0x76376b18722c4817a48e6ecd33fc472965b63fae441cd7ff98fdde31e87e2c70
+Invest strategy Name : WETH-deposit-YEARN-yWETH-deposit-CREAM-crYETH
+Invest strategy Hash : 0x76376b18722c4817a48e6ecd33fc472965b63fae441cd7ff98fdde31e87e2c70
 -----------------
 -----------------
-Invest step strategy Name : 3Crv-deposit-CURVE-usdn3CRV-deposit-HARVEST-fusdn3CRV
-Invest step strategy Hash : 0xdb06bef53973d8868f76b2fcf33ca467976b869832ad5aa639cdf2a84163c5e8
+Invest strategy Name : 3Crv-deposit-CURVE-usdn3CRV-deposit-HARVEST-fusdn3CRV
+Invest strategy Hash : 0xdb06bef53973d8868f76b2fcf33ca467976b869832ad5aa639cdf2a84163c5e8
 -----------------
 Finished setting strategies
         Deploying Core Vault contracts ...

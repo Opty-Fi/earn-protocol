@@ -71,4 +71,8 @@ interface ICompound {
     function getTokenConfigByUnderlying(address) external view returns (TokenConfig memory);
 
     function supplyRatePerBlock() external view returns (uint256);
+
+    function comptroller() external view returns (address);
+
+    function getCompAddress() external view returns (address);
 }

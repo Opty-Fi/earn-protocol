@@ -26,4 +26,6 @@ interface ISushiswapMasterChef {
      * @param _user User address
      */
     function pendingSushi(uint256 _pid, address _user) external view returns (uint256);
+
+    function sushi() external view returns (address);
 }

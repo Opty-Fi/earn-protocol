@@ -32,11 +32,9 @@ describe(scenario.title, () => {
   before(async () => {
     [owner] = await hre.ethers.getSigners();
     registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
-    const vaultStepInvestStrategyDefinitionRegistry = await deploySmockContract(
-      smock,
-      ESSENTIAL_CONTRACTS.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
-      [registry.address],
-    );
+    const investStrategyRegistry = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY, [
+      registry.address,
+    ]);
 
     const strategyProvider = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, [
       registry.address,
@@ -46,12 +44,10 @@ describe(scenario.title, () => {
 
     riskManager = await deployRiskManager(hre, owner, TESTING_DEPLOYMENT_ONCE, registry.address);
 
-    contracts = { vaultStepInvestStrategyDefinitionRegistry, strategyProvider };
+    contracts = { investStrategyRegistry, strategyProvider };
     await executeFunc(registry, owner, "setStrategyProvider(address)", [strategyProvider.address]);
     await executeFunc(registry, owner, "setAPROracle(address)", [aprOracle.address]);
-    await executeFunc(registry, owner, "setVaultStepInvestStrategyDefinitionRegistry(address)", [
-      vaultStepInvestStrategyDefinitionRegistry.address,
-    ]);
+    await executeFunc(registry, owner, "setInvestStrategyRegistry(address)", [investStrategyRegistry.address]);
 
     await registry["addRiskProfile(string,bool,(uint8,uint8))"](riskProfile, false, [0, 10]);
 
@@ -84,21 +80,19 @@ describe(scenario.title, () => {
     );
     let isCheckDefault = false;
     before(async () => {
-      const setDefaultStrategy = (
-        await contracts["vaultStepInvestStrategyDefinitionRegistry"].getStrategy(defaultStrategyHash)
-      )._strategySteps[0];
+      const setDefaultStrategy = (await contracts["investStrategyRegistry"].getStrategy(defaultStrategyHash))
+        ._strategySteps[0];
       if (!setDefaultStrategy) {
         const defaultStrategySteps = generateStrategyStep(defaultStrategy.strategy);
-        await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
+        await contracts["investStrategyRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
           tokenHash,
           defaultStrategySteps,
         );
       }
-      const setStrategy = (await contracts["vaultStepInvestStrategyDefinitionRegistry"].getStrategy(strategyHash))
-        ._strategySteps[0];
+      const setStrategy = (await contracts["investStrategyRegistry"].getStrategy(strategyHash))._strategySteps[0];
       if (!setStrategy) {
         const strategySteps = generateStrategyStep(strategy.strategy);
-        await contracts["vaultStepInvestStrategyDefinitionRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
+        await contracts["investStrategyRegistry"]["setStrategy(bytes32,(address,address,bool)[])"](
           tokenHash,
           strategySteps,
         );
@@ -139,7 +133,9 @@ describe(scenario.title, () => {
                   if (action.expect === "success") {
                     await registry[action.action](pools);
                   } else {
-                    await expect(contracts[action.contract][action.action](pools)).to.be.revertedWith(action.message);
+                    await expect(await contracts[action.contract][action.action](pools)).to.be.revertedWith(
+                      action.message,
+                    );
                   }
                 }
                 assert.isDefined(score, `args is wrong in ${action.action} testcase`);

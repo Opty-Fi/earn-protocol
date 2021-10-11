@@ -156,6 +156,11 @@ contract RegistryStorage is RegistryAdminStorage {
     mapping(address => DataTypes.VaultConfiguration) public vaultToVaultConfiguration;
 
     /**
+     * @notice withdrawal fee's range
+     */
+    DataTypes.WithdrawalFeeRange public withdrawalFeeRange;
+
+    /**
      * @notice List of all the tokenHashes
      */
     bytes32[] public tokensHashIndexes;
@@ -171,9 +176,9 @@ contract RegistryStorage is RegistryAdminStorage {
     address public strategyProvider;
 
     /**
-     * @notice vaultStepInvestStrategyDefinitionRegistry contract address
+     * @notice investStrategyRegistry contract address
      */
-    address public vaultStepInvestStrategyDefinitionRegistry;
+    address public investStrategyRegistry;
 
     /**
      * @notice riskManager contract address

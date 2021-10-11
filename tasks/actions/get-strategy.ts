@@ -6,34 +6,34 @@ import { GET_STRATEGY } from "../task-names";
 task(GET_STRATEGY, "Get a specific strategy")
   .addParam("strategyhash", "the hash of strategy", "", types.string)
   .addParam("token", "the address of token", "", types.string)
-  .addParam("strategyregistry", "the address of vaultStepInvestStrategyDefinitionRegistry", "", types.string)
-  .setAction(async ({ strategyregistry, token, strategyhash }, hre) => {
-    if (strategyregistry === "") {
-      throw new Error("strategyregistry cannot be empty");
+  .addParam("investstrategyregistry", "the address of investStrategyRegistry", "", types.string)
+  .setAction(async ({ investstrategyregistry, token, strategyhash }, hre) => {
+    if (investstrategyregistry === "") {
+      throw new Error("investstrategyregistry cannot be empty");
     }
 
-    if (!isAddress(strategyregistry)) {
-      throw new Error("strategyregistry address is invalid");
+    if (!isAddress(investstrategyregistry)) {
+      throw new Error("investstrategyregistry address is invalid");
     }
 
     if (token === "") {
-      throw new Error("strategyregistry cannot be empty");
+      throw new Error("investstrategyregistry cannot be empty");
     }
 
     if (!isAddress(token)) {
-      throw new Error("strategyregistry address is invalid");
+      throw new Error("investstrategyregistry address is invalid");
     }
 
     if (strategyhash === "") {
       throw new Error("strategyhash cannot be empty");
     }
 
-    const strategyRegistryContract = await await hre.ethers.getContractAt(
-      ESSENTIAL_CONTRACTS.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
-      strategyregistry,
+    const investStrategyRegistryContract = await await hre.ethers.getContractAt(
+      ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
+      investstrategyregistry,
     );
 
-    const strategyDetail = await strategyRegistryContract.getStrategy(strategyhash);
+    const strategyDetail = await investStrategyRegistryContract.getStrategy(strategyhash);
     console.log(`StrategyHash: ${strategyhash}`);
     for (let i = 0; i < strategyDetail[1].length; i++) {
       console.log(`Step: ${i + 1}`);

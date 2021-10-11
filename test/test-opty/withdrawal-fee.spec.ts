@@ -50,6 +50,7 @@ describe(scenario.title, () => {
       let ERC20Instance: Contract;
 
       before(async () => {
+        await contracts["registry"].setWithdrawalFeeRange(["0", "1000"]);
         await approveLiquidityPoolAndMapAdapter(
           users["owner"],
           essentialContracts.registry,
@@ -59,7 +60,7 @@ describe(scenario.title, () => {
         await setBestStrategy(
           TOKEN_STRATEGY.strategy,
           TOKENS[token],
-          essentialContracts.vaultStepInvestStrategyDefinitionRegistry,
+          essentialContracts.investStrategyRegistry,
           essentialContracts.strategyProvider,
           "RP1",
           false,

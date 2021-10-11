@@ -134,17 +134,15 @@ export async function deployEssentialContracts(
   const registry = await deployRegistry(hre, owner, isDeployedOnce);
   await addRiskProfiles(owner, registry);
 
-  const vaultStepInvestStrategyDefinitionRegistry = await deployContract(
+  const investStrategyRegistry = await deployContract(
     hre,
-    ESSENTIAL_CONTRACTS_DATA.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
+    ESSENTIAL_CONTRACTS_DATA.INVEST_STRATEGY_REGISTRY,
     isDeployedOnce,
     owner,
     [registry.address],
   );
 
-  await executeFunc(registry, owner, "setVaultStepInvestStrategyDefinitionRegistry(address)", [
-    vaultStepInvestStrategyDefinitionRegistry.address,
-  ]);
+  await executeFunc(registry, owner, "setInvestStrategyRegistry(address)", [investStrategyRegistry.address]);
 
   const strategyProvider = await deployContract(
     hre,
@@ -219,7 +217,7 @@ export async function deployEssentialContracts(
 
   const essentialContracts: CONTRACTS = {
     registry,
-    vaultStepInvestStrategyDefinitionRegistry,
+    investStrategyRegistry,
     strategyProvider,
     strategyManager,
     optyDistributor,

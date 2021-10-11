@@ -1,6 +1,6 @@
 {
-  "title": "VaultStepInvestStrategyDefinitionRegistry",
-  "description": "Test cases for VaultStepInvestStrategyDefinitionRegistry contract",
+  "title": "InvestStrategyRegistry",
+  "description": "Test cases for InvestStrategyRegistry contract",
   "stories": [
     {
       "description": "Operator should be able to set one strategy only one time for one tokensHash",

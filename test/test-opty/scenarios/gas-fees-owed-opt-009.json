@@ -44,7 +44,7 @@
           "message": ""
         },
         {
-          "contract": "vaultStepInvestStrategyDefinitionRegistry",
+          "contract": "investStrategyRegistry",
           "action": "setStrategy(bytes32,(address,address,bool)[])",
           "args": {},
           "executor": "",
@@ -103,7 +103,7 @@
           "message": ""
         },
         {
-          "contract": "vaultStepInvestStrategyDefinitionRegistry",
+          "contract": "investStrategyRegistry",
           "action": "setStrategy(bytes32,(address,address,bool)[])",
           "args": {},
           "executor": "",

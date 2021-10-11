@@ -10,16 +10,14 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
 import { Modifiers } from "./Modifiers.sol";
 
 //  interfaces
-import {
-    IVaultStepInvestStrategyDefinitionRegistry
-} from "../../interfaces/opty/IVaultStepInvestStrategyDefinitionRegistry.sol";
+import { IInvestStrategyRegistry } from "../../interfaces/opty/IInvestStrategyRegistry.sol";
 
 /**
- * @title VaultStepInvestStrategyDefinitionRegistry Contract
+ * @title InvestStrategyRegistry Contract
  * @author Opty.fi
  * @dev Contract to persist vault's step invest strategy definition
  */
-contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDefinitionRegistry, Modifiers {
+contract InvestStrategyRegistry is IInvestStrategyRegistry, Modifiers {
     /** @notice Mapping of hash (underlying Tokens hash) to strategy steps hash */
     mapping(bytes32 => bytes32[]) public tokenToStrategies;
 
@@ -41,7 +39,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
     constructor(address _registry) public Modifiers(_registry) {}
 
     /**
-     * @inheritdoc IVaultStepInvestStrategyDefinitionRegistry
+     * @inheritdoc IInvestStrategyRegistry
      */
     function setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[] memory _strategySteps)
         external
@@ -54,7 +52,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
     }
 
     /**
-     * @inheritdoc IVaultStepInvestStrategyDefinitionRegistry
+     * @inheritdoc IInvestStrategyRegistry
      */
     function setStrategy(bytes32 _tokensHash, DataTypes.StrategyStep[][] memory _strategySteps)
         external
@@ -69,7 +67,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
     }
 
     /**
-     * @inheritdoc IVaultStepInvestStrategyDefinitionRegistry
+     * @inheritdoc IInvestStrategyRegistry
      */
     function setStrategy(bytes32[] memory _tokensHash, DataTypes.StrategyStep[][] memory _strategySteps)
         external
@@ -85,7 +83,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
     }
 
     /**
-     * @inheritdoc IVaultStepInvestStrategyDefinitionRegistry
+     * @inheritdoc IInvestStrategyRegistry
      */
     function getStrategy(bytes32 _hash)
         public
@@ -98,7 +96,7 @@ contract VaultStepInvestStrategyDefinitionRegistry is IVaultStepInvestStrategyDe
     }
 
     /**
-     * @inheritdoc IVaultStepInvestStrategyDefinitionRegistry
+     * @inheritdoc IInvestStrategyRegistry
      */
     function getTokenToStrategies(bytes32 _tokensHash) public view override returns (bytes32[] memory) {
         return tokenToStrategies[_tokensHash];

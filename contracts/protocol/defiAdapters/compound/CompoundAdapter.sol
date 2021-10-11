@@ -34,12 +34,6 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
     /** @notice max deposit value datatypes */
     DataTypes.MaxExposure public maxDepositProtocolMode;
 
-    /** @notice Compound's comptroller contract address */
-    address public comptroller;
-
-    /** @notice Compound's reward token (COMP) address */
-    address public rewardToken;
-
     /** @dev ETH gateway contract for compound adapter */
     address public immutable compoundETHGatewayContract;
 
@@ -64,8 +58,6 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
 
     constructor(address _registry) public Modifiers(_registry) {
         compoundETHGatewayContract = address(new CompoundETHGateway(WETH, _registry, CETH));
-        setRewardToken(address(0xc00e94Cb662C3520282E6f5717214004A7f26888));
-        setComptroller(address(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B));
         setMaxDepositProtocolPct(uint256(10000)); // 100% (basis points)
         setMaxDepositProtocolMode(DataTypes.MaxExposure.Pct);
     }
@@ -95,23 +87,6 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract()");
         maxDepositAmount[_liquidityPool][_underlyingToken] = _maxDepositAmount;
         emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool][_underlyingToken], msg.sender);
-    }
-
-    /**
-     * @inheritdoc IAdapterHarvestReward
-     */
-    function setRewardToken(address _rewardToken) public override onlyOperator {
-        require(_rewardToken.isContract(), "!isContract");
-        rewardToken = _rewardToken;
-    }
-
-    /**
-     * @notice Sets the Comptroller of Compound protocol
-     * @param _comptroller Compound's Comptroller contract address
-     */
-    function setComptroller(address _comptroller) public onlyOperator {
-        require(_comptroller.isContract(), "!isContract");
-        comptroller = _comptroller;
     }
 
     /**
@@ -212,14 +187,17 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
     /**
      * @inheritdoc IAdapterHarvestReward
      */
-    function getClaimRewardTokenCode(address payable _vault, address)
+    function getClaimRewardTokenCode(address payable _vault, address _liquidityPool)
         public
         view
         override
         returns (bytes[] memory _codes)
     {
         _codes = new bytes[](1);
-        _codes[0] = abi.encode(comptroller, abi.encodeWithSignature("claimComp(address)", _vault));
+        _codes[0] = abi.encode(
+            ICompound(_liquidityPool).comptroller(),
+            abi.encodeWithSignature("claimComp(address)", _vault)
+        );
     }
 
     /**
@@ -272,7 +250,7 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
                 )
             );
         } else {
-            _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", uint256(_depositAmount)));
+            _codes[2] = abi.encode(_liquidityPool, abi.encodeWithSignature("mint(uint256)", _depositAmount));
         }
     }
 
@@ -348,7 +326,7 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
         if (_unclaimedReward > 0) {
             b = b.add(
                 IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).rewardBalanceInUnderlyingTokens(
-                    rewardToken,
+                    getRewardToken(_liquidityPool),
                     _underlyingToken,
                     _unclaimedReward
                 )
@@ -387,8 +365,8 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
     /**
      * @inheritdoc IAdapter
      */
-    function getRewardToken(address) public view override returns (address) {
-        return rewardToken;
+    function getRewardToken(address _liquidityPool) public view override returns (address) {
+        return ICompound(ICompound(_liquidityPool).comptroller()).getCompAddress();
     }
 
     /**
@@ -396,10 +374,10 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
      */
     function getUnclaimedRewardTokenAmount(
         address payable _vault,
-        address,
+        address _liquidityPool,
         address
     ) public view override returns (uint256) {
-        return ICompound(comptroller).compAccrued(_vault);
+        return ICompound(ICompound(_liquidityPool).comptroller()).compAccrued(_vault);
     }
 
     /**

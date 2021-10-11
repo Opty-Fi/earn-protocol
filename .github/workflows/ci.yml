@@ -1,15 +1,9 @@
 name: Earn protocol Install, lint, test and deploy pipeline
 
 on:
-  pull_request:
-    branches:
-      - master
-      - dev
   push:
     branches:
       - master
-      - dev
-
 
 jobs:
   lint:
@@ -21,7 +15,7 @@ jobs:
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
-      MY_METAMASK_MNEMONIC: ${{ secrets.MY_METAMASK_MNEMONIC}}
+      MNEMONIC: ${{ secrets.MNEMONIC}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -55,7 +49,7 @@ jobs:
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
-      MY_METAMASK_MNEMONIC: ${{ secrets.MY_METAMASK_MNEMONIC}}
+      MNEMONIC: ${{ secrets.MNEMONIC}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -90,7 +84,7 @@ jobs:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       REPORT_GAS: true
-      MY_METAMASK_MNEMONIC: ${{ secrets.MY_METAMASK_MNEMONIC}}
+      MNEMONIC: ${{ secrets.MNEMONIC}}
       STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
 
     steps:

@@ -1,18 +1,21 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer } from "ethers";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import scenario from "./scenarios/vault-step-invest-strategy-definition-registry.json";
+import scenario from "./scenarios/invest-strategy-registry.json";
 import { deployContract, deploySmockContract, generateTokenHash, generateStrategyHash } from "../../helpers/helpers";
 import { smock } from "@defi-wonderland/smock";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   mismatchLength?: boolean;
 };
 
 describe(scenario.title, () => {
-  let vaultStepInvestStrategyDefinitionRegistryContract: Contract;
+  let investStrategyRegistryContract: Contract;
   let ownerAddress: string;
   let users: { [key: string]: Signer } = {};
   const usedStrategy = TypedStrategies.filter(strategy => strategy.strategyName === "DAI-deposit-COMPOUND-cDAI")[0]
@@ -39,19 +42,16 @@ describe(scenario.title, () => {
       ownerAddress = await owner.getAddress();
       const registryContract = await deploySmockContract(smock, ESSENTIAL_CONTRACTS_DATA.REGISTRY, []);
       registryContract.getOperator.returns(ownerAddress);
-      vaultStepInvestStrategyDefinitionRegistryContract = await deployContract(
+      investStrategyRegistryContract = await deployContract(
         hre,
-        ESSENTIAL_CONTRACTS_DATA.VAULT_STEP_INVEST_STRATEGY_DEFINITION_REGISTRY,
+        ESSENTIAL_CONTRACTS_DATA.INVEST_STRATEGY_REGISTRY,
         TESTING_DEPLOYMENT_ONCE,
         owner,
         [registryContract.address],
       );
 
       assert.isDefined(registryContract, "Registry contract not deployed");
-      assert.isDefined(
-        vaultStepInvestStrategyDefinitionRegistryContract,
-        "vaultStepInvestStrategyDefinitionRegistry contract not deployed",
-      );
+      assert.isDefined(investStrategyRegistryContract, "investStrategyRegistry contract not deployed");
     } catch (error) {
       console.log(error);
     }
@@ -66,15 +66,15 @@ describe(scenario.title, () => {
           case "setStrategy(bytes32,(address,address,bool)[])": {
             if (action.expect === "success") {
               await expect(
-                vaultStepInvestStrategyDefinitionRegistryContract
+                investStrategyRegistryContract
                   .connect(users[action.executer])
                   [action.action](usedTokenHash, convertedStrategies),
               )
-                .to.emit(vaultStepInvestStrategyDefinitionRegistryContract, "LogSetVaultInvestStrategy")
+                .to.emit(investStrategyRegistryContract, "LogSetVaultInvestStrategy")
                 .withArgs(usedTokenHash, usedStrategyHash, ownerAddress);
             } else {
               await expect(
-                vaultStepInvestStrategyDefinitionRegistryContract
+                investStrategyRegistryContract
                   .connect(users[action.executer])
                   [action.action](usedTokenHash, convertedStrategies),
               ).to.be.revertedWith(action.message);
@@ -85,15 +85,15 @@ describe(scenario.title, () => {
             const { mismatchLength }: ARGUMENTS = action.args;
             if (action.expect === "success") {
               await expect(
-                vaultStepInvestStrategyDefinitionRegistryContract
+                investStrategyRegistryContract
                   .connect(users[action.executer])
                   [action.action]([usedTokenHash], [convertedStrategies]),
               )
-                .to.emit(vaultStepInvestStrategyDefinitionRegistryContract, "LogSetVaultInvestStrategy")
+                .to.emit(investStrategyRegistryContract, "LogSetVaultInvestStrategy")
                 .withArgs(usedTokenHash, usedStrategyHash, ownerAddress);
             } else {
               await expect(
-                vaultStepInvestStrategyDefinitionRegistryContract
+                investStrategyRegistryContract
                   .connect(users[action.executer])
                   [action.action](
                     [usedTokenHash],
@@ -112,9 +112,7 @@ describe(scenario.title, () => {
         const action = story.getActions[i];
         switch (action.action) {
           case "getStrategy(bytes32)": {
-            const { _index, _strategySteps } = await vaultStepInvestStrategyDefinitionRegistryContract[action.action](
-              usedStrategyHash,
-            );
+            const { _index, _strategySteps } = await investStrategyRegistryContract[action.action](usedStrategyHash);
             expect(_index).to.be.equal(0);
             expect(_strategySteps[0][0]).to.be.equal(usedStrategy[0].contract);
             expect(_strategySteps[0][1]).to.be.equal(usedStrategy[0].outputToken);

@@ -72,7 +72,7 @@ task(SETUP, "Deploy infrastructure, adapter and vault contracts and setup all ne
     console.log("********************");
     console.log(`\t Setting strategies ...`);
     await hre.run("set-strategies", {
-      strategyregistry: essentialContracts["vaultStepInvestStrategyDefinitionRegistry"].address,
+      investstrategyregistry: essentialContracts["investStrategyRegistry"].address,
     });
 
     console.log("********************");

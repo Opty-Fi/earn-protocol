@@ -1,6 +1,9 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
+import { getAddress } from "ethers/lib/utils";
+import Compound from "@compound-finance/compound-js";
 import { CONTRACTS } from "../../../helpers/type";
 import {
   TOKENS,
@@ -22,9 +25,9 @@ import scenarios from "../scenarios/adapters.json";
 import testDeFiAdaptersScenario from "../scenarios/compound-temp-defi-adapter.json";
 import { deployContract, getDefaultFundAmountInDecimal } from "../../../helpers/helpers";
 import { to_10powNumber_BN } from "../../../helpers/utils";
-import { getAddress } from "ethers/lib/utils";
-import COMPTROLLER from "../../../helpers/data/comptroller.json";
-import Compound from "@compound-finance/compound-js";
+import { ERC20 } from "../../../typechain/ERC20";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   amount?: { [key: string]: string };
@@ -186,7 +189,7 @@ describe(`${CREAM_ADAPTER_NAME} Unit Test`, () => {
               const story = testDeFiAdaptersScenario.stories[i];
               const lpContract = await hre.ethers.getContractAt(Compound.util.getAbi("cErc20"), liquidityPool);
 
-              const ERC20Instance = await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
+              const ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", underlyingTokenAddress);
               const LpERC20Instance = await hre.ethers.getContractAt("ERC20", liquidityPool);
               const getLPERC20Code = await LpERC20Instance.provider.getCode(LpERC20Instance.address);
               const getERC20Code = await ERC20Instance.provider.getCode(ERC20Instance.address);
@@ -197,7 +200,7 @@ describe(`${CREAM_ADAPTER_NAME} Unit Test`, () => {
               }
               if (getLPERC20Code !== "0x" && getERC20Code !== "0x" && getLPCode !== "0x" && +poolValue > 0) {
                 const compTroller = await lpContract.comptroller();
-                const rewardTokenAddress = await adapter.getRewardToken(ADDRESS_ZERO);
+                const rewardTokenAddress = await adapter.getRewardToken(liquidityPool);
                 let RewardTokenERC20Instance: Contract;
                 if (!(rewardTokenAddress == ADDRESS_ZERO)) {
                   RewardTokenERC20Instance = await hre.ethers.getContractAt("ERC20", rewardTokenAddress);
@@ -428,7 +431,7 @@ describe(`${CREAM_ADAPTER_NAME} Unit Test`, () => {
                     case "getUnclaimedRewardTokenAmount(address,address,address)": {
                       const unclaimedRewardTokenAmount = await adapter[action.action](
                         testDeFiAdapter.address,
-                        ADDRESS_ZERO,
+                        liquidityPool,
                         ADDRESS_ZERO,
                       );
                       const expectedUnclaimedRewardTokenAmount = await executeComptrollerFunc(
@@ -546,9 +549,7 @@ describe(`${CREAM_ADAPTER_NAME} Unit Test`, () => {
                     }
                     case "balanceOf(address)": {
                       const expectedValue = action.expectedValue;
-                      const underlyingBalanceAfter: BigNumber = await ERC20Instance[action.action](
-                        testDeFiAdapter.address,
-                      );
+                      const underlyingBalanceAfter: BigNumber = await ERC20Instance.balanceOf(testDeFiAdapter.address);
                       if (lpPauseStatus || (isTestingHarvest && +availableToHarvestToken === 0)) {
                         expect(+underlyingBalanceAfter).to.be.gte(+underlyingBalanceBefore);
                       } else {
@@ -678,6 +679,17 @@ describe(`${CREAM_ADAPTER_NAME} Unit Test`, () => {
 
                       break;
                     }
+                    case "getRewardToken(address)": {
+                      expect(getAddress(await adapter[action.action](liquidityPool))).to.be.eq(
+                        await executeComptrollerFunc(
+                          hre,
+                          compTroller,
+                          "function getCompAddress() returns (address)",
+                          [],
+                        ),
+                      );
+                      break;
+                    }
                   }
                 }
                 for (const action of story.cleanActions) {
@@ -722,41 +734,6 @@ describe(`${CREAM_ADAPTER_NAME} Unit Test`, () => {
                 const _canStake = await adapter[action.action](ADDRESS_ZERO);
                 expect(_canStake).to.be.eq(false);
                 break;
-              }
-              case "setRewardToken(address)": {
-                if (action.expect == "success") {
-                  await adapter[action.action](TypedTokens.COMP);
-                } else {
-                  //  TODO: Add test scenario if operator is trying to set ZERO/EOA ADDRESS as reward token address
-                  await expect(
-                    adapter.connect(users[action.executer])[action.action](TypedTokens.COMP),
-                  ).to.be.revertedWith(action.message);
-                }
-                break;
-              }
-              case "setComptroller(address)": {
-                if (action.expect == "success") {
-                  await adapter[action.action](COMPTROLLER.CreamAdapter);
-                } else {
-                  //  TODO: Add test scenario if operater is trying to set ZERO ADDRESS/EOA as comptroller's contract address
-                  await expect(
-                    adapter.connect(users[action.executer])[action.action](COMPTROLLER.CreamAdapter),
-                  ).to.be.revertedWith(action.message);
-                }
-                break;
-              }
-            }
-          }
-          for (const action of story.getActions) {
-            switch (action.action) {
-              case "getRewardToken(address)": {
-                const _rewardTokenAddress = await adapter[action.action](ADDRESS_ZERO);
-                expect(getAddress(_rewardTokenAddress)).to.be.eq(getAddress(TypedTokens.COMP));
-                break;
-              }
-              case "comptroller()": {
-                const _comptrollerAddress = await adapter[action.action]();
-                expect(getAddress(_comptrollerAddress)).to.be.eq(getAddress(COMPTROLLER.CreamAdapter));
               }
             }
           }

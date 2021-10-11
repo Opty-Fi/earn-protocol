@@ -38,4 +38,8 @@ interface ICream {
     function compAccrued(address holder) external view returns (uint256);
 
     function getCash() external view returns (uint256);
+
+    function comptroller() external view returns (address);
+
+    function getCompAddress() external view returns (address);
 }

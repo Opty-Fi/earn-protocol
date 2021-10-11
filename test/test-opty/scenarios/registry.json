@@ -249,12 +249,12 @@
       "cleanActions": []
     },
     {
-      "description": "Operator should be able to set vaultStepInvestStrategyDefinitionRegistry Contract address",
+      "description": "Operator should be able to set investStrategyRegistry Contract address",
       "setActions": [
         {
-          "action": "setVaultStepInvestStrategyDefinitionRegistry(address)",
+          "action": "setInvestStrategyRegistry(address)",
           "args": {
-            "contractName": "vaultStepInvestStrategyDefinitionRegistry"
+            "contractName": "investStrategyRegistry"
           },
           "executor": "operator",
           "expect": "success",
@@ -263,10 +263,10 @@
       ],
       "getActions": [
         {
-          "action": "getVaultStepInvestStrategyDefinitionRegistry()",
+          "action": "getInvestStrategyRegistry()",
           "args": {},
           "expectedValue": {
-            "contractName": "vaultStepInvestStrategyDefinitionRegistry"
+            "contractName": "investStrategyRegistry"
           },
           "expectedMultiValues": {}
         }
@@ -274,12 +274,12 @@
       "cleanActions": []
     },
     {
-      "description": "Non-Operator shouldn't be able to set vaultStepInvestStrategyDefinitionRegistry Contract address",
+      "description": "Non-Operator shouldn't be able to set investStrategyRegistry Contract address",
       "setActions": [
         {
-          "action": "setVaultStepInvestStrategyDefinitionRegistry(address)",
+          "action": "setInvestStrategyRegistry(address)",
           "args": {
-            "contractName": "vaultStepInvestStrategyDefinitionRegistry"
+            "contractName": "investStrategyRegistry"
           },
           "executor": "user0",
           "expect": "fail",
@@ -2463,9 +2463,9 @@
           "message": ""
         },
         {
-          "action": "setVaultStepInvestStrategyDefinitionRegistry(address)",
+          "action": "setInvestStrategyRegistry(address)",
           "args": {
-            "contractName": "vaultStepInvestStrategyDefinitionRegistry"
+            "contractName": "investStrategyRegistry"
           },
           "executor": "operator",
           "expect": "fail",
@@ -2614,6 +2614,258 @@
           "expectedMultiValues": {}
         }
       ],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator should be able to set withdrawal fee range",
+      "setActions": [
+        {
+          "action": "setWithdrawalFeeRange((uint256,uint256))",
+          "args": {
+            "range": ["0", "10000"]
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "withdrawalFeeRange()",
+          "args": {},
+          "expectedValue": ["0", "10000"],
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator shouldn't be able to set withdrawal fee range with wrong range",
+      "setActions": [
+        {
+          "action": "setWithdrawalFeeRange((uint256,uint256))",
+          "args": {
+            "range": ["10000", "0"]
+          },
+          "executor": "financeOperator",
+          "expect": "fail",
+          "message": "!BasisRange"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Finance Operator shouldn't be able to set withdrawal fee range",
+      "setActions": [
+        {
+          "action": "setWithdrawalFeeRange((uint256,uint256))",
+          "args": {
+            "range": ["0", "100000"]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator should be able to set withdrawal fee",
+      "setActions": [
+        {
+          "action": "setWithdrawalFee(address,uint256)",
+          "args": {
+            "contractName": "vault",
+            "fee": "10"
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "getWithdrawFee(address)",
+          "args": {
+            "contractName": "vault"
+          },
+          "expectedValue": "10",
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator shouldn't be able to set withdrawal fee over withdrawal fee range",
+      "setActions": [
+        {
+          "action": "setWithdrawalFeeRange((uint256,uint256))",
+          "args": {
+            "range": ["0", "10000"]
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setWithdrawalFee(address,uint256)",
+          "args": {
+            "contractName": "vault",
+            "fee": "10001"
+          },
+          "executor": "financeOperator",
+          "expect": "fail",
+          "message": "!BasisRange"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Finance Operator shouldn't be able to set withdrawl Fee",
+      "setActions": [
+        {
+          "action": "setWithdrawalFee(address,uint256)",
+          "args": {
+            "contractName": "vault",
+            "fee": "10"
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [
+        {
+          "action": "getWithdrawFee(address)",
+          "args": {
+            "contractName": "vault"
+          },
+          "expectedValue": "10",
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator should be able to set treasury shares",
+      "setActions": [
+        {
+          "action": "setWithdrawalFee(address,uint256)",
+          "args": {
+            "contractName": "vault",
+            "fee": "10"
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTreasuryShares(address,(address,uint256)[])",
+          "args": {
+            "contractName": "vault",
+            "treasuryShare": [
+              ["0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", 5],
+              ["0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", 5]
+            ]
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "getTreasuryShares(address)",
+          "args": {
+            "contractName": "vault"
+          },
+          "expectedValue": [
+            ["0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", 5],
+            ["0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", 5]
+          ],
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator shouldn't be able to set treasury shares over total withdrawal fee",
+      "setActions": [
+        {
+          "action": "setWithdrawalFee(address,uint256)",
+          "args": {
+            "contractName": "vault",
+            "fee": "10"
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTreasuryShares(address,(address,uint256)[])",
+          "args": {
+            "contractName": "vault",
+            "treasuryShare": [
+              ["0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", 10],
+              ["0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", 5]
+            ]
+          },
+          "executor": "financeOperator",
+          "expect": "fail",
+          "message": "FeeShares!=WithdrawalFee"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance Operator shouldn't be able to set treasury shares with empty value",
+      "setActions": [
+        {
+          "action": "setTreasuryShares(address,(address,uint256)[])",
+          "args": {
+            "contractName": "vault",
+            "treasuryShare": []
+          },
+          "executor": "financeOperator",
+          "expect": "fail",
+          "message": "length!>0"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Finance Operator shouldn't be able to set treasury shares",
+      "setActions": [
+        {
+          "action": "setWithdrawalFee(address,uint256)",
+          "args": {
+            "contractName": "vault",
+            "fee": "10"
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "action": "setTreasuryShares(address,(address,uint256)[])",
+          "args": {
+            "contractName": "vault",
+            "treasuryShare": [
+              ["0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", 5],
+              ["0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", 5]
+            ]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
       "cleanActions": []
     },
     {

@@ -106,8 +106,7 @@ contract FulcrumAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (bytes[] memory) {
-        uint256 _redeemAmount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
-        return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmount);
+        return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, uint256(-1));
     }
 
     /**
@@ -168,6 +167,7 @@ contract FulcrumAdapter is IAdapter, IAdapterInvestLimit, Modifiers {
     ) public view override returns (uint256) {
         uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
         uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
+        require(_balanceInToken > 0, "!balance");
         // can have unintentional rounding errors
         return (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
     }
