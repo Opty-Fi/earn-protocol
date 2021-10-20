@@ -227,50 +227,45 @@ contract HarvestCodeProvider is IHarvestCodeProvider, Modifiers {
             );
         if (_amounts0[_amounts0.length - 1] > 0 && _amounts1[_amounts1.length - 1] > 0) {
             uint8 maxLength = 4;
-            if (_token0 == _rewardToken) {
+            if (_token0 == _rewardToken || _token1 == _rewardToken) {
                 maxLength--;
             }
-            if (_token1 == _rewardToken) {
-                maxLength--;
+            _codes = new bytes[](maxLength);
+            _codes[0] = abi.encode(
+                _rewardToken,
+                abi.encodeWithSignature("approve(address,uint256)", _router, uint256(0))
+            );
+            _codes[1] = abi.encode(
+                _rewardToken,
+                abi.encodeWithSignature("approve(address,uint256)", _router, _rewardTokenAmount)
+            );
+            uint8 count = 2;
+            if (_token0 != _rewardToken) {
+                _codes[count] = abi.encode(
+                    _router,
+                    abi.encodeWithSignature(
+                        "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
+                        _rewardTokenAmount.div(uint256(2)),
+                        uint256(0),
+                        _getPath(_rewardToken, _token0),
+                        _vault,
+                        uint256(-1)
+                    )
+                );
+                count++;
             }
-            if (maxLength > 2) {
-                _codes = new bytes[](maxLength);
-                _codes[0] = abi.encode(
-                    _rewardToken,
-                    abi.encodeWithSignature("approve(address,uint256)", _router, uint256(0))
+            if (_token1 != _rewardToken) {
+                _codes[count] = abi.encode(
+                    _router,
+                    abi.encodeWithSignature(
+                        "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
+                        _rewardTokenAmount.sub(_rewardTokenAmount.div(uint256(2))),
+                        uint256(0),
+                        _getPath(_rewardToken, _token1),
+                        _vault,
+                        uint256(-1)
+                    )
                 );
-                _codes[1] = abi.encode(
-                    _rewardToken,
-                    abi.encodeWithSignature("approve(address,uint256)", _router, _rewardTokenAmount)
-                );
-                uint8 count = 2;
-                if (_token0 != _rewardToken) {
-                    _codes[count] = abi.encode(
-                        _router,
-                        abi.encodeWithSignature(
-                            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
-                            _rewardTokenAmount.div(uint256(2)),
-                            uint256(0),
-                            _getPath(_rewardToken, _token0),
-                            _vault,
-                            uint256(-1)
-                        )
-                    );
-                    count++;
-                }
-                if (_token1 != _rewardToken) {
-                    _codes[count] = abi.encode(
-                        _router,
-                        abi.encodeWithSignature(
-                            "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
-                            _rewardTokenAmount.sub(_rewardTokenAmount.div(uint256(2))),
-                            uint256(0),
-                            _getPath(_rewardToken, _token1),
-                            _vault,
-                            uint256(-1)
-                        )
-                    );
-                }
             }
         }
     }
