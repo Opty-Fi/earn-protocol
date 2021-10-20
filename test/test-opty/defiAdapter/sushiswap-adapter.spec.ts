@@ -142,8 +142,7 @@ describe(`${SUSHISWAP_ADAPTER_NAME} Unit test`, () => {
       }
     });
   }
-  //sushi-susd-$based,sushi-cdai-dai,sushi-weth-meme,sushi-cro-weth,sushi-wbtc-renbtc
-  //sushi-wbtc-tbtc,sushi-core-weth
+
   describe(`${testDeFiAdapterScenario.title} - ${SUSHISWAP_ADAPTER_NAME}`, () => {
     const adapterNames = Object.keys(TypedDefiPools);
     let testDeFiAdapter: Contract;
