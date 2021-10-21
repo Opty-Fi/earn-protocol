@@ -211,7 +211,7 @@
       "cleanActions": []
     },
     {
-      "description": "[Initialize] - Non-Governance can execute initialize function",
+      "description": "[Initialize] - Non-Governance can't execute initialize function",
       "setActions": [
         {
           "contract": "optyStakingRateBalancer",
