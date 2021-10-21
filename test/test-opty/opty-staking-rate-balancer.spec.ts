@@ -6,18 +6,20 @@ import { TESTING_DEPLOYMENT_ONCE, TESTING_CONTRACTS, ESSENTIAL_CONTRACTS } from 
 import { executeFunc } from "../../helpers/helpers";
 import { deployOptyStakingRateBalancer, deployRegistry } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/opty-staking-rate-balancer.json";
-import { Signer } from "ethers";
+import { Signer, BigNumber } from "ethers";
 
 type ARGUMENTS = {
   addressName?: string;
   multiplier?: number;
   stakingVaultOPTYAllocation?: number;
+  amount?: number;
 };
 
 describe(scenario.title, () => {
   let contracts: CONTRACTS = {};
   let signers: { [key: string]: Signer };
-
+  let stakingVaultToStakedOPTYBefore: BigNumber = BigNumber.from("0");
+  let stakingVaultToUserStakedOPTYBefore: BigNumber = BigNumber.from("0");
   before(async () => {
     try {
       const [owner, user1] = await hre.ethers.getSigners();
@@ -37,7 +39,14 @@ describe(scenario.title, () => {
         owner,
         [registry.address],
       );
-      contracts = { registry, optyStakingRateBalancer, dummyOptyStakingVaultEmptyContract };
+      const dummyContract = await deployContract(
+        hre,
+        TESTING_CONTRACTS.TEST_OPTY_STAKING_RATE_BALANCER_NEW_IMPLEMENTATION,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [registry.address],
+      );
+      contracts = { registry, optyStakingRateBalancer, dummyOptyStakingVaultEmptyContract, dummyContract };
     } catch (error) {
       console.log(error);
     }
@@ -47,24 +56,93 @@ describe(scenario.title, () => {
     const story = scenario.stories[i];
     it(`${story.description}`, async () => {
       for (let i = 0; i < story.setActions.length; i++) {
-        const action: any = story.setActions[i];
+        const action = story.setActions[i];
+        if (
+          action.action === "updateStakedOPTY(address,uint256)" ||
+          action.action === "updateUnstakedOPTY(address,uint256)"
+        ) {
+          stakingVaultToStakedOPTYBefore = await contracts["optyStakingRateBalancer"].stakingVaultToStakedOPTY(
+            contracts[action.contract].address,
+          );
+          stakingVaultToUserStakedOPTYBefore = await contracts["optyStakingRateBalancer"].stakingVaultToUserStakedOPTY(
+            contracts[action.contract].address,
+            await signers["owner"].getAddress(),
+          );
+        }
+
         await setAndCleanActions(contracts, action, signers);
       }
       for (let i = 0; i < story.getActions.length; i++) {
-        const action: any = story.getActions[i];
+        const action = story.getActions[i];
         switch (action.action) {
           case "stakingVaultMultipliers(address)": {
             const { addressName }: ARGUMENTS = action.args;
             if (addressName) {
-              expect(+(await contracts[action.contract][action.action](contracts[addressName].address))).to.be.equal(
-                +action.expectedValue,
+              expect(await contracts[action.contract][action.action](contracts[addressName].address)).to.be.equal(
+                action.expectedValue,
               );
             }
             assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
             break;
           }
           case "stakingVaultOPTYAllocation()": {
-            expect(+(await contracts[action.contract][action.action]())).to.be.equal(+action.expectedValue);
+            expect(await contracts[action.contract][action.action]()).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "stakingVaultToStakedOPTY(address)": {
+            const { addressName }: ARGUMENTS = action.args;
+            if (addressName) {
+              if (action.expectedValue === ">") {
+                expect(await contracts[action.contract][action.action](contracts[addressName].address)).to.be.gt(
+                  stakingVaultToStakedOPTYBefore,
+                );
+              } else {
+                expect(await contracts[action.contract][action.action](contracts[addressName].address)).to.be.lt(
+                  stakingVaultToStakedOPTYBefore,
+                );
+              }
+            }
+            assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "stakingVaultToUserStakedOPTY(address,address)": {
+            const { addressName }: ARGUMENTS = action.args;
+            if (addressName) {
+              if (action.expectedValue === ">") {
+                expect(
+                  await contracts[action.contract][action.action](
+                    contracts[addressName].address,
+                    await signers["owner"].getAddress(),
+                  ),
+                ).to.be.gt(stakingVaultToUserStakedOPTYBefore);
+              } else {
+                expect(
+                  await contracts[action.contract][action.action](
+                    contracts[addressName].address,
+                    await signers["owner"].getAddress(),
+                  ),
+                ).to.be.lt(stakingVaultToUserStakedOPTYBefore);
+              }
+            }
+            assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
+            break;
+          }
+          case "checkInitialize": {
+            expect(await contracts[action.contract].stakingVault1DLockingTerm()).to.be.equal(
+              contracts["dummyOptyStakingVaultEmptyContract"].address,
+            );
+            expect(await contracts[action.contract].stakingVault30DLockingTerm()).to.be.equal(
+              contracts["dummyOptyStakingVaultEmptyContract"].address,
+            );
+            expect(await contracts[action.contract].stakingVault60DLockingTerm()).to.be.equal(
+              contracts["dummyOptyStakingVaultEmptyContract"].address,
+            );
+            expect(await contracts[action.contract].stakingVault180DLockingTerm()).to.be.equal(
+              contracts["dummyOptyStakingVaultEmptyContract"].address,
+            );
+            expect(
+              await contracts[action.contract].stakingVaults(contracts["dummyOptyStakingVaultEmptyContract"].address),
+            ).to.be.equal(true);
             break;
           }
           case "isNewContract()": {
@@ -87,7 +165,65 @@ describe(scenario.title, () => {
 
 async function setAndCleanActions(contracts: CONTRACTS, action: any, signers: { [key: string]: Signer }) {
   switch (action.action) {
+    case "initialize(address,address,address,address)": {
+      await contracts["optyStakingRateBalancer"]
+        .connect(signers[action.executor])
+        [action.action](
+          contracts["dummyOptyStakingVaultEmptyContract"].address,
+          contracts["dummyOptyStakingVaultEmptyContract"].address,
+          contracts["dummyOptyStakingVaultEmptyContract"].address,
+          contracts["dummyOptyStakingVaultEmptyContract"].address,
+        );
+      break;
+    }
+    case "updateOptyRates(address)": {
+      if (action.expect === "success") {
+        await contracts[action.contract][action.action](contracts["optyStakingRateBalancer"].address);
+        const stakingVaultLockingTerm: BigNumber = await contracts["optyStakingRateBalancer"].stakingVaultToStakedOPTY(
+          contracts["dummyOptyStakingVaultEmptyContract"].address,
+        );
+        const weightedLockingTermStakedOPTY: BigNumber = (
+          await contracts["optyStakingRateBalancer"].stakingVaultMultipliers(
+            contracts["dummyOptyStakingVaultEmptyContract"].address,
+          )
+        ).mul(stakingVaultLockingTerm);
+        const totalWeight = weightedLockingTermStakedOPTY.mul(4);
+        const stakingVaultOPTYAllocation: BigNumber = await contracts[
+          "optyStakingRateBalancer"
+        ].stakingVaultOPTYAllocation();
+        const expectedRateLock = stakingVaultOPTYAllocation.mul(weightedLockingTermStakedOPTY).div(totalWeight);
+
+        expect(await contracts[action.contract].rateLock()).to.be.equal(expectedRateLock);
+      } else {
+        await expect(
+          contracts[action.contract][action.action](contracts["optyStakingRateBalancer"].address),
+        ).to.be.revertedWith(action.message);
+      }
+
+      break;
+    }
+    case "updateStakedOPTY(address,uint256)":
+    case "updateUnstakedOPTY(address,uint256)": {
+      const { amount }: ARGUMENTS = action.args;
+      if (amount) {
+        if (action.expect === "success") {
+          await contracts[action.contract][action.action](contracts["optyStakingRateBalancer"].address, amount);
+        } else {
+          await expect(
+            contracts[action.contract][action.action](contracts["optyStakingRateBalancer"].address, amount),
+          ).to.be.revertedWith(action.message);
+        }
+      }
+      assert.isDefined(amount, `args is wrong in ${action.action} testcase`);
+      break;
+    }
     case "initData()": {
+      contracts["optyStakingRateBalancer"] = await deployOptyStakingRateBalancer(
+        hre,
+        signers["owner"],
+        TESTING_DEPLOYMENT_ONCE,
+        contracts["registry"].address,
+      );
       await initDefaultData(contracts, OPTY_STAKING_RATE_BALANCER_DEFAULT_DATA, signers["owner"]);
       break;
     }
