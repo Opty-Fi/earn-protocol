@@ -1,12 +1,13 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
-import { deployContract } from "../../helpers/helpers";
+import { deployContract, deploySmockContract } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE, TESTING_CONTRACTS, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
 import { executeFunc } from "../../helpers/helpers";
-import { deployOptyStakingRateBalancer, deployRegistry } from "../../helpers/contracts-deployments";
+import { deployOptyStakingRateBalancer } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/opty-staking-rate-balancer.json";
 import { Signer, BigNumber } from "ethers";
+import { smock, MockContract } from "@defi-wonderland/smock";
 
 type ARGUMENTS = {
   addressName?: string;
@@ -17,6 +18,7 @@ type ARGUMENTS = {
 
 describe(scenario.title, () => {
   let contracts: CONTRACTS = {};
+  let smockRegistry: MockContract;
   let signers: { [key: string]: Signer };
   let stakingVaultToStakedOPTYBefore: BigNumber = BigNumber.from("0");
   let stakingVaultToUserStakedOPTYBefore: BigNumber = BigNumber.from("0");
@@ -25,28 +27,32 @@ describe(scenario.title, () => {
       const [owner, user1] = await hre.ethers.getSigners();
       const financeOperator = owner;
       signers = { owner, financeOperator, user1 };
-      const registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
+      const ownerAddress = await owner.getAddress();
+      smockRegistry = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.REGISTRY, []);
+      smockRegistry.getGovernance.returns(ownerAddress);
+      smockRegistry.getOperator.returns(ownerAddress);
+      smockRegistry.getFinanceOperator.returns(await financeOperator.getAddress());
       const optyStakingRateBalancer = await deployOptyStakingRateBalancer(
         hre,
         owner,
         TESTING_DEPLOYMENT_ONCE,
-        registry.address,
+        smockRegistry.address,
       );
       const dummyOptyStakingVaultEmptyContract = await deployContract(
         hre,
         TESTING_CONTRACTS.TEST_OPTY_STAKING_RATE_BALANCER_NEW_IMPLEMENTATION,
         TESTING_DEPLOYMENT_ONCE,
         owner,
-        [registry.address],
+        [smockRegistry.address],
       );
       const dummyContract = await deployContract(
         hre,
         TESTING_CONTRACTS.TEST_OPTY_STAKING_RATE_BALANCER_NEW_IMPLEMENTATION,
         TESTING_DEPLOYMENT_ONCE,
         owner,
-        [registry.address],
+        [smockRegistry.address],
       );
-      contracts = { registry, optyStakingRateBalancer, dummyOptyStakingVaultEmptyContract, dummyContract };
+      contracts = { optyStakingRateBalancer, dummyOptyStakingVaultEmptyContract, dummyContract };
     } catch (error) {
       console.log(error);
     }
@@ -70,7 +76,7 @@ describe(scenario.title, () => {
           );
         }
 
-        await setAndCleanActions(contracts, action, signers);
+        await setAndCleanActions(smockRegistry, contracts, action, signers);
       }
       for (let i = 0; i < story.getActions.length; i++) {
         const action = story.getActions[i];
@@ -157,13 +163,18 @@ describe(scenario.title, () => {
       }
       for (let i = 0; i < story.cleanActions.length; i++) {
         const action: any = story.cleanActions[i];
-        await setAndCleanActions(contracts, action, signers);
+        await setAndCleanActions(smockRegistry, contracts, action, signers);
       }
     });
   }
 });
 
-async function setAndCleanActions(contracts: CONTRACTS, action: any, signers: { [key: string]: Signer }) {
+async function setAndCleanActions(
+  smockRegistry: MockContract,
+  contracts: CONTRACTS,
+  action: any,
+  signers: { [key: string]: Signer },
+) {
   switch (action.action) {
     case "initialize(address,address,address,address)": {
       await contracts["optyStakingRateBalancer"]
@@ -222,7 +233,7 @@ async function setAndCleanActions(contracts: CONTRACTS, action: any, signers: { 
         hre,
         signers["owner"],
         TESTING_DEPLOYMENT_ONCE,
-        contracts["registry"].address,
+        smockRegistry.address,
       );
       await initDefaultData(contracts, OPTY_STAKING_RATE_BALANCER_DEFAULT_DATA, signers["owner"]);
       break;
@@ -231,13 +242,7 @@ async function setAndCleanActions(contracts: CONTRACTS, action: any, signers: { 
       const { addressName }: ARGUMENTS = action.args;
       if (addressName) {
         const newFinanceOperatorAddress = await signers[addressName].getAddress();
-        if (action.expect === "success") {
-          await contracts[action.contract].connect(signers[action.executor])[action.action](newFinanceOperatorAddress);
-        } else {
-          await expect(
-            contracts[action.contract].connect(signers[action.executor])[action.action](newFinanceOperatorAddress),
-          ).to.be.revertedWith(action.message);
-        }
+        smockRegistry.getFinanceOperator.returns(newFinanceOperatorAddress);
       }
       assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
       break;
@@ -285,7 +290,7 @@ async function setAndCleanActions(contracts: CONTRACTS, action: any, signers: { 
         TESTING_CONTRACTS.TEST_OPTY_STAKING_RATE_BALANCER_NEW_IMPLEMENTATION,
         TESTING_DEPLOYMENT_ONCE,
         signers[action.executor],
-        [contracts["registry"].address],
+        [smockRegistry.address],
       );
       await executeFunc(contractProxy, signers[action.executor], "setPendingImplementation(address)", [
         newContract.address,
