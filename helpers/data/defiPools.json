@@ -1753,12 +1753,6 @@
       "tokens": ["0x611CDe65deA90918c0078ac0400A72B0D25B9bb1"],
       "pid": "13"
     },
-    "sushi-susd-$based": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xaAD22f5543FCDaA694B68f94Be177B561836AE57"],
-      "pid": "14"
-    },
     "sushi-srm-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -1789,12 +1783,6 @@
       "tokens": ["0x36e2FCCCc59e5747Ff63a03ea2e5C0c2C14911e7"],
       "pid": "19"
     },
-    "sushi-cdai-dai": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x0Cfe7968e7c34A51217a7C9b9dc1690F416E027e"],
-      "pid": "20"
-    },
     "sushi-wbtc-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -1806,12 +1794,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0xf169CeA51EB51774cF107c88309717ddA20be167"],
       "pid": "22"
-    },
-    "sushi-weth-meme": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x17b3C19Bd640a59E832AB73eCcF716CB47419846"],
-      "pid": "23"
     },
     "sushi-wnxm-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -1831,29 +1813,11 @@
       "tokens": ["0x2024324a99231509a3715172d4F4f4E751b38d4d"],
       "pid": "26"
     },
-    "sushi-cro-weth": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x0be88ac4b5C81700acF3a606a52a31C261a24A35"],
-      "pid": "27"
-    },
-    "sushi-wbtc-renbtc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x518d6CE2D7A689A591Bf46433443C31615b206C5"],
-      "pid": "28"
-    },
     "sushi-hegic-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x6463Bd6026A2E7bFab5851b62969A92f7cca0eB6"],
       "pid": "31"
-    },
-    "sushi-wbtc-tbtc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x2Dbc7dD86C6cd87b525BD54Ea73EBeeBbc307F68"],
-      "pid": "32"
     },
     "sushi-core-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -1927,12 +1891,6 @@
       "tokens": ["0x69b39B89f9274a16e8A19B78E5eB47a4d91dAc9E"],
       "pid": "46"
     },
-    "sushi-weth-renbtc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x0289B9CD5859476Ce325aCa04309D36adDCEbDAA"],
-      "pid": "47"
-    },
     "sushi-dough-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -1980,12 +1938,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x033ecD066376aFec5E6383BC9F1F15bE4C62dc89"],
       "pid": "55"
-    },
-    "sushi-ousd-usdt": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xe4455FdEc181561e9Ffe909Dde46AAEaeDC55283"],
-      "pid": "56"
     },
     "sushi-weth-surf": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2071,12 +2023,6 @@
       "tokens": ["0xb12aa722a3A4566645F079B6F10c89A3205b6c2c"],
       "pid": "72"
     },
-    "sushi-wbtc-badger": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x110492b31c59716AC47337E616804E3E3AdC0b4a"],
-      "pid": "73"
-    },
     "sushi-zlot-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -2131,18 +2077,6 @@
       "tokens": ["0xE5f06db4F3473E7E35490F1F98017728496fe81E"],
       "pid": "82"
     },
-    "sushi-usdc-dsd": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x26d8151e631608570F3c28bec769C3AfEE0d73a3"],
-      "pid": "83"
-    },
-    "sushi-ntrump-dai": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xaB3F8E0214D862Bf7965d3CeC7431d7C1A85cb34"],
-      "pid": "84"
-    },
     "sushi-ust-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -2179,23 +2113,11 @@
       "tokens": ["0xD8B8B575c943f3d63638c9563B464D204ED8B710"],
       "pid": "90"
     },
-    "sushi-ddx-usdc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xc2B0F2A7F736d3b908BdDE8608177c8Fc28C1690"],
-      "pid": "91"
-    },
     "sushi-mph-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0xB2C29e311916a346304f83AA44527092D5bd4f0F"],
       "pid": "92"
-    },
-    "sushi-usdt-front": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x98c2f9D752e044DC2e1F1743bF0b76A7096eCeb2"],
-      "pid": "93"
     },
     "sushi-weth-uop": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2239,12 +2161,6 @@
       "tokens": ["0x66Ae32178640813F3c32a9929520BFE4Fef5D167"],
       "pid": "101"
     },
-    "sushi-wbtc-digg": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x9a13867048e01c663ce8Ce2fE0cDAE69Ff9F35E3"],
-      "pid": "103"
-    },
     "sushi-nftx-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -2262,18 +2178,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x8Cd7DADc8E11c8706763E0DE7332f5Ea91E04E35"],
       "pid": "106"
-    },
-    "sushi-hbtc-cream": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x51F5953659e7d63CF0EF60B8674eF819c225169e"],
-      "pid": "107"
-    },
-    "sushi-mars-usdt": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x54bcf4948e32A8706C286416e3ced37284F17fc9"],
-      "pid": "108"
     },
     "sushi-ldo-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2376,12 +2280,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x46ACb1187a6d83e26c0bB46A57Ffeaf23Ad7851E"],
       "pid": "128"
-    },
-    "sushi-alpha-ibethv2": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xf79a07cd3488BBaFB86dF1bAd09a6168D935c017"],
-      "pid": "129"
     },
     "sushi-rendoge-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2515,12 +2413,6 @@
       "tokens": ["0x3cf1Cf47Bc87C23cD9410549BD8a75E82C1c73cF"],
       "pid": "151"
     },
-    "sushi-deri-usdt": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xA3DfbF2933FF3d96177bde4928D0F5840eE55600"],
-      "pid": "152"
-    },
     "sushi-premia-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -2544,12 +2436,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x8486c538DcBD6A707c5b3f730B6413286FE8c854"],
       "pid": "156"
-    },
-    "sushi-wscrt-weth": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x9c86BC3C72Ab97c2234CBA8c6c7069009465AE86"],
-      "pid": "157"
     },
     "sushi-usdp-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2599,23 +2485,11 @@
       "tokens": ["0x0a54d4b378C8dBfC7bC93BE50C85DebAFdb87439"],
       "pid": "166"
     },
-    "sushi-yla-usdc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x87B6f3A2DC6E541A9ce40E58f517953782Ae614E"],
-      "pid": "167"
-    },
     "sushi-punk-basic-nftx": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x90825ADd1AD30d7DCeFEa12c6704A192be6eE94E"],
       "pid": "168"
-    },
-    "sushi-mask-usdc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x31fa985bB0C282a814E7f3f0Dce88B2A44197F60"],
-      "pid": "169"
     },
     "sushi-weth-rook": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2641,29 +2515,11 @@
       "tokens": ["0x328dFd0139e26cB0FEF7B0742B49b0fe4325F821"],
       "pid": "173"
     },
-    "sushi-stfiro-steth": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xB5c40E038c997c2946B24dC179F7CdcD279d8847"],
-      "pid": "174"
-    },
     "sushi-ocean-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0xeE35E548C7457FcDd51aE95eD09108be660Ea374"],
       "pid": "175"
-    },
-    "sushi-woo-usdc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xf5ca27927Ffb16BD8C870Dcb49750146CCe8217c"],
-      "pid": "176"
-    },
-    "sushi-pont-pwing": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x91A48c69Ec3f3cE855FE5054F82D2bef8Fd66C43"],
-      "pid": "177"
     },
     "sushi-dnt-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2677,41 +2533,11 @@
       "tokens": ["0x9E48FaDf799E0513d2EF4631478ea186741fA617"],
       "pid": "179"
     },
-    "sushi-wbtc-poly": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x7835cB043e8d53a5b361D489956d6c30808349da"],
-      "pid": "180"
-    },
-    "sushi-egt-weth": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xc7FF546c6CbC87Ad9f6F557db5A0df5c742cA440"],
-      "pid": "181"
-    },
-    "sushi-stzen-steth": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x033f4A33823595A6dD9dF0672Fd94DE32C65c415"],
-      "pid": "182"
-    },
     "sushi-must-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0xA872D244B8948DFD6Cb7Bd19f79E7C1bfb7DB4a0"],
       "pid": "183"
-    },
-    "sushi-mark-weth": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x750d711277Fd27D1EC5256F13f5110E097713a95"],
-      "pid": "184"
-    },
-    "sushi-ohm-dai": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x34d7d7Aaf50AD4944B70B320aCB24C95fa2def7c"],
-      "pid": "185"
     },
     "sushi-pool-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2748,18 +2574,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x34D25a4749867eF8b62A0CD1e2d7B4F7aF167E01"],
       "pid": "233"
-    },
-    "sushi-btc2x-fli-wbtc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x164FE0239d703379Bddde3c80e4d4800A1cd452B"],
-      "pid": "234"
-    },
-    "sushi-wbtc-ibbtc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x18d98D452072Ac2EB7b74ce3DB723374360539f1"],
-      "pid": "235"
     },
     "sushi-zig-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2899,23 +2713,11 @@
       "tokens": ["0x0589e281D35ee1Acf6D4fd32f1fbA60EFfb5281B"],
       "pid": "271"
     },
-    "sushi-usdc-sak3": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xD45Afa3649e57a961C001b935deD1c79D81A9d23"],
-      "pid": "272"
-    },
     "sushi-bond-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x613C836DF6695c10f0f4900528B6931441Ac5d5a"],
       "pid": "273"
-    },
-    "sushi-bb-cdai-dai": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x0BB6e2a9858A089437EC678dA05E559Ffe0Af5b2"],
-      "pid": "274"
     },
     "sushi-weth-fold": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2940,18 +2742,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0x986627dB5E4AAE987f580feB63D475992e5aC0AE"],
       "pid": "278"
-    },
-    "sushi-usdc-cqt": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x17890DeB188F2dE6C3e966e053dA1C9a111Ed4A5"],
-      "pid": "279"
-    },
-    "sushi-usdt-dvf": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xe93b1b5E1dAdCE8152A69470C1b31463aF260296"],
-      "pid": "280"
     },
     "sushi-ankr-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
@@ -2983,18 +2773,6 @@
       "tokens": ["0xdBaa04796CB5C05D02B8A41B702d9b67c13c9fa9"],
       "pid": "285"
     },
-    "sushi-dpi-fei": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x8775aE5e83BC5D926b6277579c2B0d40c7D9b528"],
-      "pid": "286"
-    },
-    "sushi-xyz-usdc": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0xBBBdB106A806173d1eEa1640961533fF3114d69A"],
-      "pid": "287"
-    },
     "sushi-vusd-weth": {
       "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
       "lpToken": "0x0000000000000000000000000000000000000000",
@@ -3006,12 +2784,6 @@
       "lpToken": "0x0000000000000000000000000000000000000000",
       "tokens": ["0xada8B1613ce6Fe75f3549Fa4eB2A993ca1220A7c"],
       "pid": "289"
-    },
-    "sushi-weth-slp": {
-      "pool": "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-      "lpToken": "0x0000000000000000000000000000000000000000",
-      "tokens": ["0x8597fa0773888107E2867D36dd87Fe5bAFeAb328"],
-      "pid": "290"
     }
   }
 }
