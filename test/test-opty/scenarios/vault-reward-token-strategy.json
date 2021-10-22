@@ -724,7 +724,7 @@
           "getActions": [
             {
               "contract": "riskManager",
-              "action": "getVaultRewardTokenStrategy(bytes32)",
+              "action": "getVaultRewardTokenStrategy(address[])",
               "args": {},
               "expectedValue": {
                 "vaultRewardStrategy": [5000, 5000]
@@ -735,7 +735,7 @@
           ]
         },
         {
-          "description": "Risk Manager shouldn't get the VaultRewardTokenStrategy for 0x0..0 VaultRewardToken hash",
+          "description": "Risk Manager shouldn't get the VaultRewardTokenStrategy for empty VaultRewardToken",
           "setActions": [
             {
               "contract": "strategyProvider",
@@ -751,13 +751,67 @@
           "getActions": [
             {
               "contract": "riskManager",
-              "action": "getVaultRewardTokenStrategy(bytes32)",
+              "action": "getVaultRewardTokenStrategy(address[])",
               "args": {
-                "vaultRewardTokenInvalidHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                "underlyingTokens": []
               },
               "expectedValue": {},
               "expect": "fail",
-              "message": "vRtHash!=0x0"
+              "message": "Tokens_Empty!"
+            }
+          ]
+        },
+        {
+          "description": "Risk Manager shouldn't get the VaultRewardTokenStrategy for zero-address reward token",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [5000, 5000]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "riskManager",
+              "action": "getVaultRewardTokenStrategy(address[])",
+              "args": {
+                "underlyingTokens": ["0x0000000000000000000000000000000000000000"]
+              },
+              "expectedValue": {},
+              "expect": "fail",
+              "message": "uT=address(0)"
+            }
+          ]
+        },
+        {
+          "description": "Risk Manager shouldn't get the VaultRewardTokenStrategy for EOA reward token",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [5000, 5000]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "riskManager",
+              "action": "getVaultRewardTokenStrategy(address[])",
+              "args": {
+                "underlyingTokens": ["0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"]
+              },
+              "expectedValue": {},
+              "expect": "fail",
+              "message": "uT!=isContract()"
             }
           ]
         }

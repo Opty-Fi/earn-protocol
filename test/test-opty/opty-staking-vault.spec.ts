@@ -1,11 +1,15 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
-import { Signer } from "ethers";
-import { CONTRACTS } from "../../helpers/type";
+import { Signer, Contract, BigNumber } from "ethers";
+import { CONTRACTS, MOCK_CONTRACTS } from "../../helpers/type";
 import scenario from "./scenarios/opty-staking-vault.json";
-import { deployEssentialContracts } from "../../helpers/contracts-deployments";
+import testStakingVaultScenario from "./scenarios/test-opty-staking-vault.json";
+import { deployRegistry, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, ADDRESS_ZERO } from "../../helpers/constants";
+import { smock } from "@defi-wonderland/smock";
+import { deploySmockContract, deployContract, executeFunc, moveToSpecificBlock } from "../../helpers/helpers";
+import { TypedTokens } from "../../helpers/data";
 
 type ARGUMENTS = {
   token?: string;
@@ -14,6 +18,11 @@ type ARGUMENTS = {
   OPTYStakingRateBalancer?: string;
   spender?: string;
   stakedOPTY?: string;
+};
+
+type TEST_STAKING_VAULT_ARGUMENTS = {
+  executer?: string;
+  value?: string;
 };
 
 describe(scenario.title, () => {
@@ -154,4 +163,213 @@ describe(scenario.title, () => {
       }
     });
   }
+});
+
+describe(testStakingVaultScenario.title, () => {
+  let mockContracts: MOCK_CONTRACTS = {};
+  let registry: Contract;
+  let optyStakingVault: Contract;
+  let users: { [key: string]: Signer };
+  let timestamp: number;
+  before(async () => {
+    const [owner, user1] = await hre.ethers.getSigners();
+    users = { owner, user1 };
+    registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
+    const dummyToken = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_DUMMY_TOKEN, ["TestToken", "TT", 18, 0]);
+    const optyDistributor = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, [
+      registry.address,
+      dummyToken.address,
+      0,
+    ]);
+    const optyStakingRateBalancer = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_STAKING_RATE_BALANCER, [
+      registry.address,
+    ]);
+    optyStakingVault = await deployContract(hre, ESSENTIAL_CONTRACTS.OPTY_STAKING_VAULT, true, owner, [
+      registry.address,
+      dummyToken.address,
+      86400,
+      "1",
+    ]);
+
+    mockContracts = { dummyToken, optyDistributor, optyStakingRateBalancer };
+    await executeFunc(registry, owner, "setOPTY(address)", [dummyToken.address]);
+    await executeFunc(registry, owner, "setOPTYDistributor(address)", [optyDistributor.address]);
+    await executeFunc(registry, owner, "setOPTYStakingRateBalancer(address)", [optyStakingRateBalancer.address]);
+    await unpauseVault(owner, registry, optyStakingVault.address, true);
+    await mockContracts["optyStakingRateBalancer"].updateStakedOPTY.returns(true);
+    await mockContracts["optyStakingRateBalancer"].updateUnstakedOPTY.returns(true);
+    await mockContracts["optyStakingRateBalancer"].updateOptyRates.returns(true);
+    await mockContracts["optyDistributor"].mintOpty.returns();
+  });
+
+  describe(testStakingVaultScenario.description, () => {
+    for (let i = 0; i < testStakingVaultScenario.stories.length; i++) {
+      const story = testStakingVaultScenario.stories[i];
+      it(`${story.description}`, async () => {
+        for (let i = 0; i < story.setActions.length; i++) {
+          const action = story.setActions[i];
+          switch (action.action) {
+            case "fundWalletOPTY": {
+              await mockContracts.dummyToken.mint(await users["owner"].getAddress(), BigNumber.from(10).pow(18));
+              break;
+            }
+            case "setOptyRatePerSecond(uint256)": {
+              const { executer, value } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              if (action.expect === "success") {
+                await hre.network.provider.request({
+                  method: "hardhat_impersonateAccount",
+                  params: [mockContracts.optyStakingRateBalancer.address],
+                });
+                await users["owner"].sendTransaction({
+                  to: mockContracts.optyStakingRateBalancer.address,
+                  value: hre.ethers.utils.parseEther("1.0"),
+                });
+                const optyStakingRateBalancerSigner = await hre.ethers.getSigner(
+                  mockContracts.optyStakingRateBalancer.address,
+                );
+                await optyStakingVault.connect(optyStakingRateBalancerSigner)[action.action](value);
+              } else {
+                await expect(optyStakingVault.connect(users[executer!])[action.action](value)).to.be.revertedWith(
+                  action.message,
+                );
+              }
+              break;
+            }
+            case "userStakeAll()": {
+              const { executer } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              await mockContracts.dummyToken
+                .connect(users["owner"])
+                .approve(
+                  optyStakingVault.address,
+                  await mockContracts.dummyToken.balanceOf(users["owner"].getAddress()),
+                );
+              await optyStakingVault.connect(users[executer!])[action.action]();
+              break;
+            }
+            case "userStake(uint256)": {
+              const { executer, value } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              await mockContracts.dummyToken.connect(users["owner"]).approve(optyStakingVault.address, value);
+              await optyStakingVault.connect(users[executer!])[action.action](value);
+              break;
+            }
+            case "userUnstakeAll()": {
+              const { executer } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              const blockNumber = await hre.ethers.provider.getBlockNumber();
+              const block = await hre.ethers.provider.getBlock(blockNumber);
+              await moveToSpecificBlock(hre, block.timestamp + 86400);
+              await optyStakingVault
+                .connect(users["owner"])
+                .approve(optyStakingVault.address, await optyStakingVault.balanceOf(users["owner"].getAddress()));
+              await optyStakingVault.connect(users[executer!])[action.action]();
+              break;
+            }
+            case "userUnstake(uint256)": {
+              const { executer, value } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              const blockNumber = await hre.ethers.provider.getBlockNumber();
+              const block = await hre.ethers.provider.getBlock(blockNumber);
+              await moveToSpecificBlock(hre, block.timestamp + 86400);
+              await optyStakingVault.connect(users["owner"]).approve(optyStakingVault.address, value);
+              await optyStakingVault.connect(users[executer!])[action.action](value);
+              break;
+            }
+            case "setTimelockPeriod(uint256)": {
+              const { executer, value } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              if (action.expect === "success") {
+                await optyStakingVault.connect(users[executer!])[action.action](value);
+              } else {
+                await expect(optyStakingVault.connect(users[executer!])[action.action](value)).to.be.revertedWith(
+                  action.message,
+                );
+              }
+              break;
+            }
+            case "setToken(address)": {
+              const { executer, value } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              if (action.expect === "success") {
+                await optyStakingVault.connect(users[executer!])[action.action](mockContracts[value!].address);
+              } else {
+                await expect(
+                  optyStakingVault.connect(users[executer!])[action.action](await users[executer!].getAddress()),
+                ).to.be.revertedWith(action.message);
+              }
+              break;
+            }
+            case "updatePool()": {
+              await optyStakingVault[action.action]();
+              const blockNumber = await hre.ethers.provider.getBlockNumber();
+              const block = await hre.ethers.provider.getBlock(blockNumber);
+              timestamp = block.timestamp;
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < story.getActions.length; i++) {
+          const action = story.getActions[i];
+          switch (action.action) {
+            case "balanceOf(address)": {
+              const { executer } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              if (action.contract === "optyStakingVault") {
+                expect(await optyStakingVault[action.action](await users[executer!].getAddress())).to.be.eq(
+                  action.expectedValue,
+                );
+              } else {
+                action.expectedValue === ">0"
+                  ? expect(await mockContracts[action.contract][action.action](users[executer!].getAddress())).to.be.gt(
+                      0,
+                    )
+                  : expect(await mockContracts[action.contract][action.action](users[executer!].getAddress())).to.be.eq(
+                      0,
+                    );
+              }
+              break;
+            }
+            case "getPricePerFullShare()": {
+              expect(await optyStakingVault[action.action]()).to.be.eq(action.expectedValue);
+              break;
+            }
+            case "balanceInOpty(address)": {
+              const { executer } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              expect(await optyStakingVault[action.action](users[executer!].getAddress())).to.be.eq(
+                action.expectedValue,
+              );
+              break;
+            }
+            case "timelockPeriod()": {
+              expect(await optyStakingVault[action.action]()).to.be.eq(action.expectedValue);
+              break;
+            }
+            case "token()": {
+              expect(await optyStakingVault[action.action]()).to.be.eq(mockContracts[action.expectedValue].address);
+              break;
+            }
+            case "lastPoolUpdate()": {
+              expect(await optyStakingVault[action.action]()).to.be.eq(timestamp);
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < story.cleanActions.length; i++) {
+          const action = story.cleanActions[i];
+          switch (action.action) {
+            case "userUnstakeAll()": {
+              const { executer } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              const blockNumber = await hre.ethers.provider.getBlockNumber();
+              const block = await hre.ethers.provider.getBlock(blockNumber);
+              await moveToSpecificBlock(hre, block.timestamp + 86400);
+              await optyStakingVault.connect(users[executer!])[action.action]();
+              expect(await optyStakingVault.balanceOf(users[executer!].getAddress())).to.be.eq(0);
+              break;
+            }
+            case "burnOPTY": {
+              const { executer } = action.args as TEST_STAKING_VAULT_ARGUMENTS;
+              const balanceInOPTY = await mockContracts.dummyToken.balanceOf(users[executer!].getAddress());
+              await mockContracts.dummyToken.connect(users[executer!]).transfer(TypedTokens.ETH, balanceInOPTY);
+              expect(await optyStakingVault.balanceOf(users[executer!].getAddress())).to.be.eq(0);
+              break;
+            }
+          }
+        }
+      });
+    }
+  });
 });

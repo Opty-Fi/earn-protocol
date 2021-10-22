@@ -7,4 +7,14 @@ interface IAaveV1LendingPoolCore {
     function getReserveCurrentLiquidityRate(address _reserve) external view returns (uint256 liquidityRate);
 
     function getReserveATokenAddress(address _reserve) external view returns (address);
+
+    function getReserveConfiguration(address _reserve)
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            bool
+        );
 }

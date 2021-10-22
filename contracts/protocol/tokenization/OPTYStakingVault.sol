@@ -111,7 +111,7 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
      */
     function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
-            return balance().div(totalSupply());
+            return balance().mul(10**(uint256(ERC20(token).decimals()))).div(totalSupply());
         }
         return uint256(0);
     }

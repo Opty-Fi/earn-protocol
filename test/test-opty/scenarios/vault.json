@@ -1219,6 +1219,112 @@
           ]
         },
         {
+          "description": "Operator should be able to execute deposit codes and execute claim reward token code (if possible) with adminCall",
+          "activities": [
+            {
+              "name": "vault",
+              "userIndexes": [0],
+              "actions": [
+                {
+                  "contract": "",
+                  "action": "fundVaultWallet",
+                  "args": {
+                    "amount": {
+                      "DAI": "15000000000000000",
+                      "USDC": "150000",
+                      "USDT": "150000",
+                      "SLP_WETH_USDC": "15000000000"
+                    }
+                  },
+                  "expect": "success",
+                  "message": ""
+                },
+                {
+                  "contract": "",
+                  "action": "testGetDepositAllCodes",
+                  "args": {},
+                  "expect": "success",
+                  "message": ""
+                },
+                {
+                  "contract": "",
+                  "action": "testGetClaimRewardTokenCode",
+                  "args": {},
+                  "expect": "success",
+                  "message": ""
+                }
+              ],
+              "getActions": []
+            }
+          ]
+        },
+        {
+          "description": "Non-Operator shouldn't be able to execute deposit codes and execute claim reward token code (if possible) with adminCall",
+          "activities": [
+            {
+              "name": "vault",
+              "userIndexes": [2],
+              "actions": [
+                {
+                  "contract": "",
+                  "action": "fundVaultWallet",
+                  "args": {
+                    "amount": {
+                      "DAI": "15000000000000000",
+                      "USDC": "150000",
+                      "USDT": "150000",
+                      "SLP_WETH_USDC": "15000000000"
+                    }
+                  },
+                  "expect": "success",
+                  "message": ""
+                },
+                {
+                  "contract": "",
+                  "action": "testGetDepositAllCodes",
+                  "args": {},
+                  "expect": "fail",
+                  "message": "caller is not the operator"
+                }
+              ],
+              "getActions": []
+            }
+          ]
+        },
+        {
+          "description": "Operator shouldn't be able to execute invalid codes with adminCall",
+          "activities": [
+            {
+              "name": "vault",
+              "userIndexes": [0],
+              "actions": [
+                {
+                  "contract": "",
+                  "action": "fundVaultWallet",
+                  "args": {
+                    "amount": {
+                      "DAI": "15000000000000000",
+                      "USDC": "150000",
+                      "USDT": "150000",
+                      "SLP_WETH_USDC": "15000000000"
+                    }
+                  },
+                  "expect": "success",
+                  "message": ""
+                },
+                {
+                  "contract": "",
+                  "action": "testInvalidCodes",
+                  "args": {},
+                  "expect": "fail",
+                  "message": "!adminCall"
+                }
+              ],
+              "getActions": []
+            }
+          ]
+        },
+        {
           "description": "[Upgradability] Should be able to use functions and variables in new contracts and maintains old variable states",
           "activities": [
             {

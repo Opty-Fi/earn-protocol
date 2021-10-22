@@ -202,4 +202,11 @@ contract TestDeFiAdapter is MultiCall {
             "addLiquidity"
         );
     }
+
+    function burnBorrowTokens(address _borrowToken) external {
+        ERC20(_borrowToken).transfer(
+            address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE),
+            ERC20(_borrowToken).balanceOf(address(this))
+        );
+    }
 }

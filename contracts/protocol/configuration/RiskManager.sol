@@ -50,8 +50,8 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
         require(bytes(_profile).length > 0, "RP_Empty!");
 
         for (uint256 i = 0; i < _underlyingTokens.length; i++) {
-            require(_underlyingTokens[i] != address(0), "!_underlyingTokens");
-            require(_underlyingTokens[i].isContract(), "!_underlyingTokens");
+            require(_underlyingTokens[i] != address(0), "uT=address(0)");
+            require(_underlyingTokens[i].isContract(), "uT!=isContract()");
         }
         bytes32 tokensHash = keccak256(abi.encodePacked(_underlyingTokens));
         DataTypes.StrategyConfiguration memory _strategyConfiguration = registryContract.getStrategyConfiguration();
@@ -62,13 +62,19 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
     /**
      * @inheritdoc IRiskManager
      */
-    function getVaultRewardTokenStrategy(bytes32 _vaultRewardTokenHash)
+    function getVaultRewardTokenStrategy(address[] memory _underlyingTokens)
         public
         view
         override
         returns (DataTypes.VaultRewardStrategy memory)
     {
-        require(_vaultRewardTokenHash != Constants.ZERO_BYTES32, "vRtHash!=0x0");
+        require(_underlyingTokens.length > 0, "Tokens_Empty!");
+
+        for (uint256 i = 0; i < _underlyingTokens.length; i++) {
+            require(_underlyingTokens[i] != address(0), "uT=address(0)");
+            require(_underlyingTokens[i].isContract(), "uT!=isContract()");
+        }
+        bytes32 _vaultRewardTokenHash = keccak256(abi.encodePacked(_underlyingTokens));
         return
             IStrategyProvider(registryContract.getStrategyProvider()).getVaultRewardTokenHashToVaultRewardTokenStrategy(
                 _vaultRewardTokenHash

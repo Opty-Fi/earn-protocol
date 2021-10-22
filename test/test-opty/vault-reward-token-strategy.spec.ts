@@ -22,6 +22,7 @@ import { generateTokenHash } from "../../helpers/helpers";
 
 type ARGUMENTS = {
   addressName?: string;
+  underlyingTokens?: string[];
   amount?: { [key: string]: string };
   hold?: number;
   convert?: number;
@@ -74,7 +75,7 @@ describe(scenario.title, () => {
             let underlyingTokenName: string;
             let underlyingTokenSymbol: string;
             let RewardToken_ERC20Instance: Contract;
-
+            let vaultRewardTokens: string[] = [];
             before(async () => {
               underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
               underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
@@ -103,6 +104,7 @@ describe(scenario.title, () => {
                   "ERC20",
                   <string>REWARD_TOKENS[adapterName].tokenAddress,
                 );
+                vaultRewardTokens = [Vault.address, <string>REWARD_TOKENS[adapterName].tokenAddress];
               }
 
               await approveLiquidityPoolAndMapAdapter(
@@ -266,7 +268,25 @@ describe(scenario.title, () => {
                 for (let j = 0; j < story.getActions.length; j++) {
                   const action = story.getActions[j];
                   switch (action.action) {
-                    case "getVaultRewardTokenStrategy(bytes32)":
+                    case "getVaultRewardTokenStrategy(address[])": {
+                      if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
+                        const { underlyingTokens }: ARGUMENTS = action.args;
+                        const { vaultRewardStrategy }: EXPECTED_ARGUMENTS = action.expectedValue;
+                        if (action.expect === "success") {
+                          const value = await contracts[action.contract][action.action](
+                            underlyingTokens ? underlyingTokens : vaultRewardTokens,
+                          );
+                          expect([+value[0]._hex, +value[1]._hex]).to.have.members(<number[]>vaultRewardStrategy);
+                        } else {
+                          await expect(
+                            contracts[action.contract][action.action](
+                              underlyingTokens ? underlyingTokens : vaultRewardTokens,
+                            ),
+                          ).to.be.revertedWith(action.message);
+                        }
+                      }
+                      break;
+                    }
                     case "vaultRewardTokenHashToVaultRewardTokenStrategy(bytes32)": {
                       const { vaultRewardTokenInvalidHash }: ARGUMENTS = action.args;
                       const { vaultRewardStrategy }: EXPECTED_ARGUMENTS = action.expectedValue;

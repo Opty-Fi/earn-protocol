@@ -39,7 +39,7 @@ interface IStrategyManager {
      * @param _investStrategyHash Hash of the strategy being used in vault contract
      * @return Returns the deposit codes steps count for the given stretagy hash
      */
-    function getDepositAllStepCount(bytes32 _investStrategyHash) external view returns (uint256);
+    function getDepositAllStepsCount(bytes32 _investStrategyHash) external view returns (uint256);
 
     /**
      * @dev Get the claim reward token codes steps count for the given stretagy hash

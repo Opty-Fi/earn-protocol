@@ -26,10 +26,10 @@ interface IRiskManager {
 
     /**
      * @notice Get the VaultRewardToken strategy for respective VaultRewardToken hash
-     * @param _vaultRewardTokenHash Hash of vault contract address and reward token address
+     * @param _underlyingTokens array of vault contract address and reward token address
      * @return _vaultRewardStrategy Returns the VaultRewardToken strategy for given vaultRewardTokenHash
      */
-    function getVaultRewardTokenStrategy(bytes32 _vaultRewardTokenHash)
+    function getVaultRewardTokenStrategy(address[] memory _underlyingTokens)
         external
         view
         returns (DataTypes.VaultRewardStrategy memory _vaultRewardStrategy);

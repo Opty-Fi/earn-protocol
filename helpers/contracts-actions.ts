@@ -1,9 +1,9 @@
+import { RISK_PROFILES, TOKEN_HOLDERS, CONTRACT_ADDRESSES } from "./constants";
 import { Contract, Signer, BigNumber } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
 import Compound from "@compound-finance/compound-js";
 import { Provider } from "@compound-finance/compound-js/dist/nodejs/types";
-import { RISK_PROFILES, TOKEN_HOLDERS, UNISWAP_ROUTER, SUSHISWAP_ROUTER, CURVE_REGISTRY } from "./constants";
 import { STRATEGY_DATA } from "./type";
 import { TypedCurveTokens, TypedMultiAssetTokens, TypedTokens } from "./data";
 import {
@@ -169,7 +169,7 @@ export async function fundWalletToken(
   const address = toAddress === undefined ? await wallet.getAddress() : toAddress;
   const ValidatedPairTokens = Object.values(TypedMultiAssetTokens).map(({ address }) => getAddress(address));
   const ValidatedCurveTokens = Object.values(TypedCurveTokens).map(({ address }) => getAddress(address));
-  const uniswapInstance = await hre.ethers.getContractAt("IUniswapV2Router02", UNISWAP_ROUTER);
+  const uniswapInstance = await hre.ethers.getContractAt(router.abi, CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER);
   const tokenInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
   const walletAddress = await wallet.getAddress();
   if (ValidatedPairTokens.includes(getAddress(tokenAddress))) {
@@ -198,8 +198,8 @@ export async function fundWalletToken(
         }
       }
       const routerInstance = await hre.ethers.getContractAt(
-        "IUniswapV2Router02",
-        pairSymbol === "SLP" ? SUSHISWAP_ROUTER : UNISWAP_ROUTER,
+        router.abi,
+        pairSymbol === "SLP" ? CONTRACT_ADDRESSES.SUSHISWAP_ROUTER : CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
       );
 
       if (getAddress(TOKEN1) === getAddress(TypedTokens["WETH"])) {
@@ -245,7 +245,7 @@ export async function fundWalletToken(
       const pool = curveToken.pool;
       const swap = curveToken?.swap;
       const old = curveToken?.old;
-      const curveRegistryInstance = await hre.ethers.getContractAt("ICurveRegistry", CURVE_REGISTRY);
+      const curveRegistryInstance = await hre.ethers.getContractAt("ICurveRegistry", CONTRACT_ADDRESSES.CURVE_REGISTRY);
       const tokenAddressInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
       const instance = await hre.ethers.getContractAt(swap ? "ICurveSwap" : "ICurveDeposit", pool);
       const coin = swap
