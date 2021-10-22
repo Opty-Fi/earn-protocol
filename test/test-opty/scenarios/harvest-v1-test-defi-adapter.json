@@ -2011,7 +2011,7 @@
       ]
     },
     {
-      "description": "setLiquidityPoolToStakingVault() - Operator should be able to set a mapping that associates a valid liquidity pool contract address with a valid staking vault contract address",
+      "description": "setLiquidityPoolToStakingVault() - Operator should be able to set a mapping that associates a valid liquidity pool contract address with a valid staking vault contract address only once",
       "setActions": [
         {
           "contract": "adapter",
@@ -2019,6 +2019,14 @@
           "args": {},
           "executer": "owner",
           "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {},
+          "executer": "owner",
+          "expect": "fail",
           "message": "liquidityPoolToStakingVault already set"
         }
       ],
@@ -2035,6 +2043,104 @@
           "executer": "user1",
           "expect": "fail",
           "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setLiquidityPoolToStakingVault() - Operator shouldn't be able to set liquidityPoolToStakingVault mapping with invalid liquidityPool",
+      "setActions": [
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {},
+          "executer": "owner",
+          "expect": "fail",
+          "message": "!_liquidityPool.isContract()"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setLiquidityPoolToStakingVault() - Operator shouldn't be able to set liquidityPoolToStakingVault mapping with EOA liquidityPool",
+      "setActions": [
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {
+            "isInvalidAddress": "eoa"
+          },
+          "executer": "owner",
+          "expect": "fail",
+          "message": "!_liquidityPool.isContract()"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setLiquidityPoolToStakingVault() - Operator shouldn't be able to set liquidityPoolToStakingVault mapping with ZERO_ADDRESS liquidityPool",
+      "setActions": [
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {
+            "isInvalidAddress": "zero"
+          },
+          "executer": "owner",
+          "expect": "fail",
+          "message": "!_liquidityPool.isContract()"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setLiquidityPoolToStakingVault() - Operator shouldn't be able to set liquidityPoolToStakingVault mapping with invalid stakingVault",
+      "setActions": [
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {},
+          "executer": "owner",
+          "expect": "fail",
+          "message": "!_stakingVault.isContract()"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setLiquidityPoolToStakingVault() - Operator shouldn't be able to set liquidityPoolToStakingVault mapping with EOA stakingVault",
+      "setActions": [
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {
+            "isInvalidAddress": "eoa"
+          },
+          "executer": "owner",
+          "expect": "fail",
+          "message": "!_stakingVault.isContract()"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setLiquidityPoolToStakingVault() - Operator shouldn't be able to set liquidityPoolToStakingVault mapping with ZERO_ADDRESS stakingVault",
+      "setActions": [
+        {
+          "contract": "adapter",
+          "action": "setLiquidityPoolToStakingVault(address,address)",
+          "args": {
+            "isInvalidAddress": "zero"
+          },
+          "executer": "owner",
+          "expect": "fail",
+          "message": "!_stakingVault.isContract()"
         }
       ],
       "getActions": [],
