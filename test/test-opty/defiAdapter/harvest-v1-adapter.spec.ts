@@ -6,7 +6,7 @@ import { CONTRACTS } from "../../../helpers/type";
 import { TOKENS, TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO, HARVEST_V1_ADAPTER_NAME } from "../../../helpers/constants";
 import { TypedAdapterStrategies, TypedPairTokens, TypedCurveTokens, TypedDefiPools } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
-import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
+import { fundWalletToken, getBlockTimestamp, addWhiteListForHarvest } from "../../../helpers/contracts-actions";
 import testDeFiAdapterScenario from "../scenarios/harvest-v1-test-defi-adapter.json";
 import scenarios from "../scenarios/adapters.json";
 import { deployContract, getDefaultFundAmountInDecimal } from "../../../helpers/helpers";
@@ -157,8 +157,6 @@ describe(`${testDeFiAdapterScenario.title} - HarvestV1Adapter`, () => {
   const adapterNames = Object.keys(TypedDefiPools);
   let testDeFiAdapter: Contract;
   let harvestV1Adapter: Contract;
-  const governance = getAddress("0xf00dD244228F51547f0563e60bCa65a30FBF5f7f");
-  const controller = getAddress("0x3cC47874dC50D98425ec79e647d83495637C55e3");
 
   before(async () => {
     const [owner, admin, user1] = await hre.ethers.getSigners();
@@ -166,21 +164,7 @@ describe(`${testDeFiAdapterScenario.title} - HarvestV1Adapter`, () => {
     adapterPrerequisites = await deployAdapterPrerequisites(hre, owner, true);
     testDeFiAdapter = await deployContract(hre, "TestDeFiAdapter", false, users["owner"], []);
     harvestV1Adapter = await deployAdapter(hre, owner, "HarvestV1Adapter", adapterPrerequisites.registry.address, true);
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [governance],
-    });
-    const harvestController = await hre.ethers.getContractAt(
-      "IHarvestController",
-      controller,
-      await hre.ethers.getSigner(governance),
-    );
-    await admin.sendTransaction({
-      to: governance,
-      value: hre.ethers.utils.parseEther("1000"),
-    });
-    await harvestController.addToWhitelist(testDeFiAdapter.address);
-    await harvestController.addCodeToWhitelist(testDeFiAdapter.address);
+    await addWhiteListForHarvest(hre, testDeFiAdapter.address, admin);
   });
 
   const ValidatedPairTokens = Object.values(TypedPairTokens)
@@ -194,11 +178,14 @@ describe(`${testDeFiAdapterScenario.title} - HarvestV1Adapter`, () => {
     if (adapterName == "HarvestV1Adapter") {
       const pools = Object.keys(TypedDefiPools[adapterName]);
       for (const pool of pools) {
+        if (pool !== "crvrenwbtc") {
+          continue;
+        }
         if (TypedDefiPools[adapterName][pool].tokens.length == 1) {
           const liquidityPool = TypedDefiPools[adapterName][pool].pool;
           for (const story of testDeFiAdapterScenario.stories) {
             it(`${pool} - ${story.description}`, async function () {
-              if (TypedDefiPools[adapterName][pool].deprecated! === true) {
+              if (TypedDefiPools[adapterName][pool].deprecated) {
                 this.skip();
               }
               const underlyingTokenAddress = getAddress(TypedDefiPools[adapterName][pool].tokens[0]);
@@ -521,7 +508,7 @@ describe(`${testDeFiAdapterScenario.title} - HarvestV1Adapter`, () => {
                         harvestV1Adapter
                           .connect(users[action.executer!])
                           [action.action](liquidityPool, stakingVaultAddress),
-                      ).to.be.revertedWith(action.message!);
+                      ).to.be.revertedWith(action.message);
                     } else {
                       await expect(
                         harvestV1Adapter

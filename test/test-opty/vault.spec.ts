@@ -10,6 +10,7 @@ import {
   ESSENTIAL_CONTRACTS,
   TESTING_CONTRACTS,
   COMPOUND_ADAPTER_NAME,
+  HARVEST_V1_ADAPTER_NAME,
 } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
@@ -23,6 +24,7 @@ import {
   getTokenName,
   getTokenSymbol,
   unpauseVault,
+  addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault.json";
 
@@ -153,13 +155,6 @@ describe(scenario.title, () => {
                 false,
               );
 
-              if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
-                await executeFunc(essentialContracts.registry, users[0], "approveToken(address)", [Vault.address]);
-                await executeFunc(essentialContracts.registry, users[0], "setTokensHashToTokens(address[])", [
-                  [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
-                ]);
-              }
-
               const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
 
               const CHIInstance = await hre.ethers.getContractAt("IChi", TOKENS["CHI"]);
@@ -174,7 +169,16 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+              if (adapterName === HARVEST_V1_ADAPTER_NAME) {
+                await addWhiteListForHarvest(hre, Vault.address, users[1]);
+              }
               await unpauseVault(users[0], essentialContracts.registry, Vault.address, true);
+              if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
+                await executeFunc(essentialContracts.registry, users[0], "approveToken(address)", [Vault.address]);
+                await executeFunc(essentialContracts.registry, users[0], "setTokensHashToTokens(address[])", [
+                  [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
+                ]);
+              }
               contracts["vault"] = Vault;
               contracts["chi"] = CHIInstance;
               contracts["erc20"] = Token_ERC20Instance;

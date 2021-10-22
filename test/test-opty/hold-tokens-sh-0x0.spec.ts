@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { generateTokenHash } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -15,6 +15,7 @@ import {
   getTokenName,
   getTokenSymbol,
   unpauseVault,
+  addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 
@@ -82,6 +83,9 @@ describe(scenarios.title, () => {
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
                 );
+                if (adapterName === HARVEST_V1_ADAPTER_NAME) {
+                  await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
+                }
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
                 await approveLiquidityPoolAndMapAdapter(
                   users["owner"],
@@ -98,6 +102,7 @@ describe(scenarios.title, () => {
                   vaultRiskProfile,
                   false,
                 );
+
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
                 await fundWalletToken(
                   hre,

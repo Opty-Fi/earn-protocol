@@ -4,7 +4,7 @@ import { Signer, BigNumber } from "ethers";
 import { solidity } from "ethereum-waffle";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -15,6 +15,7 @@ import {
   getTokenName,
   getTokenSymbol,
   unpauseVault,
+  addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/invest-limitation.json";
 
@@ -113,6 +114,9 @@ describe(scenarios.title, () => {
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
                 );
+                if (adapterName === HARVEST_V1_ADAPTER_NAME) {
+                  await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
+                }
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
                 const ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKENS[strategy.token]);

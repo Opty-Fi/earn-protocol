@@ -2,7 +2,7 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -12,6 +12,7 @@ import {
   getTokenName,
   getTokenSymbol,
   approveLiquidityPoolAndMapAdapter,
+  addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import { setUp } from "./setup";
 import scenario from "./scenarios/discontinue-pause.json";
@@ -58,7 +59,6 @@ describe(scenario.title, () => {
         const adapterName = adapterNames[i];
         const strategies = TypedAdapterStrategies[adapterName];
         let ERC20Instance: Contract;
-
         for (let i = 0; i < strategies.length; i++) {
           const strategy = strategies[i];
 
@@ -112,6 +112,9 @@ describe(scenario.title, () => {
                   timestamp,
                 );
 
+                if (adapterName === HARVEST_V1_ADAPTER_NAME) {
+                  await addWhiteListForHarvest(hre, vault.address, admin);
+                }
                 contracts["vault"] = vault;
                 contracts["erc20"] = ERC20Instance;
               } catch (error) {

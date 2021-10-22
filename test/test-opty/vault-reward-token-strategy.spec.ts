@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS } from "../../helpers/constants";
+import { TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -16,6 +16,7 @@ import {
   getTokenSymbol,
   approveAndSetTokenHashToTokens,
   unpauseVault,
+  addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { generateTokenHash } from "../../helpers/helpers";
@@ -91,6 +92,9 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+              if (adapterName === HARVEST_V1_ADAPTER_NAME) {
+                await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
+              }
               await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
