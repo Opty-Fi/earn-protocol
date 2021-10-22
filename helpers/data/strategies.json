@@ -72,18 +72,6 @@
     ]
   },
   {
-    "strategyName": "DAI-deposit-HARVEST-fDAI",
-    "token": "DAI",
-    "strategy": [
-      {
-        "contract": "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
-        "outputTokenSymbol": "fDAI",
-        "outputToken": "0xab7fa2b2985bccfc13c6d86b1d5a17486ab1e04c",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
     "strategyName": "DAI-deposit-YEARN-yDAI",
     "token": "DAI",
     "strategy": [
@@ -120,24 +108,6 @@
     ]
   },
   {
-    "strategyName": "DAI-deposit-CURVE-cDAI+cUSDC-deposit-HARVEST-fcDAI+cUSDC",
-    "token": "DAI",
-    "strategy": [
-      {
-        "contract": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
-        "outputTokenSymbol": "cDAI+cUSDC",
-        "outputToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
-        "outputTokenSymbol": "fcDAI+cUSDC",
-        "outputToken": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
     "strategyName": "DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
     "token": "DAI",
     "strategy": [
@@ -151,60 +121,6 @@
         "contract": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
         "outputTokenSymbol": "crYCRV",
         "outputToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV",
-    "token": "DAI",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-        "outputTokenSymbol": "fYCRV",
-        "outputToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD",
-    "token": "DAI",
-    "strategy": [
-      {
-        "contract": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yBUSD",
-        "outputToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-        "outputTokenSymbol": "fyDAI+yUSDC+yUSDT+yBUSD",
-        "outputToken": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "DAI-deposit-CURVE-3Crv-deposit-HARVEST-f3CRV",
-    "token": "DAI",
-    "strategy": [
-      {
-        "contract": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-        "outputTokenSymbol": "3Crv",
-        "outputToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
-        "outputTokenSymbol": "f3CRV",
-        "outputToken": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
         "isBorrow": false
       }
     ]
@@ -240,60 +156,6 @@
     ]
   },
   {
-    "strategyName": "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV",
-    "token": "USDC",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-        "outputTokenSymbol": "fYCRV",
-        "outputToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD",
-    "token": "USDC",
-    "strategy": [
-      {
-        "contract": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yBUSD",
-        "outputToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-        "outputTokenSymbol": "fyDAI+yUSDC+yUSDT+yBUSD",
-        "outputToken": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "USDC-deposit-CURVE-3Crv-deposit-HARVEST-f3CRV",
-    "token": "USDC",
-    "strategy": [
-      {
-        "contract": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-        "outputTokenSymbol": "3Crv",
-        "outputToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
-        "outputTokenSymbol": "f3CRV",
-        "outputToken": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
     "strategyName": "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
     "token": "USDT",
     "strategy": [
@@ -312,42 +174,6 @@
     ]
   },
   {
-    "strategyName": "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yBUSD-deposit-HARVEST-fyDAI+yUSDC+yUSDT+yBUSD",
-    "token": "USDT",
-    "strategy": [
-      {
-        "contract": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yBUSD",
-        "outputToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-        "outputTokenSymbol": "fyDAI+yUSDC+yUSDT+yBUSD",
-        "outputToken": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "WBTC-deposit-CURVE-crvRenWBTC-deposit-HARVEST-fcrvRenWBTC",
-    "token": "WBTC",
-    "strategy": [
-      {
-        "contract": "0x93054188d876f558f4a66B2EF1d97d16eDf0895B",
-        "outputTokenSymbol": "crvRenWBTC",
-        "outputToken": "0x49849C98ae39Fff122806C06791Fa73784FB3675",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x9aA8F427A17d6B0d91B6262989EdC7D45d6aEdf8",
-        "outputTokenSymbol": "fcrvRenWBTC",
-        "outputToken": "0x9aA8F427A17d6B0d91B6262989EdC7D45d6aEdf8",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
     "strategyName": "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
     "token": "TUSD",
     "strategy": [
@@ -361,60 +187,6 @@
         "contract": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
         "outputTokenSymbol": "crYCRV",
         "outputToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-HARVEST-fYCRV",
-    "token": "TUSD",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-        "outputTokenSymbol": "fYCRV",
-        "outputToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "WETH-deposit-YEARN-yWETH-deposit-CREAM-crYETH",
-    "token": "WETH",
-    "strategy": [
-      {
-        "contract": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
-        "outputTokenSymbol": "yWETH",
-        "outputToken": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x01da76DEa59703578040012357b81ffE62015C2d",
-        "outputTokenSymbol": "crYETH",
-        "outputToken": "0x01da76DEa59703578040012357b81ffE62015C2d",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "3Crv-deposit-CURVE-usdn3CRV-deposit-HARVEST-fusdn3CRV",
-    "token": "THREE_CRV",
-    "strategy": [
-      {
-        "contract": "0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39",
-        "outputTokenSymbol": "usdn3CRV",
-        "outputToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
-        "outputTokenSymbol": "fusdn3CRV",
-        "outputToken": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
         "isBorrow": false
       }
     ]

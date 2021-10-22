@@ -175,21 +175,31 @@ contract HarvestCodeProvider is IHarvestCodeProvider, Modifiers {
         address _underlyingToken,
         uint256 _amount
     ) public view override returns (uint256) {
-        if (_rewardToken == SUSHI) {
-            return
-                _getRewardBalanceInUnderlyingTokensSushiOrUni(_rewardToken, _underlyingToken, _amount, sushiswapRouter);
-        } else if (_rewardToken == UNI) {
-            return
-                _getRewardBalanceInUnderlyingTokensSushiOrUni(
-                    _rewardToken,
-                    _underlyingToken,
-                    _amount,
-                    uniswapV2Router02
-                );
-        } else {
-            uint256[] memory _amountsA =
-                IUniswapV2Router02(uniswapV2Router02).getAmountsOut(_amount, _getPath(_rewardToken, _underlyingToken));
-            return _amountsA[_amountsA.length - 1];
+        if (_amount > 0) {
+            if (_rewardToken == SUSHI) {
+                return
+                    _getRewardBalanceInUnderlyingTokensSushiOrUni(
+                        _rewardToken,
+                        _underlyingToken,
+                        _amount,
+                        sushiswapRouter
+                    );
+            } else if (_rewardToken == UNI) {
+                return
+                    _getRewardBalanceInUnderlyingTokensSushiOrUni(
+                        _rewardToken,
+                        _underlyingToken,
+                        _amount,
+                        uniswapV2Router02
+                    );
+            } else {
+                uint256[] memory _amountsA =
+                    IUniswapV2Router02(uniswapV2Router02).getAmountsOut(
+                        _amount,
+                        _getPath(_rewardToken, _underlyingToken)
+                    );
+                return _amountsA[_amountsA.length - 1];
+            }
         }
     }
 

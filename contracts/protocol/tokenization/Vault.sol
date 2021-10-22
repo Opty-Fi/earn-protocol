@@ -350,13 +350,22 @@ contract Vault is
     }
 
     /**
+     * @inheritdoc IVault
+     */
+    function adminCall(bytes[] memory _codes) external override onlyOperator returns (bool) {
+        executeCodes(_codes, "!adminCall");
+        return true;
+    }
+
+    /**
      * @dev Deposit all the underlying assets to the current vault invest strategy
      * @param _vaultStrategyConfiguration the configuration for executing vault invest strategy
      */
     function _supplyAll(DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration) internal {
         _batchMint(_vaultStrategyConfiguration);
         uint256 _steps =
-            IStrategyManager(_vaultStrategyConfiguration.strategyManager).getDepositAllStepCount(investStrategyHash);
+            IStrategyManager(_vaultStrategyConfiguration.strategyManager).getDepositAllStepsCount(investStrategyHash);
+
         for (uint256 _i; _i < _steps; _i++) {
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getPoolDepositAllCodes(
@@ -527,7 +536,6 @@ contract Vault is
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
 
         uint256 shares = 0;
-
         if (_tokenBalanceBefore == 0 || totalSupply() == 0) {
             shares = _actualDepositAmount;
         } else {

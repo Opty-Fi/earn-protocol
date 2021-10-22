@@ -5,13 +5,7 @@ import { CONTRACTS } from "../../helpers/type";
 import { TypedTokens } from "../../helpers/data";
 import { deployContract, getDefaultFundAmountInDecimal } from "../../helpers/helpers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
-import {
-  TESTING_DEPLOYMENT_ONCE,
-  REWARD_TOKENS,
-  UNISWAP_ROUTER,
-  SUSHISWAP_ROUTER,
-  SUPPORTED_TOKENS,
-} from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS, CONTRACT_ADDRESSES, SUPPORTED_TOKENS } from "../../helpers/constants";
 import { deployAdapterPrerequisites } from "../../helpers/contracts-deployments";
 import IUniswapV2Pair from "@uniswap/v2-periphery/build/IUniswapV2Pair.json";
 import IUniswapV2Router02 from "@uniswap/v2-periphery/build/IUniswapV2Router02.json";
@@ -129,12 +123,12 @@ describe(scenario.title, () => {
                     const symbol = await pairInstance.symbol();
                     symbol === "SLP"
                       ? await testHarvestCodeProvider[action.action](
-                          SUSHISWAP_ROUTER,
+                          CONTRACT_ADDRESSES.SUSHISWAP_ROUTER,
                           underlyingTokenAddress,
                           adapterPrerequisites.harvestCodeProvider.address,
                         )
                       : await testHarvestCodeProvider[action.action](
-                          UNISWAP_ROUTER,
+                          CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
                           underlyingTokenAddress,
                           adapterPrerequisites.harvestCodeProvider.address,
                         );
@@ -197,7 +191,7 @@ describe(scenario.title, () => {
                     );
                     const uniswapRouterInstance = await hre.ethers.getContractAt(
                       IUniswapV2Router02.abi,
-                      UNISWAP_ROUTER,
+                      CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
                     );
                     let amounts;
                     if (getAddress(underlyingTokenAddress) === getAddress(TypedTokens.WETH)) {
@@ -221,7 +215,10 @@ describe(scenario.title, () => {
                 case "rewardBalanceInUnderlyingTokens(address,address,uint256)": {
                   const rewardTokenAmount = await rewardTokenInstance.balanceOf(testHarvestCodeProvider.address);
                   let expectedAmount;
-                  const uniswapRouterInstance = await hre.ethers.getContractAt(IUniswapV2Router02.abi, UNISWAP_ROUTER);
+                  const uniswapRouterInstance = await hre.ethers.getContractAt(
+                    IUniswapV2Router02.abi,
+                    CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
+                  );
                   let amounts;
                   let finalAmount;
                   if (getAddress(rewardTokenAddress) === getAddress(TypedTokens.SUSHI)) {
@@ -234,7 +231,7 @@ describe(scenario.title, () => {
                       let amountsB;
                       const sushiswapRouterInstance = await hre.ethers.getContractAt(
                         IUniswapV2Router02.abi,
-                        SUSHISWAP_ROUTER,
+                        CONTRACT_ADDRESSES.SUSHISWAP_ROUTER,
                       );
                       const token0 = await pairInstance.token0();
                       const token1 = await pairInstance.token1();
@@ -357,7 +354,7 @@ describe(scenario.title, () => {
                     } else {
                       const uniswapRouterInstance = await hre.ethers.getContractAt(
                         IUniswapV2Router02.abi,
-                        UNISWAP_ROUTER,
+                        CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
                       );
                       const amounts = await uniswapRouterInstance.getAmountsOut(wethAmount, [
                         TypedTokens.WETH,

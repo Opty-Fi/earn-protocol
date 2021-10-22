@@ -229,7 +229,7 @@ contract AaveV1Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifie
                 );
                 _codes[3] = abi.encode(
                     getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProvider),
-                    abi.encodeWithSignature("redeem(uint256)", _aTokenAmount)
+                    abi.encodeWithSignature("redeem(uint256)", uint256(-1))
                 );
             }
         }
@@ -242,9 +242,8 @@ contract AaveV1Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifie
         address payable _vault,
         address _underlyingToken,
         address _liquidityPoolAddressProvider
-    ) public view override returns (bytes[] memory) {
-        uint256 _redeemAmount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPoolAddressProvider);
-        return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPoolAddressProvider, _redeemAmount);
+    ) public view override returns (bytes[] memory _codes) {
+        return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPoolAddressProvider, uint256(-1));
     }
 
     /**
@@ -393,12 +392,13 @@ contract AaveV1Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifie
      * @inheritdoc IAdapter
      */
     function getWithdrawSomeCodes(
-        address payable,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPoolAddressProvider,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
-        if (_amount > 0) {
+        uint256 _vaultBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPoolAddressProvider);
+        if (_amount > 0 && _vaultBalance != uint256(0)) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
                 getLiquidityPoolToken(_underlyingToken, _liquidityPoolAddressProvider),

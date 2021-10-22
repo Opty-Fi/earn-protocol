@@ -1,4 +1,4 @@
-import { RISK_PROFILES, UNISWAP_ROUTER, SUSHISWAP_ROUTER, TOKEN_HOLDERS, CURVE_REGISTRY } from "./constants";
+import { RISK_PROFILES, TOKEN_HOLDERS, CONTRACT_ADDRESSES } from "./constants";
 import { Contract, Signer, BigNumber } from "ethers";
 import { STRATEGY_DATA } from "./type";
 import { TypedTokens, TypedPairTokens, TypedCurveTokens } from "./data";
@@ -171,7 +171,7 @@ export async function fundWalletToken(
   const address = toAddress === undefined ? await wallet.getAddress() : toAddress;
   const ValidatedPairTokens = Object.values(TypedPairTokens).map(({ address }) => getAddress(address));
   const ValidatedCurveTokens = Object.values(TypedCurveTokens).map(({ address }) => getAddress(address));
-  const uniswapInstance = await hre.ethers.getContractAt(router.abi, UNISWAP_ROUTER);
+  const uniswapInstance = await hre.ethers.getContractAt(router.abi, CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER);
   const tokenInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
   const walletAddress = await wallet.getAddress();
   const tokenHolder = Object.keys(TOKEN_HOLDERS).filter(
@@ -206,7 +206,7 @@ export async function fundWalletToken(
       }
       const routerInstance = await hre.ethers.getContractAt(
         router.abi,
-        pairSymbol === "SLP" ? SUSHISWAP_ROUTER : UNISWAP_ROUTER,
+        pairSymbol === "SLP" ? CONTRACT_ADDRESSES.SUSHISWAP_ROUTER : CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
       );
 
       if (getAddress(TOKEN1) === getAddress(TypedTokens["WETH"])) {
@@ -252,7 +252,7 @@ export async function fundWalletToken(
       const pool = curveToken.pool;
       const swap = curveToken?.swap;
       const old = curveToken?.old;
-      const curveRegistryInstance = await hre.ethers.getContractAt("ICurveRegistry", CURVE_REGISTRY);
+      const curveRegistryInstance = await hre.ethers.getContractAt("ICurveRegistry", CONTRACT_ADDRESSES.CURVE_REGISTRY);
       const tokenAddressInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
       const instance = await hre.ethers.getContractAt(swap ? "ICurveSwap" : "ICurveDeposit", pool);
       const coin = swap

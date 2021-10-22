@@ -429,9 +429,14 @@ contract AaveV2Adapter is IAdapter, IAdapterBorrow, IAdapterInvestLimit, Modifie
         address _borrowToken,
         uint256 _borrowAmount
     ) public view override returns (uint256) {
-        address _lendingPool = _getLendingPool(_liquidityPoolAddressProviderRegistry);
         uint256 _aTokenAmount =
-            _maxWithdrawal(_vault, _lendingPool, _liquidityPoolTokenBalance, _borrowToken, _borrowAmount);
+            _maxWithdrawal(
+                _vault,
+                _liquidityPoolAddressProviderRegistry,
+                _liquidityPoolTokenBalance,
+                _borrowToken,
+                _borrowAmount
+            );
         uint256 _outputTokenRepayable =
             _over(_vault, _underlyingToken, _liquidityPoolAddressProviderRegistry, _borrowToken, _aTokenAmount);
         if (_outputTokenRepayable > _borrowAmount) {

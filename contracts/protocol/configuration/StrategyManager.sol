@@ -56,8 +56,8 @@ contract StrategyManager is IStrategyManager, Modifiers {
     /**
      * @inheritdoc IStrategyManager
      */
-    function getDepositAllStepCount(bytes32 _investStrategyhash) public view override returns (uint256) {
-        return _getDepositAllStepCount(_investStrategyhash);
+    function getDepositAllStepsCount(bytes32 _investStrategyhash) public view override returns (uint256) {
+        return _getDepositAllStepsCount(_investStrategyhash);
     }
 
     /**
@@ -473,7 +473,7 @@ contract StrategyManager is IStrategyManager, Modifiers {
         return uint8(0);
     }
 
-    function _getDepositAllStepCount(bytes32 _investStrategyhash) internal view returns (uint256) {
+    function _getDepositAllStepsCount(bytes32 _investStrategyhash) internal view returns (uint256) {
         if (_investStrategyhash == Constants.ZERO_BYTES32) {
             return uint8(0);
         }
