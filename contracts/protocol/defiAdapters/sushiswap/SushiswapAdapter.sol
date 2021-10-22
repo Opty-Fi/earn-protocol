@@ -264,10 +264,6 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
         }
     }
 
-    /* solhint-enable no-unused-vars */
-
-    /* solhint-disable no-unused-vars */
-
     /**
      * @inheritdoc IAdapter
      */
@@ -286,8 +282,6 @@ contract SushiswapAdapter is IAdapter, IAdapterInvestLimit, IAdapterHarvestRewar
             );
         }
     }
-
-    /* solhint-enable no-unused-vars */
 
     /**
      * @inheritdoc IAdapter

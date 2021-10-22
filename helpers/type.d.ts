@@ -63,6 +63,7 @@ export type DEFI_POOLS_DATA = {
       lpToken: string;
       tokens: string[];
       stakingVault?: string;
+      pid?: string;
       deprecated?: boolean;
     };
   };
@@ -82,7 +83,7 @@ export type TESTING_DEFAULT_DATA = {
   }[];
 };
 
-export type PAIR_TOKEN_DATA = {
+export type MULTI_ASSET_TOKEN_DATA = {
   [token: string]: {
     address: string;
     path0?: string[];

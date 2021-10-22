@@ -1,5 +1,6 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
 import hre from "hardhat";
+import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
@@ -17,6 +18,8 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/withdrawal-fee.json";
+
+chai.use(solidity);
 
 describe(scenario.title, () => {
   const token = "DAI";

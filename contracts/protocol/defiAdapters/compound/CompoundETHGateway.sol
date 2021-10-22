@@ -7,7 +7,7 @@ import { Modifiers } from "../../configuration/Modifiers.sol";
 
 //  interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IWETH } from "../../../interfaces/misc/IWETH.sol";
+import { IWETH } from "../../../interfaces/token/IWETH.sol";
 import { ICompoundETHGateway } from "../../../interfaces/compound/ICompoundETHGateway.sol";
 import { ICompound } from "../../../interfaces/compound/ICompound.sol";
 

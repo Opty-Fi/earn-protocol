@@ -178,9 +178,6 @@ describe(`${testDeFiAdapterScenario.title} - HarvestV1Adapter`, () => {
     if (adapterName == "HarvestV1Adapter") {
       const pools = Object.keys(TypedDefiPools[adapterName]);
       for (const pool of pools) {
-        if (pool !== "crvrenwbtc") {
-          continue;
-        }
         if (TypedDefiPools[adapterName][pool].tokens.length == 1) {
           const liquidityPool = TypedDefiPools[adapterName][pool].pool;
           for (const story of testDeFiAdapterScenario.stories) {
@@ -508,7 +505,7 @@ describe(`${testDeFiAdapterScenario.title} - HarvestV1Adapter`, () => {
                         harvestV1Adapter
                           .connect(users[action.executer!])
                           [action.action](liquidityPool, stakingVaultAddress),
-                      ).to.be.revertedWith(action.message);
+                      ).to.be.revertedWith(action.message!);
                     } else {
                       await expect(
                         harvestV1Adapter
