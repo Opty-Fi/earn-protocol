@@ -15,6 +15,7 @@ import {
   isAddress,
 } from "./helpers";
 import { amountInHex } from "./utils";
+import router from "@uniswap/v2-periphery/build/IUniswapV2Router02.json";
 
 export async function approveLiquidityPoolAndMapAdapter(
   owner: Signer,
