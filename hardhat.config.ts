@@ -29,7 +29,7 @@ if (!SKIP_LOAD) {
   ["", "deployment", "actions"].forEach(folder => {
     const tasksPath = path.join(__dirname, "tasks", folder);
     fs.readdirSync(tasksPath)
-      .filter(pth => pth.includes(".ts") || pth.includes(".d.ts"))
+      .filter(pth => pth.includes(".ts"))
       .forEach(task => {
         require(`${tasksPath}/${task}`);
       });
