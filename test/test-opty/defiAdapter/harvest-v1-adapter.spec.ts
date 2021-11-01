@@ -5,7 +5,7 @@ import { Contract, Signer, BigNumber, utils } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
-import { TESTING_CONTRACTS } from "../../../helpers/constants/contracts-names";
+import { TESTING_CONTRACTS } from "../../../helpers/constants/test-contracts-name";
 import { HARVEST_V1_ADAPTER_NAME } from "../../../helpers/constants/adapters";
 import { TypedAdapterStrategies, TypedMultiAssetTokens, TypedCurveTokens, TypedDefiPools } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";

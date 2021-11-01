@@ -10,7 +10,8 @@ import {
   deployOptyStakingRateBalancer,
 } from "../../helpers/contracts-deployments";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployContract, executeFunc } from "../../helpers/helpers";
 
 type ARGUMENTS = {

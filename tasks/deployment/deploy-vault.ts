@@ -4,7 +4,7 @@ import { getTokenInforWithAddress, unpauseVault } from "../../helpers/contracts-
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { DEPLOY_VAULT } from "../task-names";
 
 task(DEPLOY_VAULT, "Deploy Vault")

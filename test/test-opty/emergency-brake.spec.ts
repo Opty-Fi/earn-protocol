@@ -4,7 +4,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import {
   approveAndSetTokenHashToToken,

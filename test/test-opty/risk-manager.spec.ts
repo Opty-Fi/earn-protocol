@@ -12,7 +12,8 @@ import {
   deployContract,
 } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToToken } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/risk-manager.json";
