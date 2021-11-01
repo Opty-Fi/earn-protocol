@@ -113,10 +113,10 @@ describe(scenario.title, () => {
   });
 
   for (let i = 0; i < scenario.vaults.length; i++) {
-    describe(`RP-${scenario.vaults[i].profileCode}`, async () => {
+    describe(`RP-${scenario.vaults[i].riskProfileCode}`, async () => {
       let Vault: Contract;
       const vault = scenario.vaults[i];
-      const profile = vault.profileCode;
+      const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 
       for (let i = 0; i < adaptersName.length; i++) {

@@ -52,7 +52,7 @@ describe(scenario.title, () => {
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
       const vaults = scenario.vaults[i];
-      const profile = vaults.profileCode;
+      const profile = vaults.riskProfileCode;
       const adapterNames = Object.keys(TypedAdapterStrategies).filter(adapter => adapter !== "SushiswapAdapter");
 
       for (let i = 0; i < adapterNames.length; i++) {

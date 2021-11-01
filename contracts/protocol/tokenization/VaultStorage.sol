@@ -54,9 +54,9 @@ contract VaultStorage {
     address public underlyingToken;
 
     /**
-     * @dev The risk profile name of the vault
+     * @dev The risk profile code of the vault
      */
-    uint256 public profile;
+    uint256 public riskProfileCode;
 
     /**
      * @dev The pricePerShare of the vault

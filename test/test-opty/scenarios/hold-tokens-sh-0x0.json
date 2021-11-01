@@ -4,7 +4,7 @@
   "vaults": [
     {
       "name": "Vault",
-      "profileCode": 1,
+      "riskProfileCode": 1,
       "stories": [
         {
           "description": "[StrategyHash is 0x..00] User should be able to deposit and Vault should hold tokens",

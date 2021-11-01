@@ -342,7 +342,7 @@ Usage: deploy Vault contract
 Options:
 --registry     required <address> the address of registry
 --token        required <address> the address of underlying token
---rpcode       required <number>  the code of Vault's risk profile
+--riskprofilecode       required <number>  the code of Vault's risk profile
 --insertindb   optional <bool>    allow inserting to database
 --network      optional <string>  name of the network provider (default: hardhat)
 ```
@@ -354,7 +354,7 @@ Options:
   --network localhost \
   --registry 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \
-  --rpcode 1
+  --riskprofilecode 1
 ```
 
 ### deploy-vaults
@@ -562,7 +562,7 @@ Usage: get best strategy or default best strategy for the token with risk profil
 
 Options:
 --token            required <address> the address of token
---rpcode           required <number>  the code of risk profile
+--riskprofilecode           required <number>  the code of risk profile
 --strategyprovider required <address> the address of strategyProvider
 --isdefault        required <bool>    get default strategy or not
 --network          optional <string>  name of the network provider (default: hardhat)
@@ -573,7 +573,7 @@ Options:
 ```
   yarn hardhat get-best-strategy \
   --network localhost \
-  --rpcode 1 \
+  --riskprofilecode 1 \
   --strategyprovider 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \
   --isdefault true
@@ -586,7 +586,7 @@ Usage: set best strategy or default best strategy
 
 Options:
 --token            required <address> the address of token
---rpcode           required <number>  the code of risk profile
+--riskprofilecode           required <number>  the code of risk profile
 --strategyhash     required <string>  the keccak256 hash of strategy
 --strategyprovider required <address> the address of strategyProvider
 --isdefault        required <bool>    whether set best default strategy or not
@@ -598,7 +598,7 @@ Options:
 ```
   yarn hardhat set-best-strategy \
   --network localhost \
-  --rpcode 1 \
+  --riskprofilecode 1 \
   --strategyprovider 0x0000000000000000000000000000000000000000 \
   --strategyhash 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \

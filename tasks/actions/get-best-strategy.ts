@@ -5,10 +5,10 @@ import { GET_BEST_STRATEGY } from "../task-names";
 
 task(GET_BEST_STRATEGY, "Get best strategy")
   .addParam("token", "the address of token", "", types.string)
-  .addParam("rpcode", "the code of risk profile", 0, types.int)
+  .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
   .addParam("strategyprovider", "the address of strategyProvider", "", types.string)
   .addParam("isdefault", "get default strategy or not", false, types.boolean)
-  .setAction(async ({ token, rpcode, strategyprovider, isdefault }, hre) => {
+  .setAction(async ({ token, riskprofilecode, strategyprovider, isdefault }, hre) => {
     if (strategyprovider === "") {
       throw new Error("strategyprovider cannot be empty");
     }
@@ -25,7 +25,7 @@ task(GET_BEST_STRATEGY, "Get best strategy")
       throw new Error("token address is invalid");
     }
 
-    if (RISK_PROFILES.filter(item => item.code === rpcode).length === 0) {
+    if (RISK_PROFILES.filter(item => item.code === riskprofilecode).length === 0) {
       throw new Error("risk profile is not available");
     }
 
@@ -34,9 +34,9 @@ task(GET_BEST_STRATEGY, "Get best strategy")
       const tokensHash = generateTokenHash([token]);
       let strategyHash = "";
       if (isdefault) {
-        strategyHash = await strategyProvider.rpToTokenToDefaultStrategy(rpcode, tokensHash);
+        strategyHash = await strategyProvider.rpToTokenToDefaultStrategy(riskprofilecode, tokensHash);
       } else {
-        strategyHash = await strategyProvider.rpToTokenToBestStrategy(rpcode, tokensHash);
+        strategyHash = await strategyProvider.rpToTokenToBestStrategy(riskprofilecode, tokensHash);
       }
       console.log(`StrategyHash : ${strategyHash}`);
     } catch (error: any) {

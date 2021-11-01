@@ -53,7 +53,7 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
-      const profile = vault.profileCode;
+      const profile = vault.riskProfileCode;
       const stories = vault.stories;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 

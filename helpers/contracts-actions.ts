@@ -136,7 +136,7 @@ export async function setBestStrategy(
   tokenAddress: string,
   investStrategyRegistry: Contract,
   strategyProvider: Contract,
-  profileCodeCode: number,
+  riskProfileCode: number,
   isDefault: boolean,
 ): Promise<string> {
   const strategyHash = generateStrategyHash(strategy, tokenAddress);
@@ -150,9 +150,9 @@ export async function setBestStrategy(
   }
 
   if (isDefault) {
-    await strategyProvider.setBestDefaultStrategy(profileCodeCode, tokenHash, strategyHash);
+    await strategyProvider.setBestDefaultStrategy(riskProfileCode, tokenHash, strategyHash);
   } else {
-    await strategyProvider.setBestStrategy(profileCodeCode, tokenHash, strategyHash);
+    await strategyProvider.setBestStrategy(riskProfileCode, tokenHash, strategyHash);
   }
   return strategyHash;
 }

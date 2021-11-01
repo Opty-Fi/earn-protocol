@@ -137,7 +137,7 @@ export const RISK_PROFILES: RISK_PROFILE_DATA = [
   {
     code: 2,
     name: "Intermediate",
-    symbol: "Inter",
+    symbol: "Int",
     canBorrow: true,
     poolRating: [0, 20],
   },
