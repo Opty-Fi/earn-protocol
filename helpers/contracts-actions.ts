@@ -523,16 +523,16 @@ export async function addRiskProfiles(owner: Signer, registry: Contract): Promis
 export async function addRiskProfile(
   registry: Contract,
   owner: Signer,
-  code: number,
+  riskProfileCode: number,
   name: string,
   symbol: string,
   canBorrow: boolean,
   poolRating: number[],
 ): Promise<void> {
-  const profile = await registry.getRiskProfile(code);
+  const profile = await registry.getRiskProfile(riskProfileCode);
   if (!profile.exists) {
     await executeFunc(registry, owner, "addRiskProfile(uint256,string,string,bool,(uint8,uint8))", [
-      code,
+      riskProfileCode,
       name,
       symbol,
       canBorrow,
