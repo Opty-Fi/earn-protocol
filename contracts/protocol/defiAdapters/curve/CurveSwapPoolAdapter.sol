@@ -12,6 +12,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 //  helper contracts
 import { Modifiers } from "../../configuration/Modifiers.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { CurveSwapETHGateway } from "./CurveSwapETHGateway.sol";
 
 //  interfaces
 import { IAdapter } from "../../../interfaces/opty/defiAdapters/IAdapter.sol";
@@ -49,11 +50,32 @@ contract CurveSwapPoolAdapter is
     /** @notice max deposit value datatypes */
     DataTypes.MaxExposure public maxDepositProtocolMode;
 
+    /** @dev ETH gateway contract for curveSwap adapter */
+    address public immutable curveSwapETHGatewayContract;
+
     /** @notice  Curve Registry Address Provider */
     address public constant ADDRESS_PROVIDER = address(0x0000000022D53366457F9d5E68Ec105046FC4383);
 
     /** @notice HBTC token contract address */
     address public constant HBTC = address(0x0316EB71485b0Ab14103307bf65a021042c6d380);
+
+    /** @notice Curve ETH/sETH StableSwap contract address*/
+    address public constant ETH_sETH_STABLESWAP = address(0xc5424B857f758E906013F3555Dad202e4bdB4567);
+
+    /** @notice Curve ETH/ankrETH StableSwap contract address*/
+    address public constant ETH_ankrETH_STABLESWAP = address(0xA96A65c051bF88B4095Ee1f2451C2A9d43F53Ae2);
+
+    /** @notice Curve ETH/rETH StableSwap contract address*/
+    address public constant ETH_rETH_STABLESWAP = address(0xF9440930043eb3997fc70e1339dBb11F341de7A8);
+
+    /** @notice Curve ETH/stETH StableSwap contract address*/
+    address public constant ETH_stETH_STABLESWAP = address(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022);
+
+    /** WETH ERC20 token address */
+    address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+
+    /** Address with no private key */
+    address public constant ETH = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
     /** @notice max deposit's default value in percentage */
     uint256 public maxDepositProtocolPct; // basis points
@@ -68,6 +90,13 @@ contract CurveSwapPoolAdapter is
      * @dev mapp coins and tokens to curve deposit pool
      */
     constructor(address _registry) public Modifiers(_registry) {
+        curveSwapETHGatewayContract = address(
+            new CurveSwapETHGateway(
+                WETH,
+                _registry,
+                [ETH_sETH_STABLESWAP, ETH_ankrETH_STABLESWAP, ETH_rETH_STABLESWAP, ETH_stETH_STABLESWAP]
+            )
+        );
         setMaxDepositProtocolPct(uint256(10000)); // 100% (basis points)
         setMaxDepositProtocolMode(DataTypes.MaxExposure.Pct);
     }
@@ -94,7 +123,7 @@ contract CurveSwapPoolAdapter is
         uint256 _maxDepositAmount
     ) external override onlyRiskOperator {
         require(_liquidityPool.isContract(), "!isContract");
-        // Note : We are using 18 as decimals for USD and BTC
+        // Note : use 18 as decimals for USD, BTC and ETH
         maxDepositAmount[_liquidityPool] = _maxDepositAmount;
         emit LogMaxDepositAmount(maxDepositAmount[_liquidityPool], msg.sender);
     }
@@ -161,7 +190,7 @@ contract CurveSwapPoolAdapter is
         address _liquidityPool
     ) public view override returns (bytes[] memory) {
         uint256 _amount = ERC20(_underlyingToken).balanceOf(_vault);
-        return _getDepositCode(_underlyingToken, _liquidityPool, _amount);
+        return _getDepositCode(_vault, _underlyingToken, _liquidityPool, _amount);
     }
 
     /**
@@ -172,7 +201,7 @@ contract CurveSwapPoolAdapter is
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (bytes[] memory) {
-        uint256 _amount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+        uint256 _amount = getLiquidityPoolTokenBalance(_vault, address(0), _liquidityPool);
         return getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _amount);
     }
 
@@ -215,7 +244,7 @@ contract CurveSwapPoolAdapter is
         address _liquidityPool,
         uint256 _redeemAmount
     ) public view override returns (uint256) {
-        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+        uint256 _liquidityPoolTokenBalance = getLiquidityPoolTokenBalance(_vault, address(0), _liquidityPool);
         uint256 _balanceInToken = getAllAmountInToken(_vault, _underlyingToken, _liquidityPool);
         // can have unintentional rounding errors
         return (_liquidityPoolTokenBalance.mul(_redeemAmount)).div(_balanceInToken).add(1);
@@ -248,7 +277,7 @@ contract CurveSwapPoolAdapter is
         if (_liquidityGauge != address(0)) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
-                getMinter(_liquidityGauge),
+                _getMinter(_liquidityGauge),
                 abi.encodeWithSignature("mint(address)", _liquidityGauge)
             );
         }
@@ -282,10 +311,10 @@ contract CurveSwapPoolAdapter is
      */
     function getStakeAllCodes(
         address payable _vault,
-        address _underlyingToken,
+        address,
         address _liquidityPool
     ) public view override returns (bytes[] memory) {
-        uint256 _stakeAmount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+        uint256 _stakeAmount = getLiquidityPoolTokenBalance(_vault, address(0), _liquidityPool);
         return getStakeSomeCodes(_liquidityPool, _stakeAmount);
     }
 
@@ -346,12 +375,12 @@ contract CurveSwapPoolAdapter is
      * @inheritdoc IAdapter
      */
     function getDepositSomeCodes(
-        address payable,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _amount
     ) public view override returns (bytes[] memory) {
-        return _getDepositCode(_underlyingToken, _liquidityPool, _amount);
+        return _getDepositCode(_vault, _underlyingToken, _liquidityPool, _amount);
     }
 
     /**
@@ -360,33 +389,47 @@ contract CurveSwapPoolAdapter is
      *             does not have remove_liquidity_one_coin function
      */
     function getWithdrawSomeCodes(
-        address payable,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool,
         uint256 _amount
     ) public view override returns (bytes[] memory _codes) {
         if (_amount > 0) {
+            address _lendingPool = _underlyingToken == WETH ? curveSwapETHGatewayContract : _liquidityPool;
             address _liquidityPoolToken = getLiquidityPoolToken(address(0), _liquidityPool);
             _codes = new bytes[](3);
             _codes[0] = abi.encode(
                 _liquidityPoolToken,
-                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, uint256(0))
+                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, uint256(0))
             );
             _codes[1] = abi.encode(
                 _liquidityPoolToken,
-                abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amount)
+                abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _amount)
             );
 
-            _codes[2] = abi.encode(
-                _liquidityPool,
-                // solhint-disable-next-line max-line-length
-                abi.encodeWithSignature(
-                    "remove_liquidity_one_coin(uint256,int128,uint256)",
-                    _amount,
-                    _getTokenIndex(_liquidityPool, _underlyingToken),
-                    uint256(0)
+            _codes[2] = _underlyingToken == WETH
+                ? abi.encode(
+                    curveSwapETHGatewayContract,
+                    // solhint-disable-next-line max-line-length
+                    abi.encodeWithSignature(
+                        "withdrawETH(address,address,address,uint256,int128)",
+                        _vault,
+                        _liquidityPool,
+                        _liquidityPoolToken,
+                        _amount,
+                        _getTokenIndex(_liquidityPool, _underlyingToken)
+                    )
                 )
-            );
+                : abi.encode(
+                    _lendingPool,
+                    // solhint-disable-next-line max-line-length
+                    abi.encodeWithSignature(
+                        "remove_liquidity_one_coin(uint256,int128,uint256)",
+                        _amount,
+                        _getTokenIndex(_liquidityPool, _underlyingToken),
+                        uint256(0)
+                    )
+                );
         }
     }
 
@@ -405,7 +448,7 @@ contract CurveSwapPoolAdapter is
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        uint256 _liquidityPoolTokenAmount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+        uint256 _liquidityPoolTokenAmount = getLiquidityPoolTokenBalance(_vault, address(0), _liquidityPool);
         return getSomeAmountInToken(_underlyingToken, _liquidityPool, _liquidityPoolTokenAmount);
     }
 
@@ -414,10 +457,10 @@ contract CurveSwapPoolAdapter is
      */
     function getLiquidityPoolTokenBalance(
         address payable _vault,
-        address _underlyingToken,
+        address,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return ERC20(getLiquidityPoolToken(_underlyingToken, _liquidityPool)).balanceOf(_vault);
+        return ERC20(getLiquidityPoolToken(address(0), _liquidityPool)).balanceOf(_vault);
     }
 
     /**
@@ -445,7 +488,7 @@ contract CurveSwapPoolAdapter is
         address _curveRegistry = _getCurveRegistry();
         address _liquidityGauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
         if (_liquidityGauge != address(0)) {
-            return ITokenMinter(getMinter(_liquidityGauge)).token();
+            return ITokenMinter(_getMinter(_liquidityGauge)).token();
         }
         return address(0);
     }
@@ -597,7 +640,7 @@ contract CurveSwapPoolAdapter is
     /**
      * @notice Get the Curve Minter's address
      */
-    function getMinter(address _gauge) public view returns (address) {
+    function _getMinter(address _gauge) internal view returns (address) {
         return ICurveGauge(_gauge).minter();
     }
 
@@ -606,6 +649,7 @@ contract CurveSwapPoolAdapter is
      * @param _underlyingToken address of the underlying asset
      * @param _swapPool swap pool address
      * @param _amount amount in underlying token
+     * @return _underlyingTokenIndex index of _underlyingToken
      * @return _nCoins number of underlying tokens in swap pool
      * @return _underlyingTokens underlying tokens in a swap pool
      * @return _amounts value in an underlying token for each underlying token
@@ -619,6 +663,7 @@ contract CurveSwapPoolAdapter is
         internal
         view
         returns (
+            int128 _underlyingTokenIndex,
             uint256 _nCoins,
             address[8] memory _underlyingTokens,
             uint256[] memory _amounts,
@@ -628,10 +673,12 @@ contract CurveSwapPoolAdapter is
         address _curveRegistry = _getCurveRegistry();
         _nCoins = _getNCoins(_swapPool, _curveRegistry);
         _underlyingTokens = _getUnderlyingTokens(_swapPool, _curveRegistry);
+        address _curveishCoin = _underlyingToken == WETH ? ETH : _underlyingToken;
+        _underlyingTokenIndex = _getTokenIndex(_swapPool, _curveishCoin);
         _amounts = new uint256[](_nCoins);
         _codeLength = 1;
         for (uint256 _i = 0; _i < _nCoins; _i++) {
-            if (_underlyingTokens[_i] == _underlyingToken) {
+            if (_underlyingTokens[_i] == _curveishCoin) {
                 _amounts[_i] = _getDepositAmount(_swapPool, _underlyingToken, _amount);
                 if (_amounts[_i] > 0) {
                     if (_underlyingTokens[_i] == HBTC) {
@@ -651,9 +698,10 @@ contract CurveSwapPoolAdapter is
      * @return _tokenIndex index of coin in swap pool
      */
     function _getTokenIndex(address _swapPool, address _underlyingToken) internal view returns (int128) {
+        address _inputToken = _underlyingToken == WETH ? ETH : _underlyingToken;
         address[8] memory _underlyingTokens = _getUnderlyingTokens(_swapPool, _getCurveRegistry());
         for (uint256 _i = 0; _i < _underlyingTokens.length; _i++) {
-            if (_underlyingTokens[_i] == _underlyingToken) {
+            if (_underlyingTokens[_i] == _inputToken) {
                 return int128(_i);
             }
         }
@@ -681,50 +729,70 @@ contract CurveSwapPoolAdapter is
      * @return _codes bytes array of function calls to be executed from vault
      */
     function _getDepositCode(
+        address payable _vault,
         address _underlyingToken,
         address _swapPool,
         uint256 _amount
     ) internal view returns (bytes[] memory _codes) {
-        (uint256 _nCoins, address[8] memory _underlyingTokens, uint256[] memory _amounts, uint256 _codeLength) =
-            _getDepositCodeConfig(_underlyingToken, _swapPool, _amount);
+        (
+            int128 _underlyingTokenIndex,
+            uint256 _nCoins,
+            address[8] memory _underlyingTokens,
+            uint256[] memory _amounts,
+            uint256 _codeLength
+        ) = _getDepositCodeConfig(_underlyingToken, _swapPool, _amount);
+        address _lendingPool = _underlyingToken == WETH ? curveSwapETHGatewayContract : _swapPool;
         if (_codeLength > 1) {
             _codes = new bytes[](_codeLength);
             uint256 _j = 0;
             for (uint256 i = 0; i < _nCoins; i++) {
+                address _inputToken = _underlyingTokens[i] == ETH ? WETH : _underlyingTokens[i];
                 if (_amounts[i] > 0) {
-                    if (_underlyingTokens[i] == HBTC) {
+                    if (_inputToken == HBTC) {
                         _codes[_j++] = abi.encode(
-                            _underlyingTokens[i],
-                            abi.encodeWithSignature("approve(address,uint256)", _swapPool, _amounts[i])
+                            _inputToken,
+                            abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _amounts[i])
                         );
                     } else {
                         _codes[_j++] = abi.encode(
-                            _underlyingTokens[i],
-                            abi.encodeWithSignature("approve(address,uint256)", _swapPool, uint256(0))
+                            _inputToken,
+                            abi.encodeWithSignature("approve(address,uint256)", _lendingPool, uint256(0))
                         );
                         _codes[_j++] = abi.encode(
-                            _underlyingTokens[i],
-                            abi.encodeWithSignature("approve(address,uint256)", _swapPool, _amounts[i])
+                            _inputToken,
+                            abi.encodeWithSignature("approve(address,uint256)", _lendingPool, _amounts[i])
                         );
                     }
                 }
             }
             if (_nCoins == uint256(2)) {
                 uint256[2] memory _depositAmounts = [_amounts[0], _amounts[1]];
-                _codes[_j] = abi.encode(
-                    _swapPool,
-                    abi.encodeWithSignature("add_liquidity(uint256[2],uint256)", _depositAmounts, uint256(0))
-                );
+                _codes[_j] = _underlyingToken == WETH
+                    ? abi.encode(
+                        curveSwapETHGatewayContract,
+                        abi.encodeWithSignature(
+                            "depositETH(address,address,address,uint256[2],int128)",
+                            _vault,
+                            _swapPool,
+                            getLiquidityPoolToken(address(0), _swapPool),
+                            _depositAmounts,
+                            _underlyingTokenIndex
+                        )
+                    )
+                    : abi.encode(
+                        _lendingPool,
+                        abi.encodeWithSignature("add_liquidity(uint256[2],uint256)", _depositAmounts, uint256(0))
+                    );
             } else if (_nCoins == uint256(3)) {
                 uint256[3] memory _depositAmounts = [_amounts[0], _amounts[1], _amounts[2]];
                 _codes[_j] = abi.encode(
-                    _swapPool,
+                    _lendingPool,
                     abi.encodeWithSignature("add_liquidity(uint256[3],uint256)", _depositAmounts, uint256(0))
                 );
             } else if (_nCoins == uint256(4)) {
                 uint256[4] memory _depositAmounts = [_amounts[0], _amounts[1], _amounts[2], _amounts[3]];
                 _codes[_j] = abi.encode(
-                    _swapPool,
+                    _lendingPool,
                     abi.encodeWithSignature("add_liquidity(uint256[4],uint256)", _depositAmounts, uint256(0))
                 );
             }
@@ -803,7 +871,7 @@ contract CurveSwapPoolAdapter is
         address _underlyingToken,
         uint256 _amount
     ) internal view returns (uint256) {
-        uint256 _poolValue = getPoolValue(_swapPool, _underlyingToken);
+        uint256 _poolValue = getPoolValue(_swapPool, address(0));
         uint256 _poolPct = maxDepositPoolPct[_swapPool];
         uint256 _decimals = ERC20(_underlyingToken).decimals();
         uint256 _actualAmount = _amount.mul(10**(uint256(18).sub(_decimals)));

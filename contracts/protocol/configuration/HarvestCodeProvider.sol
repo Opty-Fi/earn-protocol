@@ -77,7 +77,7 @@ contract HarvestCodeProvider is IHarvestCodeProvider, Modifiers {
                     _rewardTokenAmount,
                     sushiswapRouter
                 );
-            } else {
+            } else if (_rewardToken != _underlyingToken) {
                 uint256[] memory _amounts =
                     IUniswapV2Router02(uniswapV2Router02).getAmountsOut(
                         _rewardTokenAmount,
