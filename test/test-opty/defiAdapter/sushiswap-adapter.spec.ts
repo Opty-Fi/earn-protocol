@@ -203,8 +203,13 @@ describe(`${SUSHISWAP_ADAPTER_NAME} Unit test`, () => {
                     case "setMaxDepositProtocolMode(uint8)": {
                       const { mode } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
                       const existingMode = await sushiswapAdapter.maxDepositProtocolMode();
-                      if (existingMode != mode) {
-                        await sushiswapAdapter[action.action](mode);
+                      if (mode) {
+                        if (existingMode != mode) {
+                          await expect(sushiswapAdapter[action.action](mode))
+                            .to.emit(sushiswapAdapter, "LogMaxDepositProtocolMode")
+                            .withArgs(+mode, ownerAddress);
+                          expect(await sushiswapAdapter.maxDepositProtocolMode()).to.equal(+mode);
+                        }
                       }
 
                       break;
@@ -220,8 +225,8 @@ describe(`${SUSHISWAP_ADAPTER_NAME} Unit test`, () => {
                       if (!existingProtocolPct.eq(BigNumber.from(maxDepositProtocolPct))) {
                         await expect(sushiswapAdapter[action.action](maxDepositProtocolPct))
                           .to.emit(sushiswapAdapter, "LogMaxDepositProtocolPct")
-                          .withArgs(+maxDepositProtocolPct, ownerAddress);
-                        expect(await sushiswapAdapter.maxDepositProtocolPct()).to.equal(+maxDepositProtocolPct);
+                          .withArgs(maxDepositProtocolPct, ownerAddress);
+                        expect(await sushiswapAdapter.maxDepositProtocolPct()).to.equal(maxDepositProtocolPct);
                       }
                       const poolValue: BigNumber = await sushiswapAdapter.getPoolValue(
                         liquidityPool,
@@ -237,8 +242,14 @@ describe(`${SUSHISWAP_ADAPTER_NAME} Unit test`, () => {
                       const existingPoolPct: BigNumber = await sushiswapAdapter.maxDepositPoolPct(
                         underlyingTokenAddress,
                       );
+
                       if (!existingPoolPct.eq(BigNumber.from(maxDepositPoolPct))) {
-                        await sushiswapAdapter[action.action](underlyingTokenAddress, maxDepositPoolPct);
+                        await expect(sushiswapAdapter[action.action](underlyingTokenAddress, maxDepositPoolPct))
+                          .to.emit(sushiswapAdapter, "LogMaxDepositPoolPct")
+                          .withArgs(maxDepositPoolPct, ownerAddress);
+                        expect(await sushiswapAdapter.maxDepositPoolPct(underlyingTokenAddress)).to.equal(
+                          maxDepositPoolPct,
+                        );
                       }
                       const poolValue: BigNumber = await sushiswapAdapter.getPoolValue(
                         liquidityPool,
@@ -265,9 +276,9 @@ describe(`${SUSHISWAP_ADAPTER_NAME} Unit test`, () => {
                         await expect(sushiswapAdapter[action.action](liquidityPool, underlyingTokenAddress, amount))
                           .to.emit(sushiswapAdapter, "LogMaxDepositAmount")
                           .withArgs(amount, ownerAddress);
-                        expect(
-                          +(await sushiswapAdapter.maxDepositAmount(liquidityPool, underlyingTokenAddress)),
-                        ).to.equal(+amount);
+                        expect(await sushiswapAdapter.maxDepositAmount(liquidityPool, underlyingTokenAddress)).to.equal(
+                          amount,
+                        );
                       }
                       limit = amount;
                       break;

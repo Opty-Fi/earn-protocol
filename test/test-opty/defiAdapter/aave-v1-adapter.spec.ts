@@ -306,8 +306,13 @@ describe(`${AAVE_V1_ADAPTER_NAME} Unit test`, () => {
                     case "setMaxDepositProtocolMode(uint8)": {
                       const { mode } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
                       const existingMode = await aaveV1Adapter.maxDepositProtocolMode();
-                      if (existingMode != mode) {
-                        await aaveV1Adapter[action.action](mode);
+                      if (mode) {
+                        if (existingMode != mode) {
+                          await expect(aaveV1Adapter[action.action](mode))
+                            .to.emit(aaveV1Adapter, "LogMaxDepositProtocolMode")
+                            .withArgs(+mode, ownerAddress);
+                          expect(await aaveV1Adapter.maxDepositProtocolMode()).to.equal(+mode);
+                        }
                       }
                       break;
                     }
@@ -318,9 +323,15 @@ describe(`${AAVE_V1_ADAPTER_NAME} Unit test`, () => {
                       }
                       const { maxDepositProtocolPct } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
                       const existingProtocolPct: BigNumber = await aaveV1Adapter.maxDepositProtocolPct();
+
                       if (!existingProtocolPct.eq(BigNumber.from(maxDepositProtocolPct))) {
                         await aaveV1Adapter[action.action](maxDepositProtocolPct);
+                        await expect(aaveV1Adapter[action.action](maxDepositProtocolPct))
+                          .to.emit(aaveV1Adapter, "LogMaxDepositProtocolPct")
+                          .withArgs(maxDepositProtocolPct, ownerAddress);
+                        expect(await aaveV1Adapter.maxDepositProtocolPct()).to.equal(maxDepositProtocolPct);
                       }
+
                       const poolValue: BigNumber = await aaveV1Adapter.getPoolValue(
                         liquidityPool,
                         underlyingTokenAddress,
@@ -333,8 +344,12 @@ describe(`${AAVE_V1_ADAPTER_NAME} Unit test`, () => {
                       const { maxDepositPoolPct } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
                       const existingPoolPct: BigNumber = await aaveV1Adapter.maxDepositPoolPct(liquidityPool);
                       if (!existingPoolPct.eq(BigNumber.from(maxDepositPoolPct))) {
-                        await aaveV1Adapter[action.action](liquidityPool, maxDepositPoolPct);
+                        await expect(aaveV1Adapter[action.action](liquidityPool, maxDepositPoolPct))
+                          .to.emit(aaveV1Adapter, "LogMaxDepositPoolPct")
+                          .withArgs(maxDepositPoolPct, ownerAddress);
+                        expect(await aaveV1Adapter.maxDepositPoolPct(liquidityPool)).to.equal(maxDepositPoolPct);
                       }
+
                       const poolValue: BigNumber = await aaveV1Adapter.getPoolValue(
                         liquidityPool,
                         underlyingTokenAddress,
