@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedTokens } from "../../helpers/data";
 import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
 import { APPROVE_TOKENS } from "../task-names";

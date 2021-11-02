@@ -6,7 +6,8 @@ import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
@@ -171,9 +172,9 @@ describe(scenario.title, () => {
               }
               await unpauseVault(users[0], essentialContracts.registry, Vault.address, true);
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
-                await expect(essentialContracts.registry.connect(users[0])["approveToken(address)"](Vault.address))
-                  .to.emit(essentialContracts.registry, "LogToken")
-                  .withArgs(hre.ethers.utils.getAddress(Vault.address), true, await users[0].getAddress());
+                await executeFunc(essentialContracts.registry, users[0], "approveToken(address[])", [
+                  [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
+                ]);
                 await expect(
                   essentialContracts.registry
                     .connect(users[0])

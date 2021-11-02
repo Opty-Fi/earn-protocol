@@ -1,6 +1,6 @@
 import { RISK_PROFILES, OPTY_STAKING_VAULTS } from "./constants/contracts-data";
 import { VAULT_TOKENS } from "./constants/tokens";
-import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "./constants/contracts-names";
+import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "./constants/essential-contracts-name";
 import { ADAPTERS } from "./constants/adapters";
 import { Contract, Signer } from "ethers";
 import { CONTRACTS, CONTRACTS_WITH_HASH } from "./type";

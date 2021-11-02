@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress, executeFunc, deployContract } from "../../helpers/helpers";
 import { DEPLOY_STRATEGY_MANAGER } from "../task-names";
 

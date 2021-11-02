@@ -72,11 +72,23 @@ contract CurveDepositPoolAdapter is
     /** @notice Curve's susd zap deposit contract address */
     address public constant SUSD_DEPOSIT_POOL = address(0xFCBa3E75865d2d561BE8D220616520c171F12851);
 
+    /** @notice Curve's aToken swap contract address */
+    address public constant A_SWAP_POOL = address(0xDeBF20617708857ebe4F679508E7b7863a8A8EeE);
+
+    /** @notice Curve's saToken swap contract address */
+    address public constant SA_SWAP_POOL = address(0xEB16Ae0052ed37f479f7fe63849198Df1765a733);
+
+    /** @notice Curve's saToken swap contract address */
+    address public constant Y_SWAP_POOL = address(0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF);
+
     /** @notice max deposit's default value in percentage */
     uint256 public maxDepositProtocolPct; // basis points
 
     /** @dev deposit addresses that uses old API */
     mapping(address => bool) public isOldDepositZap;
+
+    /** @dev swap pool addresses*/
+    mapping(address => bool) public isSwapPool;
 
     /** @notice Maps liquidityPool to absolute max deposit values in underlying */
     mapping(address => uint256) public maxDepositAmount;
@@ -94,6 +106,9 @@ contract CurveDepositPoolAdapter is
         setIsOldDepositZap(Y_DEPOSIT_POOL, true); // curve-y
         setIsOldDepositZap(BUSD_DEPOSIT_POOL, true); // curve-busd
         setIsOldDepositZap(SUSD_DEPOSIT_POOL, true); // curve-susd
+        setIsSwapPool(A_SWAP_POOL, true); // aToken
+        setIsSwapPool(SA_SWAP_POOL, true); // saToken
+        setIsSwapPool(Y_SWAP_POOL, true); // yToken
         setMaxDepositProtocolPct(uint256(10000)); // 100% (basis points)
         setMaxDepositProtocolMode(DataTypes.MaxExposure.Pct);
     }
@@ -135,22 +150,19 @@ contract CurveDepositPoolAdapter is
     ) external override returns (uint256) {
         address[8] memory _underlyingTokens;
         uint256 _liquidityPoolTokenAmount;
+        address _swapPool = _getSwapPool(_liquidityPool);
         {
-            address _swapPool = _getSwapPool(_liquidityPool);
             address _curveRegistry = _getCurveRegistry();
             _underlyingTokens = _getUnderlyingTokens(_swapPool, _curveRegistry);
-            address _gauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
+            address _gauge = _getLiquidityGauge(_swapPool, _curveRegistry);
             _liquidityPoolTokenAmount = ICurveGauge(_gauge).balanceOf(_vault);
-        }
-        int128 tokenIndex;
-        for (uint8 i = 0; i < _underlyingTokens.length; i++) {
-            if (_underlyingTokens[i] == _underlyingToken) {
-                tokenIndex = i;
-            }
         }
         uint256 _b;
         if (_liquidityPoolTokenAmount > 0) {
-            _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(_liquidityPoolTokenAmount, tokenIndex);
+            _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(
+                _liquidityPoolTokenAmount,
+                _getTokenIndex(_swapPool, _underlyingToken)
+            );
         }
         _b = _b.add(
             IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).rewardBalanceInUnderlyingTokens(
@@ -160,6 +172,15 @@ contract CurveDepositPoolAdapter is
             )
         );
         return _b;
+    }
+
+    /**
+     * @dev Maps true to a liquidity pool if it is swap pool
+     * @param _liquidityPool swap pool address
+     * @param _isSwap set true if the _liquidityPool is a swap pool
+     */
+    function setIsSwapPool(address _liquidityPool, bool _isSwap) public onlyOperator {
+        isSwapPool[_liquidityPool] = _isSwap;
     }
 
     /**
@@ -291,8 +312,7 @@ contract CurveDepositPoolAdapter is
         override
         returns (bytes[] memory _codes)
     {
-        address _curveRegistry = _getCurveRegistry();
-        address _liquidityGauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
+        address _liquidityGauge = _getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry());
         if (_liquidityGauge != address(0)) {
             _codes = new bytes[](1);
             _codes[0] = abi.encode(
@@ -318,8 +338,7 @@ contract CurveDepositPoolAdapter is
      * @inheritdoc IAdapter
      */
     function canStake(address _liquidityPool) public view override returns (bool) {
-        address _curveRegistry = _getCurveRegistry();
-        if (_getLiquidityGauge(_liquidityPool, _curveRegistry) != address(0)) {
+        if (_getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry()) != address(0)) {
             return true;
         }
         return false;
@@ -425,15 +444,26 @@ contract CurveDepositPoolAdapter is
                 abi.encodeWithSignature("approve(address,uint256)", _liquidityPool, _amount)
             );
 
-            _codes[2] = abi.encode(
-                _liquidityPool,
-                abi.encodeWithSignature(
-                    "remove_liquidity_one_coin(uint256,int128,uint256)",
-                    _amount,
-                    _getTokenIndex(_swapPool, _underlyingToken),
-                    uint256(0)
+            _codes[2] = isSwapPool[_liquidityPool]
+                ? abi.encode(
+                    _liquidityPool,
+                    abi.encodeWithSignature(
+                        "remove_liquidity_one_coin(uint256,int128,uint256,bool)",
+                        _amount,
+                        _getTokenIndex(_swapPool, _underlyingToken),
+                        uint256(0),
+                        true
+                    )
                 )
-            );
+                : abi.encode(
+                    _liquidityPool,
+                    abi.encodeWithSignature(
+                        "remove_liquidity_one_coin(uint256,int128,uint256)",
+                        _amount,
+                        _getTokenIndex(_swapPool, _underlyingToken),
+                        uint256(0)
+                    )
+                );
         }
     }
 
@@ -441,18 +471,18 @@ contract CurveDepositPoolAdapter is
      * @inheritdoc IAdapter
      */
     function getLiquidityPoolToken(address, address _liquidityPool) public view override returns (address) {
-        return ICurveDeposit(_liquidityPool).token();
+        return ICurveRegistry(_getCurveRegistry()).get_lp_token(_getSwapPool(_liquidityPool));
     }
 
     /**
      * @inheritdoc IAdapter
      */
     function getAllAmountInToken(
-        address payable _holder,
+        address payable _vault,
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        uint256 _liquidityPoolTokenAmount = getLiquidityPoolTokenBalance(_holder, _underlyingToken, _liquidityPool);
+        uint256 _liquidityPoolTokenAmount = getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
         return getSomeAmountInToken(_underlyingToken, _liquidityPool, _liquidityPoolTokenAmount);
     }
 
@@ -461,10 +491,10 @@ contract CurveDepositPoolAdapter is
      */
     function getLiquidityPoolTokenBalance(
         address payable _vault,
-        address _underlyingToken,
+        address,
         address _liquidityPool
     ) public view override returns (uint256) {
-        return ERC20(getLiquidityPoolToken(_underlyingToken, _liquidityPool)).balanceOf(_vault);
+        return ERC20(getLiquidityPoolToken(address(0), _liquidityPool)).balanceOf(_vault);
     }
 
     /**
@@ -475,13 +505,11 @@ contract CurveDepositPoolAdapter is
         address _liquidityPool,
         uint256 _liquidityPoolTokenAmount
     ) public view override returns (uint256) {
-        address _swapPool = _getSwapPool(_liquidityPool);
-
         if (_liquidityPoolTokenAmount > 0) {
             return
                 ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(
                     _liquidityPoolTokenAmount,
-                    _getTokenIndex(_swapPool, _underlyingToken)
+                    _getTokenIndex(_getSwapPool(_liquidityPool), _underlyingToken)
                 );
         }
         return 0;
@@ -491,8 +519,7 @@ contract CurveDepositPoolAdapter is
      * @inheritdoc IAdapter
      */
     function getRewardToken(address _liquidityPool) public view override returns (address) {
-        address _curveRegistry = _getCurveRegistry();
-        address _liquidityGauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
+        address _liquidityGauge = _getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry());
         if (_liquidityGauge != address(0)) {
             return ITokenMinter(_getMinter(_liquidityGauge)).token();
         }
@@ -507,8 +534,7 @@ contract CurveDepositPoolAdapter is
         address _liquidityPool,
         address
     ) public view override returns (uint256) {
-        address _curveRegistry = _getCurveRegistry();
-        if (_getLiquidityGauge(_liquidityPool, _curveRegistry) != address(0)) {
+        if (_getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry()) != address(0)) {
             // TODO : get the amount of unclaimed CRV tokens
             return uint256(1000000000000000000);
         }
@@ -552,8 +578,7 @@ contract CurveDepositPoolAdapter is
         returns (bytes[] memory _codes)
     {
         if (_stakeAmount > 0) {
-            address _curveRegistry = _getCurveRegistry();
-            address _liquidityGauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
+            address _liquidityGauge = _getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry());
             address _liquidityPoolToken = getLiquidityPoolToken(address(0), _liquidityPool);
             _codes = new bytes[](3);
             _codes[0] = abi.encode(
@@ -578,8 +603,7 @@ contract CurveDepositPoolAdapter is
         returns (bytes[] memory _codes)
     {
         if (_unstakeAmount > 0) {
-            address _curveRegistry = _getCurveRegistry();
-            address _liquidityGauge = _getLiquidityGauge(_liquidityPool, _curveRegistry);
+            address _liquidityGauge = _getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry());
             _codes = new bytes[](1);
             _codes[0] = abi.encode(_liquidityGauge, abi.encodeWithSignature("withdraw(uint256)", _unstakeAmount));
         }
@@ -593,11 +617,10 @@ contract CurveDepositPoolAdapter is
         address _underlyingToken,
         address _liquidityPool
     ) public view override returns (uint256) {
-        address _curveRegistry = _getCurveRegistry();
         address _swapPool = _getSwapPool(_liquidityPool);
 
         uint256 _liquidityPoolTokenAmount =
-            ICurveGauge(_getLiquidityGauge(_liquidityPool, _curveRegistry)).balanceOf(_vault);
+            ICurveGauge(_getLiquidityGauge(_swapPool, _getCurveRegistry())).balanceOf(_vault);
         uint256 _b = 0;
         if (_liquidityPoolTokenAmount > 0) {
             _b = ICurveDeposit(_liquidityPool).calc_withdraw_one_coin(
@@ -627,8 +650,7 @@ contract CurveDepositPoolAdapter is
         override
         returns (uint256)
     {
-        address _curveRegistry = _getCurveRegistry();
-        return ICurveGauge(_getLiquidityGauge(_liquidityPool, _curveRegistry)).balanceOf(_vault);
+        return ICurveGauge(_getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry())).balanceOf(_vault);
     }
 
     /**
@@ -686,9 +708,9 @@ contract CurveDepositPoolAdapter is
         internal
         returns (uint256)
     {
-        address _curveRegistry = _getCurveRegistry();
-        if (_getLiquidityGauge(_liquidityPool, _curveRegistry) != address(0)) {
-            return ICurveGauge(_getLiquidityGauge(_liquidityPool, _curveRegistry)).claimable_tokens(_vault);
+        address _liquidityGauge = _getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry());
+        if (_liquidityGauge != address(0)) {
+            return ICurveGauge(_liquidityGauge).claimable_tokens(_vault);
         }
         return uint256(0);
     }
@@ -731,22 +753,52 @@ contract CurveDepositPoolAdapter is
             }
             if (_nCoins == uint256(2)) {
                 uint256[2] memory _depositAmounts = [_amounts[0], _amounts[1]];
-                _codes[_j] = abi.encode(
-                    _liquidityPool,
-                    abi.encodeWithSignature("add_liquidity(uint256[2],uint256)", _depositAmounts, uint256(0))
-                );
+                _codes[_j] = isSwapPool[_liquidityPool]
+                    ? abi.encode(
+                        _liquidityPool,
+                        abi.encodeWithSignature(
+                            "add_liquidity(uint256[2],uint256,bool)",
+                            _depositAmounts,
+                            uint256(0),
+                            true
+                        )
+                    )
+                    : abi.encode(
+                        _liquidityPool,
+                        abi.encodeWithSignature("add_liquidity(uint256[2],uint256)", _depositAmounts, uint256(0))
+                    );
             } else if (_nCoins == uint256(3)) {
                 uint256[3] memory _depositAmounts = [_amounts[0], _amounts[1], _amounts[2]];
-                _codes[_j] = abi.encode(
-                    _liquidityPool,
-                    abi.encodeWithSignature("add_liquidity(uint256[3],uint256)", _depositAmounts, uint256(0))
-                );
+                _codes[_j] = isSwapPool[_liquidityPool]
+                    ? abi.encode(
+                        _liquidityPool,
+                        abi.encodeWithSignature(
+                            "add_liquidity(uint256[3],uint256,bool)",
+                            _depositAmounts,
+                            uint256(0),
+                            true
+                        )
+                    )
+                    : abi.encode(
+                        _liquidityPool,
+                        abi.encodeWithSignature("add_liquidity(uint256[3],uint256)", _depositAmounts, uint256(0))
+                    );
             } else if (_nCoins == uint256(4)) {
                 uint256[4] memory _depositAmounts = [_amounts[0], _amounts[1], _amounts[2], _amounts[3]];
-                _codes[_j] = abi.encode(
-                    _liquidityPool,
-                    abi.encodeWithSignature("add_liquidity(uint256[4],uint256)", _depositAmounts, uint256(0))
-                );
+                _codes[_j] = isSwapPool[_liquidityPool]
+                    ? abi.encode(
+                        _liquidityPool,
+                        abi.encodeWithSignature(
+                            "add_liquidity(uint256[4],uint256,bool)",
+                            _depositAmounts,
+                            uint256(0),
+                            true
+                        )
+                    )
+                    : abi.encode(
+                        _liquidityPool,
+                        abi.encodeWithSignature("add_liquidity(uint256[4],uint256)", _depositAmounts, uint256(0))
+                    );
             }
         }
     }
@@ -807,13 +859,12 @@ contract CurveDepositPoolAdapter is
 
     /**
      * @dev Get a liquidity gauge address associated with a liquidity pool
-     * @param _liquidityPool the liquidity pool address
+     * @param _swapPool the swap pool address
      * @param _curveRegistry the Curve registry's address
      * @return gauge address
      */
-    function _getLiquidityGauge(address _liquidityPool, address _curveRegistry) internal view returns (address) {
-        (address[10] memory _liquidityGauges, ) =
-            ICurveRegistry(_curveRegistry).get_gauges(_getSwapPool(_liquidityPool));
+    function _getLiquidityGauge(address _swapPool, address _curveRegistry) internal view returns (address) {
+        (address[10] memory _liquidityGauges, ) = ICurveRegistry(_curveRegistry).get_gauges(_swapPool);
         return _liquidityGauges[0];
     }
 
@@ -824,7 +875,7 @@ contract CurveDepositPoolAdapter is
      */
     function _getSwapPool(address _liquidityPool) internal view returns (address) {
         return
-            isOldDepositZap[_liquidityPool]
+            isSwapPool[_liquidityPool] ? _liquidityPool : isOldDepositZap[_liquidityPool]
                 ? ICurveDeposit(_liquidityPool).curve()
                 : ICurveDeposit(_liquidityPool).pool();
     }

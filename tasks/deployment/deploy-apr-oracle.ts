@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress, deployContract, executeFunc } from "../../helpers/helpers";
 import { DEPLOY_APR_ORACLE } from "../task-names";
 

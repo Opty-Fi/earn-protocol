@@ -7,7 +7,7 @@ import { TypedTokens, TypedDefiPools } from "../../helpers/data";
 import { generateStrategyHash, deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { TESTING_DEPLOYMENT_ONCE, ZERO_BYTES32 } from "../../helpers/constants/utils";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToTokens, setStrategy, addRiskProfile } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/apr-oracle.json";

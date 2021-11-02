@@ -12,7 +12,8 @@ import {
 } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { REWARD_TOKENS } from "../../helpers/constants/tokens";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import {
   SUSHISWAP_ADAPTER_NAME,
   CURVE_SWAP_POOL_ADAPTER_NAME,

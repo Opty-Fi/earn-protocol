@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress, generateTokenHash } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { GET_STRATEGIES } from "../task-names";
 
 task(GET_STRATEGIES, "Get all available strategies for specific token")

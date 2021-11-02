@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { ethers } from "ethers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { VAULT_ACTIONS } from "../task-names";

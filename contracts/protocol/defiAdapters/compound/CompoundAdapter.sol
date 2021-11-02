@@ -243,10 +243,12 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
             _codes[2] = abi.encode(
                 compoundETHGatewayContract,
                 abi.encodeWithSignature(
-                    "depositETH(address,address,uint256)",
+                    "depositETH(address,address,address,uint256[2],int128)",
                     _vault,
                     _liquidityPool,
-                    uint256(_depositAmount)
+                    _liquidityPool,
+                    [uint256(_depositAmount), uint256(0)],
+                    int128(0)
                 )
             );
         } else {
@@ -277,10 +279,12 @@ contract CompoundAdapter is IAdapter, IAdapterHarvestReward, IAdapterInvestLimit
                 _codes[2] = abi.encode(
                     compoundETHGatewayContract,
                     abi.encodeWithSignature(
-                        "withdrawETH(address,address,uint256)",
+                        "withdrawETH(address,address,address,uint256,int128)",
                         _vault,
                         _liquidityPool,
-                        uint256(_amount)
+                        _liquidityPool,
+                        uint256(_amount),
+                        int128(0)
                     )
                 );
             } else {

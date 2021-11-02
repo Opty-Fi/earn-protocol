@@ -9,31 +9,35 @@ import { Modifiers } from "../../configuration/Modifiers.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IWETH } from "../../../interfaces/misc/IWETH.sol";
 import { IETHGateway } from "../../../interfaces/opty/IETHGateway.sol";
-import { ICompound } from "../../../interfaces/compound/ICompound.sol";
+import { ICurveETHSwap } from "../../../interfaces/curve/ICurveETHSwap.sol";
 
 /**
- * @title ETH gateway for opty-fi's Compound adapter
+ * @title ETH gateway for opty-fi's Curve Swap adapter
  * @author Opty.fi
  * @dev Inspired from Aave WETH gateway
  */
-contract CompoundETHGateway is IETHGateway, Modifiers {
+contract CurveSwapETHGateway is IETHGateway, Modifiers {
     // solhint-disable-next-line var-name-mixedcase
     IWETH internal immutable WETH;
 
     // solhint-disable-next-line var-name-mixedcase
-    address public immutable CETH;
+    mapping(address => bool) public ethPools;
 
     /**
-     * @dev Sets the WETH address.
-     * @param weth Address of the Wrapped Ether contract
+     * @dev Initializes the WETH address, registry and curve's Eth pools
+     * @param _weth Address of the Wrapped Ether contract
+     * @param _registry Address of the registry
+     * @param _ethPools Array of Curve's Eth pools
      **/
     constructor(
-        address weth,
+        address _weth,
         address _registry,
-        address _ceth
+        address[4] memory _ethPools
     ) public Modifiers(_registry) {
-        WETH = IWETH(weth);
-        CETH = _ceth;
+        WETH = IWETH(_weth);
+        for (uint256 _i = 0; _i < _ethPools.length; _i++) {
+            ethPools[_ethPools[_i]] = true;
+        }
     }
 
     /**
@@ -42,14 +46,14 @@ contract CompoundETHGateway is IETHGateway, Modifiers {
     function depositETH(
         address _vault,
         address _liquidityPool,
-        address,
+        address _liquidityPoolToken,
         uint256[2] memory _amounts,
-        int128
+        int128 _tokenIndex
     ) external override {
-        IERC20(address(WETH)).transferFrom(_vault, address(this), _amounts[0]);
-        WETH.withdraw(_amounts[0]);
-        ICompound(_liquidityPool).mint{ value: address(this).balance }();
-        IERC20(_liquidityPool).transfer(_vault, IERC20(_liquidityPool).balanceOf(address(this)));
+        IERC20(address(WETH)).transferFrom(_vault, address(this), _amounts[uint256(_tokenIndex)]);
+        WETH.withdraw(_amounts[uint256(_tokenIndex)]);
+        ICurveETHSwap(_liquidityPool).add_liquidity{ value: address(this).balance }(_amounts, 0);
+        IERC20(_liquidityPoolToken).transfer(_vault, IERC20(_liquidityPoolToken).balanceOf(address(this)));
     }
 
     /**
@@ -58,12 +62,12 @@ contract CompoundETHGateway is IETHGateway, Modifiers {
     function withdrawETH(
         address _vault,
         address _liquidityPool,
-        address,
+        address _liquidityPoolToken,
         uint256 _amount,
-        int128
+        int128 _tokenIndex
     ) external override {
-        IERC20(_liquidityPool).transferFrom(_vault, address(this), _amount);
-        ICompound(_liquidityPool).redeem(_amount);
+        IERC20(_liquidityPoolToken).transferFrom(_vault, address(this), _amount);
+        ICurveETHSwap(_liquidityPool).remove_liquidity_one_coin(_amount, _tokenIndex, 0);
         WETH.deposit{ value: address(this).balance }();
         IERC20(address(WETH)).transfer(_vault, IERC20(address(WETH)).balanceOf(address(this)));
     }
@@ -105,11 +109,11 @@ contract CompoundETHGateway is IETHGateway, Modifiers {
     }
 
     /**
-     * @dev Only WETH and CETH contracts are allowed to transfer ETH here. Prevent other addresses
+     * @dev Only WETH and ethPool contracts are allowed to transfer ETH here. Prevent other addresses
      *      to send Ether to this contract.
      */
     receive() external payable {
-        require(msg.sender == address(WETH) || msg.sender == address(CETH), "Receive not allowed");
+        require(msg.sender == address(WETH) || ethPools[msg.sender], "Receive not allowed");
     }
 
     /**
