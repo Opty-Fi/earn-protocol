@@ -184,8 +184,8 @@ interface IVault {
     function adminCall(bytes[] memory _codes) external returns (bool);
 
     /**
-     * @notice A function to get queue list
+     * @notice A function to get deposit queue
      * @return return queue
      */
-    function getQueueList() external view returns (DataTypes.UserDepositOperation[] memory);
+    function getDepositQueue() external view returns (DataTypes.UserDepositOperation[] memory);
 }

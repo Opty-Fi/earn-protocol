@@ -100,7 +100,7 @@ task(VAULT_ACTIONS, "perform actions in Vault")
                 )} ${tokenSymbol}`,
               );
             } else {
-              const queue = await vaultContract.getQueueList();
+              const queue = await vaultContract.getDepositQueue();
               const balanceBefore = await tokenContract.balanceOf(vaultContract.address);
               const _tx = await vaultContract.connect(owner)[action.action](amount);
               const balanceAfter = await tokenContract.balanceOf(vaultContract.address);

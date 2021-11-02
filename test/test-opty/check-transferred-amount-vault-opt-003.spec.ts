@@ -86,7 +86,7 @@ describe(scenario.title, () => {
             try {
               if (amount) {
                 if (action.action === "userDeposit(uint256)") {
-                  const queue = await contracts[action.contract].getQueueList();
+                  const queue = await contracts[action.contract].getDepositQueue();
                   const balanceBefore = await contracts["erc20"].balanceOf(contracts[action.contract].address);
                   const _tx = await contracts[action.contract].connect(operator)[action.action](amount);
                   const balanceAfter = await contracts["erc20"].balanceOf(contracts[action.contract].address);

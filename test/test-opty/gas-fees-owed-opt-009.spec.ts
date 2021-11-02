@@ -294,7 +294,7 @@ describe(scenario.title, () => {
                 const { amount }: ARGUMENTS = action.args;
                 try {
                   if (amount) {
-                    const queue = await contracts[action.contract].getQueueList();
+                    const queue = await contracts[action.contract].getDepositQueue();
                     const balanceBefore = await contracts["erc20"].balanceOf(contracts[action.contract].address);
                     const _tx = await contracts[action.contract]
                       .connect(operator)
