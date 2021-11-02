@@ -524,48 +524,6 @@ describe(`${HARVEST_V1_ADAPTER_NAME} Unit test`, () => {
                       expect(getAddress(liquidityPoolFromAdapter)).to.be.eq(getAddress(liquidityPool));
                       break;
                     }
-                    case "setLiquidityPoolToStakingVault(address,address)": {
-                      if (action.expect == "success") {
-                        await harvestV1Adapter
-                          .connect(users[action.executer!])
-                          [action.action](
-                            dummyContracts["liquidityPool"].address,
-                            dummyContracts["stakingVault"].address,
-                          );
-                      } else {
-                        if (action.message === "!_liquidityPool.isContract()") {
-                          const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
-                          await expect(
-                            harvestV1Adapter
-                              .connect(users[action.executer!])
-                              [action.action](
-                                isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
-                                dummyContracts["stakingVault"].address,
-                              ),
-                          ).to.be.revertedWith(action.message);
-                        } else if (action.message === "!_stakingVault.isContract()") {
-                          const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
-                          await expect(
-                            harvestV1Adapter
-                              .connect(users[action.executer!])
-                              [action.action](
-                                dummyContracts["liquidityPool"].address,
-                                isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
-                              ),
-                          ).to.be.revertedWith(action.message);
-                        } else {
-                          await expect(
-                            harvestV1Adapter
-                              .connect(users[action.executer!])
-                              [action.action](
-                                dummyContracts["liquidityPool"].address,
-                                dummyContracts["stakingVault"].address,
-                              ),
-                          ).to.be.revertedWith(action.message!);
-                        }
-                      }
-                      break;
-                    }
                   }
                 }
                 for (const action of story.getActions) {
@@ -958,21 +916,60 @@ describe(`${HARVEST_V1_ADAPTER_NAME} Unit test`, () => {
                 }
               });
             }
-            for (let i = 0; i < testDeFiAdapterScenario.adapterStandaloneStories.length; i++) {
-              it(`${testDeFiAdapterScenario?.adapterStandaloneStories[i].description}`, async function () {
-                const story = testDeFiAdapterScenario.adapterStandaloneStories[i];
-                for (const action of story.setActions) {
-                  switch (action.action) {
-                    case "canStake(address)": {
-                      const canStake = await harvestV1Adapter[action.action](ADDRESS_ZERO);
-                      expect(canStake).to.be.eq(true);
-                      break;
+          }
+        }
+        for (let i = 0; i < testDeFiAdapterScenario.adapterStandaloneStories.length; i++) {
+          it(`${testDeFiAdapterScenario?.adapterStandaloneStories[i].description}`, async function () {
+            const story = testDeFiAdapterScenario.adapterStandaloneStories[i];
+            for (const action of story.setActions) {
+              switch (action.action) {
+                case "canStake(address)": {
+                  const canStake = await harvestV1Adapter[action.action](ADDRESS_ZERO);
+                  expect(canStake).to.be.eq(true);
+                  break;
+                }
+                case "setLiquidityPoolToStakingVault(address,address)": {
+                  if (action.expect == "success") {
+                    await harvestV1Adapter
+                      .connect(users[action.executer!])
+                      [action.action](dummyContracts["liquidityPool"].address, dummyContracts["stakingVault"].address);
+                  } else {
+                    if (action.message === "!_liquidityPool.isContract()") {
+                      const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
+                      await expect(
+                        harvestV1Adapter
+                          .connect(users[action.executer!])
+                          [action.action](
+                            isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
+                            dummyContracts["stakingVault"].address,
+                          ),
+                      ).to.be.revertedWith(action.message);
+                    } else if (action.message === "!_stakingVault.isContract()") {
+                      const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
+                      await expect(
+                        harvestV1Adapter
+                          .connect(users[action.executer!])
+                          [action.action](
+                            dummyContracts["liquidityPool"].address,
+                            isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
+                          ),
+                      ).to.be.revertedWith(action.message);
+                    } else {
+                      await expect(
+                        harvestV1Adapter
+                          .connect(users[action.executer!])
+                          [action.action](
+                            dummyContracts["liquidityPool"].address,
+                            dummyContracts["stakingVault"].address,
+                          ),
+                      ).to.be.revertedWith(action.message!);
                     }
                   }
+                  break;
                 }
-              });
+              }
             }
-          }
+          });
         }
       }
     }
