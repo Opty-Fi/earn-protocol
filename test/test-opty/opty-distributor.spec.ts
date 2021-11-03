@@ -1,13 +1,20 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
-import { Signer, BigNumber } from "ethers";
+import { Signer, Contract, BigNumber } from "ethers";
 import { setUp } from "./setup";
-import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import { TypedAdapterStrategies } from "../../helpers/data";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { deployContract, executeFunc, moveToNextBlock } from "../../helpers/helpers";
-import { deployVault } from "../../helpers/contracts-deployments";
+import { CONTRACTS, MOCK_CONTRACTS } from "../../helpers/type";
+import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, MAX_UINT256 } from "../../helpers/constants";
+import { TypedAdapterStrategies, TypedTokens } from "../../helpers/data";
+import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants";
+import { smock } from "@defi-wonderland/smock";
+import {
+  deploySmockContract,
+  deployContract,
+  executeFunc,
+  moveToNextBlock,
+  moveToSpecificBlock,
+} from "../../helpers/helpers";
+import { deployVault, deployRegistry } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
@@ -18,6 +25,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/opty-distributor.json";
+import testOptyDistributorScenario from "./scenarios/test-opty-distributor.json";
 type ARGUMENTS = {
   contractName?: string;
   addressName?: string;
@@ -26,6 +34,12 @@ type ARGUMENTS = {
   rate?: string;
   isEnabled?: boolean;
 };
+
+type TEST_OPTY_DISTRIBUTOR_ARGUMENTS = {
+  executer?: string;
+  value?: number | boolean;
+};
+
 describe(scenario.title, () => {
   const token = "DAI";
   const tokenAddr = VAULT_TOKENS["DAI"];
@@ -350,4 +364,311 @@ describe(scenario.title, () => {
       }
     }).timeout(10000000);
   }
+});
+
+describe(testOptyDistributorScenario.title, () => {
+  let mockContracts: MOCK_CONTRACTS = {};
+  let registry: Contract;
+  let users: { [key: string]: Signer };
+  let timestamp: number;
+  before(async () => {
+    timestamp = await getBlockTimestamp(hre);
+    const [owner, user1] = await hre.ethers.getSigners();
+    users = { owner, user1 };
+    registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
+    const optyToken = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_DUMMY_TOKEN, ["optyToken", "OT", 18, 0]);
+    const vaultToken = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_DUMMY_TOKEN, [
+      "vaultToken",
+      "VT",
+      18,
+      0,
+    ]);
+    const optyStakingVault = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_OPTY_STAKING_VAULT, [
+      registry.address,
+      optyToken.address,
+      86400,
+      "1",
+    ]);
+    const optyDistributor = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, [
+      registry.address,
+      optyToken.address,
+      timestamp + 864000,
+    ]);
+
+    mockContracts = { optyToken, vaultToken, optyStakingVault, optyDistributor };
+    await executeFunc(registry, owner, "setOperator(address)", [await owner.getAddress()]);
+    await executeFunc(registry, owner, "setOPTY(address)", [mockContracts.optyToken.address]);
+    await executeFunc(registry, owner, "setOPTYDistributor(address)", [mockContracts.optyDistributor.address]);
+    await unpauseVault(owner, registry, mockContracts.optyStakingVault.address, true);
+    await optyToken.connect(owner).approve(mockContracts.optyStakingVault.address, MAX_UINT256);
+
+    await mockContracts["optyStakingVault"].userStake.returns();
+  });
+
+  describe(testOptyDistributorScenario.description, () => {
+    for (let i = 0; i < testOptyDistributorScenario.stories.length; i++) {
+      const story = testOptyDistributorScenario.stories[i];
+      it(`${story.description}`, async () => {
+        for (let i = 0; i < story.setActions.length; i++) {
+          const action = story.setActions[i];
+          switch (action.action) {
+            case "setOperatorUnlockClaimOPTYTimestamp(uint256)": {
+              const { executer, value } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              if (action.expect === "fail") {
+                await expect(
+                  mockContracts.optyDistributor.connect(users[executer!])[action.action](BigNumber.from(value)),
+                ).to.be.revertedWith(action.message);
+              } else {
+                await mockContracts.optyDistributor
+                  .connect(users[executer!])
+                  [action.action](BigNumber.from(timestamp).add(BigNumber.from(value)));
+              }
+              break;
+            }
+            case "setStakingVault(address,bool)": {
+              const { executer, value } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              if (action.expect === "fail") {
+                if (executer === "user1") {
+                  await expect(
+                    mockContracts.optyDistributor
+                      .connect(users[executer!])
+                      [action.action](mockContracts.optyStakingVault.address, value),
+                  ).to.be.revertedWith(action.message);
+                } else {
+                  await expect(
+                    mockContracts.optyDistributor
+                      .connect(users[executer!])
+                      [action.action](await users["owner"].getAddress(), value),
+                  ).to.be.revertedWith(action.message);
+                }
+              } else {
+                await mockContracts.optyDistributor
+                  .connect(users[executer!])
+                  [action.action](mockContracts.optyStakingVault.address, value);
+              }
+              break;
+            }
+            case "addOptyVault(address)": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              if (action.expect === "fail") {
+                await expect(
+                  mockContracts.optyDistributor
+                    .connect(users[executer!])
+                    [action.action](mockContracts.vaultToken.address),
+                ).to.be.revertedWith(action.message);
+              } else {
+                await mockContracts.optyDistributor
+                  .connect(users[executer!])
+                  [action.action](mockContracts.vaultToken.address);
+              }
+              break;
+            }
+            case "setOptyVaultRate(address,uint256)":
+            case "setOptyVault(address,bool)": {
+              const { executer, value } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              if (action.expect === "fail") {
+                if (executer === "user1") {
+                  await expect(
+                    mockContracts.optyDistributor
+                      .connect(users[executer!])
+                      [action.action](mockContracts.optyStakingVault.address, value),
+                  ).to.be.revertedWith(action.message);
+                } else {
+                  await expect(
+                    mockContracts.optyDistributor
+                      .connect(users[executer!])
+                      [action.action](await users["owner"].getAddress(), value),
+                  ).to.be.revertedWith(action.message);
+                }
+              } else {
+                await mockContracts.optyDistributor
+                  .connect(users[executer!])
+                  [action.action](mockContracts.vaultToken.address, value);
+              }
+              break;
+            }
+            case "updateUserStateInVault(address,address)":
+            case "updateUserRewards(address,address)": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              await mockContracts.optyDistributor
+                .connect(users[executer!])
+                [action.action](mockContracts.vaultToken.address, await users[executer!].getAddress());
+              break;
+            }
+            case "updateOptyVaultIndex(address)":
+            case "updateOptyVaultRatePerSecondAndVaultToken(address)": {
+              await mockContracts.optyDistributor[action.action](mockContracts.vaultToken.address);
+              break;
+            }
+            case "fundVaultTokens": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              await mockContracts.vaultToken.mint(await users[executer!].getAddress(), BigNumber.from(10).pow(18));
+              break;
+            }
+            case "claimAndStake(address)": {
+              console.log("Vault address: ", mockContracts.optyStakingVault.address);
+              console.log(
+                "Vault configuration: ",
+                await registry.getVaultConfiguration(mockContracts.optyStakingVault.address),
+              );
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              await mockContracts.optyDistributor
+                .connect(users[executer!])
+                [action.action](mockContracts.optyStakingVault.address);
+              break;
+            }
+            case "wait10000Seconds": {
+              const blockNumber = await hre.ethers.provider.getBlockNumber();
+              const block = await hre.ethers.provider.getBlock(blockNumber);
+              await moveToSpecificBlock(hre, block.timestamp + 10000);
+              break;
+            }
+            case "claimOpty(address)": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              await mockContracts.optyDistributor
+                .connect(users[executer!])
+                [action.action](await users[executer!].getAddress());
+              break;
+            }
+            case "claimOpty(address,address[])": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              await mockContracts.optyDistributor
+                .connect(users[executer!])
+                [action.action](await users[executer!].getAddress(), [mockContracts.vaultToken.address]);
+              break;
+            }
+            case "claimOpty(address[],address[])": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              await mockContracts.optyDistributor
+                .connect(users[executer!])
+                [action.action]([await users[executer!].getAddress()], [mockContracts.vaultToken.address]);
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < story.getActions.length; i++) {
+          const action = story.getActions[i];
+          switch (action.action) {
+            case "balanceOf(address)": {
+              const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
+              action.expectedValue === ">0"
+                ? expect(
+                    await mockContracts[action.contract][action.action](await users[executer!].getAddress()),
+                  ).to.be.gt(0)
+                : expect(
+                    await mockContracts[action.contract][action.action](await users[executer!].getAddress()),
+                  ).to.be.eq(0);
+              break;
+            }
+            case "operatorUnlockClaimOPTYTimestamp()": {
+              expect(await mockContracts.optyDistributor[action.action]()).to.be.eq(
+                timestamp + Number(action.expectedValue),
+              );
+              break;
+            }
+            case "stakingVaults(address)": {
+              expect(
+                await mockContracts.optyDistributor[action.action](mockContracts.optyStakingVault.address),
+              ).to.be.eq(action.expectedValue);
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < story.cleanActions.length; i++) {
+          const action = story.cleanActions[i];
+          switch (action.action) {
+            case "cleanEnvironment": {
+              const optyBalance = await mockContracts.optyToken.balanceOf(await users["owner"].getAddress());
+              const isStakingVault = await mockContracts.optyDistributor.stakingVaults(
+                mockContracts.optyStakingVault.address,
+              );
+              const isOptyVault = await mockContracts.optyDistributor.optyVaultEnabled(
+                mockContracts.vaultToken.address,
+              );
+              const optyVaultRatePerSecond = await mockContracts.optyDistributor.optyVaultRatePerSecond(
+                mockContracts.vaultToken.address,
+              );
+              const optyVaultRatePerSecondAndVaultToken =
+                await mockContracts.optyDistributor.optyVaultRatePerSecondAndVaultToken(
+                  mockContracts.vaultToken.address,
+                );
+              const optyVaultStartTimestamp = await mockContracts.optyDistributor.optyVaultStartTimestamp(
+                mockContracts.vaultToken.address,
+              );
+              const optyVaultState = await mockContracts.optyDistributor.optyVaultState(
+                mockContracts.vaultToken.address,
+              );
+              const optyUserStateInVault = await mockContracts.optyDistributor.optyUserStateInVault(
+                mockContracts.vaultToken.address,
+                await users["owner"].getAddress(),
+              );
+              const optyAccrued = await mockContracts.optyDistributor.optyAccrued(await users["owner"].getAddress());
+              const lastUserUpdate = await mockContracts.optyDistributor.lastUserUpdate(
+                mockContracts.vaultToken.address,
+                await users["owner"].getAddress(),
+              );
+              if (optyBalance.gt(0)) {
+                await mockContracts.optyToken.connect(users["owner"]).transfer(TypedTokens.ETH, optyBalance);
+              }
+              if (isStakingVault == true) {
+                await mockContracts.optyDistributor.setVariable("stakingVaults", {
+                  [mockContracts.optyStakingVault.address]: false,
+                });
+              }
+              if (isOptyVault == true) {
+                await mockContracts.optyDistributor.setVariable("optyVaultEnabled", {
+                  [mockContracts.vaultToken.address]: false,
+                });
+              }
+              if (optyVaultRatePerSecond.gt(0)) {
+                await mockContracts.optyDistributor.setVariable("optyVaultRatePerSecond", {
+                  [mockContracts.vaultToken.address]: 0,
+                });
+              }
+              if (optyVaultRatePerSecondAndVaultToken.gt(0)) {
+                await mockContracts.optyDistributor.setVariable("optyVaultRatePerSecondAndVaultToken", {
+                  [mockContracts.vaultToken.address]: 0,
+                });
+              }
+              if (lastUserUpdate.gt(0)) {
+                await mockContracts.optyDistributor.setVariable("lastUserUpdate", {
+                  [mockContracts.vaultToken.address]: {
+                    [await users["owner"].getAddress()]: 0,
+                  },
+                });
+              }
+              if (optyAccrued.gt(0)) {
+                await mockContracts.optyDistributor.setVariable("optyAccrued", {
+                  [await users["owner"].getAddress()]: 0,
+                });
+              }
+              if (optyVaultState[0].gt(0)) {
+                await mockContracts.optyDistributor.setVariable("optyVaultState", {
+                  [mockContracts.vaultToken.address]: {
+                    index: 0,
+                    timestamp: 0,
+                  },
+                });
+              }
+              if (optyVaultStartTimestamp.gt(0)) {
+                await mockContracts.optyDistributor.setVariable("optyVaultStartTimestamp", {
+                  [mockContracts.vaultToken.address]: 0,
+                });
+              }
+              if (optyUserStateInVault[0].gt(0)) {
+                await mockContracts.optyDistributor.setVariable("optyUserStateInVault", {
+                  [mockContracts.vaultToken.address]: {
+                    [await users["owner"].getAddress()]: {
+                      index: 0,
+                      timestamp: 0,
+                    },
+                  },
+                });
+              }
+            }
+          }
+        }
+      });
+    }
+  });
 });

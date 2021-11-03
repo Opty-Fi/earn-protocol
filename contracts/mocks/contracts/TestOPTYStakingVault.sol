@@ -6,8 +6,8 @@ pragma experimental ABIEncoderV2;
 // helper contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { OPTYStakingVaultStorage } from "./OPTYStakingVaultStorage.sol";
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { OPTYStakingVaultStorage } from "../../protocol/tokenization/OPTYStakingVaultStorage.sol";
+import { Modifiers } from "../../protocol/configuration/Modifiers.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // libraries
@@ -16,16 +16,17 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 // interfaces
 import { IOPTYDistributor } from "../../interfaces/opty/IOPTYDistributor.sol";
-import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
 import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import "hardhat/console.sol";
 
 /**
  * @title $OPTY staking vault
  * @author opty.fi
  * @notice Implementation of the staking vault
  */
-contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuard, OPTYStakingVaultStorage {
+contract TestOPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingVaultStorage {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -63,46 +64,25 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
         _;
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function setOptyRatePerSecond(uint256 _rate) external override onlyStakingRateBalancer returns (bool) {
+    function setOptyRatePerSecond(uint256 _rate) external onlyStakingRateBalancer returns (bool) {
         optyRatePerSecond = _rate;
         return true;
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function userStakeAll() external override returns (bool) {
+    function userStakeAll() external returns (bool) {
         _userStake(msg.sender, IERC20(token).balanceOf(msg.sender));
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function userStake(uint256 _amount) external override returns (bool) {
-        _userStake(msg.sender, _amount);
-    }
-
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function userStake(address _user, uint256 _amount) external override onlyOPTYDistributor returns (bool) {
+    function userStake(address _user, uint256 _amount) external returns (bool) {
+        console.log("Address(this): ", address(this));
         _userStake(_user, _amount);
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function userUnstakeAll() external override returns (bool) {
+    function userUnstakeAll() external returns (bool) {
         _userUnstake(balanceOf(msg.sender));
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function userUnstake(uint256 _redeemAmount) external override returns (bool) {
+    function userUnstake(uint256 _redeemAmount) external returns (bool) {
         _userUnstake(_redeemAmount);
     }
 
@@ -113,20 +93,14 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
 
     /* solhint-disable no-empty-blocks */
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function getPricePerFullShare() public view override returns (uint256) {
+    function getPricePerFullShare() public view returns (uint256) {
         if (totalSupply() != 0) {
             return balance().mul(10**(uint256(ERC20(token).decimals()))).div(totalSupply());
         }
         return uint256(0);
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function balanceInOpty(address _user) public view override returns (uint256) {
+    function balanceInOpty(address _user) public view returns (uint256) {
         if (balanceOf(_user) != uint256(0)) {
             uint256 _balanceInOpty =
                 balanceOf(_user).mul(balance().add(optyRatePerSecond.mul(getBlockTimestamp().sub(lastPoolUpdate)))).div(
@@ -137,43 +111,28 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
         return uint256(0);
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function setTimelockPeriod(uint256 _timelock) public override onlyOperator returns (bool) {
+    function setTimelockPeriod(uint256 _timelock) public onlyOperator returns (bool) {
         require(_timelock >= uint256(86400), "Timelock should be at least 1 day.");
         timelockPeriod = _timelock;
         return true;
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function setToken(address _underlyingToken) public override onlyOperator returns (bool) {
+    function setToken(address _underlyingToken) public onlyOperator returns (bool) {
         require(_underlyingToken.isContract(), "!_underlyingToken.isContract");
         token = _underlyingToken;
         return true;
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function updatePool() external override returns (bool) {
+    function updatePool() external returns (bool) {
         _isUnpaused(address(this));
         return _updatePool();
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function balance() public view override returns (uint256) {
+    function balance() public view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
-    /**
-     * @inheritdoc IOPTYStakingVault
-     */
-    function getBlockTimestamp() public view override returns (uint256) {
+    function getBlockTimestamp() public view returns (uint256) {
         return block.timestamp;
     }
 
@@ -200,13 +159,6 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
             shares = (_tokenBalanceDiff.mul(totalSupply())).div((_tokenBalanceBefore));
         }
         _mint(_user, shares);
-        require(
-            IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateStakedOPTY(
-                _user,
-                _tokenBalanceDiff
-            ),
-            "stakingVault:userStake"
-        );
         _updatePool();
         userLastUpdate[_user] = getBlockTimestamp();
         return true;
@@ -224,13 +176,6 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
             "you can't unstake until timelockPeriod has ended"
         );
         require(_redeemAmount > 0, "!_redeemAmount>0");
-        require(
-            IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateUnstakedOPTY(
-                msg.sender,
-                _redeemAmount
-            ),
-            "stakingVault:userUnstake"
-        );
         require(_updatePool(), "_updatePool");
         uint256 redeemAmountInToken = (balance().mul(_redeemAmount)).div(totalSupply());
         _burn(msg.sender, _redeemAmount);
@@ -256,10 +201,6 @@ contract OPTYStakingVault is IOPTYStakingVault, ERC20, Modifiers, ReentrancyGuar
             IOPTYDistributor _optyDistributorContract = IOPTYDistributor(registryContract.getOPTYDistributor());
             _optyDistributorContract.mintOpty(address(this), optyAccrued);
         }
-        require(
-            IOPTYStakingRateBalancer(registryContract.getOPTYStakingRateBalancer()).updateOptyRates(),
-            "stakingVault:updatePool"
-        );
         return true;
     }
 }

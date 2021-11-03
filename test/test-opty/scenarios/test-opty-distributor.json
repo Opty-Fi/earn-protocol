@@ -1,0 +1,1095 @@
+{
+  "title": "Test OPTY Distributor",
+  "description": "Test cases for OPTYDistributor contract",
+  "stories": [
+    {
+      "description": "addOptyVault should fail if caller is not the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "addOptyVault(address)",
+          "args": {
+            "executer": "user1"
+          },
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "addOptyVault should add a specific vault to the list of vaults if caller is the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "addOptyVault(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setOperatorUnlockClaimOPTYTimestamp should fail if caller is not the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
+          "args": {
+            "executer": "user1",
+            "value": "1000000000000000000"
+          },
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setOperatorUnlockClaimOPTYTimestamp should fail if value is greater than maxUnlockClaimOPTYTimestamp",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "fail",
+          "message": "operatorUnlockClaimOPTYTimestamp > maxUnlockClaimOPTYTimestamp"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setOperatorUnlockClaimOPTYTimestamp should set a specific timestamp if caller is the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
+          "args": {
+            "executer": "owner",
+            "value": 1
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "operatorUnlockClaimOPTYTimestamp()",
+          "args": {},
+          "expectedValue": 1
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "setStakingVault should fail if staking vault's address is not a contract",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setStakingVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setStakingVault should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setStakingVault(address,bool)",
+          "args": {
+            "executer": "user1",
+            "value": true
+          },
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setStakingVault should enable a stakingVault if caller is the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setStakingVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "stakingVaults(address)",
+          "args": {},
+          "expectedValue": true
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "claimAndStake should stake the amount of OPTY that a user can claim",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setStakingVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setStakingVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "wait10000Seconds",
+          "args": {},
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "claimAndStake(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyToken",
+          "action": "balanceOf(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": "=0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "claimOpty(address) should claim the accrued amount of OPTY by a specific user",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "wait10000Seconds",
+          "args": {},
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyStakingVault",
+          "action": "claimOpty(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyToken",
+          "action": "balanceOf(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "claimOpty(address,address[]) should claim the accrued amount of OPTY by a specific user in the specified vaults",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "wait10000Seconds",
+          "args": {},
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyStakingVault",
+          "action": "claimOpty(address,address[])",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyToken",
+          "action": "balanceOf(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "claimOpty(address[],address[]) should claim the accrued amount of OPTY by specific users in the specified vaults",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "wait10000Seconds",
+          "args": {},
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyStakingVault",
+          "action": "claimOpty(address[],address[])",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyToken",
+          "action": "balanceOf(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "updateUserStateInVault should update the index and the timestamp for a specific user in a specific vault",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "optyUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "updateOptyVaultRatePerSecondAndVaultToken should update the amount of distributed OPTY per second and vault token",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "optyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "updateOptyVaultIndex should update the index and the timestamp for a specific vault",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "optyVaultState(address)",
+          "args": {},
+          "expectedValue": ">0"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "mintOpty should fail if caller is not the staking vault",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "mintOpty(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "fail",
+          "message": "caller is not a staking vault"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "mintOpty should mint a specific amount of OPTY if caller is a staking vault",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "mintOpty(address,uint256)",
+          "args": {
+            "executer": "stakingVault",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyToken",
+          "action": "balanceOf(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": "1000000000000000000"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "setOptyVaultRate should fail if caller is not the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "user1",
+            "value": "1000000000000000000"
+          },
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setOptyVaultRate should set a specific OPTY rate for a specific vault if caller is the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "optyVaultRatePerSecond(address)",
+          "args": {},
+          "expectedValue": "1000000000000000000"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "setOptyVault should fail if vault's address is not a contract",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setOptyVault should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "user1",
+            "value": true
+          },
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setOptyVault should enable a vault if caller is the Operator",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "optyVaultEnabled(address)",
+          "args": {},
+          "expectedValue": true
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    },
+    {
+      "description": "updateUserStateInVault should update the index and the timestamp for a specific user in a specific vault",
+      "setActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVault(address,bool)",
+          "args": {
+            "executer": "owner",
+            "value": true
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "setOptyVaultRate(address,uint256)",
+          "args": {
+            "executer": "owner",
+            "value": "1000000000000000000"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "fundVaultTokens",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultRatePerSecondAndVaultToken(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateOptyVaultIndex(address)",
+          "args": {},
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserStateInVault(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        },
+        {
+          "contract": "",
+          "action": "wait10000Seconds",
+          "args": {},
+          "expect": "",
+          "message": ""
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "updateUserRewards(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "optyDistributor",
+          "action": "optyAccrued(address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": ">"
+        },
+        {
+          "contract": "optyDistributor",
+          "action": "lastUserUpdate(address,address)",
+          "args": {
+            "executer": "owner"
+          },
+          "expectedValue": ">"
+        }
+      ],
+      "cleanActions": [
+        {
+          "contract": "",
+          "action": "cleanEnvironment",
+          "args": {},
+          "expect": "",
+          "message": ""
+        }
+      ]
+    }
+  ]
+}

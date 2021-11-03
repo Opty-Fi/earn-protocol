@@ -89,7 +89,7 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
         holders[0] = msg.sender;
         uint256 _amount = _claimOpty(holders, allOptyVaults);
         IOPTYStakingVault _optyStakingVaultContract = IOPTYStakingVault(_stakingVault);
-        _optyStakingVaultContract.userStake(_amount);
+        _optyStakingVaultContract.userStake(msg.sender, _amount);
     }
 
     /**
@@ -230,13 +230,6 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
     /**
      * @inheritdoc IOPTYDistributor
      */
-    function claimableOpty(address _holder) external view override returns (uint256) {
-        return claimableOpty(_holder, allOptyVaults);
-    }
-
-    /**
-     * @inheritdoc IOPTYDistributor
-     */
     function updateUserRewards(address _vault, address _user) public override {
         require(_vault.isContract(), "!isContract");
         if (optyVaultRatePerSecond[_vault] > 0) {
@@ -269,6 +262,13 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
             }
             lastUserUpdate[_vault][_user] = _getBlockTimestamp();
         }
+    }
+
+    /**
+     * @inheritdoc IOPTYDistributor
+     */
+    function claimableOpty(address _holder) external view override returns (uint256) {
+        return claimableOpty(_holder, allOptyVaults);
     }
 
     /**
@@ -371,13 +371,14 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
     {
         for (uint256 i = 0; i < _vaults.length; i++) {
             address _vault = _vaults[i];
-            require(optyVaultEnabled[_vault], "optyVault must be enabled");
-            for (uint256 j = 0; j < _holders.length; j++) {
-                updateUserRewards(address(_vault), _holders[j]);
-                uint256 _amount = div_(optyAccrued[_holders[j]], 1e18);
-                optyAccrued[_holders[j]] = uint256(0);
-                _mintOpty(_holders[j], _amount);
-                _total = add_(_total, _amount);
+            if (optyVaultEnabled[_vault]) {
+                for (uint256 j = 0; j < _holders.length; j++) {
+                    updateUserRewards(address(_vault), _holders[j]);
+                    uint256 _amount = div_(optyAccrued[_holders[j]], 1e18);
+                    optyAccrued[_holders[j]] = uint256(0);
+                    _mintOpty(_holders[j], _amount);
+                    _total = add_(_total, _amount);
+                }
             }
         }
     }

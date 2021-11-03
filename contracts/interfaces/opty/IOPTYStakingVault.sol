@@ -46,6 +46,14 @@ interface IOPTYStakingVault {
     function userStake(uint256 _amount) external returns (bool);
 
     /**
+     * @notice Stake amount of $OPTYs of the users
+     * @param _user the address of the staker
+     * @param _amount the amount of $OPTY tokens
+     * @return bool return true on successful staking of the $OPTY
+     */
+    function userStake(address _user, uint256 _amount) external returns (bool);
+
+    /**
      * @notice Unstake all of staked $OPTY from the vault
      * @return bool return true on successful unstake of all staked $OPTY
      */
