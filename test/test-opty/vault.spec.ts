@@ -174,7 +174,9 @@ describe(scenario.title, () => {
               }
               await unpauseVault(users[0], essentialContracts.registry, Vault.address, true);
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
-                await executeFunc(essentialContracts.registry, users[0], "approveToken(address)", [Vault.address]);
+                await executeFunc(essentialContracts.registry, users[0], "approveToken(address[])", [
+                  [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
+                ]);
                 await executeFunc(essentialContracts.registry, users[0], "setTokensHashToTokens(address[])", [
                   [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
                 ]);

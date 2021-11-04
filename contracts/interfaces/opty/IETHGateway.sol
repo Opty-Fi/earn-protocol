@@ -3,33 +3,42 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 /**
- * @title Interface of ETH gateway for opty-fi's Compound adapter
+ * @title Interface of ETH gateway for opty-fi  adapter
  * @author Opty.fi
  * @dev Inspired from Aave WETH gateway
  */
-interface ICompoundETHGateway {
+interface IETHGateway {
     /**
-     * @dev deposits ETH into the reserve, using native ETH. A corresponding amount of the overlying asset (cTokens)
+     * @dev deposits ETH into the reserve, using native ETH. A corresponding amount of the overlying asset
      *      is minted.
-     * @param _liquidityPool address of the targeted cToken pool
-     * @param _amount address of the user who will receive the aTokens representing the deposit
+     * @param _vault address of the user who will receive the lpTokens representing the deposit
+     * @param _liquidityPool address of the targeted lending pool
+     * @param _liquidityPoolToken address of the targeted lpToken
+     * @param _amounts list of amounts of coins.
+     * @param _tokenIndex index of the coin to redeem
      **/
     function depositETH(
         address _vault,
         address _liquidityPool,
-        uint256 _amount
+        address _liquidityPoolToken,
+        uint256[2] memory _amounts,
+        int128 _tokenIndex
     ) external;
 
     /**
      * @dev withdraws the ETH _reserves of vault.
      * @param _vault address that will receive WETH
      * @param _liquidityPool address of the targeted cToken pool
-     * @param _amount amount of cETH to withdraw and receive native ETH
+     * @param _liquidityPoolToken address of the targeted lpToken
+     * @param _amount amount of lpToken to redeem
+     * @param _tokenIndex index of the coin to redeem
      */
     function withdrawETH(
         address _vault,
         address _liquidityPool,
-        uint256 _amount
+        address _liquidityPoolToken,
+        uint256 _amount,
+        int128 _tokenIndex
     ) external;
 
     /**
