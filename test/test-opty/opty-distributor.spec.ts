@@ -368,14 +368,14 @@ describe(scenario.title, () => {
 
 describe(testOptyDistributorScenario.title, () => {
   let mockContracts: MOCK_CONTRACTS = {};
-  let registry: Contract;
   let users: { [key: string]: Signer };
   let timestamp: number;
   before(async () => {
     timestamp = await getBlockTimestamp(hre);
     const [owner, user1] = await hre.ethers.getSigners();
     users = { owner, user1 };
-    registry = await deployRegistry(hre, owner, TESTING_DEPLOYMENT_ONCE);
+    const registry = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.REGISTRY, []);
+    registry.getOperator.returns(await users["owner"].getAddress());
     const optyToken = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_DUMMY_TOKEN, ["optyToken", "OT", 18, 0]);
     const vaultToken = await deploySmockContract(smock, TESTING_CONTRACTS.TEST_DUMMY_TOKEN, [
       "vaultToken",
@@ -395,14 +395,19 @@ describe(testOptyDistributorScenario.title, () => {
       timestamp + 864000,
     ]);
 
-    mockContracts = { optyToken, vaultToken, optyStakingVault, optyDistributor };
-    await executeFunc(registry, owner, "setOperator(address)", [await owner.getAddress()]);
-    await executeFunc(registry, owner, "setOPTY(address)", [mockContracts.optyToken.address]);
-    await executeFunc(registry, owner, "setOPTYDistributor(address)", [mockContracts.optyDistributor.address]);
-    await unpauseVault(owner, registry, mockContracts.optyStakingVault.address, true);
-    await optyToken.connect(owner).approve(mockContracts.optyStakingVault.address, MAX_UINT256);
-
-    await mockContracts["optyStakingVault"].userStake.returns();
+    mockContracts = { registry, optyToken, vaultToken, optyStakingVault, optyDistributor };
+    mockContracts.registry.getOPTYDistributor.returns(mockContracts.optyDistributor.address);
+    mockContracts.registry.getVaultConfiguration.whenCalledWith(optyStakingVault.address).returns({
+      discontinued: false,
+      unpaused: true,
+      withdrawalFee: 0,
+      treasuryShares: [],
+    });
+    await mockContracts.optyToken.connect(users["owner"]).approve(mockContracts.optyStakingVault.address, MAX_UINT256);
+    console.log(
+      "Allowance: ",
+      await optyToken.allowance(await users["owner"].getAddress(), mockContracts.optyStakingVault.address),
+    );
   });
 
   describe(testOptyDistributorScenario.description, () => {
@@ -506,11 +511,6 @@ describe(testOptyDistributorScenario.title, () => {
               break;
             }
             case "claimAndStake(address)": {
-              console.log("Vault address: ", mockContracts.optyStakingVault.address);
-              console.log(
-                "Vault configuration: ",
-                await registry.getVaultConfiguration(mockContracts.optyStakingVault.address),
-              );
               const { executer } = action.args as TEST_OPTY_DISTRIBUTOR_ARGUMENTS;
               await mockContracts.optyDistributor
                 .connect(users[executer!])

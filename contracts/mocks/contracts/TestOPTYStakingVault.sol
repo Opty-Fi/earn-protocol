@@ -19,8 +19,6 @@ import { IOPTYDistributor } from "../../interfaces/opty/IOPTYDistributor.sol";
 import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title $OPTY staking vault
  * @author opty.fi
@@ -74,7 +72,6 @@ contract TestOPTYStakingVault is ERC20, Modifiers, ReentrancyGuard, OPTYStakingV
     }
 
     function userStake(address _user, uint256 _amount) external returns (bool) {
-        console.log("Address(this): ", address(this));
         _userStake(_user, _amount);
     }
 
