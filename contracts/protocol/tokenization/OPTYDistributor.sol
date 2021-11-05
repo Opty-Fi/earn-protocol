@@ -234,31 +234,33 @@ contract OPTYDistributor is IOPTYDistributor, OPTYDistributorStorage, Exponentia
         require(_vault.isContract(), "!isContract");
         if (optyVaultRatePerSecond[_vault] > 0) {
             if (IERC20(_vault).balanceOf(_user) > 0 && lastUserUpdate[_vault][_user] != _getBlockTimestamp()) {
-                uint256 _deltaSecondsVault = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_vault]);
-                uint256 _deltaSecondsUser;
-                if (
-                    lastUserUpdate[_vault][_user] != uint256(0) &&
-                    lastUserUpdate[_vault][_user] > optyVaultStartTimestamp[_vault]
-                ) {
-                    _deltaSecondsUser = sub_(lastUserUpdate[_vault][_user], optyVaultStartTimestamp[_vault]);
-                } else {
-                    _deltaSecondsUser = sub_(
-                        optyUserStateInVault[_vault][_user].timestamp,
-                        optyVaultStartTimestamp[_vault]
-                    );
+                if (optyVaultStartTimestamp[_vault] != uint256(0)) {
+                    uint256 _deltaSecondsVault = sub_(_getBlockTimestamp(), optyVaultStartTimestamp[_vault]);
+                    uint256 _deltaSecondsUser;
+                    if (
+                        lastUserUpdate[_vault][_user] != uint256(0) &&
+                        lastUserUpdate[_vault][_user] > optyVaultStartTimestamp[_vault]
+                    ) {
+                        _deltaSecondsUser = sub_(lastUserUpdate[_vault][_user], optyVaultStartTimestamp[_vault]);
+                    } else {
+                        _deltaSecondsUser = sub_(
+                            optyUserStateInVault[_vault][_user].timestamp,
+                            optyVaultStartTimestamp[_vault]
+                        );
+                    }
+                    uint256 _userTokens = IERC20(_vault).balanceOf(_user);
+                    uint256 _currentOptyVaultIndex = currentOptyVaultIndex(_vault);
+                    uint256 _userDelta =
+                        mul_(
+                            _userTokens,
+                            sub_(
+                                mul_(_currentOptyVaultIndex, _deltaSecondsVault),
+                                mul_(optyUserStateInVault[_vault][_user].index, _deltaSecondsUser)
+                            )
+                        );
+                    uint256 _userAccrued = add_(optyAccrued[_user], _userDelta);
+                    optyAccrued[_user] = _userAccrued;
                 }
-                uint256 _userTokens = IERC20(_vault).balanceOf(_user);
-                uint256 _currentOptyVaultIndex = currentOptyVaultIndex(_vault);
-                uint256 _userDelta =
-                    mul_(
-                        _userTokens,
-                        sub_(
-                            mul_(_currentOptyVaultIndex, _deltaSecondsVault),
-                            mul_(optyUserStateInVault[_vault][_user].index, _deltaSecondsUser)
-                        )
-                    );
-                uint256 _userAccrued = add_(optyAccrued[_user], _userDelta);
-                optyAccrued[_user] = _userAccrued;
             }
             lastUserUpdate[_vault][_user] = _getBlockTimestamp();
         }

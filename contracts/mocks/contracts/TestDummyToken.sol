@@ -18,4 +18,8 @@ contract TestDummyToken is ERC20 {
     function mint(address _to, uint256 _amount) external {
         _mint(_to, _amount);
     }
+
+    function burn(address _account, uint256 _amount) external {
+        _burn(_account, _amount);
+    }
 }
