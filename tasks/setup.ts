@@ -3,7 +3,7 @@ import { task, types } from "hardhat/config";
 import { CONTRACTS } from "../helpers/type";
 import { deployEssentialContracts, deployAdapters } from "../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../helpers/db";
-import { TESTING_CONTRACTS } from "../helpers/constants/contracts-names";
+import { TESTING_CONTRACTS } from "../helpers/constants/test-contracts-name";
 import { deployContract } from "../helpers/helpers";
 import {
   APPROVE_TOKEN,

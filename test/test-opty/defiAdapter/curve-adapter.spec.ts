@@ -7,7 +7,7 @@ import { CONTRACTS } from "../../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
 import { CURVE_SWAP_POOL_ADAPTER_NAME, CURVE_DEPOSIT_POOL_ADAPTER_NAME } from "../../../helpers/constants/adapters";
-import { TypedAdapterStrategies, TypedDefiPools } from "../../../helpers/data";
+import { TypedAdapterStrategies, TypedDefiPools, TypedTokens } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
 import scenarios from "../scenarios/adapters.json";
@@ -29,6 +29,8 @@ type TEST_DEFI_ADAPTER_ARGUMENTS = {
   mode?: string;
 };
 const curveAdapters: CONTRACTS = {};
+
+const POOLED_TOKENS = [TypedTokens.ADAI, TypedTokens.ASUSD, TypedTokens.AUSDC, TypedTokens.AUSDT, TypedTokens.STETH];
 describe("CurveAdapters Unit test", () => {
   const MAX_AMOUNT: { [key: string]: BigNumber } = {
     DAI: BigNumber.from("1000000000000000000000"),
@@ -433,7 +435,11 @@ describe("CurveAdapters Unit test", () => {
                       const expectedValue = action.expectedValue;
                       const underlyingBalanceAfter: BigNumber = await ERC20Instance.balanceOf(testDeFiAdapter.address);
                       if (underlyingBalanceBefore.lt(limitInUnderlyingToken)) {
-                        expectedValue == ">"
+                        POOLED_TOKENS.includes(underlyingTokenAddress)
+                          ? expectedValue == ">"
+                            ? expect(underlyingBalanceAfter).to.be.gt(underlyingBalanceBefore)
+                            : expect(underlyingBalanceAfter).to.be.closeTo(BigNumber.from("0"), 1200000000000)
+                          : expectedValue == ">"
                           ? expect(underlyingBalanceAfter).to.be.gt(underlyingBalanceBefore)
                           : expect(underlyingBalanceAfter).to.be.eq(BigNumber.from("0"));
                       } else {

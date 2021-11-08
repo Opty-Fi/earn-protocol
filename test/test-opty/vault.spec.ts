@@ -6,7 +6,8 @@ import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies, TypedTokens } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
@@ -173,7 +174,9 @@ describe(scenario.title, () => {
               }
               await unpauseVault(users[0], essentialContracts.registry, Vault.address, true);
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
-                await executeFunc(essentialContracts.registry, users[0], "approveToken(address)", [Vault.address]);
+                await executeFunc(essentialContracts.registry, users[0], "approveToken(address[])", [
+                  [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
+                ]);
                 await executeFunc(essentialContracts.registry, users[0], "setTokensHashToTokens(address[])", [
                   [Vault.address, REWARD_TOKENS[adapterName].tokenAddress.toString()],
                 ]);

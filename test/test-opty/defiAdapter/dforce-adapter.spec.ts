@@ -6,7 +6,7 @@ import { getAddress } from "ethers/lib/utils";
 import { CONTRACTS } from "../../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
-import { TESTING_CONTRACTS } from "../../../helpers/constants/contracts-names";
+import { TESTING_CONTRACTS } from "../../../helpers/constants/test-contracts-name";
 import { DFORCE_ADAPTER_NAME } from "../../../helpers/constants/adapters";
 import { TypedAdapterStrategies, TypedTokens, TypedDefiPools, TypedTokenHolders } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";

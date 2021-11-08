@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { BigNumber, Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
-import { TESTING_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import { unpauseVault, approveAndSetTokenHashToToken } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/check-transferred-amount-vault-opt-003.json";

@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { isAddress, generateTokenHash } from "../../helpers/helpers";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/contracts-names";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { GET_BEST_STRATEGY } from "../task-names";
 
 task(GET_BEST_STRATEGY, "Get best strategy")
