@@ -61,7 +61,7 @@ describe("FulcrumAdapter", () => {
   for (let i = 0; i < strategies.length; i++) {
     describe(`${strategies[i].strategyName}`, async () => {
       const strategy = strategies[i];
-      const token = VAULT_TOKENS[strategy.token];
+      const token = VAULT_TOKENS[strategy.token].address;
       let lpToken: string;
       before(async () => {
         try {

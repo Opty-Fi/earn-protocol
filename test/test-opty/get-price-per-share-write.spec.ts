@@ -71,7 +71,7 @@ describe(scenario.title, () => {
             Vault = await deployVault(
               hre,
               essentialContracts.registry.address,
-              VAULT_TOKENS[TOKEN_STRATEGY.token],
+              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
               users["owner"],
               users["admin"],
               underlyingTokenName,
@@ -103,14 +103,17 @@ describe(scenario.title, () => {
 
             await setBestStrategy(
               TOKEN_STRATEGY.strategy,
-              VAULT_TOKENS[TOKEN_STRATEGY.token],
+              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
               essentialContracts.investStrategyRegistry,
               essentialContracts.strategyProvider,
               profile,
               false,
             );
 
-            const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[TOKEN_STRATEGY.token]);
+            const Token_ERC20Instance = await hre.ethers.getContractAt(
+              "ERC20",
+              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
+            );
             contracts["vault"] = Vault;
             contracts["registry"] = essentialContracts.registry;
             contracts["tokenErc20"] = Token_ERC20Instance;
@@ -133,7 +136,7 @@ describe(scenario.title, () => {
                         const timestamp = (await getBlockTimestamp(hre)) * 2;
                         await fundWalletToken(
                           hre,
-                          VAULT_TOKENS[TOKEN_STRATEGY.token],
+                          VAULT_TOKENS[TOKEN_STRATEGY.token].address,
                           users[addressName],
                           BigNumber.from(amount[TOKEN_STRATEGY.token]),
                           timestamp,

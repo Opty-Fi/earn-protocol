@@ -14,7 +14,7 @@ import {
   isAddress,
 } from "./helpers";
 import { amountInHex } from "./utils";
-import { HARVEST_GOVERNANCE } from "./constants/utils";
+import { TypedEOA } from "./data";
 import { RISK_PROFILES } from "./constants/contracts-data";
 
 export async function approveLiquidityPoolAndMapAdapter(
@@ -565,15 +565,15 @@ export async function addWhiteListForHarvest(
 ): Promise<void> {
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
-    params: [HARVEST_GOVERNANCE],
+    params: [TypedEOA.HARVEST_GOVERNANCE],
   });
   const harvestController = await hre.ethers.getContractAt(
     "IHarvestController",
     TypedContracts.HARVEST_CONTROLLER,
-    await hre.ethers.getSigner(HARVEST_GOVERNANCE),
+    await hre.ethers.getSigner(TypedEOA.HARVEST_GOVERNANCE),
   );
   await admin.sendTransaction({
-    to: HARVEST_GOVERNANCE,
+    to: TypedEOA.HARVEST_GOVERNANCE,
     value: hre.ethers.utils.parseEther("1000"),
   });
   await harvestController.addToWhitelist(contractAddress);

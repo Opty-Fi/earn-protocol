@@ -1,10 +1,4 @@
-import {
-  DATA_OBJECT,
-  REWARD_TOKEN_DATA_OBJECT,
-  RISK_PROFILE_DATA,
-  OPTY_STAKING_VAULT,
-  SUPPORTED_TOKENS_DATA,
-} from "../type";
+import { DATA_OBJECT } from "../type";
 
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   REGISTRY: "Registry",

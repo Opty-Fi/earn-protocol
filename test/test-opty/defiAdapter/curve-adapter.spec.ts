@@ -81,10 +81,10 @@ describe("CurveAdapters Unit test", () => {
               ADDRESS_ZERO,
             );
             for (let i = 0; i < nCoins.length; i++) {
-              if (nCoins[i] === VAULT_TOKENS["DAI"]) {
+              if (nCoins[i] === VAULT_TOKENS["DAI"].address) {
                 await fundWalletToken(hre, nCoins[i], users["owner"], MAX_AMOUNT["DAI"], timestamp);
                 depositAmount.push(MAX_AMOUNT["DAI"].div(BigNumber.from("2")).toString());
-              } else if (nCoins[i] === VAULT_TOKENS["USDC"]) {
+              } else if (nCoins[i] === VAULT_TOKENS["USDC"].address) {
                 await fundWalletToken(hre, nCoins[i], users["owner"], MAX_AMOUNT["USDC"], timestamp);
                 depositAmount.push(MAX_AMOUNT["USDC"].div(BigNumber.from("2")).toString());
               } else {

@@ -331,7 +331,7 @@ export async function deployVaultsWithHash(
       const vault = await deployVaultWithHash(
         hre,
         registry,
-        VAULT_TOKENS[token],
+        VAULT_TOKENS[token].address,
         owner,
         admin,
         name,

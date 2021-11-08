@@ -6,7 +6,7 @@ import { TypedTokens } from "../../helpers/data";
 import { deployContract, getDefaultFundAmountInDecimal } from "../../helpers/helpers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
-import { REWARD_TOKENS, SUPPORTED_TOKENS } from "../../helpers/constants/tokens";
+import { REWARD_TOKENS, VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedContracts } from "../../helpers/data";
 import { deployAdapterPrerequisites } from "../../helpers/contracts-deployments";
 import IUniswapV2Pair from "@uniswap/v2-periphery/build/IUniswapV2Pair.json";
@@ -23,7 +23,7 @@ describe(scenario.title, () => {
   let adapterPrerequisites: CONTRACTS;
   let testHarvestCodeProvider: Contract;
   const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS);
-  const underlyingTokenNames = Object.keys(SUPPORTED_TOKENS);
+  const underlyingTokenNames = Object.keys(VAULT_TOKENS);
   let isPair: boolean;
   before(async () => {
     [owner] = await hre.ethers.getSigners();
@@ -36,12 +36,12 @@ describe(scenario.title, () => {
     const rewardTokenAddress = REWARD_TOKENS[rewardTokenAdapterNames[i]].tokenAddress as string;
     for (let i = 0; i < underlyingTokenNames.length; i++) {
       const underlyingTokenName = underlyingTokenNames[i];
-      const underlyingTokenAddress = SUPPORTED_TOKENS[underlyingTokenNames[i]].address;
+      const underlyingTokenAddress = VAULT_TOKENS[underlyingTokenNames[i]].address;
       describe(rewardTokenName + " --> " + underlyingTokenName, () => {
         for (let j = 0; j < scenario.stories.length; j++) {
           const story = scenario.stories[j];
           it(`${story.description}`, async function () {
-            isPair = SUPPORTED_TOKENS[underlyingTokenNames[i]].pair;
+            isPair = VAULT_TOKENS[underlyingTokenNames[i]].pair;
             const rewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardTokenAddress);
             const rewardTokenDecimals = await rewardTokenInstance.decimals();
             const defaultFundAmount = getDefaultFundAmountInDecimal(rewardTokenAddress, rewardTokenDecimals);
