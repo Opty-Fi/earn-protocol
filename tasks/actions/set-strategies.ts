@@ -73,7 +73,7 @@ task(SET_STRATEGIES, "Set strategies")
           const hash = await setStrategy(
             strategies[i].strategy,
             owner,
-            [VAULT_TOKENS[strategies[i].token]],
+            [VAULT_TOKENS[strategies[i].token].address],
             investStrategyRegistryContract,
           );
           console.log("-----------------");

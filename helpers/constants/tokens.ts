@@ -1,15 +1,5 @@
 import { TypedTokens } from "../data";
-import { DATA_OBJECT, REWARD_TOKEN_DATA_OBJECT, SUPPORTED_TOKENS_DATA } from "../type";
-
-export const VAULT_TOKENS: DATA_OBJECT = {
-  DAI: TypedTokens["DAI"],
-  USDC: TypedTokens["USDC"],
-  USDT: TypedTokens["USDT"],
-  WBTC: TypedTokens["WBTC"],
-  WETH: TypedTokens["WETH"],
-  CHI: TypedTokens["CHI"],
-  SLP_WETH_USDC: TypedTokens["SLP_WETH_USDC"],
-};
+import { REWARD_TOKEN_DATA_OBJECT, TOKENS_DATA } from "../type";
 
 export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
   CompoundAdapter: {
@@ -44,7 +34,7 @@ export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
   },
 };
 
-export const SUPPORTED_TOKENS: SUPPORTED_TOKENS_DATA = {
+export const VAULT_TOKENS: TOKENS_DATA = {
   DAI: {
     address: TypedTokens["DAI"],
     pair: false,

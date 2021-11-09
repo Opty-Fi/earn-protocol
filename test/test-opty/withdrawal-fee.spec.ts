@@ -23,7 +23,7 @@ import scenario from "./scenarios/withdrawal-fee.json";
 chai.use(solidity);
 
 describe(scenario.title, () => {
-  const token = "DAI";
+  const token = VAULT_TOKENS["DAI"].address;
   const MAX_AMOUNT = "2000000000000000000";
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -34,7 +34,10 @@ describe(scenario.title, () => {
     try {
       const [owner, admin, user1, user2] = await hre.ethers.getSigners();
       users = { owner, admin, user1, user2 };
-      [essentialContracts, adapters] = await setUp(owner, Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        owner,
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
       contracts["registry"] = essentialContracts["registry"];
@@ -52,7 +55,6 @@ describe(scenario.title, () => {
       const profile = vault.profile;
       const TOKEN_STRATEGY = TypedAdapterStrategies["CompoundAdapter"][0];
       let ERC20Instance: Contract;
-
       before(async () => {
         await contracts["registry"].setWithdrawalFeeRange(["0", "1000"]);
         await approveLiquidityPoolAndMapAdapter(
@@ -64,21 +66,21 @@ describe(scenario.title, () => {
         await setBestStrategy(
           TOKEN_STRATEGY.strategy,
           users["owner"],
-          VAULT_TOKENS[token],
+          token,
           essentialContracts.investStrategyRegistry,
           essentialContracts.strategyProvider,
           "RP1",
           false,
         );
         const timestamp = (await getBlockTimestamp(hre)) * 2;
-        await fundWalletToken(hre, VAULT_TOKENS[token], users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
+        await fundWalletToken(hre, token, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
 
         underlyingTokenName = await getTokenName(hre, token);
         underlyingTokenSymbol = await getTokenSymbol(hre, token);
         Vault = await deployVault(
           hre,
           essentialContracts.registry.address,
-          VAULT_TOKENS[token],
+          token,
           users["owner"],
           users["admin"],
           underlyingTokenName,
@@ -88,7 +90,7 @@ describe(scenario.title, () => {
         );
         await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
-        ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token]);
+        ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
         contracts["vault"] = Vault;
         contracts["erc20"] = ERC20Instance;
       });
@@ -129,13 +131,7 @@ describe(scenario.title, () => {
                   try {
                     if (addressName && amount) {
                       const timestamp = (await getBlockTimestamp(hre)) * 2;
-                      await fundWalletToken(
-                        hre,
-                        VAULT_TOKENS[token],
-                        users[addressName],
-                        BigNumber.from(amount),
-                        timestamp,
-                      );
+                      await fundWalletToken(hre, token, users[addressName], BigNumber.from(amount), timestamp);
                     }
                   } catch (error: any) {
                     if (action.expect === "success") {

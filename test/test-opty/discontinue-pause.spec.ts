@@ -40,7 +40,10 @@ describe(scenario.title, () => {
     try {
       [owner, admin] = await hre.ethers.getSigners();
       users = { owner, admin };
-      [essentialContracts, adapters] = await setUp(users["owner"], Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        users["owner"],
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       contracts = { ...essentialContracts };
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
@@ -85,7 +88,7 @@ describe(scenario.title, () => {
                 vault = await deployVault(
                   hre,
                   essentialContracts.registry.address,
-                  VAULT_TOKENS[strategy.token],
+                  VAULT_TOKENS[strategy.token].address,
                   owner,
                   admin,
                   underlyingTokenName,
@@ -97,7 +100,7 @@ describe(scenario.title, () => {
                 await setBestStrategy(
                   strategy.strategy,
                   owner,
-                  VAULT_TOKENS[strategy.token],
+                  VAULT_TOKENS[strategy.token].address,
                   essentialContracts.investStrategyRegistry,
                   essentialContracts.strategyProvider,
                   profile,
@@ -106,11 +109,11 @@ describe(scenario.title, () => {
 
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
 
-                ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[strategy.token]);
+                ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[strategy.token].address);
                 decimals = await ERC20Instance.decimals();
                 await fundWalletToken(
                   hre,
-                  VAULT_TOKENS[strategy.token],
+                  VAULT_TOKENS[strategy.token].address,
                   owner,
                   BigNumber.from(MAX_AMOUNT).mul(BigNumber.from(10).pow(decimals)),
                   timestamp,

@@ -77,7 +77,7 @@ describe(scenario.title, () => {
       continue;
     }
     let strategyIndex = 0;
-    const tokenHash = generateTokenHash([VAULT_TOKENS[token]]);
+    const tokenHash = generateTokenHash([VAULT_TOKENS[token].address]);
     let decimals: number;
     let underlyingTokenName: string;
     let underlyingTokenSymbol: string;
@@ -90,7 +90,7 @@ describe(scenario.title, () => {
         Vault = await deployVault(
           hre,
           essentialContracts.registry.address,
-          VAULT_TOKENS[token],
+          VAULT_TOKENS[token].address,
           operator,
           admin,
           underlyingTokenName,
@@ -101,13 +101,13 @@ describe(scenario.title, () => {
 
         await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 
-        const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token]);
+        const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token].address);
 
         decimals = await Token_ERC20Instance.decimals();
 
         contracts["erc20"] = Token_ERC20Instance;
 
-        const CHIInstance = await hre.ethers.getContractAt("IChi", VAULT_TOKENS["CHI"]);
+        const CHIInstance = await hre.ethers.getContractAt("IChi", TypedTokens["CHI"]);
 
         contracts["chi"] = CHIInstance;
 
@@ -248,7 +248,7 @@ describe(scenario.title, () => {
                     const timestamp = (await getBlockTimestamp(hre)) * 2;
                     await fundWalletToken(
                       hre,
-                      VAULT_TOKENS[token],
+                      VAULT_TOKENS[token].address,
                       operator,
                       BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals)),
                       timestamp,
@@ -324,7 +324,10 @@ describe(scenario.title, () => {
                 break;
               }
               case "setBestStrategy(string,bytes32,bytes32)": {
-                const strategyHash = generateStrategyHash(strategies[strategyIndex].strategy, VAULT_TOKENS[token]);
+                const strategyHash = generateStrategyHash(
+                  strategies[strategyIndex].strategy,
+                  VAULT_TOKENS[token].address,
+                );
                 if (action.expect === "success") {
                   await contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash);
                 } else {

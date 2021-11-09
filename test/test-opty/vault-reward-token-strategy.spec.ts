@@ -48,7 +48,10 @@ describe(scenario.title, () => {
     try {
       const [owner, admin, user1] = await hre.ethers.getSigners();
       users = { owner, admin, user1 };
-      [essentialContracts, adapters] = await setUp(owner, Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        owner,
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
     } catch (error: any) {
@@ -70,6 +73,7 @@ describe(scenario.title, () => {
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const TOKEN_STRATEGY = strategies[i];
+            const token = VAULT_TOKENS[TOKEN_STRATEGY.token].address;
             const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
               rewardTokenAdapterName.toLowerCase(),
             );
@@ -86,7 +90,7 @@ describe(scenario.title, () => {
               Vault = await deployVault(
                 hre,
                 essentialContracts.registry.address,
-                VAULT_TOKENS[TOKEN_STRATEGY.token],
+                token,
                 users["owner"],
                 users["admin"],
                 underlyingTokenName,
@@ -123,14 +127,14 @@ describe(scenario.title, () => {
               investStrategyHash = await setBestStrategy(
                 TOKEN_STRATEGY.strategy,
                 users["owner"],
-                VAULT_TOKENS[TOKEN_STRATEGY.token],
+                token,
                 essentialContracts.investStrategyRegistry,
                 essentialContracts.strategyProvider,
                 profile,
                 false,
               );
 
-              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[TOKEN_STRATEGY.token]);
+              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
 
               contracts["vault"] = Vault;
               contracts["registry"] = essentialContracts.registry;
@@ -188,7 +192,7 @@ describe(scenario.title, () => {
                           const timestamp = (await getBlockTimestamp(hre)) * 2;
                           await fundWalletToken(
                             hre,
-                            VAULT_TOKENS[TOKEN_STRATEGY.token],
+                            token,
                             users[addressName],
                             BigNumber.from(amount[TOKEN_STRATEGY.token]),
                             timestamp,

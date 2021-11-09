@@ -20,7 +20,10 @@ describe(scenario.title, () => {
     try {
       const [owner] = await hre.ethers.getSigners();
       users = { owner };
-      [essentialContracts, adapters] = await setUp(users["owner"], Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        users["owner"],
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
       contracts["priceOracle"] = essentialContracts.priceOracle;
