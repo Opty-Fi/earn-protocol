@@ -107,7 +107,7 @@ export type OPTY_STAKING_VAULT = {
   multiplier: number;
 };
 
-export type SUPPORTED_TOKENS_DATA = {
+export type TOKENS_DATA = {
   [name: string]: {
     address: string;
     pair: boolean;

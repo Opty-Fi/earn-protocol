@@ -1,5 +1,5 @@
 import { TypedTokens } from "../data";
-import { REWARD_TOKEN_DATA_OBJECT, SUPPORTED_TOKENS_DATA } from "../type";
+import { REWARD_TOKEN_DATA_OBJECT, TOKENS_DATA } from "../type";
 
 export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
   CompoundAdapter: {
@@ -34,7 +34,7 @@ export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
   },
 };
 
-export const VAULT_TOKENS: SUPPORTED_TOKENS_DATA = {
+export const VAULT_TOKENS: TOKENS_DATA = {
   DAI: {
     address: TypedTokens["DAI"],
     pair: false,
