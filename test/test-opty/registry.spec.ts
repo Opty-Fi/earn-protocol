@@ -988,7 +988,7 @@ const REGISTRY_TESTING_DEFAULT_DATA: TESTING_DEFAULT_DATA[] = [
   },
   {
     setFunction: "addRiskProfile(uint256,string,string,string,bool,(uint8,uint8))",
-    input: ["1", "Basic", "bsc", false, [0, 10]],
+    input: ["1", "Basic", "bas", false, [0, 10]],
     getFunction: [
       {
         name: "riskProfilesArray(uint256)",

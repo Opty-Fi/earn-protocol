@@ -15,7 +15,7 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
 interface IStrategyProvider {
     /**
      * @notice Set the best stratetgy for the given riskProfile and tokenHash
-     * @param _riskProfileCode Risk profile Code
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @param _strategyHash Strategy hash to be set as best strategy
      */
@@ -27,7 +27,7 @@ interface IStrategyProvider {
 
     /**
      * @notice Set the best default stratetgy for the given riskProfile and tokenHash
-     * @param _riskProfileCode Risk profile Code
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy') (Eg: 1,2, and so on where 0 is reserved for `no strategy`)
      * @param _tokenHash Hash of the underlying token address/addresses
      * @param _strategyHash Strategy hash to be set as best default strategy
      */
@@ -56,7 +56,7 @@ interface IStrategyProvider {
 
     /**
      * @notice Get the Best strategy corresponding to riskProfile and tokenHash provided
-     * @param _riskProfileCode Risk profile Code
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @return Returns the best strategy hash corresponding to riskProfile and tokenHash provided
      */
@@ -64,7 +64,7 @@ interface IStrategyProvider {
 
     /**
      * @notice Get the Best Default strategy corresponding to riskProfile and tokenHash provided
-     * @param _riskProfileCode Risk profile Code
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @return Returns the best default strategy hash corresponding to riskProfile and tokenHash provided
      */

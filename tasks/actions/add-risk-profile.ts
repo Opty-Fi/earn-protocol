@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS, RISK_PROFILES } from "../../helpers/constants";
 import { addRiskProfile } from "../../helpers/contracts-actions";
 import { ADD_RISK_PROFILE } from "../task-names";
 
@@ -33,6 +33,10 @@ task(ADD_RISK_PROFILE, "Add Risk Profile")
 
     if (highestrating < lowestrating) {
       throw new Error("rating range is invalid");
+    }
+
+    if (RISK_PROFILES.filter(item => item.code === riskprofilecode).length === 0) {
+      throw new Error("risk profile is not available");
     }
 
     try {

@@ -53,7 +53,7 @@ describe(scenario.title, () => {
         tokenAddr,
         essentialContracts.investStrategyRegistry,
         essentialContracts.strategyProvider,
-        1,
+        riskProfileCode,
         false,
       );
       const timestamp = (await getBlockTimestamp(hre)) * 2;

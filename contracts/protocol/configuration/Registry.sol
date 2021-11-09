@@ -504,10 +504,10 @@ contract Registry is IRegistry, ModifiersController {
         DataTypes.PoolRatingsRange[] memory _poolRatingRanges
     ) external override onlyRiskOperator returns (bool) {
         require(_riskProfileCodes.length > 0, "!length>0");
-        require(_riskProfileCodes.length == _poolRatingRanges.length, "!PoolRatingsLength.poolRatingRanges");
-        require(_riskProfileCodes.length == _canBorrow.length, "!PoolRatingsLength.canBorrow");
-        require(_riskProfileCodes.length == _names.length, "!PoolRatingsLength.names");
-        require(_riskProfileCodes.length == _symbols.length, "!PoolRatingsLength.symbols");
+        require(_riskProfileCodes.length == _poolRatingRanges.length, "!RP_PoolRatingsLength");
+        require(_riskProfileCodes.length == _canBorrow.length, "!RP_canBorrowLength");
+        require(_riskProfileCodes.length == _names.length, "!RP_namesLength");
+        require(_riskProfileCodes.length == _symbols.length, "!RP_symbolsLength");
 
         for (uint256 _i = 0; _i < _riskProfileCodes.length; _i++) {
             _addRiskProfile(_riskProfileCodes[_i], _names[_i], _symbols[_i], _canBorrow[_i], _poolRatingRanges[_i]);

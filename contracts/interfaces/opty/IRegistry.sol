@@ -340,7 +340,7 @@ interface IRegistry {
 
     /**
      * @notice Change the borrow permission for existing risk profile
-     * @param _riskProfileCode Risk Profile code to update with strategy steps
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy') to update with strategy steps
      * @param _canBorrow A boolean value indicating whether the riskProfile allows borrow step
      * @return A boolean value indicating whether the operation succeeded
      */
@@ -348,7 +348,7 @@ interface IRegistry {
 
     /**
      * @notice Update the pool ratings for existing risk profile
-     * @param _riskProfileCode Risk profile code to update with pool rating range
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy') to update with pool rating range
      * @param _poolRatingRange pool rating range ([lowerLimit, upperLimit]) to update for given risk profile
      * @return A boolean value indicating whether the operation succeeded
      */
@@ -475,7 +475,7 @@ interface IRegistry {
         returns (DataTypes.VaultConfiguration memory _vaultConfiguration);
 
     /**
-     * @notice Get the properties corresponding to riskProfile provided
+     * @notice Get the properties corresponding to riskProfile code provided
      * @return _riskProfile Returns the properties corresponding to riskProfile provided
      */
     function getRiskProfile(uint256) external view returns (DataTypes.RiskProfile memory _riskProfile);

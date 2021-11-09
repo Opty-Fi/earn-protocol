@@ -88,10 +88,8 @@ contract Vault is
         registryContract = IRegistry(_registry);
         setRiskProfileCode(_riskProfileCode);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        string memory _riskProfileName = registryContract.getRiskProfile(_riskProfileCode).name;
-        string memory _riskProfileSymbol = registryContract.getRiskProfile(_riskProfileCode).symbol;
-        _setName(string(abi.encodePacked("op ", _name, " ", _riskProfileName)));
-        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfileSymbol)));
+        _setName(string(abi.encodePacked("op ", _name, " ", registryContract.getRiskProfile(_riskProfileCode).name)));
+        _setSymbol(string(abi.encodePacked("op", _symbol, registryContract.getRiskProfile(_riskProfileCode).symbol)));
         _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
     }
 
