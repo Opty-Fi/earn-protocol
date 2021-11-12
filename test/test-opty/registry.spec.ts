@@ -4,10 +4,14 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
 import { deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import {
+  ESSENTIAL_CONTRACTS,
+  TESTING_CONTRACTS,
+  TESTING_DEPLOYMENT_ONCE,
+  RISK_PROFILES,
+} from "../../helpers/constants";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import scenario from "./scenarios/registry.json";
-
 type ARGUMENTS = {
   [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
@@ -612,16 +616,22 @@ describe(scenario.title, () => {
       }
       case "addRiskProfile(uint256[],string[],string[],bool[],(uint8,uint8)[])": {
         const { riskProfileCode, canBorrow, poolRatingsRange }: ARGUMENTS = action.args;
+        const riskProfileName = riskProfileCode.map((code: any) =>
+          RISK_PROFILES[code] && code === RISK_PROFILES[code] ? RISK_PROFILES[code].name : `RP${code}`,
+        );
+        const riskProfileSymbol = riskProfileCode.map((code: any) =>
+          RISK_PROFILES[code] && code === RISK_PROFILES[code] ? RISK_PROFILES[code].symbol : `RP${code}`,
+        );
         if (riskProfileCode) {
           if (action.expect === "success") {
             await registryContract
               .connect(signers[action.executor])
-              [action.action](riskProfileCode, riskProfileCode, riskProfileCode, canBorrow, poolRatingsRange);
+              [action.action](riskProfileCode, riskProfileName, riskProfileSymbol, canBorrow, poolRatingsRange);
           } else {
             await expect(
               registryContract
                 .connect(signers[action.executor])
-                [action.action](riskProfileCode, riskProfileCode, riskProfileCode, canBorrow, poolRatingsRange),
+                [action.action](riskProfileCode, riskProfileName, riskProfileSymbol, canBorrow, poolRatingsRange),
             ).to.be.revertedWith(action.message);
           }
         }
@@ -630,13 +640,28 @@ describe(scenario.title, () => {
       }
       case "addRiskProfile(uint256,string,string,bool,(uint8,uint8))": {
         const { riskProfileCode, canBorrow, poolRatingRange }: ARGUMENTS = action.args;
+
+        const riskProfileDetail =
+          riskProfileCode === "emptyName"
+            ? ["0", "", "RP0"]
+            : riskProfileCode === "emptySymbol"
+            ? ["0", "RP0", ""]
+            : RISK_PROFILES[riskProfileCode]
+            ? [riskProfileCode, RISK_PROFILES[riskProfileCode].name, RISK_PROFILES[riskProfileCode].symbol]
+            : [riskProfileCode, `RP${riskProfileCode}`, `RP${riskProfileCode}`];
         if (riskProfileCode) {
           if (action.expect === "success") {
             const _addRiskProfileTx = await registryContract
               .connect(signers[action.executor])
-              [action.action](riskProfileCode, riskProfileCode, riskProfileCode, canBorrow, poolRatingRange);
+              [action.action](
+                riskProfileDetail[0],
+                riskProfileDetail[1],
+                riskProfileDetail[2],
+                canBorrow,
+                poolRatingRange,
+              );
             const addRiskProfileTx = await _addRiskProfileTx.wait(1);
-            const { index } = await registryContract.getRiskProfile(riskProfileCode);
+            const { index } = await registryContract.getRiskProfile(riskProfileDetail[0]);
             expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
             expect(addRiskProfileTx.events[0].args[0]).to.equal(+index);
             expect(addRiskProfileTx.events[0].args[1]).to.equal(true);
@@ -651,7 +676,13 @@ describe(scenario.title, () => {
             await expect(
               registryContract
                 .connect(signers[action.executor])
-                [action.action](riskProfileCode, riskProfileCode, riskProfileCode, canBorrow, poolRatingRange),
+                [action.action](
+                  riskProfileDetail[0],
+                  riskProfileDetail[1],
+                  riskProfileDetail[2],
+                  canBorrow,
+                  poolRatingRange,
+                ),
             ).to.be.revertedWith(action.message);
           }
         }

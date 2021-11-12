@@ -849,6 +849,8 @@ contract Registry is IRegistry, ModifiersController {
         DataTypes.PoolRatingsRange memory _poolRatingRange
     ) internal returns (bool) {
         require(!riskProfiles[_riskProfileCode].exists, "RP_already_exists");
+        require(bytes(_name).length > 0, "RP_name_empty");
+        require(bytes(_symbol).length > 0, "RP_symbol_empty");
         riskProfilesArray.push(_riskProfileCode);
         riskProfiles[_riskProfileCode].name = _name;
         riskProfiles[_riskProfileCode].symbol = _symbol;

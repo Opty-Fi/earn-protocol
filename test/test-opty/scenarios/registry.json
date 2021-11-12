@@ -2041,6 +2041,42 @@
       "cleanActions": []
     },
     {
+      "description": "RiskOperator shouldn't be able to add a Risk Profile with an empty symbol",
+      "setActions": [
+        {
+          "action": "addRiskProfile(uint256,string,string,bool,(uint8,uint8))",
+          "args": {
+            "riskProfileCode": "emptySymbol",
+            "canBorrow": false,
+            "poolRatingRange": [0, 10]
+          },
+          "executor": "riskOperator",
+          "expect": "fail",
+          "message": "RP_symbol_empty"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "RiskOperator shouldn't be able to add a Risk Profile with an empty name",
+      "setActions": [
+        {
+          "action": "addRiskProfile(uint256,string,string,bool,(uint8,uint8))",
+          "args": {
+            "riskProfileCode": "emptyName",
+            "canBorrow": false,
+            "poolRatingRange": [0, 10]
+          },
+          "executor": "riskOperator",
+          "expect": "fail",
+          "message": "RP_name_empty"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "RiskOperator shouldn't be able to add the existing Risk Profile",
       "setActions": [
         {
