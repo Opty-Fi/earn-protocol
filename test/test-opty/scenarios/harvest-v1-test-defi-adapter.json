@@ -2009,7 +2009,9 @@
           "message": ""
         }
       ]
-    },
+    }
+  ],
+  "adapterStandaloneStories": [
     {
       "description": "setLiquidityPoolToStakingVault() - Operator should be able to set a mapping that associates a valid liquidity pool contract address with a valid staking vault contract address only once",
       "setActions": [
@@ -2145,9 +2147,7 @@
       ],
       "getActions": [],
       "cleanActions": []
-    }
-  ],
-  "adapterStandaloneStories": [
+    },
     {
       "description": "[canStake()] - should return whether stake is allowed or not",
       "setActions": [
