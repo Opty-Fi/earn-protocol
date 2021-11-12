@@ -210,7 +210,7 @@ describe(scenario.title, () => {
                             ].blockToBlockVaultValues(balanceTx.blockNumber, 0);
                             defaultData.investStrategyHash.output = await contracts["vault"].investStrategyHash();
                             defaultData.underlyingToken.output = await contracts["vault"].underlyingToken();
-                            defaultData.profile.output = await contracts["vault"].profile();
+                            defaultData.riskProfileCode.output = await contracts["vault"].riskProfileCode();
                             defaultData.maxVaultValueJump.output = await contracts["vault"].maxVaultValueJump();
                             await contracts["vault"].connect(users[userIndex]).rebalance();
                             defaultData.gasOwedToOperator.output = await contracts["vault"].gasOwedToOperator();

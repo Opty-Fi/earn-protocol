@@ -93,7 +93,7 @@ describe(scenarios.title, () => {
                   adapter.address,
                   strategy.strategy[0].contract,
                 );
-                vaultRiskProfile = await Vault.profile();
+                vaultRiskProfile = await Vault.riskProfileCode();
                 bestStrategyHash = await setBestStrategy(
                   strategy.strategy,
                   VAULT_TOKENS[strategy.token],
