@@ -27,7 +27,7 @@ interface IStrategyProvider {
 
     /**
      * @notice Set the best default stratetgy for the given riskProfile and tokenHash
-     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy') (Eg: 1,2, and so on where 0 is reserved for `no strategy`)
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @param _strategyHash Strategy hash to be set as best default strategy
      */
