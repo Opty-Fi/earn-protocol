@@ -74,7 +74,7 @@ contract Vault is
      * @param _underlyingToken The address of underlying asset of this vault
      * @param _name The name of the underlying asset
      * @param _symbol The symbol of the underlying  asset
-     * @param _riskProfileCode The name of the risk profile of this vault
+     * @param _riskProfileCode Risk profile code of this vault
      */
     function initialize(
         address _registry,

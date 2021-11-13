@@ -84,7 +84,7 @@ const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; 
     output: "",
   },
   profile: {
-    getFunction: "profile()",
+    getFunction: "riskProfileCode()",
     input: [],
     output: "",
   },

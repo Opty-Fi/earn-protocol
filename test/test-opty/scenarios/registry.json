@@ -2194,6 +2194,23 @@
       "cleanActions": []
     },
     {
+      "description": "RiskOperator shouldn't be able to update borrow for non-existing Risk Profile",
+      "setActions": [
+        {
+          "action": "updateRiskProfileBorrow(uint256,bool)",
+          "args": {
+            "riskProfileCode": "10000",
+            "canBorrow": true
+          },
+          "executor": "riskOperator",
+          "expect": "fail",
+          "message": "!Rp_Exists"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "RiskOperator should be able to update pool ratings for Risk Profile",
       "setActions": [
         {
@@ -2258,6 +2275,23 @@
           "executor": "user1",
           "expect": "fail",
           "message": "caller is not the risk operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "RiskOperator shouldn't be able to update pool ratings for non-existing Risk Profile",
+      "setActions": [
+        {
+          "action": "updateRPPoolRatings(uint256,(uint8,uint8))",
+          "args": {
+            "riskProfileCode": "100000",
+            "poolRatingRange": [0, 20]
+          },
+          "executor": "riskOperator",
+          "expect": "fail",
+          "message": "!Rp_Exists"
         }
       ],
       "getActions": [],
