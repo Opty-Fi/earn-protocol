@@ -124,7 +124,7 @@ export async function approveAndSetTokenHashToTokens(
 
 export async function setStrategy(
   strategy: STRATEGY_DATA[],
-  singer: Signer,
+  signer: Signer,
   tokens: string[],
   investStrategyRegistry: Contract,
 ): Promise<string> {
@@ -132,16 +132,16 @@ export async function setStrategy(
   const tokensHash = generateTokenHash(tokens);
   const strategyHash = generateStrategyHash(strategy, tokens[0]);
   await expect(
-    investStrategyRegistry.connect(singer)["setStrategy(bytes32,(address,address,bool)[])"](tokensHash, strategySteps),
+    investStrategyRegistry.connect(signer)["setStrategy(bytes32,(address,address,bool)[])"](tokensHash, strategySteps),
   )
     .to.emit(investStrategyRegistry, "LogSetVaultInvestStrategy")
-    .withArgs(tokensHash, strategyHash, await singer.getAddress());
+    .withArgs(tokensHash, strategyHash, await signer.getAddress());
   return strategyHash;
 }
 
 export async function setBestStrategy(
   strategy: STRATEGY_DATA[],
-  singer: Signer,
+  signer: Signer,
   tokenAddress: string,
   investStrategyRegistry: Contract,
   strategyProvider: Contract,
@@ -155,7 +155,7 @@ export async function setBestStrategy(
   const strategyDetail = await investStrategyRegistry.getStrategy(strategyHash);
 
   if (strategyDetail[1].length === 0) {
-    await setStrategy(strategy, singer, [tokenAddress], investStrategyRegistry);
+    await setStrategy(strategy, signer, [tokenAddress], investStrategyRegistry);
   }
 
   if (isDefault) {
