@@ -199,7 +199,10 @@ describe(scenario.title, () => {
                 const strategySteps = generateStrategyStep(strategies[strategyIndex].strategy);
 
                 if (action.expect === "success") {
-                  const strategyHash = generateStrategyHash(strategies[strategyIndex].strategy, VAULT_TOKENS[token]);
+                  const strategyHash = generateStrategyHash(
+                    strategies[strategyIndex].strategy,
+                    VAULT_TOKENS[token].address,
+                  );
                   await expect(contracts[action.contract][action.action](tokenHash, strategySteps))
                     .to.emit(contracts[action.contract], "LogSetVaultInvestStrategy")
                     .withArgs(tokenHash, strategyHash, await operator.getAddress());

@@ -111,10 +111,10 @@ describe(scenario.title, () => {
               case "updateRPPoolRatings(string,(uint8,uint8))": {
                 const { poolRatingRange }: ARGUMENTS = action.args;
                 if (riskProfile && poolRatingRange) {
-                  const value = await contracts[action.contract].getRiskProfile(riskProfile);
+                  const value = await registry.getRiskProfile(riskProfile);
                   const riskProfileIndex = value.index;
-                  await expect(contracts[action.contract][action.action](riskProfile, poolRatingRange))
-                    .to.emit(contracts[action.contract], "LogRPPoolRatings")
+                  await expect(registry[action.action](riskProfile, poolRatingRange))
+                    .to.emit(registry, "LogRPPoolRatings")
                     .withArgs(riskProfileIndex, poolRatingRange[0], poolRatingRange[1], await owner.getAddress());
                 }
                 assert.isDefined(poolRatingRange, `args is wrong in ${action.action} testcase`);

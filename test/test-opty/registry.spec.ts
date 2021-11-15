@@ -7,7 +7,6 @@ import { deployContract, executeFunc, generateTokenHash } from "../../helpers/he
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
-import { getSoliditySHA3Hash } from "../../helpers/utils";
 import scenario from "./scenarios/registry.json";
 
 type ARGUMENTS = {
