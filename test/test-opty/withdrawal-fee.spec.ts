@@ -23,7 +23,8 @@ import scenario from "./scenarios/withdrawal-fee.json";
 chai.use(solidity);
 
 describe(scenario.title, () => {
-  const token = VAULT_TOKENS["DAI"].address;
+  const token = "DAI";
+  const tokenAddress = VAULT_TOKENS[token].address;
   const MAX_AMOUNT = "2000000000000000000";
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -63,23 +64,24 @@ describe(scenario.title, () => {
           adapters["CompoundAdapter"].address,
           TOKEN_STRATEGY.strategy[0].contract,
         );
+
         await setBestStrategy(
           TOKEN_STRATEGY.strategy,
-          token,
+          tokenAddress,
           essentialContracts.investStrategyRegistry,
           essentialContracts.strategyProvider,
           "RP1",
           false,
         );
         const timestamp = (await getBlockTimestamp(hre)) * 2;
-        await fundWalletToken(hre, token, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
+        await fundWalletToken(hre, tokenAddress, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
 
         underlyingTokenName = await getTokenName(hre, token);
         underlyingTokenSymbol = await getTokenSymbol(hre, token);
         Vault = await deployVault(
           hre,
           essentialContracts.registry.address,
-          token,
+          tokenAddress,
           users["owner"],
           users["admin"],
           underlyingTokenName,
@@ -89,7 +91,7 @@ describe(scenario.title, () => {
         );
         await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
-        ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
+        ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
         contracts["vault"] = Vault;
         contracts["erc20"] = ERC20Instance;
       });
@@ -126,7 +128,7 @@ describe(scenario.title, () => {
                   try {
                     if (addressName && amount) {
                       const timestamp = (await getBlockTimestamp(hre)) * 2;
-                      await fundWalletToken(hre, token, users[addressName], BigNumber.from(amount), timestamp);
+                      await fundWalletToken(hre, tokenAddress, users[addressName], BigNumber.from(amount), timestamp);
                     }
                   } catch (error: any) {
                     if (action.expect === "success") {
