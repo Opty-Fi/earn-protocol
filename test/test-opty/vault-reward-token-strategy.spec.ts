@@ -325,8 +325,8 @@ describe(scenario.title, () => {
                           const reward_token_balance = await contracts[action.contract][action.action](address);
                           <string>balance == ">0"
                             ? REWARD_TOKENS[adapterName].distributionActive
-                              ? expect(reward_token_balance).to.gt(0)
-                              : expect(reward_token_balance).to.equal(0)
+                              ? expect(reward_token_balance).to.gt(BigNumber.from("0"))
+                              : expect(reward_token_balance).to.equal(BigNumber.from("0"))
                             : expect(reward_token_balance).to.equal(balance);
                         }
                       }
