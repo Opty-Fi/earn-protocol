@@ -137,7 +137,7 @@ export async function setBestStrategy(
   tokenAddress: string,
   investStrategyRegistry: Contract,
   strategyProvider: Contract,
-  riskProfile: string,
+  riskProfileCode: number,
   isDefault: boolean,
 ): Promise<string> {
   const strategyHash = generateStrategyHash(strategy, tokenAddress);
@@ -151,9 +151,9 @@ export async function setBestStrategy(
   }
 
   if (isDefault) {
-    await strategyProvider.setBestDefaultStrategy(riskProfile.toUpperCase(), tokenHash, strategyHash);
+    await strategyProvider.setBestDefaultStrategy(riskProfileCode, tokenHash, strategyHash);
   } else {
-    await strategyProvider.setBestStrategy(riskProfile.toUpperCase(), tokenHash, strategyHash);
+    await strategyProvider.setBestStrategy(riskProfileCode, tokenHash, strategyHash);
   }
   return strategyHash;
 }
@@ -508,29 +508,37 @@ export async function isSetTokenHash(registryContract: Contract, tokenAddresses:
   return true;
 }
 export async function addRiskProfiles(owner: Signer, registry: Contract): Promise<void> {
-  const profiles = Object.keys(RISK_PROFILES);
-  for (let i = 0; i < profiles.length; i++) {
-    const profile = await registry.getRiskProfile(RISK_PROFILES[profiles[i]].name);
-    if (!profile.exists) {
-      await executeFunc(registry, owner, "addRiskProfile(string,bool,(uint8,uint8))", [
-        RISK_PROFILES[profiles[i]].name,
-        RISK_PROFILES[profiles[i]].canBorrow,
-        RISK_PROFILES[profiles[i]].poolRating,
-      ]);
-    }
+  for (let i = 0; i < RISK_PROFILES.length; i++) {
+    await addRiskProfile(
+      registry,
+      owner,
+      RISK_PROFILES[i].code,
+      RISK_PROFILES[i].name,
+      RISK_PROFILES[i].symbol,
+      RISK_PROFILES[i].canBorrow,
+      RISK_PROFILES[i].poolRating,
+    );
   }
 }
 
 export async function addRiskProfile(
   registry: Contract,
   owner: Signer,
+  riskProfileCode: number,
   name: string,
+  symbol: string,
   canBorrow: boolean,
   poolRating: number[],
 ): Promise<void> {
-  const profile = await registry.getRiskProfile(name);
+  const profile = await registry.getRiskProfile(riskProfileCode);
   if (!profile.exists) {
-    await executeFunc(registry, owner, "addRiskProfile(string,bool,(uint8,uint8))", [name, canBorrow, poolRating]);
+    await executeFunc(registry, owner, "addRiskProfile(uint256,string,string,bool,(uint8,uint8))", [
+      riskProfileCode,
+      name,
+      symbol,
+      canBorrow,
+      poolRating,
+    ]);
   }
 }
 

@@ -150,10 +150,10 @@ interface IVault {
     /**
      * @notice Assign a risk profile name
      * @dev name of the risk profile should be approved by governance
-     * @param _profile name of the risk profile
+     * @param _riskProfileCode code of the risk profile
      * @return returns true on successfully setting risk profile name.
      */
-    function setProfile(string memory _profile) external returns (bool);
+    function setRiskProfileCode(uint256 _riskProfileCode) external returns (bool);
 
     /**
      * @notice Assign the address of the underlying asset of the vault

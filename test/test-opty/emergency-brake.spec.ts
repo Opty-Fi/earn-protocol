@@ -37,7 +37,7 @@ describe(scenario.title, () => {
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
       const vault = scenario.vaults[i];
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       let ERC20Instance: Contract;
       let emergencyBrake: Contract;
       before(async () => {

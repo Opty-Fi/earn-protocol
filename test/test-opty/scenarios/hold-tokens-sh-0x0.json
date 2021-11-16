@@ -4,16 +4,16 @@
   "vaults": [
     {
       "name": "Vault",
-      "profile": "RP1",
+      "riskProfileCode": 1,
       "stories": [
         {
           "description": "[StrategyHash is 0x..00] User should be able to deposit and Vault should hold tokens",
           "actions": [
             {
               "contract": "strategyProvider",
-              "action": "setBestStrategy(string,bytes32,bytes32)",
+              "action": "setBestStrategy(uint256,bytes32,bytes32)",
               "args": {
-                "riskProfile": "RP1",
+                "riskProfileCode": "1",
                 "strategyHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
               },
               "executer": "owner",
@@ -86,9 +86,9 @@
           "actions": [
             {
               "contract": "strategyProvider",
-              "action": "setBestStrategy(string,bytes32,bytes32)",
+              "action": "setBestStrategy(uint256,bytes32,bytes32)",
               "args": {
-                "riskProfile": "RP1"
+                "riskProfileCode": "1"
               },
               "executer": "owner",
               "expect": "success",
@@ -160,9 +160,9 @@
           "actions": [
             {
               "contract": "strategyProvider",
-              "action": "setBestStrategy(string,bytes32,bytes32)",
+              "action": "setBestStrategy(uint256,bytes32,bytes32)",
               "args": {
-                "riskProfile": "RP1",
+                "riskProfileCode": "1",
                 "strategyHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
               },
               "executer": "owner",
@@ -215,9 +215,9 @@
             },
             {
               "contract": "strategyProvider",
-              "action": "setBestStrategy(string,bytes32,bytes32)",
+              "action": "setBestStrategy(uint256,bytes32,bytes32)",
               "args": {
-                "riskProfile": "RP1"
+                "riskProfileCode": "1"
               },
               "executer": "owner",
               "expect": "success",
@@ -259,9 +259,9 @@
           "actions": [
             {
               "contract": "strategyProvider",
-              "action": "setBestStrategy(string,bytes32,bytes32)",
+              "action": "setBestStrategy(uint256,bytes32,bytes32)",
               "args": {
-                "riskProfile": "RP1",
+                "riskProfileCode": "1",
                 "strategyHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
               },
               "executer": "owner",
@@ -314,9 +314,9 @@
             },
             {
               "contract": "strategyProvider",
-              "action": "setBestStrategy(string,bytes32,bytes32)",
+              "action": "setBestStrategy(uint256,bytes32,bytes32)",
               "args": {
-                "riskProfile": "RP1"
+                "riskProfileCode": "1"
               },
               "executer": "owner",
               "expect": "success",

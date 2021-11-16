@@ -4,7 +4,7 @@
   "vaults": [
     {
       "name": "Vault",
-      "profile": "RP1",
+      "riskProfileCode": 1,
       "stories": [
         {
           "description": "User should be able to deposit into a correct liquidity pool based on the current best strategy",

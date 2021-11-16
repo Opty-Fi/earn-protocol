@@ -80,8 +80,8 @@ const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; 
     input: [],
     output: "",
   },
-  profile: {
-    getFunction: "profile()",
+  riskProfileCode: {
+    getFunction: "riskProfileCode()",
     input: [],
     output: "",
   },
@@ -113,10 +113,10 @@ describe(scenario.title, () => {
   });
 
   for (let i = 0; i < scenario.vaults.length; i++) {
-    describe(`${scenario.vaults[i].profile}`, async () => {
+    describe(`RP-${scenario.vaults[i].riskProfileCode}`, async () => {
       let Vault: Contract;
       const vault = scenario.vaults[i];
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 
       for (let i = 0; i < adaptersName.length; i++) {
@@ -210,7 +210,7 @@ describe(scenario.title, () => {
                             ].blockToBlockVaultValues(balanceTx.blockNumber, 0);
                             defaultData.investStrategyHash.output = await contracts["vault"].investStrategyHash();
                             defaultData.underlyingToken.output = await contracts["vault"].underlyingToken();
-                            defaultData.profile.output = await contracts["vault"].profile();
+                            defaultData.riskProfileCode.output = await contracts["vault"].riskProfileCode();
                             defaultData.maxVaultValueJump.output = await contracts["vault"].maxVaultValueJump();
                             await contracts["vault"].connect(users[userIndex]).rebalance();
                             defaultData.gasOwedToOperator.output = await contracts["vault"].gasOwedToOperator();
@@ -234,7 +234,12 @@ describe(scenario.title, () => {
                             TESTING_CONTRACTS.TEST_VAULT_NEW_IMPLEMENTATION,
                             TESTING_DEPLOYMENT_ONCE,
                             users[0],
-                            [essentialContracts.registry.address, underlyingTokenName, underlyingTokenSymbol, profile],
+                            [
+                              essentialContracts.registry.address,
+                              underlyingTokenName,
+                              underlyingTokenSymbol,
+                              `RP-${profile}`,
+                            ],
                           );
 
                           await expect(vaultProxy.connect(users[1])["upgradeTo(address)"](vault.address))

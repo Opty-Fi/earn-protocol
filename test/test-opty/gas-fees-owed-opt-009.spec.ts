@@ -33,7 +33,7 @@ type ARGUMENTS = {
   liquidityPool?: string;
   strategy?: STRATEGY_DATA[];
   amount?: string;
-  riskProfile?: string;
+  riskProfileCode?: string;
   poolRatingRange?: number[];
   score?: number;
 };
@@ -81,7 +81,7 @@ describe(scenario.title, () => {
     let decimals: number;
     let underlyingTokenName: string;
     let underlyingTokenSymbol: string;
-    const riskProfile = "RP1";
+    const riskProfileCode = 1;
     describe(`${token}`, () => {
       before(async () => {
         underlyingTokenName = await getTokenName(hre, token);
@@ -95,7 +95,7 @@ describe(scenario.title, () => {
           admin,
           underlyingTokenName,
           underlyingTokenSymbol,
-          riskProfile,
+          riskProfileCode,
           TESTING_DEPLOYMENT_ONCE,
         );
 
@@ -289,16 +289,13 @@ describe(scenario.title, () => {
                 assert.isDefined(amount, `args is wrong in ${action.action} testcase`);
                 break;
               }
-              case "setBestStrategy(string,bytes32,bytes32)": {
-                const strategyHash = generateStrategyHash(
-                  strategies[strategyIndex].strategy,
-                  VAULT_TOKENS[token].address,
-                );
+              case "setBestStrategy(uint256,bytes32,bytes32)": {
+                const strategyHash = generateStrategyHash(strategies[strategyIndex].strategy, VAULT_TOKENS[token]);
                 if (action.expect === "success") {
-                  await contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash);
+                  await contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash);
                 } else {
                   await expect(
-                    contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash),
+                    contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash),
                   ).to.be.revertedWith(action.message);
                 }
                 strategyIndex++;

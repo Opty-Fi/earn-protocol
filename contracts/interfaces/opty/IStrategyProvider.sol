@@ -15,24 +15,24 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
 interface IStrategyProvider {
     /**
      * @notice Set the best stratetgy for the given riskProfile and tokenHash
-     * @param _riskProfile Risk profile (Eg: RP1, RP2, etc)
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @param _strategyHash Strategy hash to be set as best strategy
      */
     function setBestStrategy(
-        string memory _riskProfile,
+        uint256 _riskProfileCode,
         bytes32 _tokenHash,
         bytes32 _strategyHash
     ) external;
 
     /**
      * @notice Set the best default stratetgy for the given riskProfile and tokenHash
-     * @param _riskProfile Risk profile (Eg: RP1, RP2, etc)
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @param _strategyHash Strategy hash to be set as best default strategy
      */
     function setBestDefaultStrategy(
-        string memory _riskProfile,
+        uint256 _riskProfileCode,
         bytes32 _tokenHash,
         bytes32 _strategyHash
     ) external;
@@ -56,19 +56,19 @@ interface IStrategyProvider {
 
     /**
      * @notice Get the Best strategy corresponding to riskProfile and tokenHash provided
-     * @param _riskProfile Risk profile (Eg: RP1, RP2, etc)
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @return Returns the best strategy hash corresponding to riskProfile and tokenHash provided
      */
-    function rpToTokenToBestStrategy(string memory _riskProfile, bytes32 _tokenHash) external view returns (bytes32);
+    function rpToTokenToBestStrategy(uint256 _riskProfileCode, bytes32 _tokenHash) external view returns (bytes32);
 
     /**
      * @notice Get the Best Default strategy corresponding to riskProfile and tokenHash provided
-     * @param _riskProfile Risk profile (Eg: RP1, RP2, etc)
+     * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * @param _tokenHash Hash of the underlying token address/addresses
      * @return Returns the best default strategy hash corresponding to riskProfile and tokenHash provided
      */
-    function rpToTokenToDefaultStrategy(string memory _riskProfile, bytes32 _tokenHash) external view returns (bytes32);
+    function rpToTokenToDefaultStrategy(uint256 _riskProfileCode, bytes32 _tokenHash) external view returns (bytes32);
 
     /**
      * @notice Get the Vault reward token's strategy corresponding to the tokensHash provided

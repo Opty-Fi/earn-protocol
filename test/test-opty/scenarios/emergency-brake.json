@@ -4,7 +4,7 @@
   "vaults": [
     {
       "name": "Vault",
-      "profile": "RP1",
+      "riskProfileCode": 1,
       "maxJump": 100,
       "stories": [
         {

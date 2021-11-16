@@ -38,9 +38,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": null
@@ -65,9 +65,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DX"
           },
           "expectedValue": null
@@ -125,9 +125,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": null
@@ -206,9 +206,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -288,11 +288,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "HarvestV1Adapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -302,9 +302,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -351,9 +351,9 @@
         },
         {
           "contract": "registry",
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "action": "updateRPPoolRatings(uint256,(uint8,uint8))",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "poolRatingRange": [2, 10]
           },
           "executor": "",
@@ -418,11 +418,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "HarvestV1Adapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -432,9 +432,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -485,9 +485,9 @@
         },
         {
           "contract": "registry",
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "action": "updateRPPoolRatings(uint256,(uint8,uint8))",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "poolRatingRange": [0, 10]
           },
           "executor": "",
@@ -552,11 +552,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "HarvestV1Adapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -566,9 +566,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -619,9 +619,9 @@
         },
         {
           "contract": "registry",
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "action": "updateRPPoolRatings(uint256,(uint8,uint8))",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "poolRatingRange": [0, 10]
           },
           "executor": "",
@@ -686,11 +686,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "HarvestV1Adapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -700,9 +700,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -809,11 +809,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "HarvestV1Adapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -823,9 +823,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -932,11 +932,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "HarvestV1Adapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -946,9 +946,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {
@@ -1032,11 +1032,11 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
             "adapterName": "CompoundAdapter",
             "token": "DAI",
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "",
           "expect": "success",
@@ -1046,9 +1046,9 @@
       "getActions": [
         {
           "contract": "riskManager",
-          "action": "getBestStrategy(string,address[])",
+          "action": "getBestStrategy(uint256,address[])",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "token": "DAI"
           },
           "expectedValue": {

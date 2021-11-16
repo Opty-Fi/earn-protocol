@@ -55,12 +55,13 @@ contract Vault is
         address _registry,
         string memory _name,
         string memory _symbol,
-        string memory _riskProfile
+        string memory _riskProfileName,
+        string memory _riskProfileSymbol
     )
         public
         IncentivisedERC20(
-            string(abi.encodePacked("op ", _name, " ", _riskProfile, " vault")),
-            string(abi.encodePacked("op", _symbol, _riskProfile, "Vault"))
+            string(abi.encodePacked("op ", _name, " ", _riskProfileName)),
+            string(abi.encodePacked("op", _symbol, _riskProfileSymbol))
         )
         Modifiers(_registry)
     {}
@@ -73,22 +74,22 @@ contract Vault is
      * @param _underlyingToken The address of underlying asset of this vault
      * @param _name The name of the underlying asset
      * @param _symbol The symbol of the underlying  asset
-     * @param _riskProfile The name of the risk profile of this vault
+     * @param _riskProfileCode Risk profile code of this vault
      */
     function initialize(
         address _registry,
         address _underlyingToken,
         string memory _name,
         string memory _symbol,
-        string memory _riskProfile
+        uint256 _riskProfileCode
     ) external virtual initializer {
         require(bytes(_name).length > 0, "Name_Empty!");
         require(bytes(_symbol).length > 0, "Symbol_Empty!");
         registryContract = IRegistry(_registry);
-        setProfile(_riskProfile);
+        setRiskProfileCode(_riskProfileCode);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile, " vault")));
-        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile, "Vault")));
+        _setName(string(abi.encodePacked("op ", _name, " ", registryContract.getRiskProfile(_riskProfileCode).name)));
+        _setSymbol(string(abi.encodePacked("op", _symbol, registryContract.getRiskProfile(_riskProfileCode).symbol)));
         _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
     }
 
@@ -112,7 +113,7 @@ contract Vault is
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = underlyingToken;
         bytes32 _newInvestStrategyHash =
-            IRiskManager(_vaultStrategyConfiguration.riskManager).getBestStrategy(profile, _underlyingTokens);
+            IRiskManager(_vaultStrategyConfiguration.riskManager).getBestStrategy(riskProfileCode, _underlyingTokens);
         if (
             keccak256(abi.encodePacked(_newInvestStrategyHash)) != keccak256(abi.encodePacked(investStrategyHash)) &&
             investStrategyHash != Constants.ZERO_BYTES32
@@ -135,7 +136,7 @@ contract Vault is
         if (_balance() > 0) {
             _emergencyBrake(_balance());
             investStrategyHash = IRiskManager(_vaultStrategyConfiguration.riskManager).getBestStrategy(
-                profile,
+                riskProfileCode,
                 _underlyingTokens
             );
             _supplyAll(_vaultStrategyConfiguration);
@@ -324,11 +325,10 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function setProfile(string memory _profile) public override onlyOperator returns (bool) {
-        require(bytes(_profile).length > 0, "Profile_Empty!");
-        DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_profile);
+    function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator returns (bool) {
+        DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
         require(_riskProfile.exists, "!Rp_Exists");
-        profile = _profile;
+        riskProfileCode = _riskProfileCode;
         return true;
     }
 
@@ -568,7 +568,7 @@ contract Vault is
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = underlyingToken;
             investStrategyHash = IRiskManager(_vaultStrategyConfiguration.riskManager).getBestStrategy(
-                profile,
+                riskProfileCode,
                 _underlyingTokens
             );
             _supplyAll(_vaultStrategyConfiguration);
@@ -624,7 +624,7 @@ contract Vault is
             address[] memory _underlyingTokens = new address[](1);
             _underlyingTokens[0] = underlyingToken;
             investStrategyHash = IRiskManager(_vaultStrategyConfiguration.riskManager).getBestStrategy(
-                profile,
+                riskProfileCode,
                 _underlyingTokens
             );
             _supplyAll(_vaultStrategyConfiguration);

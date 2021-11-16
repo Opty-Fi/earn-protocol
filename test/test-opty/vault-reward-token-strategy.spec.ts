@@ -63,7 +63,7 @@ describe(scenario.title, () => {
     describe(`${scenario.vaults[i].name}`, async () => {
       let Vault: Contract;
       const vault = scenario.vaults[i];
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 
       for (let i = 0; i < adaptersName.length; i++) {
@@ -71,8 +71,9 @@ describe(scenario.title, () => {
         const strategies = TypedAdapterStrategies[adaptersName[i]];
 
         for (let i = 0; i < strategies.length; i++) {
+          const TOKEN_STRATEGY = strategies[i];
+
           describe(`${strategies[i].strategyName}`, async () => {
-            const TOKEN_STRATEGY = strategies[i];
             const token = VAULT_TOKENS[TOKEN_STRATEGY.token].address;
             const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
               rewardTokenAdapterName.toLowerCase(),
@@ -330,9 +331,9 @@ describe(scenario.title, () => {
                           const reward_token_balance = await contracts[action.contract][action.action](address);
                           <string>balance == ">0"
                             ? REWARD_TOKENS[adapterName].distributionActive
-                              ? assert.isAbove(+reward_token_balance, +"0", "Vault should hold some reward tokens")
-                              : expect(+reward_token_balance).to.equal(+"0")
-                            : expect(+reward_token_balance).to.equal(+(<string>balance));
+                              ? expect(reward_token_balance).to.gt(BigNumber.from("0"))
+                              : expect(reward_token_balance).to.equal(BigNumber.from("0"))
+                            : expect(reward_token_balance).to.equal(balance);
                         }
                       }
                       break;

@@ -27,12 +27,12 @@ contract StrategyProvider is IStrategyProvider, Modifiers {
     /**
      * @notice Mapping of RiskProfile (eg: RP1, RP2, etc) to tokensHash to the best strategy hash
      */
-    mapping(string => mapping(bytes32 => bytes32)) public override rpToTokenToBestStrategy;
+    mapping(uint256 => mapping(bytes32 => bytes32)) public override rpToTokenToBestStrategy;
 
     /**
      * @notice Mapping of RiskProfile (eg: RP1, RP2, etc) to tokensHash to best default strategy hash
      */
-    mapping(string => mapping(bytes32 => bytes32)) public override rpToTokenToDefaultStrategy;
+    mapping(uint256 => mapping(bytes32 => bytes32)) public override rpToTokenToDefaultStrategy;
 
     /**
      * @notice Mapping of vaultRewardToken address hash to vault reward token strategy
@@ -51,30 +51,30 @@ contract StrategyProvider is IStrategyProvider, Modifiers {
      * @inheritdoc IStrategyProvider
      */
     function setBestStrategy(
-        string memory _riskProfile,
+        uint256 _riskProfileCode,
         bytes32 _tokenHash,
         bytes32 _strategyHash
     ) external override onlyStrategyOperator {
-        DataTypes.RiskProfile memory _riskProfileStruct = registryContract.getRiskProfile(_riskProfile);
+        DataTypes.RiskProfile memory _riskProfileStruct = registryContract.getRiskProfile(_riskProfileCode);
         require(_riskProfileStruct.exists, "!Rp_Exists");
         uint256 _index = registryContract.getTokensHashIndexByHash(_tokenHash);
         require(registryContract.getTokensHashByIndex(_index) == _tokenHash, "!TokenHashExists");
-        rpToTokenToBestStrategy[_riskProfile][_tokenHash] = _strategyHash;
+        rpToTokenToBestStrategy[_riskProfileCode][_tokenHash] = _strategyHash;
     }
 
     /**
      * @inheritdoc IStrategyProvider
      */
     function setBestDefaultStrategy(
-        string memory _riskProfile,
+        uint256 _riskProfileCode,
         bytes32 _tokenHash,
         bytes32 _strategyHash
     ) external override onlyStrategyOperator {
-        DataTypes.RiskProfile memory _riskProfileStruct = registryContract.getRiskProfile(_riskProfile);
+        DataTypes.RiskProfile memory _riskProfileStruct = registryContract.getRiskProfile(_riskProfileCode);
         require(_riskProfileStruct.exists, "!Rp_Exists");
         uint256 _index = registryContract.getTokensHashIndexByHash(_tokenHash);
         require(registryContract.getTokensHashByIndex(_index) == _tokenHash, "!TokenHashExists");
-        rpToTokenToDefaultStrategy[_riskProfile][_tokenHash] = _strategyHash;
+        rpToTokenToDefaultStrategy[_riskProfileCode][_tokenHash] = _strategyHash;
     }
 
     /**

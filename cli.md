@@ -342,7 +342,7 @@ Usage: deploy Vault contract
 Options:
 --registry     required <address> the address of registry
 --token        required <address> the address of underlying token
---riskprofile  required <string>  the name of Vault's risk profile
+--riskprofilecode       required <number>  the code of Vault's risk profile
 --insertindb   optional <bool>    allow inserting to database
 --network      optional <string>  name of the network provider (default: hardhat)
 ```
@@ -354,7 +354,7 @@ Options:
   --network localhost \
   --registry 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \
-  --riskprofile RP1
+  --riskprofilecode 1
 ```
 
 ### deploy-vaults
@@ -434,10 +434,10 @@ Usage: add risk profile in Registry contract
 
 Options:
 --registry      required <address> the address of registry
---name          required <string>  the name of risk profile
+--riskprofilecode          required <number>  the code of risk profile
 --canborrow     required <boolean> whether risk profile can borrow or not
---lowestrating  required <int>     the lowest rating
---highestrating required <int>     the highest rating
+--lowestrating  required <number>     the lowest rating
+--highestrating required <number>     the highest rating
 --network       optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -447,7 +447,7 @@ Options:
   yarn hardhat add-risk-profile \
   --network localhost \
   --registry 0x0000000000000000000000000000000000000000 \
-  --name RP1 \
+  --riskprofilecode 1 \
   --canborrow true \
   --lowestrating 0 \
   --highestrating 10
@@ -461,7 +461,7 @@ Usage: approve spender to use specific amount of erc20 token
 Options:
 --spender   required <address> the address of spender
 --token     required <address> the address of token
---amount    required <int>     the amount of token
+--amount    required <number>     the amount of token
 --network   optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -562,7 +562,7 @@ Usage: get best strategy or default best strategy for the token with risk profil
 
 Options:
 --token            required <address> the address of token
---riskprofile      required <string>  risk profile
+--riskprofilecode           required <number>  the code of risk profile
 --strategyprovider required <address> the address of strategyProvider
 --isdefault        required <bool>    get default strategy or not
 --network          optional <string>  name of the network provider (default: hardhat)
@@ -573,7 +573,7 @@ Options:
 ```
   yarn hardhat get-best-strategy \
   --network localhost \
-  --riskprofile RP1 \
+  --riskprofilecode 1 \
   --strategyprovider 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \
   --isdefault true
@@ -586,7 +586,7 @@ Usage: set best strategy or default best strategy
 
 Options:
 --token            required <address> the address of token
---riskprofile      required <string>  risk profile
+--riskprofilecode           required <number>  the code of risk profile
 --strategyhash     required <string>  the keccak256 hash of strategy
 --strategyprovider required <address> the address of strategyProvider
 --isdefault        required <bool>    whether set best default strategy or not
@@ -598,7 +598,7 @@ Options:
 ```
   yarn hardhat set-best-strategy \
   --network localhost \
-  --riskprofile RP1 \
+  --riskprofilecode 1 \
   --strategyprovider 0x0000000000000000000000000000000000000000 \
   --strategyhash 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \
