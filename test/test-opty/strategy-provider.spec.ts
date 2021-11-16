@@ -4,16 +4,14 @@ import { Contract } from "ethers";
 import { solidity } from "ethereum-waffle";
 import { CONTRACTS } from "../../helpers/type";
 import { generateStrategyHash, deployContract, generateTokenHash } from "../../helpers/helpers";
-import {
-  TESTING_DEPLOYMENT_ONCE,
-  ESSENTIAL_CONTRACTS,
-  TESTING_CONTRACTS,
-  RISK_PROFILES,
-} from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployRegistry } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/strategy-provider.json";
 import { approveAndSetTokenHashToTokens, addRiskProfile } from "../../helpers/contracts-actions";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 
 chai.use(solidity);
 

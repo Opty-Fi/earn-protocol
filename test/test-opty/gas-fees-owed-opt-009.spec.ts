@@ -290,7 +290,10 @@ describe(scenario.title, () => {
                 break;
               }
               case "setBestStrategy(uint256,bytes32,bytes32)": {
-                const strategyHash = generateStrategyHash(strategies[strategyIndex].strategy, VAULT_TOKENS[token]);
+                const strategyHash = generateStrategyHash(
+                  strategies[strategyIndex].strategy,
+                  VAULT_TOKENS[token].address,
+                );
                 if (action.expect === "success") {
                   await contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash);
                 } else {

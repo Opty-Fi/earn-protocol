@@ -1,4 +1,5 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Signer, Contract } from "ethers";
 import { smock } from "@defi-wonderland/smock";
@@ -12,15 +13,16 @@ import {
   deploySmockContract,
   deployContract,
 } from "../../helpers/helpers";
-import {
-  TESTING_DEPLOYMENT_ONCE,
-  ESSENTIAL_CONTRACTS,
-  TESTING_CONTRACTS,
-  RISK_PROFILES,
-} from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToToken, addRiskProfile } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/risk-manager.json";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
+
+chai.use(solidity);
+
 type ARGUMENTS = {
   canBorrow?: boolean;
   poolRatingRange?: number[];

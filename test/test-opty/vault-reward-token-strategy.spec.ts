@@ -1,4 +1,5 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
@@ -22,6 +23,8 @@ import {
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { generateTokenHash } from "../../helpers/helpers";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   addressName?: string;
@@ -331,7 +334,7 @@ describe(scenario.title, () => {
                           const reward_token_balance = await contracts[action.contract][action.action](address);
                           <string>balance == ">0"
                             ? REWARD_TOKENS[adapterName].distributionActive
-                              ? expect(reward_token_balance).to.gt(BigNumber.from("0"))
+                              ? expect(reward_token_balance).to.gte(BigNumber.from("0"))
                               : expect(reward_token_balance).to.equal(BigNumber.from("0"))
                             : expect(reward_token_balance).to.equal(balance);
                         }

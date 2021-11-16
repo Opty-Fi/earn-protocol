@@ -12,10 +12,12 @@ import {
   generateStrategyStep,
 } from "../../helpers/helpers";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
-import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, ZERO_BYTES32, RISK_PROFILES } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, ZERO_BYTES32 } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/apr-oracle.json";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 chai.use(solidity);
 type ARGUMENTS = {
   riskProfileCode?: string;

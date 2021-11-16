@@ -1,17 +1,19 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
 import { deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
-import {
-  ESSENTIAL_CONTRACTS,
-  TESTING_CONTRACTS,
-  TESTING_DEPLOYMENT_ONCE,
-  RISK_PROFILES,
-} from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
 import scenario from "./scenarios/registry.json";
+
+chai.use(solidity);
+
 type ARGUMENTS = {
   [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
@@ -640,7 +642,6 @@ describe(scenario.title, () => {
       }
       case "addRiskProfile(uint256,string,string,bool,(uint8,uint8))": {
         const { riskProfileCode, canBorrow, poolRatingRange }: ARGUMENTS = action.args;
-
         const riskProfileDetail =
           riskProfileCode === "emptyName"
             ? ["0", "", "RP0"]
