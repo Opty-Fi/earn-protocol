@@ -30,12 +30,12 @@ export type DATA_OBJECT = {
 };
 
 export type RISK_PROFILE_DATA = {
-  [key: string]: {
-    name: string;
-    canBorrow: boolean;
-    poolRating: number[];
-  };
-};
+  code: number;
+  name: string;
+  symbol: string;
+  canBorrow: boolean;
+  poolRating: number[];
+}[];
 
 export type REWARD_TOKEN_DATA_OBJECT = {
   [name: string]: {
@@ -107,7 +107,7 @@ export type OPTY_STAKING_VAULT = {
   multiplier: number;
 };
 
-export type SUPPORTED_TOKENS_DATA = {
+export type TOKENS_DATA = {
   [name: string]: {
     address: string;
     pair: boolean;

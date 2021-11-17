@@ -2,9 +2,10 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
 import Compound from "@compound-finance/compound-js";
+import { expect } from "chai";
 import { Provider } from "@compound-finance/compound-js/dist/nodejs/types";
 import { STRATEGY_DATA } from "./type";
-import { TypedCurveTokens, TypedMultiAssetTokens, TypedTokens } from "./data";
+import { TypedCurveTokens, TypedMultiAssetTokens, TypedTokens, TypedTokenHolders, TypedContracts } from "./data";
 import {
   executeFunc,
   generateStrategyHash,
@@ -14,7 +15,8 @@ import {
   isAddress,
 } from "./helpers";
 import { amountInHex } from "./utils";
-import { RISK_PROFILES, TOKEN_HOLDERS, CONTRACT_ADDRESSES, HARVEST_GOVERNANCE } from "./constants";
+import { TypedEOA } from "./data";
+import { RISK_PROFILES } from "./constants/contracts-data";
 
 export async function approveLiquidityPoolAndMapAdapter(
   owner: Signer,
@@ -25,8 +27,12 @@ export async function approveLiquidityPoolAndMapAdapter(
   const { isLiquidityPool } = await registryContract.getLiquidityPool(lqPool);
   if (!isLiquidityPool) {
     try {
-      await executeFunc(registryContract as Contract, owner, "approveLiquidityPool(address)", [lqPool]);
-      await executeFunc(registryContract, owner, "setLiquidityPoolToAdapter(address,address)", [lqPool, adapter]);
+      await expect(registryContract.connect(owner)["approveLiquidityPool(address)"](lqPool))
+        .to.emit(registryContract, "LogLiquidityPool")
+        .withArgs(getAddress(lqPool), true, await owner.getAddress());
+      await expect(registryContract.connect(owner)["setLiquidityPoolToAdapter(address,address)"](lqPool, adapter))
+        .to.emit(registryContract, "LogLiquidityPoolToAdapter")
+        .withArgs(getAddress(lqPool), adapter, await owner.getAddress());
     } catch (error) {
       console.error(`contract-actions#approveLiquidityPoolAndMapAdapter: `, error);
       throw error;
@@ -66,7 +72,9 @@ export async function approveAndSetTokenHashToToken(
   try {
     const isApprovedToken = await registryContract.isApprovedToken(tokenAddress);
     if (!isApprovedToken) {
-      await executeFunc(registryContract, owner, "approveToken(address)", [tokenAddress]);
+      await expect(executeFunc(registryContract, owner, "approveToken(address)", [tokenAddress]))
+        .to.emit(registryContract, "LogToken")
+        .withArgs(getAddress(tokenAddress), true, await owner.getAddress());
     }
     if (!(await isSetTokenHash(registryContract, [tokenAddress]))) {
       await executeFunc(registryContract, owner, "setTokensHashToTokens(address[])", [[tokenAddress]]);
@@ -117,26 +125,28 @@ export async function approveAndSetTokenHashToTokens(
 
 export async function setStrategy(
   strategy: STRATEGY_DATA[],
+  signer: Signer,
   tokens: string[],
   investStrategyRegistry: Contract,
 ): Promise<string> {
   const strategySteps: [string, string, boolean][] = generateStrategyStep(strategy);
   const tokensHash = generateTokenHash(tokens);
-  const strategies = await investStrategyRegistry["setStrategy(bytes32,(address,address,bool)[])"](
-    tokensHash,
-    strategySteps,
-  );
-
-  const strategyReceipt = await strategies.wait();
-  return strategyReceipt.events[0].args[1];
+  const strategyHash = generateStrategyHash(strategy, tokens[0]);
+  await expect(
+    investStrategyRegistry.connect(signer)["setStrategy(bytes32,(address,address,bool)[])"](tokensHash, strategySteps),
+  )
+    .to.emit(investStrategyRegistry, "LogSetVaultInvestStrategy")
+    .withArgs(tokensHash, strategyHash, await signer.getAddress());
+  return strategyHash;
 }
 
 export async function setBestStrategy(
   strategy: STRATEGY_DATA[],
+  signer: Signer,
   tokenAddress: string,
   investStrategyRegistry: Contract,
   strategyProvider: Contract,
-  riskProfile: string,
+  riskProfileCode: number,
   isDefault: boolean,
 ): Promise<string> {
   const strategyHash = generateStrategyHash(strategy, tokenAddress);
@@ -146,13 +156,13 @@ export async function setBestStrategy(
   const strategyDetail = await investStrategyRegistry.getStrategy(strategyHash);
 
   if (strategyDetail[1].length === 0) {
-    await setStrategy(strategy, [tokenAddress], investStrategyRegistry);
+    await setStrategy(strategy, signer, [tokenAddress], investStrategyRegistry);
   }
 
   if (isDefault) {
-    await strategyProvider.setBestDefaultStrategy(riskProfile.toUpperCase(), tokenHash, strategyHash);
+    await strategyProvider.setBestDefaultStrategy(riskProfileCode, tokenHash, strategyHash);
   } else {
-    await strategyProvider.setBestStrategy(riskProfile.toUpperCase(), tokenHash, strategyHash);
+    await strategyProvider.setBestStrategy(riskProfileCode, tokenHash, strategyHash);
   }
   return strategyHash;
 }
@@ -171,12 +181,9 @@ export async function fundWalletToken(
   const ValidatedCurveTokens = Object.values(TypedCurveTokens).map(({ address }) => getAddress(address));
   const uniswapV2Router02Instance = await hre.ethers.getContractAt(
     "IUniswapV2Router02",
-    CONTRACT_ADDRESSES.UNISWAPV2_ROUTER,
+    TypedContracts.UNISWAPV2_ROUTER,
   );
-  const sushiswapRouterInstance = await hre.ethers.getContractAt(
-    "IUniswapV2Router02",
-    CONTRACT_ADDRESSES.SUSHISWAP_ROUTER,
-  );
+  const sushiswapRouterInstance = await hre.ethers.getContractAt("IUniswapV2Router02", TypedContracts.SUSHISWAP_ROUTER);
   const tokenInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
   const walletAddress = await wallet.getAddress();
   try {
@@ -207,7 +214,7 @@ export async function fundWalletToken(
         }
         const routerInstance = await hre.ethers.getContractAt(
           "IUniswapV2Router02",
-          pairSymbol === "SLP" ? CONTRACT_ADDRESSES.SUSHISWAP_ROUTER : CONTRACT_ADDRESSES.UNISWAP_V2_ROUTER,
+          pairSymbol === "SLP" ? TypedContracts.SUSHISWAP_ROUTER : TypedContracts.UNISWAP_V2_ROUTER,
         );
 
         if (getAddress(TOKEN1) === getAddress(TypedTokens["WETH"])) {
@@ -253,10 +260,7 @@ export async function fundWalletToken(
         const pool = curveToken.pool;
         const swap = curveToken?.swap;
         const old = curveToken?.old;
-        const curveRegistryInstance = await hre.ethers.getContractAt(
-          "ICurveRegistry",
-          CONTRACT_ADDRESSES.CURVE_REGISTRY,
-        );
+        const curveRegistryInstance = await hre.ethers.getContractAt("ICurveRegistry", TypedContracts.CURVE_REGISTRY);
         const tokenAddressInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
         const instance = await hre.ethers.getContractAt(swap ? "ICurveSwap" : "ICurveDeposit", pool);
         const coin = swap
@@ -342,11 +346,17 @@ export async function fundWalletToken(
       }
     }
   } catch (error) {
-    const tokenHolder = Object.keys(TOKEN_HOLDERS).filter(
+    const tokenHolder = Object.keys(TypedTokenHolders).filter(
       holder => getAddress(TypedTokens[holder]) === getAddress(tokenAddress),
     );
     if (tokenHolder.length > 0) {
-      await fundWalletFromImpersonatedAccount(hre, tokenAddress, TOKEN_HOLDERS[tokenHolder[0]], fundAmount, address);
+      await fundWalletFromImpersonatedAccount(
+        hre,
+        tokenAddress,
+        TypedTokenHolders[tokenHolder[0]],
+        fundAmount,
+        address,
+      );
     } else {
       throw error;
     }
@@ -487,7 +497,9 @@ export async function unpauseVault(
   vaultAddr: string,
   unpaused: boolean,
 ): Promise<void> {
-  await executeFunc(registryContract, owner, "unpauseVaultContract(address,bool)", [vaultAddr, unpaused]);
+  await expect(executeFunc(registryContract, owner, "unpauseVaultContract(address,bool)", [vaultAddr, unpaused]))
+    .to.emit(registryContract, "LogUnpauseVault")
+    .withArgs(vaultAddr, unpaused, await owner.getAddress());
 }
 
 export async function isSetTokenHash(registryContract: Contract, tokenAddresses: string[]): Promise<boolean> {
@@ -507,29 +519,52 @@ export async function isSetTokenHash(registryContract: Contract, tokenAddresses:
   return true;
 }
 export async function addRiskProfiles(owner: Signer, registry: Contract): Promise<void> {
-  const profiles = Object.keys(RISK_PROFILES);
-  for (let i = 0; i < profiles.length; i++) {
-    const profile = await registry.getRiskProfile(RISK_PROFILES[profiles[i]].name);
-    if (!profile.exists) {
-      await executeFunc(registry, owner, "addRiskProfile(string,bool,(uint8,uint8))", [
-        RISK_PROFILES[profiles[i]].name,
-        RISK_PROFILES[profiles[i]].canBorrow,
-        RISK_PROFILES[profiles[i]].poolRating,
-      ]);
-    }
+  for (let i = 0; i < RISK_PROFILES.length; i++) {
+    await addRiskProfile(
+      registry,
+      owner,
+      RISK_PROFILES[i].code,
+      RISK_PROFILES[i].name,
+      RISK_PROFILES[i].symbol,
+      RISK_PROFILES[i].canBorrow,
+      RISK_PROFILES[i].poolRating,
+    );
   }
 }
 
 export async function addRiskProfile(
   registry: Contract,
   owner: Signer,
+  riskProfileCode: number,
   name: string,
+  symbol: string,
   canBorrow: boolean,
   poolRating: number[],
 ): Promise<void> {
-  const profile = await registry.getRiskProfile(name);
+  const profile = await registry.getRiskProfile(riskProfileCode);
   if (!profile.exists) {
-    await executeFunc(registry, owner, "addRiskProfile(string,bool,(uint8,uint8))", [name, canBorrow, poolRating]);
+    const _addRiskProfileTx = await registry
+      .connect(owner)
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](
+        riskProfileCode,
+        name,
+        symbol,
+        canBorrow,
+        poolRating,
+      );
+    const ownerAddress = await owner.getAddress();
+    const addRiskProfileTx = await _addRiskProfileTx.wait(1);
+    const { index } = await registry.getRiskProfile(riskProfileCode);
+    expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
+    expect(addRiskProfileTx.events[0].args[0]).to.equal(+index);
+    expect(addRiskProfileTx.events[0].args[1]).to.equal(true);
+    expect(addRiskProfileTx.events[0].args[2]).to.equal(canBorrow);
+    expect(addRiskProfileTx.events[0].args[3]).to.equal(ownerAddress);
+    expect(addRiskProfileTx.events[1].event).to.equal("LogRPPoolRatings");
+    expect(addRiskProfileTx.events[1].args[0]).to.equal(+index);
+    expect(addRiskProfileTx.events[1].args[1]).to.equal(poolRating[0]);
+    expect(addRiskProfileTx.events[1].args[2]).to.equal(poolRating[1]);
+    expect(addRiskProfileTx.events[1].args[3]).to.equal(ownerAddress);
   }
 }
 
@@ -564,15 +599,15 @@ export async function addWhiteListForHarvest(
 ): Promise<void> {
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
-    params: [HARVEST_GOVERNANCE],
+    params: [TypedEOA.HARVEST_GOVERNANCE],
   });
   const harvestController = await hre.ethers.getContractAt(
     "IHarvestController",
-    CONTRACT_ADDRESSES.HARVEST_CONTROLLER,
-    await hre.ethers.getSigner(HARVEST_GOVERNANCE),
+    TypedContracts.HARVEST_CONTROLLER,
+    await hre.ethers.getSigner(TypedEOA.HARVEST_GOVERNANCE),
   );
   await admin.sendTransaction({
-    to: HARVEST_GOVERNANCE,
+    to: TypedEOA.HARVEST_GOVERNANCE,
     value: hre.ethers.utils.parseEther("1000"),
   });
   await harvestController.addToWhitelist(contractAddress);

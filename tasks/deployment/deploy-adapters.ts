@@ -1,5 +1,5 @@
 import { task, types } from "hardhat/config";
-import { ADAPTERS } from "../../helpers/constants";
+import { ADAPTERS } from "../../helpers/constants/adapters";
 import { isAddress } from "../../helpers/helpers";
 import { DEPLOY_ADAPTER, DEPLOY_ADAPTERS } from "../task-names";
 

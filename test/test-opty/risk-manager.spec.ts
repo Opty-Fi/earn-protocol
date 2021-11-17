@@ -1,6 +1,8 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Signer, Contract } from "ethers";
+import { smock } from "@defi-wonderland/smock";
 import { MOCK_CONTRACTS } from "../../helpers/type";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
 import {
@@ -11,11 +13,16 @@ import {
   deploySmockContract,
   deployContract,
 } from "../../helpers/helpers";
-import { TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
-import { approveAndSetTokenHashToToken } from "../../helpers/contracts-actions";
+import { approveAndSetTokenHashToToken, addRiskProfile } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/risk-manager.json";
-import { smock } from "@defi-wonderland/smock";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
+
+chai.use(solidity);
+
 type ARGUMENTS = {
   canBorrow?: boolean;
   poolRatingRange?: number[];
@@ -27,7 +34,7 @@ describe(scenario.title, () => {
   let contracts: MOCK_CONTRACTS = {};
   let registry: Contract;
   let riskManager: Contract;
-  const riskProfile = "RP1";
+  const riskProfileCode = "1";
   let owner: Signer;
   before(async () => {
     [owner] = await hre.ethers.getSigners();
@@ -48,8 +55,15 @@ describe(scenario.title, () => {
     await executeFunc(registry, owner, "setStrategyProvider(address)", [strategyProvider.address]);
     await executeFunc(registry, owner, "setAPROracle(address)", [aprOracle.address]);
     await executeFunc(registry, owner, "setInvestStrategyRegistry(address)", [investStrategyRegistry.address]);
-
-    await registry["addRiskProfile(string,bool,(uint8,uint8))"](riskProfile, false, [0, 10]);
+    await addRiskProfile(
+      registry,
+      owner,
+      RISK_PROFILES[1].code,
+      RISK_PROFILES[1].name,
+      RISK_PROFILES[1].symbol,
+      RISK_PROFILES[1].canBorrow,
+      RISK_PROFILES[1].poolRating,
+    );
 
     const usedTokens = TypedStrategies.map(item => item.token).filter(
       (value, index, self) => self.indexOf(value) === index,
@@ -106,10 +120,14 @@ describe(scenario.title, () => {
           for (let i = 0; i < story.setActions.length; i++) {
             const action = story.setActions[i];
             switch (action.action) {
-              case "updateRPPoolRatings(string,(uint8,uint8))": {
+              case "updateRPPoolRatings(uint256,(uint8,uint8))": {
                 const { poolRatingRange }: ARGUMENTS = action.args;
-                if (riskProfile && poolRatingRange) {
-                  await registry[action.action](riskProfile, poolRatingRange);
+                if (riskProfileCode && poolRatingRange) {
+                  const value = await registry.getRiskProfile(riskProfileCode);
+                  const riskProfileIndex = value.index;
+                  await expect(registry[action.action](riskProfileCode, poolRatingRange))
+                    .to.emit(registry, "LogRPPoolRatings")
+                    .withArgs(riskProfileIndex, poolRatingRange[0], poolRatingRange[1], await owner.getAddress());
                 }
                 assert.isDefined(poolRatingRange, `args is wrong in ${action.action} testcase`);
                 break;
@@ -141,11 +159,11 @@ describe(scenario.title, () => {
                 assert.isDefined(score, `args is wrong in ${action.action} testcase`);
                 break;
               }
-              case "setBestStrategy(string,bytes32,bytes32)": {
+              case "setBestStrategy(uint256,bytes32,bytes32)": {
                 contracts[action.contract].rpToTokenToBestStrategy.returns(strategyHash);
                 break;
               }
-              case "setBestDefaultStrategy(string,bytes32,bytes32)": {
+              case "setBestDefaultStrategy(uint256,bytes32,bytes32)": {
                 const { score }: ARGUMENTS = action.args;
                 const scoredPools: [string, number][] = [];
                 if (score) {
@@ -175,8 +193,8 @@ describe(scenario.title, () => {
           for (let i = 0; i < story.getActions.length; i++) {
             const action = story.getActions[i];
             switch (action.action) {
-              case "getBestStrategy(string,address[])": {
-                expect(await riskManager[action.action](riskProfile, [TypedTokens[strategy.token]])).to.be.equal(
+              case "getBestStrategy(uint256,address[])": {
+                expect(await riskManager[action.action](riskProfileCode, [TypedTokens[strategy.token]])).to.be.equal(
                   action.expectedValue !== ""
                     ? action.expectedValue
                     : isCheckDefault

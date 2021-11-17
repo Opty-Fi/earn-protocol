@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployAndSetupOptyStakingVaults } from "../../helpers/contracts-deployments";
 import { isAddress } from "../../helpers/helpers";
 import { DEPLOY_OPTY_STAKING_VAULTS } from "../task-names";

@@ -3,7 +3,10 @@ import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, DYDX_ADAPTER_NAME } from "../../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
+import { DYDX_ADAPTER_NAME } from "../../../helpers/constants/adapters";
+
 import { TypedAdapterStrategies } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
@@ -44,7 +47,7 @@ describe(`${DYDX_ADAPTER_NAME} Unit test`, () => {
   for (let i = 0; i < strategies.length; i++) {
     describe(`test getCodes() for ${strategies[i].strategyName}`, async () => {
       const strategy = strategies[i];
-      const token = VAULT_TOKENS[strategy.token];
+      const token = VAULT_TOKENS[strategy.token].address;
       before(async () => {
         try {
           const timestamp = (await getBlockTimestamp(hre)) * 2;

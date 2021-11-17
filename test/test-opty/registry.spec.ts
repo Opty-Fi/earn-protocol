@@ -1,12 +1,17 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
 import { deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import { getSoliditySHA3Hash } from "../../helpers/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import scenario from "./scenarios/registry.json";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -167,12 +172,12 @@ describe(scenario.title, () => {
             assert.isDefined(index, `args is wrong in ${action.action} testcase`);
             break;
           }
-          case "getRiskProfile(string)": {
-            const { riskProfile }: ARGUMENTS = action.args;
+          case "getRiskProfile(uint256)": {
+            const { riskProfileCode }: ARGUMENTS = action.args;
             const { exists, canBorrow, lowerLimit, upperLimit }: ARGUMENTS = action.expectedMultiValues;
 
-            if (riskProfile) {
-              const value = await registryContract[action.action](riskProfile);
+            if (riskProfileCode) {
+              const value = await registryContract[action.action](riskProfileCode);
               if (exists) {
                 expect(value.canBorrow).to.be.equal(canBorrow);
                 expect(value.poolRatingsRange.lowerLimit).to.equal(lowerLimit);
@@ -184,15 +189,15 @@ describe(scenario.title, () => {
             }
             break;
           }
-          case "underlyingAssetHashToRPToVaults(bytes32,string)": {
-            const { tokens, riskProfile }: ARGUMENTS = action.args;
+          case "underlyingAssetHashToRPToVaults(bytes32,uint256)": {
+            const { tokens, riskProfileCode }: ARGUMENTS = action.args;
             const tokensHash = generateTokenHash(tokens);
-            if (tokens && riskProfile) {
-              const value = await registryContract[action.action](tokensHash, riskProfile);
+            if (tokens && riskProfileCode) {
+              const value = await registryContract[action.action](tokensHash, riskProfileCode);
               expect(value).to.be.equal(action.expectedValue);
             }
             assert.isDefined(tokens, `args is wrong in ${action.action} testcase`);
-            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
             break;
           }
           case "isNewContract()": {
@@ -266,8 +271,13 @@ describe(scenario.title, () => {
           ESSENTIAL_CONTRACTS.REGISTRY_PROXY,
           registryContract.address,
         );
+        const oldRegistry = await registryProxy.pendingRegistryImplementation();
 
-        await executeFunc(registryProxy, owner, "setPendingImplementation(address)", [newRegistry.address]);
+        await expect(
+          await executeFunc(registryProxy, owner, "setPendingImplementation(address)", [newRegistry.address]),
+        )
+          .to.emit(registryProxy, "NewPendingImplementation")
+          .withArgs(oldRegistry, newRegistry.address);
         await executeFunc(newRegistry, owner, "become(address)", [registryProxy.address]);
 
         registryContract = await hre.ethers.getContractAt(
@@ -597,7 +607,7 @@ describe(scenario.title, () => {
             if (action.action == "setTokensHashToTokens(address[])") {
               await expect(registryContract.connect(signers[action.executor])[action.action](tokensHash))
                 .to.emit(registryContract, "LogTokensToTokensHash")
-                .withArgs(getSoliditySHA3Hash(["address[]"], [tokensHash]), callers[action.executor]);
+                .withArgs(generateTokenHash(tokensHash), callers[action.executor]);
             } else {
               await registryContract.connect(signers[action.executor])[action.action](tokensHash);
             }
@@ -610,33 +620,53 @@ describe(scenario.title, () => {
         assert.isDefined(tokensHash, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "addRiskProfile(string[],bool[],(uint8,uint8)[])": {
-        const { riskProfile, canBorrow, poolRatingsRange }: ARGUMENTS = action.args;
-        if (riskProfile) {
+      case "addRiskProfile(uint256[],string[],string[],bool[],(uint8,uint8)[])": {
+        const { riskProfileCode, canBorrow, poolRatingsRange }: ARGUMENTS = action.args;
+        const riskProfileName = riskProfileCode.map((code: any) =>
+          RISK_PROFILES[code] && code === RISK_PROFILES[code] ? RISK_PROFILES[code].name : `RP${code}`,
+        );
+        const riskProfileSymbol = riskProfileCode.map((code: any) =>
+          RISK_PROFILES[code] && code === RISK_PROFILES[code] ? RISK_PROFILES[code].symbol : `RP${code}`,
+        );
+        if (riskProfileCode) {
           if (action.expect === "success") {
             await registryContract
               .connect(signers[action.executor])
-              [action.action](riskProfile, canBorrow, poolRatingsRange);
+              [action.action](riskProfileCode, riskProfileName, riskProfileSymbol, canBorrow, poolRatingsRange);
           } else {
             await expect(
               registryContract
                 .connect(signers[action.executor])
-                [action.action](riskProfile, canBorrow, poolRatingsRange),
+                [action.action](riskProfileCode, riskProfileName, riskProfileSymbol, canBorrow, poolRatingsRange),
             ).to.be.revertedWith(action.message);
           }
         }
-        assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "addRiskProfile(string,bool,(uint8,uint8))": {
-        const { riskProfile, canBorrow, poolRatingRange }: ARGUMENTS = action.args;
-        if (riskProfile) {
+      case "addRiskProfile(uint256,string,string,bool,(uint8,uint8))": {
+        const { riskProfileCode, canBorrow, poolRatingRange }: ARGUMENTS = action.args;
+        const riskProfileDetail =
+          riskProfileCode === "emptyName"
+            ? ["0", "", "RP0"]
+            : riskProfileCode === "emptySymbol"
+            ? ["0", "RP0", ""]
+            : RISK_PROFILES[riskProfileCode]
+            ? [riskProfileCode, RISK_PROFILES[riskProfileCode].name, RISK_PROFILES[riskProfileCode].symbol]
+            : [riskProfileCode, `RP${riskProfileCode}`, `RP${riskProfileCode}`];
+        if (riskProfileCode) {
           if (action.expect === "success") {
             const _addRiskProfileTx = await registryContract
               .connect(signers[action.executor])
-              [action.action](riskProfile, canBorrow, poolRatingRange);
+              [action.action](
+                riskProfileDetail[0],
+                riskProfileDetail[1],
+                riskProfileDetail[2],
+                canBorrow,
+                poolRatingRange,
+              );
             const addRiskProfileTx = await _addRiskProfileTx.wait(1);
-            const { index } = await registryContract.getRiskProfile(riskProfile);
+            const { index } = await registryContract.getRiskProfile(riskProfileDetail[0]);
             expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
             expect(addRiskProfileTx.events[0].args[0]).to.equal(+index);
             expect(addRiskProfileTx.events[0].args[1]).to.equal(true);
@@ -651,52 +681,58 @@ describe(scenario.title, () => {
             await expect(
               registryContract
                 .connect(signers[action.executor])
-                [action.action](riskProfile, canBorrow, poolRatingRange),
+                [action.action](
+                  riskProfileDetail[0],
+                  riskProfileDetail[1],
+                  riskProfileDetail[2],
+                  canBorrow,
+                  poolRatingRange,
+                ),
             ).to.be.revertedWith(action.message);
           }
         }
-        assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "updateRiskProfileBorrow(string,bool)": {
-        const { riskProfile, canBorrow }: ARGUMENTS = action.args;
-        if (riskProfile) {
+      case "updateRiskProfileBorrow(uint256,bool)": {
+        const { riskProfileCode, canBorrow }: ARGUMENTS = action.args;
+        if (riskProfileCode) {
           if (action.expect === "success") {
-            await registryContract.connect(signers[action.executor])[action.action](riskProfile, canBorrow);
+            await registryContract.connect(signers[action.executor])[action.action](riskProfileCode, canBorrow);
           } else {
             await expect(
-              registryContract.connect(signers[action.executor])[action.action](riskProfile, canBorrow),
+              registryContract.connect(signers[action.executor])[action.action](riskProfileCode, canBorrow),
             ).to.be.revertedWith(action.message);
           }
         }
         break;
       }
-      case "updateRPPoolRatings(string,(uint8,uint8))": {
-        const { riskProfile, poolRatingRange }: ARGUMENTS = action.args;
-        if (riskProfile) {
-          const value = await registryContract.getRiskProfile(riskProfile);
+      case "updateRPPoolRatings(uint256,(uint8,uint8))": {
+        const { riskProfileCode, poolRatingRange }: ARGUMENTS = action.args;
+        if (riskProfileCode) {
+          const value = await registryContract.getRiskProfile(riskProfileCode);
           const riskProfileIndex = value.index;
           if (action.expect === "success") {
             await expect(
-              registryContract.connect(signers[action.executor])[action.action](riskProfile, poolRatingRange),
+              registryContract.connect(signers[action.executor])[action.action](riskProfileCode, poolRatingRange),
             )
               .to.emit(registryContract, "LogRPPoolRatings")
               .withArgs(riskProfileIndex, poolRatingRange[0], poolRatingRange[1], callers[action.executor]);
           } else {
             await expect(
-              registryContract.connect(signers[action.executor])[action.action](riskProfile, poolRatingRange),
+              registryContract.connect(signers[action.executor])[action.action](riskProfileCode, poolRatingRange),
             ).to.be.revertedWith(action.message);
           }
         }
-        assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
         break;
       }
       case "removeRiskProfile(uint256)": {
-        const { riskProfile, index }: ARGUMENTS = action.args;
+        const { riskProfileCode, index }: ARGUMENTS = action.args;
         let riskProfileIndex;
         let canRiskProfileBorrow;
-        if (riskProfile) {
-          const { index, canBorrow } = await registryContract.getRiskProfile(riskProfile);
+        if (riskProfileCode) {
+          const { index, canBorrow } = await registryContract.getRiskProfile(riskProfileCode);
           riskProfileIndex = index;
           canRiskProfileBorrow = canBorrow;
         }
@@ -711,38 +747,44 @@ describe(scenario.title, () => {
             registryContract.connect(signers[action.executor])[action.action](index ? index : riskProfileIndex),
           ).to.be.revertedWith(action.message);
         }
-        assert.isDefined(riskProfile ? riskProfile : index, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCode ? riskProfileCode : index, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "setUnderlyingAssetHashToRPToVaults(address[],string,address)": {
-        const { tokens, riskProfile, vault }: ARGUMENTS = action.args;
-        if (tokens && riskProfile && vault) {
+      case "setUnderlyingAssetHashToRPToVaults(address[],uint256,address)": {
+        const { tokens, riskProfileCode, vault }: ARGUMENTS = action.args;
+        if (tokens && riskProfileCode && vault) {
           if (action.expect === "success") {
-            await registryContract.connect(signers[action.executor])[action.action](tokens, riskProfile, vault);
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](tokens, riskProfileCode, vault),
+            )
+              .to.emit(registryContract, "LogUnderlyingAssetHashToRPToVaults")
+              .withArgs(generateTokenHash(tokens), riskProfileCode, vault, callers[action.executor]);
           } else {
             await expect(
-              registryContract.connect(signers[action.executor])[action.action](tokens, riskProfile, vault),
+              registryContract.connect(signers[action.executor])[action.action](tokens, riskProfileCode, vault),
             ).to.be.revertedWith(action.message);
           }
         }
         assert.isDefined(tokens, `args is wrong in ${action.action} testcase`);
         assert.isDefined(vault, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "setUnderlyingAssetHashToRPToVaults(address[][],string[],address[][])": {
-        const { multiTokens, riskProfiles, vaults }: ARGUMENTS = action.args;
-        if (multiTokens && riskProfiles && vaults) {
+      case "setUnderlyingAssetHashToRPToVaults(address[][],uint256[],address[][])": {
+        const { multiTokens, riskProfileCodes, vaults }: ARGUMENTS = action.args;
+        if (multiTokens && riskProfileCodes && vaults) {
           if (action.expect === "success") {
-            await registryContract.connect(signers[action.executor])[action.action](multiTokens, riskProfiles, vaults);
+            await registryContract
+              .connect(signers[action.executor])
+              [action.action](multiTokens, riskProfileCodes, vaults);
           } else {
             await expect(
-              registryContract.connect(signers[action.executor])[action.action](multiTokens, riskProfiles, vaults),
+              registryContract.connect(signers[action.executor])[action.action](multiTokens, riskProfileCodes, vaults),
             ).to.be.revertedWith(action.message);
           }
         }
         assert.isDefined(multiTokens, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(riskProfiles, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCodes, `args is wrong in ${action.action} testcase`);
         assert.isDefined(vaults, `args is wrong in ${action.action} testcase`);
         break;
       }
@@ -985,23 +1027,23 @@ const REGISTRY_TESTING_DEFAULT_DATA: TESTING_DEFAULT_DATA[] = [
     ],
   },
   {
-    setFunction: "addRiskProfile(string,bool,(uint8,uint8))",
-    input: ["RP1", false, [0, 10]],
+    setFunction: "addRiskProfile(uint256,string,string,string,bool,(uint8,uint8))",
+    input: ["1", "Basic", "bas", false, [0, 10]],
     getFunction: [
       {
         name: "riskProfilesArray(uint256)",
         input: ["0"],
-        output: "RP1",
+        output: "1",
       },
     ],
   },
   {
-    setFunction: "setUnderlyingAssetHashToRPToVaults(address[],string,address)",
-    input: [["0x6b175474e89094c44da98b954eedeac495271d0f"], "RP1", "0x6b175474e89094c44da98b954eedeac495271d0f"],
+    setFunction: "setUnderlyingAssetHashToRPToVaults(address[],uint256,address)",
+    input: [["0x6b175474e89094c44da98b954eedeac495271d0f"], "1", "0x6b175474e89094c44da98b954eedeac495271d0f"],
     getFunction: [
       {
-        name: "underlyingAssetHashToRPToVaults(bytes32,string)",
-        input: ["0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80", "RP1"],
+        name: "underlyingAssetHashToRPToVaults(bytes32,uint256)",
+        input: ["0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80", "1"],
         output: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
       },
     ],

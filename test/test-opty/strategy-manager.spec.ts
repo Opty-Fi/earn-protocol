@@ -2,7 +2,7 @@ import chai, { expect } from "chai";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { solidity } from "ethereum-waffle";
-import { CONTRACTS, MOCK_CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
+import { CONTRACTS, MOCK_CONTRACTS } from "../../helpers/type";
 import {
   generateStrategyHash,
   deployContract,
@@ -10,16 +10,15 @@ import {
   retrieveAdapterFromStrategyName,
   getDefaultFundAmountInDecimal,
 } from "../../helpers/helpers";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { REWARD_TOKENS } from "../../helpers/constants/tokens";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import {
-  TESTING_DEPLOYMENT_ONCE,
-  ESSENTIAL_CONTRACTS,
-  TESTING_CONTRACTS,
-  ADDRESS_ZERO,
+  SUSHISWAP_ADAPTER_NAME,
   CURVE_SWAP_POOL_ADAPTER_NAME,
   CURVE_DEPOSIT_POOL_ADAPTER_NAME,
-  SUSHISWAP_ADAPTER_NAME,
-  REWARD_TOKENS,
-} from "../../helpers/constants";
+} from "../../helpers/constants/adapters";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { deployAdapter } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/strategy-manager.json";

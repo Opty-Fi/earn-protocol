@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
 
-import { HARVEST_V1_ADAPTER_NAME, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { approveLiquidityPoolAndMapAdapters } from "../../helpers/contracts-actions";
 import { TypedDefiPools } from "../../helpers/data/index";
 import { removeDuplicateFromStringArray } from "../../helpers/utils";
@@ -32,10 +32,6 @@ task(MAP_LIQUIDITYPOOLS_ADAPTER, "Approve and map liquidity pool to adapter")
 
     if (adaptername === "") {
       throw new Error("adaptername cannot be empty");
-    }
-
-    if (adaptername === HARVEST_V1_ADAPTER_NAME) {
-      adaptername = "HarvestV1Adapter";
     }
 
     if (!TypedDefiPools[adaptername]) {

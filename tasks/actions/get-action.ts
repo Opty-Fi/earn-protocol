@@ -1,6 +1,6 @@
 import { Contract } from "@ethersproject/contracts";
 import { task, types } from "hardhat/config";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress } from "../../helpers/helpers";
 import { GET_ACTION } from "../task-names";
 

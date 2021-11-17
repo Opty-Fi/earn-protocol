@@ -98,7 +98,7 @@
     "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat compile",
     "watch:compile": "hardhat watch compilation",
     "watch:ci": "hardhat watch ci",
-    "test": "env SKIP_LOAD=true hardhat test test/test-opty/**/*.spec.ts test/test-opty/*.spec.ts",
+    "test": "env SKIP_LOAD=true hardhat test test/test-opty/*.spec.ts",
     "test-clean": "yarn clean && yarn test",
     "test-fast": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat test test/test-opty/*.spec.ts",
     "watch:test": "hardhat watch test",

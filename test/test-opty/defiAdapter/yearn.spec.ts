@@ -3,7 +3,9 @@ import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, YVAULT_ADAPTER_NAME, ADDRESS_ZERO } from "../../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
+import { YVAULT_ADAPTER_NAME } from "../../../helpers/constants/adapters";
 import { TypedAdapterStrategies, TypedDefiPools, TypedTokens } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
@@ -57,7 +59,7 @@ describe(`${YVAULT_ADAPTER_NAME} Unit test`, () => {
   for (let i = 0; i < strategies.length; i++) {
     describe(`test getCodes() for ${strategies[i].strategyName}`, async () => {
       const strategy = strategies[i];
-      const token = VAULT_TOKENS[strategy.token];
+      const token = VAULT_TOKENS[strategy.token].address;
       let lpToken: string;
       before(async () => {
         try {

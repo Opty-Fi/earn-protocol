@@ -3,7 +3,9 @@ import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { generateTokenHash } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -21,7 +23,7 @@ import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 
 type ARGUMENTS = {
   amount?: { [key: string]: string };
-  riskProfile?: string;
+  riskProfileCode?: string;
   strategyHash?: string;
 };
 
@@ -40,7 +42,10 @@ describe(scenarios.title, () => {
     try {
       const [owner, admin] = await hre.ethers.getSigners();
       users = { owner, admin };
-      [essentialContracts, adapters] = await setUp(users["owner"], Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        users["owner"],
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
     } catch (error: any) {
@@ -53,7 +58,7 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const stories = vault.stories;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 
@@ -63,9 +68,9 @@ describe(scenarios.title, () => {
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
-            const tokensHash = generateTokenHash([VAULT_TOKENS[strategy.token]]);
+            const tokensHash = generateTokenHash([VAULT_TOKENS[strategy.token].address]);
             let bestStrategyHash: string;
-            let vaultRiskProfile: string;
+            let vaultRiskProfile: number;
             const contracts: CONTRACTS = {};
             before(async () => {
               try {
@@ -75,7 +80,7 @@ describe(scenarios.title, () => {
                 const Vault = await deployVault(
                   hre,
                   essentialContracts.registry.address,
-                  VAULT_TOKENS[strategy.token],
+                  VAULT_TOKENS[strategy.token].address,
                   users["owner"],
                   users["admin"],
                   underlyingTokenName,
@@ -93,10 +98,11 @@ describe(scenarios.title, () => {
                   adapter.address,
                   strategy.strategy[0].contract,
                 );
-                vaultRiskProfile = await Vault.profile();
+                vaultRiskProfile = await Vault.riskProfileCode();
                 bestStrategyHash = await setBestStrategy(
                   strategy.strategy,
-                  VAULT_TOKENS[strategy.token],
+                  users["owner"],
+                  VAULT_TOKENS[strategy.token].address,
                   essentialContracts.investStrategyRegistry,
                   essentialContracts.strategyProvider,
                   vaultRiskProfile,
@@ -106,13 +112,13 @@ describe(scenarios.title, () => {
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
                 await fundWalletToken(
                   hre,
-                  VAULT_TOKENS[strategy.token],
+                  VAULT_TOKENS[strategy.token].address,
                   users["owner"],
                   MAX_AMOUNT[strategy.token],
                   timestamp,
                 );
 
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[strategy.token]);
+                const ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[strategy.token].address);
 
                 contracts["strategyProvider"] = essentialContracts.strategyProvider;
                 contracts["adapter"] = adapter;
@@ -131,17 +137,21 @@ describe(scenarios.title, () => {
                 for (let i = 0; i < story.actions.length; i++) {
                   const action = story.actions[i];
                   switch (action.action) {
-                    case "setBestStrategy(string,bytes32,bytes32)": {
-                      const { riskProfile, strategyHash }: ARGUMENTS = action.args;
+                    case "setBestStrategy(uint256,bytes32,bytes32)": {
+                      const { riskProfileCode, strategyHash }: ARGUMENTS = action.args;
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](riskProfile, tokensHash, strategyHash ? strategyHash : bestStrategyHash);
+                          [action.action](riskProfileCode, tokensHash, strategyHash ? strategyHash : bestStrategyHash);
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](riskProfile, tokensHash, strategyHash ? strategyHash : bestStrategyHash),
+                            [action.action](
+                              riskProfileCode,
+                              tokensHash,
+                              strategyHash ? strategyHash : bestStrategyHash,
+                            ),
                         ).to.be.revertedWith(action.message);
                       }
                       break;

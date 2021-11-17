@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployOptyStakingRateBalancer } from "../../helpers/contracts-deployments";
 import { isAddress, executeFunc } from "../../helpers/helpers";
 import { DEPLOY_OPTY_STAKING_RATE_BALANCER } from "../task-names";

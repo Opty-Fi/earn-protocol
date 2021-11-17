@@ -2,7 +2,8 @@ import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer } from "ethers";
-import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import scenario from "./scenarios/invest-strategy-registry.json";
 import { deployContract, deploySmockContract, generateTokenHash, generateStrategyHash } from "../../helpers/helpers";
 import { smock } from "@defi-wonderland/smock";
@@ -40,11 +41,11 @@ describe(scenario.title, () => {
       const [owner, user1] = await hre.ethers.getSigners();
       users = { owner, user1 };
       ownerAddress = await owner.getAddress();
-      const registryContract = await deploySmockContract(smock, ESSENTIAL_CONTRACTS_DATA.REGISTRY, []);
+      const registryContract = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.REGISTRY, []);
       registryContract.getOperator.returns(ownerAddress);
       investStrategyRegistryContract = await deployContract(
         hre,
-        ESSENTIAL_CONTRACTS_DATA.INVEST_STRATEGY_REGISTRY,
+        ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
         TESTING_DEPLOYMENT_ONCE,
         owner,
         [registryContract.address],

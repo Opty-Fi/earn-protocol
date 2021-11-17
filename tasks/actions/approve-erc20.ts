@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress, executeFunc } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { APPROVE_ERC20 } from "../task-names";
 
 task(APPROVE_ERC20, "Approve erc20 Token")

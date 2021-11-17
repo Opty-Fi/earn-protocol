@@ -3,7 +3,7 @@ import { task, types } from "hardhat/config";
 import { CONTRACTS } from "../helpers/type";
 import { deployEssentialContracts, deployAdapters } from "../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../helpers/db";
-import { TESTING_CONTRACTS } from "../helpers/constants";
+import { TESTING_CONTRACTS } from "../helpers/constants/test-contracts-name";
 import { deployContract } from "../helpers/helpers";
 import {
   APPROVE_TOKEN,
@@ -118,7 +118,7 @@ task(SETUP, "Deploy infrastructure, adapter and vault contracts and setup all ne
 
     await hre.run(DEPLOY_VAULT, {
       token: balOdefiUSDCInstance.address,
-      riskprofile: "RP0",
+      riskprofilecode: 0,
       registry: essentialContracts["registry"].address,
       riskmanager: essentialContracts["riskManager"].address,
       strategymanager: essentialContracts["strategyManager"].address,

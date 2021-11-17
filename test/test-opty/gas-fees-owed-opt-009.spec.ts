@@ -4,7 +4,8 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -32,7 +33,7 @@ type ARGUMENTS = {
   liquidityPool?: string;
   strategy?: STRATEGY_DATA[];
   amount?: string;
-  riskProfile?: string;
+  riskProfileCode?: string;
   poolRatingRange?: number[];
   score?: number;
 };
@@ -76,11 +77,11 @@ describe(scenario.title, () => {
       continue;
     }
     let strategyIndex = 0;
-    const tokenHash = generateTokenHash([VAULT_TOKENS[token]]);
+    const tokenHash = generateTokenHash([VAULT_TOKENS[token].address]);
     let decimals: number;
     let underlyingTokenName: string;
     let underlyingTokenSymbol: string;
-    const riskProfile = "RP1";
+    const riskProfileCode = 1;
     describe(`${token}`, () => {
       before(async () => {
         underlyingTokenName = await getTokenName(hre, token);
@@ -89,24 +90,24 @@ describe(scenario.title, () => {
         Vault = await deployVault(
           hre,
           essentialContracts.registry.address,
-          VAULT_TOKENS[token],
+          VAULT_TOKENS[token].address,
           operator,
           admin,
           underlyingTokenName,
           underlyingTokenSymbol,
-          riskProfile,
+          riskProfileCode,
           TESTING_DEPLOYMENT_ONCE,
         );
 
         await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 
-        const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token]);
+        const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token].address);
 
         decimals = await Token_ERC20Instance.decimals();
 
         contracts["erc20"] = Token_ERC20Instance;
 
-        const CHIInstance = await hre.ethers.getContractAt("IChi", VAULT_TOKENS["CHI"]);
+        const CHIInstance = await hre.ethers.getContractAt("IChi", TypedTokens["CHI"]);
 
         contracts["chi"] = CHIInstance;
 
@@ -128,7 +129,9 @@ describe(scenario.title, () => {
                 const { token }: ARGUMENTS = action.args;
                 if (token) {
                   if (action.expect === "success") {
-                    await contracts[action.contract][action.action](token);
+                    await expect(contracts[action.contract][action.action](token))
+                      .to.emit(contracts[action.contract], "LogToken")
+                      .withArgs(hre.ethers.utils.getAddress(token), true, await operator.getAddress());
                   } else {
                     await expect(contracts[action.contract][action.action](token)).to.be.revertedWith(action.message);
                   }
@@ -142,6 +145,9 @@ describe(scenario.title, () => {
                   try {
                     if (action.expect === "success") {
                       await contracts[action.contract][action.action](strategy.contract);
+                      await expect(await contracts[action.contract][action.action](strategy.contract))
+                        .to.emit(contracts[action.contract], "LogLiquidityPool")
+                        .withArgs(hre.ethers.utils.getAddress(strategy.contract), true, await operator.getAddress());
                     } else {
                       await expect(contracts[action.contract][action.action](strategy.contract)).to.be.revertedWith(
                         action.message,
@@ -162,7 +168,9 @@ describe(scenario.title, () => {
                   for (let i = 0; i < strategies[strategyIndex].strategy.length; i++) {
                     const strategy = strategies[strategyIndex].strategy[i];
                     if (action.expect === "success") {
-                      await contracts[action.contract][action.action](strategy.contract, score);
+                      await expect(contracts[action.contract][action.action](strategy.contract, score))
+                        .to.emit(contracts[action.contract], "LogRateLiquidityPool")
+                        .withArgs(hre.ethers.utils.getAddress(strategy.contract), score, await operator.getAddress());
                     } else {
                       await expect(
                         contracts[action.contract][action.action](strategy.contract, score),
@@ -177,7 +185,9 @@ describe(scenario.title, () => {
                 const { tokens }: ARGUMENTS = action.args;
                 if (tokens) {
                   if (action.expect === "success") {
-                    await contracts[action.contract][action.action](tokens);
+                    await expect(contracts[action.contract][action.action](tokens))
+                      .to.emit(contracts[action.contract], "LogTokensToTokensHash")
+                      .withArgs(generateTokenHash(tokens), await operator.getAddress());
                   } else {
                     await expect(contracts[action.contract][action.action](tokens)).to.be.revertedWith(action.message);
                   }
@@ -187,8 +197,15 @@ describe(scenario.title, () => {
               }
               case "setStrategy(bytes32,(address,address,bool)[])": {
                 const strategySteps = generateStrategyStep(strategies[strategyIndex].strategy);
+
                 if (action.expect === "success") {
-                  await contracts[action.contract][action.action](tokenHash, strategySteps);
+                  const strategyHash = generateStrategyHash(
+                    strategies[strategyIndex].strategy,
+                    VAULT_TOKENS[token].address,
+                  );
+                  await expect(contracts[action.contract][action.action](tokenHash, strategySteps))
+                    .to.emit(contracts[action.contract], "LogSetVaultInvestStrategy")
+                    .withArgs(tokenHash, strategyHash, await operator.getAddress());
                 } else {
                   await expect(contracts[action.contract][action.action](tokenHash, strategySteps)).to.be.revertedWith(
                     action.message,
@@ -203,10 +220,18 @@ describe(scenario.title, () => {
                 for (let i = 0; i < adapterNames.length; i++) {
                   const adapterName = adapterNames[i];
                   if (action.expect === "success") {
-                    await contracts[action.contract][action.action](
-                      strategies[strategyIndex].strategy[i].contract,
-                      adapters[adapterName].address,
-                    );
+                    await expect(
+                      contracts[action.contract][action.action](
+                        strategies[strategyIndex].strategy[i].contract,
+                        adapters[adapterName].address,
+                      ),
+                    )
+                      .to.emit(contracts[action.contract], "LogLiquidityPoolToAdapter")
+                      .withArgs(
+                        hre.ethers.utils.getAddress(strategies[strategyIndex].strategy[i].contract),
+                        adapters[adapterName].address,
+                        await operator.getAddress(),
+                      );
                   } else {
                     await expect(
                       contracts[action.contract][action.action](
@@ -226,7 +251,7 @@ describe(scenario.title, () => {
                     const timestamp = (await getBlockTimestamp(hre)) * 2;
                     await fundWalletToken(
                       hre,
-                      VAULT_TOKENS[token],
+                      VAULT_TOKENS[token].address,
                       operator,
                       BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals)),
                       timestamp,
@@ -272,9 +297,22 @@ describe(scenario.title, () => {
                 const { amount }: ARGUMENTS = action.args;
                 try {
                   if (amount) {
-                    await contracts[action.contract]
+                    const queue = await contracts[action.contract].getDepositQueue();
+                    const balanceBefore = await contracts["erc20"].balanceOf(contracts[action.contract].address);
+                    const _tx = await contracts[action.contract]
                       .connect(operator)
                       [action.action](BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals)));
+                    const balanceAfter = await contracts["erc20"].balanceOf(contracts[action.contract].address);
+
+                    const tx = await _tx.wait(1);
+                    expect(tx.events[0].event).to.equal("Transfer");
+                    expect(tx.events[0].args[0]).to.equal(await operator.getAddress());
+                    expect(tx.events[0].args[1]).to.equal(contracts[action.contract].address);
+                    expect(tx.events[0].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+                    expect(tx.events[1].event).to.equal("DepositQueue");
+                    expect(tx.events[1].args[0]).to.equal(await operator.getAddress());
+                    expect(tx.events[1].args[1]).to.equal(queue.length + 1);
+                    expect(tx.events[1].args[2]).to.equal(balanceAfter.sub(balanceBefore));
                   }
                 } catch (error: any) {
                   if (action.expect === "success") {
@@ -288,13 +326,16 @@ describe(scenario.title, () => {
                 assert.isDefined(amount, `args is wrong in ${action.action} testcase`);
                 break;
               }
-              case "setBestStrategy(string,bytes32,bytes32)": {
-                const strategyHash = generateStrategyHash(strategies[strategyIndex].strategy, VAULT_TOKENS[token]);
+              case "setBestStrategy(uint256,bytes32,bytes32)": {
+                const strategyHash = generateStrategyHash(
+                  strategies[strategyIndex].strategy,
+                  VAULT_TOKENS[token].address,
+                );
                 if (action.expect === "success") {
-                  await contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash);
+                  await contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash);
                 } else {
                   await expect(
-                    contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash),
+                    contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash),
                   ).to.be.revertedWith(action.message);
                 }
                 strategyIndex++;

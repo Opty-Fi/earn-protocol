@@ -3,7 +3,8 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -50,7 +51,7 @@ describe(scenario.title, () => {
     describe(`${scenario.vaults[i].name}`, async () => {
       let Vault: Contract;
       const vault = scenario.vaults[i];
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const ADAPTER_NAME = "CurveDepositPoolAdapter";
       const strategies = TypedAdapterStrategies[ADAPTER_NAME];
       for (let i = 0; i < strategies.length; i++) {
@@ -70,7 +71,7 @@ describe(scenario.title, () => {
             Vault = await deployVault(
               hre,
               essentialContracts.registry.address,
-              VAULT_TOKENS[TOKEN_STRATEGY.token],
+              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
               users["owner"],
               users["admin"],
               underlyingTokenName,
@@ -102,14 +103,18 @@ describe(scenario.title, () => {
 
             await setBestStrategy(
               TOKEN_STRATEGY.strategy,
-              VAULT_TOKENS[TOKEN_STRATEGY.token],
+              users["owner"],
+              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
               essentialContracts.investStrategyRegistry,
               essentialContracts.strategyProvider,
               profile,
               false,
             );
 
-            const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[TOKEN_STRATEGY.token]);
+            const Token_ERC20Instance = await hre.ethers.getContractAt(
+              "ERC20",
+              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
+            );
             contracts["vault"] = Vault;
             contracts["registry"] = essentialContracts.registry;
             contracts["tokenErc20"] = Token_ERC20Instance;
@@ -132,7 +137,7 @@ describe(scenario.title, () => {
                         const timestamp = (await getBlockTimestamp(hre)) * 2;
                         await fundWalletToken(
                           hre,
-                          VAULT_TOKENS[TOKEN_STRATEGY.token],
+                          VAULT_TOKENS[TOKEN_STRATEGY.token].address,
                           users[addressName],
                           BigNumber.from(amount[TOKEN_STRATEGY.token]),
                           timestamp,

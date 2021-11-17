@@ -1,9 +1,10 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
-import { deployContract, deploySmockContract } from "../../helpers/helpers";
-import { TESTING_DEPLOYMENT_ONCE, TESTING_CONTRACTS, ESSENTIAL_CONTRACTS } from "../../helpers/constants";
-import { executeFunc } from "../../helpers/helpers";
+import { deployContract, deploySmockContract, executeFunc } from "../../helpers/helpers";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployOptyStakingRateBalancer } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/opty-staking-rate-balancer.json";
 import { Signer, BigNumber } from "ethers";

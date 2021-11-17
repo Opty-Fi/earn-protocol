@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract, executeFunc } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { DEPLOY_INVEST_STRATEGY_REGISTRY } from "../task-names";
 
 task(DEPLOY_INVEST_STRATEGY_REGISTRY, "Deploy InvestStrategyRegistry")

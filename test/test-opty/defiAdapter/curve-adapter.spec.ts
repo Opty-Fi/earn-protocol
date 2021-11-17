@@ -4,13 +4,8 @@ import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber, utils, ethers, BigNumberish } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { CONTRACTS } from "../../../helpers/type";
-import {
-  VAULT_TOKENS,
-  TESTING_DEPLOYMENT_ONCE,
-  ADDRESS_ZERO,
-  CURVE_DEPOSIT_POOL_ADAPTER_NAME,
-  CURVE_SWAP_POOL_ADAPTER_NAME,
-} from "../../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
+import { CURVE_SWAP_POOL_ADAPTER_NAME, CURVE_DEPOSIT_POOL_ADAPTER_NAME } from "../../../helpers/constants/adapters";
 import { TypedAdapterStrategies, TypedDefiPools, TypedTokens } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
@@ -87,10 +82,10 @@ describe("CurveAdapters Unit test", () => {
               ADDRESS_ZERO,
             );
             for (let i = 0; i < nCoins.length; i++) {
-              if (nCoins[i] === VAULT_TOKENS["DAI"]) {
+              if (nCoins[i] === TypedTokens["DAI"]) {
                 await fundWalletToken(hre, nCoins[i], users["owner"], MAX_AMOUNT["DAI"], timestamp);
                 depositAmount.push(MAX_AMOUNT["DAI"].div(BigNumber.from("2")).toString());
-              } else if (nCoins[i] === VAULT_TOKENS["USDC"]) {
+              } else if (nCoins[i] === TypedTokens["USDC"]) {
                 await fundWalletToken(hre, nCoins[i], users["owner"], MAX_AMOUNT["USDC"], timestamp);
                 depositAmount.push(MAX_AMOUNT["USDC"].div(BigNumber.from("2")).toString());
               } else {

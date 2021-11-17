@@ -16,7 +16,7 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {},
           "expect": "success",
           "message": ""
@@ -37,7 +37,7 @@
       "setActions": [
         {
           "contract": "registry",
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "action": "updateRPPoolRatings(uint256,(uint8,uint8))",
           "args": {
             "poolRatingRange": [0, 10]
           },
@@ -60,7 +60,7 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {},
           "expect": "success",
           "message": ""
@@ -86,14 +86,14 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {},
           "expect": "success",
           "message": ""
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": { "score": [2, 2, 2] },
           "expect": "success",
           "message": ""
@@ -119,7 +119,7 @@
       "setActions": [
         {
           "contract": "registry",
-          "action": "updateRPPoolRatings(string,(uint8,uint8))",
+          "action": "updateRPPoolRatings(uint256,(uint8,uint8))",
           "args": {
             "poolRatingRange": [3, 10]
           },
@@ -142,14 +142,14 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {},
           "expect": "success",
           "message": ""
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": { "score": [5, 5, 5] },
           "expect": "success",
           "message": ""

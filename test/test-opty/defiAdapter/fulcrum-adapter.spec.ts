@@ -3,7 +3,10 @@ import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, FULCRUM_ADAPTER_NAME, ADDRESS_ZERO } from "../../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
+import { FULCRUM_ADAPTER_NAME } from "../../../helpers/constants/adapters";
+
 import { TypedAdapterStrategies, TypedDefiPools } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
@@ -58,7 +61,7 @@ describe("FulcrumAdapter", () => {
   for (let i = 0; i < strategies.length; i++) {
     describe(`${strategies[i].strategyName}`, async () => {
       const strategy = strategies[i];
-      const token = VAULT_TOKENS[strategy.token];
+      const token = VAULT_TOKENS[strategy.token].address;
       let lpToken: string;
       before(async () => {
         try {

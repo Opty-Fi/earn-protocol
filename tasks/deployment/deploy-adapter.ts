@@ -3,7 +3,7 @@ import { Contract } from "ethers";
 import { deployAdapter } from "../../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
-import { ADAPTERS } from "../../helpers/constants";
+import { ADAPTERS } from "../../helpers/constants/adapters";
 import { DEPLOY_ADAPTER } from "../task-names";
 
 task(DEPLOY_ADAPTER, "Deploy Adapter contract")

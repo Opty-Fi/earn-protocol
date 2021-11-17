@@ -4,7 +4,7 @@
   "vaults": [
     {
       "name": "Vault",
-      "profile": "RP1",
+      "riskProfileCode": 1,
       "stories": [
         {
           "description": "User don't have to pay withdrawal fee when no treasury address is set even if withdrawal fee is set",

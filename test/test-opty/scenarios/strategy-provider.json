@@ -7,9 +7,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "strategyOperator",
           "expect": "success",
@@ -19,9 +19,9 @@
       "getActions": [
         {
           "contract": "strategyProvider",
-          "action": "rpToTokenToBestStrategy(string,bytes32)",
+          "action": "rpToTokenToBestStrategy(uint256,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "expectedValue": {}
         }
@@ -33,9 +33,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "user1",
           "expect": "fail",
@@ -60,9 +60,9 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "strategyOperator",
           "expect": "fail",
@@ -88,9 +88,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP2"
+            "riskProfileCode": "2"
           },
           "executor": "strategyOperator",
           "expect": "fail",
@@ -105,9 +105,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestStrategy(string,bytes32,bytes32)",
+          "action": "setBestStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "isNonApprovedToken": true
           },
           "executor": "strategyOperator",
@@ -123,9 +123,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "strategyOperator",
           "expect": "success",
@@ -135,9 +135,9 @@
       "getActions": [
         {
           "contract": "strategyProvider",
-          "action": "rpToTokenToDefaultStrategy(string,bytes32)",
+          "action": "rpToTokenToDefaultStrategy(uint256,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "expectedValue": {}
         }
@@ -149,9 +149,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "user1",
           "expect": "fail",
@@ -176,9 +176,9 @@
         },
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1"
+            "riskProfileCode": "1"
           },
           "executor": "strategyOperator",
           "expect": "fail",
@@ -204,9 +204,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP2"
+            "riskProfileCode": "2"
           },
           "executor": "strategyOperator",
           "expect": "fail",
@@ -221,9 +221,9 @@
       "setActions": [
         {
           "contract": "strategyProvider",
-          "action": "setBestDefaultStrategy(string,bytes32,bytes32)",
+          "action": "setBestDefaultStrategy(uint256,bytes32,bytes32)",
           "args": {
-            "riskProfile": "RP1",
+            "riskProfileCode": "1",
             "isNonApprovedToken": true
           },
           "executor": "strategyOperator",

@@ -3,7 +3,7 @@ import { Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { deployEssentialContracts, deployAdapters } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { TypedTokens } from "../../helpers/data";
 
 export async function setUp(owner: Signer, tokens?: string[]): Promise<[CONTRACTS, CONTRACTS]> {

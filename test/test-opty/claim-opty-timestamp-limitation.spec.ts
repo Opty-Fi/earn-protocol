@@ -2,7 +2,8 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { executeFunc } from "../../helpers/helpers";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import {
@@ -26,7 +27,7 @@ type ARGUMENTS = {
 };
 describe(scenario.title, () => {
   const token = "DAI";
-  const tokenAddr = VAULT_TOKENS["DAI"];
+  const tokenAddr = VAULT_TOKENS["DAI"].address;
   const MAX_AMOUNT = "100000000000000000000000";
   let contracts: CONTRACTS = {};
   let users: { [key: string]: Signer };
@@ -50,7 +51,7 @@ describe(scenario.title, () => {
         users["admin"],
         underlyingTokenName,
         underlyingTokenSymbol,
-        "RP1",
+        1,
         TESTING_DEPLOYMENT_ONCE,
       );
       await unpauseVault(users["owner"], contracts["registry"], Vault.address, true);

@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { executeFunc } from "../../helpers/helpers";
 import { SET_INVEST_STRATEGY_REGISTRY } from "../task-names";
 

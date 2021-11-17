@@ -4,7 +4,8 @@ import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -23,6 +24,7 @@ chai.use(solidity);
 
 describe(scenario.title, () => {
   const token = "DAI";
+  const tokenAddress = VAULT_TOKENS[token].address;
   const MAX_AMOUNT = "2000000000000000000";
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -33,7 +35,10 @@ describe(scenario.title, () => {
     try {
       const [owner, admin, user1, user2] = await hre.ethers.getSigners();
       users = { owner, admin, user1, user2 };
-      [essentialContracts, adapters] = await setUp(owner, Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        owner,
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
       contracts["registry"] = essentialContracts["registry"];
@@ -48,10 +53,9 @@ describe(scenario.title, () => {
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
       const vault = scenario.vaults[i];
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const TOKEN_STRATEGY = TypedAdapterStrategies["CompoundAdapter"][0];
       let ERC20Instance: Contract;
-
       before(async () => {
         await contracts["registry"].setWithdrawalFeeRange(["0", "1000"]);
         await approveLiquidityPoolAndMapAdapter(
@@ -60,23 +64,25 @@ describe(scenario.title, () => {
           adapters["CompoundAdapter"].address,
           TOKEN_STRATEGY.strategy[0].contract,
         );
+
         await setBestStrategy(
           TOKEN_STRATEGY.strategy,
-          VAULT_TOKENS[token],
+          users["owner"],
+          tokenAddress,
           essentialContracts.investStrategyRegistry,
           essentialContracts.strategyProvider,
-          "RP1",
+          profile,
           false,
         );
         const timestamp = (await getBlockTimestamp(hre)) * 2;
-        await fundWalletToken(hre, VAULT_TOKENS[token], users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
+        await fundWalletToken(hre, tokenAddress, users["owner"], BigNumber.from(MAX_AMOUNT), timestamp);
 
         underlyingTokenName = await getTokenName(hre, token);
         underlyingTokenSymbol = await getTokenSymbol(hre, token);
         Vault = await deployVault(
           hre,
           essentialContracts.registry.address,
-          VAULT_TOKENS[token],
+          tokenAddress,
           users["owner"],
           users["admin"],
           underlyingTokenName,
@@ -86,7 +92,7 @@ describe(scenario.title, () => {
         );
         await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
-        ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token]);
+        ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
         contracts["vault"] = Vault;
         contracts["erc20"] = ERC20Instance;
       });
@@ -104,9 +110,13 @@ describe(scenario.title, () => {
                   const tempNewFinanceOperatorrAddr = await users[newFinanceOperator].getAddress();
                   if (newFinanceOperator) {
                     if (action.expect === "success") {
-                      await contracts[action.contract]
-                        .connect(users[action.executer])
-                        [action.action](tempNewFinanceOperatorrAddr);
+                      await expect(
+                        contracts[action.contract]
+                          .connect(users[action.executer])
+                          [action.action](tempNewFinanceOperatorrAddr),
+                      )
+                        .to.emit(contracts[action.contract], "TransferFinanceOperator")
+                        .withArgs(tempNewFinanceOperatorrAddr, await users[action.executer].getAddress());
                     } else {
                       await expect(
                         contracts[action.contract]
@@ -123,13 +133,7 @@ describe(scenario.title, () => {
                   try {
                     if (addressName && amount) {
                       const timestamp = (await getBlockTimestamp(hre)) * 2;
-                      await fundWalletToken(
-                        hre,
-                        VAULT_TOKENS[token],
-                        users[addressName],
-                        BigNumber.from(amount),
-                        timestamp,
-                      );
+                      await fundWalletToken(hre, tokenAddress, users[addressName], BigNumber.from(amount), timestamp);
                     }
                   } catch (error: any) {
                     if (action.expect === "success") {

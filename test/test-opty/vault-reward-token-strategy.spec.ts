@@ -1,9 +1,12 @@
-import { expect, assert } from "chai";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, REWARD_TOKENS, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
+import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
@@ -20,6 +23,8 @@ import {
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { generateTokenHash } from "../../helpers/helpers";
+
+chai.use(solidity);
 
 type ARGUMENTS = {
   addressName?: string;
@@ -46,7 +51,10 @@ describe(scenario.title, () => {
     try {
       const [owner, admin, user1] = await hre.ethers.getSigners();
       users = { owner, admin, user1 };
-      [essentialContracts, adapters] = await setUp(owner, Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        owner,
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       assert.isDefined(essentialContracts, "Essential contracts not deployed");
       assert.isDefined(adapters, "Adapters not deployed");
     } catch (error: any) {
@@ -58,7 +66,7 @@ describe(scenario.title, () => {
     describe(`${scenario.vaults[i].name}`, async () => {
       let Vault: Contract;
       const vault = scenario.vaults[i];
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 
       for (let i = 0; i < adaptersName.length; i++) {
@@ -66,8 +74,10 @@ describe(scenario.title, () => {
         const strategies = TypedAdapterStrategies[adaptersName[i]];
 
         for (let i = 0; i < strategies.length; i++) {
+          const TOKEN_STRATEGY = strategies[i];
+
           describe(`${strategies[i].strategyName}`, async () => {
-            const TOKEN_STRATEGY = strategies[i];
+            const token = VAULT_TOKENS[TOKEN_STRATEGY.token].address;
             const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
               rewardTokenAdapterName.toLowerCase(),
             );
@@ -84,7 +94,7 @@ describe(scenario.title, () => {
               Vault = await deployVault(
                 hre,
                 essentialContracts.registry.address,
-                VAULT_TOKENS[TOKEN_STRATEGY.token],
+                token,
                 users["owner"],
                 users["admin"],
                 underlyingTokenName,
@@ -120,14 +130,15 @@ describe(scenario.title, () => {
 
               investStrategyHash = await setBestStrategy(
                 TOKEN_STRATEGY.strategy,
-                VAULT_TOKENS[TOKEN_STRATEGY.token],
+                users["owner"],
+                token,
                 essentialContracts.investStrategyRegistry,
                 essentialContracts.strategyProvider,
                 profile,
                 false,
               );
 
-              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[TOKEN_STRATEGY.token]);
+              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
 
               contracts["vault"] = Vault;
               contracts["registry"] = essentialContracts.registry;
@@ -185,7 +196,7 @@ describe(scenario.title, () => {
                           const timestamp = (await getBlockTimestamp(hre)) * 2;
                           await fundWalletToken(
                             hre,
-                            VAULT_TOKENS[TOKEN_STRATEGY.token],
+                            token,
                             users[addressName],
                             BigNumber.from(amount[TOKEN_STRATEGY.token]),
                             timestamp,
@@ -324,9 +335,9 @@ describe(scenario.title, () => {
                           const reward_token_balance = await contracts[action.contract][action.action](address);
                           <string>balance == ">0"
                             ? REWARD_TOKENS[adapterName].distributionActive
-                              ? assert.isAbove(+reward_token_balance, +"0", "Vault should hold some reward tokens")
-                              : expect(+reward_token_balance).to.equal(+"0")
-                            : expect(+reward_token_balance).to.equal(+(<string>balance));
+                              ? expect(reward_token_balance).to.gte(BigNumber.from("0"))
+                              : expect(reward_token_balance).to.equal(BigNumber.from("0"))
+                            : expect(reward_token_balance).to.equal(balance);
                         }
                       }
                       break;

@@ -6,7 +6,9 @@ import scenario from "./scenarios/opty-staking-vault.json";
 import testStakingVaultScenario from "./scenarios/test-opty-staking-vault.json";
 import { deployRegistry, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import { getBlockTimestamp, unpauseVault } from "../../helpers/contracts-actions";
-import { TESTING_CONTRACTS, TESTING_DEPLOYMENT_ONCE, ESSENTIAL_CONTRACTS, ADDRESS_ZERO } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { smock } from "@defi-wonderland/smock";
 import { deploySmockContract, deployContract, executeFunc, moveToSpecificBlock } from "../../helpers/helpers";
 import { TypedTokens } from "../../helpers/data";
@@ -193,7 +195,9 @@ describe(testStakingVaultScenario.title, () => {
 
     mockContracts = { dummyToken, optyDistributor, optyStakingRateBalancer };
     await executeFunc(registry, owner, "setOPTY(address)", [dummyToken.address]);
-    await executeFunc(registry, owner, "setOPTYDistributor(address)", [optyDistributor.address]);
+    await expect(registry["setOPTYDistributor(address)"](optyDistributor.address))
+      .to.emit(registry, "TransferOPTYDistributor")
+      .withArgs(optyDistributor.address, await owner.getAddress());
     await executeFunc(registry, owner, "setOPTYStakingRateBalancer(address)", [optyStakingRateBalancer.address]);
     await unpauseVault(owner, registry, optyStakingVault.address, true);
     await mockContracts["optyStakingRateBalancer"].updateStakedOPTY.returns(true);

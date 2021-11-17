@@ -3,13 +3,10 @@ import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
 import { CONTRACTS } from "../../../helpers/type";
-import {
-  VAULT_TOKENS,
-  TESTING_DEPLOYMENT_ONCE,
-  ADDRESS_ZERO,
-  HARVEST_V1_ADAPTER_NAME,
-  TESTING_CONTRACTS,
-} from "../../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
+import { TESTING_CONTRACTS } from "../../../helpers/constants/test-contracts-name";
+import { HARVEST_V1_ADAPTER_NAME } from "../../../helpers/constants/adapters";
 import { TypedAdapterStrategies, TypedMultiAssetTokens, TypedCurveTokens, TypedDefiPools } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp, addWhiteListForHarvest } from "../../../helpers/contracts-actions";
@@ -65,7 +62,7 @@ describe(`${HARVEST_V1_ADAPTER_NAME} Unit test`, () => {
   for (let i = 0; i < strategies.length; i++) {
     describe(`test getCodes() for ${strategies[i].strategyName}`, async () => {
       const strategy = strategies[i];
-      const token = VAULT_TOKENS[strategy.token];
+      const token = VAULT_TOKENS[strategy.token].address;
       let lpToken: string;
       before(async () => {
         try {
@@ -524,48 +521,6 @@ describe(`${HARVEST_V1_ADAPTER_NAME} Unit test`, () => {
                       expect(getAddress(liquidityPoolFromAdapter)).to.be.eq(getAddress(liquidityPool));
                       break;
                     }
-                    case "setLiquidityPoolToStakingVault(address,address)": {
-                      if (action.expect == "success") {
-                        await harvestV1Adapter
-                          .connect(users[action.executer!])
-                          [action.action](
-                            dummyContracts["liquidityPool"].address,
-                            dummyContracts["stakingVault"].address,
-                          );
-                      } else {
-                        if (action.message === "!_liquidityPool.isContract()") {
-                          const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
-                          await expect(
-                            harvestV1Adapter
-                              .connect(users[action.executer!])
-                              [action.action](
-                                isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
-                                dummyContracts["stakingVault"].address,
-                              ),
-                          ).to.be.revertedWith(action.message);
-                        } else if (action.message === "!_stakingVault.isContract()") {
-                          const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
-                          await expect(
-                            harvestV1Adapter
-                              .connect(users[action.executer!])
-                              [action.action](
-                                dummyContracts["liquidityPool"].address,
-                                isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
-                              ),
-                          ).to.be.revertedWith(action.message);
-                        } else {
-                          await expect(
-                            harvestV1Adapter
-                              .connect(users[action.executer!])
-                              [action.action](
-                                dummyContracts["liquidityPool"].address,
-                                dummyContracts["stakingVault"].address,
-                              ),
-                          ).to.be.revertedWith(action.message!);
-                        }
-                      }
-                      break;
-                    }
                   }
                 }
                 for (const action of story.getActions) {
@@ -958,21 +913,60 @@ describe(`${HARVEST_V1_ADAPTER_NAME} Unit test`, () => {
                 }
               });
             }
-            for (let i = 0; i < testDeFiAdapterScenario.adapterStandaloneStories.length; i++) {
-              it(`${testDeFiAdapterScenario?.adapterStandaloneStories[i].description}`, async function () {
-                const story = testDeFiAdapterScenario.adapterStandaloneStories[i];
-                for (const action of story.setActions) {
-                  switch (action.action) {
-                    case "canStake(address)": {
-                      const canStake = await harvestV1Adapter[action.action](ADDRESS_ZERO);
-                      expect(canStake).to.be.eq(true);
-                      break;
+          }
+        }
+        for (let i = 0; i < testDeFiAdapterScenario.adapterStandaloneStories.length; i++) {
+          it(`${testDeFiAdapterScenario?.adapterStandaloneStories[i].description}`, async function () {
+            const story = testDeFiAdapterScenario.adapterStandaloneStories[i];
+            for (const action of story.setActions) {
+              switch (action.action) {
+                case "canStake(address)": {
+                  const canStake = await harvestV1Adapter[action.action](ADDRESS_ZERO);
+                  expect(canStake).to.be.eq(true);
+                  break;
+                }
+                case "setLiquidityPoolToStakingVault(address,address)": {
+                  if (action.expect == "success") {
+                    await harvestV1Adapter
+                      .connect(users[action.executer!])
+                      [action.action](dummyContracts["liquidityPool"].address, dummyContracts["stakingVault"].address);
+                  } else {
+                    if (action.message === "!_liquidityPool.isContract()") {
+                      const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
+                      await expect(
+                        harvestV1Adapter
+                          .connect(users[action.executer!])
+                          [action.action](
+                            isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
+                            dummyContracts["stakingVault"].address,
+                          ),
+                      ).to.be.revertedWith(action.message);
+                    } else if (action.message === "!_stakingVault.isContract()") {
+                      const { isInvalidAddress } = action.args as TEST_DEFI_ADAPTER_ARGUMENTS;
+                      await expect(
+                        harvestV1Adapter
+                          .connect(users[action.executer!])
+                          [action.action](
+                            dummyContracts["liquidityPool"].address,
+                            isInvalidAddress === "zero" ? ADDRESS_ZERO : ownerAddress,
+                          ),
+                      ).to.be.revertedWith(action.message);
+                    } else {
+                      await expect(
+                        harvestV1Adapter
+                          .connect(users[action.executer!])
+                          [action.action](
+                            dummyContracts["liquidityPool"].address,
+                            dummyContracts["stakingVault"].address,
+                          ),
+                      ).to.be.revertedWith(action.message!);
                     }
                   }
+                  break;
                 }
-              });
+              }
             }
-          }
+          });
         }
       }
     }

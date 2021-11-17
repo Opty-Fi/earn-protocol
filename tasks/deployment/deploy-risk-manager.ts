@@ -2,7 +2,7 @@ import { task, types } from "hardhat/config";
 import { deployRiskManager } from "../../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress, executeFunc } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { DEPLOY_RISK_MANAGER } from "../task-names";
 
 task(DEPLOY_RISK_MANAGER, "Deploy Risk Manager")

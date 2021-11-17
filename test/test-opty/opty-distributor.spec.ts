@@ -1,12 +1,11 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
-import { Signer, Contract, BigNumber } from "ethers";
+import { solidity } from "ethereum-waffle";
+import { Signer, BigNumber } from "ethers";
+import { smock } from "@defi-wonderland/smock";
 import { setUp } from "./setup";
 import { CONTRACTS, MOCK_CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE, MAX_UINT256 } from "../../helpers/constants";
-import { TypedAdapterStrategies, TypedTokens } from "../../helpers/data";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants";
-import { smock } from "@defi-wonderland/smock";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import {
   deploySmockContract,
   deployContract,
@@ -14,7 +13,11 @@ import {
   moveToNextBlock,
   moveToSpecificBlock,
 } from "../../helpers/helpers";
-import { deployVault, deployRegistry } from "../../helpers/contracts-deployments";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { TypedAdapterStrategies } from "../../helpers/data";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
@@ -26,6 +29,9 @@ import {
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/opty-distributor.json";
 import testOptyDistributorScenario from "./scenarios/test-opty-distributor.json";
+
+chai.use(solidity);
+
 type ARGUMENTS = {
   contractName?: string;
   addressName?: string;
@@ -42,7 +48,7 @@ type TEST_OPTY_DISTRIBUTOR_ARGUMENTS = {
 
 describe(scenario.title, () => {
   const token = "DAI";
-  const tokenAddr = VAULT_TOKENS["DAI"];
+  const tokenAddr = VAULT_TOKENS["DAI"].address;
   const MAX_AMOUNT = "100000000000000000000000";
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -50,11 +56,15 @@ describe(scenario.title, () => {
   let users: { [key: string]: Signer };
   const TOKEN_STRATEGY = TypedAdapterStrategies["CompoundAdapter"][0];
   let currentOpty = 0;
+  const riskProfileCode = 1;
   before(async () => {
     try {
       const [owner, admin, user1] = await hre.ethers.getSigners();
       users = { owner, admin, user1 };
-      [essentialContracts, adapters] = await setUp(users["owner"], Object.values(VAULT_TOKENS));
+      [essentialContracts, adapters] = await setUp(
+        users["owner"],
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
       await approveLiquidityPoolAndMapAdapter(
         users["owner"],
         essentialContracts.registry,
@@ -63,10 +73,11 @@ describe(scenario.title, () => {
       );
       await setBestStrategy(
         TOKEN_STRATEGY.strategy,
+        users["owner"],
         tokenAddr,
         essentialContracts.investStrategyRegistry,
         essentialContracts.strategyProvider,
-        "RP1",
+        riskProfileCode,
         false,
       );
       const timestamp = (await getBlockTimestamp(hre)) * 2;
@@ -99,7 +110,7 @@ describe(scenario.title, () => {
       users["admin"],
       underlyingTokenName,
       underlyingTokenSymbol,
-      "RP1",
+      riskProfileCode,
       TESTING_DEPLOYMENT_ONCE,
     );
     await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
@@ -112,7 +123,7 @@ describe(scenario.title, () => {
       users["admin"],
       underlyingTokenName,
       underlyingTokenSymbol,
-      "RP1",
+      riskProfileCode,
       TESTING_DEPLOYMENT_ONCE,
     );
     await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
@@ -255,7 +266,24 @@ describe(scenario.title, () => {
             const { amount }: ARGUMENTS = action.args;
             if (amount) {
               if (action.expect === "success") {
-                await executeFunc(contracts[action.contract], users[action.executer], action.action, [amount]);
+                if (action.action === "userDeposit(uint256)") {
+                  const queue = await contracts[action.contract].getDepositQueue();
+                  const balanceBefore = await contracts["erc20"].balanceOf(contracts[action.contract].address);
+                  const _tx = await contracts[action.contract].connect(users[action.executer])[action.action](amount);
+                  const balanceAfter = await contracts["erc20"].balanceOf(contracts[action.contract].address);
+
+                  const tx = await _tx.wait(1);
+                  expect(tx.events[0].event).to.equal("Transfer");
+                  expect(tx.events[0].args[0]).to.equal(await users[action.executer].getAddress());
+                  expect(tx.events[0].args[1]).to.equal(contracts[action.contract].address);
+                  expect(tx.events[0].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+                  expect(tx.events[1].event).to.equal("DepositQueue");
+                  expect(tx.events[1].args[0]).to.equal(await users[action.executer].getAddress());
+                  expect(tx.events[1].args[1]).to.equal(queue.length + 1);
+                  expect(tx.events[1].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+                } else {
+                  await executeFunc(contracts[action.contract], users[action.executer], action.action, [amount]);
+                }
               } else {
                 await expect(
                   executeFunc(contracts[action.contract], users[action.executer], action.action, [amount]),
@@ -404,7 +432,9 @@ describe(testOptyDistributorScenario.title, () => {
       withdrawalFee: 0,
       treasuryShares: [],
     });
-    await mockContracts.optyToken.connect(users["owner"]).approve(mockContracts.optyStakingVault.address, MAX_UINT256);
+    await mockContracts.optyToken
+      .connect(users["owner"])
+      .approve(mockContracts.optyStakingVault.address, hre.ethers.constants.MaxUint256);
   });
 
   describe(testOptyDistributorScenario.description, () => {

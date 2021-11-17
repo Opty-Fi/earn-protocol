@@ -4,7 +4,7 @@
   "vaults": [
     {
       "name": "Vault",
-      "profile": "RP1",
+      "riskProfileCode": 1,
       "vaultStories": [
         {
           "description": "[Vault is paused By Default] Should fail when user deposits in the vault contract",

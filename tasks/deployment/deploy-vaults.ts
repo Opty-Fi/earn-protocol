@@ -1,5 +1,6 @@
 import { task, types } from "hardhat/config";
-import { RISK_PROFILES, VAULT_TOKENS } from "../../helpers/constants";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { isAddress } from "../../helpers/helpers";
 import { DEPLOY_VAULT, DEPLOY_VAULTS } from "../task-names";
 
@@ -19,12 +20,9 @@ task(DEPLOY_VAULTS, "Deploy Core Vaults")
     try {
       console.log("Deploying Vaults...");
       for (const token in VAULT_TOKENS) {
-        if (token === "CHI") {
-          continue;
-        }
         for (const riskProfile of Object.keys(RISK_PROFILES)) {
           await hre.run(DEPLOY_VAULT, {
-            token: VAULT_TOKENS[token],
+            token: VAULT_TOKENS[token].address,
             riskprofile: riskProfile,
             registry: registry,
             unpause: unpause,

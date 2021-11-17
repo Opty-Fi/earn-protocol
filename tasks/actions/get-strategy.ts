@@ -1,6 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { GET_STRATEGY } from "../task-names";
 
 task(GET_STRATEGY, "Get a specific strategy")

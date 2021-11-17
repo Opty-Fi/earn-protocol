@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract, isAddress, executeFunc } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { DEPLOY_HARVEST_CODE_PROVIDER } from "../task-names";
 
 task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")

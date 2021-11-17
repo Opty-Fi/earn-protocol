@@ -1,9 +1,10 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { ethers } from "ethers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { VAULT_ACTIONS } from "../task-names";
+import { expect } from "chai";
 
 task(VAULT_ACTIONS, "perform actions in Vault")
   .addParam("vault", "the address of vault", "", types.string)
@@ -99,7 +100,21 @@ task(VAULT_ACTIONS, "perform actions in Vault")
                 )} ${tokenSymbol}`,
               );
             } else {
-              await vaultContract.connect(userSigner).userDeposit(checkedAmount.toString());
+              const queue = await vaultContract.getDepositQueue();
+              const balanceBefore = await tokenContract.balanceOf(vaultContract.address);
+              const _tx = await vaultContract.connect(owner)[action.action](amount);
+              const balanceAfter = await tokenContract.balanceOf(vaultContract.address);
+
+              const tx = await _tx.wait(1);
+              expect(tx.events[0].event).to.equal("Transfer");
+              expect(tx.events[0].args[0]).to.equal(await owner.getAddress());
+              expect(tx.events[0].args[1]).to.equal(vaultContract.address);
+              expect(tx.events[0].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+              expect(tx.events[1].event).to.equal("DepositQueue");
+              expect(tx.events[1].args[0]).to.equal(await owner.getAddress());
+              expect(tx.events[1].args[1]).to.equal(queue.length + 1);
+              expect(tx.events[1].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+
               console.log("Deposit without rebalance successfully");
             }
           } catch (error) {

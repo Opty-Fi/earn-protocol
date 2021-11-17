@@ -3,8 +3,10 @@ import hre from "hardhat";
 import { solidity } from "ethereum-waffle";
 import { Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
-import { VAULT_TOKENS, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants";
-import { ESSENTIAL_CONTRACTS, TESTING_CONTRACTS } from "../../helpers/constants";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { deployContract, executeFunc, moveToNextBlock } from "../../helpers/helpers";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
 import {
@@ -29,7 +31,7 @@ type ARGUMENTS = {
 };
 describe(scenario.title, () => {
   const token = "DAI";
-  const tokenAddr = VAULT_TOKENS["DAI"];
+  const tokenAddr = VAULT_TOKENS["DAI"].address;
   const MAX_AMOUNT = "100000000000000000000000";
   let essentialContracts: CONTRACTS;
   const contracts: CONTRACTS = {};
@@ -69,7 +71,7 @@ describe(scenario.title, () => {
         odefiVaultBooster.address,
         2000000000000000,
       ]);
-
+      const riskProfileCode = 1;
       const Vault = await deployVault(
         hre,
         essentialContracts.registry.address,
@@ -78,7 +80,7 @@ describe(scenario.title, () => {
         users["admin"],
         underlyingTokenName,
         underlyingTokenSymbol,
-        "RP1",
+        riskProfileCode,
         TESTING_DEPLOYMENT_ONCE,
       );
       await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
@@ -91,7 +93,7 @@ describe(scenario.title, () => {
         users["admin"],
         underlyingTokenName,
         underlyingTokenSymbol,
-        "RP1",
+        riskProfileCode,
         TESTING_DEPLOYMENT_ONCE,
       );
       await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
@@ -289,7 +291,23 @@ describe(scenario.title, () => {
             const { amount }: ARGUMENTS = action.args;
             if (amount) {
               if (action.expect === "success") {
-                await executeFunc(contracts[action.contract], users[action.executer], action.action, [amount]);
+                if (action.action === "userDeposit(uint256)") {
+                  const queue = await contracts[action.contract].getDepositQueue();
+                  const balanceBefore = await contracts["erc20"].balanceOf(contracts[action.contract].address);
+                  const _tx = await contracts[action.contract].connect(users[action.executer])[action.action](amount);
+                  const balanceAfter = await contracts["erc20"].balanceOf(contracts[action.contract].address);
+                  const tx = await _tx.wait(1);
+                  expect(tx.events[0].event).to.equal("Transfer");
+                  expect(tx.events[0].args[0]).to.equal(await users[action.executer].getAddress());
+                  expect(tx.events[0].args[1]).to.equal(contracts[action.contract].address);
+                  expect(tx.events[0].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+                  expect(tx.events[1].event).to.equal("DepositQueue");
+                  expect(tx.events[1].args[0]).to.equal(await users[action.executer].getAddress());
+                  expect(tx.events[1].args[1]).to.equal(queue.length + 1);
+                  expect(tx.events[1].args[2]).to.equal(balanceAfter.sub(balanceBefore));
+                } else {
+                  await executeFunc(contracts[action.contract], users[action.executer], action.action, [amount]);
+                }
               } else {
                 await expect(
                   executeFunc(contracts[action.contract], users[action.executer], action.action, [amount]),

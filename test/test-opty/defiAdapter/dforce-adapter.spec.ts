@@ -4,15 +4,11 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { CONTRACTS } from "../../../helpers/type";
-import {
-  VAULT_TOKENS,
-  TESTING_CONTRACTS,
-  TESTING_DEPLOYMENT_ONCE,
-  DFORCE_ADAPTER_NAME,
-  ADDRESS_ZERO,
-  TOKEN_HOLDERS,
-} from "../../../helpers/constants";
-import { TypedAdapterStrategies, TypedTokens, TypedDefiPools } from "../../../helpers/data";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../../helpers/constants/utils";
+import { VAULT_TOKENS } from "../../../helpers/constants/tokens";
+import { TESTING_CONTRACTS } from "../../../helpers/constants/test-contracts-name";
+import { DFORCE_ADAPTER_NAME } from "../../../helpers/constants/adapters";
+import { TypedAdapterStrategies, TypedTokens, TypedDefiPools, TypedTokenHolders } from "../../../helpers/data";
 import { deployAdapter, deployAdapterPrerequisites } from "../../../helpers/contracts-deployments";
 import { fundWalletToken, getBlockTimestamp } from "../../../helpers/contracts-actions";
 import scenarios from "../scenarios/adapters.json";
@@ -65,7 +61,7 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
   for (let i = 0; i < strategies.length; i++) {
     describe(`test getCodes() for ${strategies[i].strategyName}`, async () => {
       const strategy = strategies[i];
-      const token = VAULT_TOKENS[strategy.token];
+      const token = VAULT_TOKENS[strategy.token].address;
       let lpToken: string;
       before(async () => {
         try {
@@ -333,7 +329,7 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
                     case "fundTestDefiContractWithRewardToken()": {
                       if (
                         getAddress(underlyingTokenAddress) === getAddress(rewardTokenAddress) ||
-                        TOKEN_HOLDERS[pool.toUpperCase()]
+                        TypedTokenHolders[pool.toUpperCase()]
                       ) {
                         this.skip();
                       }
@@ -401,7 +397,7 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
                       if (
                         getAddress(underlyingTokenAddress) === getAddress(rewardTokenAddress) ||
                         rewardTokenAddress === ADDRESS_ZERO ||
-                        TOKEN_HOLDERS[pool.toUpperCase()]
+                        TypedTokenHolders[pool.toUpperCase()]
                       ) {
                         this.skip();
                       }
@@ -416,7 +412,7 @@ describe(`${DFORCE_ADAPTER_NAME} Unit test`, () => {
                       if (
                         getAddress(underlyingTokenAddress) === getAddress(rewardTokenAddress) ||
                         rewardTokenAddress === ADDRESS_ZERO ||
-                        TOKEN_HOLDERS[pool.toUpperCase()]
+                        TypedTokenHolders[pool.toUpperCase()]
                       ) {
                         this.skip();
                       }
