@@ -125,7 +125,9 @@ export async function deployEssentialContracts(
   owner: Signer,
   isDeployedOnce: boolean,
 ): Promise<CONTRACTS> {
+  console.log("\n Deploying Registry...");
   const registry = await deployRegistry(hre, owner, isDeployedOnce);
+  console.log("\n Adding risk profiles...");
   await addRiskProfiles(owner, registry);
   const investStrategyRegistry = await deployContract(
     hre,

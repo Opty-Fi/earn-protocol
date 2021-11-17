@@ -554,7 +554,7 @@ export async function addRiskProfile(
       );
     const ownerAddress = await owner.getAddress();
     const addRiskProfileTx = await _addRiskProfileTx.wait(1);
-    const { index } = await registry.getRiskProfile(name);
+    const { index } = await registry.getRiskProfile(riskProfileCode);
     expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
     expect(addRiskProfileTx.events[0].args[0]).to.equal(+index);
     expect(addRiskProfileTx.events[0].args[1]).to.equal(true);
