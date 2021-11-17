@@ -9,11 +9,12 @@ import { getSoliditySHA3Hash } from "../../helpers/utils";
 import { TESTING_DEPLOYMENT_ONCE, ZERO_BYTES32 } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
-import { approveAndSetTokenHashToTokens, setStrategy, addRiskProfile } from "../../helpers/contracts-actions";
+import { approveAndSetTokenHashToTokens, setStrategy } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/apr-oracle.json";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 chai.use(solidity);
 type ARGUMENTS = {
-  riskProfile?: string;
+  riskProfileCode?: string;
   canBorrow?: boolean;
   poolRatingRange?: number[];
   adapterName?: string;
@@ -63,7 +64,13 @@ describe(scenario.title, async () => {
 
       const riskManager = await deployRiskManager(hre, owner, TESTING_DEPLOYMENT_ONCE, registry.address);
 
-      await addRiskProfile(registry, owner, "RP1", false, [0, 10]);
+      await registry["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](
+        RISK_PROFILES[1].code,
+        RISK_PROFILES[1].name,
+        RISK_PROFILES[1].symbol,
+        RISK_PROFILES[1].canBorrow,
+        RISK_PROFILES[1].poolRating,
+      );
 
       await approveAndSetTokenHashToTokens(
         owner,
@@ -101,13 +108,13 @@ describe(scenario.title, async () => {
       for (let i = 0; i < story.setActions.length; i++) {
         const action = story.setActions[i];
         switch (action.action) {
-          case "updateRPPoolRatings(string,(uint8,uint8))": {
-            const { riskProfile, poolRatingRange }: ARGUMENTS = action.args;
-            if (riskProfile && poolRatingRange) {
+          case "updateRPPoolRatings(uint256,(uint8,uint8))": {
+            const { riskProfileCode, poolRatingRange }: ARGUMENTS = action.args;
+            if (riskProfileCode && poolRatingRange) {
               if (action.expect === "success") {
-                const value = await contracts[action.contract].getRiskProfile(riskProfile);
+                const value = await contracts[action.contract].getRiskProfile(riskProfileCode);
                 const riskProfileIndex = value.index;
-                await expect(contracts[action.contract][action.action](riskProfile, poolRatingRange))
+                await expect(contracts[action.contract][action.action](riskProfileCode, poolRatingRange))
                   .to.emit(contracts[action.contract], "LogRPPoolRatings")
                   .withArgs(
                     riskProfileIndex,
@@ -117,11 +124,11 @@ describe(scenario.title, async () => {
                   );
               } else {
                 await expect(
-                  contracts[action.contract][action.action](riskProfile, poolRatingRange),
+                  contracts[action.contract][action.action](riskProfileCode, poolRatingRange),
                 ).to.be.revertedWith(action.message);
               }
             }
-            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
             assert.isDefined(poolRatingRange, `args is wrong in ${action.action} testcase`);
             break;
           }
@@ -187,10 +194,10 @@ describe(scenario.title, async () => {
             assert.isDefined(adapterName, `args is wrong in ${action.action} testcase`);
             break;
           }
-          case "setBestStrategy(string,bytes32,bytes32)":
-          case "setBestDefaultStrategy(string,bytes32,bytes32)": {
-            const { adapterName, token, riskProfile }: ARGUMENTS = action.args;
-            if (adapterName && token && riskProfile) {
+          case "setBestStrategy(uint256,bytes32,bytes32)":
+          case "setBestDefaultStrategy(uint256,bytes32,bytes32)": {
+            const { adapterName, token, riskProfileCode }: ARGUMENTS = action.args;
+            if (adapterName && token && riskProfileCode) {
               if (TypedDefiPools[adapterName][token.toLowerCase()].lpToken && TypedTokens[token.toUpperCase()]) {
                 const strategy = {
                   contract: TypedDefiPools[adapterName][token.toLowerCase()].lpToken,
@@ -201,10 +208,10 @@ describe(scenario.title, async () => {
                 const tokenHash = getSoliditySHA3Hash(["address[]"], [[TypedTokens[token.toUpperCase()]]]);
 
                 if (action.expect === "success") {
-                  await contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash);
+                  await contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash);
                 } else {
                   await expect(
-                    contracts[action.contract][action.action](riskProfile, tokenHash, strategyHash),
+                    contracts[action.contract][action.action](riskProfileCode, tokenHash, strategyHash),
                   ).to.be.revertedWith(action.message);
                 }
               }
@@ -216,7 +223,7 @@ describe(scenario.title, async () => {
             }
             assert.isDefined(adapterName, `args is wrong in ${action.action} testcase`);
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
-            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
             break;
           }
           case "setDefaultStrategyState(uint8)": {
@@ -235,10 +242,10 @@ describe(scenario.title, async () => {
       for (let i = 0; i < story.getActions.length; i++) {
         const action = story.getActions[i];
         switch (action.action) {
-          case "getBestStrategy(string,address[])": {
-            const { riskProfile, token }: ARGUMENTS = action.args;
-            if (riskProfile && token) {
-              const value = await contracts[action.contract][action.action](riskProfile, [
+          case "getBestStrategy(uint256,address[])": {
+            const { riskProfileCode, token }: ARGUMENTS = action.args;
+            if (riskProfileCode && token) {
+              const value = await contracts[action.contract][action.action](riskProfileCode, [
                 TypedTokens[token.toUpperCase()],
               ]);
               const tokenHash = generateTokenHash([TypedTokens[token.toUpperCase()]]);
@@ -267,7 +274,7 @@ describe(scenario.title, async () => {
               }
             }
 
-            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
             assert.isDefined(token, `args is wrong in ${action.action} testcase`);
             break;
           }

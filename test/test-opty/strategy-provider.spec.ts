@@ -11,11 +11,12 @@ import { deployRegistry } from "../../helpers/contracts-deployments";
 import scenario from "./scenarios/strategy-provider.json";
 import { approveAndSetTokenHashToTokens, addRiskProfile } from "../../helpers/contracts-actions";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
+import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 
 chai.use(solidity);
 
 type ARGUMENTS = {
-  riskProfile?: string;
+  riskProfileCode?: string;
   strategyName?: string;
   tokenName?: string;
   defaultStrategyState?: number;
@@ -52,7 +53,15 @@ describe(scenario.title, () => {
       );
       const DAI_TOKEN = TypedTokens["DAI"];
 
-      await addRiskProfile(registry, owner, "RP1", false, [0, 10]);
+      await addRiskProfile(
+        registry,
+        owner,
+        RISK_PROFILES[1].code,
+        RISK_PROFILES[1].name,
+        RISK_PROFILES[1].symbol,
+        RISK_PROFILES[1].canBorrow,
+        RISK_PROFILES[1].poolRating,
+      );
 
       await expect(registry["approveToken(address)"](DAI_TOKEN))
         .to.emit(registry, "LogToken")
@@ -92,10 +101,10 @@ describe(scenario.title, () => {
       for (let i = 0; i < story.getActions.length; i++) {
         const action: any = story.getActions[i];
         switch (action.action) {
-          case "rpToTokenToDefaultStrategy(string,bytes32)":
-          case "rpToTokenToBestStrategy(string,bytes32)": {
-            const { riskProfile, tokenName }: ARGUMENTS = action.args;
-            if (riskProfile && tokenName) {
+          case "rpToTokenToDefaultStrategy(uint256,bytes32)":
+          case "rpToTokenToBestStrategy(uint256,bytes32)": {
+            const { riskProfileCode, tokenName }: ARGUMENTS = action.args;
+            if (riskProfileCode && tokenName) {
               const expectedStrategyHash = generateStrategyHash(
                 TypedStrategies.filter(strategy => strategy.strategyName == action.expectedValue.strategyName)[0]
                   .strategy,
@@ -103,12 +112,12 @@ describe(scenario.title, () => {
               );
               expect(
                 await contracts[action.contract][action.action](
-                  riskProfile,
+                  riskProfileCode,
                   generateTokenHash([TypedTokens[tokenName]]),
                 ),
               ).to.be.equal(expectedStrategyHash);
             }
-            assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
             break;
           }
           case "vaultRewardTokenHashToVaultRewardTokenStrategy(bytes32)": {
@@ -170,23 +179,27 @@ describe(scenario.title, () => {
         assert.isDefined(vaultRewardStrategy, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "setBestStrategy(string,bytes32,bytes32)":
-      case "setBestDefaultStrategy(string,bytes32,bytes32)": {
-        const { riskProfile, isNonApprovedToken }: ARGUMENTS = action.args;
-        if (riskProfile) {
+      case "setBestStrategy(uint256,bytes32,bytes32)":
+      case "setBestDefaultStrategy(uint256,bytes32,bytes32)": {
+        const { riskProfileCode, isNonApprovedToken }: ARGUMENTS = action.args;
+        if (riskProfileCode) {
           if (action.expect === "success") {
             await contracts[action.contract]
               .connect(signers[action.executor])
-              [action.action](riskProfile, usedTokenHash, strategyHash);
+              [action.action](riskProfileCode, usedTokenHash, strategyHash);
           } else {
             await expect(
               contracts[action.contract]
                 .connect(signers[action.executor])
-                [action.action](riskProfile, isNonApprovedToken ? nonApprovedTokenHash : usedTokenHash, strategyHash),
+                [action.action](
+                  riskProfileCode,
+                  isNonApprovedToken ? nonApprovedTokenHash : usedTokenHash,
+                  strategyHash,
+                ),
             ).to.be.revertedWith(action.message);
           }
         }
-        assert.isDefined(riskProfile, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
         break;
       }
       case "setDefaultStrategyState(uint8)": {

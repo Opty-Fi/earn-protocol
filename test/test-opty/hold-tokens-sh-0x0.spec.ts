@@ -23,7 +23,7 @@ import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 
 type ARGUMENTS = {
   amount?: { [key: string]: string };
-  riskProfile?: string;
+  riskProfileCode?: string;
   strategyHash?: string;
 };
 
@@ -58,7 +58,7 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
-      const profile = vault.profile;
+      const profile = vault.riskProfileCode;
       const stories = vault.stories;
       const adaptersName = Object.keys(TypedAdapterStrategies);
 
@@ -70,7 +70,7 @@ describe(scenarios.title, () => {
             const strategy = strategies[i];
             const tokensHash = generateTokenHash([VAULT_TOKENS[strategy.token].address]);
             let bestStrategyHash: string;
-            let vaultRiskProfile: string;
+            let vaultRiskProfile: number;
             const contracts: CONTRACTS = {};
             before(async () => {
               try {
@@ -98,7 +98,7 @@ describe(scenarios.title, () => {
                   adapter.address,
                   strategy.strategy[0].contract,
                 );
-                vaultRiskProfile = await Vault.profile();
+                vaultRiskProfile = await Vault.riskProfileCode();
                 bestStrategyHash = await setBestStrategy(
                   strategy.strategy,
                   users["owner"],
@@ -137,17 +137,21 @@ describe(scenarios.title, () => {
                 for (let i = 0; i < story.actions.length; i++) {
                   const action = story.actions[i];
                   switch (action.action) {
-                    case "setBestStrategy(string,bytes32,bytes32)": {
-                      const { riskProfile, strategyHash }: ARGUMENTS = action.args;
+                    case "setBestStrategy(uint256,bytes32,bytes32)": {
+                      const { riskProfileCode, strategyHash }: ARGUMENTS = action.args;
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](riskProfile, tokensHash, strategyHash ? strategyHash : bestStrategyHash);
+                          [action.action](riskProfileCode, tokensHash, strategyHash ? strategyHash : bestStrategyHash);
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](riskProfile, tokensHash, strategyHash ? strategyHash : bestStrategyHash),
+                            [action.action](
+                              riskProfileCode,
+                              tokensHash,
+                              strategyHash ? strategyHash : bestStrategyHash,
+                            ),
                         ).to.be.revertedWith(action.message);
                       }
                       break;

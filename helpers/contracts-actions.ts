@@ -2,6 +2,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
 import Compound from "@compound-finance/compound-js";
+import { expect } from "chai";
 import { Provider } from "@compound-finance/compound-js/dist/nodejs/types";
 import { STRATEGY_DATA } from "./type";
 import { TypedCurveTokens, TypedMultiAssetTokens, TypedTokens, TypedTokenHolders, TypedContracts } from "./data";
@@ -16,7 +17,7 @@ import {
 import { amountInHex } from "./utils";
 import { TypedEOA } from "./data";
 import { RISK_PROFILES } from "./constants/contracts-data";
-import { expect } from "chai";
+
 export async function approveLiquidityPoolAndMapAdapter(
   owner: Signer,
   registryContract: Contract,
@@ -145,7 +146,7 @@ export async function setBestStrategy(
   tokenAddress: string,
   investStrategyRegistry: Contract,
   strategyProvider: Contract,
-  riskProfile: string,
+  riskProfileCode: number,
   isDefault: boolean,
 ): Promise<string> {
   const strategyHash = generateStrategyHash(strategy, tokenAddress);
@@ -159,9 +160,9 @@ export async function setBestStrategy(
   }
 
   if (isDefault) {
-    await strategyProvider.setBestDefaultStrategy(riskProfile.toUpperCase(), tokenHash, strategyHash);
+    await strategyProvider.setBestDefaultStrategy(riskProfileCode, tokenHash, strategyHash);
   } else {
-    await strategyProvider.setBestStrategy(riskProfile.toUpperCase(), tokenHash, strategyHash);
+    await strategyProvider.setBestStrategy(riskProfileCode, tokenHash, strategyHash);
   }
   return strategyHash;
 }
@@ -518,14 +519,15 @@ export async function isSetTokenHash(registryContract: Contract, tokenAddresses:
   return true;
 }
 export async function addRiskProfiles(owner: Signer, registry: Contract): Promise<void> {
-  const profiles = Object.keys(RISK_PROFILES);
-  for (let i = 0; i < profiles.length; i++) {
+  for (let i = 0; i < RISK_PROFILES.length; i++) {
     await addRiskProfile(
       registry,
       owner,
-      RISK_PROFILES[profiles[i]].name,
-      RISK_PROFILES[profiles[i]].canBorrow,
-      RISK_PROFILES[profiles[i]].poolRating,
+      RISK_PROFILES[i].code,
+      RISK_PROFILES[i].name,
+      RISK_PROFILES[i].symbol,
+      RISK_PROFILES[i].canBorrow,
+      RISK_PROFILES[i].poolRating,
     );
   }
 }
@@ -533,15 +535,23 @@ export async function addRiskProfiles(owner: Signer, registry: Contract): Promis
 export async function addRiskProfile(
   registry: Contract,
   owner: Signer,
+  riskProfileCode: number,
   name: string,
+  symbol: string,
   canBorrow: boolean,
   poolRating: number[],
 ): Promise<void> {
-  const profile = await registry.getRiskProfile(name);
+  const profile = await registry.getRiskProfile(riskProfileCode);
   if (!profile.exists) {
     const _addRiskProfileTx = await registry
       .connect(owner)
-      ["addRiskProfile(string,bool,(uint8,uint8))"](name, canBorrow, poolRating);
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](
+        riskProfileCode,
+        name,
+        symbol,
+        canBorrow,
+        poolRating,
+      );
     const ownerAddress = await owner.getAddress();
     const addRiskProfileTx = await _addRiskProfileTx.wait(1);
     const { index } = await registry.getRiskProfile(name);

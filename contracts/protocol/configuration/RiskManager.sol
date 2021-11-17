@@ -41,21 +41,19 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
     /**
      * @inheritdoc IRiskManager
      */
-    function getBestStrategy(string memory _profile, address[] memory _underlyingTokens)
+    function getBestStrategy(uint256 _riskProfileCode, address[] memory _underlyingTokens)
         public
         view
         override
         returns (bytes32)
     {
-        require(bytes(_profile).length > 0, "RP_Empty!");
-
         for (uint256 i = 0; i < _underlyingTokens.length; i++) {
             require(_underlyingTokens[i] != address(0), "uT=address(0)");
             require(_underlyingTokens[i].isContract(), "uT!=isContract()");
         }
         bytes32 tokensHash = keccak256(abi.encodePacked(_underlyingTokens));
         DataTypes.StrategyConfiguration memory _strategyConfiguration = registryContract.getStrategyConfiguration();
-        bytes32 _strategyHash = _getBestStrategy(_profile, tokensHash, _strategyConfiguration);
+        bytes32 _strategyHash = _getBestStrategy(_riskProfileCode, tokensHash, _strategyConfiguration);
         return _strategyHash;
     }
 
@@ -82,17 +80,17 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
     }
 
     function _getBestStrategy(
-        string memory _riskProfile,
+        uint256 _riskProfileCode,
         bytes32 _tokensHash,
         DataTypes.StrategyConfiguration memory _strategyConfiguration
     ) internal view returns (bytes32) {
-        DataTypes.RiskProfile memory _riskProfileStruct = registryContract.getRiskProfile(_riskProfile);
+        DataTypes.RiskProfile memory _riskProfileStruct = registryContract.getRiskProfile(_riskProfileCode);
         require(_riskProfileStruct.exists, "!Rp_Exists");
 
         // getbeststrategy from strategyProvider
         bytes32 _strategyHash =
             IStrategyProvider(_strategyConfiguration.strategyProvider).rpToTokenToBestStrategy(
-                _riskProfile,
+                _riskProfileCode,
                 _tokensHash
             );
 
@@ -101,7 +99,7 @@ contract RiskManager is IRiskManager, RiskManagerStorage, Modifiers {
             _isInValidStrategy(_strategyHash, _strategyConfiguration.investStrategyRegistry, _riskProfileStruct)
         ) {
             _strategyHash = IStrategyProvider(_strategyConfiguration.strategyProvider).rpToTokenToDefaultStrategy(
-                _riskProfile,
+                _riskProfileCode,
                 _tokensHash
             );
         } else {

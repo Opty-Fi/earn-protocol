@@ -37,7 +37,7 @@ describe(scenario.title, () => {
         admin,
         "TestDummyTokenTransferFee",
         "TDTTF",
-        "RP1",
+        1,
         TESTING_DEPLOYMENT_ONCE,
       );
       console.log("Vault", Vault.address);

@@ -118,7 +118,7 @@ task(SETUP, "Deploy infrastructure, adapter and vault contracts and setup all ne
 
     await hre.run(DEPLOY_VAULT, {
       token: balOdefiUSDCInstance.address,
-      riskprofile: "RP0",
+      riskprofilecode: 0,
       registry: essentialContracts["registry"].address,
       riskmanager: essentialContracts["riskManager"].address,
       strategymanager: essentialContracts["strategyManager"].address,
