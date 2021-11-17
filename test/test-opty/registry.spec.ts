@@ -759,7 +759,6 @@ describe(scenario.title, () => {
             )
               .to.emit(registryContract, "LogUnderlyingAssetHashToRPToVaults")
               .withArgs(generateTokenHash(tokens), riskProfileCode, vault, callers[action.executor]);
-            await registryContract.connect(signers[action.executor])[action.action]();
           } else {
             await expect(
               registryContract.connect(signers[action.executor])[action.action](tokens, riskProfileCode, vault),
