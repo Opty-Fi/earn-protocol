@@ -1,0 +1,2886 @@
+{
+  "WETH": [
+    {
+      "hash": "0x01fc36fe5bc14cf3591be5a40f845ca54808f13311e675453652e120d478e165",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "Fulcrum",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/bzx/logo.png"
+          },
+          "poolContractAddress": "0xB983E01458529665007fF7E0CDdeCDB74B967Eb6",
+          "lpToken": "0xB983E01458529665007fF7E0CDdeCDB74B967Eb6",
+          "isBorrow": false,
+          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+        }
+      ]
+    },
+    {
+      "hash": "0xa072d00c7c5dc63322f917afb28a89d15dab8eb094cdddf4e5d10a548ca5fd79",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0xFE09e53A81Fe2808bc493ea64319109B5bAa573e",
+          "lpToken": "0xFE09e53A81Fe2808bc493ea64319109B5bAa573e",
+          "isBorrow": false,
+          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+        }
+      ]
+    },
+    {
+      "hash": "0xf0db508906155186a040562d1df660d9d33f059877c0cd50256a90883b3178f0",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "YVault",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
+          },
+          "poolContractAddress": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
+          "lpToken": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
+          "isBorrow": false,
+          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+        }
+      ]
+    },
+    {
+      "hash": "0x3abbe913c094c869aa9e211f26b25f347d8471df7436fa96a8f6cfbf2251f6c6",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "DyDx",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
+          },
+          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+          "lpToken": "0x0000000000000000000000000000000000000000",
+          "isBorrow": false,
+          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+        }
+      ]
+    },
+    {
+      "hash": "0xd36801c9ce8a0c3519311bd03d3407baa056a57631b530365e369834f0a4aa83",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        },
+        { "address": "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359" },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "DyDx",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
+          },
+          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+          "lpToken": "0x0000000000000000000000000000000000000000",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x7e808e20afc9d1289a838462edff13e8135b9e9e9a0da06b891f4d4bb58fc362",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "AaveV2",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/aave/logo.png"
+          },
+          "poolContractAddress": "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          "lpToken": "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+          "isBorrow": false,
+          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+        }
+      ]
+    }
+  ],
+  "USDC": [
+    {
+      "hash": "0x61c242fa0804218a987a009ae9cae0679ffbc6bace8431ccb1923f64cd865dd3",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "Compound",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/compound/logo.png"
+          },
+          "poolContractAddress": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+          "lpToken": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x6c542e2169f6784c75a225551489963f6b927ed36ddc7e2bafbff0825c9a79ae",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "AaveV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/aave/logo.png"
+          },
+          "poolContractAddress": "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+          "lpToken": "0x9bA00D6856a4eDF4665BcA2C2309936572473B7E",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x99dcd5686f14a758d08efacd9cecb342b4ee9d6ee556f258253d44145110271e",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "DForce",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dforce/logo.png"
+          },
+          "poolContractAddress": "0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179",
+          "lpToken": "0x16c9cF62d8daC4a38FB50Ae5fa5d51E9170F3179",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xfa9c4a06bda1d4957940c46b9f6223ac8f25f851028bbc9a715b0d5df7998bf6",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "Fulcrum",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/bzx/logo.png"
+          },
+          "poolContractAddress": "0x32E4c68B3A4a813b710595AebA7f6B7604Ab9c15",
+          "lpToken": "0x32E4c68B3A4a813b710595AebA7f6B7604Ab9c15",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x9bf41a6d7d83f5c7432f450cecc9c14d8b1f731a929d2365cb5ca5b6e139003c",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+          "lpToken": "0xf0358e8c3CD5Fa238a29301d0bEa3D63A17bEdBE",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xc6a86a6d8762222fcf2617b4a0e2fda022e68d08f770f7843551527e2308e108",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "YVault",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
+          },
+          "poolContractAddress": "0x597aD1e0c13Bfe8025993D9e79C69E1c0233522e",
+          "lpToken": "0x597aD1e0c13Bfe8025993D9e79C69E1c0233522e",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xe9366ec585c516348a27487ce44c201488e9248eeda77cdfcaf6b0c2216f0daa",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+          "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x5eae362a2ee7242bde96a30344833cfdf37906282a19a548504e38da7e7d08d5",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+          "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
+          "lpToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
+          "isBorrow": false,
+          "underlyingTokens": ["0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"]
+        }
+      ]
+    },
+    {
+      "hash": "0xce2ea9ef73ac3a7cf602790e9d045439035d512a34262af18ca4c5a2620fdc38",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        },
+        {
+          "address": "0x0000000000085d4780B73119b644AE5ecd22b376",
+          "symbol": "TUSD",
+          "name": "TrueUSD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+          "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "0x0000000000085d4780B73119b644AE5ecd22b376"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x80be9d6960e90f7be78b219becda1638d8969d69d1cb1506ad5a9456a5746466",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        },
+        {
+          "address": "0x0000000000085d4780B73119b644AE5ecd22b376",
+          "symbol": "TUSD",
+          "name": "TrueUSD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
+          "lpToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "0x0000000000085d4780B73119b644AE5ecd22b376"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
+          "lpToken": "0x0FE4283e0216F94f5f9750a7a11AC54D3c9C38F3",
+          "isBorrow": false,
+          "underlyingTokens": ["0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"]
+        }
+      ]
+    },
+    {
+      "hash": "0x3f50d06f8f170f966299925cd749d27c3e8c831815b186f43f35ba8f176326cd",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+          "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x52c0e8c3c4d04530a324042d8d5986efded2f83959f702020077ebdcf975e705",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+          "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
+          "lpToken": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
+          "isBorrow": false,
+          "underlyingTokens": ["0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2"]
+        }
+      ]
+    },
+    {
+      "hash": "0x36f5ef2978c2a358fe4eb2849bcda63f1d05533c095282601a6b32500825857b",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+          "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x8eb0b0a5a33b4963a9056601f7cfa76209a40a757b7fa81542b077466c479080",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
+          "lpToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
+          "lpToken": "0x998cEb152A42a3EaC1f555B1E911642BeBf00faD",
+          "isBorrow": false,
+          "underlyingTokens": ["0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2"]
+        }
+      ]
+    },
+    {
+      "hash": "0xc3d1e8c18042d5e838f9e69a9af6309ee5f04e46b322a97901faf4ab0a51cdab",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+          "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x0635b824722db629e11cf8cdb7ea0ec6846847f7b923e301961828c792ad2824",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xac795D2c97e60DF6a99ff1c814727302fD747a80",
+          "lpToken": "0x9fC689CCaDa600B6DF723D9E47D84d76664a1F23",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x1a4986b44e2ee28a49c6377bf58710c87bd149561b791373105018e5431cf280",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xA50cCc70b6a011CffDdf45057E39679379187287",
+          "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x7e6358e60cd0017f271d1e4d4eaf930d7cc658ce9712f2170515e9dc7a2f4377",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xA50cCc70b6a011CffDdf45057E39679379187287",
+          "lpToken": "0xD905e2eaeBe188fc92179b6350807D8bd91Db0D8",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x738faf5d2a5d3e132cf665cb94836704ed608c8e4e2a5f9fbe5047e4d60d1eed",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+          "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xc91972c5d312aa697493f7764ded031b75a6e671a67590e6bf8131adcb622ba3",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        },
+        {
+          "address": "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
+          "symbol": "sUSD",
+          "name": "Synth sUSD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xFCBa3E75865d2d561BE8D220616520c171F12851",
+          "lpToken": "0xC25a3A3b969415c80451098fa907EC722572917F",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x1dd34ba89949936ac54dcd132c1dad7222f40c002763c308a513519929b427c6",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+          "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x26dfdad3b9f305efe3f609975be8c408cd069f094112f4ebbfa1061dc1a9744d",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+          "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
+          "lpToken": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
+          "isBorrow": false,
+          "underlyingTokens": ["0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B"]
+        }
+      ]
+    },
+    {
+      "hash": "0x549115a19a786706961650b5a94dd7bb353d9ad33f7fb71059e4c2219ca4b630",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        },
+        {
+          "address": "0x4Fabb145d64652a948d72533023f6E7A623C7C53",
+          "symbol": "BUSD",
+          "name": "Binance USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+          "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "0x4Fabb145d64652a948d72533023f6E7A623C7C53"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x3b9cb11d0e74aa6ba5ec1b8c30393a4d9fe716646aad53584d684037ca1c27e9",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        },
+        {
+          "address": "0x4Fabb145d64652a948d72533023f6E7A623C7C53",
+          "symbol": "BUSD",
+          "name": "Binance USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xb6c057591E073249F2D9D88Ba59a46CFC9B59EdB",
+          "lpToken": "0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "0x4Fabb145d64652a948d72533023f6E7A623C7C53"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
+          "lpToken": "0x4b1cBD6F6D8676AcE5E412C78B7a59b4A1bbb68a",
+          "isBorrow": false,
+          "underlyingTokens": ["0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B"]
+        }
+      ]
+    },
+    {
+      "hash": "0x1284463128f737a3852938cdc43be4e749d564d67bcea7f452bea5180b779078",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0aE274c98c0415C0651AF8cF52b010136E4a0082",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x558c104d8d9a8e1396687fb05be842f69006bcea4cfdc2cddc78d9d5049f23de",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0aE274c98c0415C0651AF8cF52b010136E4a0082",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "lpToken": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "isBorrow": false,
+          "underlyingTokens": ["0xD2967f45c4f384DEEa880F807Be904762a3DeA07"]
+        }
+      ]
+    },
+    {
+      "hash": "0xb08993970fed936180936c9a1dfc0056c413c7f9c55362cd0766f0709c8b7152",
+      "underlyingTokens": [
+        {
+          "address": "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
+          "symbol": "GUSD",
+          "name": "Gemini dollar"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0aE274c98c0415C0651AF8cF52b010136E4a0082",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0xee35999144fc483941487755e379d39abe77a9c423f4105940c05ce22eb565f9",
+      "underlyingTokens": [
+        {
+          "address": "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
+          "symbol": "GUSD",
+          "name": "Gemini dollar"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0aE274c98c0415C0651AF8cF52b010136E4a0082",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x056Fd409E1d7A124BD7017459dFEa2F387b6d5Cd",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "lpToken": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "isBorrow": false,
+          "underlyingTokens": ["0xD2967f45c4f384DEEa880F807Be904762a3DeA07"]
+        }
+      ]
+    },
+    {
+      "hash": "0xf4dc95008b748a261a4e6bfb2ca3e1c0f787358ca9cd32f7780ee38175f51e22",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xb6016a03339d4835a8ce79b482b90824b0ffa92c4759a6c28eec940a0e700b92",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "lpToken": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "isBorrow": false,
+          "underlyingTokens": ["0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"]
+        }
+      ]
+    },
+    {
+      "hash": "0xf7c9fd7c9764f57a5eae66f7d8e628edb475423c04c40ae56aa8ad959c699530",
+      "underlyingTokens": [
+        {
+          "address": "0xdF574c24545E5FfEcb9a659c229253D4111d87e1",
+          "symbol": "HUSD",
+          "name": "HUSD"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0xdF574c24545E5FfEcb9a659c229253D4111d87e1",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x7a164b4b671bc11dec7f59fbfb59fda3d1e4d6cc8afddbcfc1d39f9d06a34b27",
+      "underlyingTokens": [
+        {
+          "address": "0xdF574c24545E5FfEcb9a659c229253D4111d87e1",
+          "symbol": "HUSD",
+          "name": "HUSD"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0a53FaDa2d943057C47A301D25a4D9b3B8e01e8E",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0xdF574c24545E5FfEcb9a659c229253D4111d87e1",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "lpToken": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "isBorrow": false,
+          "underlyingTokens": ["0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"]
+        }
+      ]
+    },
+    {
+      "hash": "0x60e5a3471ef3af10b1db36037d74c4f380eb2a5f2ad5ed8bebc65b01ce68829b",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x6600e98b71dabfD4A8Cac03b302B0189Adb86Afb",
+          "lpToken": "0x97E2768e8E73511cA874545DC5Ff8067eB19B787",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xbde756790dd92f5daf39568e8dddbe92429a157cd735600f8c6f4edb2c80adf9",
+      "underlyingTokens": [
+        {
+          "address": "0x1c48f86ae57291F7686349F12601910BD8D470bb",
+          "symbol": "USDK",
+          "name": "USDK"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x6600e98b71dabfD4A8Cac03b302B0189Adb86Afb",
+          "lpToken": "0x97E2768e8E73511cA874545DC5Ff8067eB19B787",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x1c48f86ae57291F7686349F12601910BD8D470bb",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x348d63b5b6d3ad82d46a25bc5824b66a9e41276f1f0a3a4204f0d8febf5d4536",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x2b6cc7daef5a2e57e0aed057974d40154f2c468d8ebe387168336869ca8475d5",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "lpToken": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "isBorrow": false,
+          "underlyingTokens": ["0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"]
+        }
+      ]
+    },
+    {
+      "hash": "0xf08dfe5a40e72b03865caa17e21506827ba8e93dd69a01c320a1570843a45d1f",
+      "underlyingTokens": [
+        {
+          "address": "0x674C6Ad92Fd080e4004b2312b45f796a192D27a0",
+          "symbol": "USDN",
+          "name": "Neutrino USD"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x674C6Ad92Fd080e4004b2312b45f796a192D27a0",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x419f73ad762ac354dc1336462d62b53904dbc468f00a4e49348fb62db86a3c41",
+      "underlyingTokens": [
+        {
+          "address": "0x674C6Ad92Fd080e4004b2312b45f796a192D27a0",
+          "symbol": "USDN",
+          "name": "Neutrino USD"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x35796DAc54f144DFBAD1441Ec7C32313A7c29F39",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x674C6Ad92Fd080e4004b2312b45f796a192D27a0",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "lpToken": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "isBorrow": false,
+          "underlyingTokens": ["0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"]
+        }
+      ]
+    },
+    {
+      "hash": "0xde574fd1d89bbd9e11f86cbf05665ec2d22db1dcaa548d0a291225192fe935ca",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xF6bDc2619FFDA72c537Cd9605e0A274Dc48cB1C9",
+          "lpToken": "0x6D65b498cb23deAba52db31c93Da9BFFb340FB8F",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x075f6bac26779bb03f8e8bb44398d588d6f05092c75c5a15c271a4635af842b9",
+      "underlyingTokens": [
+        {
+          "address": "0x0E2EC54fC0B509F445631Bf4b91AB8168230C752",
+          "symbol": "LINKUSD",
+          "name": "LINKUSD"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xF6bDc2619FFDA72c537Cd9605e0A274Dc48cB1C9",
+          "lpToken": "0x6D65b498cb23deAba52db31c93Da9BFFb340FB8F",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x0E2EC54fC0B509F445631Bf4b91AB8168230C752",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0xa846e75eee79706cc8507076ac01033fd073129b09787bf09abf477ae871b752",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x78CF256256C8089d68Cde634Cf7cDEFb39286470",
+          "lpToken": "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xb2b994d77923d9c1b975a2edf703b6f1ba1f85c6abcd091467be9049aebb90db",
+      "underlyingTokens": [
+        {
+          "address": "0xe2f2a5C287993345a840Db3B0845fbC70f5935a5",
+          "symbol": "mUSD",
+          "name": "mStable USD"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x78CF256256C8089d68Cde634Cf7cDEFb39286470",
+          "lpToken": "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0xe2f2a5C287993345a840Db3B0845fbC70f5935a5",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x06285cc86b4d2ea570ea3675b80f5de0ccc353b941233a556980b33faa95f36c",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x459eAA680b47D27c8561708C96c949e0018dF5d9",
+          "lpToken": "0xC2Ee6b0334C261ED60C72f6054450b61B8f18E35",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xe4bf68e5c7510a1f64bf7e82dec490173904aa107b57838ea11710af92a24c3d",
+      "underlyingTokens": [
+        {
+          "address": "0x196f4727526eA7FB1e17b2071B3d8eAA38486988",
+          "symbol": "RSV",
+          "name": "Reserve"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x459eAA680b47D27c8561708C96c949e0018dF5d9",
+          "lpToken": "0xC2Ee6b0334C261ED60C72f6054450b61B8f18E35",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x196f4727526eA7FB1e17b2071B3d8eAA38486988",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x6ffd2e1121eb831c4656965bc2003aaa343d92f8b53a3841ce6527acf9835b69",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x61E10659fe3aa93d036d099405224E4Ac24996d0",
+          "lpToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x4805752122ac2cb70570246c97f5508601ecfe691ac49f7ca77754b206593737",
+      "underlyingTokens": [
+        {
+          "address": "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831",
+          "symbol": "DUSD",
+          "name": "DefiDollar"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveDepositPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x61E10659fe3aa93d036d099405224E4Ac24996d0",
+          "lpToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x5BC25f649fc4e26069dDF4cF4010F9f706c23831",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x8b1f3fcef1df58c27716da601d5d30f2e58212020d7ed982a75d7665417095c4",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xe6d475069b9db72eb4295971fd67e8853c5f2d3ecb4c42dacecf8959336fdcfb",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
+          "lpToken": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xf052c36d244e4e8e0ed7b06b33946dbabed47985f7eece027033a04374e246cc",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "YVault",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
+          },
+          "poolContractAddress": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
+          "lpToken": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xe5891eea25a7926245b1148cd1a74ef7f9e73ada4d635dd34b63d16438de3284",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x25a5efbe08def92b6c567ccb9baa616fc33ed8a74dab4546ced70d7373f4d478",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "lpToken": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "isBorrow": false,
+          "underlyingTokens": ["0xD2967f45c4f384DEEa880F807Be904762a3DeA07"]
+        }
+      ]
+    },
+    {
+      "hash": "0xc891e7dca6b8c90261df891699cc650f260b82ee881e8215defcf2e0359ac644",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xe892d15e4db50171aeeb563525dc763c47116100047df3c50559e62704e4943a",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "lpToken": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "isBorrow": false,
+          "underlyingTokens": ["0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"]
+        }
+      ]
+    },
+    {
+      "hash": "0xd74af2beda6117784d51f41b9951b7deeb70184816041ba2b3d996825b98a344",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x3E01dD8a5E1fb3481F0F589056b428Fc308AF0Fb",
+          "lpToken": "0x97E2768e8E73511cA874545DC5Ff8067eB19B787",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xc1772d7754a14472543bc48058ff851ffdeffbea61d3047e87186ab75801b017",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x7b9224b563083d17c92d209413ebe8839b7f8bc0ef85cfa0e7b1c66a2c3a530e",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "lpToken": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "isBorrow": false,
+          "underlyingTokens": ["0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"]
+        }
+      ]
+    },
+    {
+      "hash": "0xa38bdd47221e969395e1634e6ead03b8f06feaa25b8f33759810a4576ef1cbc2",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
+          "lpToken": "0x6D65b498cb23deAba52db31c93Da9BFFb340FB8F",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xa0fd6745936f0bef5c05f9c022a6147fb73e94777c9157b052e464365ebc2623",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x8474DdbE98F5aA3179B3B3F5942D724aFcdec9f6",
+          "lpToken": "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x7d3da91c35b61566b9eaef6ec2a49305784a07aed8098c6d949d3fe8362f8a37",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xC18cC39da8b11dA8c3541C598eE022258F9744da",
+          "lpToken": "0xC2Ee6b0334C261ED60C72f6054450b61B8f18E35",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x2255c7d03aeffd31d23e66ae4fc73a05324b91aab1607f7f755fe04eb709589e",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x8038C01A0390a8c547446a0b2c18fc9aEFEcc10c",
+          "lpToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xbe98e593b23fe7679ae530f368cdb90034bc8b7eddb7bb45322d945fdd80c335",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0x97f9eed0a4610a807160c5df6a9de232c6836f68c5fec8bd476fc1b22560369e",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
+          "lpToken": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x1d66e94970335d6c621a3e54cff3947b6fb941aae700bca518b4e519b193f33c",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "YVault",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
+          },
+          "poolContractAddress": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
+          "lpToken": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xc092e51df46f4b0e06ebb8bf43a7c38023279563b10f8f17146ff89f7aa568aa",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x9a1ac810cc7de833ed49722b3fb81613434818cd757d13af25360d78a21b3069",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
+          "lpToken": "0xD2967f45c4f384DEEa880F807Be904762a3DeA07",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "lpToken": "0xB8671E33fcFC7FEA2F7a3Ea4a117F065ec4b009E",
+          "isBorrow": false,
+          "underlyingTokens": ["0xD2967f45c4f384DEEa880F807Be904762a3DeA07"]
+        }
+      ]
+    },
+    {
+      "hash": "0xb4426f03b2bb85a80fd858473a11e9cae5c5c33efd118246053dcb43eb446298",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x4b63959573d9ca0903b6af9e2a0361422a6bfa327b47c68fca74032a39716f04",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604",
+          "lpToken": "0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "lpToken": "0x29780C39164Ebbd62e9DDDE50c151810070140f2",
+          "isBorrow": false,
+          "underlyingTokens": ["0x5B5CFE992AdAC0C9D48E05854B2d91C73a003858"]
+        }
+      ]
+    },
+    {
+      "hash": "0xb8c9a21e7f549ba2d463829f4c47f6b9778587d50227a800a7869016231e8f84",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x3E01dD8a5E1fb3481F0F589056b428Fc308AF0Fb",
+          "lpToken": "0x97E2768e8E73511cA874545DC5Ff8067eB19B787",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x7d45141703bf7b65b3ba4ecbe25380bd06bb42cbc78c8f5ca48e00819e6c74c4",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xe6aead1f9a2368d844839b0b7992ba7cfc6643daa0774af26d9a77b70ce9c92f",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+          "lpToken": "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        },
+        {
+          "protocol": {
+            "name": "HarvestV1",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/harvest/logo.png"
+          },
+          "poolContractAddress": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "lpToken": "0x683E683fBE6Cf9b635539712c999f3B3EdCB8664",
+          "isBorrow": false,
+          "underlyingTokens": ["0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"]
+        }
+      ]
+    },
+    {
+      "hash": "0xab78e5f0f169938504749818bcf5ab2d6fd6e7a8729c06a3a92a0b7b4db996da",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
+          "lpToken": "0x6D65b498cb23deAba52db31c93Da9BFFb340FB8F",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x245a01545e1bf1d7d10e0b77d2a83ff14877302ca49193784a79237ecce98fd5",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x8474DdbE98F5aA3179B3B3F5942D724aFcdec9f6",
+          "lpToken": "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x14388403c053471ed343fc3a5994b3f50aec832036e5e633f9ae8704f01f7c42",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xC18cC39da8b11dA8c3541C598eE022258F9744da",
+          "lpToken": "0xC2Ee6b0334C261ED60C72f6054450b61B8f18E35",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0xd45f53f202581f551cf74cf4678d5f36cdacb008fdc7b0d909f8633955d9acd9",
+      "underlyingTokens": [
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "name": "Tether USD"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          ]
+        },
+        {
+          "protocol": {
+            "name": "CurveSwapPool",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
+          },
+          "poolContractAddress": "0x8038C01A0390a8c547446a0b2c18fc9aEFEcc10c",
+          "lpToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
+          "isBorrow": false,
+          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
+        }
+      ]
+    },
+    {
+      "hash": "0x3ed0fd5d15fcf9233942c60d9dfa6f7e5d698ea16d455f0628b438775a32b981",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "DyDx",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
+          },
+          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+          "lpToken": "0x0000000000000000000000000000000000000000",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0xd36801c9ce8a0c3519311bd03d3407baa056a57631b530365e369834f0a4aa83",
+      "underlyingTokens": [
+        {
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether"
+        },
+        { "address": "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359" },
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        },
+        {
+          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "DAI",
+          "name": "Dai Stablecoin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "DyDx",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
+          },
+          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+          "lpToken": "0x0000000000000000000000000000000000000000",
+          "isBorrow": false,
+          "underlyingTokens": [
+            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "0xefd4db219582a1525517f7d311747ab19740430451e5d1ecad3bd6f5a8f00232",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "Cream",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/cream/logo.png"
+          },
+          "poolContractAddress": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
+          "lpToken": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    },
+    {
+      "hash": "0x824d1f67844a30978eff48ec9a617d5fb0d25ee112becea1bd5c4090490e48da",
+      "underlyingTokens": [
+        {
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin"
+        }
+      ],
+      "steps": [
+        {
+          "protocol": {
+            "name": "AaveV2",
+            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/aave/logo.png"
+          },
+          "poolContractAddress": "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          "lpToken": "0xBcca60bB61934080951369a648Fb03DF4F96263C",
+          "isBorrow": false,
+          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
+        }
+      ]
+    }
+  ]
+}

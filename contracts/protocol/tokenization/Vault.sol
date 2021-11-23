@@ -499,7 +499,7 @@ contract Vault is
                 "!updateUserRewards"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
-            pendingDeposits[msg.sender] -= queue[i].value;
+            pendingDeposits[queue[i].account] = uint256(0);
             depositQueue -= queue[i].value;
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
@@ -814,6 +814,8 @@ contract Vault is
     ) private {
         if (_balanceInUnderlyingToken > depositQueue) {
             _mint(_account, (_depositAmount.mul(totalSupply())).div(_balanceInUnderlyingToken.sub(depositQueue)));
+        } else if (_balanceInUnderlyingToken == depositQueue) {
+            _mint(_account, _depositAmount);
         }
     }
 }
