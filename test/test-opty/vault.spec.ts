@@ -42,7 +42,7 @@ type ARGUMENTS = {
   vaultRewardTokenInvalidHash?: string;
   token?: string;
   jump?: number;
-  profile?: string;
+  profile?: number;
   user?: number;
 };
 
@@ -588,7 +588,7 @@ describe(testVaultScenario.title, () => {
 
   let Vault: Contract;
   const vault = testVaultScenario.vaults[0];
-  const profile = vault.profile;
+  const profile = vault.riskProfileCode;
   const defaultData = VAULT_DEFAULT_DATA;
   for (const token in TypedTokenStrategies) {
     describe(token, async () => {
@@ -660,7 +660,7 @@ describe(testVaultScenario.title, () => {
               });
             }
 
-            const CHIInstance = await hre.ethers.getContractAt("IChi", VAULT_TOKENS["CHI"].address);
+            const CHIInstance = await hre.ethers.getContractAt("IChi", TypedTokens["CHI"]);
 
             contracts["vault"] = Vault;
             contracts["chi"] = CHIInstance;
@@ -714,13 +714,13 @@ describe(testVaultScenario.title, () => {
                         await fundWalletToken(hre, tokenAddress, users[action.executor], defaultFundAmount, timestamp);
                       }
                     } else if (token == "chi") {
-                      defaultFundAmount = getDefaultFundAmountInDecimal(VAULT_TOKENS["CHI"].address, 2);
+                      defaultFundAmount = getDefaultFundAmountInDecimal(TypedTokens["CHI"], 2);
                       underlyingBalance = await contracts["chi"].balanceOf(await users[2].getAddress());
                       if (underlyingBalance.lt(defaultFundAmount)) {
                         const timestamp = (await getBlockTimestamp(hre)) * 2;
                         await fundWalletToken(
                           hre,
-                          VAULT_TOKENS["CHI"].address,
+                          TypedTokens["CHI"],
                           users[action.executor],
                           defaultFundAmount,
                           timestamp,
@@ -776,7 +776,7 @@ describe(testVaultScenario.title, () => {
                     }
                     break;
                   }
-                  case "setProfile(string)": {
+                  case "setRiskProfileCode(uint256)": {
                     const { profile } = action.args as ARGUMENTS;
                     if (profile) {
                       if (action.expect == "success") {
@@ -830,7 +830,7 @@ describe(testVaultScenario.title, () => {
                     const tokenHash = generateTokenHash([tokenAddress]);
                     await essentialContracts.strategyProvider
                       .connect(users[0])
-                      .setBestStrategy("RP1", tokenHash, ZERO_BYTES32);
+                      .setBestStrategy(1, tokenHash, ZERO_BYTES32);
 
                     const userAddr = await users[action.executor].getAddress();
                     const value = await contracts["vault"].balanceOf(userAddr);
@@ -1064,14 +1064,14 @@ describe(testVaultScenario.title, () => {
                     expect(pricePerShare).to.be.gt(BigNumber.from(10).pow(18));
                     break;
                   }
-                  case "profile()": {
+                  case "riskProfileCode()": {
                     const profile = await contracts[action.contract][action.action]();
-                    expect(profile).to.be.eq("RP0");
+                    expect(profile).to.be.eq(0);
                     break;
                   }
                   case "underlyingToken()": {
                     const underlyingToken = await contracts[action.contract][action.action]();
-                    expect(underlyingToken).to.be.eq(getAddress(TypedTokens.CHI));
+                    expect(underlyingToken).to.be.eq(getAddress(TypedTokens.TUSD));
                     break;
                   }
                   case "isMaxVaultValueJumpAllowed(uint256,uint256)": {
@@ -1099,9 +1099,9 @@ describe(testVaultScenario.title, () => {
                     const tokenHash = generateTokenHash([tokenAddress]);
                     await essentialContracts.strategyProvider
                       .connect(users[0])
-                      .setBestStrategy("RP1", tokenHash, ZERO_BYTES32);
+                      .setBestStrategy(1, tokenHash, ZERO_BYTES32);
                     const bestStrategy = await essentialContracts.strategyProvider.rpToTokenToBestStrategy(
-                      "RP1",
+                      1,
                       tokenHash,
                     );
                     expect(bestStrategy).to.be.eq(ZERO_BYTES32);
@@ -1152,9 +1152,9 @@ describe(testVaultScenario.title, () => {
                     ).to.be.eq(true);
                     break;
                   }
-                  case "setProfile(string)": {
-                    await contracts[action.contract].connect(users[0])[action.action]("RP1");
-                    expect(await contracts[action.contract].profile()).to.be.eq("RP1");
+                  case "setRiskProfileCode(uint256)": {
+                    await contracts[action.contract].connect(users[0])[action.action](1);
+                    expect(await contracts[action.contract].riskProfileCode()).to.be.eq(1);
                     break;
                   }
                   case "setToken(address)": {

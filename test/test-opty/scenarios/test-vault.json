@@ -4,7 +4,7 @@
   "vaults": [
     {
       "name": "Vault",
-      "profile": "RP1",
+      "riskProfileCode": 1,
       "stories": [
         {
           "description": "setMaxVaultValueJump should fail if caller is not having governance",
@@ -1583,13 +1583,13 @@
           ]
         },
         {
-          "description": "setProfile should fail if caller is not the operator",
+          "description": "setRiskProfileCode should fail if caller is not the operator",
           "setActions": [
             {
               "contract": "vault",
-              "action": "setProfile(string)",
+              "action": "setRiskProfileCode(uint256)",
               "args": {
-                "profile": "RP0"
+                "profile": 0
               },
               "executor": 2,
               "expect": "fail",
@@ -1600,13 +1600,13 @@
           "cleanActions": []
         },
         {
-          "description": "setProfile should set the risk profile of the vault",
+          "description": "setRiskProfileCode should set the risk profile of the vault",
           "setActions": [
             {
               "contract": "vault",
-              "action": "setProfile(string)",
+              "action": "setRiskProfileCode(uint256)",
               "args": {
-                "profile": "RP0"
+                "profile": 0
               },
               "executor": 0,
               "expect": "success",
@@ -1618,13 +1618,13 @@
               "contract": "vault",
               "action": "profile()",
               "args": {},
-              "expectedValue": "RP0"
+              "expectedValue": 0
             }
           ],
           "cleanActions": [
             {
               "contract": "vault",
-              "action": "setProfile(string)",
+              "action": "setRiskProfileCode(uint256)",
               "args": {}
             }
           ]
@@ -1636,7 +1636,7 @@
               "contract": "vault",
               "action": "setToken(address)",
               "args": {
-                "token": "CHI"
+                "token": "TUSD"
               },
               "executor": 2,
               "expect": "fail",
@@ -1653,7 +1653,7 @@
               "contract": "vault",
               "action": "setToken(address)",
               "args": {
-                "token": "CHI"
+                "token": "TUSD"
               },
               "executor": 0,
               "expect": "success",
@@ -1665,7 +1665,7 @@
               "contract": "vault",
               "action": "underlyingToken()",
               "args": {},
-              "expectedValue": "CHI"
+              "expectedValue": "TUSD"
             }
           ],
           "cleanActions": [
