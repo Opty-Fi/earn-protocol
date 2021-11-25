@@ -165,12 +165,16 @@ library DataTypes {
      * @param unpaused If the vault contract is paused or unpaused
      * @param withdrawalFee withdrawal fee for a particular vault contract
      * @param treasuryShares Treasury accounts along with their shares
+     * @param limited If the vault contract has a limit for user deposits
+     * @param limit maximum amount that can be deposited by an address
      */
     struct VaultConfiguration {
         bool discontinued;
         bool unpaused;
         uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
         TreasuryShare[] treasuryShares;
+        bool limited;
+        uint256 limit;
     }
 
     /**
