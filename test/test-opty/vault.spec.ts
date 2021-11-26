@@ -613,6 +613,7 @@ describe(testVaultScenario.title, () => {
           let underlyingTokenSymbol: string;
           let underlyingTokenDecimals: number;
           let strategySteps: STRATEGY_DATA[] = [];
+          let investStrategyHash: string;
           before(async () => {
             const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
             underlyingTokenName = await Token_ERC20Instance.name();
@@ -810,7 +811,7 @@ describe(testVaultScenario.title, () => {
                   case "userDepositRebalanceWithCHI(uint256)":
                   case "userDeposit(uint256)":
                   case "userDepositWithCHI(uint256)": {
-                    await setBestStrategy(
+                    investStrategyHash = await setBestStrategy(
                       strategySteps,
                       users[0],
                       tokenAddress,
@@ -844,7 +845,7 @@ describe(testVaultScenario.title, () => {
                   case "userDepositAllRebalanceWithCHI()":
                   case "userWithdrawAllRebalanceWithCHI()":
                   case "rebalance()": {
-                    await setBestStrategy(
+                    investStrategyHash = await setBestStrategy(
                       strategySteps,
                       users[0],
                       tokenAddress,
@@ -857,9 +858,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "harvest(bytes32)": {
-                    await contracts[action.contract]
-                      .connect(users[action.executor])
-                      [action.action](TOKEN_STRATEGY.hash);
+                    await contracts[action.contract].connect(users[action.executor])[action.action](investStrategyHash);
                     break;
                   }
                   case "setUnpaused(bool)": {
@@ -877,7 +876,7 @@ describe(testVaultScenario.title, () => {
                   case "getPricePerFullShareWrite()": {
                     await contracts[action.contract].connect(users[action.executor])[action.action]();
                     const pricePerShareWrite = await contracts[action.contract].pricePerShareWrite();
-                    expect(pricePerShareWrite).to.be.gt(BigNumber.from(10).pow(18));
+                    expect(pricePerShareWrite).to.be.gt(BigNumber.from(10).pow(18).mul(99).div(100));
                     break;
                   }
                   case "testGetDepositAllCodes": {
@@ -1031,7 +1030,7 @@ describe(testVaultScenario.title, () => {
                   }
                   case "investStrategyHash()": {
                     const value = await contracts[action.contract][action.action]();
-                    expect(value).to.be.eq(TOKEN_STRATEGY.hash);
+                    expect(value).to.be.eq(investStrategyHash);
                     break;
                   }
                   case "maxVaultValueJump()": {
@@ -1046,8 +1045,7 @@ describe(testVaultScenario.title, () => {
                     )[1];
                     if (action.expectedValue == ">") {
                       if (
-                        (await essentialContracts.strategyManager.getRewardToken(TOKEN_STRATEGY.hash)) !=
-                          ADDRESS_ZERO ||
+                        (await essentialContracts.strategyManager.getRewardToken(investStrategyHash)) != ADDRESS_ZERO ||
                         !unpaused
                       ) {
                         expect(value).to.be.gt(0);
@@ -1137,7 +1135,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "rebalance()": {
-                    await contracts[action.contract].connect(users[0])[action.action]();
+                    await contracts[action.contract].connect(users[3])[action.action]();
                     expect(await contracts[action.contract].pendingDeposits(await users[2].getAddress())).to.be.eq(0);
                     break;
                   }
