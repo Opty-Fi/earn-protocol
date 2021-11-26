@@ -21,6 +21,7 @@ import { Constants } from "../../utils/Constants.sol";
 import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
 import { ReserveDataV1, IAaveV1 } from "../../interfaces/aave/v1/IAaveV1.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title APROracle contract
@@ -145,9 +146,9 @@ contract APROracle is IAPROracle, Modifiers {
         address cToken;
         bytes32 stepsHash;
         bytes32 bestStrategyHash;
-        try ICompound(compound).getTokenConfigByUnderlying(tokens[0]) returns (
-            ICompound.TokenConfig memory tokenConfig
-        ) {
+        string memory symbol = ERC20(tokens[0]).symbol();
+        symbol = keccak256(abi.encodePacked(symbol)) == Constants.WETH_SYMBOL_HASH ? "ETH" : symbol;
+        try ICompound(compound).getTokenConfigBySymbol(symbol) returns (ICompound.TokenConfig memory tokenConfig) {
             cToken = tokenConfig.cToken;
             compoundAPR = _getCompoundAPR(cToken);
         } catch {
