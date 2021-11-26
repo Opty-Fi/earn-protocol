@@ -596,7 +596,7 @@ describe(testVaultScenario.title, () => {
         const TOKEN_STRATEGY = TypedTokenStrategies[token][i];
         const tokenAddress = VAULT_TOKENS[token].address;
         const numberOfSteps = TOKEN_STRATEGY.steps.length;
-        let adapterNames: string[] = [];
+        const adapterNames: string[] = [];
         let description: string = "";
         for (let i = 0; i < numberOfSteps; i++) {
           adapterNames.push(TOKEN_STRATEGY.steps[i].protocol.name + "Adapter");
@@ -612,7 +612,7 @@ describe(testVaultScenario.title, () => {
           let underlyingTokenName: string;
           let underlyingTokenSymbol: string;
           let underlyingTokenDecimals: number;
-          let strategySteps: STRATEGY_DATA[] = [];
+          const strategySteps: STRATEGY_DATA[] = [];
           let investStrategyHash: string;
           before(async () => {
             const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
