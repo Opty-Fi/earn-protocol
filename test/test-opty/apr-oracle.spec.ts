@@ -12,6 +12,8 @@ import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deplo
 import { approveAndSetTokenHashToTokens, setStrategy } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/apr-oracle.json";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
+import { VAULT_TOKENS } from "../../helpers/constants/tokens";
+
 chai.use(solidity);
 type ARGUMENTS = {
   riskProfileCode?: string;
@@ -27,6 +29,8 @@ type ARGUMENTS = {
     token: string;
   }[];
 };
+
+const vaultUnderlyingTokenNames = Object.keys(VAULT_TOKENS);
 
 describe(scenario.title, async () => {
   let contracts: CONTRACTS = {};
@@ -299,4 +303,15 @@ describe(scenario.title, async () => {
       }
     });
   }
+  // unit test getBestAPR
+  it(`getBestAPR should return non zero strategyHash for ${JSON.stringify(scenario.usedTokens)}`, async function () {
+    for (const vaultTokenName of scenario.usedTokens) {
+      if (vaultUnderlyingTokenNames.includes(vaultTokenName)) {
+        const tokenHash = getSoliditySHA3Hash(["address[]"], [[TypedTokens[vaultTokenName.toUpperCase()]]]);
+        const strategyHash = await contracts.aprOracle.getBestAPR(tokenHash);
+        const result = strategyHash == ZERO_BYTES32;
+        expect(result, `${vaultTokenName}`).to.be.false;
+      }
+    }
+  });
 });
