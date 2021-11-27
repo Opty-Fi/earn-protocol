@@ -996,7 +996,6 @@ describe(testVaultScenario.title, () => {
                     const block = await hre.ethers.provider.getBlock(blockNumber);
                     await moveToSpecificBlock(hre, block.timestamp + 10000);
                     const lastAdapterName = adapterNames[numberOfSteps - 1];
-                    console.log("lastAdapterName: ", lastAdapterName);
                     if (
                       (await adapters[lastAdapterName].getRewardToken(
                         TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
