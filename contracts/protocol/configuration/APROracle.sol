@@ -51,7 +51,6 @@ contract APROracle is IAPROracle, Modifiers {
     constructor(address _registry) public Modifiers(_registry) {
         setNewAaveV1(address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8));
         setNewAaveV2(address(0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5));
-        setNewCompound(address(0x922018674c12a7F0D394ebEEf9B58F186CdE13c1));
         // 3153600 seconds div 13 second blocks
         setNewBlocksPerYear(242584);
         cTokens[address(0x6B175474E89094C44Da98b954EedeAC495271d0F)] = address(
@@ -102,15 +101,6 @@ contract APROracle is IAPROracle, Modifiers {
     function setNewAaveV2(address _newAaveV2) public onlyOperator {
         require(_newAaveV2.isContract(), "!isContract");
         aaveV2 = _newAaveV2;
-    }
-
-    /**
-     * @notice Sets the new Compound protocol lending pool address
-     * @param _newCompound Address of new Compound Lending pool
-     */
-    function setNewCompound(address _newCompound) public onlyOperator {
-        require(_newCompound.isContract(), "!isContract");
-        compound = _newCompound;
     }
 
     /**
