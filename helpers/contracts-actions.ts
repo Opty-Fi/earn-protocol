@@ -486,8 +486,9 @@ export async function getTokenInforWithAddress(
   address: string,
 ): Promise<{ name: string; symbol: string }> {
   const ERC20Instance = await hre.ethers.getContractAt("ERC20", address);
-  const symbol = await ERC20Instance.symbol();
-  const name: string = await ERC20Instance.name();
+
+  const symbol = getAddress(address) == getAddress(TypedTokens.MKR) ? "MKR" : await ERC20Instance.symbol();
+  const name: string = getAddress(address) == getAddress(TypedTokens.MKR) ? "MAKER" : await ERC20Instance.name();
   return { name, symbol };
 }
 
