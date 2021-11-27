@@ -614,7 +614,6 @@ describe(testVaultScenario.title, () => {
           let underlyingTokenDecimals: number;
           const strategySteps: STRATEGY_DATA[] = [];
           let investStrategyHash: string;
-          let unclaimedRewards: BigNumber;
           before(async () => {
             const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
             underlyingTokenName = await Token_ERC20Instance.name();
@@ -995,18 +994,6 @@ describe(testVaultScenario.title, () => {
                     const blockNumber = await hre.ethers.provider.getBlockNumber();
                     const block = await hre.ethers.provider.getBlock(blockNumber);
                     await moveToSpecificBlock(hre, block.timestamp + 10000);
-                    const lastAdapterName = adapterNames[numberOfSteps - 1];
-                    if (
-                      (await adapters[lastAdapterName].getRewardToken(
-                        TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
-                      )) !== ADDRESS_ZERO
-                    ) {
-                      unclaimedRewards = await adapters[lastAdapterName].getUnclaimedRewardTokenAmount(
-                        contracts["vault"].address,
-                        TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
-                        tokenAddress,
-                      );
-                    }
                     break;
                   }
                 }
@@ -1065,7 +1052,11 @@ describe(testVaultScenario.title, () => {
                     )[1];
                     if (action.expectedValue == ">") {
                       const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
-                      if ((rewardToken != ADDRESS_ZERO && unclaimedRewards.gt(0)) || !unpaused) {
+                      const lastAdapterName = adapterNames[numberOfSteps - 1];
+                      if (
+                        (rewardToken != ADDRESS_ZERO && REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
+                        !unpaused
+                      ) {
                         expect(value).to.be.gt(0);
                       } else {
                         expect(value).to.be.eq(0);
