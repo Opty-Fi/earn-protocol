@@ -93,6 +93,14 @@ abstract contract Modifiers is IModifiers {
     }
 
     /**
+     * @notice Modifier to check caller is optyDistributor or not
+     */
+    modifier onlyWhitelisted(address _user) {
+        require(registryContract.isUserWhitelisted(_user) == true, "user is not whitelisted");
+        _;
+    }
+
+    /**
      * @notice Modifier to check if vault is unpaused or discontinued
      * @param _vault Address of vault/stakingVault contract to disconitnue
      */

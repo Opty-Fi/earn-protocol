@@ -46,6 +46,16 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     /**
+     * @dev Whitelist users that are allowed to deposit
+     * @param _user The user to be whitelisted
+     * @param _whitelist Allow user to deposit if true
+     */
+    function setWhitelisted(address _user, bool _whitelist) external onlyOperator returns (bool) {
+        whitelistedUsers[_user] = _whitelist;
+        return true;
+    }
+
+    /**
      * @inheritdoc IRegistry
      */
     function setInvestStrategyRegistry(address _investStrategyRegistry) external override onlyOperator returns (bool) {
@@ -740,6 +750,13 @@ contract Registry is IRegistry, ModifiersController {
      */
     function getTreasuryShares(address _vault) public view override returns (DataTypes.TreasuryShare[] memory) {
         return vaultToVaultConfiguration[_vault].treasuryShares;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function isUserWhitelisted(address _user) public view override returns (bool) {
+        return whitelistedUsers[_user];
     }
 
     function _approveToken(address _token) internal returns (bool) {

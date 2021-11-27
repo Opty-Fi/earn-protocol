@@ -159,7 +159,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositAll() external override {
+    function userDepositAll() external override onlyWhitelisted(msg.sender) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(
@@ -174,7 +174,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDeposit(uint256 _amount) external override returns (bool) {
+    function userDeposit(uint256 _amount) external override onlyWhitelisted(msg.sender) returns (bool) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
@@ -186,7 +186,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositAllRebalance() external override {
+    function userDepositAllRebalance() external override onlyWhitelisted(msg.sender) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(
@@ -203,7 +203,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositRebalance(uint256 _amount) external override returns (bool) {
+    function userDepositRebalance(uint256 _amount) external override onlyWhitelisted(msg.sender) returns (bool) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
@@ -217,7 +217,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawAllRebalance() external override {
+    function userWithdrawAllRebalance() external override onlyWhitelisted(msg.sender) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration);
@@ -226,7 +226,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawRebalance(uint256 _redeemAmount) external override returns (bool) {
+    function userWithdrawRebalance(uint256 _redeemAmount) external override onlyWhitelisted(msg.sender) returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration);
@@ -236,7 +236,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositAllWithCHI() external override discountCHI {
+    function userDepositAllWithCHI() external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(
@@ -251,7 +251,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositWithCHI(uint256 _amount) external override discountCHI {
+    function userDepositWithCHI(uint256 _amount) external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
@@ -262,7 +262,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositAllRebalanceWithCHI() external override discountCHI {
+    function userDepositAllRebalanceWithCHI() external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(
@@ -279,7 +279,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositRebalanceWithCHI(uint256 _amount) external override discountCHI {
+    function userDepositRebalanceWithCHI(uint256 _amount) external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.limited == true) {
             require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
@@ -292,7 +292,12 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI {
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount)
+        external
+        override
+        onlyWhitelisted(msg.sender)
+        discountCHI
+    {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration);
@@ -301,7 +306,7 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawAllRebalanceWithCHI() external override discountCHI {
+    function userWithdrawAllRebalanceWithCHI() external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration);

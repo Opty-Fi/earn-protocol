@@ -541,4 +541,11 @@ interface IRegistry {
      * @return _isTokenApproved Returns a boolean for token approved or not
      */
     function isApprovedToken(address _token) external view returns (bool _isTokenApproved);
+
+    /**
+     * @notice Check if the user is whitelisted or not
+     * @param _user User address for which to check if it is whitelisted or not
+     * @return _isUserWhitelisted Returns a boolean for user whitelisted or not
+     */
+    function isUserWhitelisted(address _user) external view returns (bool _isUserWhitelisted);
 }

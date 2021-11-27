@@ -156,6 +156,11 @@ contract RegistryStorage is RegistryAdminStorage {
     mapping(address => DataTypes.VaultConfiguration) public vaultToVaultConfiguration;
 
     /**
+     * @dev Mapping of users that are allowed to interact with the vaults
+     */
+    mapping(address => bool) public whitelistedUsers;
+
+    /**
      * @notice withdrawal fee's range
      */
     DataTypes.WithdrawalFeeRange public withdrawalFeeRange;
