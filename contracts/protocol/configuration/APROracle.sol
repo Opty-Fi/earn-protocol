@@ -156,7 +156,8 @@ contract APROracle is IAPROracle, Modifiers {
         address cToken = cTokens[tokens[0]];
         bytes32 stepsHash;
         bytes32 bestStrategyHash;
-        compoundAPR = _getCompoundAPR(cToken);
+
+        compoundAPR = cToken != address(0) ? _getCompoundAPR(cToken) : 0;
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
             return Constants.ZERO_BYTES32;
         } else {
