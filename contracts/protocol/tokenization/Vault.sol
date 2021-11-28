@@ -474,8 +474,8 @@ contract Vault is
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
         queue.push(DataTypes.UserDepositOperation(msg.sender, _actualDepositAmount));
-        pendingDeposits[msg.sender] += _actualDepositAmount;
-        depositQueue += _actualDepositAmount;
+        pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
+        depositQueue = depositQueue.add(_actualDepositAmount);
         emit DepositQueue(msg.sender, queue.length, _actualDepositAmount);
         return true;
     }
@@ -499,8 +499,8 @@ contract Vault is
                 "!updateUserRewards"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
-            pendingDeposits[queue[i].account] -= queue[i].value;
-            depositQueue -= queue[i].value;
+            pendingDeposits[queue[i].account] = pendingDeposits[queue[i].account].sub(queue[i].value);
+            depositQueue = depositQueue.sub(queue[i].value);
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
                     address(this),
