@@ -552,9 +552,9 @@ contract AlphaVault is
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
         queue.push(DataTypes.UserDepositOperation(msg.sender, _actualDepositAmount));
-        totalDeposits[msg.sender] += _actualDepositAmount;
-        pendingDeposits[msg.sender] += _actualDepositAmount;
-        depositQueue += _actualDepositAmount;
+        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
+        pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
+        depositQueue = depositQueue.add(_actualDepositAmount);
         emit DepositQueue(msg.sender, queue.length, _actualDepositAmount);
         return true;
     }
@@ -578,8 +578,8 @@ contract AlphaVault is
                 "!updateUserRewards"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
-            pendingDeposits[queue[i].account] -= queue[i].value;
-            depositQueue -= queue[i].value;
+            pendingDeposits[queue[i].account] = pendingDeposits[queue[i].account].sub(queue[i].value);
+            depositQueue = depositQueue.sub(queue[i].value);
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
                     address(this),
@@ -620,7 +620,7 @@ contract AlphaVault is
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
-        totalDeposits[msg.sender] += _actualDepositAmount;
+        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         uint256 shares = 0;
         if (_tokenBalanceBefore == 0 || totalSupply() == 0) {
             shares = _actualDepositAmount;
