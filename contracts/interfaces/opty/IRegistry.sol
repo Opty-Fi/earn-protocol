@@ -297,11 +297,39 @@ interface IRegistry {
     function discontinue(address _vault) external returns (bool);
 
     /**
-     * @notice Pause/Unpause tha Vault contract for use temporarily during any emergency
+     * @notice Pause/Unpause the Vault contract for use temporarily during any emergency
      * @param _vault Vault contract address to pause
      * @param _unpaused A boolean value true to unpause vault contract and false for pause vault contract
      */
     function unpauseVaultContract(address _vault, bool _unpaused) external returns (bool);
+
+    /**
+     * @notice Enable or disable the limit on user deposits
+     * @param _vault Vault contract address
+     * @param _isLimited A boolean value true to limit user deposits and false to unlimit user deposits
+     */
+    function setLimitStatus(address _vault, bool _isLimited) external returns (bool);
+
+    /**
+     * @notice Set the maximum total deposits in a Vault for each user
+     * @param _vault Vault contract address
+     * @param _userDepositCap Maximum deposit amount allowed for each user
+     */
+    function setUserDepositCap(address _vault, uint256 _userDepositCap) external returns (bool);
+
+    /**
+     * @notice Set the minimum deposit amount when the user is not rebalancing the Vault
+     * @param _vault Vault contract address
+     * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance
+     */
+    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external returns (bool);
+
+    /**
+     * @notice Set the maximum length of the queue in a specific Vault
+     * @param _vault Vault contract address
+     * @param _queueCap Maximum queue length
+     */
+    function setQueueCap(address _vault, uint256 _queueCap) external returns (bool);
 
     /**
      * @notice Adds the risk profile in Registry contract Storage

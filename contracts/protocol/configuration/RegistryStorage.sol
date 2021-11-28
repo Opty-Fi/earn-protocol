@@ -297,6 +297,42 @@ contract RegistryStorage is RegistryAdminStorage {
     event LogUnpauseVault(address indexed vault, bool indexed unpaused, address indexed caller);
 
     /**
+     * @notice Emitted when setLimitStatus is called
+     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param isLimited Limit status of OptyFi's Vault contract - false (if not limited) and true (if limited)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogLimitStatusVault(address indexed vault, bool indexed isLimited, address indexed caller);
+
+    /**
+     * @notice Emitted when setUserDepositCap is called
+     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param userDepositCap Cap for user deposits in OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogUserDepositCapVault(address indexed vault, uint256 indexed userDepositCap, address indexed caller);
+
+    /**
+     * @notice Emitted when setMinimumDepositAmount is called
+     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param minimumDepositAmount Minimum deposit in OptyFi's Vault contract - only for deposits (without rebalance)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogMinimumDepositAmountVault(
+        address indexed vault,
+        uint256 indexed minimumDepositAmount,
+        address indexed caller
+    );
+
+    /**
+     * @notice Emitted when setQueueCap is called
+     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param queueCap Maximum queue length in OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogQueueCapVault(address indexed vault, uint256 indexed queueCap, address indexed caller);
+
+    /**
      * @notice Emitted when setUnderlyingAssetHashToRPToVaults function is called
      * @param underlyingAssetHash Underlying token's hash mapped to risk profile and OptyFi's Vault contract address
      * @param riskProfileCode Risk Profile Code used to map Underlying token hash and OptyFi's Vault contract address

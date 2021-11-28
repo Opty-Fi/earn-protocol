@@ -479,6 +479,55 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
+    function setLimitStatus(address _vault, bool _isLimited) external override onlyOperator returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        vaultToVaultConfiguration[_vault].isLimited = _isLimited;
+        emit LogLimitStatusVault(_vault, vaultToVaultConfiguration[_vault].isLimited, msg.sender);
+        return true;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyOperator returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        vaultToVaultConfiguration[_vault].userDepositCap = _userDepositCap;
+        emit LogUserDepositCapVault(_vault, vaultToVaultConfiguration[_vault].userDepositCap, msg.sender);
+        return true;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount)
+        external
+        override
+        onlyOperator
+        returns (bool)
+    {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        vaultToVaultConfiguration[_vault].minimumDepositAmount = _minimumDepositAmount;
+        emit LogMinimumDepositAmountVault(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
+        return true;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setQueueCap(address _vault, uint256 _queueCap) external override onlyOperator returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        vaultToVaultConfiguration[_vault].queueCap = _queueCap;
+        emit LogQueueCapVault(_vault, vaultToVaultConfiguration[_vault].queueCap, msg.sender);
+        return true;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
     function updateRiskProfileBorrow(uint256 _riskProfileCode, bool _canBorrow)
         external
         override
