@@ -4,7 +4,7 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ADDRESS_ZERO, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data";
@@ -68,7 +68,7 @@ describe(scenario.title, () => {
       const vault = scenario.vaults[i];
       const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
-
+      let rewardTokenBalanceBefore: BigNumber;
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
@@ -244,6 +244,15 @@ describe(scenario.title, () => {
                     case "harvest(bytes32)": {
                       try {
                         if (investStrategyHash) {
+                          const rewardToken = await essentialContracts.strategyManager.getRewardToken(
+                            investStrategyHash,
+                          );
+                          if (rewardToken != ADDRESS_ZERO) {
+                            const rewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardToken);
+                            rewardTokenBalanceBefore = await rewardTokenInstance.balanceOf(Vault.address);
+                          } else {
+                            rewardTokenBalanceBefore = BigNumber.from(0);
+                          }
                           await contracts[action.contract]
                             .connect(users[action.executer])
                             [action.action](investStrategyHash);
@@ -338,11 +347,15 @@ describe(scenario.title, () => {
                             : await users[addressName].getAddress();
                         if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
                           const reward_token_balance = await contracts[action.contract][action.action](address);
-                          <string>balance == ">0"
-                            ? REWARD_TOKENS[adapterName].distributionActive
-                              ? expect(reward_token_balance).to.gte(BigNumber.from("0"))
-                              : expect(reward_token_balance).to.equal(BigNumber.from("0"))
-                            : expect(reward_token_balance).to.equal(balance);
+                          if (balance == "=") {
+                            expect(reward_token_balance).to.equal(rewardTokenBalanceBefore);
+                          } else {
+                            <string>balance == ">0"
+                              ? REWARD_TOKENS[adapterName].distributionActive
+                                ? expect(reward_token_balance).to.gte(BigNumber.from("0"))
+                                : expect(reward_token_balance).to.equal(BigNumber.from("0"))
+                              : expect(reward_token_balance).to.equal(balance);
+                          }
                         }
                       }
                       break;
