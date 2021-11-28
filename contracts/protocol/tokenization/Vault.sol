@@ -161,6 +161,7 @@ contract Vault is
      */
     function userDepositAll() external override returns (bool) {
         require(_userDeposit(IERC20(underlyingToken).balanceOf(msg.sender)), "userDepositAll");
+        return true;
     }
 
     /**
@@ -190,7 +191,7 @@ contract Vault is
     function userDepositRebalance(uint256 _amount) external override returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_userDepositRebalance(_amount, _vaultStrategyConfiguration), "userDepositRebalance");
+        require(_userDepositRebalance(_amount, _vaultStrategyConfiguration), "!userDepositRebalance");
         return true;
     }
 
@@ -200,7 +201,10 @@ contract Vault is
     function userWithdrawAllRebalance() external override returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration), "userWithdrawAllRebalance");
+        require(
+            _userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration),
+            "!userWithdrawAllRebalance"
+        );
         return true;
     }
 
@@ -210,7 +214,7 @@ contract Vault is
     function userWithdrawRebalance(uint256 _redeemAmount) external override returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration), "userWithdrawRebalance");
+        require(_userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration), "!userWithdrawRebalance");
         return true;
     }
 
@@ -218,7 +222,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositAllWithCHI() external override discountCHI returns (bool) {
-        require(_userDeposit(IERC20(underlyingToken).balanceOf(msg.sender)), "userDepositAllWithCHI");
+        require(_userDeposit(IERC20(underlyingToken).balanceOf(msg.sender)), "!userDepositAllWithCHI");
         return true;
     }
 
@@ -226,7 +230,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositWithCHI(uint256 _amount) external override discountCHI returns (bool) {
-        require(_userDeposit(_amount), "userDepositWithCHI");
+        require(_userDeposit(_amount), "!userDepositWithCHI");
         return true;
     }
 
@@ -238,7 +242,7 @@ contract Vault is
             registryContract.getVaultStrategyConfiguration();
         require(
             _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender), _vaultStrategyConfiguration),
-            "userDepositAllRebalanceWithCHI"
+            "!userDepositAllRebalanceWithCHI"
         );
         return true;
     }
@@ -249,7 +253,7 @@ contract Vault is
     function userDepositRebalanceWithCHI(uint256 _amount) external override discountCHI returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_userDepositRebalance(_amount, _vaultStrategyConfiguration), "userDepositRebalanceWithCHI");
+        require(_userDepositRebalance(_amount, _vaultStrategyConfiguration), "!userDepositRebalanceWithCHI");
         return true;
     }
 
@@ -259,7 +263,7 @@ contract Vault is
     function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration), "userWithdrawRebalanceWithCHI");
+        require(_userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration), "!userWithdrawRebalanceWithCHI");
         return true;
     }
 
@@ -271,7 +275,7 @@ contract Vault is
             registryContract.getVaultStrategyConfiguration();
         require(
             _userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration),
-            "userWithdrawAllRebalanceWithCHI"
+            "!userWithdrawAllRebalanceWithCHI"
         );
         return true;
     }
