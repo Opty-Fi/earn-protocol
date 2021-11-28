@@ -39,6 +39,9 @@ contract APROracle is IAPROracle, Modifiers {
     /** @notice Store AaveV2 LendingPoolProvider address */
     address public aaveV2;
 
+    /** @notice Store AaveV2 LendingPoolAddressProviderRegistry address */
+    address public aaveV2Registry;
+
     /** @notice Store Compound address */
     address public compound;
 
@@ -51,6 +54,7 @@ contract APROracle is IAPROracle, Modifiers {
     constructor(address _registry) public Modifiers(_registry) {
         setNewAaveV1(address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8));
         setNewAaveV2(address(0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5));
+        setNewAaveV2Registry(address(0x52D306e36E3B6B02c153d0266ff0f85d18BCD413));
         // 3153600 seconds div 13 second blocks
         setNewBlocksPerYear(242584);
         cTokens[address(0x6B175474E89094C44Da98b954EedeAC495271d0F)] = address(
@@ -104,6 +108,15 @@ contract APROracle is IAPROracle, Modifiers {
     }
 
     /**
+     * @notice Sets the new Aave v2 protocol lending pool registry address
+     * @param _newAaveV2 Address of new Aave V2 Lending pool registry
+     */
+    function setNewAaveV2Registry(address _newAaveV2) public onlyOperator {
+        require(_newAaveV2.isContract(), "!isContract");
+        aaveV2Registry = _newAaveV2;
+    }
+
+    /**
      * @inheritdoc IAPROracle
      */
     function getCompoundAPR(address token) public view override returns (uint256) {
@@ -154,24 +167,23 @@ contract APROracle is IAPROracle, Modifiers {
         (address aToken, uint256 aaveV1APR) = _getAaveV1APR(tokens[0]);
         uint256 compoundAPR;
         address cToken = cTokens[tokens[0]];
-        bytes32 stepsHash;
+        bytes32[] memory stepsHash = new bytes32[](1);
         bytes32 bestStrategyHash;
-
         compoundAPR = cToken != address(0) ? _getCompoundAPR(cToken) : 0;
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
             return Constants.ZERO_BYTES32;
         } else {
             if (aaveV1APR > compoundAPR) {
                 if (aaveV1APR > aaveV2APR) {
-                    stepsHash = keccak256(abi.encodePacked(aToken, aToken, false));
+                    stepsHash[0] = keccak256(abi.encodePacked(aaveV1, aToken, false));
                 } else {
-                    stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
+                    stepsHash[0] = keccak256(abi.encodePacked(aaveV2Registry, aTokenV2, false));
                 }
             } else {
                 if (compoundAPR > aaveV2APR) {
-                    stepsHash = keccak256(abi.encodePacked(cToken, cToken, false));
+                    stepsHash[0] = keccak256(abi.encodePacked(cToken, cToken, false));
                 } else {
-                    stepsHash = keccak256(abi.encodePacked(aTokenV2, aTokenV2, false));
+                    stepsHash[0] = keccak256(abi.encodePacked(aaveV2Registry, aTokenV2, false));
                 }
             }
             bestStrategyHash = keccak256(abi.encodePacked(_tokensHash, stepsHash));
