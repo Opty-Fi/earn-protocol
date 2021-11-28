@@ -1606,7 +1606,7 @@
               "contract": "vault",
               "action": "setRiskProfileCode(uint256)",
               "args": {
-                "profile": 0
+                "profile": 2
               },
               "executor": 0,
               "expect": "success",
@@ -1616,9 +1616,9 @@
           "getActions": [
             {
               "contract": "vault",
-              "action": "profile()",
+              "action": "riskProfileCode()",
               "args": {},
-              "expectedValue": 0
+              "expectedValue": 2
             }
           ],
           "cleanActions": [

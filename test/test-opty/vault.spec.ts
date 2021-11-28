@@ -1072,8 +1072,8 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "riskProfileCode()": {
-                    const profile = await contracts[action.contract][action.action]();
-                    expect(profile).to.be.eq(0);
+                    const riskProfileCode = await contracts[action.contract][action.action]();
+                    expect(riskProfileCode).to.be.eq(action.expectedValue);
                     break;
                   }
                   case "underlyingToken()": {
