@@ -12,6 +12,7 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   HARVEST_CODE_PROVIDER: "HarvestCodeProvider",
   VAULT_PROXY: "InitializableImmutableAdminUpgradeabilityProxy",
   VAULT: "Vault",
+  ALPHA_VAULT: "AlphaVault",
   RISK_MANAGER_PROXY: "RiskManagerProxy",
   PRICE_ORACLE: "PriceOracle",
   OPTY_STAKING_VAULT: "OPTYStakingVault",

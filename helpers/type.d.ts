@@ -113,3 +113,24 @@ export type TOKENS_DATA = {
     pair: boolean;
   };
 };
+
+export type TOKEN_STRATEGIES = {
+  [token: string]: {
+    hash: string;
+    underlyingTokens: {
+      address: string;
+      symbol: string;
+      name: string;
+    }[];
+    steps: {
+      protocol: {
+        name: string;
+        logoURL: string;
+      };
+      poolContractAddress: string;
+      lpToken: string;
+      isBorrow: boolean;
+      underlyingTokens: string[];
+    }[];
+  }[];
+};

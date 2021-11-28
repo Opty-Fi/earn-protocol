@@ -8,6 +8,7 @@ import { default as CurveTokens } from "./curve_tokens.json";
 import { default as TokenHolders } from "./token_holders.json";
 import { default as Contracts } from "./contracts.json";
 import { default as EOA } from "./eoa.json";
+import { default as TokenStrategies } from "./tokenStrategies.json";
 import {
   DEFI_POOLS_DATA,
   ADAPTER_WITH_STRATEGIES_DATA,
@@ -15,6 +16,7 @@ import {
   DATA_OBJECT,
   MULTI_ASSET_TOKEN_DATA,
   CURVE_TOKEN_DATA,
+  TOKEN_STRATEGIES,
 } from "../type";
 
 export const TypedDefiPools = DefiPools as DEFI_POOLS_DATA;
@@ -27,3 +29,4 @@ export const TypedCurveTokens = CurveTokens as CURVE_TOKEN_DATA;
 export const TypedTokenHolders = TokenHolders as DATA_OBJECT;
 export const TypedContracts = Contracts as DATA_OBJECT;
 export const TypedEOA = EOA as DATA_OBJECT;
+export const TypedTokenStrategies = TokenStrategies as TOKEN_STRATEGIES;
