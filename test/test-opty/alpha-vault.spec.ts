@@ -1,31 +1,20 @@
 import { expect, assert } from "chai";
 import hre from "hardhat";
-import { Contract, Signer, BigNumber, utils } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
-import { ZERO_BYTES32, ADDRESS_ZERO } from "../../helpers/constants/utils";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
-import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
+import { ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedTokenStrategies, TypedTokens } from "../../helpers/data";
-import {
-  executeFunc,
-  deployContract,
-  generateTokenHash,
-  getDefaultFundAmountInDecimal,
-  moveToSpecificBlock,
-} from "../../helpers/helpers";
+import { executeFunc, getDefaultFundAmountInDecimal } from "../../helpers/helpers";
 import { deployAlphaVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
