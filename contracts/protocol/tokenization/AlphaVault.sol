@@ -69,6 +69,15 @@ contract AlphaVault is
     /* solhint-disable no-empty-blocks */
 
     /**
+     * @notice Modifier to check wether the depositQueue is full or not
+     */
+    modifier isQueueFull() {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        require(getDepositQueue().length < _vaultConfiguration.queueCap, "queue is full");
+        _;
+    }
+
+    /**
      * @dev Initialize the vault
      * @param _registry the address of registry for helping get the protocol configuration
      * @param _underlyingToken The address of underlying asset of this vault
@@ -159,25 +168,30 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositAll() external override onlyWhitelisted(msg.sender) {
+    function userDepositAll() external override onlyWhitelisted(msg.sender) isQueueFull {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
+        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimited == true) {
             require(
-                IERC20(underlyingToken).balanceOf(msg.sender) <=
-                    _vaultConfiguration.limit.sub(totalDeposits[msg.sender]),
-                "deposit exceeds limit"
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
             );
         }
-        _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
+        _userDeposit(_amount);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userDeposit(uint256 _amount) external override onlyWhitelisted(msg.sender) returns (bool) {
+    function userDeposit(uint256 _amount) external override onlyWhitelisted(msg.sender) isQueueFull returns (bool) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
-            require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimited == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
         }
         require(_userDeposit(_amount), "userDeposit");
         return true;
@@ -188,11 +202,11 @@ contract AlphaVault is
      */
     function userDepositAllRebalance() external override onlyWhitelisted(msg.sender) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
+        if (_vaultConfiguration.isLimited == true) {
             require(
                 IERC20(underlyingToken).balanceOf(msg.sender) <=
-                    _vaultConfiguration.limit.sub(totalDeposits[msg.sender]),
-                "deposit exceeds limit"
+                    _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
             );
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
@@ -205,8 +219,11 @@ contract AlphaVault is
      */
     function userDepositRebalance(uint256 _amount) external override onlyWhitelisted(msg.sender) returns (bool) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
-            require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
+        if (_vaultConfiguration.isLimited == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
@@ -236,25 +253,30 @@ contract AlphaVault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositAllWithCHI() external override onlyWhitelisted(msg.sender) discountCHI {
+    function userDepositAllWithCHI() external override onlyWhitelisted(msg.sender) isQueueFull discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
+        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimited == true) {
             require(
-                IERC20(underlyingToken).balanceOf(msg.sender) <=
-                    _vaultConfiguration.limit.sub(totalDeposits[msg.sender]),
-                "deposit exceeds limit"
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
             );
         }
-        _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
+        _userDeposit(_amount);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userDepositWithCHI(uint256 _amount) external override onlyWhitelisted(msg.sender) discountCHI {
+    function userDepositWithCHI(uint256 _amount) external override onlyWhitelisted(msg.sender) isQueueFull discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
-            require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimited == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
         }
         _userDeposit(_amount);
     }
@@ -264,11 +286,11 @@ contract AlphaVault is
      */
     function userDepositAllRebalanceWithCHI() external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
+        if (_vaultConfiguration.isLimited == true) {
             require(
                 IERC20(underlyingToken).balanceOf(msg.sender) <=
-                    _vaultConfiguration.limit.sub(totalDeposits[msg.sender]),
-                "deposit exceeds limit"
+                    _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
             );
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
@@ -281,8 +303,11 @@ contract AlphaVault is
      */
     function userDepositRebalanceWithCHI(uint256 _amount) external override onlyWhitelisted(msg.sender) discountCHI {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        if (_vaultConfiguration.limited == true) {
-            require(_amount <= _vaultConfiguration.limit.sub(totalDeposits[msg.sender]), "deposit exceeds limit");
+        if (_vaultConfiguration.isLimited == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();

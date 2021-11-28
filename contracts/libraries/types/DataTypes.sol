@@ -173,8 +173,10 @@ library DataTypes {
         bool unpaused;
         uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
         TreasuryShare[] treasuryShares;
-        bool limited;
-        uint256 limit;
+        bool isLimited;
+        uint256 userDepositCap;
+        uint256 minimumDepositAmount;
+        uint256 queueCap;
     }
 
     /**
