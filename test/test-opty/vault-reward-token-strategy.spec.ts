@@ -91,11 +91,13 @@ describe(scenario.title, () => {
               underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
               underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
               const adapter = adapters[adapterName];
+              const operator = await essentialContracts.registry.operator();
+              const operatorSigner = await hre.ethers.getSigner(operator);
               Vault = await deployVault(
                 hre,
                 essentialContracts.registry.address,
                 token,
-                users["owner"],
+                operatorSigner,
                 users["admin"],
                 underlyingTokenName,
                 underlyingTokenSymbol,
