@@ -578,7 +578,7 @@ contract AlphaVault is
                 "!updateUserRewards"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
-            pendingDeposits[queue[i].account] = uint256(0);
+            pendingDeposits[queue[i].account] -= queue[i].value;
             depositQueue -= queue[i].value;
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
