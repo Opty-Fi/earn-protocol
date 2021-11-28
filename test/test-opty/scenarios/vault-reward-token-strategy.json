@@ -292,7 +292,7 @@
           ]
         },
         {
-          "description": "Vault should be able harvest RewardTokens (if any) using harvest() function",
+          "description": "Operator of the Vault should be able harvest RewardTokens (if any) using harvest() function",
           "setActions": [
             {
               "contract": "strategyProvider",
@@ -308,7 +308,7 @@
               "contract": "vault",
               "action": "harvest(bytes32)",
               "args": {},
-              "executer": "user1",
+              "executer": "operator",
               "expect": "success",
               "message": ""
             }
@@ -322,6 +322,43 @@
               },
               "expectedValue": {
                 "balance": ">0"
+              },
+              "expect": "success",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "description": "Non-operator of the Vault should be UNABLE to harvest RewardTokens (if any) using harvest() function",
+          "setActions": [
+            {
+              "contract": "strategyProvider",
+              "action": "setVaultRewardStrategy(bytes32,(uint256,uint256))",
+              "args": {
+                "vaultRewardStrategy": [5000, 5000]
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "harvest(bytes32)",
+              "args": {},
+              "executer": "nonOperator",
+              "expect": "fail",
+              "message": "caller is not the operator"
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "rewardTokenErc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "addressName": "vault"
+              },
+              "expectedValue": {
+                "balance": "="
               },
               "expect": "success",
               "message": ""

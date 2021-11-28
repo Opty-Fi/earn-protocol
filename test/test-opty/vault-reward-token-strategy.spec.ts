@@ -22,7 +22,7 @@ import {
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
-import { generateTokenHash } from "../../helpers/helpers";
+import { executeFunc, generateTokenHash } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -49,8 +49,8 @@ describe(scenario.title, () => {
   let users: { [key: string]: Signer };
   before(async () => {
     try {
-      const [owner, admin, user1] = await hre.ethers.getSigners();
-      users = { owner, admin, user1 };
+      const [owner, admin, user1, operator, nonOperator] = await hre.ethers.getSigners();
+      users = { owner, admin, user1, operator, nonOperator };
       [essentialContracts, adapters] = await setUp(
         owner,
         Object.values(VAULT_TOKENS).map(token => token.address),
@@ -102,14 +102,17 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+              await executeFunc(essentialContracts.registry, users["owner"], "setOperator(address)", [
+                await users["operator"].getAddress(),
+              ]);
               if (adapterName === HARVEST_V1_ADAPTER_NAME) {
                 await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
               }
-              await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
+              await unpauseVault(users["operator"], essentialContracts.registry, Vault.address, true);
 
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
                 await approveAndSetTokenHashToTokens(
-                  users["owner"],
+                  users["operator"],
                   essentialContracts.registry,
                   [Vault.address, <string>REWARD_TOKENS[adapterName].tokenAddress],
                   false,
@@ -122,7 +125,7 @@ describe(scenario.title, () => {
               }
 
               await approveLiquidityPoolAndMapAdapter(
-                users["owner"],
+                users["operator"],
                 essentialContracts.registry,
                 adapter.address,
                 TOKEN_STRATEGY.strategy[0].contract,
@@ -130,7 +133,7 @@ describe(scenario.title, () => {
 
               investStrategyHash = await setBestStrategy(
                 TOKEN_STRATEGY.strategy,
-                users["owner"],
+                users["operator"],
                 token,
                 essentialContracts.investStrategyRegistry,
                 essentialContracts.strategyProvider,
