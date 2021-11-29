@@ -534,9 +534,11 @@ contract CurveDepositPoolAdapter is
         address _liquidityPool,
         address
     ) public view override returns (uint256) {
+        /* solhint-disable no-empty-blocks */
         if (_getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry()) != address(0)) {
             // TODO : get the amount of unclaimed CRV tokens
         }
+        /* solhint-enable no-empty-blocks */
         return uint256(0);
     }
 
