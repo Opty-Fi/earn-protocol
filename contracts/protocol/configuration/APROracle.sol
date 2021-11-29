@@ -12,14 +12,18 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
 
 //  interfaces
-import { IAaveV1LendingPoolAddressesProvider } from "../../interfaces/aave/v1/IAaveV1LendingPoolAddressesProvider.sol";
-import { IAaveV1LendingPoolCore } from "../../interfaces/aave/v1/IAaveV1LendingPoolCore.sol";
-import { ReserveDataV2, IAaveV2 } from "../../interfaces/aave/v2/IAaveV2.sol";
-import { IAaveV2LendingPoolAddressesProvider } from "../../interfaces/aave/v2/IAaveV2LendingPoolAddressesProvider.sol";
-import { ICompound } from "../../interfaces/compound/ICompound.sol";
+import {
+    IAaveV1LendingPoolAddressesProvider
+} from "@optyfi/defi-legos/ethereum/aave/contracts/IAaveV1LendingPoolAddressesProvider.sol";
+import { IAaveV1LendingPoolCore } from "@optyfi/defi-legos/ethereum/aave/contracts/IAaveV1LendingPoolCore.sol";
+import { ReserveDataV2, IAaveV2 } from "@optyfi/defi-legos/ethereum/aavev2/contracts/IAaveV2.sol";
+import {
+    IAaveV2LendingPoolAddressesProvider
+} from "@optyfi/defi-legos/ethereum/aavev2/contracts/IAaveV2LendingPoolAddressesProvider.sol";
+import { ICompound } from "@optyfi/defi-legos/ethereum/compound/contracts/ICompound.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
-import { ReserveDataV1, IAaveV1 } from "../../interfaces/aave/v1/IAaveV1.sol";
+import { ReserveDataV1, IAaveV1 } from "@optyfi/defi-legos/ethereum/aave/contracts/IAaveV1.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 

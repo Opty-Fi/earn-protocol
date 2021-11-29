@@ -13,10 +13,10 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { Modifiers } from "./Modifiers.sol";
 
 // interfaces
-import { IAdapterFull } from "../../interfaces/opty/defiAdapters/IAdapterFull.sol";
+import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
 import { IInvestStrategyRegistry } from "../../interfaces/opty/IInvestStrategyRegistry.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
-import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
+import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum/interfaces/IHarvestCodeProvider.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
