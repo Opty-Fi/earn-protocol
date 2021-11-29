@@ -715,8 +715,9 @@ contract CurveSwapPoolAdapter is
      * @return Returns the amount of accrued reward tokens
      */
     function _getUnclaimedRewardTokenAmountWrite(address payable _vault, address _swapPool) internal returns (uint256) {
-        if (_getLiquidityGauge(_swapPool, _getCurveRegistry()) != address(0)) {
-            return ICurveGauge(_swapPool).claimable_tokens(_vault);
+        address _liquidityGauge = _getLiquidityGauge(_swapPool, _getCurveRegistry());
+        if (_liquidityGauge != address(0)) {
+            return ICurveGauge(_liquidityGauge).claimable_tokens(_vault);
         }
         return uint256(0);
     }

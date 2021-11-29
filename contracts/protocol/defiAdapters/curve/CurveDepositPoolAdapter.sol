@@ -536,7 +536,6 @@ contract CurveDepositPoolAdapter is
     ) public view override returns (uint256) {
         if (_getLiquidityGauge(_getSwapPool(_liquidityPool), _getCurveRegistry()) != address(0)) {
             // TODO : get the amount of unclaimed CRV tokens
-            return uint256(1000000000000000000);
         }
         return uint256(0);
     }

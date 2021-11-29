@@ -1067,6 +1067,7 @@ describe(testVaultScenario.title, () => {
                       if (
                         (rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) ||
                         getAddress(rewardToken) == getAddress(TypedTokens.COMP) ||
+                        getAddress(rewardToken) == getAddress(TypedTokens.CRV) ||
                         !unpaused
                       ) {
                         expect(value).to.be.gt(0);
