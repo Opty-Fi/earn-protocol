@@ -860,12 +860,17 @@ describe(testVaultScenario.title, () => {
                   }
                   case "harvest(bytes32)": {
                     const lastAdapterName = adapterNames[numberOfSteps - 1];
-                    claimableTokens = await adapters[lastAdapterName].getUnclaimedRewardTokenAmount(
-                      contracts["vault"].address,
+                    const rewardToken = await adapters[lastAdapterName].getRewardToken(
                       TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
-                      tokenAddress,
                     );
-                    await contracts[action.contract].connect(users[action.executor])[action.action](investStrategyHash);
+                    if (rewardToken != ADDRESS_ZERO) {
+                      claimableTokens = await adapters[lastAdapterName].getUnclaimedRewardTokenAmount(
+                        contracts["vault"].address,
+                        TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
+                        tokenAddress,
+                      );
+                    }
+                    await contracts[action.contract].connect(users[0])[action.action](investStrategyHash);
                     break;
                   }
                   case "setUnpaused(bool)": {
@@ -1059,7 +1064,7 @@ describe(testVaultScenario.title, () => {
                     )[1];
                     if (action.expectedValue == ">") {
                       const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
-                      if ((rewardToken != ADDRESS_ZERO && !claimableTokens.eq(0)) || !unpaused) {
+                      if ((rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) || !unpaused) {
                         expect(value).to.be.gt(0);
                       } else {
                         expect(value).to.be.eq(0);
