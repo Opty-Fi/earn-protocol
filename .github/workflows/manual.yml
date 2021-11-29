@@ -19,6 +19,7 @@ jobs:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
+      STRATEGY_DIVISOR: ${{ secrets.STRATEGY_DIVISOR}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -55,6 +56,7 @@ jobs:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
+      STRATEGY_DIVISOR: ${{ secrets.STRATEGY_DIVISOR}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -93,6 +95,7 @@ jobs:
       REPORT_GAS: true
       MNEMONIC: ${{ secrets.MNEMONIC}}
       STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
+      STRATEGY_DIVISOR: ${{ secrets.STRATEGY_DIVISOR}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}

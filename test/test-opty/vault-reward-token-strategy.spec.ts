@@ -4,7 +4,7 @@ import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { ADDRESS_ZERO, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data";
@@ -22,7 +22,7 @@ import {
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
-import { generateTokenHash } from "../../helpers/helpers";
+import { executeFunc, generateTokenHash } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -49,8 +49,8 @@ describe(scenario.title, () => {
   let users: { [key: string]: Signer };
   before(async () => {
     try {
-      const [owner, admin, user1] = await hre.ethers.getSigners();
-      users = { owner, admin, user1 };
+      const [owner, admin, user1, operator, nonOperator] = await hre.ethers.getSigners();
+      users = { owner, admin, user1, operator, nonOperator };
       [essentialContracts, adapters] = await setUp(
         owner,
         Object.values(VAULT_TOKENS).map(token => token.address),
@@ -68,7 +68,7 @@ describe(scenario.title, () => {
       const vault = scenario.vaults[i];
       const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
-
+      let rewardTokenBalanceBefore: BigNumber;
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
@@ -91,25 +91,30 @@ describe(scenario.title, () => {
               underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
               underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
               const adapter = adapters[adapterName];
+              const operator = await essentialContracts.registry.operator();
+              const operatorSigner = await hre.ethers.getSigner(operator);
               Vault = await deployVault(
                 hre,
                 essentialContracts.registry.address,
                 token,
-                users["owner"],
+                operatorSigner,
                 users["admin"],
                 underlyingTokenName,
                 underlyingTokenSymbol,
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+              await executeFunc(essentialContracts.registry, users["owner"], "setOperator(address)", [
+                await users["operator"].getAddress(),
+              ]);
               if (adapterName === HARVEST_V1_ADAPTER_NAME) {
                 await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
               }
-              await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
+              await unpauseVault(users["operator"], essentialContracts.registry, Vault.address, true);
 
               if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
                 await approveAndSetTokenHashToTokens(
-                  users["owner"],
+                  users["operator"],
                   essentialContracts.registry,
                   [Vault.address, <string>REWARD_TOKENS[adapterName].tokenAddress],
                   false,
@@ -122,7 +127,7 @@ describe(scenario.title, () => {
               }
 
               await approveLiquidityPoolAndMapAdapter(
-                users["owner"],
+                users["operator"],
                 essentialContracts.registry,
                 adapter.address,
                 TOKEN_STRATEGY.strategy[0].contract,
@@ -130,7 +135,7 @@ describe(scenario.title, () => {
 
               investStrategyHash = await setBestStrategy(
                 TOKEN_STRATEGY.strategy,
-                users["owner"],
+                users["operator"],
                 token,
                 essentialContracts.investStrategyRegistry,
                 essentialContracts.strategyProvider,
@@ -239,6 +244,15 @@ describe(scenario.title, () => {
                     case "harvest(bytes32)": {
                       try {
                         if (investStrategyHash) {
+                          const rewardToken = await essentialContracts.strategyManager.getRewardToken(
+                            investStrategyHash,
+                          );
+                          if (rewardToken != ADDRESS_ZERO) {
+                            const rewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardToken);
+                            rewardTokenBalanceBefore = await rewardTokenInstance.balanceOf(Vault.address);
+                          } else {
+                            rewardTokenBalanceBefore = BigNumber.from(0);
+                          }
                           await contracts[action.contract]
                             .connect(users[action.executer])
                             [action.action](investStrategyHash);
@@ -333,11 +347,15 @@ describe(scenario.title, () => {
                             : await users[addressName].getAddress();
                         if (rewardTokenAdapterNames.includes(adapterName.toLowerCase())) {
                           const reward_token_balance = await contracts[action.contract][action.action](address);
-                          <string>balance == ">0"
-                            ? REWARD_TOKENS[adapterName].distributionActive
-                              ? expect(reward_token_balance).to.gte(BigNumber.from("0"))
-                              : expect(reward_token_balance).to.equal(BigNumber.from("0"))
-                            : expect(reward_token_balance).to.equal(balance);
+                          if (balance == "=") {
+                            expect(reward_token_balance).to.equal(rewardTokenBalanceBefore);
+                          } else {
+                            <string>balance == ">0"
+                              ? REWARD_TOKENS[adapterName].distributionActive
+                                ? expect(reward_token_balance).to.gte(BigNumber.from("0"))
+                                : expect(reward_token_balance).to.equal(BigNumber.from("0"))
+                              : expect(reward_token_balance).to.equal(balance);
+                          }
                         }
                       }
                       break;

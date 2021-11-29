@@ -75,4 +75,6 @@ interface ICompound {
     function comptroller() external view returns (address);
 
     function getCompAddress() external view returns (address);
+
+    function getTokenConfigBySymbol(string memory symbol) external view returns (TokenConfig memory);
 }

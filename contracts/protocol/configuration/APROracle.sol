@@ -21,6 +21,7 @@ import { Constants } from "../../utils/Constants.sol";
 import { IAPROracle } from "../../interfaces/opty/IAPROracle.sol";
 import { ReserveDataV1, IAaveV1 } from "../../interfaces/aave/v1/IAaveV1.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title APROracle contract
@@ -44,12 +45,35 @@ contract APROracle is IAPROracle, Modifiers {
     /** @notice Stores the estimation of no. of blocks gets mined per year */
     uint256 public blocksPerYear;
 
+    /** @notice underlying token to cToken mapping */
+    mapping(address => address) public cTokens;
+
     constructor(address _registry) public Modifiers(_registry) {
         setNewAaveV1(address(0x24a42fD28C976A61Df5D00D0599C34c4f90748c8));
         setNewAaveV2(address(0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5));
-        setNewCompound(address(0x922018674c12a7F0D394ebEEf9B58F186CdE13c1));
         // 3153600 seconds div 13 second blocks
         setNewBlocksPerYear(242584);
+        cTokens[address(0x6B175474E89094C44Da98b954EedeAC495271d0F)] = address(
+            0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643
+        ); // cDAI
+        cTokens[address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)] = address(
+            0x39AA39c021dfbaE8faC545936693aC917d5E7563
+        ); // cUSDC
+        cTokens[address(0xdAC17F958D2ee523a2206206994597C13D831ec7)] = address(
+            0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9
+        ); // cUSDT
+        cTokens[address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)] = address(
+            0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5
+        ); // cETH
+        cTokens[address(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599)] = address(
+            0xccF4429DB6322D5C611ee964527D42E5d685DD6a
+        ); // cWBTC2
+        cTokens[address(0x0000000000085d4780B73119b644AE5ecd22b376)] = address(
+            0x12392F67bdf24faE0AF363c24aC620a2f67DAd86
+        ); // cTUSD
+        cTokens[address(0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2)] = address(
+            0x95b4eF2869eBD94BEb4eEE400a99824BF5DC325b
+        ); // cMKR
     }
 
     /**
@@ -77,15 +101,6 @@ contract APROracle is IAPROracle, Modifiers {
     function setNewAaveV2(address _newAaveV2) public onlyOperator {
         require(_newAaveV2.isContract(), "!isContract");
         aaveV2 = _newAaveV2;
-    }
-
-    /**
-     * @notice Sets the new Compound protocol lending pool address
-     * @param _newCompound Address of new Compound Lending pool
-     */
-    function setNewCompound(address _newCompound) public onlyOperator {
-        require(_newCompound.isContract(), "!isContract");
-        compound = _newCompound;
     }
 
     /**
@@ -135,25 +150,14 @@ contract APROracle is IAPROracle, Modifiers {
 
     function _getBestAPR(bytes32 _tokensHash) internal view returns (bytes32) {
         address[] memory tokens = registryContract.getTokensHashToTokenList(_tokensHash);
-        uint256 aaveV2APR;
-        address aTokenV2;
-        (aTokenV2, aaveV2APR) = _getAaveV2APR(tokens[0]);
-        uint256 aaveV1APR;
-        address aToken;
-        (aToken, aaveV1APR) = _getAaveV1APR(tokens[0]);
+        (address aTokenV2, uint256 aaveV2APR) = _getAaveV2APR(tokens[0]);
+        (address aToken, uint256 aaveV1APR) = _getAaveV1APR(tokens[0]);
         uint256 compoundAPR;
-        address cToken;
+        address cToken = cTokens[tokens[0]];
         bytes32 stepsHash;
         bytes32 bestStrategyHash;
-        try ICompound(compound).getTokenConfigByUnderlying(tokens[0]) returns (
-            ICompound.TokenConfig memory tokenConfig
-        ) {
-            cToken = tokenConfig.cToken;
-            compoundAPR = _getCompoundAPR(cToken);
-        } catch {
-            cToken = address(0);
-            compoundAPR = uint256(0);
-        }
+
+        compoundAPR = cToken != address(0) ? _getCompoundAPR(cToken) : 0;
         if (aaveV1APR == uint256(0) && aaveV2APR == uint256(0) && compoundAPR == uint256(0)) {
             return Constants.ZERO_BYTES32;
         } else {

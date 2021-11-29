@@ -150,7 +150,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function harvest(bytes32 _investStrategyHash) external override {
+    function harvest(bytes32 _investStrategyHash) external override onlyOperator {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _harvest(_investStrategyHash, _vaultStrategyConfiguration);
