@@ -1,7 +1,7 @@
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
 import hre from "hardhat";
-import { Signer } from "ethers";
+import { BigNumber, Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { TypedTokens, TypedDefiPools } from "../../helpers/data";
 import { generateStrategyHash, deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
@@ -307,8 +307,68 @@ describe(scenario.title, async () => {
   it(`getBestAPR should execute for ${JSON.stringify(vaultUnderlyingTokenNames)}`, async function () {
     for (const vaultTokenName of scenario.usedTokens) {
       if (vaultUnderlyingTokenNames.includes(vaultTokenName)) {
-        const tokenHash = getSoliditySHA3Hash(["address[]"], [[TypedTokens[vaultTokenName.toUpperCase()]]]);
-        await contracts.aprOracle.getBestAPR(tokenHash);
+        const token = TypedTokens[vaultTokenName.toUpperCase()];
+        const tokenHash = generateTokenHash([token]);
+
+        const aaveV1Provider = await hre.ethers.getContractAt(
+          "IAaveV1LendingPoolAddressesProvider",
+          await contracts.aprOracle.aaveV1(),
+        );
+        const aaveV1Core = await hre.ethers.getContractAt(
+          "IAaveV1LendingPoolCore",
+          await aaveV1Provider.getLendingPoolCore(),
+        );
+        const aV1Token = await aaveV1Core.getReserveATokenAddress(token);
+        const aV1APR = BigNumber.from(await aaveV1Core.getReserveCurrentLiquidityRate(token)).div(
+          BigNumber.from("10").pow("9"),
+        );
+
+        const aaveV2Provider = await hre.ethers.getContractAt(
+          "IAaveV2LendingPoolAddressesProvider",
+          await contracts.aprOracle.aaveV2(),
+        );
+        const aaveV2LP = await hre.ethers.getContractAt("IAaveV2", await aaveV2Provider.getLendingPool());
+        const aV2ReserverData = await aaveV2LP.getReserveData(token);
+        const aV2Token = aV2ReserverData.aTokenAddress;
+        const aV2APR = BigNumber.from(aV2ReserverData.currentLiquidityRate).div(BigNumber.from("10").pow("9"));
+
+        const cToken = await contracts.aprOracle.cTokens(token);
+        const cAPR = cToken
+          ? BigNumber.from(await (await hre.ethers.getContractAt("ICompound", cToken)).supplyRatePerBlock()).mul(
+              await contracts.aprOracle.blocksPerYear(),
+            )
+          : BigNumber.from("0");
+        let expectedHash = "";
+        if (aV1APR.eq(0) && cAPR.eq(0) && aV2APR.eq(0)) {
+          expectedHash = ZERO_BYTES32;
+        } else {
+          let strategy = { contract: "", outputToken: "", isBorrow: false };
+
+          if (aV1APR.gt(cAPR)) {
+            if (aV1APR.gt(aV2APR)) {
+              strategy = { contract: aaveV1Provider.address, outputToken: aV1Token, isBorrow: false };
+            } else {
+              strategy = {
+                contract: await contracts.aprOracle.aaveV2Registry(),
+                outputToken: aV2Token,
+                isBorrow: false,
+              };
+            }
+          } else {
+            if (cAPR.gt(aV2APR)) {
+              strategy = { contract: cToken, outputToken: cToken, isBorrow: false };
+            } else {
+              strategy = {
+                contract: await contracts.aprOracle.aaveV2Registry(),
+                outputToken: aV2Token,
+                isBorrow: false,
+              };
+            }
+          }
+          expectedHash = generateStrategyHash([strategy], token);
+        }
+        const hash = await contracts.aprOracle.getBestAPR(tokenHash);
+        expect(hash).to.be.equal(expectedHash);
       }
     }
   });
