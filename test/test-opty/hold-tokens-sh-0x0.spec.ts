@@ -64,6 +64,7 @@ describe(scenarios.title, () => {
 
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
+
         const strategies = TypedAdapterStrategies[adaptersName[i]];
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
@@ -98,6 +99,9 @@ describe(scenarios.title, () => {
                   adapter.address,
                   strategy.strategy[0].contract,
                 );
+
+                await essentialContracts.strategyProvider.setDefaultStrategyState(0);
+
                 vaultRiskProfile = await Vault.riskProfileCode();
                 bestStrategyHash = await setBestStrategy(
                   strategy.strategy,
