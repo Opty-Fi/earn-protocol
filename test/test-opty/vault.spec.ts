@@ -1064,7 +1064,11 @@ describe(testVaultScenario.title, () => {
                     )[1];
                     if (action.expectedValue == ">") {
                       const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
-                      if ((rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) || !unpaused) {
+                      if (
+                        (rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) ||
+                        getAddress(rewardToken) == getAddress(TypedTokens.COMP) ||
+                        !unpaused
+                      ) {
                         expect(value).to.be.gt(0);
                       } else {
                         expect(value).to.be.eq(0);
