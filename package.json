@@ -95,7 +95,7 @@
     "prettier:check": "prettier --check --config ./.prettierrc.yaml \"**/*.{js,json,md,sol,ts}\"",
     "precompile": "yarn clean",
     "compile:waffle": "rimraf ./build && waffle .waffle.json",
-    "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat compile",
+    "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat --max-memory 406 compile",
     "watch:compile": "hardhat watch compilation",
     "watch:ci": "hardhat watch ci",
     "test": "env SKIP_LOAD=true hardhat test test/test-opty/*.spec.ts",
@@ -125,6 +125,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.1.7",
     "@openzeppelin/contracts": "3.4.0",
+    "@optyfi/defi-legos": "0.1.0-rc.9",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0"
   }
