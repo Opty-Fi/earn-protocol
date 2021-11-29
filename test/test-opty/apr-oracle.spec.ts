@@ -97,7 +97,7 @@ describe(scenario.title, async () => {
         for (let i = 0; i < scenario.usedStrategies.length; i++) {
           const strategyInfo = scenario.usedStrategies[i];
           const strategy = {
-            contract: TypedDefiPools[strategyInfo.adapterName][strategyInfo.token.toLowerCase()].lpToken,
+            contract: TypedDefiPools[strategyInfo.adapterName][strategyInfo.token.toLowerCase()].pool,
             outputToken: TypedDefiPools[strategyInfo.adapterName][strategyInfo.token.toLowerCase()].lpToken,
             isBorrow: false,
           };
