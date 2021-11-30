@@ -203,16 +203,16 @@ contract Vault is
         if (_vaultConfiguration.allowWhitelistedState) {
             _isUserWhitelisted(msg.sender);
         }
+        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
         if (_vaultConfiguration.isLimitedState == true) {
             require(
-                IERC20(underlyingToken).balanceOf(msg.sender) <=
-                    _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
                 "deposit exceeds userDepositCap"
             );
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender), _vaultStrategyConfiguration);
+        _userDepositRebalance(_amount, _vaultStrategyConfiguration);
     }
 
     /**
@@ -307,16 +307,16 @@ contract Vault is
         if (_vaultConfiguration.allowWhitelistedState) {
             _isUserWhitelisted(msg.sender);
         }
+        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
         if (_vaultConfiguration.isLimitedState == true) {
             require(
-                IERC20(underlyingToken).balanceOf(msg.sender) <=
-                    _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
                 "deposit exceeds userDepositCap"
             );
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender), _vaultStrategyConfiguration);
+        _userDepositRebalance(_amount, _vaultStrategyConfiguration);
     }
 
     /**

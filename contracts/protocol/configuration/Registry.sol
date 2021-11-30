@@ -508,7 +508,6 @@ contract Registry is IRegistry, ModifiersController {
     {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        require(_treasuryShares.length > 0, "length!>0");
         return _setTreasuryShares(_vault, _treasuryShares);
     }
 
@@ -523,10 +522,6 @@ contract Registry is IRegistry, ModifiersController {
     {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        require(
-            _withdrawalFee >= withdrawalFeeRange.lowerLimit && _withdrawalFee <= withdrawalFeeRange.upperLimit,
-            "!BasisRange"
-        );
         return _setWithdrawalFee(_vault, _withdrawalFee);
     }
 
@@ -1050,6 +1045,7 @@ contract Registry is IRegistry, ModifiersController {
         internal
         returns (bool)
     {
+        require(_treasuryShares.length > 0, "length!>0");
         uint256 _sharesSum;
         for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
             require(_treasuryShares[_i].treasury != address(0), "!address(0)");
@@ -1068,6 +1064,10 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     function _setWithdrawalFee(address _vault, uint256 _withdrawalFee) internal returns (bool) {
+        require(
+            _withdrawalFee >= withdrawalFeeRange.lowerLimit && _withdrawalFee <= withdrawalFeeRange.upperLimit,
+            "!BasisRange"
+        );
         vaultToVaultConfiguration[_vault].withdrawalFee = _withdrawalFee;
         return true;
     }

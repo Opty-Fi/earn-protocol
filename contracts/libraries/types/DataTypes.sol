@@ -165,7 +165,7 @@ library DataTypes {
      * @param unpaused If the vault contract is paused or unpaused
      * @param withdrawalFee withdrawal fee for a particular vault contract
      * @param treasuryShares Treasury accounts along with their shares
-     * @param isLimited If the vault contract has a limit for total user deposits
+     * @param isLimitedState If the vault contract has a limit for total user deposits
      * @param allowWhitelistedState If the vault contract require whitelisted users or not
      * @param userDepositCap Maximum total amount that can be deposited by an address
      * @param minimumDepositAmount Minimum deposit without rebalance allowed
