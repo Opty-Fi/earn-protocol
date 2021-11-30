@@ -507,52 +507,114 @@ contract StrategyManager is IStrategyManager, Modifiers {
         return _steps;
     }
 
-    function _getUpdateUserRewardsCodes(address _vault, address _from) internal view returns (bytes[] memory _codes) {
-        _codes = new bytes[](2);
+    function _getUpdateUserRewardsCodes(address _vault, address _from) internal view returns (bytes[] memory) {
         address _optyDistributor = registryContract.getOPTYDistributor();
         address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
-        _codes[0] = abi.encode(
-            _optyDistributor,
-            abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
-        );
-        _codes[1] = abi.encode(
-            _odefiVaultBooster,
-            abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
-        );
+        if (_optyDistributor != address(0) && _odefiVaultBooster != address(0)) {
+            bytes[] memory _codes = new bytes[](2);
+            _codes[0] = abi.encode(
+                _optyDistributor,
+                abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
+            );
+            _codes[1] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
+            );
+            return _codes;
+        }
+        if (_optyDistributor != address(0)) {
+            bytes[] memory _codes = new bytes[](1);
+            _codes[0] = abi.encode(
+                _optyDistributor,
+                abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
+            );
+            return _codes;
+        }
+        if (_odefiVaultBooster != address(0)) {
+            bytes[] memory _codes = new bytes[](1);
+            _codes[0] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateUserRewards(address,address)", _vault, _from)
+            );
+            return _codes;
+        }
     }
 
-    function _getUpdateRewardVaultRateAndIndexCodes(address _vault) internal view returns (bytes[] memory _codes) {
-        _codes = new bytes[](4);
+    function _getUpdateRewardVaultRateAndIndexCodes(address _vault) internal view returns (bytes[] memory) {
         address _optyDistributor = registryContract.getOPTYDistributor();
         address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
-        _codes[0] = abi.encode(
-            _optyDistributor,
-            abi.encodeWithSignature("updateOptyVaultRatePerSecondAndVaultToken(address)", _vault)
-        );
-        _codes[1] = abi.encode(_optyDistributor, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
-        _codes[2] = abi.encode(
-            _odefiVaultBooster,
-            abi.encodeWithSignature("updateOdefiVaultRatePerSecondAndVaultToken(address)", _vault)
-        );
-        _codes[3] = abi.encode(_odefiVaultBooster, abi.encodeWithSignature("updateOdefiVaultIndex(address)", _vault));
+
+        if (_optyDistributor != address(0) && _odefiVaultBooster != address(0)) {
+            bytes[] memory _codes = new bytes[](4);
+            _codes[0] = abi.encode(
+                _optyDistributor,
+                abi.encodeWithSignature("updateOptyVaultRatePerSecondAndVaultToken(address)", _vault)
+            );
+            _codes[1] = abi.encode(_optyDistributor, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
+            _codes[2] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateOdefiVaultRatePerSecondAndVaultToken(address)", _vault)
+            );
+            _codes[3] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateOdefiVaultIndex(address)", _vault)
+            );
+            return _codes;
+        }
+        if (_optyDistributor != address(0)) {
+            bytes[] memory _codes = new bytes[](2);
+            _codes[0] = abi.encode(
+                _optyDistributor,
+                abi.encodeWithSignature("updateOptyVaultRatePerSecondAndVaultToken(address)", _vault)
+            );
+            _codes[1] = abi.encode(_optyDistributor, abi.encodeWithSignature("updateOptyVaultIndex(address)", _vault));
+            return _codes;
+        }
+        if (_odefiVaultBooster != address(0)) {
+            bytes[] memory _codes = new bytes[](2);
+            _codes[0] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateOdefiVaultRatePerSecondAndVaultToken(address)", _vault)
+            );
+            _codes[1] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateOdefiVaultIndex(address)", _vault)
+            );
+            return _codes;
+        }
     }
 
-    function _getUpdateUserStateInVaultCodes(address _vault, address _from)
-        internal
-        view
-        returns (bytes[] memory _codes)
-    {
-        _codes = new bytes[](2);
+    function _getUpdateUserStateInVaultCodes(address _vault, address _from) internal view returns (bytes[] memory) {
         address _optyDistributor = registryContract.getOPTYDistributor();
         address _odefiVaultBooster = registryContract.getODEFIVaultBooster();
-        _codes[0] = abi.encode(
-            _optyDistributor,
-            abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
-        );
-        _codes[1] = abi.encode(
-            _odefiVaultBooster,
-            abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
-        );
+        if (_optyDistributor != address(0) && _odefiVaultBooster != address(0)) {
+            bytes[] memory _codes = new bytes[](2);
+            _codes[0] = abi.encode(
+                _optyDistributor,
+                abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
+            );
+            _codes[1] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
+            );
+            return _codes;
+        }
+        if (_optyDistributor != address(0)) {
+            bytes[] memory _codes = new bytes[](1);
+            _codes[0] = abi.encode(
+                _optyDistributor,
+                abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
+            );
+            return _codes;
+        }
+        if (_odefiVaultBooster != address(0)) {
+            bytes[] memory _codes = new bytes[](1);
+            _codes[0] = abi.encode(
+                _odefiVaultBooster,
+                abi.encodeWithSignature("updateUserStateInVault(address,address)", _vault, _from)
+            );
+            return _codes;
+        }
     }
 
     function _getLastStepLiquidityPool(bytes32 _investStrategyHash)
