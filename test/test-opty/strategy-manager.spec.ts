@@ -509,3 +509,382 @@ describe(scenario.title, () => {
     });
   }
 });
+
+describe("optyDistributor=ZERO_ADDRESS, odefiVaultBooster=ZERO_ADDRESS", () => {
+  const sideContracts: MOCK_CONTRACTS = {};
+  let strategyManager: Contract;
+  let testingStrategyManager: Contract;
+  let owner: Signer;
+  let ownerAddress: string;
+  before(async () => {
+    try {
+      [owner] = await hre.ethers.getSigners();
+      ownerAddress = await owner.getAddress();
+      sideContracts["registry"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.REGISTRY, []);
+      sideContracts["vault"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY, [
+        sideContracts["registry"].address,
+        100000000000000,
+      ]);
+      sideContracts["vault"].balanceOf.returns(100000000000000);
+      sideContracts["optyDistributor"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, [
+        sideContracts["registry"].address,
+        sideContracts["vault"].address,
+        1700000000,
+      ]);
+      sideContracts["vaultBooster"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.ODEFI_VAULT_BOOSTER, [
+        sideContracts["registry"].address,
+        sideContracts["vault"].address,
+      ]);
+
+      strategyManager = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS.STRATEGY_MANAGER,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [sideContracts["registry"].address],
+      );
+      testingStrategyManager = await deployContract(
+        hre,
+        TESTING_CONTRACTS.TEST_STRATEGY_MANAGER,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [],
+      );
+      sideContracts["registry"].getRiskOperator.returns(await owner.getAddress());
+      sideContracts["registry"].getOperator.returns(await owner.getAddress());
+      sideContracts["registry"].getOPTYDistributor.returns(ADDRESS_ZERO);
+      sideContracts["registry"].getODEFIVaultBooster.returns(ADDRESS_ZERO);
+      // await sideContracts["vaultBooster"].setODEFIRewarder(sideContracts["opty"].address, ownerAddress);
+      // await sideContracts["optyDistributor"].setOptyVaultRate(sideContracts["opty"].address, 1000);
+      // await sideContracts["vaultBooster"].setOdefiVaultRate(sideContracts["opty"].address, 1000);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+  for (let i = 0; i < scenario.standaloneStories.length; i++) {
+    const story = scenario.standaloneStories[i];
+    it(`${story.description}`, async () => {
+      for (let i = 0; i < story.setActions.length; i++) {
+        const action = story.setActions[i];
+        switch (action.action) {
+          case "testUpdateUserRewardsCodes(address,address,address)": {
+            await testingStrategyManager[action.action](
+              strategyManager.address,
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(await sideContracts["optyDistributor"].optyAccrued(ownerAddress)).to.equal(0);
+            expect(
+              await sideContracts["optyDistributor"].lastUserUpdate(sideContracts["vault"].address, ownerAddress),
+            ).to.equal(0);
+            expect(await sideContracts["vaultBooster"].odefiAccrued(ownerAddress)).to.equal(0);
+            expect(
+              await sideContracts["vaultBooster"].lastUserUpdate(sideContracts["vault"].address, ownerAddress),
+            ).to.equal(0);
+            break;
+          }
+          case "testUpdateUserStateInVaultCodes(address,address,address)": {
+            await testingStrategyManager[action.action](
+              strategyManager.address,
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+
+            let value = await sideContracts["optyDistributor"].optyUserStateInVault(
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(value.index).to.equal(0);
+            expect(value.timestamp).to.equal(0);
+
+            value = await sideContracts["vaultBooster"].odefiUserStateInVault(
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(value.index).to.equal(0);
+            expect(value.timestamp).to.equal(0);
+
+            break;
+          }
+          case "testUpdateRewardVaultRateAndIndexCodes(address,address)": {
+            await testingStrategyManager[action.action](strategyManager.address, sideContracts["vault"].address);
+            expect(
+              await sideContracts["optyDistributor"].optyVaultRatePerSecondAndVaultToken(
+                sideContracts["vault"].address,
+              ),
+            ).to.equal(0);
+            expect(
+              (await sideContracts["optyDistributor"].optyVaultState(sideContracts["vault"].address)).index,
+            ).to.equal(0);
+            expect(
+              await sideContracts["optyDistributor"].optyVaultStartTimestamp(sideContracts["vault"].address),
+            ).to.equal(0);
+
+            expect(
+              await sideContracts["vaultBooster"].odefiVaultRatePerSecondAndVaultToken(sideContracts["vault"].address),
+            ).to.equal(0);
+            expect(
+              (await sideContracts["vaultBooster"].odefiVaultState(sideContracts["vault"].address)).index,
+            ).to.equal(0);
+            expect(
+              await sideContracts["vaultBooster"].odefiVaultStartTimestamp(sideContracts["vault"].address),
+            ).to.equal(0);
+            break;
+          }
+        }
+      }
+    });
+  }
+});
+
+describe("optyDistributor=ZERO_ADDRESS", () => {
+  const sideContracts: MOCK_CONTRACTS = {};
+  let strategyManager: Contract;
+  let testingStrategyManager: Contract;
+  let owner: Signer;
+  let ownerAddress: string;
+  before(async () => {
+    try {
+      [owner] = await hre.ethers.getSigners();
+      ownerAddress = await owner.getAddress();
+      sideContracts["registry"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.REGISTRY, []);
+      sideContracts["vault"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY, [
+        sideContracts["registry"].address,
+        100000000000000,
+      ]);
+      sideContracts["vault"].balanceOf.returns(100000000000000);
+      sideContracts["optyDistributor"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, [
+        sideContracts["registry"].address,
+        sideContracts["vault"].address,
+        1700000000,
+      ]);
+      sideContracts["vaultBooster"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.ODEFI_VAULT_BOOSTER, [
+        sideContracts["registry"].address,
+        sideContracts["vault"].address,
+      ]);
+
+      strategyManager = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS.STRATEGY_MANAGER,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [sideContracts["registry"].address],
+      );
+      testingStrategyManager = await deployContract(
+        hre,
+        TESTING_CONTRACTS.TEST_STRATEGY_MANAGER,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [],
+      );
+      sideContracts["registry"].getRiskOperator.returns(await owner.getAddress());
+      sideContracts["registry"].getOperator.returns(await owner.getAddress());
+      sideContracts["registry"].getOPTYDistributor.returns(ADDRESS_ZERO);
+      sideContracts["registry"].getODEFIVaultBooster.returns(sideContracts["vaultBooster"].address);
+      await sideContracts["vaultBooster"].setODEFIRewarder(sideContracts["vault"].address, ownerAddress);
+      // await sideContracts["optyDistributor"].setOptyVaultRate(sideContracts["vault"].address, 1000);
+      await sideContracts["vaultBooster"].setOdefiVaultRate(sideContracts["vault"].address, 1000);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+  for (let i = 0; i < scenario.standaloneStories.length; i++) {
+    const story = scenario.standaloneStories[i];
+    it(`${story.description}`, async () => {
+      for (let i = 0; i < story.setActions.length; i++) {
+        const action = story.setActions[i];
+        switch (action.action) {
+          case "testUpdateUserRewardsCodes(address,address,address)": {
+            await testingStrategyManager[action.action](
+              strategyManager.address,
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(await sideContracts["optyDistributor"].optyAccrued(ownerAddress)).to.equal(0);
+            expect(
+              await sideContracts["optyDistributor"].lastUserUpdate(sideContracts["vault"].address, ownerAddress),
+            ).to.equal(0);
+            expect(await sideContracts["vaultBooster"].odefiAccrued(ownerAddress)).to.gt(0);
+            expect(
+              await sideContracts["vaultBooster"].lastUserUpdate(sideContracts["vault"].address, ownerAddress),
+            ).to.gt(0);
+            break;
+          }
+          case "testUpdateUserStateInVaultCodes(address,address,address)": {
+            await testingStrategyManager[action.action](
+              strategyManager.address,
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+
+            let value = await sideContracts["optyDistributor"].optyUserStateInVault(
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(value.index).to.equal(0);
+            expect(value.timestamp).to.equal(0);
+
+            value = await sideContracts["vaultBooster"].odefiUserStateInVault(
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(value.index).to.gt(0);
+            expect(value.timestamp).to.gt(0);
+
+            break;
+          }
+          case "testUpdateRewardVaultRateAndIndexCodes(address,address)": {
+            await testingStrategyManager[action.action](strategyManager.address, sideContracts["vault"].address);
+            expect(
+              await sideContracts["optyDistributor"].optyVaultRatePerSecondAndVaultToken(
+                sideContracts["vault"].address,
+              ),
+            ).to.equal(0);
+            expect(
+              (await sideContracts["optyDistributor"].optyVaultState(sideContracts["vault"].address)).index,
+            ).to.equal(0);
+            expect(
+              await sideContracts["optyDistributor"].optyVaultStartTimestamp(sideContracts["vault"].address),
+            ).to.equal(0);
+
+            expect(
+              await sideContracts["vaultBooster"].odefiVaultRatePerSecondAndVaultToken(sideContracts["vault"].address),
+            ).to.gt(0);
+            expect((await sideContracts["vaultBooster"].odefiVaultState(sideContracts["vault"].address)).index).to.gt(
+              0,
+            );
+            expect(await sideContracts["vaultBooster"].odefiVaultStartTimestamp(sideContracts["vault"].address)).to.gt(
+              0,
+            );
+            break;
+          }
+        }
+      }
+    });
+  }
+});
+
+describe("odefiVaultBooster=ZERO_ADDRESS", () => {
+  const sideContracts: MOCK_CONTRACTS = {};
+  let strategyManager: Contract;
+  let testingStrategyManager: Contract;
+  let owner: Signer;
+  let ownerAddress: string;
+  before(async () => {
+    try {
+      [owner] = await hre.ethers.getSigners();
+      ownerAddress = await owner.getAddress();
+      sideContracts["registry"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.REGISTRY, []);
+      sideContracts["vault"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY, [
+        sideContracts["registry"].address,
+        100000000000000,
+      ]);
+      sideContracts["vault"].balanceOf.returns(100000000000000);
+      sideContracts["optyDistributor"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.OPTY_DISTRIBUTOR, [
+        sideContracts["registry"].address,
+        sideContracts["vault"].address,
+        1700000000,
+      ]);
+      sideContracts["vaultBooster"] = await deploySmockContract(smock, ESSENTIAL_CONTRACTS.ODEFI_VAULT_BOOSTER, [
+        sideContracts["registry"].address,
+        sideContracts["vault"].address,
+      ]);
+
+      strategyManager = await deployContract(
+        hre,
+        ESSENTIAL_CONTRACTS.STRATEGY_MANAGER,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [sideContracts["registry"].address],
+      );
+      testingStrategyManager = await deployContract(
+        hre,
+        TESTING_CONTRACTS.TEST_STRATEGY_MANAGER,
+        TESTING_DEPLOYMENT_ONCE,
+        owner,
+        [],
+      );
+      sideContracts["registry"].getRiskOperator.returns(await owner.getAddress());
+      sideContracts["registry"].getOperator.returns(await owner.getAddress());
+      sideContracts["registry"].getOPTYDistributor.returns(sideContracts["optyDistributor"].address);
+      sideContracts["registry"].getODEFIVaultBooster.returns(ADDRESS_ZERO);
+      await sideContracts["optyDistributor"].setOptyVaultRate(sideContracts["vault"].address, 1000);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+  for (let i = 0; i < scenario.standaloneStories.length; i++) {
+    const story = scenario.standaloneStories[i];
+    it(`${story.description}`, async () => {
+      for (let i = 0; i < story.setActions.length; i++) {
+        const action = story.setActions[i];
+        switch (action.action) {
+          case "testUpdateUserRewardsCodes(address,address,address)": {
+            await testingStrategyManager[action.action](
+              strategyManager.address,
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(await sideContracts["optyDistributor"].optyAccrued(ownerAddress)).to.gt(0);
+            expect(
+              await sideContracts["optyDistributor"].lastUserUpdate(sideContracts["vault"].address, ownerAddress),
+            ).to.gt(0);
+            expect(await sideContracts["vaultBooster"].odefiAccrued(ownerAddress)).to.equal(0);
+            expect(
+              await sideContracts["vaultBooster"].lastUserUpdate(sideContracts["vault"].address, ownerAddress),
+            ).to.equal(0);
+            break;
+          }
+          case "testUpdateUserStateInVaultCodes(address,address,address)": {
+            await testingStrategyManager[action.action](
+              strategyManager.address,
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+
+            let value = await sideContracts["optyDistributor"].optyUserStateInVault(
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(value.index).to.gt(0);
+            expect(value.timestamp).to.gt(0);
+
+            value = await sideContracts["vaultBooster"].odefiUserStateInVault(
+              sideContracts["vault"].address,
+              ownerAddress,
+            );
+            expect(value.index).to.equal(0);
+            expect(value.timestamp).to.equal(0);
+
+            break;
+          }
+          case "testUpdateRewardVaultRateAndIndexCodes(address,address)": {
+            await testingStrategyManager[action.action](strategyManager.address, sideContracts["vault"].address);
+            expect(
+              await sideContracts["optyDistributor"].optyVaultRatePerSecondAndVaultToken(
+                sideContracts["vault"].address,
+              ),
+            ).to.gt(0);
+            expect((await sideContracts["optyDistributor"].optyVaultState(sideContracts["vault"].address)).index).to.gt(
+              0,
+            );
+            expect(
+              await sideContracts["optyDistributor"].optyVaultStartTimestamp(sideContracts["vault"].address),
+            ).to.gt(0);
+
+            expect(
+              await sideContracts["vaultBooster"].odefiVaultRatePerSecondAndVaultToken(sideContracts["vault"].address),
+            ).to.equal(0);
+            expect(
+              (await sideContracts["vaultBooster"].odefiVaultState(sideContracts["vault"].address)).index,
+            ).to.equal(0);
+            expect(
+              await sideContracts["vaultBooster"].odefiVaultStartTimestamp(sideContracts["vault"].address),
+            ).to.equal(0);
+            break;
+          }
+        }
+      }
+    });
+  }
+});
