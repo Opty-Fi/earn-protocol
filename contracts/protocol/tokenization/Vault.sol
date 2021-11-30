@@ -306,6 +306,12 @@ contract Vault is
 
     /**
      * @inheritdoc IVault
+     * @notice writable function to compute price per share of the vault
+     *         Note : This function does add amount of underlying tokens that
+     *         are available when reward tokens are claimed and
+     *         swapped into vault's underlying token. This function call is useful
+     *         when strategy involves protocols like Curve, Compound etc that requires write
+     *         to get the amount of unclaimed reward tokens.
      */
     function getPricePerFullShareWrite() external override returns (uint256) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
@@ -336,6 +342,13 @@ contract Vault is
 
     /**
      * @inheritdoc IVault
+     * @notice read-only function to compute price per share of the vault
+     *         Note : This function does not add amount of underlying tokens that
+     *         are available when reward tokens are claimed and
+     *         swapped into vault's underlying token. If the protocol of the current
+     *         strategy of the vault allows to read unclaimed reward token for free than a
+     *         read call to this function shall add amount of underlying token available when
+     *         unclaimed tokens are swapped into vault's underlying token.
      */
     function getPricePerFullShare() public view override returns (uint256) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
@@ -754,7 +767,10 @@ contract Vault is
     }
 
     /**
-     * @dev Mechanism to stop the vault value deviating from maxVaultValueJump
+     * @notice It checks the min/max balance of the first transaction of the current block
+     *         with the value from the previous block.
+     *         It is not a protection against flash loan attacks rather just an arbitrary sanity check.
+     * @dev Mechanism to restrict the vault value deviating from maxVaultValueJump
      * @param _vaultValue The underlying token balance in the vault
      */
     function _emergencyBrake(uint256 _vaultValue) private {
