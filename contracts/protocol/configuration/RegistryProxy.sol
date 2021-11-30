@@ -50,7 +50,6 @@ contract RegistryProxy is RegistryStorage, ModifiersController {
         setRiskOperator(msg.sender);
         setStrategyOperator(msg.sender);
         setOperator(msg.sender);
-        setOPTYDistributor(msg.sender);
     }
 
     /* solhint-disable */
