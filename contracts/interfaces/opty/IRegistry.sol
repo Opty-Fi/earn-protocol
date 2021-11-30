@@ -14,21 +14,24 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  */
 interface IRegistry {
     /**
-     * @notice Set the treasury accounts with their fee shares corresponding to vault contract
-     * @param _vault Vault contract address
-     * @param _treasuryShares Array of treasuries and their fee shares
-     * @return Returns a boolean value indicating whether the operation succeeded
-     */
-    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
-        external
-        returns (bool);
-
-    /**
      * @notice Set the treasury's address for optyfi's earn protocol
      * @param _treasury Treasury's address
      * @return Returns a boolean value indicating whether the operation succeeded
      */
     function setTreasury(address _treasury) external returns (bool);
+
+    /**
+     * @notice Whitelist users that are allowed to deposit
+     * @param _vault The vault in which the user is going to be whitelisted or not
+     * @param _user The user to be whitelisted
+     * @param _whitelist Allow user to deposit if true
+     * @return Returns a boolean value indicating whether the operation succeeded
+     */
+    function setWhitelistedUser(
+        address _vault,
+        address _user,
+        bool _whitelist
+    ) external returns (bool);
 
     /**
      * @notice Set the investStrategyRegistry contract address
@@ -268,14 +271,6 @@ interface IRegistry {
         returns (bool _success);
 
     /**
-     * @notice Set the withdrawal fee for the vault contract
-     * @param _vault Vault contract address
-     * @param _withdrawalFee Withdrawal fee to be set for vault contract
-     * @return _success Returns a boolean value indicating whether the operation succeeded
-     */
-    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external returns (bool _success);
-
-    /**
      * @notice Maps mulitple underlying tokens to risk profiles to vault contracts address
      * @param _vaults List of Vault contract address
      * @param _riskProfileCodes List of Risk profile codes mapped to the vault contract
@@ -286,6 +281,25 @@ interface IRegistry {
         address[][] memory _underlyingAssets,
         uint256[] memory _riskProfileCodes,
         address[][] memory _vaults
+    ) external returns (bool);
+
+    /**
+     * @notice Set the complete vault configuration
+     * @param _vault Vault address to be configured
+     * @param _unpaused A boolean value true to unpause vault contract and false for pause vault contract
+     * @return A boolean value indicating whether operation is succeeded
+     */
+    function setVaultConfiguration(
+        address _vault,
+        bool _discontinued,
+        bool _unpaused,
+        bool _isLimitedState,
+        bool _allowWhitelistedState,
+        DataTypes.TreasuryShare[] memory _treasuryShares,
+        uint256 _withdrawalFee,
+        uint256 _userDepositCap,
+        uint256 _minimumDepositAmount,
+        uint256 _queueCap
     ) external returns (bool);
 
     /**
@@ -306,9 +320,34 @@ interface IRegistry {
     /**
      * @notice Enable or disable the limit on user deposits
      * @param _vault Vault contract address
-     * @param _isLimited A boolean value true to limit user deposits and false to unlimit user deposits
+     * @param _isLimitedState A boolean value true to limit user deposits and false to unlimit user deposits
      */
-    function setLimitStatus(address _vault, bool _isLimited) external returns (bool);
+    function setIsLimitedState(address _vault, bool _isLimitedState) external returns (bool);
+
+    /**
+     * @notice Enable or disable the limit on user deposits
+     * @param _vault Vault contract address
+     * @param _allowWhitelistedState A boolean value true to only allow whitelisted users' deposits
+     */
+    function setAllowWhitelistedState(address _vault, bool _allowWhitelistedState) external returns (bool);
+
+    /**
+     * @notice Set the treasury accounts with their fee shares corresponding to vault contract
+     * @param _vault Vault contract address
+     * @param _treasuryShares Array of treasuries and their fee shares
+     * @return Returns a boolean value indicating whether the operation succeeded
+     */
+    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
+        external
+        returns (bool);
+
+    /**
+     * @notice Set the withdrawal fee for the vault contract
+     * @param _vault Vault contract address
+     * @param _withdrawalFee Withdrawal fee to be set for vault contract
+     * @return _success Returns a boolean value indicating whether the operation succeeded
+     */
+    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external returns (bool _success);
 
     /**
      * @notice Set the maximum total deposits in a Vault for each user
@@ -575,5 +614,5 @@ interface IRegistry {
      * @param _user User address for which to check if it is whitelisted or not
      * @return _isUserWhitelisted Returns a boolean for user whitelisted or not
      */
-    function isUserWhitelisted(address _user) external view returns (bool _isUserWhitelisted);
+    function isUserWhitelisted(address _vault, address _user) external view returns (bool _isUserWhitelisted);
 }

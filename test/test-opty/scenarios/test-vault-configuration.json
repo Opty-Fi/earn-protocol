@@ -7,13 +7,13 @@
       "riskProfileCode": 1,
       "stories": [
         {
-          "description": "setLimitStatus should fail if caller is not the operator",
+          "description": "setIsLimitedState should fail if caller is not the operator",
           "setActions": [
             {
               "contract": "registry",
-              "action": "setLimitStatus(address,bool)",
+              "action": "setIsLimitedState(address,bool)",
               "args": {
-                "limitStatus": true
+                "state": true
               },
               "executor": 2,
               "expect": "fail",
@@ -24,13 +24,13 @@
           "cleanActions": []
         },
         {
-          "description": "setLimitStatus should set the limit status of the vault if caller is the operator",
+          "description": "setIsLimitedState should set the limit state of the vault if caller is the operator",
           "setActions": [
             {
               "contract": "registry",
-              "action": "setLimitStatus(address,bool)",
+              "action": "setIsLimitedState(address,bool)",
               "args": {
-                "limitStatus": true
+                "state": true
               },
               "executor": 0,
               "expect": "success",
@@ -143,6 +143,40 @@
           "cleanActions": []
         },
         {
+          "description": "setAllowWhitelistedState should fail if caller is not the operator",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setAllowWhitelistedState(address,bool)",
+              "args": {
+                "state": true
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "caller is not the operator"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setAllowWhitelistedState should set the whitelist state of the vault if caller is the operator",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setAllowWhitelistedState(address,bool)",
+              "args": {
+                "state": true
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
           "description": "user should not be able to deposit if he is not whitelisted",
           "setActions": [
             {
@@ -173,7 +207,7 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "user is not whitelisted"
+              "message": "!whitelistedUser"
             }
           ],
           "getActions": [],
@@ -184,7 +218,7 @@
           "setActions": [
             {
               "contract": "registry",
-              "action": "setWhitelisted(address,bool)",
+              "action": "setWhitelistedUser(address,address,bool)",
               "args": {
                 "user": 2,
                 "whitelisted": true
@@ -422,6 +456,48 @@
                 "value": 90000000
               },
               "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setVaultConfiguration should fail if caller is not the operator",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
+              "args": {
+                "state": true,
+                "value": 1000000,
+                "fee": 1000,
+                "shares": 500,
+                "queueCap": 10
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "caller is not the operator"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setVaultConfiguration should set the complete configuration of the vault if caller is the operator",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
+              "args": {
+                "state": true,
+                "value": 1000000,
+                "fee": 1000,
+                "shares": 500,
+                "queueCap": 10
+              },
+              "executor": 0,
               "expect": "success",
               "message": ""
             }

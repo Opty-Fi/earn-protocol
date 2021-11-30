@@ -52,9 +52,8 @@ interface IVault {
      * @notice A cheap function to deposit _amount of underlying token to the vault
      * @dev the user will receive vault shares on next rebalance
      * @param _amount the amount of the underlying token to be deposited
-     * @return returns true on successful depositing underlying token without rebalance
      */
-    function userDeposit(uint256 _amount) external returns (bool);
+    function userDeposit(uint256 _amount) external;
 
     /**
      * @notice Deposit full balance in underlying token of the caller and rebalance
@@ -66,9 +65,8 @@ interface IVault {
      * @notice Deposit amount of underlying token of caller and rebalance
      * @dev the vault shares are minted right away
      * @param _amount the amount of the underlying token
-     * @return returns true on successful deposit of the underlying token
      */
-    function userDepositRebalance(uint256 _amount) external returns (bool);
+    function userDepositRebalance(uint256 _amount) external;
 
     /**
      * @notice Redeem full balance of vault shares for getting yield optimized underlying tokens
@@ -80,9 +78,8 @@ interface IVault {
      * @notice Redeem the amount of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault
      * @param _redeemAmount the vault shares to redeem
-     * @return bool returns true on successful redemption of the vault shares
      */
-    function userWithdrawRebalance(uint256 _redeemAmount) external returns (bool);
+    function userWithdrawRebalance(uint256 _redeemAmount) external;
 
     /**
      * @notice A cheap function to deposit whole underlying token's balance of caller

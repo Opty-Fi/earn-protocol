@@ -46,12 +46,14 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     /**
-     * @dev Whitelist users that are allowed to deposit
-     * @param _user The user to be whitelisted
-     * @param _whitelist Allow user to deposit if true
+     * @inheritdoc IRegistry
      */
-    function setWhitelisted(address _user, bool _whitelist) external onlyOperator returns (bool) {
-        whitelistedUsers[_user] = _whitelist;
+    function setWhitelistedUser(
+        address _vault,
+        address _user,
+        bool _whitelist
+    ) external override onlyOperator returns (bool) {
+        whitelistedUsers[_vault][_user] = _whitelist;
         return true;
     }
 
@@ -366,25 +368,6 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setWithdrawalFee(address _vault, uint256 _withdrawalFee)
-        external
-        override
-        onlyFinanceOperator
-        returns (bool)
-    {
-        require(_vault != address(0), "!address(0)");
-        require(_vault.isContract(), "!isContract");
-        require(
-            _withdrawalFee >= withdrawalFeeRange.lowerLimit && _withdrawalFee <= withdrawalFeeRange.upperLimit,
-            "!BasisRange"
-        );
-        vaultToVaultConfiguration[_vault].withdrawalFee = _withdrawalFee;
-        return true;
-    }
-
-    /**
-     * @inheritdoc IRegistry
-     */
     function setWithdrawalFeeRange(DataTypes.WithdrawalFeeRange memory _withdrawalFeeRange)
         external
         override
@@ -398,35 +381,6 @@ contract Registry is IRegistry, ModifiersController {
             "!BasisRange"
         );
         withdrawalFeeRange = _withdrawalFeeRange;
-        return true;
-    }
-
-    /**
-     * @inheritdoc IRegistry
-     */
-    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
-        external
-        override
-        onlyFinanceOperator
-        returns (bool)
-    {
-        require(_vault != address(0), "!address(0)");
-        require(_vault.isContract(), "!isContract");
-        require(_treasuryShares.length > 0, "length!>0");
-        uint256 _sharesSum = 0;
-        for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
-            require(_treasuryShares[_i].treasury != address(0), "!address(0)");
-            _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
-        }
-        require(_sharesSum == vaultToVaultConfiguration[_vault].withdrawalFee, "FeeShares!=WithdrawalFee");
-
-        //  delete the existing the treasury accounts if any to reset them
-        if (vaultToVaultConfiguration[_vault].treasuryShares.length > 0) {
-            delete vaultToVaultConfiguration[_vault].treasuryShares;
-        }
-        for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
-            vaultToVaultConfiguration[_vault].treasuryShares.push(_treasuryShares[_i]);
-        }
         return true;
     }
 
@@ -455,13 +409,60 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
+    function setVaultConfiguration(
+        address _vault,
+        bool _discontinued,
+        bool _unpaused,
+        bool _isLimitedState,
+        bool _allowWhitelistedState,
+        DataTypes.TreasuryShare[] memory _treasuryShares,
+        uint256 _withdrawalFee,
+        uint256 _userDepositCap,
+        uint256 _minimumDepositAmount,
+        uint256 _queueCap
+    ) external override onlyOperator returns (bool) {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        DataTypes.VaultConfiguration memory _vaultToVaultConfiguration = vaultToVaultConfiguration[_vault];
+        if (_discontinued == true) {
+            _discontinue(_vault);
+        }
+        if (_vaultToVaultConfiguration.unpaused != _unpaused) {
+            _unpauseVaultContract(_vault, _unpaused);
+        }
+        if (_vaultToVaultConfiguration.isLimitedState != _isLimitedState) {
+            _setIsLimitedState(_vault, _isLimitedState);
+        }
+        if (_vaultToVaultConfiguration.allowWhitelistedState != _allowWhitelistedState) {
+            _setAllowWhitelistedState(_vault, _allowWhitelistedState);
+        }
+        if (_vaultToVaultConfiguration.withdrawalFee != _withdrawalFee) {
+            _setWithdrawalFee(_vault, _withdrawalFee);
+        }
+        if (
+            keccak256(abi.encode(_vaultToVaultConfiguration.treasuryShares)) != keccak256(abi.encode(_treasuryShares))
+        ) {
+            _setTreasuryShares(_vault, _treasuryShares);
+        }
+        if (_vaultToVaultConfiguration.userDepositCap != _userDepositCap) {
+            _setUserDepositCap(_vault, _userDepositCap);
+        }
+        if (_vaultToVaultConfiguration.minimumDepositAmount != _minimumDepositAmount) {
+            _setMinimumDepositAmount(_vault, _minimumDepositAmount);
+        }
+        if (_vaultToVaultConfiguration.queueCap != _queueCap) {
+            _setQueueCap(_vault, _queueCap);
+        }
+        return true;
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
     function discontinue(address _vault) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        vaultToVaultConfiguration[_vault].discontinued = true;
-        IVault(_vault).discontinue();
-        emit LogDiscontinueVault(_vault, vaultToVaultConfiguration[_vault].discontinued, msg.sender);
-        return true;
+        return _discontinue(_vault);
     }
 
     /**
@@ -470,21 +471,63 @@ contract Registry is IRegistry, ModifiersController {
     function unpauseVaultContract(address _vault, bool _unpaused) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        vaultToVaultConfiguration[_vault].unpaused = _unpaused;
-        IVault(_vault).setUnpaused(vaultToVaultConfiguration[_vault].unpaused);
-        emit LogUnpauseVault(_vault, vaultToVaultConfiguration[_vault].unpaused, msg.sender);
-        return true;
+        return _unpauseVaultContract(_vault, _unpaused);
     }
 
     /**
      * @inheritdoc IRegistry
      */
-    function setLimitStatus(address _vault, bool _isLimited) external override onlyOperator returns (bool) {
+    function setIsLimitedState(address _vault, bool _isLimitedState) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        vaultToVaultConfiguration[_vault].isLimited = _isLimited;
-        emit LogLimitStatusVault(_vault, vaultToVaultConfiguration[_vault].isLimited, msg.sender);
-        return true;
+        return _setIsLimitedState(_vault, _isLimitedState);
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setAllowWhitelistedState(address _vault, bool _allowWhitelistedState)
+        external
+        override
+        onlyOperator
+        returns (bool)
+    {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        return _setAllowWhitelistedState(_vault, _allowWhitelistedState);
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
+        external
+        override
+        onlyFinanceOperator
+        returns (bool)
+    {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        require(_treasuryShares.length > 0, "length!>0");
+        return _setTreasuryShares(_vault, _treasuryShares);
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setWithdrawalFee(address _vault, uint256 _withdrawalFee)
+        external
+        override
+        onlyFinanceOperator
+        returns (bool)
+    {
+        require(_vault != address(0), "!address(0)");
+        require(_vault.isContract(), "!isContract");
+        require(
+            _withdrawalFee >= withdrawalFeeRange.lowerLimit && _withdrawalFee <= withdrawalFeeRange.upperLimit,
+            "!BasisRange"
+        );
+        return _setWithdrawalFee(_vault, _withdrawalFee);
     }
 
     /**
@@ -493,9 +536,7 @@ contract Registry is IRegistry, ModifiersController {
     function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        vaultToVaultConfiguration[_vault].userDepositCap = _userDepositCap;
-        emit LogUserDepositCapVault(_vault, vaultToVaultConfiguration[_vault].userDepositCap, msg.sender);
-        return true;
+        return _setUserDepositCap(_vault, _userDepositCap);
     }
 
     /**
@@ -509,9 +550,7 @@ contract Registry is IRegistry, ModifiersController {
     {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        vaultToVaultConfiguration[_vault].minimumDepositAmount = _minimumDepositAmount;
-        emit LogMinimumDepositAmountVault(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
-        return true;
+        return _setMinimumDepositAmount(_vault, _minimumDepositAmount);
     }
 
     /**
@@ -520,9 +559,7 @@ contract Registry is IRegistry, ModifiersController {
     function setQueueCap(address _vault, uint256 _queueCap) external override onlyOperator returns (bool) {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        vaultToVaultConfiguration[_vault].queueCap = _queueCap;
-        emit LogQueueCapVault(_vault, vaultToVaultConfiguration[_vault].queueCap, msg.sender);
-        return true;
+        return _setQueueCap(_vault, _queueCap);
     }
 
     /**
@@ -804,8 +841,8 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function isUserWhitelisted(address _user) public view override returns (bool) {
-        return whitelistedUsers[_user];
+    function isUserWhitelisted(address _vault, address _user) public view override returns (bool) {
+        return whitelistedUsers[_vault][_user];
     }
 
     function _approveToken(address _token) internal returns (bool) {
@@ -980,6 +1017,76 @@ contract Registry is IRegistry, ModifiersController {
             riskProfiles[_riskProfileCode].canBorrow,
             msg.sender
         );
+        return true;
+    }
+
+    function _discontinue(address _vault) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].discontinued = true;
+        IVault(_vault).discontinue();
+        emit LogDiscontinueVault(_vault, vaultToVaultConfiguration[_vault].discontinued, msg.sender);
+        return true;
+    }
+
+    function _unpauseVaultContract(address _vault, bool _unpaused) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].unpaused = _unpaused;
+        IVault(_vault).setUnpaused(vaultToVaultConfiguration[_vault].unpaused);
+        emit LogUnpauseVault(_vault, vaultToVaultConfiguration[_vault].unpaused, msg.sender);
+        return true;
+    }
+
+    function _setIsLimitedState(address _vault, bool _isLimitedState) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].isLimitedState = _isLimitedState;
+        emit LogLimitStateVault(_vault, vaultToVaultConfiguration[_vault].isLimitedState, msg.sender);
+        return true;
+    }
+
+    function _setAllowWhitelistedState(address _vault, bool _allowWhitelistedState) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].allowWhitelistedState = _allowWhitelistedState;
+        emit LogAllowWhitelistedStateVault(_vault, vaultToVaultConfiguration[_vault].allowWhitelistedState, msg.sender);
+        return true;
+    }
+
+    function _setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
+        internal
+        returns (bool)
+    {
+        uint256 _sharesSum;
+        for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
+            require(_treasuryShares[_i].treasury != address(0), "!address(0)");
+            _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
+        }
+        require(_sharesSum == vaultToVaultConfiguration[_vault].withdrawalFee, "FeeShares!=WithdrawalFee");
+
+        //  delete the existing the treasury accounts if any to reset them
+        if (vaultToVaultConfiguration[_vault].treasuryShares.length > 0) {
+            delete vaultToVaultConfiguration[_vault].treasuryShares;
+        }
+        for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
+            vaultToVaultConfiguration[_vault].treasuryShares.push(_treasuryShares[_i]);
+        }
+        return true;
+    }
+
+    function _setWithdrawalFee(address _vault, uint256 _withdrawalFee) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].withdrawalFee = _withdrawalFee;
+        return true;
+    }
+
+    function _setUserDepositCap(address _vault, uint256 _userDepositCap) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].userDepositCap = _userDepositCap;
+        emit LogUserDepositCapVault(_vault, vaultToVaultConfiguration[_vault].userDepositCap, msg.sender);
+        return true;
+    }
+
+    function _setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].minimumDepositAmount = _minimumDepositAmount;
+        emit LogMinimumDepositAmountVault(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
+        return true;
+    }
+
+    function _setQueueCap(address _vault, uint256 _queueCap) internal returns (bool) {
+        vaultToVaultConfiguration[_vault].queueCap = _queueCap;
+        emit LogQueueCapVault(_vault, vaultToVaultConfiguration[_vault].queueCap, msg.sender);
         return true;
     }
 

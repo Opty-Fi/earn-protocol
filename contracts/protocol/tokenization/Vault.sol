@@ -66,7 +66,7 @@ contract Vault is
         Modifiers(_registry)
     {}
 
-    /* solhint-disable no-empty-blocks */
+    /* solhint-enable no-empty-blocks */
 
     /**
      * @dev Initialize the vault
@@ -160,21 +160,56 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositAll() external override {
-        _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        _isQueueFull(_vaultConfiguration);
+        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
+        _userDeposit(_amount);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userDeposit(uint256 _amount) external override returns (bool) {
-        require(_userDeposit(_amount), "userDeposit");
-        return true;
+    function userDeposit(uint256 _amount) external override {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        _isQueueFull(_vaultConfiguration);
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
+        _userDeposit(_amount);
     }
 
     /**
      * @inheritdoc IVault
      */
     function userDepositAllRebalance() external override {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                IERC20(underlyingToken).balanceOf(msg.sender) <=
+                    _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender), _vaultStrategyConfiguration);
@@ -183,11 +218,20 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositRebalance(uint256 _amount) external override returns (bool) {
+    function userDepositRebalance(uint256 _amount) external override {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userDepositRebalance(_amount, _vaultStrategyConfiguration);
-        return true;
     }
 
     /**
@@ -196,30 +240,62 @@ contract Vault is
     function userWithdrawAllRebalance() external override {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
         _userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawRebalance(uint256 _redeemAmount) external override returns (bool) {
+    function userWithdrawRebalance(uint256 _redeemAmount) external override {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
         _userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration);
-        return true;
     }
 
     /**
      * @inheritdoc IVault
      */
     function userDepositAllWithCHI() external override discountCHI {
-        _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        _isQueueFull(_vaultConfiguration);
+        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
+        _userDeposit(_amount);
     }
 
     /**
      * @inheritdoc IVault
      */
     function userDepositWithCHI(uint256 _amount) external override discountCHI {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        _isQueueFull(_vaultConfiguration);
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "deposit < minimumDepositAmount");
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
         _userDeposit(_amount);
     }
 
@@ -227,6 +303,17 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositAllRebalanceWithCHI() external override discountCHI {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                IERC20(underlyingToken).balanceOf(msg.sender) <=
+                    _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender), _vaultStrategyConfiguration);
@@ -236,6 +323,16 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositRebalanceWithCHI(uint256 _amount) external override discountCHI {
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
+        if (_vaultConfiguration.isLimitedState == true) {
+            require(
+                _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]),
+                "deposit exceeds userDepositCap"
+            );
+        }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _userDepositRebalance(_amount, _vaultStrategyConfiguration);
@@ -247,6 +344,10 @@ contract Vault is
     function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
         _userWithdrawRebalance(_redeemAmount, _vaultStrategyConfiguration);
     }
 
@@ -256,6 +357,10 @@ contract Vault is
     function userWithdrawAllRebalanceWithCHI() external override discountCHI {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
+        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        if (_vaultConfiguration.allowWhitelistedState) {
+            _isUserWhitelisted(msg.sender);
+        }
         _userWithdrawRebalance(balanceOf(msg.sender), _vaultStrategyConfiguration);
     }
 
@@ -474,8 +579,9 @@ contract Vault is
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
         queue.push(DataTypes.UserDepositOperation(msg.sender, _actualDepositAmount));
-        pendingDeposits[msg.sender] += _actualDepositAmount;
-        depositQueue += _actualDepositAmount;
+        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
+        pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
+        depositQueue = depositQueue.add(_actualDepositAmount);
         emit DepositQueue(msg.sender, queue.length, _actualDepositAmount);
         return true;
     }
@@ -499,8 +605,8 @@ contract Vault is
                 "!updateUserRewards"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
-            pendingDeposits[msg.sender] -= queue[i].value;
-            depositQueue -= queue[i].value;
+            pendingDeposits[queue[i].account] = pendingDeposits[queue[i].account].sub(queue[i].value);
+            depositQueue = depositQueue.sub(queue[i].value);
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
                     address(this),
@@ -541,7 +647,7 @@ contract Vault is
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
-
+        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         uint256 shares = 0;
         if (_tokenBalanceBefore == 0 || totalSupply() == 0) {
             shares = _actualDepositAmount;
@@ -711,6 +817,22 @@ contract Vault is
     }
 
     /**
+     * @notice Function to check wether the depositQueue is full or not
+     */
+    function _isQueueFull(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view {
+        if (_vaultConfiguration.queueCap != uint256(0)) {
+            require(getDepositQueue().length < _vaultConfiguration.queueCap, "queue is full");
+        }
+    }
+
+    /**
+     * @notice Function to check wether the user is whitelisted or not
+     */
+    function _isUserWhitelisted(address _user) internal view {
+        require(registryContract.isUserWhitelisted(address(this), _user), "!whitelistedUser");
+    }
+
+    /**
      * @dev Internal function to get the underlying token balance of vault
      * @return underlying asset balance in this vault
      */
@@ -814,6 +936,8 @@ contract Vault is
     ) private {
         if (_balanceInUnderlyingToken > depositQueue) {
             _mint(_account, (_depositAmount.mul(totalSupply())).div(_balanceInUnderlyingToken.sub(depositQueue)));
+        } else if (_balanceInUnderlyingToken == depositQueue) {
+            _mint(_account, _depositAmount);
         }
     }
 }

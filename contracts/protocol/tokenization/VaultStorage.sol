@@ -24,6 +24,11 @@ contract VaultStorage {
     mapping(address => uint256) public pendingDeposits;
 
     /**
+     * @dev Mapping of user account against total deposited amount
+     */
+    mapping(address => uint256) public totalDeposits;
+
+    /**
      * @dev Map the underlying token in vault to the current block for emergency brakes
      */
     mapping(uint256 => DataTypes.BlockVaultValue[]) public blockToBlockVaultValues;

@@ -156,9 +156,9 @@ contract RegistryStorage is RegistryAdminStorage {
     mapping(address => DataTypes.VaultConfiguration) public vaultToVaultConfiguration;
 
     /**
-     * @dev Mapping of users that are allowed to interact with the vaults
+     * @dev Mapping of users that are allowed to interact with a given vault
      */
-    mapping(address => bool) public whitelistedUsers;
+    mapping(address => mapping(address => bool)) public whitelistedUsers;
 
     /**
      * @notice withdrawal fee's range
@@ -299,10 +299,22 @@ contract RegistryStorage is RegistryAdminStorage {
     /**
      * @notice Emitted when setLimitStatus is called
      * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
-     * @param isLimited Limit status of OptyFi's Vault contract - false (if not limited) and true (if limited)
+     * @param isLimitedState Limit state of OptyFi's Vault contract - false (if not limited) and true (if limited)
      * @param caller Address of user who has called the respective function to trigger this event
      */
-    event LogLimitStatusVault(address indexed vault, bool indexed isLimited, address indexed caller);
+    event LogLimitStateVault(address indexed vault, bool indexed isLimitedState, address indexed caller);
+
+    /**
+     * @notice Emitted when setLimitStatus is called
+     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogAllowWhitelistedStateVault(
+        address indexed vault,
+        bool indexed allowWhitelistedState,
+        address indexed caller
+    );
 
     /**
      * @notice Emitted when setUserDepositCap is called

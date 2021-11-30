@@ -328,61 +328,6 @@ export async function deployVault(
   return vault;
 }
 
-export async function deployAlphaVault(
-  hre: HardhatRuntimeEnvironment,
-  registry: string,
-  underlyingToken: string,
-  owner: Signer,
-  admin: Signer,
-  underlyingTokenName: string,
-  underlyingTokenSymbol: string,
-  riskProfileCode: number,
-  isDeployedOnce: boolean,
-): Promise<Contract> {
-  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.REGISTRY, registry, owner);
-
-  const riskProfile = await registryContract.getRiskProfile(riskProfileCode);
-
-  let alphaVault = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.ALPHA_VAULT, isDeployedOnce, owner, [
-    registry,
-    underlyingTokenName,
-    underlyingTokenSymbol,
-    riskProfile.name,
-    riskProfile.symbol,
-  ]);
-
-  const adminAddress = await admin.getAddress();
-
-  const vaultProxy = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY, isDeployedOnce, owner, [
-    adminAddress,
-  ]);
-
-  await executeFunc(vaultProxy, admin, "upgradeTo(address)", [alphaVault.address]);
-
-  alphaVault = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.ALPHA_VAULT, vaultProxy.address, owner);
-
-  await executeFunc(alphaVault, owner, "initialize(address,address,string,string,uint256)", [
-    registry,
-    underlyingToken,
-    underlyingTokenName,
-    underlyingTokenSymbol,
-    riskProfileCode,
-  ]);
-
-  await expect(
-    registryContract
-      .connect(owner)
-      ["setUnderlyingAssetHashToRPToVaults(address[],uint256,address)"](
-        [underlyingToken],
-        riskProfileCode,
-        alphaVault.address,
-      ),
-  )
-    .to.emit(registryContract, "LogUnderlyingAssetHashToRPToVaults")
-    .withArgs(generateTokenHash([underlyingToken]), riskProfileCode, alphaVault.address, await owner.getAddress());
-  return alphaVault;
-}
-
 export async function deployVaultsWithHash(
   hre: HardhatRuntimeEnvironment,
   registry: string,

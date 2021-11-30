@@ -166,6 +166,7 @@ library DataTypes {
      * @param withdrawalFee withdrawal fee for a particular vault contract
      * @param treasuryShares Treasury accounts along with their shares
      * @param isLimited If the vault contract has a limit for total user deposits
+     * @param allowWhitelistedState If the vault contract require whitelisted users or not
      * @param userDepositCap Maximum total amount that can be deposited by an address
      * @param minimumDepositAmount Minimum deposit without rebalance allowed
      * @param queueCap Maximum length of the deposits without rebalance queue
@@ -173,9 +174,10 @@ library DataTypes {
     struct VaultConfiguration {
         bool discontinued;
         bool unpaused;
-        uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
+        bool isLimitedState;
+        bool allowWhitelistedState;
         TreasuryShare[] treasuryShares;
-        bool isLimited;
+        uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
         uint256 userDepositCap;
         uint256 minimumDepositAmount;
         uint256 queueCap;
