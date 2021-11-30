@@ -22,6 +22,17 @@
               "expectedValue": {}
             },
             {
+              "contract": "strategyProvider",
+              "action": "setDefaultStrategyState(uint8)",
+              "args": {
+                "defaultStrategyState": "0"
+              },
+              "executer": "owner",
+              "expect": "success",
+              "message": "",
+              "expectedValue": {}
+            },
+            {
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {

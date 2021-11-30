@@ -25,6 +25,7 @@ type ARGUMENTS = {
   amount?: { [key: string]: string };
   riskProfileCode?: string;
   strategyHash?: string;
+  defaultStrategyState?: string;
 };
 
 describe(scenarios.title, () => {
@@ -153,6 +154,15 @@ describe(scenarios.title, () => {
                               strategyHash ? strategyHash : bestStrategyHash,
                             ),
                         ).to.be.revertedWith(action.message);
+                      }
+                      break;
+                    }
+                    case "setDefaultStrategyState(uint8)": {
+                      const { defaultStrategyState }: ARGUMENTS = action.args;
+                      if (action.expect === "success") {
+                        await contracts[action.contract]
+                          .connect(users[action.executer])
+                          [action.action](BigNumber.from(defaultStrategyState));
                       }
                       break;
                     }
