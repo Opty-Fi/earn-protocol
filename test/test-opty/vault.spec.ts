@@ -4,8 +4,9 @@ import { Contract, Signer, BigNumber, utils } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO, ZERO_BYTES32 } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
+import { ZERO_BYTES32, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
@@ -40,6 +41,10 @@ type ARGUMENTS = {
   convert?: number;
   vaultRewardStrategy?: number[];
   vaultRewardTokenInvalidHash?: string;
+  token?: string;
+  jump?: number;
+  profile?: number;
+  user?: number;
 };
 
 type VAULT_CONFIGURATION_ARGUMENTS = {
@@ -922,7 +927,7 @@ describe(testVaultConfigurationScenario.title, () => {
   });
 });
 
-describe(testVaultScenario.title, () => {
+describe.only(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};
@@ -970,6 +975,7 @@ describe(testVaultScenario.title, () => {
           let underlyingTokenDecimals: number;
           const strategySteps: STRATEGY_DATA[] = [];
           let investStrategyHash: string;
+          let claimableTokens: BigNumber;
           before(async () => {
             const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
             underlyingTokenName = await Token_ERC20Instance.name();
@@ -1057,7 +1063,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "fundWallet": {
-                    const { token } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                    const { token } = action.args as ARGUMENTS;
                     let defaultFundAmount: BigNumber;
                     let underlyingBalance: BigNumber;
                     if (token == "underlying") {
@@ -1091,7 +1097,7 @@ describe(testVaultScenario.title, () => {
                       //only test COMPOUND strategies for adminCall
                       this.skip();
                     }
-                    const { amount } = action.args as ARGUMENTS;
+                    const { amount }: ARGUMENTS = action.args;
                     if (amount) {
                       const timestamp = (await getBlockTimestamp(hre)) * 2;
                       await fundWalletToken(
@@ -1107,7 +1113,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "approve(address,uint256)": {
-                    const { contractName } = action.args as ARGUMENTS;
+                    const { contractName }: ARGUMENTS = action.args;
 
                     if (contractName) {
                       const userAddr = await users[action.executor].getAddress();
@@ -1120,7 +1126,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "setMaxVaultValueJump(uint256)": {
-                    const { jump } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                    const { jump } = action.args as ARGUMENTS;
                     if (jump) {
                       if (action.expect == "success") {
                         await contracts[action.contract].connect(users[action.executor])[action.action](jump);
@@ -1134,7 +1140,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "setRiskProfileCode(uint256)": {
-                    const { profile } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                    const { profile } = action.args as ARGUMENTS;
                     if (profile) {
                       if (action.expect == "success") {
                         await contracts[action.contract].connect(users[action.executor])[action.action](profile);
@@ -1148,7 +1154,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "setToken(address)": {
-                    const { token } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                    const { token } = action.args as ARGUMENTS;
                     if (token) {
                       if (action.expect == "success") {
                         await contracts[action.contract]
@@ -1214,7 +1220,18 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "harvest(bytes32)": {
-                    await contracts[action.contract].connect(users[action.executor])[action.action](investStrategyHash);
+                    const lastAdapterName = adapterNames[numberOfSteps - 1];
+                    const rewardToken = await adapters[lastAdapterName].getRewardToken(
+                      TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
+                    );
+                    if (rewardToken != ADDRESS_ZERO) {
+                      claimableTokens = await adapters[lastAdapterName].getUnclaimedRewardTokenAmount(
+                        contracts["vault"].address,
+                        TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
+                        tokenAddress,
+                      );
+                    }
+                    await contracts[action.contract].connect(users[0])[action.action](investStrategyHash);
                     break;
                   }
                   case "setUnpaused(bool)": {
@@ -1378,7 +1395,7 @@ describe(testVaultScenario.title, () => {
                   }
                   case "pendingDeposits(address)":
                   case "balanceOf(address)": {
-                    const { user } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                    const { user } = action.args as ARGUMENTS;
                     if (user) {
                       const address = await users[user].getAddress();
                       const value = await contracts[action.contract][action.action](address);
@@ -1408,9 +1425,10 @@ describe(testVaultScenario.title, () => {
                     )[1];
                     if (action.expectedValue == ">") {
                       const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
-                      const lastAdapterName = adapterNames[numberOfSteps - 1];
                       if (
-                        (rewardToken != ADDRESS_ZERO && REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
+                        (rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) ||
+                        getAddress(rewardToken) == getAddress(TypedTokens.COMP) ||
+                        getAddress(rewardToken) == getAddress(TypedTokens.CRV) ||
                         !unpaused
                       ) {
                         expect(value).to.be.gt(0);
@@ -1471,7 +1489,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "approve(address,uint256)": {
-                    const { contractName, user }: VAULT_CONFIGURATION_ARGUMENTS = action.args;
+                    const { contractName, user }: ARGUMENTS = action.args;
 
                     if (contractName && user) {
                       const userAddr = await users[user].getAddress();
@@ -1485,7 +1503,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "userWithdrawAllRebalance()": {
-                    const { user } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                    const { user } = action.args as ARGUMENTS;
                     if (user) {
                       const userAddr = await users[user].getAddress();
                       await contracts[action.contract].connect(users[user])[action.action]();
