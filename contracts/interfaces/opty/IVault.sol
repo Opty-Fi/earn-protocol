@@ -46,7 +46,7 @@ interface IVault {
      * @notice A cheap function to deposit whole underlying token's balance
      * @dev this function does not rebalance, hence vault shares will be minted on the next rebalance
      */
-    function userDepositAll() external returns (bool);
+    function userDepositAll() external;
 
     /**
      * @notice A cheap function to deposit _amount of underlying token to the vault
@@ -59,7 +59,7 @@ interface IVault {
      * @notice Deposit full balance in underlying token of the caller and rebalance
      * @dev the vault shares are minted right away
      */
-    function userDepositAllRebalance() external returns (bool);
+    function userDepositAllRebalance() external;
 
     /**
      * @notice Deposit amount of underlying token of caller and rebalance
@@ -72,7 +72,7 @@ interface IVault {
      * @notice Redeem full balance of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault
      */
-    function userWithdrawAllRebalance() external returns (bool);
+    function userWithdrawAllRebalance() external;
 
     /**
      * @notice Redeem the amount of vault shares for getting yield optimized underlying tokens
@@ -85,40 +85,40 @@ interface IVault {
      * @notice A cheap function to deposit whole underlying token's balance of caller
      * @dev the gas fees are paid in $CHI tokens and vault shares are minted on next rebalance
      */
-    function userDepositAllWithCHI() external returns (bool);
+    function userDepositAllWithCHI() external;
 
     /**
      * @notice A cheap function to deposit amount of underlying token's balance of caller
      * @dev the gas fees are paid in $CHI tokens and vault shares are minted on next rebalance
      * @param _amount the amount of underlying tokens to be deposited
      */
-    function userDepositWithCHI(uint256 _amount) external returns (bool);
+    function userDepositWithCHI(uint256 _amount) external;
 
     /**
      * @notice Deposit full balance in underlying token of the caller and rebalance
      * @dev the vault shares are minted right away and gas fees are paid in $CHI tokens
      */
-    function userDepositAllRebalanceWithCHI() external returns (bool);
+    function userDepositAllRebalanceWithCHI() external;
 
     /**
      * @notice Deposit amount of underlying token of caller and rebalance
      * @dev the vault shares are minted right away and gas fees are paid in $CHI tokens
      * @param _amount the amount of the underlying token
      */
-    function userDepositRebalanceWithCHI(uint256 _amount) external returns (bool);
+    function userDepositRebalanceWithCHI(uint256 _amount) external;
 
     /**
      * @notice Redeem full balance of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault and gas fees are paid in $CHI tokens
      */
-    function userWithdrawAllRebalanceWithCHI() external returns (bool);
+    function userWithdrawAllRebalanceWithCHI() external;
 
     /**
      * @notice Redeem the amount of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault and gas fees are paid in $CHI tokens
      * @param _redeemAmount the amount of vault shares
      */
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external returns (bool);
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external;
 
     /**
      * @notice Recall vault investments from current strategy, restricts deposits

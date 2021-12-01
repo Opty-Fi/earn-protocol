@@ -236,7 +236,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawAllRebalance() external override returns (bool) {
+    function userWithdrawAllRebalance() external override {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
@@ -334,14 +334,13 @@ contract Vault is
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_userDepositRebalance(_amount, _vaultStrategyConfiguration), "!userDepositRebalanceWithCHI");
-        return true;
+        _userDepositRebalance(_amount, _vaultStrategyConfiguration);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI returns (bool) {
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
@@ -354,7 +353,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawAllRebalanceWithCHI() external override discountCHI returns (bool) {
+    function userWithdrawAllRebalanceWithCHI() external override discountCHI {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
