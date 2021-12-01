@@ -11,6 +11,7 @@
 **/node_modules
 **/typechain
 **/specification_docs
+contracts/protocol/team-defi-adapters
 
 # files
 *.env

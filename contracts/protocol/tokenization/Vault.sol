@@ -24,7 +24,7 @@ import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
 import { IRegistry } from "../../interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../../interfaces/opty/IRiskManager.sol";
-import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
+import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum/interfaces/IHarvestCodeProvider.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -149,7 +149,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function harvest(bytes32 _investStrategyHash) external override {
+    function harvest(bytes32 _investStrategyHash) external override onlyOperator {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         _harvest(_investStrategyHash, _vaultStrategyConfiguration);
@@ -236,7 +236,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawAllRebalance() external override {
+    function userWithdrawAllRebalance() external override returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
@@ -334,13 +334,14 @@ contract Vault is
         }
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        _userDepositRebalance(_amount, _vaultStrategyConfiguration);
+        require(_userDepositRebalance(_amount, _vaultStrategyConfiguration), "!userDepositRebalanceWithCHI");
+        return true;
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI {
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external override discountCHI returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
@@ -353,7 +354,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function userWithdrawAllRebalanceWithCHI() external override discountCHI {
+    function userWithdrawAllRebalanceWithCHI() external override discountCHI returns (bool) {
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));

@@ -5,6 +5,8 @@ import { ethers } from "ethers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { VAULT_ACTIONS } from "../task-names";
 import { expect } from "chai";
+import { getAddress } from "@ethersproject/address";
+import { TypedTokens } from "../../helpers/data";
 
 task(VAULT_ACTIONS, "perform actions in Vault")
   .addParam("vault", "the address of vault", "", types.string)
@@ -47,7 +49,7 @@ task(VAULT_ACTIONS, "perform actions in Vault")
       const vaultShareDecimals = await vaultContract.decimals();
       const tokenAddress = await vaultContract.underlyingToken();
       const tokenContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
-      const tokenSymbol = await tokenContract.symbol();
+      const tokenSymbol = tokenAddress == getAddress(TypedTokens.MKR) ? "MKR" : await tokenContract.symbol();
       const tokenDecimals = await tokenContract.decimals();
 
       switch (action.toUpperCase()) {

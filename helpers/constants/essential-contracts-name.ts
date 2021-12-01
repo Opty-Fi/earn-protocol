@@ -1,8 +1,8 @@
 import { DATA_OBJECT } from "../type";
 
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
-  REGISTRY: "Registry",
-  REGISTRY_PROXY: "RegistryProxy",
+  REGISTRY: "contracts/protocol/configuration/Registry.sol:Registry",
+  REGISTRY_PROXY: "contracts/protocol/configuration/RegistryProxy.sol:RegistryProxy",
   INVEST_STRATEGY_REGISTRY: "InvestStrategyRegistry",
   STRATEGY_MANAGER: "StrategyManager",
   OPTY: "OPTY",

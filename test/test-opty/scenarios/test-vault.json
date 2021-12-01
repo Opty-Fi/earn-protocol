@@ -1,0 +1,1730 @@
+{
+  "title": "Vault",
+  "description": "Test cases for Vault Contract",
+  "vaults": [
+    {
+      "name": "Vault",
+      "riskProfileCode": 1,
+      "stories": [
+        {
+          "description": "setMaxVaultValueJump should fail if caller is not having governance",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setMaxVaultValueJump(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "fail",
+              "message": "caller is not having governance"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setMaxVaultValueJump should set the maximum vault balance difference in a block",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setMaxVaultValueJump(uint256)",
+              "args": {
+                "jump": 1000
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "maxVaultValueJump()",
+              "args": {},
+              "expectedValue": "1000"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "setMaxVaultValueJump(uint256)",
+              "args": {}
+            }
+          ]
+        },
+        {
+          "description": "rebalance should change the strategy (if needed) and mint the pending vault tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDeposit(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "rebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "investStrategyHash()",
+              "args": {},
+              "expectedValue": ""
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "harvest should swap all the available reward tokens for underlying tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "wait10000Seconds",
+              "args": {},
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "harvest(bytes32)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balance()",
+              "args": {},
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDeposit should deposit a specific amount of underlying tokens without rebalancing the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDeposit(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "pendingDeposits(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "rebalance()",
+              "args": {}
+            },
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDepositAll should deposit the whole balance of the user without rebalancing the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAll()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "pendingDeposits(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "rebalance()",
+              "args": {}
+            },
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDepositRebalance should deposit a specific amount of underlying tokens and rebalance the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDepositAllRebalance should deposit the whole balance of the user and rebalance the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userWithdrawRebalance should withdraw a specific amount of vault tokens and rebalance the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawRebalance(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "userWithdrawAllRebalance should withdraw the whole balance of the user and rebalance the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "userDepositWithCHI should deposit a specific amount of underlying tokens without rebalancing the vault while using CHI tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "chi"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositWithCHI(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "pendingDeposits(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "rebalance()",
+              "args": {}
+            },
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDepositAllWithCHI should deposit the whole balance of the user without rebalancing the vault while using CHI tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "chi"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllWithCHI()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "pendingDeposits(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "rebalance()",
+              "args": {}
+            },
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDepositRebalanceWithCHI should deposit a specific amount of underlying tokens and rebalance the vault while using CHI tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "chi"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalanceWithCHI(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userDepositAllRebalanceWithCHI should deposit the whole balance of the user and rebalance the vault while using CHI tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "chi"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalanceWithCHI()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "userWithdrawRebalanceWithCHI should withdraw a specific amount of vault tokens and rebalance the vault while using CHI tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "chi"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawRebalanceWithCHI(uint256)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "userWithdrawAllRebalanceWithCHI should withdraw the whole balance of the user and rebalance the vault while using CHI tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "chi"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalanceWithCHI()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "setUnpaused should fail if it is not called by the registry contract",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setUnpaused(bool)",
+              "args": {},
+              "executor": 2,
+              "expect": "fail",
+              "message": "!Registry Contract"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setUnpaused should withdraw all the funds of the strategy and harvest all the reward tokens",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "wait10000Seconds",
+              "args": {},
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "setUnpaused(bool)",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balance()",
+              "args": {},
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "setUnpaused(bool)",
+              "args": {}
+            },
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "getPricePerFullShareWrite should return the vault token price even if a Curve strategy is being executed",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "wait10000Seconds",
+              "args": {},
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "getPricePerFullShareWrite()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balance()",
+              "args": {},
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "getPricePerFullShare should return the vault token price if the executed strategy is not a Curve strategy",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAllRebalance()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "wait10000Seconds",
+              "args": {},
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "getPricePerFullShare()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balance()",
+              "args": {},
+              "expectedValue": "0"
+            },
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "balance should return the amount of underlying tokens that are in the vault",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositAll()",
+              "args": {},
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "balance()",
+              "args": {},
+              "expectedValue": "above"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "rebalance()",
+              "args": {}
+            },
+            {
+              "contract": "",
+              "action": "resetStrategy",
+              "args": {}
+            },
+            {
+              "contract": "vault",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault",
+                "user": 2
+              }
+            },
+            {
+              "contract": "vault",
+              "action": "userWithdrawAllRebalance()",
+              "args": {
+                "user": 2
+              }
+            }
+          ]
+        },
+        {
+          "description": "setRiskProfileCode should fail if caller is not the operator",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setRiskProfileCode(uint256)",
+              "args": {
+                "profile": 0
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "caller is not the operator"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setRiskProfileCode should set the risk profile of the vault",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setRiskProfileCode(uint256)",
+              "args": {
+                "profile": 2
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "riskProfileCode()",
+              "args": {},
+              "expectedValue": 2
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "setRiskProfileCode(uint256)",
+              "args": {}
+            }
+          ]
+        },
+        {
+          "description": "setToken should fail if caller is not the operator",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setToken(address)",
+              "args": {
+                "token": "TUSD"
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "caller is not the operator"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setToken should set the underlyingToken of the vault",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setToken(address)",
+              "args": {
+                "token": "TUSD"
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "underlyingToken()",
+              "args": {},
+              "expectedValue": "TUSD"
+            }
+          ],
+          "cleanActions": [
+            {
+              "contract": "vault",
+              "action": "setToken(address)",
+              "args": {}
+            }
+          ]
+        },
+        {
+          "description": "isMaxVaultValueJumpAllowed should return true if the vault's balance difference after a deposit is allowed",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setMaxVaultValueJump(uint256)",
+              "args": {
+                "jump": 1000
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "isMaxVaultValueJumpAllowed(uint256,uint256)",
+              "args": {},
+              "expectedValue": "success"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "isMaxVaultValueJumpAllowed should return false if the vault's balance difference after a deposit is not allowed",
+          "setActions": [
+            {
+              "contract": "vault",
+              "action": "setMaxVaultValueJump(uint256)",
+              "args": {
+                "jump": 1000
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "isMaxVaultValueJumpAllowed(uint256,uint256)",
+              "args": {},
+              "expectedValue": "fail"
+            }
+          ],
+          "cleanActions": []
+        }
+      ]
+    }
+  ]
+}

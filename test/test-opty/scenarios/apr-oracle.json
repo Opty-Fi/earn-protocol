@@ -1,7 +1,7 @@
 {
   "title": "APROracle",
   "description": "Test cases for APROracle integration in RiskManager and StrategyProvider",
-  "usedTokens": ["DAI", "DX"],
+  "usedTokens": ["DAI", "WETH", "MKR", "USDC", "USDT", "TUSD", "WBTC", "DX"],
   "usedStrategies": [
     {
       "adapterName": "CompoundAdapter",

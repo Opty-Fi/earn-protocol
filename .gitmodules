@@ -1,0 +1,3 @@
+[submodule "contracts/protocol/team-defi-adapters"]
+	path = contracts/protocol/team-defi-adapters
+	url = https://github.com/Opty-Fi/team-defi-adapters.git

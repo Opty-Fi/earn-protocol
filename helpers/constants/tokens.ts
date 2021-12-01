@@ -63,4 +63,8 @@ export const VAULT_TOKENS: TOKENS_DATA = {
     address: TypedTokens["SLP_WETH_USDC"],
     pair: true,
   },
+  MKR: {
+    address: TypedTokens["MKR"],
+    pair: false,
+  },
 };

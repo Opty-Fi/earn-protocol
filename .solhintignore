@@ -6,3 +6,4 @@ contracts/libraries/
 contracts/utils/
 contracts/dependencies/
 contracts/mocks/
+contracts/protocol/team-defi-adapters
