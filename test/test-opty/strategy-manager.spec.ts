@@ -554,9 +554,6 @@ describe("optyDistributor=ZERO_ADDRESS, odefiVaultBooster=ZERO_ADDRESS", () => {
       sideContracts["registry"].getOperator.returns(await owner.getAddress());
       sideContracts["registry"].getOPTYDistributor.returns(ADDRESS_ZERO);
       sideContracts["registry"].getODEFIVaultBooster.returns(ADDRESS_ZERO);
-      // await sideContracts["vaultBooster"].setODEFIRewarder(sideContracts["opty"].address, ownerAddress);
-      // await sideContracts["optyDistributor"].setOptyVaultRate(sideContracts["opty"].address, 1000);
-      // await sideContracts["vaultBooster"].setOdefiVaultRate(sideContracts["opty"].address, 1000);
     } catch (error) {
       console.log(error);
     }
@@ -682,7 +679,6 @@ describe("optyDistributor=ZERO_ADDRESS", () => {
       sideContracts["registry"].getOPTYDistributor.returns(ADDRESS_ZERO);
       sideContracts["registry"].getODEFIVaultBooster.returns(sideContracts["vaultBooster"].address);
       await sideContracts["vaultBooster"].setODEFIRewarder(sideContracts["vault"].address, ownerAddress);
-      // await sideContracts["optyDistributor"].setOptyVaultRate(sideContracts["vault"].address, 1000);
       await sideContracts["vaultBooster"].setOdefiVaultRate(sideContracts["vault"].address, 1000);
     } catch (error) {
       console.log(error);
