@@ -16,9 +16,8 @@ interface IVault {
      * @notice Set maximum standard deviation of vault value in a single block
      * @dev the maximum vault value jump is in percentage basis points set by governance
      * @param _maxVaultValueJump the standard deviation from a vault value in basis points
-     * @return return true on successful setting of the max vault value jump
      */
-    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external returns (bool);
+    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
     /**
      * @notice Calculate the value of a vault share in underlying token
@@ -46,7 +45,7 @@ interface IVault {
      * @notice A cheap function to deposit whole underlying token's balance
      * @dev this function does not rebalance, hence vault shares will be minted on the next rebalance
      */
-    function userDepositAll() external returns (bool);
+    function userDepositAll() external;
 
     /**
      * @notice A cheap function to deposit _amount of underlying token to the vault
@@ -59,7 +58,7 @@ interface IVault {
      * @notice Deposit full balance in underlying token of the caller and rebalance
      * @dev the vault shares are minted right away
      */
-    function userDepositAllRebalance() external returns (bool);
+    function userDepositAllRebalance() external;
 
     /**
      * @notice Deposit amount of underlying token of caller and rebalance
@@ -72,7 +71,7 @@ interface IVault {
      * @notice Redeem full balance of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault
      */
-    function userWithdrawAllRebalance() external returns (bool);
+    function userWithdrawAllRebalance() external;
 
     /**
      * @notice Redeem the amount of vault shares for getting yield optimized underlying tokens
@@ -85,40 +84,40 @@ interface IVault {
      * @notice A cheap function to deposit whole underlying token's balance of caller
      * @dev the gas fees are paid in $CHI tokens and vault shares are minted on next rebalance
      */
-    function userDepositAllWithCHI() external returns (bool);
+    function userDepositAllWithCHI() external;
 
     /**
      * @notice A cheap function to deposit amount of underlying token's balance of caller
      * @dev the gas fees are paid in $CHI tokens and vault shares are minted on next rebalance
      * @param _amount the amount of underlying tokens to be deposited
      */
-    function userDepositWithCHI(uint256 _amount) external returns (bool);
+    function userDepositWithCHI(uint256 _amount) external;
 
     /**
      * @notice Deposit full balance in underlying token of the caller and rebalance
      * @dev the vault shares are minted right away and gas fees are paid in $CHI tokens
      */
-    function userDepositAllRebalanceWithCHI() external returns (bool);
+    function userDepositAllRebalanceWithCHI() external;
 
     /**
      * @notice Deposit amount of underlying token of caller and rebalance
      * @dev the vault shares are minted right away and gas fees are paid in $CHI tokens
      * @param _amount the amount of the underlying token
      */
-    function userDepositRebalanceWithCHI(uint256 _amount) external returns (bool);
+    function userDepositRebalanceWithCHI(uint256 _amount) external;
 
     /**
      * @notice Redeem full balance of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault and gas fees are paid in $CHI tokens
      */
-    function userWithdrawAllRebalanceWithCHI() external returns (bool);
+    function userWithdrawAllRebalanceWithCHI() external;
 
     /**
      * @notice Redeem the amount of vault shares for getting yield optimized underlying tokens
      * @dev this function rebalances the vault and gas fees are paid in $CHI tokens
      * @param _redeemAmount the amount of vault shares
      */
-    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external returns (bool);
+    function userWithdrawRebalanceWithCHI(uint256 _redeemAmount) external;
 
     /**
      * @notice Recall vault investments from current strategy, restricts deposits
@@ -151,17 +150,15 @@ interface IVault {
      * @notice Assign a risk profile name
      * @dev name of the risk profile should be approved by governance
      * @param _riskProfileCode code of the risk profile
-     * @return returns true on successfully setting risk profile name.
      */
-    function setRiskProfileCode(uint256 _riskProfileCode) external returns (bool);
+    function setRiskProfileCode(uint256 _riskProfileCode) external;
 
     /**
      * @notice Assign the address of the underlying asset of the vault
      * @dev the underlying asset should be approved by the governance
      * @param _underlyingToken the address of the underlying asset
-     * @return return true on successful persisting underlying asset address
      */
-    function setToken(address _underlyingToken) external returns (bool);
+    function setToken(address _underlyingToken) external;
 
     /**
      * @dev A helper function to validate the vault value will not be deviated from max vault value
@@ -176,9 +173,8 @@ interface IVault {
      * @notice A function to be called in case vault needs to claim and harvest tokens in case a strategy
      *         provides multiple reward tokens
      * @param _codes Array of encoded data in bytes which acts as code to execute
-     * @return return true on successful admin call
      */
-    function adminCall(bytes[] memory _codes) external returns (bool);
+    function adminCall(bytes[] memory _codes) external;
 
     /**
      * @notice A function to get deposit queue

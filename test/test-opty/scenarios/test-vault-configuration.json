@@ -207,7 +207,7 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "!whitelistedUser"
+              "message": "!user"
             }
           ],
           "getActions": [],
@@ -255,7 +255,7 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "deposit exceeds userDepositCap"
+              "message": "!cap"
             }
           ],
           "getActions": [],
@@ -292,7 +292,7 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "deposit < minimumDepositAmount"
+              "message": "!minDep"
             }
           ],
           "getActions": [],
@@ -383,7 +383,7 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "queue is full"
+              "message": "!q"
             }
           ],
           "getActions": [],
@@ -420,7 +420,7 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "deposit exceeds userDepositCap"
+              "message": "!cap"
             }
           ],
           "getActions": [],
@@ -487,6 +487,16 @@
         {
           "description": "setVaultConfiguration should set the complete configuration of the vault if caller is the operator",
           "setActions": [
+            {
+              "contract": "registry",
+              "action": "setWithdrawalFeeRange((uint256,uint256))",
+              "args": {
+                "range": ["0", "10000"]
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
             {
               "contract": "registry",
               "action": "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
