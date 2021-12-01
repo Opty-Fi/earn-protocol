@@ -195,6 +195,18 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+
+              const maxBalance: { [key: string]: string } = {
+                DAI: "15000000000000000",
+                USDC: "150000",
+                USDT: "150000",
+                SLP_WETH_USDC: "15000000000",
+              };
+              await essentialContracts.registry.setQueueCap(
+                Vault.address,
+                BigNumber.from(maxBalance[TOKEN_STRATEGY.token]).mul(3),
+              );
+
               if (adapterName === HARVEST_V1_ADAPTER_NAME) {
                 await addWhiteListForHarvest(hre, Vault.address, users[1]);
               }
@@ -1036,6 +1048,9 @@ describe(testVaultScenario.title, () => {
               1,
               TESTING_DEPLOYMENT_ONCE,
             );
+
+            await essentialContracts.registry.setQueueCap(Vault.address, BigNumber.from("15000000000000000000").mul(3));
+
             for (let i = 0; i < numberOfSteps; i++) {
               const adapter = adapters[adapterNames[i]];
               if (adapterNames[i] === HARVEST_V1_ADAPTER_NAME) {

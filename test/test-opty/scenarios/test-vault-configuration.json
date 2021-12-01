@@ -354,7 +354,16 @@
               "message": ""
             }
           ],
-          "getActions": [],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
           "cleanActions": []
         },
         {
@@ -406,7 +415,14 @@
               "message": ""
             }
           ],
-          "getActions": [],
+          "getActions": [
+            {
+              "contract": "registry",
+              "action": "vaultToVaultConfiguration(address)",
+              "args": {},
+              "expectedValue": [true, false, false, false, 1000, 1000000, 1000000, 10]
+            }
+          ],
           "cleanActions": []
         }
       ]
