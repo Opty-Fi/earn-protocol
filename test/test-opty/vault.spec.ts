@@ -54,6 +54,7 @@ type VAULT_CONFIGURATION_ARGUMENTS = {
   jump?: number;
   profile?: number;
   user?: number;
+  range?: string[];
 };
 
 const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; output: any } } = {
@@ -767,6 +768,11 @@ describe(testVaultConfigurationScenario.title, () => {
                   }
                 }
                 assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "setWithdrawalFeeRange((uint256,uint256))": {
+                const { range } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                await contracts[action.contract].connect(users[action.executor])[action.action](range);
                 break;
               }
               case "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)": {
