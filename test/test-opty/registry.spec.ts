@@ -243,6 +243,31 @@ describe(scenario.title, () => {
             assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
             break;
           }
+          case "getIsLimitedState(address,bool)": {
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[2]).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "getUserDepositCap(address,uint256)": {
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[5]).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "getMinimumDepositAmount(address,uint256)": {
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[6]).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "getQueueCap(address,uint256)": {
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[7]).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "getAllowWhitelistedState(address,uint256)": {
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[3]).to.be.equal(action.expectedValue);
+            break;
+          }
           case "whitelistedUsers(address,address)": {
             const { user, contractName }: ARGUMENTS = action.args;
             if (contractName && user) {
@@ -427,6 +452,96 @@ describe(scenario.title, () => {
           }
         }
         assert.isDefined(newOptyDistributor, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setIsLimitedState(address,bool)": {
+        const { state }: ARGUMENTS = action.args;
+        if (state) {
+          if (action.expect === "success") {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, state),
+            )
+              .to.emit(registryContract, "LogLimitStateVault")
+              .withArgs(contracts["vault"].address, state, await signers[action.executor].getAddress());
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, state),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(state, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setQueueCap(address,uint256)": {
+        const { value }: ARGUMENTS = action.args;
+        if (value) {
+          if (action.expect === "success") {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            )
+              .to.emit(registryContract, "LogQueueCapVault")
+              .withArgs(contracts["vault"].address, value, await signers[action.executor].getAddress());
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setMinimumDepositAmount(address,uint256)": {
+        const { value }: ARGUMENTS = action.args;
+        if (value) {
+          if (action.expect === "success") {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            )
+              .to.emit(registryContract, "LogMinimumDepositAmountVault")
+              .withArgs(contracts["vault"].address, value, await signers[action.executor].getAddress());
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setUserDepositCap(address,uint256)": {
+        const { value }: ARGUMENTS = action.args;
+        if (value) {
+          if (action.expect === "success") {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            )
+              .to.emit(registryContract, "LogUserDepositCapVault")
+              .withArgs(contracts["vault"].address, value, await signers[action.executor].getAddress());
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setAllowWhitelistedState(address,bool)": {
+        const { state }: ARGUMENTS = action.args;
+        if (state) {
+          if (action.expect === "success") {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, state),
+            )
+              .to.emit(registryContract, "LogAllowWhitelistedStateVault")
+              .withArgs(contracts["vault"].address, state, await signers[action.executor].getAddress());
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, state),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(state, `args is wrong in ${action.action} testcase`);
         break;
       }
       case "setWhitelistedUser(address,address,bool)": {

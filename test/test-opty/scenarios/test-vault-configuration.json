@@ -7,24 +7,7 @@
       "riskProfileCode": 1,
       "stories": [
         {
-          "description": "setIsLimitedState should fail if caller is not the operator",
-          "setActions": [
-            {
-              "contract": "registry",
-              "action": "setIsLimitedState(address,bool)",
-              "args": {
-                "state": true
-              },
-              "executor": 2,
-              "expect": "fail",
-              "message": "caller is not the operator"
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setIsLimitedState should set the limit state of the vault if caller is the operator",
+          "description": "Setup all variables in VaultConfiguration",
           "setActions": [
             {
               "contract": "registry",
@@ -35,31 +18,7 @@
               "executor": 0,
               "expect": "success",
               "message": ""
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setUserDepositCap should fail if caller is not the operator",
-          "setActions": [
-            {
-              "contract": "registry",
-              "action": "setUserDepositCap(address,uint256)",
-              "args": {
-                "value": 100000000
-              },
-              "executor": 2,
-              "expect": "fail",
-              "message": "caller is not the operator"
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setUserDepositCap should set the maximum deposits for each user if caller is the operator",
-          "setActions": [
+            },
             {
               "contract": "registry",
               "action": "setUserDepositCap(address,uint256)",
@@ -69,65 +28,7 @@
               "executor": 0,
               "expect": "success",
               "message": ""
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setMinimumDepositAmount should fail if caller is not the operator",
-          "setActions": [
-            {
-              "contract": "registry",
-              "action": "setMinimumDepositAmount(address,uint256)",
-              "args": {
-                "value": 5000000
-              },
-              "executor": 2,
-              "expect": "fail",
-              "message": "caller is not the operator"
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setMinimumDepositAmount should set the minimum deposit without rebalance that is accepted if caller is the operator",
-          "setActions": [
-            {
-              "contract": "registry",
-              "action": "setMinimumDepositAmount(address,uint256)",
-              "args": {
-                "value": 5000000
-              },
-              "executor": 0,
-              "expect": "success",
-              "message": ""
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setQueueCap should fail if caller is not the operator",
-          "setActions": [
-            {
-              "contract": "registry",
-              "action": "setQueueCap(address,uint256)",
-              "args": {
-                "value": 1
-              },
-              "executor": 2,
-              "expect": "fail",
-              "message": "caller is not the operator"
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setQueueCap should set the maximum length of the vault's queue if caller is the operator",
-          "setActions": [
+            },
             {
               "contract": "registry",
               "action": "setQueueCap(address,uint256)",
@@ -137,31 +38,17 @@
               "executor": 0,
               "expect": "success",
               "message": ""
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setAllowWhitelistedState should fail if caller is not the operator",
-          "setActions": [
+            },
             {
               "contract": "registry",
-              "action": "setAllowWhitelistedState(address,bool)",
+              "action": "setMinimumDepositAmount(address,uint256)",
               "args": {
-                "state": true
+                "value": 5000000
               },
-              "executor": 2,
-              "expect": "fail",
-              "message": "caller is not the operator"
-            }
-          ],
-          "getActions": [],
-          "cleanActions": []
-        },
-        {
-          "description": "setAllowWhitelistedState should set the whitelist state of the vault if caller is the operator",
-          "setActions": [
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
             {
               "contract": "registry",
               "action": "setAllowWhitelistedState(address,bool)",
@@ -173,7 +60,14 @@
               "message": ""
             }
           ],
-          "getActions": [],
+          "getActions": [
+            {
+              "contract": "registry",
+              "action": "vaultToVaultConfiguration(address)",
+              "args": {},
+              "expectedValue": [false, true, true, true, 0, 100000000, 5000000, 1]
+            }
+          ],
           "cleanActions": []
         },
         {

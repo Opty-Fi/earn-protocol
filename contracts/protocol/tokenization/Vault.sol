@@ -442,9 +442,10 @@ contract Vault is
     function _userDeposit(uint256 _amount) internal ifNotPausedAndDiscontinued(address(this)) nonReentrant {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         if (_vaultConfiguration.allowWhitelistedState) {
-            _isUserWhitelisted(msg.sender);
+            require(_isUserWhitelisted(msg.sender), "!user");
         }
-        _isQueueFull(_vaultConfiguration);
+        require(_isQueueFull(_vaultConfiguration), "!q");
+
         require(_amount >= _vaultConfiguration.minimumDepositAmount, "!minDep");
         if (_vaultConfiguration.isLimitedState == true) {
             require(_amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]), "!cap");
@@ -504,7 +505,7 @@ contract Vault is
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         if (_vaultConfiguration.allowWhitelistedState) {
-            _isUserWhitelisted(msg.sender);
+            require(_isUserWhitelisted(msg.sender), "!user");
         }
         if (_vaultConfiguration.isLimitedState == true) {
             require(_amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]), "!cap");
@@ -569,7 +570,7 @@ contract Vault is
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         if (_vaultConfiguration.allowWhitelistedState) {
-            _isUserWhitelisted(msg.sender);
+            require(_isUserWhitelisted(msg.sender), "!user");
         }
         require(_vaultConfiguration.unpaused, "unpause");
         require(_redeemAmount > 0, "!_redeemAmount>0");
@@ -688,17 +689,15 @@ contract Vault is
     /**
      * @notice Function to check wether the depositQueue is full or not
      */
-    function _isQueueFull(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view {
-        if (_vaultConfiguration.queueCap != uint256(0)) {
-            require(getDepositQueue().length < _vaultConfiguration.queueCap, "!q");
-        }
+    function _isQueueFull(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view returns (bool) {
+        return getDepositQueue().length < _vaultConfiguration.queueCap;
     }
 
     /**
      * @notice Function to check wether the user is whitelisted or not
      */
-    function _isUserWhitelisted(address _user) internal view {
-        require(registryContract.isUserWhitelisted(address(this), _user), "!user");
+    function _isUserWhitelisted(address _user) internal view returns (bool) {
+        return registryContract.isUserWhitelisted(address(this), _user);
     }
 
     /**

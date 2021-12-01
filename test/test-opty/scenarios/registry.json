@@ -2981,6 +2981,216 @@
       "cleanActions": []
     },
     {
+      "description": "setIsLimitedState should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setIsLimitedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setIsLimitedState should set the limit state of the vault if caller is the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setIsLimitedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getIsLimitedState(address,bool)",
+          "args": {},
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setUserDepositCap should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setUserDepositCap(address,uint256)",
+          "args": {
+            "value": 100000000
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setUserDepositCap should set the maximum deposits for each user if caller is the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setUserDepositCap(address,uint256)",
+          "args": {
+            "value": 100000000
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getUserDepositCap(address,uint256)",
+          "args": {},
+          "expectedValue": 100000000,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setMinimumDepositAmount should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setMinimumDepositAmount(address,uint256)",
+          "args": {
+            "value": 5000000
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setMinimumDepositAmount should set the minimum deposit without rebalance that is accepted if caller is the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setMinimumDepositAmount(address,uint256)",
+          "args": {
+            "value": 5000000
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getMinimumDepositAmount(address,uint256)",
+          "args": {},
+          "expectedValue": 5000000,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setQueueCap should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setQueueCap(address,uint256)",
+          "args": {
+            "value": 1
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setQueueCap should set the maximum length of the vault's queue if caller is the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setQueueCap(address,uint256)",
+          "args": {
+            "value": 1
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getQueueCap(address,uint256)",
+          "args": {},
+          "expectedValue": 1,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setAllowWhitelistedState should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setAllowWhitelistedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setAllowWhitelistedState should set the whitelist state of the vault if caller is the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setAllowWhitelistedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getAllowWhitelistedState(address,uint256)",
+          "args": {},
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
       "description": "[Upgradability] Should be able to use functions and variables in new contracts and maintains old variable states",
       "setActions": [
         {

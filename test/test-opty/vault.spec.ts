@@ -717,14 +717,39 @@ describe(testVaultConfigurationScenario.title, () => {
                 }
                 break;
               }
-              case "setAllowWhitelistedState(address,bool)":
               case "setIsLimitedState(address,bool)": {
                 const { state } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                 if (state) {
                   if (action.expect == "success") {
-                    await contracts[action.contract]
-                      .connect(users[action.executor])
-                      [action.action](contracts["vault"].address, state);
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    )
+                      .to.emit(contracts[action.contract], "LogLimitStateVault")
+                      .withArgs(contracts["vault"].address, state, await users[action.executor].getAddress());
+                  } else {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                assert.isDefined(state, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "setAllowWhitelistedState(address,bool)": {
+                const { state } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (state) {
+                  if (action.expect == "success") {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    )
+                      .to.emit(contracts[action.contract], "LogAllowWhitelistedStateVault")
+                      .withArgs(contracts["vault"].address, state, await users[action.executor].getAddress());
                   } else {
                     await expect(
                       contracts[action.contract]
@@ -761,9 +786,20 @@ describe(testVaultConfigurationScenario.title, () => {
                 const { value } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                 if (value) {
                   if (action.expect == "success") {
-                    await contracts[action.contract]
-                      .connect(users[action.executor])
-                      [action.action](contracts["vault"].address, value);
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, value),
+                    )
+                      .to.emit(
+                        contracts[action.contract],
+                        action.action === "setUserDepositCap(address,uint256)"
+                          ? "LogUserDepositCapVault"
+                          : action.action === "setMinimumDepositAmount(address,uint256)"
+                          ? "LogMinimumDepositAmountVault"
+                          : "LogQueueCapVault",
+                      )
+                      .withArgs(contracts["vault"].address, value, await users[action.executor].getAddress());
                   } else {
                     await expect(
                       contracts[action.contract]
@@ -882,6 +918,13 @@ describe(testVaultConfigurationScenario.title, () => {
           for (let i = 0; i < story.getActions.length; i++) {
             const action = story.getActions[i];
             switch (action.action) {
+              case "vaultToVaultConfiguration(address)": {
+                const value = await contracts[action.contract][action.action](contracts["vault"].address);
+                for (let i = 0; i < value.length; i++) {
+                  expect(value[i]).to.be.eq(action.expectedValue[i]);
+                }
+                break;
+              }
               case "totalDeposits(address)":
               case "pendingDeposits(address)":
               case "balanceOf(address)": {
@@ -927,7 +970,7 @@ describe(testVaultConfigurationScenario.title, () => {
   });
 });
 
-describe.only(testVaultScenario.title, () => {
+describe(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};
