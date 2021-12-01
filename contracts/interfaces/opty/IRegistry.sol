@@ -25,13 +25,24 @@ interface IRegistry {
      * @param _vault The vault in which the user is going to be whitelisted or not
      * @param _user The user to be whitelisted
      * @param _whitelist Allow user to deposit if true
-     * @return Returns a boolean value indicating whether the operation succeeded
      */
     function setWhitelistedUser(
         address _vault,
         address _user,
         bool _whitelist
-    ) external returns (bool);
+    ) external;
+
+    /**
+     * @notice Whitelist users that are allowed to deposit
+     * @param _vault The vault in which the user is going to be whitelisted or not
+     * @param _users List of users to be whitelisted
+     * @param _whitelist Allow user to deposit if true
+     */
+    function setWhitelistedUsers(
+        address _vault,
+        address[] memory _users,
+        bool _whitelist
+    ) external;
 
     /**
      * @notice Set the investStrategyRegistry contract address
@@ -345,30 +356,29 @@ interface IRegistry {
      * @notice Set the withdrawal fee for the vault contract
      * @param _vault Vault contract address
      * @param _withdrawalFee Withdrawal fee to be set for vault contract
-     * @return _success Returns a boolean value indicating whether the operation succeeded
      */
-    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external returns (bool _success);
+    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external;
 
     /**
      * @notice Set the maximum total deposits in a Vault for each user
      * @param _vault Vault contract address
      * @param _userDepositCap Maximum deposit amount allowed for each user
      */
-    function setUserDepositCap(address _vault, uint256 _userDepositCap) external returns (bool);
+    function setUserDepositCap(address _vault, uint256 _userDepositCap) external;
 
     /**
      * @notice Set the minimum deposit amount when the user is not rebalancing the Vault
      * @param _vault Vault contract address
      * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance
      */
-    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external returns (bool);
+    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external;
 
     /**
      * @notice Set the maximum length of the queue in a specific Vault
      * @param _vault Vault contract address
      * @param _queueCap Maximum queue length
      */
-    function setQueueCap(address _vault, uint256 _queueCap) external returns (bool);
+    function setQueueCap(address _vault, uint256 _queueCap) external;
 
     /**
      * @notice Adds the risk profile in Registry contract Storage

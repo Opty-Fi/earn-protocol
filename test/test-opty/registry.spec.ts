@@ -243,6 +243,16 @@ describe(scenario.title, () => {
             assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
             break;
           }
+          case "whitelistedUsers(address,address)": {
+            const { user, contractName }: ARGUMENTS = action.args;
+            if (contractName && user) {
+              const value = await registryContract[action.action](contracts[contractName].address, callers[user]);
+              expect(value).to.be.equal(action.expectedValue);
+            }
+            assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+            assert.isDefined(user, `args is wrong in ${action.action} testcase`);
+            break;
+          }
           default:
             break;
         }
@@ -417,6 +427,47 @@ describe(scenario.title, () => {
           }
         }
         assert.isDefined(newOptyDistributor, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setWhitelistedUser(address,address,bool)": {
+        const { user, contractName }: ARGUMENTS = action.args;
+        if (user && contractName) {
+          if (action.expect === "success") {
+            await registryContract
+              .connect(signers[action.executor])
+              [action.action](contracts[contractName].address, callers[user], true);
+          } else {
+            await expect(
+              registryContract
+                .connect(signers[action.executor])
+                [action.action](contracts[contractName].address, callers[user], true),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+
+        assert.isDefined(user, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setWhitelistedUsers(address,address[],bool)": {
+        const { users, contractName }: ARGUMENTS = action.args;
+        if (users && contractName) {
+          const userAddresses = users.map((name: string) => callers[name]);
+          if (action.expect === "success") {
+            await registryContract
+              .connect(signers[action.executor])
+              [action.action](contracts[contractName].address, userAddresses, true);
+          } else {
+            await expect(
+              registryContract
+                .connect(signers[action.executor])
+                [action.action](contracts[contractName].address, userAddresses, true),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+
+        assert.isDefined(users, `args is wrong in ${action.action} testcase`);
+        assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
         break;
       }
       case "approveToken(address[])":
@@ -1055,7 +1106,7 @@ const REGISTRY_TESTING_DEFAULT_DATA: TESTING_DEFAULT_DATA[] = [
       {
         name: "vaultToVaultConfiguration(address)",
         input: ["0x6b175474e89094c44da98b954eedeac495271d0f"],
-        output: [false, false, BigNumber.from("10")],
+        output: [false, false, false, false, BigNumber.from("10"), 0, 0, 0],
       },
     ],
   },
@@ -1086,7 +1137,7 @@ async function verifyDefaultData(contract: Contract, data: TESTING_DEFAULT_DATA[
         } else if (getFunction.name === "vaultToVaultConfiguration(address)") {
           expect(realValue[0]).to.equal(getFunction.output[0]);
           expect(realValue[1]).to.equal(getFunction.output[1]);
-          expect(+realValue[2]).to.equal(+getFunction.output[2]);
+          expect(+realValue[4]).to.equal(+getFunction.output[4]);
         } else {
           expect(realValue).to.have.members(getFunction.output);
         }

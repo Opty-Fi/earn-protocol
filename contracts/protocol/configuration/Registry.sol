@@ -52,9 +52,21 @@ contract Registry is IRegistry, ModifiersController {
         address _vault,
         address _user,
         bool _whitelist
-    ) external override onlyOperator returns (bool) {
-        whitelistedUsers[_vault][_user] = _whitelist;
-        return true;
+    ) external override onlyOperator {
+        _setWhitelistedUser(_vault, _user, _whitelist);
+    }
+
+    /**
+     * @inheritdoc IRegistry
+     */
+    function setWhitelistedUsers(
+        address _vault,
+        address[] memory _users,
+        bool _whitelist
+    ) external override onlyOperator {
+        for (uint256 _i = 0; _i < _users.length; _i++) {
+            _setWhitelistedUser(_vault, _users[_i], _whitelist);
+        }
     }
 
     /**
@@ -514,12 +526,7 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setWithdrawalFee(address _vault, uint256 _withdrawalFee)
-        external
-        override
-        onlyFinanceOperator
-        returns (bool)
-    {
+    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external override onlyFinanceOperator {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         return _setWithdrawalFee(_vault, _withdrawalFee);
@@ -528,33 +535,28 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyOperator returns (bool) {
+    function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyOperator {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        return _setUserDepositCap(_vault, _userDepositCap);
+        _setUserDepositCap(_vault, _userDepositCap);
     }
 
     /**
      * @inheritdoc IRegistry
      */
-    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount)
-        external
-        override
-        onlyOperator
-        returns (bool)
-    {
+    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external override onlyOperator {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        return _setMinimumDepositAmount(_vault, _minimumDepositAmount);
+        _setMinimumDepositAmount(_vault, _minimumDepositAmount);
     }
 
     /**
      * @inheritdoc IRegistry
      */
-    function setQueueCap(address _vault, uint256 _queueCap) external override onlyOperator returns (bool) {
+    function setQueueCap(address _vault, uint256 _queueCap) external override onlyOperator {
         require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
-        return _setQueueCap(_vault, _queueCap);
+        _setQueueCap(_vault, _queueCap);
     }
 
     /**
@@ -1063,31 +1065,35 @@ contract Registry is IRegistry, ModifiersController {
         return true;
     }
 
-    function _setWithdrawalFee(address _vault, uint256 _withdrawalFee) internal returns (bool) {
+    function _setWithdrawalFee(address _vault, uint256 _withdrawalFee) internal {
         require(
             _withdrawalFee >= withdrawalFeeRange.lowerLimit && _withdrawalFee <= withdrawalFeeRange.upperLimit,
             "!BasisRange"
         );
         vaultToVaultConfiguration[_vault].withdrawalFee = _withdrawalFee;
-        return true;
     }
 
-    function _setUserDepositCap(address _vault, uint256 _userDepositCap) internal returns (bool) {
+    function _setUserDepositCap(address _vault, uint256 _userDepositCap) internal {
         vaultToVaultConfiguration[_vault].userDepositCap = _userDepositCap;
         emit LogUserDepositCapVault(_vault, vaultToVaultConfiguration[_vault].userDepositCap, msg.sender);
-        return true;
     }
 
-    function _setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) internal returns (bool) {
+    function _setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) internal {
         vaultToVaultConfiguration[_vault].minimumDepositAmount = _minimumDepositAmount;
         emit LogMinimumDepositAmountVault(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
-        return true;
     }
 
-    function _setQueueCap(address _vault, uint256 _queueCap) internal returns (bool) {
+    function _setQueueCap(address _vault, uint256 _queueCap) internal {
         vaultToVaultConfiguration[_vault].queueCap = _queueCap;
         emit LogQueueCapVault(_vault, vaultToVaultConfiguration[_vault].queueCap, msg.sender);
-        return true;
+    }
+
+    function _setWhitelistedUser(
+        address _vault,
+        address _user,
+        bool _whitelist
+    ) internal {
+        whitelistedUsers[_vault][_user] = _whitelist;
     }
 
     /**

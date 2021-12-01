@@ -2884,6 +2884,103 @@
       "cleanActions": []
     },
     {
+      "description": "Operator should be able to add a user into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "whitelistedUsers(address,address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Operator shouldn't be able to add a user into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator should be able to add users into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "vault",
+            "users": ["user0", "user1"]
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "whitelistedUsers(address,address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user0"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        },
+        {
+          "action": "whitelistedUsers(address,address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Operator shouldn't be able to add users into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "vault",
+            "users": ["user0", "user1"]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "[Upgradability] Should be able to use functions and variables in new contracts and maintains old variable states",
       "setActions": [
         {
