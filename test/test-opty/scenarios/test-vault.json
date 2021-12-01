@@ -181,7 +181,7 @@
               "contract": "vault",
               "action": "harvest(bytes32)",
               "args": {},
-              "executor": 2,
+              "executor": 0,
               "expect": "success",
               "message": ""
             }
