@@ -1051,7 +1051,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "fundWallet": {
-                    const { token } = action.args as ARGUMENTS;
+                    const { token } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                     let defaultFundAmount: BigNumber;
                     let underlyingBalance: BigNumber;
                     if (token == "underlying") {
@@ -1085,7 +1085,7 @@ describe(testVaultScenario.title, () => {
                       //only test COMPOUND strategies for adminCall
                       this.skip();
                     }
-                    const { amount }: ARGUMENTS = action.args;
+                    const { amount } = action.args as ARGUMENTS;
                     if (amount) {
                       const timestamp = (await getBlockTimestamp(hre)) * 2;
                       await fundWalletToken(
@@ -1101,7 +1101,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "approve(address,uint256)": {
-                    const { contractName }: ARGUMENTS = action.args;
+                    const { contractName } = action.args as ARGUMENTS;
 
                     if (contractName) {
                       const userAddr = await users[action.executor].getAddress();
@@ -1114,7 +1114,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "setMaxVaultValueJump(uint256)": {
-                    const { jump } = action.args as ARGUMENTS;
+                    const { jump } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                     if (jump) {
                       if (action.expect == "success") {
                         await contracts[action.contract].connect(users[action.executor])[action.action](jump);
@@ -1128,7 +1128,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "setRiskProfileCode(uint256)": {
-                    const { profile } = action.args as ARGUMENTS;
+                    const { profile } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                     if (profile) {
                       if (action.expect == "success") {
                         await contracts[action.contract].connect(users[action.executor])[action.action](profile);
@@ -1142,7 +1142,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "setToken(address)": {
-                    const { token } = action.args as ARGUMENTS;
+                    const { token } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                     if (token) {
                       if (action.expect == "success") {
                         await contracts[action.contract]
@@ -1372,7 +1372,7 @@ describe(testVaultScenario.title, () => {
                   }
                   case "pendingDeposits(address)":
                   case "balanceOf(address)": {
-                    const { user } = action.args as ARGUMENTS;
+                    const { user } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                     if (user) {
                       const address = await users[user].getAddress();
                       const value = await contracts[action.contract][action.action](address);
@@ -1465,7 +1465,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "approve(address,uint256)": {
-                    const { contractName, user }: ARGUMENTS = action.args;
+                    const { contractName, user }: VAULT_CONFIGURATION_ARGUMENTS = action.args;
 
                     if (contractName && user) {
                       const userAddr = await users[user].getAddress();
@@ -1479,7 +1479,7 @@ describe(testVaultScenario.title, () => {
                     break;
                   }
                   case "userWithdrawAllRebalance()": {
-                    const { user } = action.args as ARGUMENTS;
+                    const { user } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                     if (user) {
                       const userAddr = await users[user].getAddress();
                       await contracts[action.contract].connect(users[user])[action.action]();
