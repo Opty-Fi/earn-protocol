@@ -119,7 +119,6 @@ contract Vault is
             investStrategyHash != Constants.ZERO_BYTES32
         ) {
             _withdrawAll(_vaultStrategyConfiguration);
-            _harvest(investStrategyHash, _vaultStrategyConfiguration);
             if (msg.sender == _vaultStrategyConfiguration.operator && gasOwedToOperator != uint256(0)) {
                 IERC20(underlyingToken).safeTransfer(
                     _vaultStrategyConfiguration.operator,
@@ -372,7 +371,6 @@ contract Vault is
             registryContract.getVaultStrategyConfiguration();
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             _withdrawAll(_vaultStrategyConfiguration);
-            _harvest(investStrategyHash, _vaultStrategyConfiguration);
         }
     }
 
@@ -384,7 +382,6 @@ contract Vault is
             registryContract.getVaultStrategyConfiguration();
         if (!_unpaused && investStrategyHash != Constants.ZERO_BYTES32) {
             _withdrawAll(_vaultStrategyConfiguration);
-            _harvest(investStrategyHash, _vaultStrategyConfiguration);
         }
     }
 
@@ -640,7 +637,6 @@ contract Vault is
 
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             _withdrawAll(_vaultStrategyConfiguration);
-            _harvest(investStrategyHash, _vaultStrategyConfiguration);
         }
 
         uint256 _tokenBalanceBefore = _balance();
@@ -706,7 +702,6 @@ contract Vault is
         require(_redeemAmount <= opBalance, "!!balance");
         if (!_vaultConfiguration.discontinued && investStrategyHash != Constants.ZERO_BYTES32) {
             _withdrawAll(_vaultStrategyConfiguration);
-            _harvest(investStrategyHash, _vaultStrategyConfiguration);
         }
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserRewardsCodes(
