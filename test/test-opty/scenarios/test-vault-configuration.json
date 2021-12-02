@@ -367,7 +367,7 @@
           "cleanActions": []
         },
         {
-          "description": "setVaultConfiguration should fail if caller is not the operator",
+          "description": "setVaultConfiguration should fail if caller is not the finance operator",
           "setActions": [
             {
               "contract": "registry",
@@ -380,14 +380,14 @@
               },
               "executor": 2,
               "expect": "fail",
-              "message": "caller is not the operator"
+              "message": "caller is not the finance operator"
             }
           ],
           "getActions": [],
           "cleanActions": []
         },
         {
-          "description": "setVaultConfiguration should set the complete configuration of the vault if caller is the operator",
+          "description": "setVaultConfiguration should set the complete configuration of the vault if caller is the finance operator",
           "setActions": [
             {
               "contract": "registry",
