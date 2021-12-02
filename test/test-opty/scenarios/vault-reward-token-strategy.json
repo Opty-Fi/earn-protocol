@@ -70,6 +70,14 @@
               "executer": "user1",
               "expect": "success",
               "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "harvest(bytes32)",
+              "args": {},
+              "executer": "operator",
+              "expect": "success",
+              "message": ""
             }
           ],
           "getActions": [
@@ -511,6 +519,14 @@
               "executer": "user1",
               "expect": "success",
               "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "harvest(bytes32)",
+              "args": {},
+              "executer": "operator",
+              "expect": "success",
+              "message": ""
             }
           ],
           "getActions": [
@@ -602,6 +618,14 @@
               "executer": "user1",
               "expect": "success",
               "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "harvest(bytes32)",
+              "args": {},
+              "executer": "operator",
+              "expect": "success",
+              "message": ""
             }
           ],
           "getActions": [
@@ -691,6 +715,14 @@
                 }
               },
               "executer": "user1",
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "harvest(bytes32)",
+              "args": {},
+              "executer": "operator",
               "expect": "success",
               "message": ""
             }

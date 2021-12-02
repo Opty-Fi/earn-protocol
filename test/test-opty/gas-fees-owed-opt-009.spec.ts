@@ -7,6 +7,7 @@ import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
+import { to_10powNumber_BN } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   fundWalletToken,
@@ -103,7 +104,11 @@ describe(scenario.title, () => {
 
         const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token].address);
 
+        const maxAmount = BigNumber.from("300");
+
         decimals = await Token_ERC20Instance.decimals();
+
+        await essentialContracts.registry.setQueueCap(Vault.address, maxAmount.mul(to_10powNumber_BN(decimals)));
 
         contracts["erc20"] = Token_ERC20Instance;
 

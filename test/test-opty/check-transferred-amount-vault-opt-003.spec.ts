@@ -40,7 +40,9 @@ describe(scenario.title, () => {
         1,
         TESTING_DEPLOYMENT_ONCE,
       );
-      console.log("Vault", Vault.address);
+
+      await essentialContracts.registry.setQueueCap(Vault.address, BigNumber.from("30000000000000000").mul(3));
+
       await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 
       contracts["strategyProvider"] = essentialContracts.strategyProvider;
