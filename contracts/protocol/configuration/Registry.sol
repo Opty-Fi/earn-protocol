@@ -72,7 +72,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setInvestStrategyRegistry(address _investStrategyRegistry) external override onlyOperator {
-        require(_investStrategyRegistry != address(0), "!address(0)");
         require(_investStrategyRegistry.isContract(), "!isContract");
         investStrategyRegistry = _investStrategyRegistry;
     }
@@ -81,7 +80,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setAPROracle(address _aprOracle) external override onlyOperator {
-        require(_aprOracle != address(0), "!address(0)");
         require(_aprOracle.isContract(), "!isContract");
         aprOracle = _aprOracle;
     }
@@ -90,7 +88,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setStrategyProvider(address _strategyProvider) external override onlyOperator {
-        require(_strategyProvider != address(0), "!address(0)");
         require(_strategyProvider.isContract(), "!isContract");
         strategyProvider = _strategyProvider;
     }
@@ -99,7 +96,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setRiskManager(address _riskManager) external override onlyOperator {
-        require(_riskManager != address(0), "!address(0)");
         require(_riskManager.isContract(), "!isContract");
         riskManager = _riskManager;
     }
@@ -108,7 +104,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setHarvestCodeProvider(address _harvestCodeProvider) external override onlyOperator {
-        require(_harvestCodeProvider != address(0), "!address(0)");
         require(_harvestCodeProvider.isContract(), "!isContract");
         harvestCodeProvider = _harvestCodeProvider;
     }
@@ -117,7 +112,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setStrategyManager(address _strategyManager) external override onlyOperator {
-        require(_strategyManager != address(0), "!address(0)");
         require(_strategyManager.isContract(), "!isContract");
         strategyManager = _strategyManager;
     }
@@ -126,7 +120,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setOPTY(address _opty) external override onlyOperator {
-        require(_opty != address(0), "!address(0)");
         require(_opty.isContract(), "!isContract");
         opty = _opty;
     }
@@ -135,7 +128,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setPriceOracle(address _priceOracle) external override onlyOperator {
-        require(_priceOracle != address(0), "!address(0)");
         require(_priceOracle.isContract(), "!isContract");
         priceOracle = _priceOracle;
     }
@@ -144,7 +136,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setOPTYStakingRateBalancer(address _optyStakingRateBalancer) external override onlyOperator {
-        require(_optyStakingRateBalancer != address(0), "!address(0)");
         require(_optyStakingRateBalancer.isContract(), "!isContract");
         optyStakingRateBalancer = _optyStakingRateBalancer;
     }
@@ -153,7 +144,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setODEFIVaultBooster(address _odefiVaultBooster) external override onlyOperator {
-        require(_odefiVaultBooster != address(0), "!address(0)");
         require(_odefiVaultBooster.isContract(), "!isContract");
         odefiVaultBooster = _odefiVaultBooster;
     }
@@ -384,7 +374,6 @@ contract Registry is IRegistry, ModifiersController {
         uint256 _minimumDepositAmount,
         uint256 _queueCap
     ) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         DataTypes.VaultConfiguration memory _vaultToVaultConfiguration = vaultToVaultConfiguration[_vault];
         if (_discontinued == true) {
@@ -422,7 +411,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function discontinue(address _vault) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _discontinue(_vault);
     }
@@ -431,7 +419,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function unpauseVaultContract(address _vault, bool _unpaused) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _unpauseVaultContract(_vault, _unpaused);
     }
@@ -440,7 +427,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setIsLimitedState(address _vault, bool _isLimitedState) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setIsLimitedState(_vault, _isLimitedState);
     }
@@ -449,7 +435,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setAllowWhitelistedState(address _vault, bool _allowWhitelistedState) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setAllowWhitelistedState(_vault, _allowWhitelistedState);
     }
@@ -462,7 +447,6 @@ contract Registry is IRegistry, ModifiersController {
         override
         onlyFinanceOperator
     {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setTreasuryShares(_vault, _treasuryShares);
     }
@@ -471,7 +455,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external override onlyFinanceOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setWithdrawalFee(_vault, _withdrawalFee);
     }
@@ -480,7 +463,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setUserDepositCap(_vault, _userDepositCap);
     }
@@ -489,7 +471,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setMinimumDepositAmount(_vault, _minimumDepositAmount);
     }
@@ -498,7 +479,6 @@ contract Registry is IRegistry, ModifiersController {
      * @inheritdoc IRegistry
      */
     function setQueueCap(address _vault, uint256 _queueCap) external override onlyOperator {
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         _setQueueCap(_vault, _queueCap);
     }
@@ -775,7 +755,6 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     function _approveToken(address _token) internal {
-        require(_token != address(0), "!address(0)");
         require(_token.isContract(), "!isContract");
         require(!tokens[_token], "!tokens");
         tokens[_token] = true;
@@ -789,7 +768,6 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     function _approveLiquidityPool(address _pool) internal {
-        require(_pool != address(0), "!address(0)");
         require(_pool.isContract(), "!isContract");
         require(!liquidityPools[_pool].isLiquidityPool, "!liquidityPools");
         liquidityPools[_pool].isLiquidityPool = true;
@@ -809,7 +787,6 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     function _approveCreditPool(address _pool) internal {
-        require(_pool != address(0), "!address(0)");
         require(_pool.isContract(), "!isContract");
         require(!creditPools[_pool].isLiquidityPool, "!creditPools");
         creditPools[_pool].isLiquidityPool = true;
@@ -855,7 +832,6 @@ contract Registry is IRegistry, ModifiersController {
         address _vault
     ) internal {
         require(_underlyingAssetHash != Constants.ZERO_BYTES32, "!underlyingAssetHash");
-        require(_vault != address(0), "!address(0)");
         require(_vault.isContract(), "!isContract");
         require(riskProfiles[_riskProfileCode].exists, "!RP");
         underlyingAssetHashToRPToVaults[_underlyingAssetHash][_riskProfileCode] = _vault;
