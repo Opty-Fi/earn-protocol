@@ -332,7 +332,7 @@ contract Registry is IRegistry, ModifiersController {
         uint256 _withdrawalFee,
         uint256 _userDepositCap,
         uint256 _minimumDepositAmount
-    ) external override onlyOperator {
+    ) external override onlyFinanceOperator {
         require(_vault.isContract(), "!isContract");
         _setIsLimitedState(_vault, _isLimitedState);
         _setAllowWhitelistedState(_vault, _allowWhitelistedState);
@@ -361,7 +361,7 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setIsLimitedState(address _vault, bool _isLimitedState) external override onlyOperator {
+    function setIsLimitedState(address _vault, bool _isLimitedState) external override onlyFinanceOperator {
         require(_vault.isContract(), "!isContract");
         _setIsLimitedState(_vault, _isLimitedState);
     }
@@ -369,7 +369,11 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setAllowWhitelistedState(address _vault, bool _allowWhitelistedState) external override onlyOperator {
+    function setAllowWhitelistedState(address _vault, bool _allowWhitelistedState)
+        external
+        override
+        onlyFinanceOperator
+    {
         require(_vault.isContract(), "!isContract");
         _setAllowWhitelistedState(_vault, _allowWhitelistedState);
     }
@@ -397,7 +401,7 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyOperator {
+    function setUserDepositCap(address _vault, uint256 _userDepositCap) external override onlyFinanceOperator {
         require(_vault.isContract(), "!isContract");
         _setUserDepositCap(_vault, _userDepositCap);
     }
@@ -405,7 +409,11 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external override onlyOperator {
+    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount)
+        external
+        override
+        onlyFinanceOperator
+    {
         require(_vault.isContract(), "!isContract");
         _setMinimumDepositAmount(_vault, _minimumDepositAmount);
     }

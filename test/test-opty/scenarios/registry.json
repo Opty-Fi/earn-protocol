@@ -2917,7 +2917,7 @@
       "cleanActions": []
     },
     {
-      "description": "setIsLimitedState should fail if caller is not the operator",
+      "description": "setIsLimitedState should fail if caller is not the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -2927,14 +2927,14 @@
           },
           "executor": "user1",
           "expect": "fail",
-          "message": "caller is not the operator"
+          "message": "caller is not the finance operator"
         }
       ],
       "getActions": [],
       "cleanActions": []
     },
     {
-      "description": "setIsLimitedState should set the limit state of the vault if caller is the operator",
+      "description": "setIsLimitedState should set the limit state of the vault if caller is the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -2942,7 +2942,7 @@
           "args": {
             "state": true
           },
-          "executor": "operator",
+          "executor": "financeOperator",
           "expect": "success",
           "message": ""
         }
@@ -2959,7 +2959,7 @@
       "cleanActions": []
     },
     {
-      "description": "setUserDepositCap should fail if caller is not the operator",
+      "description": "setUserDepositCap should fail if caller is not the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -2969,14 +2969,14 @@
           },
           "executor": "user0",
           "expect": "fail",
-          "message": "caller is not the operator"
+          "message": "caller is not the finance operator"
         }
       ],
       "getActions": [],
       "cleanActions": []
     },
     {
-      "description": "setUserDepositCap should set the maximum deposits for each user if caller is the operator",
+      "description": "setUserDepositCap should set the maximum deposits for each user if caller is the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -2984,7 +2984,7 @@
           "args": {
             "value": 100000000
           },
-          "executor": "operator",
+          "executor": "financeOperator",
           "expect": "success",
           "message": ""
         }
@@ -3001,7 +3001,7 @@
       "cleanActions": []
     },
     {
-      "description": "setMinimumDepositAmount should fail if caller is not the operator",
+      "description": "setMinimumDepositAmount should fail if caller is not the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -3011,14 +3011,14 @@
           },
           "executor": "user0",
           "expect": "fail",
-          "message": "caller is not the operator"
+          "message": "caller is not the finance operator"
         }
       ],
       "getActions": [],
       "cleanActions": []
     },
     {
-      "description": "setMinimumDepositAmount should set the minimum deposit without rebalance that is accepted if caller is the operator",
+      "description": "setMinimumDepositAmount should set the minimum deposit without rebalance that is accepted if caller is the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -3026,7 +3026,7 @@
           "args": {
             "value": 5000000
           },
-          "executor": "operator",
+          "executor": "financeOperator",
           "expect": "success",
           "message": ""
         }
@@ -3085,7 +3085,7 @@
       "cleanActions": []
     },
     {
-      "description": "setAllowWhitelistedState should fail if caller is not the operator",
+      "description": "setAllowWhitelistedState should fail if caller is not the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -3095,14 +3095,14 @@
           },
           "executor": "user0",
           "expect": "fail",
-          "message": "caller is not the operator"
+          "message": "caller is not the finance operator"
         }
       ],
       "getActions": [],
       "cleanActions": []
     },
     {
-      "description": "setAllowWhitelistedState should set the whitelist state of the vault if caller is the operator",
+      "description": "setAllowWhitelistedState should set the whitelist state of the vault if caller is the finance operator",
       "setActions": [
         {
           "contract": "registry",
@@ -3110,7 +3110,7 @@
           "args": {
             "state": true
           },
-          "executor": "operator",
+          "executor": "financeOperator",
           "expect": "success",
           "message": ""
         }
