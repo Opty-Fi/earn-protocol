@@ -1027,7 +1027,7 @@
                   },
                   "executer": "owner",
                   "expect": "fail",
-                  "message": "!address(0)"
+                  "message": "!isContract"
                 }
               ],
               "getActions": []
@@ -1387,7 +1387,7 @@
                   },
                   "executer": "owner",
                   "expect": "fail",
-                  "message": "!address(0)"
+                  "message": "!isContract"
                 }
               ],
               "getActions": []
