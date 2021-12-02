@@ -307,17 +307,6 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setUnderlyingAssetHashToRPToVaults(
-        address[] memory _underlyingAssets,
-        uint256 _riskProfileCode,
-        address _vault
-    ) external override onlyOperator {
-        _setUnderlyingAssetHashToRPToVaults(keccak256(abi.encodePacked(_underlyingAssets)), _riskProfileCode, _vault);
-    }
-
-    /**
-     * @inheritdoc IRegistry
-     */
     function setWithdrawalFeeRange(DataTypes.WithdrawalFeeRange memory _withdrawalFeeRange)
         external
         override
@@ -330,27 +319,6 @@ contract Registry is IRegistry, ModifiersController {
             "!BasisRange"
         );
         withdrawalFeeRange = _withdrawalFeeRange;
-    }
-
-    /**
-     * @inheritdoc IRegistry
-     */
-    function setUnderlyingAssetHashToRPToVaults(
-        address[][] memory _underlyingAssets,
-        uint256[] memory _riskProfileCodes,
-        address[][] memory _vaults
-    ) external override onlyOperator {
-        require(_riskProfileCodes.length == _vaults.length, "!Profileslength");
-        for (uint256 _i = 0; _i < _vaults.length; _i++) {
-            require(_vaults[_i].length == _underlyingAssets.length, "!VaultsLength");
-            for (uint256 _j = 0; _j < _vaults[_i].length; _j++) {
-                _setUnderlyingAssetHashToRPToVaults(
-                    keccak256(abi.encodePacked(_underlyingAssets[_j])),
-                    _riskProfileCodes[_i],
-                    _vaults[_i][_j]
-                );
-            }
-        }
     }
 
     /**
@@ -791,18 +759,6 @@ contract Registry is IRegistry, ModifiersController {
             tokensHashToTokens[_tokensHash].tokens.push(_tokens[_i]);
         }
         emit LogTokensToTokensHash(_tokensHash, msg.sender);
-    }
-
-    function _setUnderlyingAssetHashToRPToVaults(
-        bytes32 _underlyingAssetHash,
-        uint256 _riskProfileCode,
-        address _vault
-    ) internal {
-        require(_underlyingAssetHash != Constants.ZERO_BYTES32, "!underlyingAssetHash");
-        require(_vault.isContract(), "!isContract");
-        require(riskProfiles[_riskProfileCode].exists, "!RP");
-        underlyingAssetHashToRPToVaults[_underlyingAssetHash][_riskProfileCode] = _vault;
-        emit LogUnderlyingAssetHashToRPToVaults(_underlyingAssetHash, _riskProfileCode, _vault, msg.sender);
     }
 
     function _addRiskProfile(

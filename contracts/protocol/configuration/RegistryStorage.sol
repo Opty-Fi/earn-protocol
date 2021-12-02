@@ -140,12 +140,6 @@ contract RegistryStorage is RegistryAdminStorage {
     mapping(address => address) public liquidityPoolToAdapter;
 
     /**
-     * @notice underlying asset (token address's hash) mapped to riskProfileCode and vault contract
-     *         address for keeping track of all the vault contracts
-     */
-    mapping(bytes32 => mapping(uint256 => address)) public underlyingAssetHashToRPToVaults;
-
-    /**
      * @dev riskProfileCode mapped to its struct `RiskProfile`
      */
     mapping(uint256 => DataTypes.RiskProfile) internal riskProfiles;
@@ -338,20 +332,6 @@ contract RegistryStorage is RegistryAdminStorage {
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogQueueCapVault(address indexed vault, uint256 indexed queueCap, address indexed caller);
-
-    /**
-     * @notice Emitted when setUnderlyingAssetHashToRPToVaults function is called
-     * @param underlyingAssetHash Underlying token's hash mapped to risk profile and OptyFi's Vault contract address
-     * @param riskProfileCode Risk Profile Code used to map Underlying token hash and OptyFi's Vault contract address
-     * @param vault OptyFi's Vault contract address
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogUnderlyingAssetHashToRPToVaults(
-        bytes32 indexed underlyingAssetHash,
-        uint256 indexed riskProfileCode,
-        address indexed vault,
-        address caller
-    );
 
     /**
      * @notice Emitted when RiskProfile is added

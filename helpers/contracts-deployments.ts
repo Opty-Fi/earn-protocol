@@ -306,18 +306,6 @@ export async function deployVault(
     underlyingTokenSymbol,
     riskProfileCode,
   ]);
-
-  await expect(
-    registryContract
-      .connect(owner)
-      ["setUnderlyingAssetHashToRPToVaults(address[],uint256,address)"](
-        [underlyingToken],
-        riskProfileCode,
-        vault.address,
-      ),
-  )
-    .to.emit(registryContract, "LogUnderlyingAssetHashToRPToVaults")
-    .withArgs(generateTokenHash([underlyingToken]), riskProfileCode, vault.address, await owner.getAddress());
   return vault;
 }
 
@@ -390,21 +378,5 @@ export async function deployVaultWithHash(
     riskProfileCode,
   ]);
 
-  await expect(
-    registryContract
-      .connect(owner)
-      ["setUnderlyingAssetHashToRPToVaults(address[],uint256,address)"](
-        [underlyingToken],
-        riskProfileCode,
-        vaultProxy.contract.address,
-      ),
-  )
-    .to.emit(registryContract, "LogUnderlyingAssetHashToRPToVaults")
-    .withArgs(
-      generateTokenHash([underlyingToken]),
-      riskProfileCode,
-      vaultProxy.contract.address,
-      await owner.getAddress(),
-    );
   return { vault, vaultProxy };
 }

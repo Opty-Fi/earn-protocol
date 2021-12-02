@@ -187,17 +187,6 @@ describe(scenario.title, () => {
             }
             break;
           }
-          case "underlyingAssetHashToRPToVaults(bytes32,uint256)": {
-            const { tokens, riskProfileCode }: ARGUMENTS = action.args;
-            const tokensHash = generateTokenHash(tokens);
-            if (tokens && riskProfileCode) {
-              const value = await registryContract[action.action](tokensHash, riskProfileCode);
-              expect(value).to.be.equal(action.expectedValue);
-            }
-            assert.isDefined(tokens, `args is wrong in ${action.action} testcase`);
-            assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
-            break;
-          }
           case "isNewContract()": {
             expect(await registryContract[action.action]()).to.be.equal(action.expectedValue);
             break;
@@ -929,44 +918,6 @@ describe(scenario.title, () => {
         assert.isDefined(riskProfileCode ? riskProfileCode : index, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "setUnderlyingAssetHashToRPToVaults(address[],uint256,address)": {
-        const { tokens, riskProfileCode, vault }: ARGUMENTS = action.args;
-        if (tokens && riskProfileCode && vault) {
-          if (action.expect === "success") {
-            await expect(
-              registryContract.connect(signers[action.executor])[action.action](tokens, riskProfileCode, vault),
-            )
-              .to.emit(registryContract, "LogUnderlyingAssetHashToRPToVaults")
-              .withArgs(generateTokenHash(tokens), riskProfileCode, vault, callers[action.executor]);
-          } else {
-            await expect(
-              registryContract.connect(signers[action.executor])[action.action](tokens, riskProfileCode, vault),
-            ).to.be.revertedWith(action.message);
-          }
-        }
-        assert.isDefined(tokens, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(vault, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(riskProfileCode, `args is wrong in ${action.action} testcase`);
-        break;
-      }
-      case "setUnderlyingAssetHashToRPToVaults(address[][],uint256[],address[][])": {
-        const { multiTokens, riskProfileCodes, vaults }: ARGUMENTS = action.args;
-        if (multiTokens && riskProfileCodes && vaults) {
-          if (action.expect === "success") {
-            await registryContract
-              .connect(signers[action.executor])
-              [action.action](multiTokens, riskProfileCodes, vaults);
-          } else {
-            await expect(
-              registryContract.connect(signers[action.executor])[action.action](multiTokens, riskProfileCodes, vaults),
-            ).to.be.revertedWith(action.message);
-          }
-        }
-        assert.isDefined(multiTokens, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(riskProfileCodes, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(vaults, `args is wrong in ${action.action} testcase`);
-        break;
-      }
       case "setWithdrawalFeeRange((uint256,uint256))": {
         const { range }: ARGUMENTS = action.args;
         if (range) {
@@ -1202,17 +1153,6 @@ const REGISTRY_TESTING_DEFAULT_DATA: TESTING_DEFAULT_DATA[] = [
         name: "riskProfilesArray(uint256)",
         input: ["0"],
         output: "1",
-      },
-    ],
-  },
-  {
-    setFunction: "setUnderlyingAssetHashToRPToVaults(address[],uint256,address)",
-    input: [["0x6b175474e89094c44da98b954eedeac495271d0f"], "1", "0x6b175474e89094c44da98b954eedeac495271d0f"],
-    getFunction: [
-      {
-        name: "underlyingAssetHashToRPToVaults(bytes32,uint256)",
-        input: ["0x50440c05332207ba7b1bb0dcaf90d1864e3aa44dd98a51f88d0796a7623f0c80", "1"],
-        output: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
       },
     ],
   },

@@ -223,34 +223,10 @@ interface IRegistry {
     function setTokensHashToTokens(address[] memory _tokens) external;
 
     /**
-     * @notice Maps the Vault contract with underlying assets and riskProfile
-     * @param _vault Vault contract address
-     * @param _riskProfileCode Risk profile mapped to the vault contract
-     * @param _underlyingAssets List of token addresses to map with the riskProfile and Vault contract
-     */
-    function setUnderlyingAssetHashToRPToVaults(
-        address[] memory _underlyingAssets,
-        uint256 _riskProfileCode,
-        address _vault
-    ) external;
-
-    /**
      * @notice Set the withdrawal fee's range
      * @param _withdrawalFeeRange the withdrawal fee's range
      */
     function setWithdrawalFeeRange(DataTypes.WithdrawalFeeRange memory _withdrawalFeeRange) external;
-
-    /**
-     * @notice Maps mulitple underlying tokens to risk profiles to vault contracts address
-     * @param _vaults List of Vault contract address
-     * @param _riskProfileCodes List of Risk profile codes mapped to the vault contract
-     * @param _underlyingAssets List of paired token addresses to map with the riskProfile and Vault contract
-     */
-    function setUnderlyingAssetHashToRPToVaults(
-        address[][] memory _underlyingAssets,
-        uint256[] memory _riskProfileCodes,
-        address[][] memory _vaults
-    ) external;
 
     /**
      * @notice Set the complete vault configuration
