@@ -564,9 +564,6 @@ contract Vault is
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        if (_vaultConfiguration.allowWhitelistedState) {
-            require(_isUserWhitelisted(msg.sender), "!user");
-        }
         require(_vaultConfiguration.unpaused, "unpause");
         require(_redeemAmount > 0, "!_redeemAmount>0");
         uint256 opBalance = balanceOf(msg.sender);
