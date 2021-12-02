@@ -828,14 +828,12 @@ describe(testVaultConfigurationScenario.title, () => {
                 await contracts[action.contract].connect(users[action.executor])[action.action](range);
                 break;
               }
-              case "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)": {
+              case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)": {
                 const { state, value, fee, shares, queueCap } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                 if (state && value && shares && queueCap) {
                   if (action.expect == "success") {
                     await contracts[action.contract].connect(users[action.executor])[action.action](
                       contracts["vault"].address,
-                      state,
-                      !state,
                       !state,
                       !state,
                       [
@@ -851,8 +849,6 @@ describe(testVaultConfigurationScenario.title, () => {
                       contracts["vault"].address,
                     );
                     const treasuryShares = await contracts["registry"].getTreasuryShares(contracts["vault"].address);
-                    expect(vaultConfiguration[0]).to.be.eq(state);
-                    expect(vaultConfiguration[1]).to.be.eq(!state);
                     expect(vaultConfiguration[2]).to.be.eq(!state);
                     expect(vaultConfiguration[3]).to.be.eq(!state);
                     expect(treasuryShares[0].treasury).to.be.eq(await users[3].getAddress());
@@ -867,8 +863,6 @@ describe(testVaultConfigurationScenario.title, () => {
                     await expect(
                       contracts[action.contract].connect(users[action.executor])[action.action](
                         contracts["vault"].address,
-                        state,
-                        !state,
                         !state,
                         !state,
                         [

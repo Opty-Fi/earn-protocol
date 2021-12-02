@@ -444,12 +444,9 @@ contract Vault is
         if (_vaultConfiguration.allowWhitelistedState) {
             require(_isUserWhitelisted(msg.sender), "!user");
         }
+        require(_checkDepositCap(_vaultConfiguration, _amount), "!cap");
         require(_isQueueFull(_vaultConfiguration), "!q");
-
         require(_amount >= _vaultConfiguration.minimumDepositAmount, "!minDep");
-        if (_vaultConfiguration.isLimitedState == true) {
-            require(_amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]), "!cap");
-        }
         uint256 _tokenBalanceBefore = _balance();
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
@@ -507,9 +504,7 @@ contract Vault is
         if (_vaultConfiguration.allowWhitelistedState) {
             require(_isUserWhitelisted(msg.sender), "!user");
         }
-        if (_vaultConfiguration.isLimitedState == true) {
-            require(_amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]), "!cap");
-        }
+        require(_checkDepositCap(_vaultConfiguration, _amount), "!cap");
         require(_amount > 0, "!(_amount>0)");
 
         if (investStrategyHash != Constants.ZERO_BYTES32) {
@@ -687,17 +682,31 @@ contract Vault is
     }
 
     /**
-     * @notice Function to check wether the depositQueue is full or not
+     * @notice Function to check whether the depositQueue is full or not
      */
     function _isQueueFull(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view returns (bool) {
         return getDepositQueue().length < _vaultConfiguration.queueCap;
     }
 
     /**
-     * @notice Function to check wether the user is whitelisted or not
+     * @notice Function to check whether the user is whitelisted or not
      */
     function _isUserWhitelisted(address _user) internal view returns (bool) {
         return registryContract.isUserWhitelisted(address(this), _user);
+    }
+
+    /**
+     * @notice Function to check whether the amount exceeds deposit cap or not
+     */
+    function _checkDepositCap(DataTypes.VaultConfiguration memory _vaultConfiguration, uint256 _amount)
+        internal
+        view
+        returns (bool)
+    {
+        if (_vaultConfiguration.isLimitedState) {
+            return _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]);
+        }
+        return true;
     }
 
     /**

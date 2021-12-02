@@ -261,8 +261,6 @@ interface IRegistry {
     /**
      * @notice Set the complete vault configuration
      * @param _vault Vault address to be configured
-     * @param _discontinued A boolean value that indicates wether the vault is discontinued (true) or not (false)
-     * @param _unpaused A boolean value true to unpause vault contract and false for pause vault contract
      * @param _isLimitedState A boolean value that indicates wether the vault is in limited state (true) or not (false)
      * @param _allowWhitelistedState It indicates wether the vault only accepts whitelisted users (true) or not (false)
      * @param _treasuryShares Array of treasuries and their fee shares
@@ -273,8 +271,6 @@ interface IRegistry {
      */
     function setVaultConfiguration(
         address _vault,
-        bool _discontinued,
-        bool _unpaused,
         bool _isLimitedState,
         bool _allowWhitelistedState,
         DataTypes.TreasuryShare[] memory _treasuryShares,
@@ -581,6 +577,7 @@ interface IRegistry {
 
     /**
      * @notice Check if the user is whitelisted or not
+     * @param _vault Vault contract address
      * @param _user User address for which to check if it is whitelisted or not
      * @return _isUserWhitelisted Returns a boolean for user whitelisted or not
      */

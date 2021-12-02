@@ -364,8 +364,6 @@ contract Registry is IRegistry, ModifiersController {
      */
     function setVaultConfiguration(
         address _vault,
-        bool _discontinued,
-        bool _unpaused,
         bool _isLimitedState,
         bool _allowWhitelistedState,
         DataTypes.TreasuryShare[] memory _treasuryShares,
@@ -375,36 +373,13 @@ contract Registry is IRegistry, ModifiersController {
         uint256 _queueCap
     ) external override onlyOperator {
         require(_vault.isContract(), "!isContract");
-        DataTypes.VaultConfiguration memory _vaultToVaultConfiguration = vaultToVaultConfiguration[_vault];
-        if (_discontinued == true) {
-            _discontinue(_vault);
-        }
-        if (_vaultToVaultConfiguration.unpaused != _unpaused) {
-            _unpauseVaultContract(_vault, _unpaused);
-        }
-        if (_vaultToVaultConfiguration.isLimitedState != _isLimitedState) {
-            _setIsLimitedState(_vault, _isLimitedState);
-        }
-        if (_vaultToVaultConfiguration.allowWhitelistedState != _allowWhitelistedState) {
-            _setAllowWhitelistedState(_vault, _allowWhitelistedState);
-        }
-        if (_vaultToVaultConfiguration.withdrawalFee != _withdrawalFee) {
-            _setWithdrawalFee(_vault, _withdrawalFee);
-        }
-        if (
-            keccak256(abi.encode(_vaultToVaultConfiguration.treasuryShares)) != keccak256(abi.encode(_treasuryShares))
-        ) {
-            _setTreasuryShares(_vault, _treasuryShares);
-        }
-        if (_vaultToVaultConfiguration.userDepositCap != _userDepositCap) {
-            _setUserDepositCap(_vault, _userDepositCap);
-        }
-        if (_vaultToVaultConfiguration.minimumDepositAmount != _minimumDepositAmount) {
-            _setMinimumDepositAmount(_vault, _minimumDepositAmount);
-        }
-        if (_vaultToVaultConfiguration.queueCap != _queueCap) {
-            _setQueueCap(_vault, _queueCap);
-        }
+        _setIsLimitedState(_vault, _isLimitedState);
+        _setAllowWhitelistedState(_vault, _allowWhitelistedState);
+        _setWithdrawalFee(_vault, _withdrawalFee);
+        _setTreasuryShares(_vault, _treasuryShares);
+        _setUserDepositCap(_vault, _userDepositCap);
+        _setMinimumDepositAmount(_vault, _minimumDepositAmount);
+        _setQueueCap(_vault, _queueCap);
     }
 
     /**

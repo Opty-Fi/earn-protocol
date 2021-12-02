@@ -371,7 +371,7 @@
           "setActions": [
             {
               "contract": "registry",
-              "action": "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
+              "action": "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
               "args": {
                 "state": true,
                 "value": 1000000,
@@ -402,7 +402,7 @@
             },
             {
               "contract": "registry",
-              "action": "setVaultConfiguration(address,bool,bool,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
+              "action": "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
               "args": {
                 "state": true,
                 "value": 1000000,
@@ -420,7 +420,7 @@
               "contract": "registry",
               "action": "vaultToVaultConfiguration(address)",
               "args": {},
-              "expectedValue": [true, false, false, false, 1000, 1000000, 1000000, 10]
+              "expectedValue": [false, true, false, false, 1000, 1000000, 1000000, 10]
             }
           ],
           "cleanActions": []

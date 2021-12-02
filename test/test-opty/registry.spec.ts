@@ -1252,7 +1252,7 @@ async function verifyDefaultData(contract: Contract, data: TESTING_DEFAULT_DATA[
         } else if (getFunction.name === "vaultToVaultConfiguration(address)") {
           expect(realValue[0]).to.equal(getFunction.output[0]);
           expect(realValue[1]).to.equal(getFunction.output[1]);
-          expect(+realValue[4]).to.equal(+getFunction.output[4]);
+          expect(realValue[4]).to.equal(getFunction.output[4]);
         } else {
           expect(realValue).to.have.members(getFunction.output);
         }
