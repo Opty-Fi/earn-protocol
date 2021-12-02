@@ -231,8 +231,8 @@ interface IRegistry {
     /**
      * @notice Set the complete vault configuration
      * @param _vault Vault address to be configured
-     * @param _isLimitedState A boolean value that indicates wether the vault is in limited state (true) or not (false)
-     * @param _allowWhitelistedState It indicates wether the vault only accepts whitelisted users (true) or not (false)
+     * @param _isLimitedState A boolean value that indicates whether the vault is in limited state (true) or not (false)
+     * @param _allowWhitelistedState It indicates whether the vault only accepts whitelisted users (true) or not (false)
      * @param _treasuryShares Array of treasuries and their fee shares
      * @param _withdrawalFee Withdrawal fee to be set for vault contract
      * @param _userDepositCap Maximum deposit amount allowed for each user in the given vault
