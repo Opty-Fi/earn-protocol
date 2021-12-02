@@ -44,6 +44,22 @@
       "cleanActions": []
     },
     {
+      "description": "Governance cannot set OPTYDistributor with EOA address",
+      "setActions": [
+        {
+          "action": "setOPTYDistributor(address)",
+          "args": {
+            "newOptyDistributor": ""
+          },
+          "executor": "owner",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "Governance should be able to set FinanceOperator's address",
       "setActions": [
         {
@@ -2790,23 +2806,6 @@
           "executor": "financeOperator",
           "expect": "fail",
           "message": "FeeShares!=WithdrawalFee"
-        }
-      ],
-      "getActions": [],
-      "cleanActions": []
-    },
-    {
-      "description": "Finance Operator shouldn't be able to set treasury shares with empty value",
-      "setActions": [
-        {
-          "action": "setTreasuryShares(address,(address,uint256)[])",
-          "args": {
-            "contractName": "vault",
-            "treasuryShare": []
-          },
-          "executor": "financeOperator",
-          "expect": "fail",
-          "message": "length!>0"
         }
       ],
       "getActions": [],

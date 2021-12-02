@@ -261,7 +261,6 @@ interface IRegistry {
      * @param _withdrawalFee Withdrawal fee to be set for vault contract
      * @param _userDepositCap Maximum deposit amount allowed for each user in the given vault
      * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance in the given vault
-     * @param _queueCap Maximum queue length for the given vault
      */
     function setVaultConfiguration(
         address _vault,
@@ -270,8 +269,7 @@ interface IRegistry {
         DataTypes.TreasuryShare[] memory _treasuryShares,
         uint256 _withdrawalFee,
         uint256 _userDepositCap,
-        uint256 _minimumDepositAmount,
-        uint256 _queueCap
+        uint256 _minimumDepositAmount
     ) external;
 
     /**

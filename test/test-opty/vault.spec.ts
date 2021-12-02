@@ -828,9 +828,9 @@ describe(testVaultConfigurationScenario.title, () => {
                 await contracts[action.contract].connect(users[action.executor])[action.action](range);
                 break;
               }
-              case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)": {
-                const { state, value, fee, shares, queueCap } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
-                if (state && value && shares && queueCap) {
+              case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256)": {
+                const { state, value, fee, shares } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (state && value && shares) {
                   if (action.expect == "success") {
                     await contracts[action.contract].connect(users[action.executor])[action.action](
                       contracts["vault"].address,
@@ -843,7 +843,6 @@ describe(testVaultConfigurationScenario.title, () => {
                       fee,
                       value,
                       value,
-                      queueCap,
                     );
                     const vaultConfiguration = await contracts["registry"].vaultToVaultConfiguration(
                       contracts["vault"].address,
@@ -858,7 +857,6 @@ describe(testVaultConfigurationScenario.title, () => {
                     expect(vaultConfiguration[4]).to.be.eq(fee);
                     expect(vaultConfiguration[5]).to.be.eq(value);
                     expect(vaultConfiguration[6]).to.be.eq(value);
-                    expect(vaultConfiguration[7]).to.be.eq(queueCap);
                   } else {
                     await expect(
                       contracts[action.contract].connect(users[action.executor])[action.action](
@@ -872,7 +870,6 @@ describe(testVaultConfigurationScenario.title, () => {
                         fee,
                         value,
                         value,
-                        queueCap,
                       ),
                     ).to.be.revertedWith(action.message);
                   }
@@ -881,7 +878,6 @@ describe(testVaultConfigurationScenario.title, () => {
                 assert.isDefined(value, `args is wrong in ${action.action} testcase`);
                 assert.isDefined(fee, `args is wrong in ${action.action} testcase`);
                 assert.isDefined(shares, `args is wrong in ${action.action} testcase`);
-                assert.isDefined(queueCap, `args is wrong in ${action.action} testcase`);
                 break;
               }
               case "approve(address,uint256)": {

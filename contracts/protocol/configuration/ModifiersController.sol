@@ -60,7 +60,7 @@ abstract contract ModifiersController is IModifiersController, RegistryStorage {
      * @inheritdoc IModifiersController
      */
     function setOPTYDistributor(address _optyDistributor) public override onlyGovernance {
-        require(_optyDistributor != address(0), "!address(0)");
+        require(_optyDistributor.isContract(), "!isContract");
         optyDistributor = _optyDistributor;
         emit TransferOPTYDistributor(optyDistributor, msg.sender);
     }

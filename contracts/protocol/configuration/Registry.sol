@@ -363,8 +363,7 @@ contract Registry is IRegistry, ModifiersController {
         DataTypes.TreasuryShare[] memory _treasuryShares,
         uint256 _withdrawalFee,
         uint256 _userDepositCap,
-        uint256 _minimumDepositAmount,
-        uint256 _queueCap
+        uint256 _minimumDepositAmount
     ) external override onlyOperator {
         require(_vault.isContract(), "!isContract");
         _setIsLimitedState(_vault, _isLimitedState);
@@ -373,7 +372,6 @@ contract Registry is IRegistry, ModifiersController {
         _setTreasuryShares(_vault, _treasuryShares);
         _setUserDepositCap(_vault, _userDepositCap);
         _setMinimumDepositAmount(_vault, _minimumDepositAmount);
-        _setQueueCap(_vault, _queueCap);
     }
 
     /**
@@ -901,20 +899,21 @@ contract Registry is IRegistry, ModifiersController {
     }
 
     function _setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares) internal {
-        require(_treasuryShares.length > 0, "length!>0");
-        uint256 _sharesSum;
-        for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
-            require(_treasuryShares[_i].treasury != address(0), "!address(0)");
-            _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
-        }
-        require(_sharesSum == vaultToVaultConfiguration[_vault].withdrawalFee, "FeeShares!=WithdrawalFee");
+        if (_treasuryShares.length > 0) {
+            uint256 _sharesSum;
+            for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
+                require(_treasuryShares[_i].treasury != address(0), "!address(0)");
+                _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
+            }
+            require(_sharesSum == vaultToVaultConfiguration[_vault].withdrawalFee, "FeeShares!=WithdrawalFee");
 
-        //  delete the existing the treasury accounts if any to reset them
-        if (vaultToVaultConfiguration[_vault].treasuryShares.length > 0) {
-            delete vaultToVaultConfiguration[_vault].treasuryShares;
-        }
-        for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
-            vaultToVaultConfiguration[_vault].treasuryShares.push(_treasuryShares[_i]);
+            //  delete the existing the treasury accounts if any to reset them
+            if (vaultToVaultConfiguration[_vault].treasuryShares.length > 0) {
+                delete vaultToVaultConfiguration[_vault].treasuryShares;
+            }
+            for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
+                vaultToVaultConfiguration[_vault].treasuryShares.push(_treasuryShares[_i]);
+            }
         }
     }
 

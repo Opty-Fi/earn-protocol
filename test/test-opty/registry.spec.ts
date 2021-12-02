@@ -41,19 +41,11 @@ describe(scenario.title, () => {
     "strategyManager",
     "opty",
     "optyStakingRateBalancer",
+    "optyDistributor",
     "odefiVaultBooster",
     "vault",
   ];
-  const callerNames = [
-    "owner",
-    "financeOperator",
-    "riskOperator",
-    "strategyOperator",
-    "operator",
-    "optyDistributor",
-    "user0",
-    "user1",
-  ];
+  const callerNames = ["owner", "financeOperator", "riskOperator", "strategyOperator", "operator", "user0", "user1"];
   before(async () => {
     try {
       [owner, financeOperator, riskOperator, strategyOperator, operator, optyDistributor, user0, user1] =
@@ -119,7 +111,15 @@ describe(scenario.title, () => {
             assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
             break;
           }
-          case "getOPTYDistributor()":
+          case "getOPTYDistributor()": {
+            const { addressName } = <any>action.expectedValue;
+            if (addressName) {
+              const value = await registryContract[action.action]();
+              expect(value).to.be.equal(contracts[addressName].address);
+            }
+            assert.isDefined(addressName, `args is wrong in ${action.action} testcase`);
+            break;
+          }
           case "financeOperator()":
           case "riskOperator()":
           case "strategyOperator()":
@@ -436,15 +436,18 @@ describe(scenario.title, () => {
       }
       case "setOPTYDistributor(address)": {
         const { newOptyDistributor }: ARGUMENTS = action.args;
-        const tempNewOptyDistributorAddr = await signers[newOptyDistributor].getAddress();
-        if (newOptyDistributor) {
+        if (newOptyDistributor !== undefined) {
           if (action.expect === "success") {
-            await expect(registryContract.connect(signers[action.executor])[action.action](tempNewOptyDistributorAddr))
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts[newOptyDistributor].address),
+            )
               .to.emit(registryContract, "TransferOPTYDistributor")
-              .withArgs(tempNewOptyDistributorAddr, callers[action.executor]);
+              .withArgs(contracts[newOptyDistributor].address, callers[action.executor]);
           } else {
             await expect(
-              registryContract.connect(signers[action.executor])[action.action](tempNewOptyDistributorAddr),
+              registryContract
+                .connect(signers[action.executor])
+                [action.action](newOptyDistributor ? contracts[newOptyDistributor].address : callers["owner"]),
             ).to.be.revertedWith(action.message);
           }
         }
