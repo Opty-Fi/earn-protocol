@@ -86,12 +86,6 @@ interface IRegistry {
     function setOPTY(address _opty) external;
 
     /**
-     * @notice Set the PriceOracle contract address
-     * @param _priceOracle Address of PriceOracle Contract
-     */
-    function setPriceOracle(address _priceOracle) external;
-
-    /**
      * @notice Set the OPTYStakingRateBalancer contract address
      * @param _optyStakingRateBalancer Address of OptyStakingRateBalancer Contract
      */

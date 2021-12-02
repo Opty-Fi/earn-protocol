@@ -201,11 +201,6 @@ contract RegistryStorage is RegistryAdminStorage {
     address public strategyManager;
 
     /**
-     * @notice priceOracle contract address
-     */
-    address public priceOracle;
-
-    /**
      * @notice opty contract address
      */
     address public opty;

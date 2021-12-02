@@ -314,26 +314,6 @@ Options:
   --optystakingratebalancer 0x0000000000000000000000000000000000000000
 ```
 
-### deploy-price-oracle
-
-```
-Usage: deploy PriceOracle contracts
-
-Options:
---registry                  required <address> the address of registry
---deployedonce              optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb                optional <bool>    allow inserting to database
---network                   optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-price-oracle \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000
-```
-
 ### deploy-vault
 
 ```

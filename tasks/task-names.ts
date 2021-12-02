@@ -19,7 +19,6 @@ export const DEPLOY_ODEFI_VAULT_BOOSTER = "deploy-odefi-vault-booster";
 export const DEPLOY_OPTY_DISTRIBUTOR = "deploy-opty-distributor";
 export const DEPLOY_OPTY_STAKING_RATE_BALANCER = "deploy-opty-staking-rate-balancer";
 export const DEPLOY_OPTY_STAKING_VAULTS = "deploy-opty-staking-vaults";
-export const DEPLOY_PRICE_ORACLE = "deploy-price-oracle";
 export const DEPLOY_APR_ORACLE = "deploy-apr-oracle";
 
 /** ACTION TASKS */

@@ -194,12 +194,6 @@ export async function deployEssentialContracts(
 
   await executeFunc(optyStakingRateBalancer, owner, "setStakingVaultOPTYAllocation(uint256)", [10000000000]);
 
-  const priceOracle = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.PRICE_ORACLE, isDeployedOnce, owner, [
-    registry.address,
-  ]);
-
-  await executeFunc(registry, owner, "setPriceOracle(address)", [priceOracle.address]);
-
   const essentialContracts: CONTRACTS = {
     registry,
     investStrategyRegistry,
@@ -214,7 +208,6 @@ export async function deployEssentialContracts(
     optyStakingVault30D: optyStakingVaults["optyStakingVault30D"],
     optyStakingVault60D: optyStakingVaults["optyStakingVault60D"],
     optyStakingVault180D: optyStakingVaults["optyStakingVault180D"],
-    priceOracle,
   };
 
   return essentialContracts;

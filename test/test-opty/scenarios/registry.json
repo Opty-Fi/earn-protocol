@@ -536,47 +536,6 @@
       "cleanActions": []
     },
     {
-      "description": "Operator should be able to set PriceOracle Contract address",
-      "setActions": [
-        {
-          "action": "setPriceOracle(address)",
-          "args": {
-            "contractName": "priceOracle"
-          },
-          "executor": "operator",
-          "expect": "success",
-          "message": ""
-        }
-      ],
-      "getActions": [
-        {
-          "action": "priceOracle()",
-          "args": {},
-          "expectedValue": {
-            "contractName": "priceOracle"
-          },
-          "expectedMultiValues": {}
-        }
-      ],
-      "cleanActions": []
-    },
-    {
-      "description": "Non-Operator shouldn't be able to set PriceOracle Contract address",
-      "setActions": [
-        {
-          "action": "setPriceOracle(address)",
-          "args": {
-            "contractName": "priceOracle"
-          },
-          "executor": "user0",
-          "expect": "fail",
-          "message": "caller is not the operator"
-        }
-      ],
-      "getActions": [],
-      "cleanActions": []
-    },
-    {
       "description": "Operator should be able to set OPTYStakingRateBalancer Contract address",
       "setActions": [
         {
@@ -2911,6 +2870,40 @@
       "cleanActions": []
     },
     {
+      "description": "Operator should be able to add a user into the white list with non-contract vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "",
+            "user": "user1"
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator should be able to add a user into the white list with zero address vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "0",
+            "user": "user1"
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "Non-Operator shouldn't be able to add a user into the white list",
       "setActions": [
         {
@@ -2975,6 +2968,40 @@
           "executor": "user1",
           "expect": "fail",
           "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator shouldn't be able to add users into the white list with non-contract vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "",
+            "users": ["user0", "user1"]
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator shouldn't be able to add users into the white list with zero address vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "0",
+            "users": ["user0", "user1"]
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
         }
       ],
       "getActions": [],

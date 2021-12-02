@@ -52,6 +52,7 @@ contract Registry is IRegistry, ModifiersController {
         address _user,
         bool _whitelist
     ) external override onlyOperator {
+        require(_vault.isContract(), "!isContract");
         _setWhitelistedUser(_vault, _user, _whitelist);
     }
 
@@ -63,6 +64,7 @@ contract Registry is IRegistry, ModifiersController {
         address[] memory _users,
         bool _whitelist
     ) external override onlyOperator {
+        require(_vault.isContract(), "!isContract");
         for (uint256 _i = 0; _i < _users.length; _i++) {
             _setWhitelistedUser(_vault, _users[_i], _whitelist);
         }
@@ -122,14 +124,6 @@ contract Registry is IRegistry, ModifiersController {
     function setOPTY(address _opty) external override onlyOperator {
         require(_opty.isContract(), "!isContract");
         opty = _opty;
-    }
-
-    /**
-     * @inheritdoc IRegistry
-     */
-    function setPriceOracle(address _priceOracle) external override onlyOperator {
-        require(_priceOracle.isContract(), "!isContract");
-        priceOracle = _priceOracle;
     }
 
     /**

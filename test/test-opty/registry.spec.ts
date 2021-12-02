@@ -5,7 +5,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
 import { deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
@@ -40,7 +40,6 @@ describe(scenario.title, () => {
     "harvestCodeProvider",
     "strategyManager",
     "opty",
-    "priceOracle",
     "optyStakingRateBalancer",
     "odefiVaultBooster",
     "vault",
@@ -110,7 +109,6 @@ describe(scenario.title, () => {
           case "getHarvestCodeProvider()":
           case "getStrategyManager()":
           case "opty()":
-          case "priceOracle()":
           case "getOPTYStakingRateBalancer()":
           case "getODEFIVaultBooster()": {
             const { contractName } = <any>action.expectedValue;
@@ -353,7 +351,6 @@ describe(scenario.title, () => {
       case "setHarvestCodeProvider(address)":
       case "setStrategyManager(address)":
       case "setOPTY(address)":
-      case "setPriceOracle(address)":
       case "setOPTYStakingRateBalancer(address)":
       case "setODEFIVaultBooster(address)": {
         const { contractName }: ARGUMENTS = action.args;
@@ -546,7 +543,7 @@ describe(scenario.title, () => {
       }
       case "setWhitelistedUser(address,address,bool)": {
         const { user, contractName }: ARGUMENTS = action.args;
-        if (user && contractName) {
+        if (user) {
           if (action.expect === "success") {
             await registryContract
               .connect(signers[action.executor])
@@ -555,18 +552,24 @@ describe(scenario.title, () => {
             await expect(
               registryContract
                 .connect(signers[action.executor])
-                [action.action](contracts[contractName].address, callers[user], true),
+                [action.action](
+                  contractName === "0"
+                    ? ADDRESS_ZERO
+                    : contractName === ""
+                    ? callers[user]
+                    : contracts[contractName].address,
+                  callers[user],
+                  true,
+                ),
             ).to.be.revertedWith(action.message);
           }
         }
-
         assert.isDefined(user, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
         break;
       }
       case "setWhitelistedUsers(address,address[],bool)": {
         const { users, contractName }: ARGUMENTS = action.args;
-        if (users && contractName) {
+        if (users) {
           const userAddresses = users.map((name: string) => callers[name]);
           if (action.expect === "success") {
             await registryContract
@@ -576,13 +579,20 @@ describe(scenario.title, () => {
             await expect(
               registryContract
                 .connect(signers[action.executor])
-                [action.action](contracts[contractName].address, userAddresses, true),
+                [action.action](
+                  contractName === "0"
+                    ? ADDRESS_ZERO
+                    : contractName === ""
+                    ? userAddresses[0]
+                    : contracts[contractName].address,
+                  userAddresses,
+                  true,
+                ),
             ).to.be.revertedWith(action.message);
           }
         }
 
         assert.isDefined(users, `args is wrong in ${action.action} testcase`);
-        assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
         break;
       }
       case "approveToken(address[])":
@@ -1094,17 +1104,6 @@ const REGISTRY_TESTING_DEFAULT_DATA: TESTING_DEFAULT_DATA[] = [
     getFunction: [
       {
         name: "opty()",
-        input: [],
-        output: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-      },
-    ],
-  },
-  {
-    setFunction: "setPriceOracle(address)",
-    input: ["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"],
-    getFunction: [
-      {
-        name: "priceOracle()",
         input: [],
         output: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
       },
