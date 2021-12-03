@@ -817,6 +817,7 @@ contract Vault is
         uint256 redeemAmountInToken = (_balanceInUnderlyingToken.mul(_redeemAmount)).div(totalSupply());
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
+        totalVolumeLocked = totalVolumeLocked.sub(redeemAmountInToken);
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getSplitPaymentCode(
                 registryContract.getTreasuryShares(address(this)),
@@ -826,7 +827,6 @@ contract Vault is
             ),
             "!TreasuryRedeemAmt"
         );
-        totalVolumeLocked = totalVolumeLocked.sub(redeemAmountInToken);
     }
 
     /**
