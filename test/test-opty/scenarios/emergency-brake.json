@@ -34,7 +34,7 @@
                 "min_amount": 9999
               },
               "expect": "fail",
-              "message": "!maxVaultValueJump"
+              "message": "e23"
             }
           ],
           "cleanActions": []
@@ -74,7 +74,7 @@
                 "min_amount": 100000
               },
               "expect": "fail",
-              "message": "!maxVaultValueJump"
+              "message": "e23"
             }
           ],
           "cleanActions": []
@@ -124,7 +124,7 @@
                 "min_amount": 1000
               },
               "expect": "fail",
-              "message": "!maxVaultValueJump"
+              "message": "e23"
             }
           ],
           "cleanActions": [
@@ -164,7 +164,7 @@
                 "min_amount": 1000
               },
               "expect": "fail",
-              "message": "!maxVaultValueJump"
+              "message": "e23"
             }
           ],
           "cleanActions": []

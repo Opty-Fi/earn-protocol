@@ -332,7 +332,7 @@ contract Registry is IRegistry, ModifiersController {
         uint256 _withdrawalFee,
         uint256 _userDepositCap,
         uint256 _minimumDepositAmount,
-        uint256 _totalVolumeLockedLimitInUnderlying
+        uint256 _totalValueLockedLimitInUnderlying
     ) external override onlyFinanceOperator {
         require(_vault.isContract(), "!isContract");
         _setIsLimitedState(_vault, _isLimitedState);
@@ -341,7 +341,7 @@ contract Registry is IRegistry, ModifiersController {
         _setTreasuryShares(_vault, _treasuryShares);
         _setUserDepositCap(_vault, _userDepositCap);
         _setMinimumDepositAmount(_vault, _minimumDepositAmount);
-        _setTotalVolumeLockedLimitInUnderlying(_vault, _totalVolumeLockedLimitInUnderlying);
+        _setTotalValueLockedLimitInUnderlying(_vault, _totalValueLockedLimitInUnderlying);
     }
 
     /**
@@ -423,13 +423,13 @@ contract Registry is IRegistry, ModifiersController {
     /**
      * @inheritdoc IRegistry
      */
-    function setTotalVolumeLockedLimitInUnderlying(address _vault, uint256 _totalVolumeLockedLimitInUnderlying)
+    function setTotalValueLockedLimitInUnderlying(address _vault, uint256 _totalValueLockedLimitInUnderlying)
         external
         override
         onlyFinanceOperator
     {
         require(_vault.isContract(), "!isContract");
-        _setTotalVolumeLockedLimitInUnderlying(_vault, _totalVolumeLockedLimitInUnderlying);
+        _setTotalValueLockedLimitInUnderlying(_vault, _totalValueLockedLimitInUnderlying);
     }
 
     /**
@@ -913,13 +913,13 @@ contract Registry is IRegistry, ModifiersController {
         emit LogMinimumDepositAmountVault(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
     }
 
-    function _setTotalVolumeLockedLimitInUnderlying(address _vault, uint256 _totalVolumeLockedLimitInUnderlying)
+    function _setTotalValueLockedLimitInUnderlying(address _vault, uint256 _totalValueLockedLimitInUnderlying)
         internal
     {
-        vaultToVaultConfiguration[_vault].totalVolumeLockedLimitInUnderlying = _totalVolumeLockedLimitInUnderlying;
-        emit LogVaultTotalVolumeLockedLimitInUnderlying(
+        vaultToVaultConfiguration[_vault].totalValueLockedLimitInUnderlying = _totalValueLockedLimitInUnderlying;
+        emit LogVaultTotalValueLockedLimitInUnderlying(
             _vault,
-            vaultToVaultConfiguration[_vault].totalVolumeLockedLimitInUnderlying,
+            vaultToVaultConfiguration[_vault].totalValueLockedLimitInUnderlying,
             msg.sender
         );
     }

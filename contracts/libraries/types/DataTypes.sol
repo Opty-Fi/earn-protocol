@@ -169,6 +169,7 @@ library DataTypes {
      * @param allowWhitelistedState If the vault contract require whitelisted users or not
      * @param userDepositCap Maximum total amount that can be deposited by an address
      * @param minimumDepositAmount Minimum deposit without rebalance allowed
+     * @param totalValueLockedLimitInUnderlying Maximum TVL in underlying allowed for the vault
      * @param queueCap Maximum length of the deposits without rebalance queue
      */
     struct VaultConfiguration {
@@ -180,7 +181,7 @@ library DataTypes {
         uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
         uint256 userDepositCap;
         uint256 minimumDepositAmount;
-        uint256 totalVolumeLockedLimitInUnderlying;
+        uint256 totalValueLockedLimitInUnderlying;
         uint256 queueCap;
     }
 

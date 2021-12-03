@@ -326,14 +326,14 @@ contract RegistryStorage is RegistryAdminStorage {
     );
 
     /**
-     * @notice Emitted when setTotalVolumeLockedLimitInUnderlying is called
+     * @notice Emitted when setTotalValueLockedLimitInUnderlying is called
      * @param vault OptyFi's Vault contract address
-     * @param totalVolumeLockedLimitInUnderlying Maximum limit for total volume locked of OptyFi's Vault contract
+     * @param totalValueLockedLimitInUnderlying Maximum limit for total value locked of OptyFi's Vault contract
      * @param caller Address of user who has called the respective function to trigger this event
      */
-    event LogVaultTotalVolumeLockedLimitInUnderlying(
+    event LogVaultTotalValueLockedLimitInUnderlying(
         address indexed vault,
-        uint256 indexed totalVolumeLockedLimitInUnderlying,
+        uint256 indexed totalValueLockedLimitInUnderlying,
         address indexed caller
     );
 
