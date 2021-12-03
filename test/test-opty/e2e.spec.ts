@@ -46,7 +46,7 @@ describe("E2E Integration tests", function () {
     this.signers.operator = signers[8];
     this.signers.governance = signers[9];
   });
-  describe("1. Registry setup", function () {
+  describe("Deployment, config and actions", function () {
     it("1.0 Registry and Registry proxy deployment and connecting", async function () {
       this.registry = <Registry>await deployRegistry(hre, this.signers.admin, false);
       this.registryProxy = <RegistryProxy>(
@@ -258,16 +258,59 @@ describe("E2E Integration tests", function () {
       await this.registry.connect(this.signers.governance).setOperator(this.signers.operator.address);
       expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
-  });
 
-  // describe("2. ", function () {
-  //   it("2.1", async function () {
-  //     console.log("2.1");
-  //     expect(await this.registry.operator()).to.equal(this.signers.operator.address);
-  //   });
-  //   it("2.2", async function () {
-  //     console.log("2.3");
-  //     expect(await this.registry.operator()).to.equal(this.signers.operator.address);
-  //   });
-  // });
+    it("1.17 Operator can register adapter to approved liquidity pools", async function () {
+      const registryContractInstance = await hre.ethers.getContractAt(
+        ESSENTIAL_CONTRACTS.REGISTRY,
+        this.registry.address,
+      );
+      await expect(
+        registryContractInstance.connect(this.signers.operator)["setLiquidityPoolToAdapter((address,address)[])"]([
+          {
+            pool: TypedDefiPools.CompoundAdapter.usdc.pool,
+            adapter: this.compoundAdapter.address,
+          },
+          {
+            pool: TypedDefiPools.AaveV1Adapter.usdc.pool,
+            adapter: this.aavev1Adapter.address,
+          },
+          {
+            pool: TypedDefiPools.AaveV2Adapter.usdc.pool,
+            adapter: this.aaveV2Adapter.address,
+          },
+          {
+            pool: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+            adapter: this.curveDepositPoolAdapter.address,
+          },
+          {
+            pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+            adapter: this.curveSwapPoolAdapter.address,
+          },
+        ]),
+      )
+        .to.emit(this.registry, "LogLiquidityPoolToAdapter")
+        .withArgs(
+          TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+          this.curveSwapPoolAdapter.address,
+          this.signers.operator.address,
+        );
+      expect(await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CompoundAdapter.usdc.pool)).to.equal(
+        this.compoundAdapter.address,
+      );
+      expect(await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.AaveV1Adapter.usdc.pool)).to.equal(
+        this.aavev1Adapter.address,
+      );
+      expect(await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.AaveV2Adapter.usdc.pool)).to.equal(
+        this.aaveV2Adapter.address,
+      );
+      expect(
+        await this.registry.getLiquidityPoolToAdapter(
+          TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+        ),
+      ).to.equal(this.curveDepositPoolAdapter.address);
+      expect(
+        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool),
+      ).to.equal(this.curveSwapPoolAdapter.address);
+    });
+  });
 });
