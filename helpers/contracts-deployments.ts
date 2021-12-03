@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { RISK_PROFILES, OPTY_STAKING_VAULTS } from "./constants/contracts-data";
 import { VAULT_TOKENS } from "./constants/tokens";
 import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "./constants/essential-contracts-name";
@@ -7,7 +6,7 @@ import { Contract, Signer } from "ethers";
 import { CONTRACTS, CONTRACTS_WITH_HASH } from "./type";
 import { getTokenName, getTokenSymbol, addRiskProfiles } from "./contracts-actions";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { deployContract, executeFunc, deployContractWithHash, generateTokenHash } from "./helpers";
+import { deployContract, executeFunc, deployContractWithHash } from "./helpers";
 
 export async function deployRegistry(
   hre: HardhatRuntimeEnvironment,
