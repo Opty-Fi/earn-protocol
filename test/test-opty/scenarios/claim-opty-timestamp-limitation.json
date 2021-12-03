@@ -41,7 +41,7 @@
           "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
-            "operatorUnlockClaimOPTYTimestamp": 1631863987
+            "operatorUnlockClaimOPTYTimestamp": 0
           },
           "executer": "owner",
           "expect": "success",
@@ -64,7 +64,7 @@
           "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
-            "operatorUnlockClaimOPTYTimestamp": 1631863987
+            "operatorUnlockClaimOPTYTimestamp": 20000
           },
           "executer": "owner",
           "expect": "success",
@@ -122,7 +122,7 @@
           "contract": "optyDistributor",
           "action": "setOperatorUnlockClaimOPTYTimestamp(uint256)",
           "args": {
-            "operatorUnlockClaimOPTYTimestamp": 1621863987
+            "operatorUnlockClaimOPTYTimestamp": 0
           },
           "executer": "owner",
           "expect": "success",

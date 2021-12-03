@@ -4,7 +4,7 @@ import { ESSENTIAL_CONTRACTS as ESSENTIAL_CONTRACTS_DATA } from "./constants/ess
 import { ADAPTERS } from "./constants/adapters";
 import { Contract, Signer } from "ethers";
 import { CONTRACTS, CONTRACTS_WITH_HASH } from "./type";
-import { getTokenName, getTokenSymbol, addRiskProfiles } from "./contracts-actions";
+import { getTokenName, getTokenSymbol, addRiskProfiles, getBlockTimestamp } from "./contracts-actions";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { deployContract, executeFunc, deployContractWithHash } from "./helpers";
 
@@ -169,10 +169,11 @@ export async function deployEssentialContracts(
     100000000000000,
   ]);
 
+  const timestamp = (await getBlockTimestamp(hre)) + 450000;
   const optyDistributor = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.OPTY_DISTRIBUTOR, isDeployedOnce, owner, [
     registry.address,
     opty.address,
-    1700000000,
+    timestamp,
   ]);
 
   await executeFunc(registry, owner, "setOPTYDistributor(address)", [optyDistributor.address]);

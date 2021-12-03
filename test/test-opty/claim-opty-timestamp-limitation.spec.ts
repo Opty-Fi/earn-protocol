@@ -31,6 +31,7 @@ describe(scenario.title, () => {
   const MAX_AMOUNT = "100000000000000000000000";
   let contracts: CONTRACTS = {};
   let users: { [key: string]: Signer };
+  let blocktimestamp: number;
   before(async () => {
     try {
       const [owner, admin, user1] = await hre.ethers.getSigners();
@@ -185,18 +186,18 @@ describe(scenario.title, () => {
           }
           case "setOperatorUnlockClaimOPTYTimestamp(uint256)": {
             const { operatorUnlockClaimOPTYTimestamp }: ARGUMENTS = action.args;
-            if (operatorUnlockClaimOPTYTimestamp) {
-              if (action.expect === "success") {
-                await executeFunc(contracts[action.contract], users[action.executer], action.action, [
+            if (action.expect === "success") {
+              blocktimestamp =
+                typeof operatorUnlockClaimOPTYTimestamp == "number"
+                  ? (await getBlockTimestamp(hre)) + operatorUnlockClaimOPTYTimestamp
+                  : 0;
+              await executeFunc(contracts[action.contract], users[action.executer], action.action, [blocktimestamp]);
+            } else {
+              await expect(
+                executeFunc(contracts[action.contract], users[action.executer], action.action, [
                   operatorUnlockClaimOPTYTimestamp,
-                ]);
-              } else {
-                await expect(
-                  executeFunc(contracts[action.contract], users[action.executer], action.action, [
-                    operatorUnlockClaimOPTYTimestamp,
-                  ]),
-                ).to.be.revertedWith(action.message);
-              }
+                ]),
+              ).to.be.revertedWith(action.message);
             }
             assert.isDefined(operatorUnlockClaimOPTYTimestamp, `args is wrong in ${action.action} testcase`);
             break;
@@ -207,7 +208,9 @@ describe(scenario.title, () => {
         const action = story.getActions[i];
         switch (action.action) {
           case "operatorUnlockClaimOPTYTimestamp()": {
-            expect(+(await contracts[action.contract][action.action]())).to.be.equal(+action.expectedValue);
+            expect(BigNumber.from(await contracts[action.contract][action.action]())).to.be.equal(
+              BigNumber.from(blocktimestamp),
+            );
             break;
           }
         }
