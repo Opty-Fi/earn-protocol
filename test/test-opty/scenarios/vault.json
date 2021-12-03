@@ -1317,7 +1317,7 @@
                   "action": "testInvalidCodes",
                   "args": {},
                   "expect": "fail",
-                  "message": "!call"
+                  "message": "e6"
                 }
               ],
               "getActions": []

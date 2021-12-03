@@ -69,11 +69,6 @@ contract VaultStorage {
     uint256 public pricePerShareWrite;
 
     /**
-     * @dev The TVL of the vault
-     */
-    uint256 public totalVolumeLocked;
-
-    /**
      * @notice Log an event when user calls user deposit underlying asset without rebalance
      * @dev the shares are not minted until next rebalance
      * @param sender the account address of the user

@@ -83,8 +83,8 @@ contract Vault is
         string memory _symbol,
         uint256 _riskProfileCode
     ) external virtual initializer {
-        require(bytes(_name).length > 0, "!name");
-        require(bytes(_symbol).length > 0, "!symbol");
+        require(bytes(_name).length > 0, "e1");
+        require(bytes(_symbol).length > 0, "e2");
         registryContract = IRegistry(_registry);
         setRiskProfileCode(_riskProfileCode);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
@@ -328,7 +328,7 @@ contract Vault is
      */
     function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
         DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
-        require(_riskProfile.exists, "!Rp_Exists");
+        require(_riskProfile.exists, "e3");
         riskProfileCode = _riskProfileCode;
     }
 
@@ -336,8 +336,8 @@ contract Vault is
      * @inheritdoc IVault
      */
     function setToken(address _underlyingToken) public override onlyOperator {
-        require(_underlyingToken.isContract(), "!contract");
-        require(registryContract.isApprovedToken(_underlyingToken), "!tokens");
+        require(_underlyingToken.isContract(), "e4");
+        require(registryContract.isApprovedToken(_underlyingToken), "e5");
         underlyingToken = _underlyingToken;
     }
 
@@ -352,7 +352,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function adminCall(bytes[] memory _codes) external override onlyOperator {
-        executeCodes(_codes, "!call");
+        executeCodes(_codes, "e6");
     }
 
     /**
@@ -373,7 +373,7 @@ contract Vault is
                     _i,
                     _steps
                 ),
-                "!_supplyAll"
+                "e7"
             );
         }
     }
@@ -395,7 +395,7 @@ contract Vault is
                     _iterator,
                     _steps
                 ),
-                "!_withdrawAll"
+                "e8"
             );
         }
     }
@@ -422,7 +422,7 @@ contract Vault is
                     payable(address(this)),
                     _investStrategyHash
                 ),
-                "!claim"
+                "e9"
             );
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getPoolHarvestSomeRewardCodes(
@@ -433,7 +433,7 @@ contract Vault is
                         _vaultRewardTokens
                     )
                 ),
-                "!harvest"
+                "e10"
             );
             executeCodes(
                 IStrategyManager(_vaultStrategyConfiguration.strategyManager).getAddLiquidityCodes(
@@ -441,7 +441,7 @@ contract Vault is
                     underlyingToken,
                     _investStrategyHash
                 ),
-                "!harvest"
+                "e11"
             );
         }
     }
@@ -454,22 +454,23 @@ contract Vault is
      */
     function _userDeposit(uint256 _amount) internal ifNotPausedAndDiscontinued(address(this)) nonReentrant {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
+        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
+            registryContract.getVaultStrategyConfiguration();
         if (_vaultConfiguration.allowWhitelistedState) {
-            require(_isUserWhitelisted(msg.sender), "!user");
+            require(_isUserWhitelisted(msg.sender), "e12");
         }
-        require(_checkDepositCap(_vaultConfiguration, _amount), "!cap");
-        require(_isQueueFull(_vaultConfiguration), "!q");
-        require(_amount >= _vaultConfiguration.minimumDepositAmount, "!minDep");
+        require(_checkDepositCap(_vaultConfiguration, _amount), "e13");
+        require(_isQueueIncomplete(_vaultConfiguration), "e14");
+        require(_amount >= _vaultConfiguration.minimumDepositAmount, "e15");
         uint256 _tokenBalanceBefore = _balance();
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
-        totalVolumeLocked = totalVolumeLocked.add(_actualDepositAmount);
-        require(_checkTotalVolumeLockedLimitInUnderlying(_vaultConfiguration), "!tvl");
         queue.push(DataTypes.UserDepositOperation(msg.sender, _actualDepositAmount));
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
         depositQueue = depositQueue.add(_actualDepositAmount);
+        _checkTVL(_vaultStrategyConfiguration, _vaultConfiguration);
         emit DepositQueue(msg.sender, queue.length, _actualDepositAmount);
     }
 
@@ -485,7 +486,7 @@ contract Vault is
                     address(this),
                     queue[i].account
                 ),
-                "!updateUserRewards"
+                "e14"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
             pendingDeposits[queue[i].account] = pendingDeposits[queue[i].account].sub(queue[i].value);
@@ -495,14 +496,14 @@ contract Vault is
                     address(this),
                     queue[i].account
                 ),
-                "!uusv"
+                "e17"
             );
         }
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateRewardVaultRateAndIndexCodes(
                 address(this)
             ),
-            "!uovri"
+            "e16"
         );
         delete queue;
     }
@@ -517,10 +518,10 @@ contract Vault is
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
         if (_vaultConfiguration.allowWhitelistedState) {
-            require(_isUserWhitelisted(msg.sender), "!user");
+            require(_isUserWhitelisted(msg.sender), "e12");
         }
-        require(_checkDepositCap(_vaultConfiguration, _amount), "!cap");
-        require(_amount > 0, "!(_amount>0)");
+        require(_checkDepositCap(_vaultConfiguration, _amount), "e13");
+        require(_amount > 0, "e15");
 
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             _withdrawAll(_vaultStrategyConfiguration);
@@ -530,8 +531,6 @@ contract Vault is
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
-        totalVolumeLocked = totalVolumeLocked.add(_actualDepositAmount);
-        require(_checkTotalVolumeLockedLimitInUnderlying(_vaultConfiguration), "!tvl");
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         uint256 shares = 0;
         if (_tokenBalanceBefore == 0 || totalSupply() == 0) {
@@ -545,21 +544,21 @@ contract Vault is
                 address(this),
                 msg.sender
             ),
-            "!updateUserRewards"
+            "e14"
         );
         _mint(msg.sender, shares);
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateRewardVaultRateAndIndexCodes(
                 address(this)
             ),
-            "!uovri"
+            "e16"
         );
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
                 address(this),
                 msg.sender
             ),
-            "!uusv"
+            "e17"
         );
         if (_balance() > 0) {
             _emergencyBrake(_balance());
@@ -570,6 +569,7 @@ contract Vault is
                 _underlyingTokens
             );
             _supplyAll(_vaultStrategyConfiguration);
+            _checkTVL(_vaultStrategyConfiguration, _vaultConfiguration);
         }
     }
 
@@ -581,10 +581,10 @@ contract Vault is
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
             registryContract.getVaultStrategyConfiguration();
-        require(_vaultConfiguration.unpaused, "unpause");
-        require(_redeemAmount > 0, "!_redeemAmount>0");
+        require(_vaultConfiguration.unpaused, "e18");
+        require(_redeemAmount > 0, "e19");
         uint256 opBalance = balanceOf(msg.sender);
-        require(_redeemAmount <= opBalance, "!!balance");
+        require(_redeemAmount <= opBalance, "e20");
         if (!_vaultConfiguration.discontinued && investStrategyHash != Constants.ZERO_BYTES32) {
             _withdrawAll(_vaultStrategyConfiguration);
         }
@@ -593,7 +593,7 @@ contract Vault is
                 address(this),
                 msg.sender
             ),
-            "!updateUserRewards"
+            "e14"
         );
         // subtract pending deposit from total balance
         _redeemAndBurn(msg.sender, _balance().sub(depositQueue), _redeemAmount, _vaultStrategyConfiguration);
@@ -602,14 +602,14 @@ contract Vault is
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateRewardVaultRateAndIndexCodes(
                 address(this)
             ),
-            "!uovri"
+            "e16"
         );
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
                 address(this),
                 msg.sender
             ),
-            "!uusv"
+            "e17"
         );
 
         if (!_vaultConfiguration.discontinued && (_balance() > 0)) {
@@ -631,20 +631,31 @@ contract Vault is
     ) internal override {
         executeCodes(
             IStrategyManager(registryContract.getStrategyManager()).getUpdateUserRewardsCodes(address(this), from),
-            "!ur"
+            "e21"
         );
         executeCodes(
             IStrategyManager(registryContract.getStrategyManager()).getUpdateRewardVaultRateAndIndexCodes(
                 address(this)
             ),
-            "!uovri"
+            "e16"
         );
         executeCodes(
             IStrategyManager(registryContract.getStrategyManager()).getUpdateUserStateInVaultCodes(
                 address(this),
                 msg.sender
             ),
-            "!uusv"
+            "e17"
+        );
+    }
+
+    function _checkTVL(
+        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration,
+        DataTypes.VaultConfiguration memory _vaultConfiguration
+    ) internal view {
+        require(
+            _calVaultValueInUnderlyingToken(_vaultStrategyConfiguration) <=
+                _vaultConfiguration.totalValueLockedLimitInUnderlying,
+            "e22"
         );
     }
 
@@ -698,7 +709,7 @@ contract Vault is
     /**
      * @notice Function to check whether the depositQueue is full or not
      */
-    function _isQueueFull(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view returns (bool) {
+    function _isQueueIncomplete(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view returns (bool) {
         return getDepositQueue().length < _vaultConfiguration.queueCap;
     }
 
@@ -721,17 +732,6 @@ contract Vault is
             return _amount <= _vaultConfiguration.userDepositCap.sub(totalDeposits[msg.sender]);
         }
         return true;
-    }
-
-    /**
-     * @notice Function to check whether TVL exceeds the limit
-     */
-    function _checkTotalVolumeLockedLimitInUnderlying(DataTypes.VaultConfiguration memory _vaultConfiguration)
-        internal
-        view
-        returns (bool)
-    {
-        return totalVolumeLocked <= _vaultConfiguration.totalVolumeLockedLimitInUnderlying;
     }
 
     /**
@@ -787,7 +787,7 @@ contract Vault is
                     ),
                     _vaultValue
                 ),
-                "!maxVaultValueJump"
+                "e23"
             );
         } else {
             blockToBlockVaultValues[block.number].push(
@@ -824,7 +824,7 @@ contract Vault is
                 underlyingToken,
                 redeemAmountInToken
             ),
-            "!TreasuryRedeemAmt"
+            "e24"
         );
     }
 
