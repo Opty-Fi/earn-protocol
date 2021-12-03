@@ -69,20 +69,6 @@
       ]
     }
   ],
-  "CreamAdapter": [
-    {
-      "strategyName": "USDT-deposit-CREAM-crUSDT",
-      "token": "USDT",
-      "strategy": [
-        {
-          "contract": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
-          "outputTokenSymbol": "crUSDT",
-          "outputToken": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
-          "isBorrow": false
-        }
-      ]
-    }
-  ],
   "DForceAdapter": [
     {
       "strategyName": "DAI-deposit-DFORCE-dDAI",

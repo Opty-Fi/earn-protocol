@@ -4,7 +4,7 @@ import { Contract, Signer, BigNumber, utils } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { MAX_UINT256, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { ZERO_BYTES32, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
@@ -972,7 +972,7 @@ describe(testVaultConfigurationScenario.title, () => {
   });
 });
 
-describe(testVaultScenario.title, () => {
+describe.only(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};
@@ -1040,6 +1040,7 @@ describe(testVaultScenario.title, () => {
             );
 
             await essentialContracts.registry.setQueueCap(Vault.address, BigNumber.from("15000000000000000000").mul(3));
+            await essentialContracts.registry.setTotalVolumeLockedLimitInUnderlying(Vault.address, MAX_UINT256);
 
             for (let i = 0; i < numberOfSteps; i++) {
               const adapter = adapters[adapterNames[i]];

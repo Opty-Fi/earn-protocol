@@ -2,7 +2,7 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE, MAX_UINT256 } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 
@@ -96,6 +96,8 @@ describe(scenario.title, () => {
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
                 );
+
+                await essentialContracts.registry.setTotalVolumeLockedLimitInUnderlying(vault.address, MAX_UINT256);
 
                 await setBestStrategy(
                   strategy.strategy,
