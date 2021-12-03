@@ -653,7 +653,7 @@ contract Vault is
         DataTypes.VaultConfiguration memory _vaultConfiguration
     ) internal view {
         require(
-            _calVaultValueInUnderlyingToken(_vaultStrategyConfiguration) <=
+            _calVaultValueInUnderlyingToken(_vaultStrategyConfiguration).add(depositQueue) <=
                 _vaultConfiguration.totalValueLockedLimitInUnderlying,
             "e22"
         );
