@@ -3,7 +3,19 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Signers } from "../../helpers/utils";
 import { deployRegistry } from "../../helpers/contracts-deployments";
 import { expect, assert } from "chai";
-import { HarvestCodeProvider, Registry, RegistryProxy } from "../../typechain";
+import {
+  AaveV1Adapter,
+  AaveV1ETHGateway,
+  AaveV2Adapter,
+  CompoundAdapter,
+  CompoundETHGateway,
+  CurveDepositPoolAdapter,
+  CurveSwapETHGateway,
+  CurveSwapPoolAdapter,
+  HarvestCodeProvider,
+  Registry,
+  RegistryProxy,
+} from "../../typechain";
 import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedDefiPools, TypedTokens } from "../../helpers/data";
@@ -164,11 +176,87 @@ describe("E2E Integration tests", function () {
       expect((await this.registry.getRiskProfileList())[0]).to.equal("2");
     });
 
-    it("1.11 Operator should be able to deploy HarvestCodeProvider", async function () {
+    it("1.11 Deployer deploys HarvestCodeProvider and operator can register", async function () {
       this.harvestCodeProvider = <HarvestCodeProvider>(
-        await deployContract(hre, "HarvestCodeProvider", false, this.signers.operator, [this.registry.address])
+        await deployContract(hre, "HarvestCodeProvider", false, this.signers.deployer, [this.registry.address])
       );
       assert.isDefined(this.harvestCodeProvider, "!HarvestCodeProvider");
+      await this.registry.connect(this.signers.operator).setHarvestCodeProvider(this.harvestCodeProvider.address);
+      expect(await this.registry.harvestCodeProvider()).to.equal(this.harvestCodeProvider.address);
+    });
+
+    it("1.12 Risk operator deploys Compound Adapter", async function () {
+      this.compoundAdapter = <CompoundAdapter>(
+        await deployContract(hre, "CompoundAdapter", false, this.signers.riskOperator, [this.registry.address])
+      );
+      assert.isDefined(this.compoundAdapter, "!CompoundAdapter");
+      expect(await this.compoundAdapter.maxDepositProtocolPct()).to.equal("10000");
+      expect(await this.compoundAdapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
+      this.compoundEthGateway = <CompoundETHGateway>(
+        await hre.ethers.getContractAt("CompoundETHGateway", await this.compoundAdapter.compoundETHGatewayContract())
+      );
+      assert.isDefined(this.compoundEthGateway, "!CompoundETHGateway");
+      expect(await this.compoundEthGateway.registryContract()).to.equal(this.registry.address);
+      expect(await this.compoundAdapter.CETH()).to.equal(await this.compoundEthGateway.CETH());
+    });
+
+    it("1.13 Risk operator deploys AaveV1 Adapter", async function () {
+      this.aavev1Adapter = <AaveV1Adapter>(
+        await deployContract(hre, "AaveV1Adapter", false, this.signers.riskOperator, [this.registry.address])
+      );
+      assert.isDefined(this.aavev1Adapter, "!AaveV1Adapter");
+      expect(await this.aavev1Adapter.maxDepositProtocolPct()).to.equal("10000");
+      expect(await this.aavev1Adapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
+      this.aaveV1EthGateway = <AaveV1ETHGateway>(
+        await hre.ethers.getContractAt("AaveV1ETHGateway", await this.aavev1Adapter.aaveV1ETHGatewayContract())
+      );
+      assert.isDefined(this.aaveV1EthGateway, "!AaveV1ETHGateway");
+      expect(await this.aaveV1EthGateway.registryContract()).to.equal(this.registry.address);
+      expect(await this.aavev1Adapter.AETH()).to.equal(await this.aaveV1EthGateway.AETH());
+    });
+
+    it("1.14 Risk operator deploys AaveV2 Adapter", async function () {
+      this.aaveV2Adapter = <AaveV2Adapter>(
+        await deployContract(hre, "AaveV2Adapter", false, this.signers.riskOperator, [this.registry.address])
+      );
+      assert.isDefined(this.aaveV2Adapter, "!AaveV2Adapter");
+      expect(await this.aaveV2Adapter.maxDepositProtocolPct()).to.equal("10000");
+      expect(await this.aaveV2Adapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
+    });
+
+    it("1.15 Risk operator/operator deploys CurveDepositPool Adapter", async function () {
+      // Note : For deploying CurveDepositPool, operator and risk operator should have same address
+      await this.registry.connect(this.signers.governance).setOperator(this.signers.riskOperator.address);
+      expect(await this.registry.operator()).to.equal(this.signers.riskOperator.address);
+      this.curveDepositPoolAdapter = <CurveDepositPoolAdapter>(
+        await deployContract(hre, "CurveDepositPoolAdapter", false, this.signers.riskOperator, [this.registry.address])
+      );
+      assert.isDefined(this.curveDepositPoolAdapter, "!CurveDepositPoolAdapter");
+      expect(await this.curveDepositPoolAdapter.maxDepositProtocolPct()).to.equal("10000");
+      expect(await this.curveDepositPoolAdapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
+    });
+
+    it("1.16 Risk operator deploys CurveSwapPool Adapter", async function () {
+      // Note : For deploying CurveDepositPool, operator and risk operator should have same address
+      this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
+        await deployContract(hre, "CurveSwapPoolAdapter", false, this.signers.riskOperator, [this.registry.address])
+      );
+      assert.isDefined(this.curveDepositPoolAdapter, "!CurveSwapPoolAdapter");
+      expect(await this.curveDepositPoolAdapter.maxDepositProtocolPct()).to.equal("10000");
+      expect(await this.curveDepositPoolAdapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
+      this.curveSwapEthGateway = <CurveSwapETHGateway>(
+        await hre.ethers.getContractAt(
+          "CurveSwapETHGateway",
+          await this.curveSwapPoolAdapter.curveSwapETHGatewayContract(),
+        )
+      );
+      assert.isDefined(this.curveSwapEthGateway, "!CurveSwapETHGateway");
+      expect(await this.curveSwapEthGateway.registryContract()).to.equal(this.registry.address);
+      const ETH_stETH_STABLESWAP = await this.curveSwapPoolAdapter.ETH_sETH_STABLESWAP();
+      expect(await this.curveSwapEthGateway.ethPools(ETH_stETH_STABLESWAP)).to.be.true;
+      // give operator back its control
+      await this.registry.connect(this.signers.governance).setOperator(this.signers.operator.address);
+      expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
   });
 
