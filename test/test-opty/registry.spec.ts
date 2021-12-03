@@ -239,7 +239,7 @@ describe(scenario.title, () => {
               withdrawalFee,
               userDepositCap,
               minimumDepositAmount,
-              totalVolumeLockedLimit,
+              totalVolumeLockedLimitInUnderlying,
               queueCap,
             }: ARGUMENTS = action.expectedMultiValues;
             const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
@@ -250,7 +250,7 @@ describe(scenario.title, () => {
             expect(value[4]).to.be.equal(withdrawalFee);
             expect(value[5]).to.be.equal(userDepositCap);
             expect(value[6]).to.be.equal(minimumDepositAmount);
-            expect(value[7]).to.be.equal(totalVolumeLockedLimit);
+            expect(value[7]).to.be.equal(totalVolumeLockedLimitInUnderlying);
             expect(value[8]).to.be.equal(queueCap);
             break;
           }
@@ -269,7 +269,7 @@ describe(scenario.title, () => {
             expect(value[6]).to.be.equal(action.expectedValue);
             break;
           }
-          case "totalVolumeLockedLimit": {
+          case "totalVolumeLockedLimitInUnderlying": {
             const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
             expect(value[7]).to.be.equal(action.expectedValue);
             break;
@@ -479,7 +479,7 @@ describe(scenario.title, () => {
           withdrawalFee,
           userDepositCap,
           minimumDepositAmount,
-          totalVolumeLockedLimit,
+          totalVolumeLockedLimitInUnderlying,
         }: ARGUMENTS = action.args;
         if (action.expect === "success") {
           await expect(
@@ -493,7 +493,7 @@ describe(scenario.title, () => {
                 withdrawalFee,
                 userDepositCap,
                 minimumDepositAmount,
-                totalVolumeLockedLimit,
+                totalVolumeLockedLimitInUnderlying,
               ),
           );
         } else {
@@ -508,7 +508,7 @@ describe(scenario.title, () => {
                 withdrawalFee,
                 userDepositCap,
                 minimumDepositAmount,
-                totalVolumeLockedLimit,
+                totalVolumeLockedLimitInUnderlying,
               ),
           ).to.be.revertedWith(action.message);
         }
@@ -586,14 +586,14 @@ describe(scenario.title, () => {
         assert.isDefined(value, `args is wrong in ${action.action} testcase`);
         break;
       }
-      case "setTotalVolumeLockedLimit(address,uint256)": {
+      case "setTotalVolumeLockedLimitInUnderlying(address,uint256)": {
         const { value }: ARGUMENTS = action.args;
         if (value) {
           if (action.expect === "success") {
             await expect(
               registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
             )
-              .to.emit(registryContract, "LogVaultTotalVolumeLockedLimit")
+              .to.emit(registryContract, "LogVaultTotalVolumeLockedLimitInUnderlying")
               .withArgs(contracts["vault"].address, value, await signers[action.executor].getAddress());
           } else {
             await expect(

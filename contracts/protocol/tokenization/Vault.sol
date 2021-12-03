@@ -465,7 +465,7 @@ contract Vault is
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
         totalVolumeLocked = totalVolumeLocked.add(_actualDepositAmount);
-        require(_checkTotalVolumeLockedLimit(_vaultConfiguration), "!tvl");
+        require(_checkTotalVolumeLockedLimitInUnderlying(_vaultConfiguration), "!tvl");
         queue.push(DataTypes.UserDepositOperation(msg.sender, _actualDepositAmount));
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
@@ -531,7 +531,7 @@ contract Vault is
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
         totalVolumeLocked = totalVolumeLocked.add(_actualDepositAmount);
-        require(_checkTotalVolumeLockedLimit(_vaultConfiguration), "!tvl");
+        require(_checkTotalVolumeLockedLimitInUnderlying(_vaultConfiguration), "!tvl");
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         uint256 shares = 0;
         if (_tokenBalanceBefore == 0 || totalSupply() == 0) {
@@ -726,12 +726,12 @@ contract Vault is
     /**
      * @notice Function to check whether TVL exceeds the limit
      */
-    function _checkTotalVolumeLockedLimit(DataTypes.VaultConfiguration memory _vaultConfiguration)
+    function _checkTotalVolumeLockedLimitInUnderlying(DataTypes.VaultConfiguration memory _vaultConfiguration)
         internal
         view
         returns (bool)
     {
-        return totalVolumeLocked <= _vaultConfiguration.totalVolumeLockedLimit;
+        return totalVolumeLocked <= _vaultConfiguration.totalVolumeLockedLimitInUnderlying;
     }
 
     /**
@@ -817,7 +817,6 @@ contract Vault is
         uint256 redeemAmountInToken = (_balanceInUnderlyingToken.mul(_redeemAmount)).div(totalSupply());
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
-        totalVolumeLocked = totalVolumeLocked.sub(redeemAmountInToken);
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getSplitPaymentCode(
                 registryContract.getTreasuryShares(address(this)),

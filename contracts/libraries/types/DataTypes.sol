@@ -180,7 +180,7 @@ library DataTypes {
         uint256 withdrawalFee; //  should be in basis eg: 15% means 1500
         uint256 userDepositCap;
         uint256 minimumDepositAmount;
-        uint256 totalVolumeLockedLimit;
+        uint256 totalVolumeLockedLimitInUnderlying;
         uint256 queueCap;
     }
 
