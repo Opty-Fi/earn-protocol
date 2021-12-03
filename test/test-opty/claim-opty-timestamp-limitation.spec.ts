@@ -2,7 +2,7 @@ import { expect, assert } from "chai";
 import hre from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { MAX_UINT256, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { executeFunc } from "../../helpers/helpers";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
@@ -56,6 +56,8 @@ describe(scenario.title, () => {
         TESTING_DEPLOYMENT_ONCE,
       );
       await unpauseVault(users["owner"], contracts["registry"], Vault.address, true);
+
+      await contracts.registry.setTotalVolumeLockedLimitInUnderlying(Vault.address, MAX_UINT256);
 
       const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
 
