@@ -230,6 +230,30 @@ describe(scenario.title, () => {
             assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
             break;
           }
+          case "getVaultConfiguration(address)": {
+            const {
+              discontinued,
+              unpaused,
+              isLimitedState,
+              allowWhitelistedState,
+              withdrawalFee,
+              userDepositCap,
+              minimumDepositAmount,
+              totalVolumeLockedLimit,
+              queueCap,
+            }: ARGUMENTS = action.expectedMultiValues;
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[0]).to.be.equal(discontinued);
+            expect(value[1]).to.be.equal(unpaused);
+            expect(value[2]).to.be.equal(isLimitedState);
+            expect(value[3]).to.be.equal(allowWhitelistedState);
+            expect(value[4]).to.be.equal(withdrawalFee);
+            expect(value[5]).to.be.equal(userDepositCap);
+            expect(value[6]).to.be.equal(minimumDepositAmount);
+            expect(value[7]).to.be.equal(totalVolumeLockedLimit);
+            expect(value[8]).to.be.equal(queueCap);
+            break;
+          }
           case "getIsLimitedState(address,bool)": {
             const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
             expect(value[2]).to.be.equal(action.expectedValue);
@@ -245,9 +269,14 @@ describe(scenario.title, () => {
             expect(value[6]).to.be.equal(action.expectedValue);
             break;
           }
-          case "getQueueCap(address,uint256)": {
+          case "totalVolumeLockedLimit": {
             const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
             expect(value[7]).to.be.equal(action.expectedValue);
+            break;
+          }
+          case "queueCap": {
+            const value = await registryContract.vaultToVaultConfiguration(contracts["vault"].address);
+            expect(value[8]).to.be.equal(action.expectedValue);
             break;
           }
           case "getAllowWhitelistedState(address,uint256)": {
@@ -443,6 +472,48 @@ describe(scenario.title, () => {
         assert.isDefined(newOptyDistributor, `args is wrong in ${action.action} testcase`);
         break;
       }
+      case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)": {
+        const {
+          isLimitedState,
+          allowWhitelistedState,
+          withdrawalFee,
+          userDepositCap,
+          minimumDepositAmount,
+          totalVolumeLockedLimit,
+        }: ARGUMENTS = action.args;
+        if (action.expect === "success") {
+          await expect(
+            registryContract
+              .connect(signers[action.executor])
+              [action.action](
+                contracts["vault"].address,
+                isLimitedState,
+                allowWhitelistedState,
+                [],
+                withdrawalFee,
+                userDepositCap,
+                minimumDepositAmount,
+                totalVolumeLockedLimit,
+              ),
+          );
+        } else {
+          await expect(
+            registryContract
+              .connect(signers[action.executor])
+              [action.action](
+                contracts["vault"].address,
+                isLimitedState,
+                allowWhitelistedState,
+                [],
+                withdrawalFee,
+                userDepositCap,
+                minimumDepositAmount,
+                totalVolumeLockedLimit,
+              ),
+          ).to.be.revertedWith(action.message);
+        }
+        break;
+      }
       case "setIsLimitedState(address,bool)": {
         const { state }: ARGUMENTS = action.args;
         if (state) {
@@ -505,6 +576,24 @@ describe(scenario.title, () => {
               registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
             )
               .to.emit(registryContract, "LogUserDepositCapVault")
+              .withArgs(contracts["vault"].address, value, await signers[action.executor].getAddress());
+          } else {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            ).to.be.revertedWith(action.message);
+          }
+        }
+        assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+        break;
+      }
+      case "setTotalVolumeLockedLimit(address,uint256)": {
+        const { value }: ARGUMENTS = action.args;
+        if (value) {
+          if (action.expect === "success") {
+            await expect(
+              registryContract.connect(signers[action.executor])[action.action](contracts["vault"].address, value),
+            )
+              .to.emit(registryContract, "LogVaultTotalVolumeLockedLimit")
               .withArgs(contracts["vault"].address, value, await signers[action.executor].getAddress());
           } else {
             await expect(

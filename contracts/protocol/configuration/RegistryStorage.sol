@@ -279,7 +279,7 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when Pause over vault is activated/deactivated
-     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param vault OptyFi's Vault contract address
      * @param unpaused Unpause status of OptyFi's Vault contract - false (if paused) and true (if unpaused)
      * @param caller Address of user who has called the respective function to trigger this event
      */
@@ -287,7 +287,7 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when setLimitStatus is called
-     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param vault OptyFi's Vault contract address
      * @param isLimitedState Limit state of OptyFi's Vault contract - false (if not limited) and true (if limited)
      * @param caller Address of user who has called the respective function to trigger this event
      */
@@ -295,7 +295,7 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when setLimitStatus is called
-     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param vault OptyFi's Vault contract address
      * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
      * @param caller Address of user who has called the respective function to trigger this event
      */
@@ -307,7 +307,7 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when setUserDepositCap is called
-     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param vault OptyFi's Vault contract address
      * @param userDepositCap Cap for user deposits in OptyFi's Vault contract
      * @param caller Address of user who has called the respective function to trigger this event
      */
@@ -315,7 +315,7 @@ contract RegistryStorage is RegistryAdminStorage {
 
     /**
      * @notice Emitted when setMinimumDepositAmount is called
-     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param vault OptyFi's Vault contract address
      * @param minimumDepositAmount Minimum deposit in OptyFi's Vault contract - only for deposits (without rebalance)
      * @param caller Address of user who has called the respective function to trigger this event
      */
@@ -326,8 +326,20 @@ contract RegistryStorage is RegistryAdminStorage {
     );
 
     /**
+     * @notice Emitted when setTotalVolumeLockedLimit is called
+     * @param vault OptyFi's Vault contract address
+     * @param totalVolumeLockedLimit Maximum limit for total volume locked of OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogVaultTotalVolumeLockedLimit(
+        address indexed vault,
+        uint256 indexed totalVolumeLockedLimit,
+        address indexed caller
+    );
+
+    /**
      * @notice Emitted when setQueueCap is called
-     * @param vault OptyFi's Vault contract address which is temporarily paused or unpaused
+     * @param vault OptyFi's Vault contract address
      * @param queueCap Maximum queue length in OptyFi's Vault contract
      * @param caller Address of user who has called the respective function to trigger this event
      */

@@ -237,6 +237,7 @@ interface IRegistry {
      * @param _withdrawalFee Withdrawal fee to be set for vault contract
      * @param _userDepositCap Maximum deposit amount allowed for each user in the given vault
      * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance in the given vault
+     * @param _totalVolumeLockedLimit Maximum TVL allowed for the vault
      */
     function setVaultConfiguration(
         address _vault,
@@ -245,7 +246,8 @@ interface IRegistry {
         DataTypes.TreasuryShare[] memory _treasuryShares,
         uint256 _withdrawalFee,
         uint256 _userDepositCap,
-        uint256 _minimumDepositAmount
+        uint256 _minimumDepositAmount,
+        uint256 _totalVolumeLockedLimit
     ) external;
 
     /**
@@ -303,6 +305,13 @@ interface IRegistry {
      * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance
      */
     function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external;
+
+    /**
+     * @notice Set the TVL limit for the vault
+     * @param _vault Vault contract address
+     * @param _totalVolumeLockedLimit maximum TVL allowed in underlying token of the vault
+     */
+    function setTotalVolumeLockedLimit(address _vault, uint256 _totalVolumeLockedLimit) external;
 
     /**
      * @notice Set the maximum length of the queue in a specific Vault

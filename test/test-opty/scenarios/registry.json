@@ -2752,6 +2752,70 @@
       "cleanActions": []
     },
     {
+      "description": "Non finance operator should not be able set vault configuration",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
+          "args": {
+            "isLimitedState": true,
+            "allowWhitelistedState": true,
+            "withdrawalFee": "1200",
+            "userDepositCap": "10000",
+            "minimumDepositAmount": "1000",
+            "totalVolumeLockedLimit": "1000000"
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Finance operator should be able set vault configuration",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)",
+          "args": {
+            "isLimitedState": true,
+            "allowWhitelistedState": true,
+            "withdrawalFee": "1200",
+            "userDepositCap": "10000",
+            "minimumDepositAmount": "1000",
+            "totalVolumeLockedLimit": "1000000"
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "getVaultConfiguration(address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {
+            "discontinued": false,
+            "unpaused": false,
+            "isLimitedState": true,
+            "allowWhitelistedState": true,
+            "withdrawalFee": "1200",
+            "userDepositCap": "10000",
+            "minimumDepositAmount": "1000",
+            "totalVolumeLockedLimit": "1000000",
+            "queueCap": 0
+          }
+        }
+      ],
+      "cleanActions": []
+    },
+    {
       "description": "Operator should be able to add a user into the white list",
       "setActions": [
         {
@@ -3043,6 +3107,48 @@
       "cleanActions": []
     },
     {
+      "description": "setTotalVolumeLockedLimit should fail if caller is not the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setTotalVolumeLockedLimit(address,uint256)",
+          "args": {
+            "value": 1
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setTotalVolumeLockedLimit should set the TVL limit of the vault's queue if caller is the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setTotalVolumeLockedLimit(address,uint256)",
+          "args": {
+            "value": "10000000000000000000"
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "totalVolumeLockedLimit",
+          "args": {},
+          "expectedValue": "10000000000000000000",
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
       "description": "setQueueCap should fail if caller is not the operator",
       "setActions": [
         {
@@ -3076,7 +3182,7 @@
       "getActions": [
         {
           "contract": "registry",
-          "action": "getQueueCap(address,uint256)",
+          "action": "queueCap",
           "args": {},
           "expectedValue": 1,
           "expectedMultiValues": {}
