@@ -464,6 +464,8 @@ contract Vault is
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
+        totalVolumeLocked = totalVolumeLocked.add(_actualDepositAmount);
+        require(_checkTotalVolumeLockedLimit(_vaultConfiguration), "!tvl");
         queue.push(DataTypes.UserDepositOperation(msg.sender, _actualDepositAmount));
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
@@ -528,6 +530,8 @@ contract Vault is
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
         uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
+        totalVolumeLocked = totalVolumeLocked.add(_actualDepositAmount);
+        require(_checkTotalVolumeLockedLimit(_vaultConfiguration), "!tvl");
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         uint256 shares = 0;
         if (_tokenBalanceBefore == 0 || totalSupply() == 0) {
@@ -720,6 +724,17 @@ contract Vault is
     }
 
     /**
+     * @notice Function to check whether TVL exceeds the limit
+     */
+    function _checkTotalVolumeLockedLimit(DataTypes.VaultConfiguration memory _vaultConfiguration)
+        internal
+        view
+        returns (bool)
+    {
+        return totalVolumeLocked <= _vaultConfiguration.totalVolumeLockedLimit;
+    }
+
+    /**
      * @dev Internal function to get the underlying token balance of vault
      * @return underlying asset balance in this vault
      */
@@ -811,6 +826,7 @@ contract Vault is
             ),
             "!TreasuryRedeemAmt"
         );
+        totalVolumeLocked = totalVolumeLocked.sub(redeemAmountInToken);
     }
 
     /**
