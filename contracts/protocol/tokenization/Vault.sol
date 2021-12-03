@@ -304,9 +304,9 @@ contract Vault is
      * @inheritdoc IVault
      * @notice read-only function to compute price per share of the vault
      *         Note : This function does not add amount of underlying tokens that
-     *         are available when reward tokens are claimed and
-     *         swapped into vault's underlying token. If the protocol of the current
-     *         strategy of the vault allows to read unclaimed reward token for free than a
+     *         are available in protocols like compound and Curve when reward tokens
+     *         are claimed and swapped into vault's underlying token. If the protocol of the current
+     *         strategy of the vault allows to read unclaimed reward token for free then a
      *         read call to this function shall add amount of underlying token available when
      *         unclaimed tokens are swapped into vault's underlying token.
      */
