@@ -44,6 +44,22 @@
       "cleanActions": []
     },
     {
+      "description": "Governance cannot set OPTYDistributor with EOA address",
+      "setActions": [
+        {
+          "action": "setOPTYDistributor(address)",
+          "args": {
+            "newOptyDistributor": ""
+          },
+          "executor": "owner",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
       "description": "Governance should be able to set FinanceOperator's address",
       "setActions": [
         {
@@ -526,47 +542,6 @@
           "action": "setOPTY(address)",
           "args": {
             "contractName": "opty"
-          },
-          "executor": "user0",
-          "expect": "fail",
-          "message": "caller is not the operator"
-        }
-      ],
-      "getActions": [],
-      "cleanActions": []
-    },
-    {
-      "description": "Operator should be able to set PriceOracle Contract address",
-      "setActions": [
-        {
-          "action": "setPriceOracle(address)",
-          "args": {
-            "contractName": "priceOracle"
-          },
-          "executor": "operator",
-          "expect": "success",
-          "message": ""
-        }
-      ],
-      "getActions": [
-        {
-          "action": "priceOracle()",
-          "args": {},
-          "expectedValue": {
-            "contractName": "priceOracle"
-          },
-          "expectedMultiValues": {}
-        }
-      ],
-      "cleanActions": []
-    },
-    {
-      "description": "Non-Operator shouldn't be able to set PriceOracle Contract address",
-      "setActions": [
-        {
-          "action": "setPriceOracle(address)",
-          "args": {
-            "contractName": "priceOracle"
           },
           "executor": "user0",
           "expect": "fail",
@@ -2542,96 +2517,6 @@
       ]
     },
     {
-      "description": "Operator should be able to map token and riskProfile to Vault address",
-      "setActions": [
-        {
-          "action": "addRiskProfile(uint256,string,string,bool,(uint8,uint8))",
-          "args": {
-            "riskProfileCode": "12",
-            "canBorrow": false,
-            "poolRatingRange": [0, 10]
-          },
-          "executor": "riskOperator",
-          "expect": "success",
-          "message": ""
-        },
-        {
-          "action": "setUnderlyingAssetHashToRPToVaults(address[],uint256,address)",
-          "args": {
-            "tokens": ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-            "riskProfileCode": "12",
-            "vault": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"
-          },
-          "executor": "operator",
-          "expect": "success",
-          "message": ""
-        }
-      ],
-      "getActions": [
-        {
-          "action": "underlyingAssetHashToRPToVaults(bytes32,uint256)",
-          "args": {
-            "tokens": ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-            "riskProfileCode": "12"
-          },
-          "expectedValue": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-          "expectedMultiValues": {}
-        }
-      ],
-      "cleanActions": []
-    },
-    {
-      "description": "Operator should be able to map mulitple tokens and riskProfile to Vault addresses",
-      "setActions": [
-        {
-          "action": "addRiskProfile(uint256,string,string,bool,(uint8,uint8))",
-          "args": {
-            "riskProfileCode": "13",
-            "canBorrow": false,
-            "poolRatingRange": [0, 10]
-          },
-          "executor": "riskOperator",
-          "expect": "success",
-          "message": ""
-        },
-        {
-          "action": "setUnderlyingAssetHashToRPToVaults(address[][],uint256[],address[][])",
-          "args": {
-            "multiTokens": [
-              ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-              ["0xdac17f958d2ee523a2206206994597c13d831ec7"]
-            ],
-            "riskProfileCodes": ["13"],
-            "vaults": [["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", "0x797AAB1ce7c01eB727ab980762bA88e7133d2157"]]
-          },
-          "executor": "operator",
-          "expect": "success",
-          "message": ""
-        }
-      ],
-      "getActions": [
-        {
-          "action": "underlyingAssetHashToRPToVaults(bytes32,uint256)",
-          "args": {
-            "tokens": ["0x6B175474E89094C44Da98b954EedeAC495271d0F"],
-            "riskProfileCode": "13"
-          },
-          "expectedValue": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-          "expectedMultiValues": {}
-        },
-        {
-          "action": "underlyingAssetHashToRPToVaults(bytes32,uint256)",
-          "args": {
-            "tokens": ["0xdac17f958d2ee523a2206206994597c13d831ec7"],
-            "riskProfileCode": "13"
-          },
-          "expectedValue": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
-          "expectedMultiValues": {}
-        }
-      ],
-      "cleanActions": []
-    },
-    {
       "description": "Finance Operator should be able to set withdrawal fee range",
       "setActions": [
         {
@@ -2837,23 +2722,6 @@
       "cleanActions": []
     },
     {
-      "description": "Finance Operator shouldn't be able to set treasury shares with empty value",
-      "setActions": [
-        {
-          "action": "setTreasuryShares(address,(address,uint256)[])",
-          "args": {
-            "contractName": "vault",
-            "treasuryShare": []
-          },
-          "executor": "financeOperator",
-          "expect": "fail",
-          "message": "length!>0"
-        }
-      ],
-      "getActions": [],
-      "cleanActions": []
-    },
-    {
       "description": "Non-Finance Operator shouldn't be able to set treasury shares",
       "setActions": [
         {
@@ -2881,6 +2749,381 @@
         }
       ],
       "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator should be able to add a user into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "whitelistedUsers(address,address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator should be able to add a user into the white list with non-contract vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "",
+            "user": "user1"
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator should be able to add a user into the white list with zero address vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "0",
+            "user": "user1"
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Operator shouldn't be able to add a user into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUser(address,address,bool)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator should be able to add users into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "vault",
+            "users": ["user0", "user1"]
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "action": "whitelistedUsers(address,address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user0"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        },
+        {
+          "action": "whitelistedUsers(address,address)",
+          "args": {
+            "contractName": "vault",
+            "user": "user1"
+          },
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "Non-Operator shouldn't be able to add users into the white list",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "vault",
+            "users": ["user0", "user1"]
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator shouldn't be able to add users into the white list with non-contract vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "",
+            "users": ["user0", "user1"]
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "Operator shouldn't be able to add users into the white list with zero address vault",
+      "setActions": [
+        {
+          "action": "setWhitelistedUsers(address,address[],bool)",
+          "args": {
+            "contractName": "0",
+            "users": ["user0", "user1"]
+          },
+          "executor": "operator",
+          "expect": "fail",
+          "message": "!isContract"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setIsLimitedState should fail if caller is not the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setIsLimitedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "user1",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setIsLimitedState should set the limit state of the vault if caller is the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setIsLimitedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getIsLimitedState(address,bool)",
+          "args": {},
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setUserDepositCap should fail if caller is not the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setUserDepositCap(address,uint256)",
+          "args": {
+            "value": 100000000
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setUserDepositCap should set the maximum deposits for each user if caller is the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setUserDepositCap(address,uint256)",
+          "args": {
+            "value": 100000000
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getUserDepositCap(address,uint256)",
+          "args": {},
+          "expectedValue": 100000000,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setMinimumDepositAmount should fail if caller is not the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setMinimumDepositAmount(address,uint256)",
+          "args": {
+            "value": 5000000
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setMinimumDepositAmount should set the minimum deposit without rebalance that is accepted if caller is the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setMinimumDepositAmount(address,uint256)",
+          "args": {
+            "value": 5000000
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getMinimumDepositAmount(address,uint256)",
+          "args": {},
+          "expectedValue": 5000000,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setQueueCap should fail if caller is not the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setQueueCap(address,uint256)",
+          "args": {
+            "value": 1
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setQueueCap should set the maximum length of the vault's queue if caller is the operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setQueueCap(address,uint256)",
+          "args": {
+            "value": 1
+          },
+          "executor": "operator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getQueueCap(address,uint256)",
+          "args": {},
+          "expectedValue": 1,
+          "expectedMultiValues": {}
+        }
+      ],
+      "cleanActions": []
+    },
+    {
+      "description": "setAllowWhitelistedState should fail if caller is not the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setAllowWhitelistedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "user0",
+          "expect": "fail",
+          "message": "caller is not the finance operator"
+        }
+      ],
+      "getActions": [],
+      "cleanActions": []
+    },
+    {
+      "description": "setAllowWhitelistedState should set the whitelist state of the vault if caller is the finance operator",
+      "setActions": [
+        {
+          "contract": "registry",
+          "action": "setAllowWhitelistedState(address,bool)",
+          "args": {
+            "state": true
+          },
+          "executor": "financeOperator",
+          "expect": "success",
+          "message": ""
+        }
+      ],
+      "getActions": [
+        {
+          "contract": "registry",
+          "action": "getAllowWhitelistedState(address,uint256)",
+          "args": {},
+          "expectedValue": true,
+          "expectedMultiValues": {}
+        }
+      ],
       "cleanActions": []
     },
     {

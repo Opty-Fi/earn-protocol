@@ -16,9 +16,8 @@ interface IVault {
      * @notice Set maximum standard deviation of vault value in a single block
      * @dev the maximum vault value jump is in percentage basis points set by governance
      * @param _maxVaultValueJump the standard deviation from a vault value in basis points
-     * @return return true on successful setting of the max vault value jump
      */
-    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external returns (bool);
+    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
     /**
      * @notice Calculate the value of a vault share in underlying token
@@ -151,17 +150,15 @@ interface IVault {
      * @notice Assign a risk profile name
      * @dev name of the risk profile should be approved by governance
      * @param _riskProfileCode code of the risk profile
-     * @return returns true on successfully setting risk profile name.
      */
-    function setRiskProfileCode(uint256 _riskProfileCode) external returns (bool);
+    function setRiskProfileCode(uint256 _riskProfileCode) external;
 
     /**
      * @notice Assign the address of the underlying asset of the vault
      * @dev the underlying asset should be approved by the governance
      * @param _underlyingToken the address of the underlying asset
-     * @return return true on successful persisting underlying asset address
      */
-    function setToken(address _underlyingToken) external returns (bool);
+    function setToken(address _underlyingToken) external;
 
     /**
      * @dev A helper function to validate the vault value will not be deviated from max vault value
@@ -176,9 +173,8 @@ interface IVault {
      * @notice A function to be called in case vault needs to claim and harvest tokens in case a strategy
      *         provides multiple reward tokens
      * @param _codes Array of encoded data in bytes which acts as code to execute
-     * @return return true on successful admin call
      */
-    function adminCall(bytes[] memory _codes) external returns (bool);
+    function adminCall(bytes[] memory _codes) external;
 
     /**
      * @notice A function to get deposit queue

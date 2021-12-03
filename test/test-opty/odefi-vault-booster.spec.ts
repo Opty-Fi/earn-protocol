@@ -17,6 +17,7 @@ import {
   unpauseVault,
   approveAndSetTokenHashToToken,
 } from "../../helpers/contracts-actions";
+import { to_10powNumber_BN } from "../../helpers/utils";
 import scenario from "./scenarios/odefi-vault-booster.json";
 
 chai.use(solidity);
@@ -84,7 +85,6 @@ describe(scenario.title, () => {
         TESTING_DEPLOYMENT_ONCE,
       );
       await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
-
       const Vault2 = await deployVault(
         hre,
         essentialContracts.registry.address,
@@ -99,6 +99,12 @@ describe(scenario.title, () => {
       await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
 
       const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
+
+      const maxAmount = BigNumber.from("300");
+
+      const decimals = await ERC20Instance.decimals();
+
+      await essentialContracts.registry.setQueueCap(Vault.address, maxAmount.mul(to_10powNumber_BN(decimals)));
 
       contracts["registry"] = essentialContracts.registry;
 

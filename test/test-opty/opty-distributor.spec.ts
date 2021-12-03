@@ -18,6 +18,7 @@ import {
   getTokenSymbol,
   unpauseVault,
 } from "../../helpers/contracts-actions";
+import { to_10powNumber_BN } from "../../helpers/utils";
 import scenario from "./scenarios/opty-distributor.json";
 type ARGUMENTS = {
   contractName?: string;
@@ -110,6 +111,12 @@ describe(scenario.title, () => {
     await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
 
     const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
+
+    const maxAmount = BigNumber.from("300");
+
+    const decimals = await ERC20Instance.decimals();
+
+    await essentialContracts.registry.setQueueCap(Vault.address, maxAmount.mul(to_10powNumber_BN(decimals)));
 
     contracts["registry"] = essentialContracts.registry;
 

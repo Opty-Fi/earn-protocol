@@ -14,294 +14,302 @@ import { DataTypes } from "../../libraries/types/DataTypes.sol";
  */
 interface IRegistry {
     /**
-     * @notice Set the treasury accounts with their fee shares corresponding to vault contract
-     * @param _vault Vault contract address
-     * @param _treasuryShares Array of treasuries and their fee shares
-     * @return Returns a boolean value indicating whether the operation succeeded
-     */
-    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares)
-        external
-        returns (bool);
-
-    /**
      * @notice Set the treasury's address for optyfi's earn protocol
      * @param _treasury Treasury's address
-     * @return Returns a boolean value indicating whether the operation succeeded
      */
-    function setTreasury(address _treasury) external returns (bool);
+    function setTreasury(address _treasury) external;
+
+    /**
+     * @notice Whitelist users that are allowed to deposit
+     * @param _vault The vault in which the user is going to be whitelisted or not
+     * @param _user The user to be whitelisted
+     * @param _whitelist Allow user to deposit if true
+     */
+    function setWhitelistedUser(
+        address _vault,
+        address _user,
+        bool _whitelist
+    ) external;
+
+    /**
+     * @notice Whitelist users that are allowed to deposit
+     * @param _vault The vault in which the user is going to be whitelisted or not
+     * @param _users List of users to be whitelisted
+     * @param _whitelist Allow user to deposit if true
+     */
+    function setWhitelistedUsers(
+        address _vault,
+        address[] memory _users,
+        bool _whitelist
+    ) external;
 
     /**
      * @notice Set the investStrategyRegistry contract address
      * @param _investStrategyRegistry InvestStrategyRegistry contract address
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setInvestStrategyRegistry(address _investStrategyRegistry) external returns (bool);
+    function setInvestStrategyRegistry(address _investStrategyRegistry) external;
 
     /**
      * @notice Set the APROracle contract address
      * @param _aprOracle Address of APR Pracle contract to be set
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setAPROracle(address _aprOracle) external returns (bool);
+    function setAPROracle(address _aprOracle) external;
 
     /**
      * @notice Set the StrategyProvider contract address
      * @param _strategyProvider Address of StrategyProvider Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setStrategyProvider(address _strategyProvider) external returns (bool);
+    function setStrategyProvider(address _strategyProvider) external;
 
     /**
      * @notice Set the RiskManager's contract address
      * @param _riskManager Address of RiskManager Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setRiskManager(address _riskManager) external returns (bool);
+    function setRiskManager(address _riskManager) external;
 
     /**
      * @notice Set the HarvestCodeProvider contract address
      * @param _harvestCodeProvider Address of HarvestCodeProvider Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setHarvestCodeProvider(address _harvestCodeProvider) external returns (bool);
+    function setHarvestCodeProvider(address _harvestCodeProvider) external;
 
     /**
      * @notice Set the StrategyManager contract address
      * @param _strategyManager Address of StrategyManager Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setStrategyManager(address _strategyManager) external returns (bool);
+    function setStrategyManager(address _strategyManager) external;
 
     /**
      * @notice Set the $OPTY token's contract address
      * @param _opty Address of Opty Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setOPTY(address _opty) external returns (bool);
-
-    /**
-     * @notice Set the PriceOracle contract address
-     * @param _priceOracle Address of PriceOracle Contract
-     * @return A boolean value indicating whether the operation succeeded
-     */
-    function setPriceOracle(address _priceOracle) external returns (bool);
+    function setOPTY(address _opty) external;
 
     /**
      * @notice Set the OPTYStakingRateBalancer contract address
      * @param _optyStakingRateBalancer Address of OptyStakingRateBalancer Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setOPTYStakingRateBalancer(address _optyStakingRateBalancer) external returns (bool);
+    function setOPTYStakingRateBalancer(address _optyStakingRateBalancer) external;
 
     /**
      * @notice Set the ODEFIVaultBooster contract address
      * @dev Can only be called by the current governance
      * @param _odefiVaultBooster address of the ODEFIVaultBooster Contract
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setODEFIVaultBooster(address _odefiVaultBooster) external returns (bool);
+    function setODEFIVaultBooster(address _odefiVaultBooster) external;
 
     /**
      * @dev Sets multiple `_token` from the {tokens} mapping.
      * @notice Approves multiple tokens in one transaction
      * @param _tokens List of tokens to approve
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function approveToken(address[] memory _tokens) external returns (bool);
+    function approveToken(address[] memory _tokens) external;
 
     /**
      * @notice Approves the token provided
      * @param _token token to approve
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function approveToken(address _token) external returns (bool);
+    function approveToken(address _token) external;
 
     /**
      * @notice Disable multiple tokens in one transaction
      * @param _tokens List of tokens to revoke
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function revokeToken(address[] memory _tokens) external returns (bool);
+    function revokeToken(address[] memory _tokens) external;
 
     /**
      * @notice Disable the token
      * @param _token token to revoke
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function revokeToken(address _token) external returns (bool);
+    function revokeToken(address _token) external;
 
     /**
      * @notice Approves multiple liquidity pools in one transaction
      * @param _pools list of liquidity/credit pools to approve
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function approveLiquidityPool(address[] memory _pools) external returns (bool);
+    function approveLiquidityPool(address[] memory _pools) external;
 
     /**
      * @notice For approving single liquidity pool
      * @param _pool liquidity/credit pool to approve
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function approveLiquidityPool(address _pool) external returns (bool);
+    function approveLiquidityPool(address _pool) external;
 
     /**
      * @notice Revokes multiple liquidity pools in one transaction
      * @param _pools list of liquidity/credit pools to revoke
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function revokeLiquidityPool(address[] memory _pools) external returns (bool);
+    function revokeLiquidityPool(address[] memory _pools) external;
 
     /**
      * @notice Revokes the liquidity pool
      * @param _pool liquidity/credit pool to revoke
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function revokeLiquidityPool(address _pool) external returns (bool);
+    function revokeLiquidityPool(address _pool) external;
 
     /**
      * @notice Sets multiple pool rates and liquidity pools provided
      * @param _poolRates List of pool rates ([_pool, _rate]) to set
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function rateLiquidityPool(DataTypes.PoolRate[] memory _poolRates) external returns (bool);
+    function rateLiquidityPool(DataTypes.PoolRate[] memory _poolRates) external;
 
     /**
      * @notice Sets the pool rate for the liquidity pool provided
      * @param _pool liquidityPool to map with its rating
      * @param _rate rate for the liquidityPool provided
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function rateLiquidityPool(address _pool, uint8 _rate) external returns (bool);
+    function rateLiquidityPool(address _pool, uint8 _rate) external;
 
     /**
      * @notice Approves multiple credit pools in one transaction
      * @param _pools List of pools for approval to be considered as creditPool
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function approveCreditPool(address[] memory _pools) external returns (bool);
+    function approveCreditPool(address[] memory _pools) external;
 
     /**
      * @notice Approves the credit pool
      * @param _pool credit pool address to be approved
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function approveCreditPool(address _pool) external returns (bool);
+    function approveCreditPool(address _pool) external;
 
     /**
      * @notice Revokes multiple credit pools in one transaction
      * @param _pools List of pools for revoking from being used as creditPool
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function revokeCreditPool(address[] memory _pools) external returns (bool);
+    function revokeCreditPool(address[] memory _pools) external;
 
     /**
      * @notice Revokes the credit pool
      * @param _pool pool for revoking from being used as creditPool
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function revokeCreditPool(address _pool) external returns (bool);
+    function revokeCreditPool(address _pool) external;
 
     /**
      * @notice Sets the multiple pool rates and credit pools provided
      * @param _poolRates List of pool rates ([_pool, _rate]) to set for creditPool
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function rateCreditPool(DataTypes.PoolRate[] memory _poolRates) external returns (bool);
+    function rateCreditPool(DataTypes.PoolRate[] memory _poolRates) external;
 
     /**
      * @notice Sets the pool rate for the credit pool provided
      * @param _pool creditPool to map with its rating
      * @param _rate rate for the creaditPool provided
-     * @return A boolean value indicating whether the operation succeeded.
      */
-    function rateCreditPool(address _pool, uint8 _rate) external returns (bool);
+    function rateCreditPool(address _pool, uint8 _rate) external;
 
     /**
      * @notice Maps multiple liquidity pools to their protocol adapters
      * @param _poolAdapters List of [pool, adapter] pairs to set
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setLiquidityPoolToAdapter(DataTypes.PoolAdapter[] memory _poolAdapters) external returns (bool);
+    function setLiquidityPoolToAdapter(DataTypes.PoolAdapter[] memory _poolAdapters) external;
 
     /**
      * @notice Maps liquidity pool to its protocol adapter
      * @param _pool liquidityPool to map with its adapter
      * @param _adapter adapter for the liquidityPool provided
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setLiquidityPoolToAdapter(address _pool, address _adapter) external returns (bool);
+    function setLiquidityPoolToAdapter(address _pool, address _adapter) external;
 
     /**
      * @notice Maps multiple token pairs to their keccak256 hash
      * @param _setOfTokens List of mulitple token addresses to map with their (paired tokens) hashes
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setTokensHashToTokens(address[][] memory _setOfTokens) external returns (bool);
+    function setTokensHashToTokens(address[][] memory _setOfTokens) external;
 
     /**
      * @notice Sets token pair to its keccak256 hash
      * @param _tokens List of token addresses to map with their hashes
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function setTokensHashToTokens(address[] memory _tokens) external returns (bool);
-
-    /**
-     * @notice Maps the Vault contract with underlying assets and riskProfile
-     * @param _vault Vault contract address
-     * @param _riskProfileCode Risk profile mapped to the vault contract
-     * @param _underlyingAssets List of token addresses to map with the riskProfile and Vault contract
-     * @return A boolean value indicating whether the operation succeeded
-     */
-    function setUnderlyingAssetHashToRPToVaults(
-        address[] memory _underlyingAssets,
-        uint256 _riskProfileCode,
-        address _vault
-    ) external returns (bool);
+    function setTokensHashToTokens(address[] memory _tokens) external;
 
     /**
      * @notice Set the withdrawal fee's range
      * @param _withdrawalFeeRange the withdrawal fee's range
-     * @return _success Returns a boolean value indicating whether the operation succeeded
      */
-    function setWithdrawalFeeRange(DataTypes.WithdrawalFeeRange memory _withdrawalFeeRange)
-        external
-        returns (bool _success);
+    function setWithdrawalFeeRange(DataTypes.WithdrawalFeeRange memory _withdrawalFeeRange) external;
 
     /**
-     * @notice Set the withdrawal fee for the vault contract
-     * @param _vault Vault contract address
+     * @notice Set the complete vault configuration
+     * @param _vault Vault address to be configured
+     * @param _isLimitedState A boolean value that indicates whether the vault is in limited state (true) or not (false)
+     * @param _allowWhitelistedState It indicates whether the vault only accepts whitelisted users (true) or not (false)
+     * @param _treasuryShares Array of treasuries and their fee shares
      * @param _withdrawalFee Withdrawal fee to be set for vault contract
-     * @return _success Returns a boolean value indicating whether the operation succeeded
+     * @param _userDepositCap Maximum deposit amount allowed for each user in the given vault
+     * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance in the given vault
      */
-    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external returns (bool _success);
-
-    /**
-     * @notice Maps mulitple underlying tokens to risk profiles to vault contracts address
-     * @param _vaults List of Vault contract address
-     * @param _riskProfileCodes List of Risk profile codes mapped to the vault contract
-     * @param _underlyingAssets List of paired token addresses to map with the riskProfile and Vault contract
-     * @return A boolean value indicating whether the operation succeeded
-     */
-    function setUnderlyingAssetHashToRPToVaults(
-        address[][] memory _underlyingAssets,
-        uint256[] memory _riskProfileCodes,
-        address[][] memory _vaults
-    ) external returns (bool);
+    function setVaultConfiguration(
+        address _vault,
+        bool _isLimitedState,
+        bool _allowWhitelistedState,
+        DataTypes.TreasuryShare[] memory _treasuryShares,
+        uint256 _withdrawalFee,
+        uint256 _userDepositCap,
+        uint256 _minimumDepositAmount
+    ) external;
 
     /**
      * @notice Discontinue the Vault contract from use permanently
      * @dev Once Vault contract is disconitnued, then it CAN NOT be re-activated for usage
      * @param _vault Vault address to discontinue
-     * @return A boolean value indicating whether operation is succeeded
      */
-    function discontinue(address _vault) external returns (bool);
+    function discontinue(address _vault) external;
 
     /**
-     * @notice Pause/Unpause tha Vault contract for use temporarily during any emergency
+     * @notice Pause/Unpause the Vault contract for use temporarily during any emergency
      * @param _vault Vault contract address to pause
      * @param _unpaused A boolean value true to unpause vault contract and false for pause vault contract
      */
-    function unpauseVaultContract(address _vault, bool _unpaused) external returns (bool);
+    function unpauseVaultContract(address _vault, bool _unpaused) external;
+
+    /**
+     * @notice Enable or disable the limit on user deposits
+     * @param _vault Vault contract address
+     * @param _isLimitedState A boolean value true to limit user deposits and false to unlimit user deposits
+     */
+    function setIsLimitedState(address _vault, bool _isLimitedState) external;
+
+    /**
+     * @notice Enable or disable the limit on user deposits
+     * @param _vault Vault contract address
+     * @param _allowWhitelistedState A boolean value true to only allow whitelisted users' deposits
+     */
+    function setAllowWhitelistedState(address _vault, bool _allowWhitelistedState) external;
+
+    /**
+     * @notice Set the treasury accounts with their fee shares corresponding to vault contract
+     * @param _vault Vault contract address
+     * @param _treasuryShares Array of treasuries and their fee shares
+     */
+    function setTreasuryShares(address _vault, DataTypes.TreasuryShare[] memory _treasuryShares) external;
+
+    /**
+     * @notice Set the withdrawal fee for the vault contract
+     * @param _vault Vault contract address
+     * @param _withdrawalFee Withdrawal fee to be set for vault contract
+     */
+    function setWithdrawalFee(address _vault, uint256 _withdrawalFee) external;
+
+    /**
+     * @notice Set the maximum total deposits in a Vault for each user
+     * @param _vault Vault contract address
+     * @param _userDepositCap Maximum deposit amount allowed for each user
+     */
+    function setUserDepositCap(address _vault, uint256 _userDepositCap) external;
+
+    /**
+     * @notice Set the minimum deposit amount when the user is not rebalancing the Vault
+     * @param _vault Vault contract address
+     * @param _minimumDepositAmount Minimum deposit amount allowed for each deposit without rebalance
+     */
+    function setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) external;
+
+    /**
+     * @notice Set the maximum length of the queue in a specific Vault
+     * @param _vault Vault contract address
+     * @param _queueCap Maximum queue length
+     */
+    function setQueueCap(address _vault, uint256 _queueCap) external;
 
     /**
      * @notice Adds the risk profile in Registry contract Storage
@@ -310,7 +318,6 @@ interface IRegistry {
      * @param _symbol symbol of riskProfile
      * @param _canBorrow A boolean value indicating whether the riskProfile allows borrow step
      * @param _poolRatingRange pool rating range ([lowerLimit, upperLimit]) supported by given risk profile
-     * @return A boolean value indicating whether the operation succeeded
      */
     function addRiskProfile(
         uint256 _riskProfileCode,
@@ -318,7 +325,7 @@ interface IRegistry {
         string memory _symbol,
         bool _canBorrow,
         DataTypes.PoolRatingsRange memory _poolRatingRange
-    ) external returns (bool);
+    ) external;
 
     /**
      * @notice Adds list of the risk profiles in Registry contract Storage in one transaction
@@ -328,7 +335,6 @@ interface IRegistry {
      * @param _symbols symbols of riskProfiles
      * @param _canBorrow List of boolean values indicating whether the riskProfile allows borrow step
      * @param _poolRatingRanges List of pool rating range supported by given list of risk profiles
-     * @return A boolean value indicating whether the operation succeeded
      */
     function addRiskProfile(
         uint256[] memory _riskProfileCodes,
@@ -336,34 +342,29 @@ interface IRegistry {
         string[] memory _symbols,
         bool[] memory _canBorrow,
         DataTypes.PoolRatingsRange[] memory _poolRatingRanges
-    ) external returns (bool);
+    ) external;
 
     /**
      * @notice Change the borrow permission for existing risk profile
      * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * to update with strategy steps
      * @param _canBorrow A boolean value indicating whether the riskProfile allows borrow step
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function updateRiskProfileBorrow(uint256 _riskProfileCode, bool _canBorrow) external returns (bool);
+    function updateRiskProfileBorrow(uint256 _riskProfileCode, bool _canBorrow) external;
 
     /**
      * @notice Update the pool ratings for existing risk profile
      * @param _riskProfileCode Risk profile code (Eg: 1,2, and so on where 0 is reserved for 'no strategy')
      * to update with pool rating range
      * @param _poolRatingRange pool rating range ([lowerLimit, upperLimit]) to update for given risk profile
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function updateRPPoolRatings(uint256 _riskProfileCode, DataTypes.PoolRatingsRange memory _poolRatingRange)
-        external
-        returns (bool);
+    function updateRPPoolRatings(uint256 _riskProfileCode, DataTypes.PoolRatingsRange memory _poolRatingRange) external;
 
     /**
      * @notice Remove the existing risk profile in Registry contract Storage
      * @param _index Index of risk profile to be removed
-     * @return A boolean value indicating whether the operation succeeded
      */
-    function removeRiskProfile(uint256 _index) external returns (bool);
+    function removeRiskProfile(uint256 _index) external;
 
     /**
      * @notice Get the list of tokensHash
@@ -541,4 +542,12 @@ interface IRegistry {
      * @return _isTokenApproved Returns a boolean for token approved or not
      */
     function isApprovedToken(address _token) external view returns (bool _isTokenApproved);
+
+    /**
+     * @notice Check if the user is whitelisted or not
+     * @param _vault Vault contract address
+     * @param _user User address for which to check if it is whitelisted or not
+     * @return _isUserWhitelisted Returns a boolean for user whitelisted or not
+     */
+    function isUserWhitelisted(address _vault, address _user) external view returns (bool _isUserWhitelisted);
 }

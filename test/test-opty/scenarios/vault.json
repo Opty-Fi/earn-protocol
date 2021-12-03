@@ -1317,7 +1317,7 @@
                   "action": "testInvalidCodes",
                   "args": {},
                   "expect": "fail",
-                  "message": "!adminCall"
+                  "message": "!call"
                 }
               ],
               "getActions": []

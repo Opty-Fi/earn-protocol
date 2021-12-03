@@ -1,0 +1,429 @@
+{
+  "title": "Vault",
+  "description": "Test cases for Vault Contract",
+  "vaults": [
+    {
+      "name": "Vault",
+      "riskProfileCode": 1,
+      "stories": [
+        {
+          "description": "Setup all variables in VaultConfiguration",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setIsLimitedState(address,bool)",
+              "args": {
+                "state": true
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "registry",
+              "action": "setUserDepositCap(address,uint256)",
+              "args": {
+                "value": 100000000
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "registry",
+              "action": "setQueueCap(address,uint256)",
+              "args": {
+                "value": 1
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "registry",
+              "action": "setMinimumDepositAmount(address,uint256)",
+              "args": {
+                "value": 5000000
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "registry",
+              "action": "setAllowWhitelistedState(address,bool)",
+              "args": {
+                "state": true
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "registry",
+              "action": "vaultToVaultConfiguration(address)",
+              "args": {},
+              "expectedValue": [false, true, true, true, 0, 100000000, 5000000, 1]
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "user should not be able to deposit if he is not whitelisted",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "value": 10000000
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "!user"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "user should not be able to deposit if the amount exceeds userDepositCap",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setWhitelistedUser(address,address,bool)",
+              "args": {
+                "user": 2,
+                "whitelisted": true
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "value": 1000000000
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "!cap"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "user should not be able to deposit without rebalance if the amount is less than minimumDepositAmount",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDeposit(uint256)",
+              "args": {
+                "value": 2000000
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "!minDep"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "user should be able to deposit without rebalance if the amount is between minimumDepositAmount and userDepositCap",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDeposit(uint256)",
+              "args": {
+                "value": 10000000
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "pendingDeposits(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            },
+            {
+              "contract": "vault",
+              "action": "totalDeposits(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "user should not be able to deposit without rebalance if the queue is full",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDeposit(uint256)",
+              "args": {
+                "value": 10000000
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "!q"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "user should not be able to make a second deposit if the total deposits exceed userDepositCap",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "value": 91000000
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "!cap"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "user should be able to make a second deposit if the total deposits don't exceed userDepositCap",
+          "setActions": [
+            {
+              "contract": "",
+              "action": "fundWallet",
+              "args": {
+                "token": "underlying"
+              },
+              "executor": 2,
+              "expect": "",
+              "message": ""
+            },
+            {
+              "contract": "erc20",
+              "action": "approve(address,uint256)",
+              "args": {
+                "contractName": "vault"
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "vault",
+              "action": "userDepositRebalance(uint256)",
+              "args": {
+                "value": 90000000
+              },
+              "executor": 2,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "vault",
+              "action": "balanceOf(address)",
+              "args": {
+                "user": 2
+              },
+              "expectedValue": ">"
+            }
+          ],
+          "cleanActions": []
+        },
+        {
+          "description": "setVaultConfiguration should fail if caller is not the finance operator",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256)",
+              "args": {
+                "state": true,
+                "value": 1000000,
+                "fee": 1000,
+                "shares": 500
+              },
+              "executor": 2,
+              "expect": "fail",
+              "message": "caller is not the finance operator"
+            }
+          ],
+          "getActions": [],
+          "cleanActions": []
+        },
+        {
+          "description": "setVaultConfiguration should set the complete configuration of the vault if caller is the finance operator",
+          "setActions": [
+            {
+              "contract": "registry",
+              "action": "setWithdrawalFeeRange((uint256,uint256))",
+              "args": {
+                "range": ["0", "10000"]
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            },
+            {
+              "contract": "registry",
+              "action": "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256)",
+              "args": {
+                "state": true,
+                "value": 1000000,
+                "fee": 1000,
+                "shares": 500
+              },
+              "executor": 0,
+              "expect": "success",
+              "message": ""
+            }
+          ],
+          "getActions": [
+            {
+              "contract": "registry",
+              "action": "vaultToVaultConfiguration(address)",
+              "args": {},
+              "expectedValue": [false, true, false, false, 1000, 1000000, 1000000, 1]
+            }
+          ],
+          "cleanActions": []
+        }
+      ]
+    }
+  ]
+}

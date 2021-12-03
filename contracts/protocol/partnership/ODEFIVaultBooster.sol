@@ -44,7 +44,6 @@ contract ODEFIVaultBooster is IODEFIVaultBooster, ODEFIVaultBoosterStorage, Expo
      */
     function updateUserStateInVault(address _odefiVault, address _user) external override {
         require(_odefiVault.isContract(), "!isContract");
-        require(_user != address(0), "!_user.address(0)");
         if (odefiVaultRatePerSecond[_odefiVault] > 0) {
             odefiUserStateInVault[_odefiVault][_user].index = odefiVaultState[_odefiVault].index;
             odefiUserStateInVault[_odefiVault][_user].timestamp = odefiVaultState[_odefiVault].timestamp;

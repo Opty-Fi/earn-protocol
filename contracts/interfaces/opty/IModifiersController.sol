@@ -34,7 +34,7 @@ interface IModifiersController {
 
     /**
      * @notice Transfers optyDistributor to a new account (`_optyDistributor`)
-     * @param _optyDistributor address of optyDistributor's account
+     * @param _optyDistributor address of optyDistributor contract
      */
     function setOPTYDistributor(address _optyDistributor) external;
 }

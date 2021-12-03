@@ -32,6 +32,7 @@ import {
 } from "../../helpers/contracts-actions";
 import testVaultScenario from "./scenarios/test-vault.json";
 import scenario from "./scenarios/vault.json";
+import testVaultConfigurationScenario from "./scenarios/test-vault-configuration.json";
 
 type ARGUMENTS = {
   contractName?: string;
@@ -44,6 +45,21 @@ type ARGUMENTS = {
   jump?: number;
   profile?: number;
   user?: number;
+};
+
+type VAULT_CONFIGURATION_ARGUMENTS = {
+  contractName?: string;
+  state?: boolean;
+  value?: number;
+  whitelisted?: boolean;
+  fee?: number;
+  shares?: number;
+  queueCap?: number;
+  token?: string;
+  jump?: number;
+  profile?: number;
+  user?: number;
+  range?: string[];
 };
 
 const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; output: any } } = {
@@ -179,6 +195,18 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+
+              const maxBalance: { [key: string]: string } = {
+                DAI: "15000000000000000",
+                USDC: "150000",
+                USDT: "150000",
+                SLP_WETH_USDC: "15000000000",
+              };
+              await essentialContracts.registry.setQueueCap(
+                Vault.address,
+                BigNumber.from(maxBalance[TOKEN_STRATEGY.token]).mul(3),
+              );
+
               if (adapterName === HARVEST_V1_ADAPTER_NAME) {
                 await addWhiteListForHarvest(hre, Vault.address, users[1]);
               }
@@ -566,6 +594,384 @@ describe(scenario.title, () => {
   }
 });
 
+describe(testVaultConfigurationScenario.title, () => {
+  let essentialContracts: CONTRACTS;
+  let adapters: CONTRACTS;
+  const contracts: CONTRACTS = {};
+  let users: Signer[];
+
+  before(async () => {
+    try {
+      users = await hre.ethers.getSigners();
+      [essentialContracts, adapters] = await setUp(
+        users[0],
+        Object.values(VAULT_TOKENS).map(token => token.address),
+      );
+      assert.isDefined(essentialContracts, "Essential contracts not deployed");
+      assert.isDefined(adapters, "Adapters not deployed");
+    } catch (error: any) {
+      console.log(error);
+    }
+  });
+
+  let Vault: Contract;
+  const vault = testVaultConfigurationScenario.vaults[0];
+  describe("USDC Alpha Vault", async () => {
+    const TOKEN_STRATEGY = TypedTokenStrategies["USDC"][0];
+    const tokenAddress = VAULT_TOKENS["USDC"].address;
+    const numberOfSteps = TOKEN_STRATEGY.steps.length;
+    const adapterNames: string[] = [];
+    let description: string = "";
+    for (let i = 0; i < numberOfSteps; i++) {
+      adapterNames.push(TOKEN_STRATEGY.steps[i].protocol.name + "Adapter");
+      if (i != 0) {
+        description = description + " - ";
+      }
+      description = description + TOKEN_STRATEGY.steps[i].protocol.name;
+    }
+    describe(description, async () => {
+      const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
+        rewardTokenAdapterName.toLowerCase(),
+      );
+      let underlyingTokenName: string;
+      let underlyingTokenSymbol: string;
+      let underlyingTokenDecimals: number;
+      const strategySteps: STRATEGY_DATA[] = [];
+      let investStrategyHash: string;
+      before(async () => {
+        const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+        underlyingTokenName = await Token_ERC20Instance.name();
+        underlyingTokenSymbol = await Token_ERC20Instance.symbol();
+        underlyingTokenDecimals = await Token_ERC20Instance.decimals();
+
+        Vault = await deployVault(
+          hre,
+          essentialContracts.registry.address,
+          tokenAddress,
+          users[0],
+          users[1],
+          underlyingTokenName,
+          underlyingTokenSymbol,
+          1,
+          TESTING_DEPLOYMENT_ONCE,
+        );
+
+        for (let i = 0; i < numberOfSteps; i++) {
+          const adapter = adapters[adapterNames[i]];
+          if (adapterNames[i] === HARVEST_V1_ADAPTER_NAME) {
+            await addWhiteListForHarvest(hre, Vault.address, users[1]);
+          }
+          await unpauseVault(users[0], essentialContracts.registry, Vault.address, true);
+          if (
+            rewardTokenAdapterNames.includes(adapterNames[i].toLowerCase()) &&
+            !(await essentialContracts.registry.tokens(REWARD_TOKENS[adapterNames[i]].tokenAddress.toString()))
+          ) {
+            await executeFunc(essentialContracts.registry, users[0], "approveToken(address[])", [
+              [Vault.address, REWARD_TOKENS[adapterNames[i]].tokenAddress.toString()],
+            ]);
+            await executeFunc(essentialContracts.registry, users[0], "setTokensHashToTokens(address[])", [
+              [Vault.address, REWARD_TOKENS[adapterNames[i]].tokenAddress.toString()],
+            ]);
+          }
+          await approveLiquidityPoolAndMapAdapter(
+            users[0],
+            essentialContracts.registry,
+            adapter.address,
+            TOKEN_STRATEGY.steps[i].poolContractAddress,
+          );
+          strategySteps.push({
+            contract: TOKEN_STRATEGY.steps[i].poolContractAddress,
+            outputToken: TOKEN_STRATEGY.steps[i].lpToken,
+            isBorrow: TOKEN_STRATEGY.steps[i].isBorrow,
+          });
+        }
+
+        const CHIInstance = await hre.ethers.getContractAt("IChi", TypedTokens["CHI"]);
+
+        contracts["vault"] = Vault;
+        contracts["chi"] = CHIInstance;
+        contracts["erc20"] = Token_ERC20Instance;
+        contracts["registry"] = essentialContracts.registry;
+      });
+      for (let i = 0; i < vault.stories.length; i++) {
+        const story = vault.stories[i];
+        it(story.description, async function () {
+          for (let i = 0; i < story.setActions.length; i++) {
+            const action = story.setActions[i];
+            switch (action.action) {
+              case "fundWallet": {
+                const { token } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                let defaultFundAmount: BigNumber;
+                let underlyingBalance: BigNumber;
+                if (token == "underlying") {
+                  defaultFundAmount = getDefaultFundAmountInDecimal(
+                    tokenAddress,
+                    BigNumber.from(underlyingTokenDecimals),
+                  );
+                  underlyingBalance = await contracts["erc20"].balanceOf(await users[2].getAddress());
+                  if (underlyingBalance.lt(defaultFundAmount)) {
+                    const timestamp = (await getBlockTimestamp(hre)) * 2;
+                    await fundWalletToken(hre, tokenAddress, users[action.executor], defaultFundAmount, timestamp);
+                  }
+                } else if (token == "chi") {
+                  defaultFundAmount = getDefaultFundAmountInDecimal(TypedTokens["CHI"], 2);
+                  underlyingBalance = await contracts["chi"].balanceOf(await users[2].getAddress());
+                  if (underlyingBalance.lt(defaultFundAmount)) {
+                    const timestamp = (await getBlockTimestamp(hre)) * 2;
+                    await fundWalletToken(
+                      hre,
+                      TypedTokens["CHI"],
+                      users[action.executor],
+                      defaultFundAmount,
+                      timestamp,
+                    );
+                  }
+                }
+                break;
+              }
+              case "setIsLimitedState(address,bool)": {
+                const { state } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (state) {
+                  if (action.expect == "success") {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    )
+                      .to.emit(contracts[action.contract], "LogLimitStateVault")
+                      .withArgs(contracts["vault"].address, state, await users[action.executor].getAddress());
+                  } else {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                assert.isDefined(state, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "setAllowWhitelistedState(address,bool)": {
+                const { state } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (state) {
+                  if (action.expect == "success") {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    )
+                      .to.emit(contracts[action.contract], "LogAllowWhitelistedStateVault")
+                      .withArgs(contracts["vault"].address, state, await users[action.executor].getAddress());
+                  } else {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, state),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                assert.isDefined(state, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "setWhitelistedUser(address,address,bool)": {
+                const { user, whitelisted } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (user && whitelisted) {
+                  if (action.expect == "success") {
+                    await contracts[action.contract]
+                      .connect(users[action.executor])
+                      [action.action](contracts["vault"].address, await users[user].getAddress(), whitelisted);
+                  } else {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, await users[user].getAddress(), whitelisted),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                assert.isDefined(user, `args is wrong in ${action.action} testcase`);
+                assert.isDefined(whitelisted, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "setUserDepositCap(address,uint256)":
+              case "setMinimumDepositAmount(address,uint256)":
+              case "setQueueCap(address,uint256)": {
+                const { value } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (value) {
+                  if (action.expect == "success") {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, value),
+                    )
+                      .to.emit(
+                        contracts[action.contract],
+                        action.action === "setUserDepositCap(address,uint256)"
+                          ? "LogUserDepositCapVault"
+                          : action.action === "setMinimumDepositAmount(address,uint256)"
+                          ? "LogMinimumDepositAmountVault"
+                          : "LogQueueCapVault",
+                      )
+                      .withArgs(contracts["vault"].address, value, await users[action.executor].getAddress());
+                  } else {
+                    await expect(
+                      contracts[action.contract]
+                        .connect(users[action.executor])
+                        [action.action](contracts["vault"].address, value),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "setWithdrawalFeeRange((uint256,uint256))": {
+                const { range } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                await contracts[action.contract].connect(users[action.executor])[action.action](range);
+                break;
+              }
+              case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256)": {
+                const { state, value, fee, shares } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (state && value && shares) {
+                  if (action.expect == "success") {
+                    await contracts[action.contract].connect(users[action.executor])[action.action](
+                      contracts["vault"].address,
+                      !state,
+                      !state,
+                      [
+                        [await users[3].getAddress(), shares],
+                        [await users[4].getAddress(), shares],
+                      ],
+                      fee,
+                      value,
+                      value,
+                    );
+                    const vaultConfiguration = await contracts["registry"].vaultToVaultConfiguration(
+                      contracts["vault"].address,
+                    );
+                    const treasuryShares = await contracts["registry"].getTreasuryShares(contracts["vault"].address);
+                    expect(vaultConfiguration[2]).to.be.eq(!state);
+                    expect(vaultConfiguration[3]).to.be.eq(!state);
+                    expect(treasuryShares[0].treasury).to.be.eq(await users[3].getAddress());
+                    expect(treasuryShares[0].share).to.be.eq(shares);
+                    expect(treasuryShares[1].treasury).to.be.eq(await users[4].getAddress());
+                    expect(treasuryShares[1].share).to.be.eq(shares);
+                    expect(vaultConfiguration[4]).to.be.eq(fee);
+                    expect(vaultConfiguration[5]).to.be.eq(value);
+                    expect(vaultConfiguration[6]).to.be.eq(value);
+                  } else {
+                    await expect(
+                      contracts[action.contract].connect(users[action.executor])[action.action](
+                        contracts["vault"].address,
+                        !state,
+                        !state,
+                        [
+                          [await users[3].getAddress(), shares],
+                          [await users[4].getAddress(), shares],
+                        ],
+                        fee,
+                        value,
+                        value,
+                      ),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                assert.isDefined(state, `args is wrong in ${action.action} testcase`);
+                assert.isDefined(value, `args is wrong in ${action.action} testcase`);
+                assert.isDefined(fee, `args is wrong in ${action.action} testcase`);
+                assert.isDefined(shares, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "approve(address,uint256)": {
+                const { contractName } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (contractName) {
+                  const userAddr = await users[action.executor].getAddress();
+                  const value = await contracts[action.contract].balanceOf(userAddr);
+                  await contracts[action.contract]
+                    .connect(users[action.executor])
+                    [action.action](contracts[contractName].address, value);
+                }
+                assert.isDefined(contractName, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "userDepositRebalance(uint256)":
+              case "userDeposit(uint256)": {
+                const { value } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (value) {
+                  investStrategyHash = await setBestStrategy(
+                    strategySteps,
+                    users[0],
+                    tokenAddress,
+                    essentialContracts.investStrategyRegistry,
+                    essentialContracts.strategyProvider,
+                    1,
+                    false,
+                  );
+                  if (action.expect == "success") {
+                    await contracts[action.contract].connect(users[action.executor])[action.action](value);
+                  } else {
+                    await expect(
+                      contracts[action.contract].connect(users[action.executor])[action.action](value),
+                    ).to.be.revertedWith(action.message);
+                  }
+                }
+                break;
+              }
+            }
+          }
+          for (let i = 0; i < story.getActions.length; i++) {
+            const action = story.getActions[i];
+            switch (action.action) {
+              case "vaultToVaultConfiguration(address)": {
+                const value = await contracts[action.contract][action.action](contracts["vault"].address);
+                for (let i = 0; i < value.length; i++) {
+                  expect(value[i]).to.be.eq(action.expectedValue[i]);
+                }
+                break;
+              }
+              case "totalDeposits(address)":
+              case "pendingDeposits(address)":
+              case "balanceOf(address)": {
+                const { user } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+                if (user) {
+                  const address = await users[user].getAddress();
+                  const value = await contracts[action.contract][action.action](address);
+                  if (action.expectedValue == ">") {
+                    expect(value).to.be.gt(0);
+                  } else {
+                    expect(value).to.be.eq(0);
+                  }
+                }
+                assert.isDefined(user, `args is wrong in ${action.action} testcase`);
+                break;
+              }
+              case "balance()": {
+                const value = await contracts[action.contract][action.action]();
+                const unpaused = (
+                  await essentialContracts.registry.vaultToVaultConfiguration(contracts[action.contract].address)
+                )[1];
+                if (action.expectedValue == ">") {
+                  const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
+                  const lastAdapterName = adapterNames[numberOfSteps - 1];
+                  if (
+                    (rewardToken != ADDRESS_ZERO && REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
+                    !unpaused
+                  ) {
+                    expect(value).to.be.gt(0);
+                  } else {
+                    expect(value).to.be.eq(0);
+                  }
+                } else if (action.expectedValue == "above") {
+                  expect(value).to.be.gt(0);
+                }
+                break;
+              }
+            }
+          }
+        }).timeout(100000);
+      }
+    });
+  });
+});
+
 describe(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -632,6 +1038,9 @@ describe(testVaultScenario.title, () => {
               1,
               TESTING_DEPLOYMENT_ONCE,
             );
+
+            await essentialContracts.registry.setQueueCap(Vault.address, BigNumber.from("15000000000000000000").mul(3));
+
             for (let i = 0; i < numberOfSteps; i++) {
               const adapter = adapters[adapterNames[i]];
               if (adapterNames[i] === HARVEST_V1_ADAPTER_NAME) {
