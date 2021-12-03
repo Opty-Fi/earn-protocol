@@ -11,6 +11,7 @@ import {
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
   HarvestCodeProvider,
+  InvestStrategyRegistry,
   Registry,
   RegistryProxy,
 } from "../typechain";
@@ -61,6 +62,7 @@ declare module "mocha" {
     curveDepositPoolAdapter: CurveDepositPoolAdapter;
     curveSwapPoolAdapter: CurveSwapPoolAdapter;
     curveSwapEthGateway: CurveSwapETHGateway;
+    investStrategyRegistry: InvestStrategyRegistry;
   }
 }
 

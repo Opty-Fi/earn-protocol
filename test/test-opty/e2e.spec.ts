@@ -1,8 +1,10 @@
 import hre from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
+import chai, { expect, assert } from "chai";
+import { solidity } from "ethereum-waffle";
 import { Signers } from "../../helpers/utils";
 import { deployRegistry } from "../../helpers/contracts-deployments";
-import { expect, assert } from "chai";
 import {
   AaveV1Adapter,
   AaveV1ETHGateway,
@@ -13,6 +15,7 @@ import {
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
   HarvestCodeProvider,
+  InvestStrategyRegistry,
   Registry,
   RegistryProxy,
 } from "../../typechain";
@@ -20,7 +23,8 @@ import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedDefiPools, TypedTokens } from "../../helpers/data";
 import { deployContract, generateTokenHash } from "../../helpers/helpers";
-import { BigNumber } from "ethers";
+
+chai.use(solidity);
 
 const USDC_LIQUIDITY_POOLS = [
   TypedDefiPools.CompoundAdapter.usdc.pool,
@@ -311,6 +315,18 @@ describe("E2E Integration tests", function () {
       expect(
         await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool),
       ).to.equal(this.curveSwapPoolAdapter.address);
+    });
+
+    it("1.18 Deployer can deploy InvestStrategyRegistry and Operator can register", async function () {
+      this.investStrategyRegistry = <InvestStrategyRegistry>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY, false, this.signers.deployer, [
+          this.registry.address,
+        ])
+      );
+      assert.isDefined(this.investStrategyRegistry, "!InvestStrategyRegistry");
+      expect(await this.investStrategyRegistry.registryContract()).to.equal(this.registry.address);
+      await this.registry.connect(this.signers.operator).setInvestStrategyRegistry(this.investStrategyRegistry.address);
+      expect(await this.registry.getInvestStrategyRegistry()).to.equal(this.investStrategyRegistry.address);
     });
   });
 });
