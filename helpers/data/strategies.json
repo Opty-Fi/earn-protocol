@@ -36,18 +36,6 @@
     ]
   },
   {
-    "strategyName": "USDT-deposit-CREAM-crUSDT",
-    "token": "USDT",
-    "strategy": [
-      {
-        "contract": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
-        "outputTokenSymbol": "crUSDT",
-        "outputToken": "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
     "strategyName": "DAI-deposit-DFORCE-dDAI",
     "token": "DAI",
     "strategy": [
@@ -108,24 +96,6 @@
     ]
   },
   {
-    "strategyName": "DAI-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
-    "token": "DAI",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "outputTokenSymbol": "crYCRV",
-        "outputToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
     "strategyName": "USDC-deposit-CURVE-cDAI+cUSDC",
     "token": "USDC",
     "strategy": [
@@ -133,60 +103,6 @@
         "contract": "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
         "outputTokenSymbol": "cDAI+cUSDC",
         "outputToken": "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "USDC-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
-    "token": "USDC",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "outputTokenSymbol": "crYCRV",
-        "outputToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "USDT-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
-    "token": "USDT",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "outputTokenSymbol": "crYCRV",
-        "outputToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "isBorrow": false
-      }
-    ]
-  },
-  {
-    "strategyName": "TUSD-deposit-CURVE-yDAI+yUSDC+yUSDT+yTUSD-deposit-CREAM-crYCRV",
-    "token": "TUSD",
-    "strategy": [
-      {
-        "contract": "0xbBC81d23Ea2c3ec7e56D39296F0cbB648873a5d3",
-        "outputTokenSymbol": "yDAI+yUSDC+yUSDT+yTUSD",
-        "outputToken": "0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8",
-        "isBorrow": false
-      },
-      {
-        "contract": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
-        "outputTokenSymbol": "crYCRV",
-        "outputToken": "0x9baF8a5236d44AC410c0186Fe39178d5AAD0Bb87",
         "isBorrow": false
       }
     ]

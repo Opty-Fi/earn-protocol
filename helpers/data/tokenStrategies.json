@@ -2839,28 +2839,6 @@
       ]
     },
     {
-      "hash": "0xefd4db219582a1525517f7d311747ab19740430451e5d1ecad3bd6f5a8f00232",
-      "underlyingTokens": [
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "Cream",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/cream/logo.png"
-          },
-          "poolContractAddress": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
-          "lpToken": "0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322",
-          "isBorrow": false,
-          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
-        }
-      ]
-    },
-    {
       "hash": "0x824d1f67844a30978eff48ec9a617d5fb0d25ee112becea1bd5c4090490e48da",
       "underlyingTokens": [
         {
