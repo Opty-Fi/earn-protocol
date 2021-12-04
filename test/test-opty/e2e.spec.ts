@@ -4,11 +4,12 @@ import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signers } from "../../helpers/utils";
-import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
+import { deployRegistry, deployVault } from "../../helpers/contracts-deployments";
 import {
   AaveV1Adapter,
   AaveV1ETHGateway,
   AaveV2Adapter,
+  APROracle,
   CompoundAdapter,
   CompoundETHGateway,
   CurveDepositPoolAdapter,
@@ -20,7 +21,9 @@ import {
   RegistryProxy,
   RiskManager,
   RiskManagerProxy,
+  StrategyManager,
   StrategyProvider,
+  Vault,
 } from "../../typechain";
 import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
@@ -506,7 +509,7 @@ describe("E2E Integration tests", function () {
       await this.registry.connect(this.signers.operator).setStrategyProvider(this.strategyProvider.address);
       expect(await this.registry.getStrategyProvider()).to.equal(this.strategyProvider.address);
     });
-    it("1.21 Deployer can  deploy RiskManager and operator can register it", async function () {
+    it("1.21 Deployer can deploy RiskManager and operator can register it", async function () {
       this.riskManager = <RiskManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER, false, this.signers.deployer, [
           this.registry.address,
@@ -527,6 +530,88 @@ describe("E2E Integration tests", function () {
       expect(await this.riskManager.registryContract()).to.equal(this.registry.address);
       await this.registry.connect(this.signers.operator).setRiskManager(this.riskManager.address);
       expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
+    });
+    it("1.22 Deployer can deploy StrategyManager and operator can register it", async function () {
+      this.strategyManager = <StrategyManager>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER, false, this.signers.deployer, [
+          this.registry.address,
+        ])
+      );
+      assert(this.strategyManager, "!StrategyManager");
+      await this.registry.connect(this.signers.operator).setStrategyManager(this.strategyManager.address);
+      expect(await this.registry.getStrategyManager()).to.equal(this.strategyManager.address);
+    });
+
+    it("1.23 Operator can deploy and register APROracle", async function () {
+      this.aprOracle = <APROracle>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.APR_ORACLE, false, this.signers.operator, [this.registry.address])
+      );
+      assert.isDefined(this.aprOracle, "!APROracle");
+      expect(await this.aprOracle.registryContract()).to.equal(this.registry.address);
+      await this.registry.connect(this.signers.operator).setAPROracle(this.aprOracle.address);
+      expect(await this.registry.getAprOracle()).to.equal(this.aprOracle.address);
+    });
+
+    it("1.24 Operator can deploy vault and admin can upgrade", async function () {
+      this.vault = <Vault>(
+        await deployVault(
+          hre,
+          this.registry.address,
+          TypedTokens.USDC,
+          this.signers.operator,
+          this.signers.admin,
+          "USD Coin",
+          "USDC",
+          2,
+          false,
+        )
+      );
+      expect(await this.vault.name()).to.equal("op USD Coin INTERMEDIATE");
+      expect(await this.vault.symbol()).to.equal("opUSDCINT");
+      expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
+      expect(await this.vault.riskProfileCode()).to.equal("2");
+    });
+    it("1.25 Governance can set maxVaultValueJump=1%", async function () {
+      await this.vault.connect(this.signers.governance).setMaxVaultValueJump("100");
+      expect(await this.vault.maxVaultValueJump()).to.equal(BigNumber.from("100"));
+    });
+    it("1.26 Operator can whitelist users for USDC vault", async function () {
+      await this.registry
+        .connect(this.signers.operator)
+        .setWhitelistedUsers(this.vault.address, [this.signers.alice.address, this.signers.bob.address], true);
+      expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.alice.address)).to.be.true;
+      expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.bob.address)).to.be.true;
+    });
+    it("1.27 Finance Operator can set USDC vault configuration", async function () {
+      await this.registry.connect(this.signers.financeOperator).setVaultConfiguration(
+        this.vault.address,
+        true,
+        true,
+        [],
+        0,
+        "10000000000", // 10,000 USDC
+        "1000000000", //1000 USDC
+        "1000000000000", //1,000,000 USDC
+      );
+      const vaultConfiguration = await this.registry.getVaultConfiguration(this.vault.address);
+      expect(vaultConfiguration.discontinued).to.be.false;
+      expect(vaultConfiguration.unpaused).to.be.false;
+      expect(vaultConfiguration.isLimitedState).to.be.true;
+      expect(vaultConfiguration.allowWhitelistedState).to.be.true;
+      expect(vaultConfiguration.treasuryShares.length).to.be.equal(BigNumber.from("0"));
+      expect(vaultConfiguration.withdrawalFee).to.be.equal(BigNumber.from("0"));
+      expect(vaultConfiguration.userDepositCap).to.equal(BigNumber.from("10000000000"));
+      expect(vaultConfiguration.minimumDepositAmount).to.equal(BigNumber.from("1000000000"));
+      expect(vaultConfiguration.totalValueLockedLimitInUnderlying).to.equal(BigNumber.from("1000000000000"));
+      expect(vaultConfiguration.queueCap).to.equal(BigNumber.from("0"));
+    });
+    it("1.28 Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
+      await this.registry.connect(this.signers.operator).setQueueCap(this.vault.address, "10");
+      expect((await this.registry.getVaultConfiguration(this.vault.address)).queueCap).to.equal(BigNumber.from("10"));
+    });
+    it("1.29 Operator can unpause the vault", async function () {
+      await this.registry.connect(this.signers.operator).unpauseVaultContract(this.vault.address, true);
+      expect((await this.registry.getVaultConfiguration(this.vault.address)).unpaused).to.be.true;
     });
   });
 });

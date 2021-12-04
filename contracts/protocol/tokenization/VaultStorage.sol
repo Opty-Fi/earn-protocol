@@ -51,7 +51,7 @@ contract VaultStorage {
     /**
      * @dev The standard deviation allowed for vault value
      */
-    uint256 public maxVaultValueJump = 100; // basis points
+    uint256 public maxVaultValueJump; // basis points
 
     /**
      * @dev store the underlying token contract address (for example DAI)
