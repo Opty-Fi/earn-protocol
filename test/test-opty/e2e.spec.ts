@@ -22,7 +22,7 @@ import {
 import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedDefiPools, TypedTokens } from "../../helpers/data";
-import { deployContract, generateTokenHash } from "../../helpers/helpers";
+import { deployContract, generateStrategyHash, generateTokenHash } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -33,7 +33,63 @@ const USDC_LIQUIDITY_POOLS = [
   TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
   TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
 ];
+
 const USDC_TOKEN_HASH = generateTokenHash([TypedTokens.USDC]);
+
+const USDC_COMPOUND_HASH = generateStrategyHash(
+  [
+    {
+      contract: TypedDefiPools.CompoundAdapter.usdc.pool,
+      outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
+      isBorrow: false,
+    },
+  ],
+  TypedTokens.USDC,
+);
+
+const USDC_AAVEV1_HASH = generateStrategyHash(
+  [
+    {
+      contract: TypedDefiPools.AaveV1Adapter.usdc.pool,
+      outputToken: TypedDefiPools.AaveV1Adapter.usdc.lpToken,
+      isBorrow: false,
+    },
+  ],
+  TypedTokens.USDC,
+);
+
+const USDC_AAVEV2_HASH = generateStrategyHash(
+  [
+    {
+      contract: TypedDefiPools.AaveV2Adapter.usdc.pool,
+      outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
+      isBorrow: false,
+    },
+  ],
+  TypedTokens.USDC,
+);
+
+const USDC_CURVE_DEPOSIT_HASH = generateStrategyHash(
+  [
+    {
+      contract: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+      outputToken: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].lpToken,
+      isBorrow: false,
+    },
+  ],
+  TypedTokens.USDC,
+);
+
+const USDC_CURVE_SWAP_HASH = generateStrategyHash(
+  [
+    {
+      contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+      isBorrow: false,
+    },
+  ],
+  TypedTokens.USDC,
+);
 
 describe("E2E Integration tests", function () {
   before(async function () {
@@ -327,6 +383,113 @@ describe("E2E Integration tests", function () {
       expect(await this.investStrategyRegistry.registryContract()).to.equal(this.registry.address);
       await this.registry.connect(this.signers.operator).setInvestStrategyRegistry(this.investStrategyRegistry.address);
       expect(await this.registry.getInvestStrategyRegistry()).to.equal(this.investStrategyRegistry.address);
+    });
+    it("1.19 Operator can set set USDC strategies for AaveV1, AaveV2, Compound and Curve", async function () {
+      const investStrategyRegistryContractInstance = await hre.ethers.getContractAt(
+        ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
+        this.investStrategyRegistry.address,
+      );
+      await expect(
+        investStrategyRegistryContractInstance
+          .connect(this.signers.operator)
+          ["setStrategy(bytes32,(address,address,bool)[][])"](USDC_TOKEN_HASH, [
+            [
+              {
+                pool: TypedDefiPools.CompoundAdapter.usdc.pool,
+                outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
+                isBorrow: false,
+              },
+            ],
+
+            [
+              {
+                pool: TypedDefiPools.AaveV1Adapter.usdc.pool,
+                outputToken: TypedDefiPools.AaveV1Adapter.usdc.lpToken,
+                isBorrow: false,
+              },
+            ],
+            [
+              {
+                pool: TypedDefiPools.AaveV2Adapter.usdc.pool,
+                outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
+                isBorrow: false,
+              },
+            ],
+
+            [
+              {
+                pool: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+                outputToken: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].lpToken,
+                isBorrow: false,
+              },
+            ],
+            [
+              {
+                pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+                isBorrow: false,
+              },
+            ],
+          ]),
+      )
+        .to.emit(this.investStrategyRegistry, "LogSetVaultInvestStrategy")
+        .withArgs(
+          USDC_TOKEN_HASH,
+          generateStrategyHash(
+            [
+              {
+                contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+                isBorrow: false,
+              },
+            ],
+            TypedTokens.USDC,
+          ),
+          this.signers.operator.address,
+        );
+      expect(await this.investStrategyRegistry.getTokenToStrategies(USDC_TOKEN_HASH)).to.have.members([
+        USDC_COMPOUND_HASH,
+        USDC_AAVEV1_HASH,
+        USDC_AAVEV2_HASH,
+        USDC_CURVE_DEPOSIT_HASH,
+        USDC_CURVE_SWAP_HASH,
+      ]);
+      const usdcComp = await this.investStrategyRegistry.getStrategy(USDC_COMPOUND_HASH);
+      const usdcAaveV1 = await this.investStrategyRegistry.getStrategy(USDC_AAVEV1_HASH);
+      const usdcAaveV2 = await this.investStrategyRegistry.getStrategy(USDC_AAVEV2_HASH);
+      const usdcCurveDeposit = await this.investStrategyRegistry.getStrategy(USDC_CURVE_DEPOSIT_HASH);
+      const usdcCurveSwap = await this.investStrategyRegistry.getStrategy(USDC_CURVE_SWAP_HASH);
+      expect(usdcComp._index).to.equal("0");
+      expect(usdcComp._strategySteps[0]).to.have.members([
+        TypedDefiPools.CompoundAdapter.usdc.pool,
+        TypedDefiPools.CompoundAdapter.usdc.lpToken,
+        false,
+      ]);
+      expect(usdcAaveV1._index).to.equal("1");
+      expect(usdcAaveV1._strategySteps[0]).to.have.members([
+        TypedDefiPools.AaveV1Adapter.usdc.pool,
+        TypedDefiPools.AaveV1Adapter.usdc.lpToken,
+        false,
+      ]);
+      expect(usdcAaveV2._index).to.equal("2");
+      expect(usdcAaveV2._strategySteps[0]).to.have.members([
+        TypedDefiPools.AaveV2Adapter.usdc.pool,
+        TypedDefiPools.AaveV2Adapter.usdc.lpToken,
+        false,
+      ]);
+
+      expect(usdcCurveDeposit._index).to.equal("3");
+      expect(usdcCurveDeposit._strategySteps[0]).to.have.members([
+        TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+        TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].lpToken,
+        false,
+      ]);
+      expect(usdcCurveSwap._index).to.equal("4");
+      expect(usdcCurveSwap._strategySteps[0]).to.have.members([
+        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+        false,
+      ]);
     });
   });
 });
