@@ -4,7 +4,7 @@ import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signers } from "../../helpers/utils";
-import { deployRegistry } from "../../helpers/contracts-deployments";
+import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import {
   AaveV1Adapter,
   AaveV1ETHGateway,
@@ -18,6 +18,9 @@ import {
   InvestStrategyRegistry,
   Registry,
   RegistryProxy,
+  RiskManager,
+  RiskManagerProxy,
+  StrategyProvider,
 } from "../../typechain";
 import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
@@ -490,6 +493,40 @@ describe("E2E Integration tests", function () {
         TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
         false,
       ]);
+    });
+    it("1.20 Strategy operator can deploy StrategyProvider and operator can register", async function () {
+      this.strategyProvider = <StrategyProvider>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, false, this.signers.strategyOperator, [
+          this.registry.address,
+        ])
+      );
+      assert.isDefined(this.strategyProvider, "!StrategyProvider");
+      expect(await this.strategyProvider.registryContract()).to.equal(this.registry.address);
+      expect(await this.strategyProvider.defaultStrategyState()).to.equal(BigNumber.from("1"));
+      await this.registry.connect(this.signers.operator).setStrategyProvider(this.strategyProvider.address);
+      expect(await this.registry.getStrategyProvider()).to.equal(this.strategyProvider.address);
+    });
+    it("1.21 Deployer can  deploy RiskManager and operator can register it", async function () {
+      this.riskManager = <RiskManager>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER, false, this.signers.deployer, [
+          this.registry.address,
+        ])
+      );
+      assert.isDefined(this.riskManager, "!RiskManager");
+      this.riskManagerProxy = <RiskManagerProxy>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, false, this.signers.deployer, [
+          this.registry.address,
+        ])
+      );
+      assert.isDefined(this.riskManagerProxy, "!RiskManagerProxy");
+      await this.riskManagerProxy.connect(this.signers.operator).setPendingImplementation(this.riskManager.address);
+      await this.riskManager.connect(this.signers.governance).become(this.riskManagerProxy.address);
+      this.riskManager = <RiskManager>(
+        await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, this.riskManagerProxy.address)
+      );
+      expect(await this.riskManager.registryContract()).to.equal(this.registry.address);
+      await this.registry.connect(this.signers.operator).setRiskManager(this.riskManager.address);
+      expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
     });
   });
 });
