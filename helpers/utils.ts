@@ -11,8 +11,8 @@ import {
   CurveDepositPoolAdapter,
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
+  ERC20,
   HarvestCodeProvider,
-  InitializableImmutableAdminUpgradeabilityProxy,
   InvestStrategyRegistry,
   Registry,
   RegistryProxy,
@@ -76,6 +76,7 @@ declare module "mocha" {
     aprOracle: APROracle;
     strategyManager: StrategyManager;
     vault: Vault;
+    erc20: ERC20;
   }
 }
 

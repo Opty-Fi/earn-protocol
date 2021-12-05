@@ -15,6 +15,7 @@ import {
   CurveDepositPoolAdapter,
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
+  ERC20,
   HarvestCodeProvider,
   InvestStrategyRegistry,
   Registry,
@@ -29,6 +30,7 @@ import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedDefiPools, TypedTokens } from "../../helpers/data";
 import { deployContract, generateStrategyHash, generateTokenHash } from "../../helpers/helpers";
+import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 
 chai.use(solidity);
 
@@ -571,18 +573,48 @@ describe("E2E Integration tests", function () {
       expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
       expect(await this.vault.riskProfileCode()).to.equal("2");
     });
-    it("1.25 Governance can set maxVaultValueJump=1%", async function () {
+
+    it("1.25 Alice deposit*, withdraw*, rebalance and harvest transactions should fail", async function () {
+      this.erc20 = <ERC20>await hre.ethers.getContractAt("ERC20", TypedTokens.USDC);
+      const deadline = (await getBlockTimestamp(hre)) * 2;
+      await fundWalletToken(
+        hre,
+        TypedTokens.USDC,
+        this.signers.alice,
+        BigNumber.from("1000000000"), // 1000 USDC
+        deadline,
+        this.signers.alice.address,
+      );
+      expect(await this.erc20.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("1000000000")); // 1000 USDC
+      await this.erc20.connect(this.signers.alice).approve(this.vault.address, BigNumber.from("1000000000")); // 1000 USDC
+      expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(
+        BigNumber.from("1000000000"),
+      ); // USDC
+      await expect(this.vault.connect(this.signers.alice).userDepositAll()).to.revertedWith("paused or discontinued");
+      await expect(this.vault.connect(this.signers.alice).userDepositAllRebalance()).to.revertedWith(
+        "paused or discontinued",
+      );
+      await expect(this.vault.connect(this.signers.alice).userWithdrawAllRebalance()).to.revertedWith("e18");
+      await expect(this.vault.connect(this.signers.alice).rebalance()).to.revertedWith("paused or discontinued");
+      await expect(
+        this.vault
+          .connect(this.signers.alice)
+          .harvest("0x0000000000000000000000000000000000000000000000000000000000000000"),
+      ).to.revertedWith("caller is not the operator");
+    });
+
+    it("1.26 Governance can set maxVaultValueJump=1%", async function () {
       await this.vault.connect(this.signers.governance).setMaxVaultValueJump("100");
       expect(await this.vault.maxVaultValueJump()).to.equal(BigNumber.from("100"));
     });
-    it("1.26 Operator can whitelist users for USDC vault", async function () {
+    it("1.27 Operator can whitelist users for USDC vault", async function () {
       await this.registry
         .connect(this.signers.operator)
         .setWhitelistedUsers(this.vault.address, [this.signers.alice.address, this.signers.bob.address], true);
       expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.alice.address)).to.be.true;
       expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.bob.address)).to.be.true;
     });
-    it("1.27 Finance Operator can set USDC vault configuration", async function () {
+    it("1.28 Finance Operator can set USDC vault configuration", async function () {
       await this.registry.connect(this.signers.financeOperator).setVaultConfiguration(
         this.vault.address,
         true,
@@ -605,11 +637,11 @@ describe("E2E Integration tests", function () {
       expect(vaultConfiguration.totalValueLockedLimitInUnderlying).to.equal(BigNumber.from("1000000000000"));
       expect(vaultConfiguration.queueCap).to.equal(BigNumber.from("0"));
     });
-    it("1.28 Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
+    it("1.29 Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
       await this.registry.connect(this.signers.operator).setQueueCap(this.vault.address, "10");
       expect((await this.registry.getVaultConfiguration(this.vault.address)).queueCap).to.equal(BigNumber.from("10"));
     });
-    it("1.29 Operator can unpause the vault", async function () {
+    it("1.30 Operator can unpause the vault", async function () {
       await this.registry.connect(this.signers.operator).unpauseVaultContract(this.vault.address, true);
       expect((await this.registry.getVaultConfiguration(this.vault.address)).unpaused).to.be.true;
     });
