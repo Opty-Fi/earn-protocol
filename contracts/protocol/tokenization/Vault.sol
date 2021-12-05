@@ -137,7 +137,10 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(_vaultStrategyConfiguration);
+            _supplyAll(
+                _vaultStrategyConfiguration.strategyManager,
+                registryContract.getVaultConfiguration(address(this)).totalValueLockedLimitInUnderlying
+            );
         }
 
         if (msg.sender == _vaultStrategyConfiguration.operator) {
@@ -158,8 +161,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositAll() external override {
-        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
-        _userDeposit(_amount);
+        _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
     /**
@@ -173,8 +175,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositAllRebalance() external override {
-        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
-        _userDepositRebalance(_amount);
+        _userDepositRebalance(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
     /**
@@ -202,8 +203,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositAllWithCHI() external override discountCHI {
-        uint256 _amount = IERC20(underlyingToken).balanceOf(msg.sender);
-        _userDeposit(_amount);
+        _userDeposit(IERC20(underlyingToken).balanceOf(msg.sender));
     }
 
     /**
@@ -353,16 +353,16 @@ contract Vault is
 
     /**
      * @dev Deposit all the underlying assets to the current vault invest strategy
-     * @param _vaultStrategyConfiguration the configuration for executing vault invest strategy
+     * @param _strategyManager the strategy manager contract address
+     * @param _totalValueLockedLimitInUnderlying the total value locked limit for this vault
      */
-    function _supplyAll(DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration) internal {
-        _batchMint(_vaultStrategyConfiguration);
-        uint256 _steps =
-            IStrategyManager(_vaultStrategyConfiguration.strategyManager).getDepositAllStepsCount(investStrategyHash);
+    function _supplyAll(address _strategyManager, uint256 _totalValueLockedLimitInUnderlying) internal {
+        _batchMint(_strategyManager);
+        uint256 _steps = IStrategyManager(_strategyManager).getDepositAllStepsCount(investStrategyHash);
 
         for (uint256 _i; _i < _steps; _i++) {
             executeCodes(
-                IStrategyManager(_vaultStrategyConfiguration.strategyManager).getPoolDepositAllCodes(
+                IStrategyManager(_strategyManager).getPoolDepositAllCodes(
                     payable(address(this)),
                     underlyingToken,
                     investStrategyHash,
@@ -372,6 +372,7 @@ contract Vault is
                 "e7"
             );
         }
+        _checkTVL(_strategyManager, _totalValueLockedLimitInUnderlying);
     }
 
     /**
@@ -471,34 +472,23 @@ contract Vault is
     /**
      * @dev Mint the shares for the users who deposited without rebalancing
      *      It also updates the user rewards
-     * @param _vaultStrategyConfiguration the configuration for executing vault invest strategy
+     * @param _strategyManager the strategy manager contract address
      */
-    function _batchMint(DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration) internal {
+    function _batchMint(address _strategyManager) internal {
         for (uint256 i; i < queue.length; i++) {
             executeCodes(
-                IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserRewardsCodes(
-                    address(this),
-                    queue[i].account
-                ),
+                IStrategyManager(_strategyManager).getUpdateUserRewardsCodes(address(this), queue[i].account),
                 "e14"
             );
             _mintShares(queue[i].account, _balance(), queue[i].value);
             pendingDeposits[queue[i].account] = pendingDeposits[queue[i].account].sub(queue[i].value);
             depositQueue = depositQueue.sub(queue[i].value);
             executeCodes(
-                IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserStateInVaultCodes(
-                    address(this),
-                    queue[i].account
-                ),
+                IStrategyManager(_strategyManager).getUpdateUserStateInVaultCodes(address(this), queue[i].account),
                 "e17"
             );
         }
-        executeCodes(
-            IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateRewardVaultRateAndIndexCodes(
-                address(this)
-            ),
-            "e16"
-        );
+        executeCodes(IStrategyManager(_strategyManager).getUpdateRewardVaultRateAndIndexCodes(address(this)), "e16");
         delete queue;
     }
 
@@ -562,8 +552,7 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(_vaultStrategyConfiguration);
-            _checkTVL(
+            _supplyAll(
                 _vaultStrategyConfiguration.strategyManager,
                 _vaultConfiguration.totalValueLockedLimitInUnderlying
             );
@@ -617,7 +606,10 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(_vaultStrategyConfiguration);
+            _supplyAll(
+                _vaultStrategyConfiguration.strategyManager,
+                _vaultConfiguration.totalValueLockedLimitInUnderlying
+            );
         }
     }
 
