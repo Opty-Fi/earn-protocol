@@ -99,7 +99,7 @@ const USDC_CURVE_SWAP_HASH = generateStrategyHash(
   TypedTokens.USDC,
 );
 
-describe("E2E Integration tests", function () {
+describe("Integration tests", function () {
   before(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
@@ -113,6 +113,7 @@ describe("E2E Integration tests", function () {
     this.signers.strategyOperator = signers[7];
     this.signers.operator = signers[8];
     this.signers.governance = signers[9];
+    this.signers.eve = signers[10];
   });
   describe("Deployment, config and actions", function () {
     it("1.0 Registry and Registry proxy deployment and connecting", async function () {
@@ -607,7 +608,7 @@ describe("E2E Integration tests", function () {
       await this.vault.connect(this.signers.governance).setMaxVaultValueJump("100");
       expect(await this.vault.maxVaultValueJump()).to.equal(BigNumber.from("100"));
     });
-    it("1.27 Operator can whitelist users for USDC vault", async function () {
+    it("1.27 Operator can whitelist Alice,Bob for USDC vault", async function () {
       await this.registry
         .connect(this.signers.operator)
         .setWhitelistedUsers(this.vault.address, [this.signers.alice.address, this.signers.bob.address], true);
@@ -638,12 +639,181 @@ describe("E2E Integration tests", function () {
       expect(vaultConfiguration.queueCap).to.equal(BigNumber.from("0"));
     });
     it("1.29 Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
-      await this.registry.connect(this.signers.operator).setQueueCap(this.vault.address, "10");
-      expect((await this.registry.getVaultConfiguration(this.vault.address)).queueCap).to.equal(BigNumber.from("10"));
+      await this.registry.connect(this.signers.operator).setQueueCap(this.vault.address, "3");
+      expect((await this.registry.getVaultConfiguration(this.vault.address)).queueCap).to.equal(BigNumber.from("3"));
     });
     it("1.30 Operator can unpause the vault", async function () {
       await this.registry.connect(this.signers.operator).unpauseVaultContract(this.vault.address, true);
       expect((await this.registry.getVaultConfiguration(this.vault.address)).unpaused).to.be.true;
+    });
+    it("1.31 Alice has to deposit atleast 1000 USDC without rebalance", async function () {
+      await expect(this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000")))
+        .to.emit(this.vault, "DepositQueue")
+        .withArgs(this.signers.alice.address, "1", BigNumber.from("1000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("1"));
+      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.balance()).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.pendingDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("1000000000"));
+      const userDepositOperation = await this.vault.queue("0");
+      expect(userDepositOperation.account).to.equal(this.signers.alice.address);
+      expect(userDepositOperation.value).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("0"));
+      expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("0"));
+    });
+    it("1.32 Eve cannot do deposit*/withdraw* transaction", async function () {
+      await expect(this.vault.connect(this.signers.eve).userDeposit(BigNumber.from("1000000000"))).to.revertedWith(
+        "e12",
+      );
+      await expect(
+        this.vault.connect(this.signers.eve).userDepositRebalance(BigNumber.from("1000000000")),
+      ).to.revertedWith("e12");
+      await expect(
+        this.vault.connect(this.signers.eve).userWithdrawRebalance(BigNumber.from("1000000000")),
+      ).to.revertedWith("e20");
+    });
+    it("1.33 Bob cannot deposit less than 1000 USDC without rebalance", async function () {
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("900000000"))).revertedWith("e15");
+    });
+    it("1.33 Bob has to deposit atleast 1000 USDC without rebalance", async function () {
+      const deadline = (await getBlockTimestamp(hre)) * 2;
+      await fundWalletToken(
+        hre,
+        TypedTokens.USDC,
+        this.signers.bob,
+        BigNumber.from("1000000000"), // 1000 USDC
+        deadline,
+        this.signers.bob.address,
+      );
+      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000")); // 1000 USDC
+      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("1000000000")); // 1000 USDC
+      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
+        BigNumber.from("1000000000"),
+      ); // USDC
+
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("1000000000")))
+        .to.emit(this.vault, "DepositQueue")
+        .withArgs(this.signers.bob.address, "2", BigNumber.from("1000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("2"));
+      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("2000000000"));
+      expect(await this.vault.balance()).to.equal(BigNumber.from("2000000000"));
+      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("2000000000"));
+      const userDepositOperation = await this.vault.queue("1");
+      expect(userDepositOperation.account).to.equal(this.signers.bob.address);
+      expect(userDepositOperation.value).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("0"));
+      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("0"));
+    });
+    it("1.34 Operator can rebalance and Alice,Bob should receive there shares. DefaultStrategyState is CompoundOrAave", async function () {
+      const expectedCurrentStrategy = await this.riskManager.getBestStrategy("2", [TypedTokens.USDC]);
+      await expect(this.vault.connect(this.signers.operator).rebalance())
+        .to.emit(this.vault, "Transfer")
+        .withArgs(ADDRESS_ZERO, this.signers.bob.address, BigNumber.from("1000000000"));
+      expect(await this.vault.investStrategyHash()).to.equal(expectedCurrentStrategy);
+      expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
+      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("0"));
+      expect(await this.vault.pendingDeposits(this.signers.alice.address)).to.equal(BigNumber.from("0"));
+      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("0"));
+      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
+      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
+    });
+    it("1.35 Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
+      const deadline = (await getBlockTimestamp(hre)) * 2;
+      await fundWalletToken(
+        hre,
+        TypedTokens.USDC,
+        this.signers.bob,
+        BigNumber.from("10000000000"), // 10000 USDC
+        deadline,
+        this.signers.bob.address,
+      );
+      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("10000000000")); // 10000 USDC
+      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("10000000000")); // 10000 USDC
+      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
+        BigNumber.from("10000000000"),
+      ); // USDC
+
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("10000000000"))).revertedWith("e13");
+    });
+    it("1.36 Finance operator increases the userDepositCap", async function () {
+      await expect(
+        this.registry
+          .connect(this.signers.financeOperator)
+          .setUserDepositCap(this.vault.address, BigNumber.from("550000000000")),
+      )
+        .to.emit(this.registry, "LogUserDepositCapVault")
+        .withArgs(this.vault.address, BigNumber.from("550000000000"), this.signers.financeOperator.address);
+      expect((await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).to.equal(
+        BigNumber.from("550000000000"),
+      );
+    });
+    it("1.36 Big fish Bob can now successfully deposit 499K", async function () {
+      const deadline = (await getBlockTimestamp(hre)) * 2;
+      await fundWalletToken(
+        hre,
+        TypedTokens.USDC,
+        this.signers.bob,
+        BigNumber.from("489000000000"), // 489k USDC
+        deadline,
+        this.signers.bob.address,
+      );
+      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("499000000000")); // 499k USDC
+      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("499000000000")); // 499k USDC
+      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
+        BigNumber.from("499000000000"),
+      ); // USDC
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("499000000000")))
+        .to.emit(this.vault, "DepositQueue")
+        .withArgs(this.signers.bob.address, "1", BigNumber.from("499000000000"));
+
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("1"));
+      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.balance()).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
+      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("499000000000"));
+      const userDepositOperation = await this.vault.queue("0");
+      expect(userDepositOperation.account).to.equal(this.signers.bob.address);
+      expect(userDepositOperation.value).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
+      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
+    });
+    it("1.37 Another Big fish Alice does failed attempt to go beyond TVL cap of vault", async function () {
+      const deadline = (await getBlockTimestamp(hre)) * 2;
+      await fundWalletToken(
+        hre,
+        TypedTokens.USDC,
+        this.signers.alice,
+        BigNumber.from("510000000000"), // 510k USDC
+        deadline,
+        this.signers.alice.address,
+      );
+      expect(await this.erc20.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("510000000000")); // 510k USDC
+      await this.erc20.connect(this.signers.alice).approve(this.vault.address, BigNumber.from("510000000000")); // 510k USDC
+      expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(
+        BigNumber.from("510000000000"),
+      ); // USDC
+      await expect(this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("510000000000"))).to.revertedWith(
+        "e22",
+      );
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("1"));
+      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.balance()).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
+      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("499000000000"));
+      const userDepositOperation = await this.vault.queue("0");
+      expect(userDepositOperation.account).to.equal(this.signers.bob.address);
+      expect(userDepositOperation.value).to.equal(BigNumber.from("499000000000"));
+      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
+      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
     });
   });
 });

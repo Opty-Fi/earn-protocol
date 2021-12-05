@@ -53,6 +53,7 @@ export interface Signers {
   strategyOperator: SignerWithAddress;
   operator: SignerWithAddress;
   governance: SignerWithAddress;
+  eve: SignerWithAddress;
 }
 
 declare module "mocha" {
