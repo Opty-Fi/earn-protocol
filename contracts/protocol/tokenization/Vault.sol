@@ -274,10 +274,8 @@ contract Vault is
      *         to get the amount of unclaimed reward tokens.
      */
     function getPricePerFullShareWrite() external override returns (uint256) {
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
-            registryContract.getVaultStrategyConfiguration();
         if (totalSupply() != 0) {
-            pricePerShareWrite = _calVaultValueInUnderlyingTokenWrite(_vaultStrategyConfiguration)
+            pricePerShareWrite = _calVaultValueInUnderlyingTokenWrite(registryContract.getStrategyManager())
                 .mul(Constants.WEI_DECIMAL)
                 .div(totalSupply());
         } else {
@@ -311,11 +309,9 @@ contract Vault is
      *         unclaimed tokens are swapped into vault's underlying token.
      */
     function getPricePerFullShare() public view override returns (uint256) {
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
-            registryContract.getVaultStrategyConfiguration();
         if (totalSupply() != 0) {
             return
-                _calVaultValueInUnderlyingToken(_vaultStrategyConfiguration).mul(Constants.WEI_DECIMAL).div(
+                _calVaultValueInUnderlyingToken(registryContract.getStrategyManager()).mul(Constants.WEI_DECIMAL).div(
                     totalSupply()
                 );
         } else {
@@ -454,8 +450,6 @@ contract Vault is
      */
     function _userDeposit(uint256 _amount) internal ifNotPausedAndDiscontinued(address(this)) nonReentrant {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
-            registryContract.getVaultStrategyConfiguration();
         if (_vaultConfiguration.allowWhitelistedState) {
             require(_isUserWhitelisted(msg.sender), "e12");
         }
@@ -470,7 +464,7 @@ contract Vault is
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_actualDepositAmount);
         pendingDeposits[msg.sender] = pendingDeposits[msg.sender].add(_actualDepositAmount);
         depositQueue = depositQueue.add(_actualDepositAmount);
-        _checkTVL(_vaultStrategyConfiguration, _vaultConfiguration);
+        _checkTVL(registryContract.getStrategyManager(), _vaultConfiguration.totalValueLockedLimitInUnderlying);
         emit DepositQueue(msg.sender, queue.length, _actualDepositAmount);
     }
 
@@ -569,7 +563,10 @@ contract Vault is
                 _underlyingTokens
             );
             _supplyAll(_vaultStrategyConfiguration);
-            _checkTVL(_vaultStrategyConfiguration, _vaultConfiguration);
+            _checkTVL(
+                _vaultStrategyConfiguration.strategyManager,
+                _vaultConfiguration.totalValueLockedLimitInUnderlying
+            );
         }
     }
 
@@ -648,30 +645,22 @@ contract Vault is
         );
     }
 
-    function _checkTVL(
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration,
-        DataTypes.VaultConfiguration memory _vaultConfiguration
-    ) internal view {
+    function _checkTVL(address _strategyManager, uint256 _totalValueLockedLimitInUnderlying) internal view {
         require(
-            _calVaultValueInUnderlyingToken(_vaultStrategyConfiguration).add(depositQueue) <=
-                _vaultConfiguration.totalValueLockedLimitInUnderlying,
+            _calVaultValueInUnderlyingToken(_strategyManager).add(depositQueue) <= _totalValueLockedLimitInUnderlying,
             "e22"
         );
     }
 
     /**
      * @dev This function computes the market value of shares
-     * @param _vaultStrategyConfiguration configuration for calculating market value of shares
+     * @param _strategyManager address of strategy manager contracts
      * @return _vaultValue the market value of the shares
      */
-    function _calVaultValueInUnderlyingToken(DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration)
-        internal
-        view
-        returns (uint256 _vaultValue)
-    {
+    function _calVaultValueInUnderlyingToken(address _strategyManager) internal view returns (uint256 _vaultValue) {
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             uint256 balanceInUnderlyingToken =
-                IStrategyManager(_vaultStrategyConfiguration.strategyManager).getBalanceInUnderlyingToken(
+                IStrategyManager(_strategyManager).getBalanceInUnderlyingToken(
                     payable(address(this)),
                     underlyingToken,
                     investStrategyHash
@@ -690,12 +679,10 @@ contract Vault is
      *    the underlying token (for example DAI) into any
      *    credit pool like compound is added.
      */
-    function _calVaultValueInUnderlyingTokenWrite(
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration
-    ) internal returns (uint256 _vaultValue) {
+    function _calVaultValueInUnderlyingTokenWrite(address _strategyManager) internal returns (uint256 _vaultValue) {
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             uint256 balanceInUnderlyingToken =
-                IStrategyManager(_vaultStrategyConfiguration.strategyManager).getBalanceInUnderlyingTokenWrite(
+                IStrategyManager(_strategyManager).getBalanceInUnderlyingTokenWrite(
                     payable(address(this)),
                     underlyingToken,
                     investStrategyHash

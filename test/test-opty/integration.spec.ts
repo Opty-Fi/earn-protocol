@@ -815,5 +815,27 @@ describe("Integration tests", function () {
       expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
     });
+
+    it("1.38 The strategy operator can set the best strategy to be 3crv", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CURVE_SWAP_HASH);
+      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        USDC_CURVE_SWAP_HASH,
+      );
+    });
+
+    it("1.40 The Big fish Alice can successfully withdraw 500 shares", async function () {
+      await expect(this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("500000000")))
+        .to.emit(this.vault, "Transfer")
+        .withArgs(this.signers.alice.address, ADDRESS_ZERO, BigNumber.from("500000000"));
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_SWAP_HASH);
+      console.log((await this.vault.balanceOf(this.signers.alice.address)).toString());
+      expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("500000000"));
+      expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
+      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("0"));
+      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
+      console.log((await this.vault.totalSupply()).toString());
+    });
   });
 });
