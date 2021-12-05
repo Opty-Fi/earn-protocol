@@ -830,12 +830,15 @@ describe("Integration tests", function () {
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ADDRESS_ZERO, BigNumber.from("500000000"));
       expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_SWAP_HASH);
-      console.log((await this.vault.balanceOf(this.signers.alice.address)).toString());
       expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("500000000"));
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
       expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("0"));
       expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
-      console.log((await this.vault.totalSupply()).toString());
+      expect(await this.vault.balanceOf(this.signers.bob.address)).to.closeTo(BigNumber.from("499999985030"), 1000000);
+    });
+
+    it("1.41 The big fish Bob can successfully withdraw 100K shares", async function () {
+      await this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("100000000000"));
     });
   });
 });
