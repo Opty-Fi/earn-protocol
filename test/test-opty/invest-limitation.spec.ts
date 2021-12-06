@@ -1,5 +1,5 @@
 import chai, { expect, assert } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { solidity } from "ethereum-waffle";
 import { setUp } from "./setup";
@@ -113,6 +113,11 @@ describe(scenarios.title, () => {
                   underlyingTokenSymbol,
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
+                );
+                await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+                await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+                  Vault.address,
+                  ethers.constants.MaxUint256,
                 );
                 if (adapterName === HARVEST_V1_ADAPTER_NAME) {
                   await addWhiteListForHarvest(hre, Vault.address, users["admin"]);

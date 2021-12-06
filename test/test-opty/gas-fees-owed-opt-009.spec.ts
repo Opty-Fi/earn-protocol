@@ -99,6 +99,11 @@ describe(scenario.title, () => {
           riskProfileCode,
           TESTING_DEPLOYMENT_ONCE,
         );
+        await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+        await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+          Vault.address,
+          ethers.constants.MaxUint256,
+        );
 
         await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 

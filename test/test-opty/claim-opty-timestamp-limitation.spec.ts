@@ -55,6 +55,8 @@ describe(scenario.title, () => {
         1,
         TESTING_DEPLOYMENT_ONCE,
       );
+      await contracts["registry"].setQueueCap(Vault.address, ethers.constants.MaxUint256);
+      await contracts["registry"].setTotalValueLockedLimitInUnderlying(Vault.address, ethers.constants.MaxUint256);
       await unpauseVault(users["owner"], contracts["registry"], Vault.address, true);
 
       await contracts.registry.setTotalValueLockedLimitInUnderlying(Vault.address, ethers.constants.MaxUint256);

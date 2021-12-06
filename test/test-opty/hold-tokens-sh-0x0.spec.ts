@@ -1,5 +1,5 @@
 import { expect, assert } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
@@ -92,6 +92,11 @@ describe(scenarios.title, () => {
                 if (adapterName === HARVEST_V1_ADAPTER_NAME) {
                   await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
                 }
+                await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+                await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+                  Vault.address,
+                  ethers.constants.MaxUint256,
+                );
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
                 await approveLiquidityPoolAndMapAdapter(
                   users["owner"],

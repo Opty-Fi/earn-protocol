@@ -101,6 +101,7 @@ describe(scenario.title, () => {
                   vault.address,
                   ethers.constants.MaxUint256,
                 );
+                await essentialContracts.registry.setQueueCap(vault.address, ethers.constants.MaxUint256);
 
                 await setBestStrategy(
                   strategy.strategy,
