@@ -3,7 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Signers } from "../../helpers/utils";
+import BN from "bignumber.js";
+import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { deployRegistry, deployVault } from "../../helpers/contracts-deployments";
 import {
   AaveV1Adapter,
@@ -26,7 +27,7 @@ import {
   StrategyProvider,
   Vault,
 } from "../../typechain";
-import { ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { ADDRESS_ZERO, ZERO_BYTES32 } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedDefiPools, TypedTokens } from "../../helpers/data";
 import { deployContract, generateStrategyHash, generateTokenHash } from "../../helpers/helpers";
@@ -116,7 +117,7 @@ describe("Integration tests", function () {
     this.signers.eve = signers[10];
   });
   describe("Deployment, config and actions", function () {
-    it("1.0 Registry and Registry proxy deployment and connecting", async function () {
+    it("0. Registry and Registry proxy deployment and connecting", async function () {
       this.registry = <Registry>await deployRegistry(hre, this.signers.admin, false);
       this.registryProxy = <RegistryProxy>(
         await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, this.registry.address)
@@ -124,14 +125,14 @@ describe("Integration tests", function () {
       assert.isDefined(this.registry, "!Registry and/pr !RegistryProxy");
       assert.isDefined(this.registryProxy, "!RegistryProxy");
     });
-    it("1.0 Should have defaults role addresses on deployment as expected", async function () {
+    it("1. Should have defaults role addresses on deployment as expected", async function () {
       expect(await this.registry.governance()).to.equal(this.signers.admin.address);
       expect(await this.registry.financeOperator()).to.equal(this.signers.admin.address);
       expect(await this.registry.riskOperator()).to.equal(this.signers.admin.address);
       expect(await this.registry.strategyOperator()).to.equal(this.signers.admin.address);
       expect(await this.registry.operator()).to.equal(this.signers.admin.address);
     });
-    it("1.1 Should be to able to change the governance", async function () {
+    it("2. Should be to able to change the governance", async function () {
       await expect(this.registryProxy.setPendingGovernance(this.signers.governance.address))
         .to.emit(this.registryProxy, "NewPendingGovernance")
         .withArgs(ADDRESS_ZERO, this.signers.governance.address);
@@ -140,7 +141,7 @@ describe("Integration tests", function () {
         .withArgs(this.signers.admin.address, this.signers.governance.address);
       expect(await this.registry.governance()).to.equal(this.signers.governance.address);
     });
-    it("1.2 New governance should be to able to change the finance operator", async function () {
+    it("3. New governance should be to able to change the finance operator", async function () {
       await expect(
         this.registry.connect(this.signers.governance).setFinanceOperator(this.signers.financeOperator.address),
       )
@@ -148,13 +149,13 @@ describe("Integration tests", function () {
         .withArgs(this.signers.financeOperator.address, this.signers.governance.address);
       expect(await this.registry.financeOperator()).to.equal(this.signers.financeOperator.address);
     });
-    it("1.3 New governance should be to able to change the risk operator", async function () {
+    it("4. New governance should be to able to change the risk operator", async function () {
       await expect(this.registry.connect(this.signers.governance).setRiskOperator(this.signers.riskOperator.address))
         .to.emit(this.registry, "TransferRiskOperator")
         .withArgs(this.signers.riskOperator.address, this.signers.governance.address);
       expect(await this.registry.riskOperator()).to.equal(this.signers.riskOperator.address);
     });
-    it("1.4 New governance should be to able to change the strategy operator", async function () {
+    it("5. New governance should be to able to change the strategy operator", async function () {
       await expect(
         this.registry.connect(this.signers.governance).setStrategyOperator(this.signers.strategyOperator.address),
       )
@@ -163,21 +164,21 @@ describe("Integration tests", function () {
       expect(await this.registry.strategyOperator()).to.equal(this.signers.strategyOperator.address);
     });
 
-    it("1.5 New governance should be to able to change the operator", async function () {
+    it("6. New governance should be to able to change the operator", async function () {
       await expect(this.registry.connect(this.signers.governance).setOperator(this.signers.operator.address))
         .to.emit(this.registry, "TransferOperator")
         .withArgs(this.signers.operator.address, this.signers.governance.address);
       expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
 
-    it("1.6 Operator should be able to approve USDC", async function () {
+    it("7. Operator should be able to approve USDC", async function () {
       await expect(this.registry.connect(this.signers.operator)["approveToken(address)"](TypedTokens.USDC))
         .to.emit(this.registry, "LogToken")
         .withArgs(TypedTokens.USDC, true, this.signers.operator.address);
       expect(await this.registry.tokens(TypedTokens.USDC)).to.be.true;
     });
 
-    it("1.7 Operator should be able to set tokens hash to tokens", async function () {
+    it("8. Operator should be able to set tokens hash to tokens", async function () {
       await expect(this.registry.connect(this.signers.operator)["setTokensHashToTokens(address[])"]([TypedTokens.USDC]))
         .to.emit(this.registry, "LogTokensToTokensHash")
         .withArgs(USDC_TOKEN_HASH, this.signers.operator.address);
@@ -187,7 +188,7 @@ describe("Integration tests", function () {
       expect(await this.registry.getTokensHashByIndex(0)).to.include(USDC_TOKEN_HASH);
     });
 
-    it("1.8 Operator should be able to approve USDC liquidity pools", async function () {
+    it("9. Operator should be able to approve USDC liquidity pools", async function () {
       await expect(
         this.registry.connect(this.signers.operator)["approveLiquidityPool(address[])"](USDC_LIQUIDITY_POOLS),
       )
@@ -200,7 +201,7 @@ describe("Integration tests", function () {
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[4])).isLiquidityPool).to.be.true;
     });
 
-    it("1.9 Risk Operator should be able to rate approved liquidity pools", async function () {
+    it("10. Risk Operator should be able to rate approved liquidity pools", async function () {
       const registryContractInstance = await hre.ethers.getContractAt(
         ESSENTIAL_CONTRACTS.REGISTRY,
         this.registry.address,
@@ -223,7 +224,7 @@ describe("Integration tests", function () {
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[4])).rating).to.be.equal(5);
     });
 
-    it("1.10 Risk operator should be able to add the risk profile", async function () {
+    it("11. Risk operator should be able to add the risk profile", async function () {
       await expect(
         this.registry
           .connect(this.signers.riskOperator)
@@ -245,7 +246,7 @@ describe("Integration tests", function () {
       expect((await this.registry.getRiskProfileList())[0]).to.equal("2");
     });
 
-    it("1.11 Deployer deploys HarvestCodeProvider and operator can register", async function () {
+    it("12. Deployer deploys HarvestCodeProvider and operator can register", async function () {
       this.harvestCodeProvider = <HarvestCodeProvider>(
         await deployContract(hre, "HarvestCodeProvider", false, this.signers.deployer, [this.registry.address])
       );
@@ -254,7 +255,7 @@ describe("Integration tests", function () {
       expect(await this.registry.harvestCodeProvider()).to.equal(this.harvestCodeProvider.address);
     });
 
-    it("1.12 Risk operator deploys Compound Adapter", async function () {
+    it("13. Risk operator deploys Compound Adapter", async function () {
       this.compoundAdapter = <CompoundAdapter>(
         await deployContract(hre, "CompoundAdapter", false, this.signers.riskOperator, [this.registry.address])
       );
@@ -269,7 +270,7 @@ describe("Integration tests", function () {
       expect(await this.compoundAdapter.CETH()).to.equal(await this.compoundEthGateway.CETH());
     });
 
-    it("1.13 Risk operator deploys AaveV1 Adapter", async function () {
+    it("14. Risk operator deploys AaveV1 Adapter", async function () {
       this.aavev1Adapter = <AaveV1Adapter>(
         await deployContract(hre, "AaveV1Adapter", false, this.signers.riskOperator, [this.registry.address])
       );
@@ -284,7 +285,7 @@ describe("Integration tests", function () {
       expect(await this.aavev1Adapter.AETH()).to.equal(await this.aaveV1EthGateway.AETH());
     });
 
-    it("1.14 Risk operator deploys AaveV2 Adapter", async function () {
+    it("15. Risk operator deploys AaveV2 Adapter", async function () {
       this.aaveV2Adapter = <AaveV2Adapter>(
         await deployContract(hre, "AaveV2Adapter", false, this.signers.riskOperator, [this.registry.address])
       );
@@ -293,7 +294,7 @@ describe("Integration tests", function () {
       expect(await this.aaveV2Adapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
     });
 
-    it("1.15 Risk operator/operator deploys CurveDepositPool Adapter", async function () {
+    it("16. Risk operator/operator deploys CurveDepositPool Adapter", async function () {
       // Note : For deploying CurveDepositPool, operator and risk operator should have same address
       await this.registry.connect(this.signers.governance).setOperator(this.signers.riskOperator.address);
       expect(await this.registry.operator()).to.equal(this.signers.riskOperator.address);
@@ -305,7 +306,7 @@ describe("Integration tests", function () {
       expect(await this.curveDepositPoolAdapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
     });
 
-    it("1.16 Risk operator deploys CurveSwapPool Adapter", async function () {
+    it("17. Risk operator deploys CurveSwapPool Adapter", async function () {
       // Note : For deploying CurveDepositPool, operator and risk operator should have same address
       this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
         await deployContract(hre, "CurveSwapPoolAdapter", false, this.signers.riskOperator, [this.registry.address])
@@ -328,7 +329,7 @@ describe("Integration tests", function () {
       expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
 
-    it("1.17 Operator can register adapter to approved liquidity pools", async function () {
+    it("18. Operator can register adapter to approved liquidity pools", async function () {
       const registryContractInstance = await hre.ethers.getContractAt(
         ESSENTIAL_CONTRACTS.REGISTRY,
         this.registry.address,
@@ -382,7 +383,7 @@ describe("Integration tests", function () {
       ).to.equal(this.curveSwapPoolAdapter.address);
     });
 
-    it("1.18 Deployer can deploy InvestStrategyRegistry and Operator can register", async function () {
+    it("19. Deployer can deploy InvestStrategyRegistry and Operator can register", async function () {
       this.investStrategyRegistry = <InvestStrategyRegistry>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY, false, this.signers.deployer, [
           this.registry.address,
@@ -393,7 +394,7 @@ describe("Integration tests", function () {
       await this.registry.connect(this.signers.operator).setInvestStrategyRegistry(this.investStrategyRegistry.address);
       expect(await this.registry.getInvestStrategyRegistry()).to.equal(this.investStrategyRegistry.address);
     });
-    it("1.19 Operator can set set USDC strategies for AaveV1, AaveV2, Compound and Curve", async function () {
+    it("20. Operator can set set USDC strategies for AaveV1, AaveV2, Compound and Curve", async function () {
       const investStrategyRegistryContractInstance = await hre.ethers.getContractAt(
         ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
         this.investStrategyRegistry.address,
@@ -500,7 +501,7 @@ describe("Integration tests", function () {
         false,
       ]);
     });
-    it("1.20 Strategy operator can deploy StrategyProvider and operator can register", async function () {
+    it("21. Strategy operator can deploy StrategyProvider and operator can register", async function () {
       this.strategyProvider = <StrategyProvider>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, false, this.signers.strategyOperator, [
           this.registry.address,
@@ -512,7 +513,7 @@ describe("Integration tests", function () {
       await this.registry.connect(this.signers.operator).setStrategyProvider(this.strategyProvider.address);
       expect(await this.registry.getStrategyProvider()).to.equal(this.strategyProvider.address);
     });
-    it("1.21 Deployer can deploy RiskManager and operator can register it", async function () {
+    it("22. Deployer can deploy RiskManager and operator can register it", async function () {
       this.riskManager = <RiskManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER, false, this.signers.deployer, [
           this.registry.address,
@@ -534,7 +535,7 @@ describe("Integration tests", function () {
       await this.registry.connect(this.signers.operator).setRiskManager(this.riskManager.address);
       expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
     });
-    it("1.22 Deployer can deploy StrategyManager and operator can register it", async function () {
+    it("23. Deployer can deploy StrategyManager and operator can register it", async function () {
       this.strategyManager = <StrategyManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER, false, this.signers.deployer, [
           this.registry.address,
@@ -545,7 +546,7 @@ describe("Integration tests", function () {
       expect(await this.registry.getStrategyManager()).to.equal(this.strategyManager.address);
     });
 
-    it("1.23 Operator can deploy and register APROracle", async function () {
+    it("24. Operator can deploy and register APROracle", async function () {
       this.aprOracle = <APROracle>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.APR_ORACLE, false, this.signers.operator, [this.registry.address])
       );
@@ -555,7 +556,7 @@ describe("Integration tests", function () {
       expect(await this.registry.getAprOracle()).to.equal(this.aprOracle.address);
     });
 
-    it("1.24 Operator can deploy vault and admin can upgrade", async function () {
+    it("25. Operator can deploy vault and admin can upgrade", async function () {
       this.vault = <Vault>(
         await deployVault(
           hre,
@@ -575,7 +576,7 @@ describe("Integration tests", function () {
       expect(await this.vault.riskProfileCode()).to.equal("2");
     });
 
-    it("1.25 Alice deposit*, withdraw*, rebalance and harvest transactions should fail", async function () {
+    it("26. Alice deposit*, withdraw*, rebalance and harvest transactions should fail", async function () {
       this.erc20 = <ERC20>await hre.ethers.getContractAt("ERC20", TypedTokens.USDC);
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
@@ -604,18 +605,18 @@ describe("Integration tests", function () {
       ).to.revertedWith("caller is not the operator");
     });
 
-    it("1.26 Governance can set maxVaultValueJump=1%", async function () {
+    it("27. Governance can set maxVaultValueJump=1%", async function () {
       await this.vault.connect(this.signers.governance).setMaxVaultValueJump("100");
       expect(await this.vault.maxVaultValueJump()).to.equal(BigNumber.from("100"));
     });
-    it("1.27 Operator can whitelist Alice,Bob for USDC vault", async function () {
+    it("28. Operator can whitelist Alice,Bob for USDC vault", async function () {
       await this.registry
         .connect(this.signers.operator)
         .setWhitelistedUsers(this.vault.address, [this.signers.alice.address, this.signers.bob.address], true);
       expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.alice.address)).to.be.true;
       expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.bob.address)).to.be.true;
     });
-    it("1.28 Finance Operator can set USDC vault configuration", async function () {
+    it("29. Finance Operator can set USDC vault configuration", async function () {
       await this.registry.connect(this.signers.financeOperator).setVaultConfiguration(
         this.vault.address,
         true,
@@ -638,15 +639,15 @@ describe("Integration tests", function () {
       expect(vaultConfiguration.totalValueLockedLimitInUnderlying).to.equal(BigNumber.from("1000000000000"));
       expect(vaultConfiguration.queueCap).to.equal(BigNumber.from("0"));
     });
-    it("1.29 Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
+    it("30. Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
       await this.registry.connect(this.signers.operator).setQueueCap(this.vault.address, "3");
       expect((await this.registry.getVaultConfiguration(this.vault.address)).queueCap).to.equal(BigNumber.from("3"));
     });
-    it("1.30 Operator can unpause the vault", async function () {
+    it("31. Operator can unpause the vault", async function () {
       await this.registry.connect(this.signers.operator).unpauseVaultContract(this.vault.address, true);
       expect((await this.registry.getVaultConfiguration(this.vault.address)).unpaused).to.be.true;
     });
-    it("1.31 Alice has to deposit atleast 1000 USDC without rebalance", async function () {
+    it("32. Alice has to deposit atleast 1000 USDC without rebalance", async function () {
       await expect(this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000")))
         .to.emit(this.vault, "DepositQueue")
         .withArgs(this.signers.alice.address, "1", BigNumber.from("1000000000"));
@@ -662,7 +663,7 @@ describe("Integration tests", function () {
       expect(await this.vault.totalSupply()).to.equal(BigNumber.from("0"));
       expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("0"));
     });
-    it("1.32 Eve cannot do deposit*/withdraw* transaction", async function () {
+    it("33. Eve cannot do deposit*/withdraw* transaction", async function () {
       await expect(this.vault.connect(this.signers.eve).userDeposit(BigNumber.from("1000000000"))).to.revertedWith(
         "e12",
       );
@@ -673,10 +674,10 @@ describe("Integration tests", function () {
         this.vault.connect(this.signers.eve).userWithdrawRebalance(BigNumber.from("1000000000")),
       ).to.revertedWith("e20");
     });
-    it("1.33 Bob cannot deposit less than 1000 USDC without rebalance", async function () {
+    it("34. Bob cannot deposit less than 1000 USDC without rebalance", async function () {
       await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("900000000"))).revertedWith("e15");
     });
-    it("1.33 Bob has to deposit atleast 1000 USDC without rebalance", async function () {
+    it("35. Bob has to deposit atleast 1000 USDC without rebalance", async function () {
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
@@ -707,7 +708,7 @@ describe("Integration tests", function () {
       expect(await this.vault.totalSupply()).to.equal(BigNumber.from("0"));
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("0"));
     });
-    it("1.34 Operator can rebalance and Alice,Bob should receive there shares. DefaultStrategyState is CompoundOrAave", async function () {
+    it("36. Operator can rebalance and Alice,Bob should receive there shares. DefaultStrategyState is CompoundOrAave", async function () {
       const expectedCurrentStrategy = await this.riskManager.getBestStrategy("2", [TypedTokens.USDC]);
       await expect(this.vault.connect(this.signers.operator).rebalance())
         .to.emit(this.vault, "Transfer")
@@ -724,7 +725,7 @@ describe("Integration tests", function () {
       expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
       expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
     });
-    it("1.35 Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
+    it("37. Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
@@ -742,7 +743,7 @@ describe("Integration tests", function () {
 
       await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("10000000000"))).revertedWith("e13");
     });
-    it("1.36 Finance operator increases the userDepositCap", async function () {
+    it("38. Finance operator increases the userDepositCap", async function () {
       await expect(
         this.registry
           .connect(this.signers.financeOperator)
@@ -754,7 +755,7 @@ describe("Integration tests", function () {
         BigNumber.from("550000000000"),
       );
     });
-    it("1.36 Big fish Bob can now successfully deposit 499K", async function () {
+    it("39. Big fish Bob can now successfully deposit 499K", async function () {
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
@@ -785,7 +786,7 @@ describe("Integration tests", function () {
       expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
     });
-    it("1.37 Another Big fish Alice does failed attempt to go beyond TVL cap of vault", async function () {
+    it("40. Another Big fish Alice does failed attempt to go beyond TVL cap of vault", async function () {
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
@@ -816,7 +817,7 @@ describe("Integration tests", function () {
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
     });
 
-    it("1.38 The strategy operator can set the best strategy to be 3crv", async function () {
+    it("41. The strategy operator can set the best strategy to be 3crv", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CURVE_SWAP_HASH);
@@ -825,7 +826,7 @@ describe("Integration tests", function () {
       );
     });
 
-    it("1.40 The Big fish Alice can successfully withdraw 500 shares", async function () {
+    it("42. The Big fish Alice can successfully withdraw 500 shares", async function () {
       await expect(this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("500000000")))
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ADDRESS_ZERO, BigNumber.from("500000000"));
@@ -835,10 +836,127 @@ describe("Integration tests", function () {
       expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("0"));
       expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.closeTo(BigNumber.from("499999985030"), 1000000);
+      expect(await this.vault.totalSupply()).to.closeTo(BigNumber.from("500499985030"), 1000000);
     });
 
-    it("1.41 The big fish Bob can successfully withdraw 100K shares", async function () {
-      await this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("100000000000"));
+    it("43. The big fish Bob can successfully withdraw 100K shares", async function () {
+      await expect(this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("100000000000")))
+        .to.emit(this.vault, "Transfer")
+        .withArgs(this.signers.bob.address, ADDRESS_ZERO, BigNumber.from("100000000000"));
+      expect(await this.vault.balanceOf(this.signers.bob.address)).to.closeTo(BigNumber.from("399999985030"), 1000000);
+      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
+      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
+      expect(await this.vault.totalSupply()).to.closeTo(BigNumber.from("400499985030"), 1000000);
+    });
+
+    it("44. The strategy operator can set the best strategy to be Compound USDC", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_COMPOUND_HASH);
+      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        USDC_COMPOUND_HASH,
+      );
+    });
+
+    it("45. Big whale Bob does a failed attempt to deposit 60000 USDC with rebalance", async function () {
+      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("60000000000")); // 1000 USDC
+      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
+        BigNumber.from("60000000000"),
+      );
+      await expect(
+        this.vault.connect(this.signers.bob).userDepositRebalance(BigNumber.from("60000000000")),
+      ).revertedWith("e13");
+    });
+
+    it("46. Big whale Bob can deposit 30000 USDC with rebalance", async function () {
+      const sharesBefore: BigNumber = await this.vault.balanceOf(this.signers.bob.address);
+      await expect(this.vault.connect(this.signers.bob).userDepositRebalance(BigNumber.from("30000000000")))
+        .to.emit(this.erc20, "Transfer")
+        .withArgs(this.signers.bob.address, this.vault.address, BigNumber.from("30000000000"));
+      const sharesAfter: BigNumber = await this.vault.balanceOf(this.signers.bob.address);
+      expect(sharesAfter).to.gt(sharesBefore);
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
+      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("530000000000"));
+    });
+    it("47. Strategy operator can set default strategy to Aave v2 USDC strategy, defaultStrategyState to zero", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, ZERO_BYTES32);
+      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        ZERO_BYTES32,
+      );
+      await this.strategyProvider.connect(this.signers.strategyOperator).setDefaultStrategyState(BigNumber.from("0"));
+      expect(await this.strategyProvider.getDefaultStrategyState()).to.equal(BigNumber.from("0"));
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_AAVEV2_HASH);
+      expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        USDC_AAVEV2_HASH,
+      );
+      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(
+        USDC_AAVEV2_HASH,
+      );
+    });
+    it("48. Deposit :Alice - 4K and Bob - 2K USDC each, verify queuecap", async function () {
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
+      expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
+    });
+    it("49. Operator rebalances, strategy should be USDC Aavev2", async function () {
+      await this.vault.connect(this.signers.operator).rebalance();
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_AAVEV2_HASH);
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
+      expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
+    });
+    it("50. Strategy operator sets zero strategy", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, ZERO_BYTES32);
+      expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        ZERO_BYTES32,
+      );
+      expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        ZERO_BYTES32,
+      );
+      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(ZERO_BYTES32);
+    });
+    it("51. Deposit : Alice - 2K Bob - 4K USDC each, operator rebalance to zero", async function () {
+      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
+      const balanceBefore: BigNumber = await this.vault.balance();
+      await this.vault.connect(this.signers.operator).rebalance();
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
+      expect(await this.vault.investStrategyHash()).to.equal(ZERO_BYTES32);
+      const balanceAfter: BigNumber = await this.vault.balance();
+      expect(balanceAfter).to.gt(balanceBefore);
+      console.log(
+        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+      console.log(
+        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+    });
+    it("52. Strategy operator changes best strategy to USDC Curve gusd", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CURVE_DEPOSIT_HASH);
+      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(
+        USDC_CURVE_DEPOSIT_HASH,
+      );
+    });
+    it("53. The operator rebalances", async function () {
+      await this.vault.connect(this.signers.operator).rebalance();
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_DEPOSIT_HASH);
+      expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
     });
   });
 });

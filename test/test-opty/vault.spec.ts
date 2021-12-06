@@ -972,7 +972,7 @@ describe(testVaultConfigurationScenario.title, () => {
   });
 });
 
-describe.only(testVaultScenario.title, () => {
+describe(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};

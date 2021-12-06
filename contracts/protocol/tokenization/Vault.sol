@@ -358,19 +358,20 @@ contract Vault is
      */
     function _supplyAll(address _strategyManager, uint256 _totalValueLockedLimitInUnderlying) internal {
         _batchMint(_strategyManager);
-        uint256 _steps = IStrategyManager(_strategyManager).getDepositAllStepsCount(investStrategyHash);
-
-        for (uint256 _i; _i < _steps; _i++) {
-            executeCodes(
-                IStrategyManager(_strategyManager).getPoolDepositAllCodes(
-                    payable(address(this)),
-                    underlyingToken,
-                    investStrategyHash,
-                    _i,
-                    _steps
-                ),
-                "e7"
-            );
+        if (investStrategyHash != Constants.ZERO_BYTES32) {
+            uint256 _steps = IStrategyManager(_strategyManager).getDepositAllStepsCount(investStrategyHash);
+            for (uint256 _i; _i < _steps; _i++) {
+                executeCodes(
+                    IStrategyManager(_strategyManager).getPoolDepositAllCodes(
+                        payable(address(this)),
+                        underlyingToken,
+                        investStrategyHash,
+                        _i,
+                        _steps
+                    ),
+                    "e7"
+                );
+            }
         }
         _checkTVL(_strategyManager, _totalValueLockedLimitInUnderlying);
     }
