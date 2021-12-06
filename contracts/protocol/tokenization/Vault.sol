@@ -456,7 +456,7 @@ contract Vault is
             require(_isUserWhitelisted(msg.sender), "e12");
         }
         require(_checkDepositCap(_vaultConfiguration, _amount), "e13");
-        require(_isQueueIncomplete(_vaultConfiguration), "e14");
+        require(_isQueueIncomplete(_vaultConfiguration.queueCap), "e14");
         require(_amount >= _vaultConfiguration.minimumDepositAmount, "e15");
         uint256 _tokenBalanceBefore = _balance();
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
@@ -689,8 +689,8 @@ contract Vault is
     /**
      * @notice Function to check whether the depositQueue is full or not
      */
-    function _isQueueIncomplete(DataTypes.VaultConfiguration memory _vaultConfiguration) internal view returns (bool) {
-        return getDepositQueue().length < _vaultConfiguration.queueCap;
+    function _isQueueIncomplete(uint256 _queueCap) internal view returns (bool) {
+        return getDepositQueue().length < _queueCap;
     }
 
     /**

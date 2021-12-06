@@ -1,10 +1,10 @@
 import { expect, assert } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber, utils } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
-import { MAX_UINT256, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { ZERO_BYTES32, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
@@ -50,7 +50,7 @@ type ARGUMENTS = {
 type VAULT_CONFIGURATION_ARGUMENTS = {
   contractName?: string;
   state?: boolean;
-  value?: number;
+  value?: number | string;
   whitelisted?: boolean;
   fee?: number;
   shares?: number;
@@ -60,6 +60,7 @@ type VAULT_CONFIGURATION_ARGUMENTS = {
   profile?: number;
   user?: number;
   range?: string[];
+  minimumDepositAmount?: number | string;
 };
 
 const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; output: any } } = {
@@ -115,7 +116,7 @@ const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; 
   },
 };
 
-const strategyDivisor = +process.env.STRATEGY_DIVISOR!;
+const strategyDivisor: number = parseInt(process.env.STRATEGY_DIVISOR as string);
 
 describe(scenario.title, () => {
   let essentialContracts: CONTRACTS;
@@ -195,16 +196,10 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
-
-              const maxBalance: { [key: string]: string } = {
-                DAI: "15000000000000000",
-                USDC: "150000",
-                USDT: "150000",
-                SLP_WETH_USDC: "15000000000",
-              };
-              await essentialContracts.registry.setQueueCap(
+              await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+              await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
                 Vault.address,
-                BigNumber.from(maxBalance[TOKEN_STRATEGY.token]).mul(3),
+                ethers.constants.MaxUint256,
               );
 
               if (adapterName === HARVEST_V1_ADAPTER_NAME) {
@@ -794,7 +789,8 @@ describe(testVaultConfigurationScenario.title, () => {
               }
               case "setUserDepositCap(address,uint256)":
               case "setMinimumDepositAmount(address,uint256)":
-              case "setQueueCap(address,uint256)": {
+              case "setQueueCap(address,uint256)":
+              case "setTotalValueLockedLimitInUnderlying(address,uint256)": {
                 const { value } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
                 if (value) {
                   if (action.expect == "success") {
@@ -809,6 +805,8 @@ describe(testVaultConfigurationScenario.title, () => {
                           ? "LogUserDepositCapVault"
                           : action.action === "setMinimumDepositAmount(address,uint256)"
                           ? "LogMinimumDepositAmountVault"
+                          : action.action === "setTotalValueLockedLimitInUnderlying(address,uint256)"
+                          ? "LogVaultTotalValueLockedLimitInUnderlying"
                           : "LogQueueCapVault",
                       )
                       .withArgs(contracts["vault"].address, value, await users[action.executor].getAddress());
@@ -828,8 +826,9 @@ describe(testVaultConfigurationScenario.title, () => {
                 await contracts[action.contract].connect(users[action.executor])[action.action](range);
                 break;
               }
-              case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256)": {
-                const { state, value, fee, shares } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
+              case "setVaultConfiguration(address,bool,bool,(address,uint256)[],uint256,uint256,uint256,uint256)": {
+                const { state, value, fee, shares, minimumDepositAmount } =
+                  action.args as VAULT_CONFIGURATION_ARGUMENTS;
                 if (state && value && shares) {
                   if (action.expect == "success") {
                     await contracts[action.contract].connect(users[action.executor])[action.action](
@@ -842,6 +841,7 @@ describe(testVaultConfigurationScenario.title, () => {
                       ],
                       fee,
                       value,
+                      minimumDepositAmount,
                       value,
                     );
                     const vaultConfiguration = await contracts["registry"].vaultToVaultConfiguration(
@@ -856,7 +856,7 @@ describe(testVaultConfigurationScenario.title, () => {
                     expect(treasuryShares[1].share).to.be.eq(shares);
                     expect(vaultConfiguration[4]).to.be.eq(fee);
                     expect(vaultConfiguration[5]).to.be.eq(value);
-                    expect(vaultConfiguration[6]).to.be.eq(value);
+                    expect(vaultConfiguration[6]).to.be.eq(minimumDepositAmount);
                   } else {
                     await expect(
                       contracts[action.contract].connect(users[action.executor])[action.action](
@@ -869,6 +869,7 @@ describe(testVaultConfigurationScenario.title, () => {
                         ],
                         fee,
                         value,
+                        minimumDepositAmount,
                         value,
                       ),
                     ).to.be.revertedWith(action.message);
@@ -894,24 +895,23 @@ describe(testVaultConfigurationScenario.title, () => {
               }
               case "userDepositRebalance(uint256)":
               case "userDeposit(uint256)": {
-                const { value } = action.args as VAULT_CONFIGURATION_ARGUMENTS;
-                if (value) {
-                  investStrategyHash = await setBestStrategy(
-                    strategySteps,
-                    users[0],
-                    tokenAddress,
-                    essentialContracts.investStrategyRegistry,
-                    essentialContracts.strategyProvider,
-                    1,
-                    false,
-                  );
-                  if (action.expect == "success") {
-                    await contracts[action.contract].connect(users[action.executor])[action.action](value);
-                  } else {
-                    await expect(
-                      contracts[action.contract].connect(users[action.executor])[action.action](value),
-                    ).to.be.revertedWith(action.message);
-                  }
+                const userAddr = await users[action.executor].getAddress();
+                const value = action.args?.value ? action.args?.value : await contracts["erc20"].balanceOf(userAddr);
+                investStrategyHash = await setBestStrategy(
+                  strategySteps,
+                  users[0],
+                  tokenAddress,
+                  essentialContracts.investStrategyRegistry,
+                  essentialContracts.strategyProvider,
+                  1,
+                  false,
+                );
+                if (action.expect == "success") {
+                  await contracts[action.contract].connect(users[action.executor])[action.action](value);
+                } else {
+                  await expect(
+                    contracts[action.contract].connect(users[action.executor])[action.action](value),
+                  ).to.be.revertedWith(action.message);
                 }
                 break;
               }
@@ -1039,8 +1039,11 @@ describe(testVaultScenario.title, () => {
               TESTING_DEPLOYMENT_ONCE,
             );
 
-            await essentialContracts.registry.setQueueCap(Vault.address, BigNumber.from("15000000000000000000").mul(3));
-            await essentialContracts.registry.setTotalVolumeLockedLimitInUnderlying(Vault.address, MAX_UINT256);
+            await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+            await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+              Vault.address,
+              ethers.constants.MaxUint256,
+            );
 
             for (let i = 0; i < numberOfSteps; i++) {
               const adapter = adapters[adapterNames[i]];

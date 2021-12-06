@@ -1,8 +1,8 @@
 import { expect, assert } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
-import { MAX_UINT256, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { executeFunc } from "../../helpers/helpers";
 import { deployVault, deployEssentialContracts } from "../../helpers/contracts-deployments";
@@ -57,7 +57,7 @@ describe(scenario.title, () => {
       );
       await unpauseVault(users["owner"], contracts["registry"], Vault.address, true);
 
-      await contracts.registry.setTotalVolumeLockedLimitInUnderlying(Vault.address, MAX_UINT256);
+      await contracts.registry.setTotalValueLockedLimitInUnderlying(Vault.address, ethers.constants.MaxUint256);
 
       const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
 

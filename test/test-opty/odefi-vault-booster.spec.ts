@@ -1,5 +1,5 @@
 import chai, { expect, assert } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import { Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
@@ -17,7 +17,6 @@ import {
   unpauseVault,
   approveAndSetTokenHashToToken,
 } from "../../helpers/contracts-actions";
-import { to_10powNumber_BN } from "../../helpers/utils";
 import scenario from "./scenarios/odefi-vault-booster.json";
 
 chai.use(solidity);
@@ -100,11 +99,16 @@ describe(scenario.title, () => {
 
       const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
 
-      const maxAmount = BigNumber.from("300");
-
-      const decimals = await ERC20Instance.decimals();
-
-      await essentialContracts.registry.setQueueCap(Vault.address, maxAmount.mul(to_10powNumber_BN(decimals)));
+      await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+      await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+        Vault.address,
+        ethers.constants.MaxUint256,
+      );
+      await essentialContracts.registry.setQueueCap(Vault2.address, ethers.constants.MaxUint256);
+      await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+        Vault2.address,
+        ethers.constants.MaxUint256,
+      );
 
       contracts["registry"] = essentialContracts.registry;
 

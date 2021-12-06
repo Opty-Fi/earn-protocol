@@ -1,5 +1,5 @@
 import { expect, assert } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { BigNumber, Signer } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
@@ -41,8 +41,11 @@ describe(scenario.title, () => {
         TESTING_DEPLOYMENT_ONCE,
       );
 
-      await essentialContracts.registry.setQueueCap(Vault.address, BigNumber.from("30000000000000000").mul(3));
-
+      await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+      await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+        Vault.address,
+        ethers.constants.MaxUint256,
+      );
       await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 
       contracts["strategyProvider"] = essentialContracts.strategyProvider;

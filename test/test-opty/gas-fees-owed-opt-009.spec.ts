@@ -1,6 +1,6 @@
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
@@ -104,11 +104,13 @@ describe(scenario.title, () => {
 
         const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token].address);
 
-        const maxAmount = BigNumber.from("300");
-
         decimals = await Token_ERC20Instance.decimals();
 
-        await essentialContracts.registry.setQueueCap(Vault.address, maxAmount.mul(to_10powNumber_BN(decimals)));
+        await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
+        await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+          Vault.address,
+          ethers.constants.MaxUint256,
+        );
 
         contracts["erc20"] = Token_ERC20Instance;
 
