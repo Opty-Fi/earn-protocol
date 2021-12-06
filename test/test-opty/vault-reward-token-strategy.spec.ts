@@ -1,6 +1,6 @@
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
@@ -104,6 +104,16 @@ describe(scenario.title, () => {
                 profile,
                 TESTING_DEPLOYMENT_ONCE,
               );
+              const _financeOperatorSigner = await hre.ethers.getSigner(
+                await essentialContracts.registry.getFinanceOperator(),
+              );
+              const _operatorSigner = await hre.ethers.getSigner(await essentialContracts.registry.getOperator());
+              await essentialContracts.registry
+                .connect(_operatorSigner)
+                .setQueueCap(Vault.address, ethers.constants.MaxUint256);
+              await essentialContracts.registry
+                .connect(_financeOperatorSigner)
+                .setTotalValueLockedLimitInUnderlying(Vault.address, ethers.constants.MaxUint256);
               await executeFunc(essentialContracts.registry, users["owner"], "setOperator(address)", [
                 await users["operator"].getAddress(),
               ]);
