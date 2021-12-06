@@ -9,6 +9,7 @@ node_modules/
 typechain/
 specification_docs/
 deployments/
+contracts/protocol/team-defi-adapters
 
 # files
 .solcover.js

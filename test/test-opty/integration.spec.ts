@@ -3,7 +3,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
-import BN from "bignumber.js";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { deployRegistry, deployVault } from "../../helpers/contracts-deployments";
 import {
