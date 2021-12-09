@@ -1,0 +1,20 @@
+{
+  "RegistryProxy": "0x99fa011e33a8c6196869dec7bc407e896ba67fe3",
+  "Registry": "0x9ff914d0005564a941429d1685477851d1836672",
+  "HarvestCodeProvider": "0xceaf7c68ef7cfad2ff981c444821e261939b21b1",
+  "AaveV1Adapter": "0x80647b9a016e197dc7adbf14cc2b21b58b830bcc",
+  "AaveV2Adapter": "0x962f0877c2706c513cdc82ec8ee7e1c29fbef5d0",
+  "CompoundAdapter": "0x9680624ad6bf5a34ce496a483400585136c575a4",
+  "CurveDepositPoolAdapter": "0xfdf278dc05d457987b3b593475fe630835d36f7b",
+  "CurveSwapPoolAdapter": "0xe9cdaa41c99ca3e2606915ae374b787c876d95d8",
+  "InvestStrategyRegistry": "0x7f279046ee33166ae912e21e2daeaedb0e69a990",
+  "StrategyProvider": "0x23f028cbbd6cdac0e430f6d943ff695a32f8461a",
+  "RiskManagerProxy": "0x4379031f3191d89693bc8b6dac4d3d06466ea952",
+  "RiskManager": "0xc6b82c47974b7ba338c1984cac4488a540313e16",
+  "StrategyManager": "0x4106a6dce5e552a931684485e004687d6bb57f40",
+  "APROracle": "0xffc22425d67ed8a72b95cbf46ec6167246df93f8",
+  "opUSDCgrow": {
+    "Vault": "0x4dcc52e17386a777ed74fbed437af4e74eaf38c0",
+    "VaultProxy": "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88"
+  }
+}
