@@ -10,7 +10,7 @@
   "RiskManagerProxy": "0xe61ec00d34a93330775e8a8af0b16b03799b377d",
   "RiskManager": "0x32af1697b14cb5a3df490790e8f5c8c160020342",
   "StrategyManager": "0x99a8e7c0afe58f3313c938aecce96d333ce39299",
-  "opUSDCAAVEint": {
+  "opAVUSDCint": {
     "Vault": "0x43362ee743cbce7d0ae02a834e5a37a56d24435c",
     "VaultProxy": "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d"
   }
