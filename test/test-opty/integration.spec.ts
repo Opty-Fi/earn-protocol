@@ -40,6 +40,7 @@ const USDC_LIQUIDITY_POOLS = [
   TypedDefiPools.AaveV2Adapter.usdc.pool,
   TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
   TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+  TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
 ];
 
 const USDC_TOKEN_HASH = generateTokenHash([TypedTokens.USDC]);
@@ -93,6 +94,22 @@ const USDC_CURVE_SWAP_HASH = generateStrategyHash(
     {
       contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
       outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+      isBorrow: false,
+    },
+  ],
+  TypedTokens.USDC,
+);
+
+const USDC_3CRV_CURVE_SWAP_HASH = generateStrategyHash(
+  [
+    {
+      contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+      isBorrow: false,
+    },
+    {
+      contract: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].lpToken,
       isBorrow: false,
     },
   ],
@@ -198,6 +215,7 @@ describe("Integration tests", function () {
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[2])).isLiquidityPool).to.be.true;
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[3])).isLiquidityPool).to.be.true;
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[4])).isLiquidityPool).to.be.true;
+      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[5])).isLiquidityPool).to.be.true;
     });
 
     it("10. Risk Operator should be able to rate approved liquidity pools", async function () {
@@ -212,6 +230,7 @@ describe("Integration tests", function () {
           { pool: USDC_LIQUIDITY_POOLS[2], rate: 3 },
           { pool: USDC_LIQUIDITY_POOLS[3], rate: 4 },
           { pool: USDC_LIQUIDITY_POOLS[4], rate: 5 },
+          { pool: USDC_LIQUIDITY_POOLS[5], rate: 6 },
         ]),
       )
         .to.emit(this.registry, "LogRateLiquidityPool")
@@ -221,6 +240,7 @@ describe("Integration tests", function () {
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[2])).rating).to.be.equal(3);
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[3])).rating).to.be.equal(4);
       expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[4])).rating).to.be.equal(5);
+      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[5])).rating).to.be.equal(6);
     });
 
     it("11. Risk operator should be able to add the risk profile", async function () {
@@ -355,6 +375,10 @@ describe("Integration tests", function () {
             pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
             adapter: this.curveSwapPoolAdapter.address,
           },
+          {
+            pool: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
+            adapter: this.curveSwapPoolAdapter.address,
+          },
         ]),
       )
         .to.emit(this.registry, "LogLiquidityPoolToAdapter")
@@ -379,6 +403,9 @@ describe("Integration tests", function () {
       ).to.equal(this.curveDepositPoolAdapter.address);
       expect(
         await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool),
+      ).to.equal(this.curveSwapPoolAdapter.address);
+      expect(
+        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool),
       ).to.equal(this.curveSwapPoolAdapter.address);
     });
 
@@ -439,6 +466,18 @@ describe("Integration tests", function () {
                 isBorrow: false,
               },
             ],
+            [
+              {
+                pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+                isBorrow: false,
+              },
+              {
+                pool: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].lpToken,
+                isBorrow: false,
+              },
+            ],
           ]),
       )
         .to.emit(this.investStrategyRegistry, "LogSetVaultInvestStrategy")
@@ -462,12 +501,14 @@ describe("Integration tests", function () {
         USDC_AAVEV2_HASH,
         USDC_CURVE_DEPOSIT_HASH,
         USDC_CURVE_SWAP_HASH,
+        USDC_3CRV_CURVE_SWAP_HASH,
       ]);
       const usdcComp = await this.investStrategyRegistry.getStrategy(USDC_COMPOUND_HASH);
       const usdcAaveV1 = await this.investStrategyRegistry.getStrategy(USDC_AAVEV1_HASH);
       const usdcAaveV2 = await this.investStrategyRegistry.getStrategy(USDC_AAVEV2_HASH);
       const usdcCurveDeposit = await this.investStrategyRegistry.getStrategy(USDC_CURVE_DEPOSIT_HASH);
       const usdcCurveSwap = await this.investStrategyRegistry.getStrategy(USDC_CURVE_SWAP_HASH);
+      const usdc3CrvCurveSwap = await this.investStrategyRegistry.getStrategy(USDC_3CRV_CURVE_SWAP_HASH);
       expect(usdcComp._index).to.equal("0");
       expect(usdcComp._strategySteps[0]).to.have.members([
         TypedDefiPools.CompoundAdapter.usdc.pool,
@@ -497,6 +538,17 @@ describe("Integration tests", function () {
       expect(usdcCurveSwap._strategySteps[0]).to.have.members([
         TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
         TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+        false,
+      ]);
+      expect(usdc3CrvCurveSwap._index).to.equal("5");
+      expect(usdc3CrvCurveSwap._strategySteps[0]).to.have.members([
+        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+        false,
+      ]);
+      expect(usdc3CrvCurveSwap._strategySteps[1]).to.have.members([
+        TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].lpToken,
         false,
       ]);
     });
@@ -904,8 +956,24 @@ describe("Integration tests", function () {
       await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
       expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
     });
+    // 2001.008705
+    // 2001.029412
     it("49. Operator rebalances, strategy should be USDC Aavev2", async function () {
-      await this.vault.connect(this.signers.operator).rebalance();
+      const pricePerFullShare = await this.vault.getPricePerFullShare();
+      const totalSupply = await this.vault.totalSupply();
+      const vaultValue = pricePerFullShare.mul(totalSupply).div(to_10powNumber_BN("18"));
+      const expectedAlice1MintAmount = BigNumber.from("2000000000").mul(totalSupply).div(vaultValue);
+      console.log("pricePerFullShare : ", pricePerFullShare.toString());
+      console.log("expectedAlice1MintAmount: ", expectedAlice1MintAmount.toString());
+      // await expect(this.vault.connect(this.signers.operator).rebalance())
+      //   .to.emit(this.vault, "Transfer")
+      //   .withArgs(ADDRESS_ZERO, this.signers.alice.address, expectedAlice1MintAmount);
+      const tx = await this.vault.connect(this.signers.operator).rebalance();
+      const txc = await tx.wait();
+      // console.log("# of rebalance events", txc.events);
+      console.log("Alice1 value :", txc?.events?.[6].args?.["value"].toString());
+      console.log("Bob1 value :", txc?.events?.[7].args?.["value"].toString());
+      console.log("Alice2 value :", txc?.events?.[8].args?.["value"].toString());
       expect(await this.vault.investStrategyHash()).to.equal(USDC_AAVEV2_HASH);
       expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
@@ -928,7 +996,9 @@ describe("Integration tests", function () {
       await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
       expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
       const balanceBefore: BigNumber = await this.vault.balance();
-      await this.vault.connect(this.signers.operator).rebalance();
+      const tx = await this.vault.connect(this.signers.operator).rebalance();
+      const txc = await tx.wait();
+      console.log("# of rebalance events", txc.events?.length);
       expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
       expect(await this.vault.investStrategyHash()).to.equal(ZERO_BYTES32);
       const balanceAfter: BigNumber = await this.vault.balance();
@@ -953,9 +1023,129 @@ describe("Integration tests", function () {
       );
     });
     it("53. The operator rebalances", async function () {
-      await this.vault.connect(this.signers.operator).rebalance();
+      const tx = await this.vault.connect(this.signers.operator).rebalance();
+      const txc = await tx.wait();
+      console.log("# of rebalance events", txc.events?.length);
       expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_DEPOSIT_HASH);
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
+    });
+    it("53. The strategy operator can set the best strategy to be 2 step usdc-3crv", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_3CRV_CURVE_SWAP_HASH);
+      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        USDC_3CRV_CURVE_SWAP_HASH,
+      );
+      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
+      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
+      console.log("Queue Cap : ", (await this.registry.getVaultConfiguration(this.vault.address)).queueCap.toString());
+      console.log("Alice Balance : ", (await this.erc20.balanceOf(this.signers.alice.address)).toString());
+      console.log("Bob Balance : ", (await this.erc20.balanceOf(this.signers.bob.address)).toString());
+      console.log("Alice totalDeposit : ", await this.vault.totalDeposits(this.signers.alice.address));
+      console.log("Bob totalDeposit : ", await this.vault.totalDeposits(this.signers.bob.address));
+      console.log(
+        "User deposit cap : ",
+        (await (await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).toString(),
+      );
+      console.log(
+        "Alice allowance : ",
+        (await this.erc20.allowance(this.signers.alice.address, this.vault.address)).toString(),
+      );
+      console.log(
+        "Bob allowance : ",
+        (await this.erc20.allowance(this.signers.bob.address, this.vault.address)).toString(),
+      );
+      console.log(
+        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+      console.log(
+        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+    });
+    it("54. Rebalance to 3crv-usdc", async function () {
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000"));
+      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("1000000000"));
+      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
+      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
+      const tx = await this.vault.connect(this.signers.alice).rebalance();
+      const txc = await tx.wait();
+      console.log("# of rebalance events", txc.events?.length);
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_3CRV_CURVE_SWAP_HASH);
+      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
+      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
+      console.log("Queue Cap : ", (await this.registry.getVaultConfiguration(this.vault.address)).queueCap.toString());
+      console.log("Alice Balance : ", (await this.erc20.balanceOf(this.signers.alice.address)).toString());
+      console.log("Bob Balance : ", (await this.erc20.balanceOf(this.signers.bob.address)).toString());
+      console.log("Alice totalDeposit : ", (await this.vault.totalDeposits(this.signers.alice.address)).toString());
+      console.log("Bob totalDeposit : ", (await this.vault.totalDeposits(this.signers.bob.address)).toString());
+      console.log(
+        "User deposit cap : ",
+        (await (await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).toString(),
+      );
+      console.log(
+        "Alice allowance : ",
+        (await this.erc20.allowance(this.signers.alice.address, this.vault.address)).toString(),
+      );
+      console.log(
+        "Bob allowance : ",
+        (await this.erc20.allowance(this.signers.bob.address, this.vault.address)).toString(),
+      );
+      console.log(
+        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+      console.log(
+        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+      console.log("Price Per full share ", (await this.vault.getPricePerFullShare()).toString());
+    });
+    it("55. Alice and bob can now withdraw", async function () {
+      await this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("1500000000"));
+      await this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("1500000000"));
+      console.log(
+        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+      console.log(
+        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
+          .div(to_10powNumber_BN(BigNumber.from("6")))
+          .toString()} opINTUSDC`,
+      );
+      console.log("Price Per full share ", (await this.vault.getPricePerFullShare()).toString());
+    });
+    it("55. Rebalance back to compound strategy", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_COMPOUND_HASH);
+      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
+        USDC_COMPOUND_HASH,
+      );
+      console.log("Price Per full share Before", (await this.vault.getPricePerFullShare()).toString());
+      const tx = await this.vault.connect(this.signers.bob).rebalance();
+      const txc = await tx.wait();
+      console.log("# of rebalance events", txc.events?.length);
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
+      console.log("Price Per full share After", (await this.vault.getPricePerFullShare()).toString());
+    });
+    it("56. Deposit :Alice - 4K and Bob - 2K USDC each, verify queuecap, then rebalance() - (same strategy)", async function () {
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
+      expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
+      const tx = await this.vault.connect(this.signers.bob).rebalance();
+      const txc = await tx.wait();
+      console.log("# of rebalance events", txc.events?.length);
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
     });
   });
 });

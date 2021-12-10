@@ -48,7 +48,7 @@ contract Vault is
     /**
      * @dev The version of the Vault business logic
      */
-    uint256 public constant opTOKEN_REVISION = 0x1;
+    uint256 public constant opTOKEN_REVISION = 0x2;
 
     /* solhint-disable no-empty-blocks */
     constructor(
@@ -114,10 +114,10 @@ contract Vault is
         bytes32 _newInvestStrategyHash =
             IRiskManager(_vaultStrategyConfiguration.riskManager).getBestStrategy(riskProfileCode, _underlyingTokens);
         if (
-            keccak256(abi.encodePacked(_newInvestStrategyHash)) != keccak256(abi.encodePacked(investStrategyHash)) &&
-            investStrategyHash != Constants.ZERO_BYTES32
+            keccak256(abi.encodePacked(_newInvestStrategyHash)) != keccak256(abi.encodePacked(investStrategyHash)) ||
+            queue.length > 0
         ) {
-            _withdrawAll(_vaultStrategyConfiguration);
+            _withdrawAll(_vaultStrategyConfiguration.strategyManager);
             if (msg.sender == _vaultStrategyConfiguration.operator && gasOwedToOperator != uint256(0)) {
                 IERC20(underlyingToken).safeTransfer(
                     _vaultStrategyConfiguration.operator,
@@ -137,10 +137,7 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(
-                _vaultStrategyConfiguration.strategyManager,
-                registryContract.getVaultConfiguration(address(this)).totalValueLockedLimitInUnderlying
-            );
+            _supplyAll(_vaultStrategyConfiguration.strategyManager);
         }
 
         if (msg.sender == _vaultStrategyConfiguration.operator) {
@@ -246,21 +243,15 @@ contract Vault is
      * @inheritdoc IVault
      */
     function discontinue() external override onlyRegistry {
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
-            registryContract.getVaultStrategyConfiguration();
-        if (investStrategyHash != Constants.ZERO_BYTES32) {
-            _withdrawAll(_vaultStrategyConfiguration);
-        }
+        _withdrawAll(registryContract.getStrategyManager());
     }
 
     /**
      * @inheritdoc IVault
      */
     function setUnpaused(bool _unpaused) external override onlyRegistry {
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration =
-            registryContract.getVaultStrategyConfiguration();
-        if (!_unpaused && investStrategyHash != Constants.ZERO_BYTES32) {
-            _withdrawAll(_vaultStrategyConfiguration);
+        if (!_unpaused) {
+            _withdrawAll(registryContract.getStrategyManager());
         }
     }
 
@@ -354,9 +345,8 @@ contract Vault is
     /**
      * @dev Deposit all the underlying assets to the current vault invest strategy
      * @param _strategyManager the strategy manager contract address
-     * @param _totalValueLockedLimitInUnderlying the total value locked limit for this vault
      */
-    function _supplyAll(address _strategyManager, uint256 _totalValueLockedLimitInUnderlying) internal {
+    function _supplyAll(address _strategyManager) internal {
         _batchMint(_strategyManager);
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             uint256 _steps = IStrategyManager(_strategyManager).getDepositAllStepsCount(investStrategyHash);
@@ -373,28 +363,28 @@ contract Vault is
                 );
             }
         }
-        _checkTVL(_strategyManager, _totalValueLockedLimitInUnderlying);
     }
 
     /**
      * @dev Redeem all the assets deployed in the current vault invest strategy
-     * @param _vaultStrategyConfiguration the configuration for executing vault invest strategy
+     * @param _strategyManager StrategyManager contract address
      */
-    function _withdrawAll(DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration) internal {
-        uint256 _steps =
-            IStrategyManager(_vaultStrategyConfiguration.strategyManager).getWithdrawAllStepsCount(investStrategyHash);
-        for (uint256 _i; _i < _steps; _i++) {
-            uint256 _iterator = _steps - 1 - _i;
-            executeCodes(
-                IStrategyManager(_vaultStrategyConfiguration.strategyManager).getPoolWithdrawAllCodes(
-                    payable(address(this)),
-                    underlyingToken,
-                    investStrategyHash,
-                    _iterator,
-                    _steps
-                ),
-                "e8"
-            );
+    function _withdrawAll(address _strategyManager) internal {
+        if (investStrategyHash != Constants.ZERO_BYTES32) {
+            uint256 _steps = IStrategyManager(_strategyManager).getWithdrawAllStepsCount(investStrategyHash);
+            for (uint256 _i; _i < _steps; _i++) {
+                uint256 _iterator = _steps - 1 - _i;
+                executeCodes(
+                    IStrategyManager(_strategyManager).getPoolWithdrawAllCodes(
+                        payable(address(this)),
+                        underlyingToken,
+                        investStrategyHash,
+                        _iterator,
+                        _steps
+                    ),
+                    "e8"
+                );
+            }
         }
     }
 
@@ -507,11 +497,7 @@ contract Vault is
         }
         require(_checkDepositCap(_vaultConfiguration, _amount), "e13");
         require(_amount > 0, "e15");
-
-        if (investStrategyHash != Constants.ZERO_BYTES32) {
-            _withdrawAll(_vaultStrategyConfiguration);
-        }
-
+        _withdrawAll(_vaultStrategyConfiguration.strategyManager);
         uint256 _tokenBalanceBefore = _balance();
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _tokenBalanceAfter = _balance();
@@ -553,7 +539,8 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(
+            _supplyAll(_vaultStrategyConfiguration.strategyManager);
+            _checkTVL(
                 _vaultStrategyConfiguration.strategyManager,
                 _vaultConfiguration.totalValueLockedLimitInUnderlying
             );
@@ -572,8 +559,8 @@ contract Vault is
         require(_redeemAmount > 0, "e19");
         uint256 opBalance = balanceOf(msg.sender);
         require(_redeemAmount <= opBalance, "e20");
-        if (!_vaultConfiguration.discontinued && investStrategyHash != Constants.ZERO_BYTES32) {
-            _withdrawAll(_vaultStrategyConfiguration);
+        if (!_vaultConfiguration.discontinued) {
+            _withdrawAll(_vaultStrategyConfiguration.strategyManager);
         }
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateUserRewardsCodes(
@@ -583,7 +570,12 @@ contract Vault is
             "e14"
         );
         // subtract pending deposit from total balance
-        _redeemAndBurn(msg.sender, _balance().sub(depositQueue), _redeemAmount, _vaultStrategyConfiguration);
+        _redeemAndBurn(
+            msg.sender,
+            _balance().sub(depositQueue),
+            _redeemAmount,
+            _vaultStrategyConfiguration.strategyManager
+        );
 
         executeCodes(
             IStrategyManager(_vaultStrategyConfiguration.strategyManager).getUpdateRewardVaultRateAndIndexCodes(
@@ -607,10 +599,7 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(
-                _vaultStrategyConfiguration.strategyManager,
-                _vaultConfiguration.totalValueLockedLimitInUnderlying
-            );
+            _supplyAll(_vaultStrategyConfiguration.strategyManager);
         }
     }
 
@@ -786,19 +775,19 @@ contract Vault is
      * @param _account The user to redeem the shares
      * @param _balanceInUnderlyingToken the total balance of underlying token in the vault
      * @param _redeemAmount The amount of shares to be burned.
-     * @param _vaultStrategyConfiguration the configuration for executing vault invest strategy
+     * @param _strategyManager StrategyManager contract address
      */
     function _redeemAndBurn(
         address _account,
         uint256 _balanceInUnderlyingToken,
         uint256 _redeemAmount,
-        DataTypes.VaultStrategyConfiguration memory _vaultStrategyConfiguration
+        address _strategyManager
     ) private {
         uint256 redeemAmountInToken = (_balanceInUnderlyingToken.mul(_redeemAmount)).div(totalSupply());
         //  Updating the totalSupply of op tokens
         _burn(msg.sender, _redeemAmount);
         executeCodes(
-            IStrategyManager(_vaultStrategyConfiguration.strategyManager).getSplitPaymentCode(
+            IStrategyManager(_strategyManager).getSplitPaymentCode(
                 registryContract.getTreasuryShares(address(this)),
                 _account,
                 underlyingToken,

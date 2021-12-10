@@ -131,7 +131,7 @@ const buidlerConfig: HardhatUserConfig = {
   },
   gasReporter: {
     currency: "USD",
-    gasPrice: 165,
+    gasPrice: 108,
     enabled: process.env.REPORT_GAS == "true" ? true : false,
     coinmarketcap: process.env.COINMARKETCAP_API,
     excludeContracts: ["dependencies/", "mocks/"],

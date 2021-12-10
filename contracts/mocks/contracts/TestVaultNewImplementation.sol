@@ -24,7 +24,7 @@ contract TestVaultNewImplementation is
     /**
      * @dev The version of the Vault business logic
      */
-    uint256 public constant opTOKEN_REVISION = 0x2;
+    uint256 public constant opTOKEN_REVISION = 0x3;
 
     /* solhint-disable no-empty-blocks */
     constructor(

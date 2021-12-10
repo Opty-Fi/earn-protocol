@@ -293,9 +293,9 @@ describe(scenario.title, () => {
                             TESTING_CONTRACTS.TEST_VAULT_NEW_IMPLEMENTATION,
                             vaultProxy.address,
                           );
-                          await executeFunc(contracts["vault"], users[0], "initialize(address)", [
+                          expect(await contracts["vault"].registryContract()).to.equal(
                             essentialContracts.registry.address,
-                          ]);
+                          );
 
                           break;
                         }
@@ -1108,9 +1108,7 @@ describe(testVaultScenario.title, () => {
                       TESTING_CONTRACTS.TEST_VAULT_NEW_IMPLEMENTATION,
                       vaultProxy.address,
                     );
-                    await executeFunc(contracts["vault"], users[0], "initialize(address)", [
-                      essentialContracts.registry.address,
-                    ]);
+                    expect(contracts["vault"].registryContract()).to.equal(essentialContracts.registry.address);
 
                     break;
                   }
