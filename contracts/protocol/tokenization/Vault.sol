@@ -137,10 +137,7 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(
-                _vaultStrategyConfiguration.strategyManager,
-                registryContract.getVaultConfiguration(address(this)).totalValueLockedLimitInUnderlying
-            );
+            _supplyAll(_vaultStrategyConfiguration.strategyManager);
         }
 
         if (msg.sender == _vaultStrategyConfiguration.operator) {
@@ -348,9 +345,8 @@ contract Vault is
     /**
      * @dev Deposit all the underlying assets to the current vault invest strategy
      * @param _strategyManager the strategy manager contract address
-     * @param _totalValueLockedLimitInUnderlying the total value locked limit for this vault
      */
-    function _supplyAll(address _strategyManager, uint256 _totalValueLockedLimitInUnderlying) internal {
+    function _supplyAll(address _strategyManager) internal {
         _batchMint(_strategyManager);
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             uint256 _steps = IStrategyManager(_strategyManager).getDepositAllStepsCount(investStrategyHash);
@@ -367,7 +363,6 @@ contract Vault is
                 );
             }
         }
-        _checkTVL(_strategyManager, _totalValueLockedLimitInUnderlying);
     }
 
     /**
@@ -544,7 +539,8 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(
+            _supplyAll(_vaultStrategyConfiguration.strategyManager);
+            _checkTVL(
                 _vaultStrategyConfiguration.strategyManager,
                 _vaultConfiguration.totalValueLockedLimitInUnderlying
             );
@@ -603,10 +599,7 @@ contract Vault is
                 riskProfileCode,
                 _underlyingTokens
             );
-            _supplyAll(
-                _vaultStrategyConfiguration.strategyManager,
-                _vaultConfiguration.totalValueLockedLimitInUnderlying
-            );
+            _supplyAll(_vaultStrategyConfiguration.strategyManager);
         }
     }
 
