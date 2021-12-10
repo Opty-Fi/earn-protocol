@@ -956,10 +956,24 @@ describe("Integration tests", function () {
       await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
       expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
     });
+    // 2001.008705
+    // 2001.029412
     it("49. Operator rebalances, strategy should be USDC Aavev2", async function () {
+      const pricePerFullShare = await this.vault.getPricePerFullShare();
+      const totalSupply = await this.vault.totalSupply();
+      const vaultValue = pricePerFullShare.mul(totalSupply).div(to_10powNumber_BN("18"));
+      const expectedAlice1MintAmount = BigNumber.from("2000000000").mul(totalSupply).div(vaultValue);
+      console.log("pricePerFullShare : ", pricePerFullShare.toString());
+      console.log("expectedAlice1MintAmount: ", expectedAlice1MintAmount.toString());
+      // await expect(this.vault.connect(this.signers.operator).rebalance())
+      //   .to.emit(this.vault, "Transfer")
+      //   .withArgs(ADDRESS_ZERO, this.signers.alice.address, expectedAlice1MintAmount);
       const tx = await this.vault.connect(this.signers.operator).rebalance();
       const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
+      // console.log("# of rebalance events", txc.events);
+      console.log("Alice1 value :", txc?.events?.[6].args?.["value"].toString());
+      console.log("Bob1 value :", txc?.events?.[7].args?.["value"].toString());
+      console.log("Alice2 value :", txc?.events?.[8].args?.["value"].toString());
       expect(await this.vault.investStrategyHash()).to.equal(USDC_AAVEV2_HASH);
       expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
@@ -1120,6 +1134,18 @@ describe("Integration tests", function () {
       console.log("# of rebalance events", txc.events?.length);
       expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
       console.log("Price Per full share After", (await this.vault.getPricePerFullShare()).toString());
+    });
+    it("56. Deposit :Alice - 4K and Bob - 2K USDC each, verify queuecap, then rebalance() - (same strategy)", async function () {
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
+      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
+      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
+      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
+      expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
+      const tx = await this.vault.connect(this.signers.bob).rebalance();
+      const txc = await tx.wait();
+      console.log("# of rebalance events", txc.events?.length);
+      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
     });
   });
 });
