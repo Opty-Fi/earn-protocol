@@ -14,7 +14,7 @@
   "StrategyManager": "0x4106a6dce5e552a931684485e004687d6bb57f40",
   "APROracle": "0xffc22425d67ed8a72b95cbf46ec6167246df93f8",
   "opUSDCgrow": {
-    "Vault": "0x4dcc52e17386a777ed74fbed437af4e74eaf38c0",
+    "Vault": "0xfad37e3197e6331647030954512964cd2e55acaf",
     "VaultProxy": "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88"
   }
 }

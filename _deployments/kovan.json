@@ -11,7 +11,7 @@
   "RiskManager": "0x32af1697b14cb5a3df490790e8f5c8c160020342",
   "StrategyManager": "0x99a8e7c0afe58f3313c938aecce96d333ce39299",
   "opAVUSDCint": {
-    "Vault": "0x43362ee743cbce7d0ae02a834e5a37a56d24435c",
+    "Vault": "0xea873417E24012A662801bEBbdc2DAC34A31bc94",
     "VaultProxy": "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d"
   }
 }
