@@ -3,10 +3,10 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import { Modifiers } from "../../protocol/configuration/Modifiers.sol";
+import { Modifiers } from "../../protocol/earn-protocol-configuration/contracts/Modifiers.sol";
 import { OPTYStakingRateBalancerProxy } from "../../protocol/tokenization/OPTYStakingRateBalancerProxy.sol";
 import { OPTYStakingRateBalancerStorage } from "../../protocol/tokenization/OPTYStakingRateBalancerStorage.sol";
-import { TestStorageV2 } from "./TestStorageV2.sol";
+import { TestStorageV2 } from "../../protocol/earn-protocol-configuration/contracts/mocks/contracts/TestStorageV2.sol";
 import { IOPTYStakingRateBalancer } from "../../interfaces/opty/IOPTYStakingRateBalancer.sol";
 
 contract TestOptyStakingRateBalancerNewImplementation is OPTYStakingRateBalancerStorage, TestStorageV2, Modifiers {

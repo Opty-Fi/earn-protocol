@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import { MultiCall } from "../../utils/MultiCall.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
-import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 
 contract TestStrategyManager is MultiCall {
     function testPoolDepositAllCode(

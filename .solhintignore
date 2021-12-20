@@ -7,3 +7,4 @@ contracts/utils/
 contracts/dependencies/
 contracts/mocks/
 contracts/protocol/team-defi-adapters
+contracts/protocol/earn-protocol-configuration

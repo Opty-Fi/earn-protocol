@@ -4,12 +4,12 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import { VaultStorage } from "../../protocol/tokenization/VaultStorage.sol";
-import { Modifiers } from "../../protocol/configuration/Modifiers.sol";
+import { Modifiers } from "../../protocol/earn-protocol-configuration/contracts/Modifiers.sol";
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
 import { Deployer } from "../../dependencies/chi/ChiDeployer.sol";
-import { TestStorageV2 } from "./TestStorageV2.sol";
+import { TestStorageV2 } from "../../protocol/earn-protocol-configuration/contracts/mocks/contracts/TestStorageV2.sol";
 import { IncentivisedERC20 } from "../../protocol/tokenization/IncentivisedERC20.sol";
-import { IRegistry } from "../../interfaces/opty/IRegistry.sol";
+import { IRegistry } from "../../protocol/earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract TestVaultNewImplementation is

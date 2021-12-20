@@ -10,6 +10,7 @@ typechain/
 specification_docs/
 deployments/
 contracts/protocol/team-defi-adapters
+contracts/protocol/earn-protocol-configuration
 
 # files
 .solcover.js
