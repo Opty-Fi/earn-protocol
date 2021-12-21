@@ -40,3 +40,4 @@ export const GET_ACTION: string = "get-action";
 export const GET_STRATEGY: string = "get-strategy";
 export const SET_MAX_DEPOSIT_MODE: string = "set-max-deposit-mode";
 export const SET_MAX_DEPOSIT: string = "set-max-deposit";
+export const FETCH_STRATEGIES: string = "fetch-strategies";
