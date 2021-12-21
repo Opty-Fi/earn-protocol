@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { OPTYStakingRateBalancerStorage } from "./OPTYStakingRateBalancerStorage.sol";
 import { OPTYStakingRateBalancerProxy } from "./OPTYStakingRateBalancerProxy.sol";
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 
 // libraries
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
