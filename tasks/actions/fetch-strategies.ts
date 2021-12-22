@@ -1,42 +1,92 @@
-import { task, types } from "hardhat/config";
-import { isAddress } from "../../helpers/helpers";
+import { task } from "hardhat/config";
+import { ADDRESS_ZERO, ETH } from "../../helpers/constants/utils";
+import { TypedTokens } from "../../helpers/data";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { FETCH_STRATEGIES } from "../task-names";
 import { createDir, createFile } from "../../helpers/utils";
 import axios, { Method } from "axios";
-import Web3 from "web3";
-task(FETCH_STRATEGIES, "Fetch strategies from moralis")
-  .addParam("token", "the address of token", "", types.string)
-  .setAction(async ({ token }, hre) => {
-    if (!isAddress(token)) {
-      throw new Error(`token is invalid`);
+import { DEFI_POOLS_DATA, STRATEGY, STRATEGY_DATA } from "../../helpers/type";
+task(FETCH_STRATEGIES, "Fetch strategies from moralis").setAction(async (_, hre) => {
+  const BASE_DATA_OPTIONS = {
+    _ApplicationId: process.env.MORALIS_APP_ID,
+    _ClientVersion: "js0.0.120",
+    _InstallationId: "a4e82bcc-1ef9-4379-a92f-59f2ecd557db",
+  };
+  createDir(`/.opty-sdk/ethereum`);
+
+  const config = {
+    method: "get" as Method,
+    url: `${process.env.MORALIS_SERVER_URL}/functions/getStrategyData`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: JSON.stringify({
+      chain: "0x1",
+      ...BASE_DATA_OPTIONS,
+    }),
+  };
+  console.log("Fetching strategies from Moralis...");
+  const response = await axios(config);
+  const data = response.data.result;
+  let defiPools: DEFI_POOLS_DATA = {};
+  const strategies: STRATEGY[] = [];
+  console.log(`Creating defiPools and strategies files`);
+  for (let i = 0; i < data.length; i++) {
+    const token =
+      Object.keys(data[i].underlyingTokens)[0] === ETH ? TypedTokens["WETH"] : Object.keys(data[i].underlyingTokens)[0];
+    const erc20Symbol = (Object.values(data[i].underlyingTokens)[0] as any).symbol;
+    const steps = data[i].steps;
+    let strategyName = erc20Symbol;
+    const strategyData: STRATEGY_DATA[] = [];
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      const lpToken = step.lpToken === ETH ? TypedTokens["WETH"] : step.lpToken;
+      const lpContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, lpToken);
+      let lpTokenSymbol = lpToken;
+      try {
+        lpTokenSymbol = lpToken !== ADDRESS_ZERO ? await lpContract.symbol() : "0x0";
+      } catch (error) {
+        //Ignore in a case that symbol() fails
+      }
+
+      const adapter = `${step.protocol.name}Adapter`;
+      if (Object.keys(defiPools).length === 0) {
+        defiPools = {
+          [adapter]: {
+            [erc20Symbol]: {
+              pool: step.poolContractAddress,
+              lpToken: step.lpToken,
+              tokens: step.underlyingTokens,
+            },
+          },
+        };
+      } else {
+        if (!defiPools[adapter] || !defiPools[adapter][erc20Symbol]) {
+          defiPools[adapter] = {
+            ...defiPools[adapter],
+            [erc20Symbol]: {
+              pool: step.poolContractAddress,
+              lpToken: step.lpToken,
+              tokens: step.underlyingTokens,
+            },
+          };
+        }
+      }
+      strategyName = `${strategyName}-DEPOSIT-${step.protocol.name}-${lpTokenSymbol}`;
+      strategyData.push({
+        contract: step.poolContractAddress,
+        outputToken: step.lpToken,
+        isBorrow: step.isBorrow,
+        outputTokenSymbol: lpTokenSymbol,
+      });
+      strategies.push({
+        strategyName: strategyName,
+        token: token,
+        strategy: strategyData,
+      });
     }
-    try {
-      const erc20Contract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, token);
-
-      const BASE_DATA_OPTIONS = {
-        _ApplicationId: process.env.MORALIS_APP_ID,
-        _ClientVersion: "js0.0.120",
-        _InstallationId: "a4e82bcc-1ef9-4379-a92f-59f2ecd557db",
-      };
-      createDir("/.opty-sdk/ethereum");
-
-      const config = {
-        method: "get" as Method,
-        url: `${process.env.MORALIS_SERVER_URL}/functions/getStrategiesForUnderlyingTokens`,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({
-          chain: "0x1",
-          underlyingTokens: [Web3.utils.toChecksumAddress(token)],
-          ...BASE_DATA_OPTIONS,
-        }),
-      };
-
-      const response = await axios(config);
-      createFile(`.opty-sdk/ethereum/${await erc20Contract.symbol()}.json`, JSON.stringify(response.data.result));
-    } catch (error: any) {
-      console.error(`${FETCH_STRATEGIES}: `, error.response ? error.response.data : error);
-    }
-  });
+  }
+  createFile(`.opty-sdk/ethereum/strategies.json`, JSON.stringify(strategies));
+  createFile(`.opty-sdk/ethereum/defiPools.json`, JSON.stringify(defiPools));
+  console.log(`DefiPools and strategies files are ready in .opty-sdk/ethereum/`);
+});

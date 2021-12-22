@@ -387,6 +387,19 @@ Options:
 
 To execute functions in a OptyFi's contract.
 
+### fetch-strategies
+
+```
+Usage: fetch all strategies from Moralis and then create defiPools.json and strategies.json under .opty-sdk
+
+```
+
+- Example:
+
+```
+  yarn hardhat fetch-strategies
+```
+
 ### set-strategies
 
 ```
