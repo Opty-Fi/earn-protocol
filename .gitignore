@@ -17,7 +17,7 @@
 **/typechain
 **/specification_docs
 **/deployments
-
+**/.opty-sdk
 # files
 *.env
 *.log
