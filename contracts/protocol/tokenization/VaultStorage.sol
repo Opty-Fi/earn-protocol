@@ -4,7 +4,7 @@
 pragma solidity ^0.6.12;
 
 // library
-import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 
 /**
  * @title Vault state that can change

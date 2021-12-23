@@ -6,15 +6,17 @@ pragma experimental ABIEncoderV2;
 //  libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 
 //  helper contracts
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import { Modifiers } from "./Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 
 // interfaces
 import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
-import { IInvestStrategyRegistry } from "../../interfaces/opty/IInvestStrategyRegistry.sol";
+import {
+    IInvestStrategyRegistry
+} from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
 import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum/interfaces/IHarvestCodeProvider.sol";
 import { Constants } from "../../utils/Constants.sol";

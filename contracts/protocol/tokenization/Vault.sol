@@ -9,21 +9,21 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { Deployer } from "../../dependencies/chi/ChiDeployer.sol";
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
 import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { VaultStorage } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Constants } from "../../utils/Constants.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
-import { IRegistry } from "../../interfaces/opty/IRegistry.sol";
-import { IRiskManager } from "../../interfaces/opty/IRiskManager.sol";
+import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
+import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum/interfaces/IHarvestCodeProvider.sol";
 
 /**

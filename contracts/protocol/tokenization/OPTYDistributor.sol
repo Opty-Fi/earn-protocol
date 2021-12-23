@@ -4,7 +4,7 @@ pragma solidity ^0.6.12;
 
 // helper contracts
 import { ExponentialNoError } from "../../dependencies/compound/ExponentialNoError.sol";
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { OPTYDistributorStorage } from "./OPTYDistributorStorage.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
@@ -13,7 +13,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IOPTYStakingVault } from "../../interfaces/opty/IOPTYStakingVault.sol";
 import { IOPTY } from "../../interfaces/opty/IOPTY.sol";
 import { IOPTYDistributor } from "../../interfaces/opty/IOPTYDistributor.sol";
-import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 
 /**
  * @title OPTYDistributor inspired from compound.finance

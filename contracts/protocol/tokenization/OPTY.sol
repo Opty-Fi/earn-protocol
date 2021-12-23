@@ -4,7 +4,7 @@ pragma solidity ^0.6.12;
 
 // helper contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 
 // interfaces
 import { IOPTY } from "../../interfaces/opty/IOPTY.sol";

@@ -3,12 +3,12 @@
 pragma solidity ^0.6.12;
 
 //  libraries
-import { DataTypes } from "../../libraries/types/DataTypes.sol";
+import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 //  helper contracts
 import { ODEFIVaultBoosterStorage } from "./ODEFIVaultBoosterStorage.sol";
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { ExponentialNoError } from "../../dependencies/compound/ExponentialNoError.sol";
 

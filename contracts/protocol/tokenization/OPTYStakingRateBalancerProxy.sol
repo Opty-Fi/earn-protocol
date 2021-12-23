@@ -3,7 +3,7 @@
 pragma solidity ^0.6.12;
 
 // helper contracts
-import { Modifiers } from "../configuration/Modifiers.sol";
+import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { OPTYStakingRateBalancerStorage } from "./OPTYStakingRateBalancerStorage.sol";
 
 /**
