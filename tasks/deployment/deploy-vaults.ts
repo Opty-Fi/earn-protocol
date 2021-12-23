@@ -2,9 +2,9 @@ import { task, types } from "hardhat/config";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { isAddress } from "../../helpers/helpers";
-import { DEPLOY_VAULT, DEPLOY_VAULTS } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_VAULTS, "Deploy Core Vaults")
+task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("unpause", "unpause vault", false, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
@@ -21,18 +21,20 @@ task(DEPLOY_VAULTS, "Deploy Core Vaults")
       console.log("Deploying Vaults...");
       for (const token in VAULT_TOKENS) {
         for (const riskProfile of RISK_PROFILES) {
-          await hre.run(DEPLOY_VAULT, {
-            token: VAULT_TOKENS[token].address,
-            riskprofilecode: riskProfile.code,
-            registry: registry,
-            unpause: unpause,
-            insertindb: insertindb,
-          });
+          if (riskProfile.code === 1) {
+            await hre.run(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, {
+              token: VAULT_TOKENS[token].address,
+              riskprofilecode: riskProfile.code,
+              registry: registry,
+              unpause: unpause,
+              insertindb: insertindb,
+            });
+          }
         }
       }
       console.log("Finished deploying vaults");
     } catch (error) {
-      console.error(`${DEPLOY_VAULTS}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.NAME}: `, error);
       throw error;
     }
   });

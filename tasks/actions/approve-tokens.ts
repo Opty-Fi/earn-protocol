@@ -3,9 +3,9 @@ import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { approveAndSetTokenHashToTokens } from "../../helpers/contracts-actions";
-import { APPROVE_TOKENS } from "../task-names";
+import TASKS from "../task-names";
 
-task(APPROVE_TOKENS, "Approve Tokens")
+task(TASKS.ACTION_TASKS.APPROVE_TOKENS.NAME, TASKS.ACTION_TASKS.APPROVE_TOKENS.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .setAction(async ({ registry }, hre) => {
     const [owner] = await hre.ethers.getSigners();
@@ -25,7 +25,7 @@ task(APPROVE_TOKENS, "Approve Tokens")
       await approveAndSetTokenHashToTokens(owner, registryContract, tokensAddresses, true);
       console.log(`Finished approving tokens`);
     } catch (error) {
-      console.error(`${APPROVE_TOKENS} : `, error);
+      console.error(`${TASKS.ACTION_TASKS.APPROVE_TOKENS.NAME} : `, error);
       throw error;
     }
   });

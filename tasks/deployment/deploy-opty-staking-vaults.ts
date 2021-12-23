@@ -3,9 +3,12 @@ import { insertContractIntoDB } from "../../helpers/db";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployAndSetupOptyStakingVaults } from "../../helpers/contracts-deployments";
 import { isAddress } from "../../helpers/helpers";
-import { DEPLOY_OPTY_STAKING_VAULTS } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_OPTY_STAKING_VAULTS, "Deploy Opty Staking Vault")
+task(
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_STAKING_VAULTS.NAME,
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_STAKING_VAULTS.DESCRIPTION,
+)
   .addParam("opty", "the address of opty", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("optydistributor", "the address of optyDistributor", "", types.string)
@@ -83,7 +86,7 @@ task(DEPLOY_OPTY_STAKING_VAULTS, "Deploy Opty Staking Vault")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_OPTY_STAKING_VAULTS}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_STAKING_VAULTS.NAME}: `, error);
       throw error;
     }
   });

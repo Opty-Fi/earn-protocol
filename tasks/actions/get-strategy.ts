@@ -1,9 +1,9 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { GET_STRATEGY } from "../task-names";
+import TASKS from "../task-names";
 
-task(GET_STRATEGY, "Get a specific strategy")
+task(TASKS.ACTION_TASKS.GET_STRATEGY.NAME, TASKS.ACTION_TASKS.GET_STRATEGY.DESCRIPTION)
   .addParam("strategyhash", "the hash of strategy", "", types.string)
   .addParam("token", "the address of token", "", types.string)
   .addParam("investstrategyregistry", "the address of investStrategyRegistry", "", types.string)
@@ -44,7 +44,7 @@ task(GET_STRATEGY, "Get a specific strategy")
       }
       console.log("Finished getting strategy");
     } catch (error) {
-      console.error(`${GET_STRATEGY}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.GET_STRATEGY.NAME}: `, error);
       throw error;
     }
   });

@@ -3,9 +3,12 @@ import { insertContractIntoDB } from "../../helpers/db";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployOptyStakingRateBalancer } from "../../helpers/contracts-deployments";
 import { isAddress, executeFunc } from "../../helpers/helpers";
-import { DEPLOY_OPTY_STAKING_RATE_BALANCER } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_OPTY_STAKING_RATE_BALANCER, "Deploy Opty Staking Rate Balancer")
+task(
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_STAKING_RATE_BALANCER.NAME,
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_STAKING_RATE_BALANCER.DESCRIPTION,
+)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
@@ -37,7 +40,7 @@ task(DEPLOY_OPTY_STAKING_RATE_BALANCER, "Deploy Opty Staking Rate Balancer")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_OPTY_STAKING_RATE_BALANCER}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_STAKING_RATE_BALANCER.NAME}: `, error);
       throw error;
     }
   });

@@ -1,9 +1,9 @@
 import { task, types } from "hardhat/config";
 import { isAddress, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { APPROVE_ERC20 } from "../task-names";
+import TASKS from "../task-names";
 
-task(APPROVE_ERC20, "Approve erc20 Token")
+task(TASKS.ACTION_TASKS.APPROVE_ERC20.NAME, TASKS.ACTION_TASKS.APPROVE_ERC20.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
   .addParam("spender", "the address of spender", "", types.string)
   .addParam("amount", "the allowance amount", "0", types.string)
@@ -38,7 +38,7 @@ task(APPROVE_ERC20, "Approve erc20 Token")
       console.log(`Spender : ${spender}`);
       console.log(`Allowance : ${allowance}`);
     } catch (error) {
-      console.error(`${APPROVE_ERC20}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.APPROVE_ERC20.NAME}: `, error);
       throw error;
     }
   });

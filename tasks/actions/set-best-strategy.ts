@@ -2,9 +2,9 @@ import { task, types } from "hardhat/config";
 import { isAddress, generateTokenHash } from "../../helpers/helpers";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { SET_BEST_STRATEGY } from "../task-names";
+import TASKS from "../task-names";
 
-task(SET_BEST_STRATEGY, "Set best strategy")
+task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRATEGY.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
   .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
   .addParam("strategyhash", "the keccak256 hash of strategy", "", types.string)
@@ -48,6 +48,6 @@ task(SET_BEST_STRATEGY, "Set best strategy")
       }
       console.log("Finished setting best strategy");
     } catch (error: any) {
-      console.error(`${SET_BEST_STRATEGY}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME}: `, error);
     }
   });

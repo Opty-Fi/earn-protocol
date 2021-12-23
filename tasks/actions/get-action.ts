@@ -2,9 +2,9 @@ import { Contract } from "@ethersproject/contracts";
 import { task, types } from "hardhat/config";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress } from "../../helpers/helpers";
-import { GET_ACTION } from "../task-names";
+import TASKS from "../task-names";
 
-task(GET_ACTION, "execute a get action in smart contract")
+task(TASKS.ACTION_TASKS.GET_ACTION.NAME, TASKS.ACTION_TASKS.GET_ACTION.DESCRIPTION)
   .addParam("name", "the name of contract", "", types.string)
   .addParam("address", "the address of contract", "", types.string)
   .addParam("functionabi", "the abi of function", "", types.string)
@@ -40,7 +40,7 @@ task(GET_ACTION, "execute a get action in smart contract")
       }
       console.log(`Returned Value : ${value}`);
     } catch (error) {
-      console.error(`${GET_ACTION}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.GET_ACTION.NAME}: `, error);
       throw error;
     }
   });

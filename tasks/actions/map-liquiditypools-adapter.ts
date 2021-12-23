@@ -5,9 +5,9 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts
 import { approveLiquidityPoolAndMapAdapters } from "../../helpers/contracts-actions";
 import { TypedDefiPools } from "../../helpers/data/index";
 import { removeDuplicateFromStringArray } from "../../helpers/utils";
-import { MAP_LIQUIDITYPOOLS_ADAPTER } from "../task-names";
+import TASKS from "../task-names";
 
-task(MAP_LIQUIDITYPOOLS_ADAPTER, "Approve and map liquidity pool to adapter")
+task(TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.NAME, TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.DESCRIPTION)
   .addParam("adapter", "the address of defi adapter", "", types.string)
   .addParam("adaptername", "the name of defi adapter", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)
@@ -48,7 +48,7 @@ task(MAP_LIQUIDITYPOOLS_ADAPTER, "Approve and map liquidity pool to adapter")
       console.log(`Finished mapping liquidityPools to adapter : ${adaptername}`);
       console.log("------------------");
     } catch (error) {
-      console.error(`${MAP_LIQUIDITYPOOLS_ADAPTER}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.NAME}: `, error);
       throw error;
     }
   });

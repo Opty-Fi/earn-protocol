@@ -5,9 +5,9 @@ import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { DEPLOY_VAULT } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_VAULT, "Deploy Vault")
+task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.DESCRIPTION)
   .addParam("token", "the address of underlying token", "", types.string)
   .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
   .addParam("registry", "the address of registry", "", types.string)
@@ -64,7 +64,7 @@ task(DEPLOY_VAULT, "Deploy Vault")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_VAULT} : `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME} : `, error);
       throw error;
     }
   });

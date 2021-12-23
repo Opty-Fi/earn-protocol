@@ -2,9 +2,12 @@ import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract, isAddress, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { DEPLOY_HARVEST_CODE_PROVIDER } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
+task(
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_HARVEST_CODE_PROVIDER.NAME,
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_HARVEST_CODE_PROVIDER.DESCRIPTION,
+)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
@@ -38,7 +41,7 @@ task(DEPLOY_HARVEST_CODE_PROVIDER, "Deploy Harvest Code Provider")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_HARVEST_CODE_PROVIDER}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_HARVEST_CODE_PROVIDER.NAME}: `, error);
       throw error;
     }
   });

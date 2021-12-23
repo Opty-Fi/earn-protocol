@@ -1,9 +1,9 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { BALANCE_OF } from "../task-names";
+import TASKS from "../task-names";
 
-task(BALANCE_OF, "Check token balance of address")
+task(TASKS.ACTION_TASKS.BALANCE_OF.NAME, TASKS.ACTION_TASKS.BALANCE_OF.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
   .addParam("user", "the address of user", "", types.string)
   .setAction(async ({ token, user }, hre) => {
@@ -30,7 +30,7 @@ task(BALANCE_OF, "Check token balance of address")
       console.log(`User: ${user}`);
       console.log(`Balance : ${+balance}`);
     } catch (error) {
-      console.error(`${BALANCE_OF}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.BALANCE_OF.NAME}: `, error);
       throw error;
     }
   });
