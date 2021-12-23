@@ -4,7 +4,7 @@ import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { ADDRESS_ZERO, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data";
@@ -257,7 +257,7 @@ describe(scenario.title, () => {
                           const rewardToken = await essentialContracts.strategyManager.getRewardToken(
                             investStrategyHash,
                           );
-                          if (rewardToken != ADDRESS_ZERO) {
+                          if (rewardToken != hre.ethers.constants.AddressZero) {
                             const rewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardToken);
                             rewardTokenBalanceBefore = await rewardTokenInstance.balanceOf(Vault.address);
                           } else {

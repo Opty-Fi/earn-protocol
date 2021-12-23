@@ -5,7 +5,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { deployAdapters, deployRegistry } from "../../helpers/contracts-deployments";
 import { CONTRACTS, TESTING_DEFAULT_DATA } from "../../helpers/type";
 import { deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
-import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
@@ -635,7 +635,7 @@ describe(scenario.title, () => {
                 .connect(signers[action.executor])
                 [action.action](
                   contractName === "0"
-                    ? ADDRESS_ZERO
+                    ? hre.ethers.constants.AddressZero
                     : contractName === ""
                     ? callers[user]
                     : contracts[contractName].address,
@@ -662,7 +662,7 @@ describe(scenario.title, () => {
                 .connect(signers[action.executor])
                 [action.action](
                   contractName === "0"
-                    ? ADDRESS_ZERO
+                    ? hre.ethers.constants.AddressZero
                     : contractName === ""
                     ? userAddresses[0]
                     : contracts[contractName].address,

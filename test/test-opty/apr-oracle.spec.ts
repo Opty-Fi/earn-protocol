@@ -6,7 +6,7 @@ import { CONTRACTS } from "../../helpers/type";
 import { TypedTokens, TypedDefiPools } from "../../helpers/data";
 import { generateStrategyHash, deployContract, executeFunc, generateTokenHash } from "../../helpers/helpers";
 import { getSoliditySHA3Hash } from "../../helpers/utils";
-import { TESTING_DEPLOYMENT_ONCE, ZERO_BYTES32 } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployRegistry, deployRiskManager } from "../../helpers/contracts-deployments";
 import { approveAndSetTokenHashToTokens, setStrategy } from "../../helpers/contracts-actions";
@@ -274,7 +274,7 @@ describe(scenario.title, async () => {
                   expect(value).to.be.equal(strategyHash);
                 }
               } else {
-                expect(value).to.be.equal(ZERO_BYTES32);
+                expect(value).to.be.equal(hre.ethers.constants.HashZero);
               }
             }
 
@@ -340,7 +340,7 @@ describe(scenario.title, async () => {
           : BigNumber.from("0");
         let expectedHash = "";
         if (aV1APR.eq(0) && cAPR.eq(0) && aV2APR.eq(0)) {
-          expectedHash = ZERO_BYTES32;
+          expectedHash = hre.ethers.constants.HashZero;
         } else {
           let strategy = { contract: "", outputToken: "", isBorrow: false };
 

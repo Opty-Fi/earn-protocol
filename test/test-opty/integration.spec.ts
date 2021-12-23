@@ -26,7 +26,6 @@ import {
   StrategyProvider,
   Vault,
 } from "../../typechain";
-import { ADDRESS_ZERO, ZERO_BYTES32 } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedDefiPools, TypedTokens } from "../../helpers/data";
 import { deployContract, generateStrategyHash, generateTokenHash } from "../../helpers/helpers";
@@ -151,7 +150,7 @@ describe("Integration tests", function () {
     it("2. Should be to able to change the governance", async function () {
       await expect(this.registryProxy.setPendingGovernance(this.signers.governance.address))
         .to.emit(this.registryProxy, "NewPendingGovernance")
-        .withArgs(ADDRESS_ZERO, this.signers.governance.address);
+        .withArgs(hre.ethers.constants.AddressZero, this.signers.governance.address);
       await expect(this.registryProxy.connect(this.signers.governance).acceptGovernance())
         .to.emit(this.registryProxy, "NewGovernance")
         .withArgs(this.signers.admin.address, this.signers.governance.address);
@@ -763,7 +762,7 @@ describe("Integration tests", function () {
       const expectedCurrentStrategy = await this.riskManager.getBestStrategy("2", [TypedTokens.USDC]);
       await expect(this.vault.connect(this.signers.operator).rebalance())
         .to.emit(this.vault, "Transfer")
-        .withArgs(ADDRESS_ZERO, this.signers.bob.address, BigNumber.from("1000000000"));
+        .withArgs(hre.ethers.constants.AddressZero, this.signers.bob.address, BigNumber.from("1000000000"));
       expect(await this.vault.investStrategyHash()).to.equal(expectedCurrentStrategy);
       expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
@@ -880,7 +879,7 @@ describe("Integration tests", function () {
     it("42. The Big fish Alice can successfully withdraw 500 shares", async function () {
       await expect(this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("500000000")))
         .to.emit(this.vault, "Transfer")
-        .withArgs(this.signers.alice.address, ADDRESS_ZERO, BigNumber.from("500000000"));
+        .withArgs(this.signers.alice.address, hre.ethers.constants.AddressZero, BigNumber.from("500000000"));
       expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_SWAP_HASH);
       expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("500000000"));
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
@@ -893,7 +892,7 @@ describe("Integration tests", function () {
     it("43. The big fish Bob can successfully withdraw 100K shares", async function () {
       await expect(this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("100000000000")))
         .to.emit(this.vault, "Transfer")
-        .withArgs(this.signers.bob.address, ADDRESS_ZERO, BigNumber.from("100000000000"));
+        .withArgs(this.signers.bob.address, hre.ethers.constants.AddressZero, BigNumber.from("100000000000"));
       expect(await this.vault.balanceOf(this.signers.bob.address)).to.closeTo(BigNumber.from("399999985030"), 1000000);
       expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
       expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
@@ -932,9 +931,9 @@ describe("Integration tests", function () {
     it("47. Strategy operator can set default strategy to Aave v2 USDC strategy, defaultStrategyState to zero", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, ZERO_BYTES32);
+        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, hre.ethers.constants.HashZero);
       expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        ZERO_BYTES32,
+        hre.ethers.constants.HashZero,
       );
       await this.strategyProvider.connect(this.signers.strategyOperator).setDefaultStrategyState(BigNumber.from("0"));
       expect(await this.strategyProvider.getDefaultStrategyState()).to.equal(BigNumber.from("0"));
@@ -967,7 +966,7 @@ describe("Integration tests", function () {
       console.log("expectedAlice1MintAmount: ", expectedAlice1MintAmount.toString());
       // await expect(this.vault.connect(this.signers.operator).rebalance())
       //   .to.emit(this.vault, "Transfer")
-      //   .withArgs(ADDRESS_ZERO, this.signers.alice.address, expectedAlice1MintAmount);
+      //   .withArgs(hre.ethers.constants.AddressZero, this.signers.alice.address, expectedAlice1MintAmount);
       const tx = await this.vault.connect(this.signers.operator).rebalance();
       const txc = await tx.wait();
       // console.log("# of rebalance events", txc.events);
@@ -981,14 +980,16 @@ describe("Integration tests", function () {
     it("50. Strategy operator sets zero strategy", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
-        .setBestDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, ZERO_BYTES32);
+        .setBestDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, hre.ethers.constants.HashZero);
       expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        ZERO_BYTES32,
+        hre.ethers.constants.HashZero,
       );
       expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        ZERO_BYTES32,
+        hre.ethers.constants.HashZero,
       );
-      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(ZERO_BYTES32);
+      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(
+        hre.ethers.constants.HashZero,
+      );
     });
     it("51. Deposit : Alice - 2K Bob - 4K USDC each, operator rebalance to zero", async function () {
       await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
@@ -1000,7 +1001,7 @@ describe("Integration tests", function () {
       const txc = await tx.wait();
       console.log("# of rebalance events", txc.events?.length);
       expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
-      expect(await this.vault.investStrategyHash()).to.equal(ZERO_BYTES32);
+      expect(await this.vault.investStrategyHash()).to.equal(hre.ethers.constants.HashZero);
       const balanceAfter: BigNumber = await this.vault.balance();
       expect(balanceAfter).to.gt(balanceBefore);
       console.log(

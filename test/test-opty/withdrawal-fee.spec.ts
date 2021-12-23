@@ -4,7 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedAdapterStrategies } from "../../helpers/data";
 import { delay } from "../../helpers/utils";
@@ -161,7 +161,7 @@ describe(scenario.title, () => {
                         .connect(users[action.executer])
                         [action.action](
                           addressName.toString().toLowerCase() == "zero"
-                            ? ADDRESS_ZERO
+                            ? hre.ethers.constants.AddressZero
                             : addressName.toString().toLowerCase() == "eoa"
                             ? EOA
                             : contracts[addressName.toString().toLowerCase()].address,
@@ -189,7 +189,7 @@ describe(scenario.title, () => {
                         .connect(users[action.executer])
                         [action.action](
                           addressName.toString().toLowerCase() == "zero"
-                            ? ADDRESS_ZERO
+                            ? hre.ethers.constants.AddressZero
                             : addressName.toString().toLowerCase() == "eoa"
                             ? EOA
                             : contracts[addressName.toString().toLowerCase()].address,

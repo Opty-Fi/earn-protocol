@@ -10,7 +10,7 @@ import {
   retrieveAdapterFromStrategyName,
   getDefaultFundAmountInDecimal,
 } from "../../helpers/helpers";
-import { TESTING_DEPLOYMENT_ONCE, ADDRESS_ZERO } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
@@ -121,7 +121,7 @@ describe(scenario.title, () => {
           const ERC20Instance = await hre.ethers.getContractAt("ERC20", underlyingToken);
           const rewardTokenAddress = await adapters[adapterNames[steps - 1]].getRewardToken(lastStrategyStep.contract);
           let RewardTokenInstance: Contract | undefined;
-          if (rewardTokenAddress !== ADDRESS_ZERO) {
+          if (rewardTokenAddress !== hre.ethers.constants.AddressZero) {
             RewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardTokenAddress);
           }
           const decimals = await ERC20Instance.decimals();
@@ -151,7 +151,7 @@ describe(scenario.title, () => {
                 for (let i = 0; i < steps; i++) {
                   const adapter = adapters[adapterNames[i]];
                   const liquidityPool = strategyDetail.strategy[i].contract;
-                  if ((await adapter.getRewardToken(liquidityPool)) !== ADDRESS_ZERO) {
+                  if ((await adapter.getRewardToken(liquidityPool)) !== hre.ethers.constants.AddressZero) {
                     isAvailableRewardToken = true;
                     break;
                   }
@@ -195,7 +195,7 @@ describe(scenario.title, () => {
                 break;
               }
               case "fundWalletWithRewardToken": {
-                if (rewardTokenAddress !== ADDRESS_ZERO) {
+                if (rewardTokenAddress !== hre.ethers.constants.AddressZero) {
                   const balance: BigNumber = await RewardTokenInstance?.balanceOf(testingStrategyManager.address);
                   const decimals = await RewardTokenInstance?.decimals();
                   if (balance.lte(0)) {
@@ -326,7 +326,10 @@ describe(scenario.title, () => {
               case "getClaimRewardStepsCount(bytes32)": {
                 const lastStep = strategyDetail.strategy[steps - 1];
                 const expectedCount =
-                  (await adapters[adapterNames[steps - 1]].getRewardToken(lastStep.contract)) !== ADDRESS_ZERO ? 1 : 0;
+                  (await adapters[adapterNames[steps - 1]].getRewardToken(lastStep.contract)) !==
+                  hre.ethers.constants.AddressZero
+                    ? 1
+                    : 0;
                 expect(await strategyManager[action.action](strategyHash)).to.be.equal(expectedCount);
                 break;
               }
@@ -552,8 +555,8 @@ describe("optyDistributor=ZERO_ADDRESS, odefiVaultBooster=ZERO_ADDRESS", () => {
       );
       sideContracts["registry"].getRiskOperator.returns(await owner.getAddress());
       sideContracts["registry"].getOperator.returns(await owner.getAddress());
-      sideContracts["registry"].getOPTYDistributor.returns(ADDRESS_ZERO);
-      sideContracts["registry"].getODEFIVaultBooster.returns(ADDRESS_ZERO);
+      sideContracts["registry"].getOPTYDistributor.returns(hre.ethers.constants.AddressZero);
+      sideContracts["registry"].getODEFIVaultBooster.returns(hre.ethers.constants.AddressZero);
     } catch (error) {
       console.log(error);
     }
@@ -676,7 +679,7 @@ describe("optyDistributor=ZERO_ADDRESS", () => {
       );
       sideContracts["registry"].getRiskOperator.returns(await owner.getAddress());
       sideContracts["registry"].getOperator.returns(await owner.getAddress());
-      sideContracts["registry"].getOPTYDistributor.returns(ADDRESS_ZERO);
+      sideContracts["registry"].getOPTYDistributor.returns(hre.ethers.constants.AddressZero);
       sideContracts["registry"].getODEFIVaultBooster.returns(sideContracts["vaultBooster"].address);
       await sideContracts["vaultBooster"].setODEFIRewarder(sideContracts["vault"].address, ownerAddress);
       await sideContracts["vaultBooster"].setOdefiVaultRate(sideContracts["vault"].address, 1000);
@@ -803,7 +806,7 @@ describe("odefiVaultBooster=ZERO_ADDRESS", () => {
       sideContracts["registry"].getRiskOperator.returns(await owner.getAddress());
       sideContracts["registry"].getOperator.returns(await owner.getAddress());
       sideContracts["registry"].getOPTYDistributor.returns(sideContracts["optyDistributor"].address);
-      sideContracts["registry"].getODEFIVaultBooster.returns(ADDRESS_ZERO);
+      sideContracts["registry"].getODEFIVaultBooster.returns(hre.ethers.constants.AddressZero);
       await sideContracts["optyDistributor"].setOptyVaultRate(sideContracts["vault"].address, 1000);
     } catch (error) {
       console.log(error);

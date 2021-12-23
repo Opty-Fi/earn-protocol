@@ -6,7 +6,6 @@ import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
-import { ZERO_BYTES32, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
@@ -952,7 +951,8 @@ describe(testVaultConfigurationScenario.title, () => {
                   const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
                   const lastAdapterName = adapterNames[numberOfSteps - 1];
                   if (
-                    (rewardToken != ADDRESS_ZERO && REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
+                    (rewardToken != hre.ethers.constants.AddressZero &&
+                      REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
                     !unpaused
                   ) {
                     expect(value).to.be.gt(0);
@@ -1243,7 +1243,7 @@ describe(testVaultScenario.title, () => {
                     const tokenHash = generateTokenHash([tokenAddress]);
                     await essentialContracts.strategyProvider
                       .connect(users[0])
-                      .setBestStrategy(1, tokenHash, ZERO_BYTES32);
+                      .setBestStrategy(1, tokenHash, hre.ethers.constants.HashZero);
 
                     const userAddr = await users[action.executor].getAddress();
                     const value = await contracts["vault"].balanceOf(userAddr);
@@ -1274,7 +1274,7 @@ describe(testVaultScenario.title, () => {
                     const rewardToken = await adapters[lastAdapterName].getRewardToken(
                       TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
                     );
-                    if (rewardToken != ADDRESS_ZERO) {
+                    if (rewardToken != hre.ethers.constants.AddressZero) {
                       claimableTokens = await adapters[lastAdapterName].getUnclaimedRewardTokenAmount(
                         contracts["vault"].address,
                         TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
@@ -1476,7 +1476,7 @@ describe(testVaultScenario.title, () => {
                     if (action.expectedValue == ">") {
                       const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
                       if (
-                        (rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) ||
+                        (rewardToken != hre.ethers.constants.AddressZero && claimableTokens.gt(0)) ||
                         getAddress(rewardToken) == getAddress(TypedTokens.COMP) ||
                         getAddress(rewardToken) == getAddress(TypedTokens.CRV) ||
                         !unpaused
@@ -1530,12 +1530,12 @@ describe(testVaultScenario.title, () => {
                     const tokenHash = generateTokenHash([tokenAddress]);
                     await essentialContracts.strategyProvider
                       .connect(users[0])
-                      .setBestStrategy(1, tokenHash, ZERO_BYTES32);
+                      .setBestStrategy(1, tokenHash, hre.ethers.constants.HashZero);
                     const bestStrategy = await essentialContracts.strategyProvider.rpToTokenToBestStrategy(
                       1,
                       tokenHash,
                     );
-                    expect(bestStrategy).to.be.eq(ZERO_BYTES32);
+                    expect(bestStrategy).to.be.eq(hre.ethers.constants.HashZero);
                     break;
                   }
                   case "approve(address,uint256)": {
