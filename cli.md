@@ -390,14 +390,17 @@ To execute functions in a OptyFi's contract.
 ### fetch-strategies
 
 ```
-Usage: fetch all strategies from Moralis and then create defiPools.json and strategies.json under .opty-sdk
-
+Usage: fetch all strategies with a particular token from Moralis under .opty-sdk
+--token       required <address> the address of token
+--chainid     required <string>  the id of chain
 ```
 
 - Example:
 
 ```
-  yarn hardhat fetch-strategies
+  yarn hardhat fetch-strategies \
+  --token 0x0000000000000000000000000000000000000000 \
+  --chainid 0x1
 ```
 
 ### set-strategies

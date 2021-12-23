@@ -134,3 +134,12 @@ export type TOKEN_STRATEGIES = {
     }[];
   }[];
 };
+
+export type NETWORKS_TYPE = "ethereum" | "polygon";
+
+export type CHAINID_NETWORKS = {
+  [chainID: string]: {
+    name: string;
+    network: NETWORKS_TYPE;
+  };
+};

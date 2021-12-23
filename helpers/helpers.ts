@@ -5,7 +5,7 @@ import { getSoliditySHA3Hash, capitalizeFirstLetter, to_10powNumber_BN } from ".
 import { getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "./data";
 import { MockContract } from "@defi-wonderland/smock";
-
+import { AxiosRequestConfig, Method } from "axios";
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
@@ -234,4 +234,29 @@ export async function deploySmockContract(smock: any, contractName: any, args: a
   const factory = await smock.mock(contractName);
   const contract = await factory.deploy(...args);
   return contract;
+}
+
+export function getMoralisConfig(
+  method: Method,
+  functionName: string,
+  args: { [key: string]: any },
+): AxiosRequestConfig {
+  const BASE_DATA_OPTIONS = {
+    _ApplicationId: process.env.MORALIS_APP_ID,
+    _ClientVersion: "js0.0.120",
+    _InstallationId: "a4e82bcc-1ef9-4379-a92f-59f2ecd557db",
+  };
+  const config = {
+    method,
+    url: `${process.env.MORALIS_SERVER_URL}/functions/${functionName}`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: JSON.stringify({
+      ...args,
+      ...BASE_DATA_OPTIONS,
+    }),
+  };
+
+  return config;
 }
