@@ -387,6 +387,22 @@ Options:
 
 To execute functions in a OptyFi's contract.
 
+### fetch-defi-pools
+
+```
+Usage: fetch all defi pools for a specific protocol from Moralis under .opty-sdk
+--protcol     required <string> the name of protocol
+--chainid     required <string>  the id of chain
+```
+
+- Example:
+
+```
+  yarn hardhat fetch-defi-pools \
+  --token AaveV1 \
+  --chainid 0x1
+```
+
 ### fetch-strategies
 
 ```

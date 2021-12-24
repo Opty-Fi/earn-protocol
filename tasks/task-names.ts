@@ -65,5 +65,9 @@ export default {
       NAME: "fetch-strategies",
       DESCRIPTION: "Fetch all strategies of a specific token from Moralis",
     },
+    FETCH_DEFI_POOLS: {
+      NAME: "fetch-defi-pools",
+      DESCRIPTION: "Fetch all pools of a specific protocol from Moralis",
+    },
   },
 };

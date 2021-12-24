@@ -19,11 +19,11 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
     }
     const tokenContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, token);
     const tokenSymbol = await tokenContract.symbol();
-    if (!NETWORKS[chainid.toString()]) {
+    const network = NETWORKS[chainid.toString()];
+    if (!network) {
       throw new Error("chain id doesn't exist");
     }
 
-    const network = NETWORKS[chainid.toString()];
     const dirPath = `.opty-sdk/${network.network}`;
     createDir(`/${dirPath}`);
 
@@ -36,7 +36,7 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
     );
     const data = response.data.result;
     const strategies: STRATEGY[] = [];
-    console.log(`Creating defiPools and strategies files`);
+    console.log(`Creating strategies files`);
 
     for (let i = 0; i < data.length; i++) {
       const steps = data[i].strategySteps;

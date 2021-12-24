@@ -10,8 +10,10 @@ export const FULCRUM_ADAPTER_NAME = "FulcrumAdapter";
 export const HARVEST_V1_ADAPTER_NAME = "HarvestV1Adapter";
 export const YVAULT_ADAPTER_NAME = "YVaultAdapter";
 export const SUSHISWAP_ADAPTER_NAME = "SushiswapAdapter";
+export const CONVEX_ADAPTER_NAME = "ConvexAdapter";
 
-export const ADAPTERS = [
+export const ADAPTERS = [AAVE_V1_ADAPTER_NAME, AAVE_V2_ADAPTER_NAME, COMPOUND_ADAPTER_NAME];
+export const PROTOCOLS = [
   AAVE_V1_ADAPTER_NAME,
   AAVE_V2_ADAPTER_NAME,
   COMPOUND_ADAPTER_NAME,
@@ -24,4 +26,5 @@ export const ADAPTERS = [
   HARVEST_V1_ADAPTER_NAME,
   YVAULT_ADAPTER_NAME,
   SUSHISWAP_ADAPTER_NAME,
-];
+  CONVEX_ADAPTER_NAME,
+].map(item => item.split("Adapter")[0]);

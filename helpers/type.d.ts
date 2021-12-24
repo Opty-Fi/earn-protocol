@@ -69,6 +69,18 @@ export type DEFI_POOLS_DATA = {
   };
 };
 
+export type DEFI_POOL_DATA = {
+  [name: string]: {
+    pool: string;
+    lpToken: string;
+    tokens: string[];
+    rewardTokens: string[];
+    stakingVault?: string;
+    pid?: string;
+    deprecated?: boolean;
+  };
+};
+
 export type ADAPTER_WITH_STRATEGIES_DATA = {
   [key: string]: STRATEGY[];
 };
