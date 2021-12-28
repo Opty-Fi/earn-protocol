@@ -12,6 +12,7 @@ import "@typechain/hardhat";
 import "solidity-coverage";
 import "hardhat-docgen";
 import "hardhat-deploy";
+import "hardhat-storage-layout";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,
