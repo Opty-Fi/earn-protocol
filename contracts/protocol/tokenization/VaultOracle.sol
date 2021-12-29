@@ -263,6 +263,7 @@ contract VaultOracle is
         address,
         uint256
     ) internal override {
+        // TODO VT can only be transferred to whitelisted users
         executeCodes(
             IStrategyManager(registryContract.getStrategyManager()).getUpdateUserRewardsCodes(address(this), from),
             "e21"
@@ -287,7 +288,7 @@ contract VaultOracle is
      * @param _strategyManager address of strategy manager contracts
      * @return _vaultValue the market value of the shares
      */
-    function _calVaultValueInUnderlyingToken(address _strategyManager) internal view returns (uint256 _vaultValue) {
+    function _oraVaultValueInUnderlyingToken(address _strategyManager) internal view returns (uint256 _vaultValue) {
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             uint256 balanceInUnderlyingToken =
                 IStrategyManager(_strategyManager).getBalanceInUnderlyingToken(
@@ -370,50 +371,75 @@ contract VaultOracle is
     /**
      * @inheritdoc IVaultOracle
      */
-    function userDepositVault(uint256 _userDepositUnderlying) external override nonReentrant {
+    function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
         // TODO the vault fee address should be defined in Registry?
         address _vaultFeeAddress = address(0);
-        uint256 _pool = _calVaultValueInUnderlyingToken(registryContract.getStrategyManager());
+        uint256 _oraBalanceUT = _oraVaultValueInUnderlyingToken(registryContract.getStrategyManager());
         // check balance before user token transfer
-        uint256 _tokenBalanceBefore = _balance();
-        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUnderlying);
+        uint256 _balanceBeforeUT = _balance();
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
         // check balance after user token transfer
-        uint256 _tokenBalanceAfter = _balance();
-        uint256 _actualDepositAmount = _tokenBalanceAfter.sub(_tokenBalanceBefore);
-        uint256 _depositFee = calcDepositFee(_actualDepositAmount);
+        uint256 _balanceAfterUT = _balance();
+        uint256 _actualDepositAmountUT = _balanceAfterUT.sub(_balanceBeforeUT);
+        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
         require(
-            userDepositPermitted(msg.sender, _actualDepositAmount.sub(_depositFee)),
+            userDepositPermitted(msg.sender, _actualDepositAmountUT.sub(_depositFeeUT)),
             Errors.USER_DEPOSIT_NOT_PERMITTED
         );
         // transfer deposit fee to vaultFeeAddress
-        if (_depositFee > 0) {
-            IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _depositFee);
+        if (_depositFeeUT > 0) {
+            IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _depositFeeUT);
         }
-        if (_pool == 0) {
-            _mint(msg.sender, _actualDepositAmount);
+        if (_oraBalanceUT == 0) {
+            _mint(msg.sender, _actualDepositAmountUT);
         } else {
-            _mint(msg.sender, (_actualDepositAmount.mul(totalSupply())).div(_pool));
+            _mint(msg.sender, (_actualDepositAmountUT.mul(totalSupply())).div(_oraBalanceUT));
         }
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function userDepositPermitted(address _user, uint256 _userDepositUnderlying) public view override returns (bool) {
+    function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
+        // TODO the vault fee address should be defined in Registry?
+        address _vaultFeeAddress = address(0);
+        uint256 _userBalanceVT = balanceOf(msg.sender);
+        require(_userWithdrawVT > 0 && _userWithdrawVT <= _userBalanceVT, Errors.USER_WITHDRAW_NOT_PERMITTED);
+        uint256 _oraBalanceUT = _oraVaultValueInUnderlyingToken(registryContract.getStrategyManager());
+        uint256 _oraUserAmountUT = _oraBalanceUT.mul(_userWithdrawVT).div(totalSupply());
+        _burn(msg.sender, _userWithdrawVT);
+        uint256 _vaultBalanceUT = _balance();
+        if (_vaultBalanceUT < _oraUserAmountUT) {
+            uint256 _withdrawAmountUT = _oraUserAmountUT.sub(_vaultBalanceUT);
+            // TODO withdraw from strategy
+            executeCodes();
+        }
+        uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserAmountUT);
+        // transfer withdraw fee to vaultFeeAddress
+        if (_withdrawFeeUT > 0) {
+            IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _withdrawFeeUT);
+        }
+        IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _oraUserAmountUT.sub(_withdrawFeeUT));
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function userDepositPermitted(address _user, uint256 _userDepositUT) public view override returns (bool) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        uint256 _userMinimumDepositLimit = _vaultConfiguration.minimumDepositAmount;
-        if (_userDepositUnderlying > 0 && _userDepositUnderlying < _userMinimumDepositLimit) {
+        uint256 _userMinimumDepositLimitUT = _vaultConfiguration.minimumDepositAmount;
+        if (_userDepositUT > 0 && _userDepositUT < _userMinimumDepositLimitUT) {
             return false;
         }
-        uint256 _vaultTVLCap = _vaultConfiguration.totalValueLockedLimitInUnderlying;
-        uint256 _vaultTVL = _calVaultValueInUnderlyingToken(registryContract.getStrategyManager());
-        if (_vaultTVL.add(_userDepositUnderlying) > _vaultTVLCap) {
+        uint256 _vaultTVLCapUT = _vaultConfiguration.totalValueLockedLimitInUnderlying;
+        uint256 _vaultTVLUT = _oraVaultValueInUnderlyingToken(registryContract.getStrategyManager());
+        if (_vaultTVLUT.add(_userDepositUT) > _vaultTVLCapUT) {
             return false;
         }
         bool _userDepositCapState = _vaultConfiguration.isLimitedState;
-        uint256 _userDepositCap = _vaultConfiguration.userDepositCap;
-        uint256 _userDepositsSumUL = totalDeposits[_user];
-        if (_userDepositCapState && _userDepositsSumUL.add(_userDepositUnderlying) > _userDepositCap) {
+        uint256 _userDepositCapUT = _vaultConfiguration.userDepositCap;
+        uint256 _userDepositsSumUT = totalDeposits[_user];
+        if (_userDepositCapState && _userDepositsSumUT.add(_userDepositUT) > _userDepositCapUT) {
             return false;
         }
         return true;
@@ -421,25 +447,48 @@ contract VaultOracle is
 
     /**
      * @notice Computes deposit fee in underlying
-     * @param _userDepositUnderlying user deposit amount in underlying
-     * @return deposit fee in underlying
+     * @param _userDepositUT user deposit amount in underlying
+     * @return _depositFeeUT deposit fee in underlying
      */
-    function calcDepositFee(uint256 _userDepositUnderlying) public view returns (uint256 _depositFee) {
+    function calcDepositFeeUT(uint256 _userDepositUT) public view returns (uint256 _depositFeeUT) {
         // TODO _depositFeeFlat and _depositFeePct part of  Vault Configuration defined in Registry?
-        uint256 _depositFeeFlat = 100;
+        uint256 _depositFeeFlatUT = 100;
         uint256 _depositFeePct = 100; // basis points
-        _depositFee = ((_userDepositUnderlying.mul(_depositFeePct)).div(10000)).add(_depositFeeFlat);
+        _depositFeeUT = ((_userDepositUT.mul(_depositFeePct)).div(10000)).add(_depositFeeFlatUT);
     }
 
     /**
      * @notice Computes withdrawal fee in underlying
-     * @param _userWithdrawUnderlying user withdraw amount in underlying
-     * @return withdrawal fee in underlying
+     * @param _userWithdrawUT user withdraw amount in underlying
+     * @return _withdrawalFeeUT withdrawal fee in underlying
      */
-    function calcWithdrawalFee(uint256 _userWithdrawUnderlying) public view returns (uint256 _withdrawalFee) {
+    function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view returns (uint256 _withdrawalFeeUT) {
         // TODO _withdrawalFeeFlat and _withdrawalFeePct part of Vault Configuration defined in Registry?
-        uint256 _withdrawalFeeFlat = 100;
+        uint256 _withdrawalFeeFlatUT = 100;
         uint256 _withdrawalFeePct = 100; // basis points
-        _withdrawalFee = ((_userWithdrawUnderlying.mul(_withdrawalFeePct)).div(10000)).add(_withdrawalFeeFlat);
+        _withdrawalFeeUT = ((_userWithdrawUT.mul(_withdrawalFeePct)).div(10000)).add(_withdrawalFeeFlatUT);
     }
+
+    /**
+     * @dev Redeem some the assets deployed in the current vault invest strategy
+     * @param _strategyManager StrategyManager contract address
+     */
+    // function _withdrawSome(address _strategyManager) internal {
+    //     if (investStrategyHash != Constants.ZERO_BYTES32) {
+    //         uint256 _steps = IStrategyManager(_strategyManager).getWithdrawStepsCount(investStrategyHash);
+    //         for (uint256 _i; _i < _steps; _i++) {
+    //             uint256 _iterator = _steps - 1 - _i;
+    //             executeCodes(
+    //                 IStrategyManager(_strategyManager).getPoolWithdrawSomeCodes(
+    //                     payable(address(this)),
+    //                     underlyingToken,
+    //                     investStrategyHash,
+    //                     _iterator,
+    //                     _steps
+    //                 ),
+    //                 Errors.VAULT_DEPOSIT_SOME_ERROR
+    //             );
+    //         }
+    //     }
+    // }
 }

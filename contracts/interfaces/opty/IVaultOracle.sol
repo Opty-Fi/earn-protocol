@@ -35,11 +35,18 @@ interface IVaultOracle {
     function harvest(bytes32 _investStrategyHash) external;
 
     /**
-     * @notice Deposit _amount of underlying token to the vault
+     * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
-     * @param _amount Amount in underlying token
+     * @param _userDepositUT Amount in underlying token
      */
-    function userDepositVault(uint256 _amount) external;
+    function userDepositVault(uint256 _userDepositUT) external;
+
+    /**
+     * @notice redeems the vault shares and transfers underlying token to the withdrawer
+     * @dev Burn the shares right away as per oracle based price per full share value
+     * @param _userWithdrawVT amount in vault token
+     */
+    function userWithdrawVault(uint256 _userWithdrawVT) external;
 
     /**
      * @notice Recall vault investments from current strategy, restricts deposits
