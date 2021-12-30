@@ -20,6 +20,34 @@ interface IVaultOracle {
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
     /**
+     * @notice sets flat deposit fee
+     * @dev the deposit fee is in underlying token
+     * @param _depositFeeFlatUT amount of deposit fee in underlying token
+     */
+    function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external;
+
+    /**
+     * @notice sets the deposit fee in percentage
+     * @dev the deposit fee is in percentage basis points
+     * @param _depositFeePct deposit fee in percentage basis points
+     */
+    function setDepositFeePct(uint256 _depositFeePct) external;
+
+    /**
+     * @notice sets flat withdrawal fee
+     * @dev the withdrawal fee is in underlying token
+     * @param _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
+     */
+    function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external;
+
+    /**
+     * @notice sets the withdrawal fee in percentage
+     * @dev the withdrawal fee is in percentage basis points
+     * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
+     */
+    function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
+
+    /**
      * @notice Withdraw the underying asset of vault from previous strategy if any,
      *         claims and swaps the reward tokens for the underlying token
      *         performs batch minting of shares for users deposited previously without rebalance,

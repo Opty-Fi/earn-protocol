@@ -13,6 +13,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // interfaces
 import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
+import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import {
     IInvestStrategyRegistry
 } from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
@@ -32,11 +33,15 @@ library StrategyManagerLib {
     using Address for address;
     using SafeMath for uint256;
 
-    function getWithdrawStepsCount(bytes32 _investStrategyhash) internal view override returns (uint256) {
+    function getWithdrawStepsCount(IRegistry registryContract, bytes32 _investStrategyhash)
+        internal
+        view
+        returns (uint256)
+    {
         if (_investStrategyhash == Constants.ZERO_BYTES32) {
             return uint256(0);
         }
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint256 _steps = _strategySteps.length;
         for (uint256 _i = 0; _i < _strategySteps.length; _i++) {
             if (_strategySteps[_i].isBorrow) {
@@ -46,11 +51,15 @@ library StrategyManagerLib {
         return _steps;
     }
 
-    function getDepositStepsCount(bytes32 _investStrategyhash) internal view override returns (uint256) {
+    function getDepositStepsCount(IRegistry registryContract, bytes32 _investStrategyhash)
+        internal
+        view
+        returns (uint256)
+    {
         if (_investStrategyhash == Constants.ZERO_BYTES32) {
             return uint8(0);
         }
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint256 _strategyStepCount = _strategySteps.length;
         uint256 _lastStepIndex = _strategyStepCount - 1;
         address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
@@ -66,25 +75,14 @@ library StrategyManagerLib {
         return _strategyStepCount;
     }
 
-    function getClaimRewardStepsCount(bytes32 _investStrategyhash) internal view override returns (uint8) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
-        uint256 _lastStepIndex = _strategySteps.length - 1;
-        address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
-        address _lastStepOptyAdapter = registryContract.getLiquidityPoolToAdapter(_lastStepLiquidityPool);
-        if (IAdapterFull(_lastStepOptyAdapter).getRewardToken(_lastStepLiquidityPool) != address(0)) {
-            return uint8(1);
-        }
-        return uint8(0);
-    }
-
     function getBalanceInUnderlyingToken(
+        IRegistry registryContract,
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash
-    ) internal view override returns (uint256) {
-        uint256 _steps = _getStrategySteps(_investStrategyhash).length;
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
-        _balance = 0;
+    ) internal view returns (uint256 _balance) {
+        uint256 _steps = _getStrategySteps(registryContract, _investStrategyhash).length;
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint256 _outputTokenAmount = _balance;
         for (uint256 _i = 0; _i < _steps; _i++) {
             uint256 _iterator = _steps - 1 - _i;
@@ -125,13 +123,14 @@ library StrategyManagerLib {
     }
 
     function getPoolDepositAllCodes(
+        IRegistry registryContract,
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash,
         uint256 _stepIndex,
         uint256 _stepCount
-    ) internal view override returns (bytes[] memory) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
+    ) internal view returns (bytes[] memory _codes) {
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint8 _subStepCounter = 0;
         for (uint256 _i = 0; _i < _strategySteps.length; _i++) {
             if (_i != 0) {
@@ -176,14 +175,15 @@ library StrategyManagerLib {
     }
 
     function getPoolDepositSomeCodes(
+        IRegistry registryContract,
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash,
         uint256 _depositAmountUT,
         uint256 _stepIndex,
         uint256 _stepCount
-    ) internal view override returns (bytes[] memory) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
+    ) internal view returns (bytes[] memory _codes) {
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint8 _subStepCounter = 0;
         for (uint256 _i = 0; _i < _strategySteps.length; _i++) {
             if (_i != 0) {
@@ -214,13 +214,14 @@ library StrategyManagerLib {
     }
 
     function getPoolWithdrawAllCodes(
+        IRegistry registryContract,
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash,
         uint256 _stepIndex,
         uint256 _stepCount
-    ) internal view override returns (bytes[] memory) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
+    ) internal view returns (bytes[] memory _codes) {
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint256 _subStepCounter = _stepCount - 1;
         for (uint256 _i = 0; _i < _strategySteps.length; _i++) {
             uint256 _iterator = _strategySteps.length - 1 - _i;
@@ -275,14 +276,15 @@ library StrategyManagerLib {
     }
 
     function getPoolWithdrawSomeCodes(
+        IRegistry registryContract,
         address payable _vault,
         address _underlyingToken,
         bytes32 _investStrategyhash,
         uint256 _redeemAmountLP,
         uint256 _stepIndex,
         uint256 _stepCount
-    ) internal view override returns (bytes[] memory) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyhash);
+    ) internal view returns (bytes[] memory _codes) {
+        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
         uint256 _subStepCounter = _stepCount - 1;
         for (uint256 _i = 0; _i < _strategySteps.length; _i++) {
             uint256 _iterator = _strategySteps.length - 1 - _i;
@@ -310,119 +312,13 @@ library StrategyManagerLib {
         }
     }
 
-    function getPoolClaimAllRewardCodes(address payable _vault, bytes32 _investStrategyhash)
+    function _getStrategySteps(IRegistry registryContract, bytes32 _hash)
         internal
         view
-        override
-        returns (bytes[] memory)
+        returns (DataTypes.StrategyStep[] memory _strategySteps)
     {
-        return _getPoolClaimAllRewardCodes(_vault, _investStrategyhash);
-    }
-
-    function getPoolHarvestAllRewardCodes(
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyHash
-    ) internal view override returns (bytes[] memory) {
-        return _getPoolHarvestAllRewardCodes(_vault, _underlyingToken, _investStrategyHash);
-    }
-
-    function getPoolHarvestSomeRewardCodes(
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyHash,
-        DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
-    ) internal view override returns (bytes[] memory) {
-        return _getPoolHarvestSomeRewardCodes(_vault, _underlyingToken, _investStrategyHash, _vaultRewardStrategy);
-    }
-
-    /**
-     * @inheritdoc IStrategyManager
-     */
-    function getAddLiquidityCodes(
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyHash
-    ) internal view override returns (bytes[] memory) {
-        return _getAddLiquidityCodes(_vault, _underlyingToken, _investStrategyHash);
-    }
-
-    /**
-     * @inheritdoc IStrategyManager
-     */
-    function getRewardToken(bytes32 _investStrategyHash) internal view override returns (address _rewardToken) {
-        (, , _rewardToken) = _getLastStepLiquidityPool(_investStrategyHash);
-    }
-
-    function _getStrategySteps(bytes32 _hash) internal view returns (DataTypes.StrategyStep[] memory _strategySteps) {
         IInvestStrategyRegistry _investStrategyRegistry =
             IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry());
         (, _strategySteps) = _investStrategyRegistry.getStrategy(_hash);
-    }
-
-    function _getPoolHarvestAllRewardCodes(
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyHash
-    ) internal view returns (bytes[] memory) {
-        (address _liquidityPool, address _adapter, ) = _getLastStepLiquidityPool(_investStrategyHash);
-        return IAdapterFull(_adapter).getHarvestAllCodes(_vault, _underlyingToken, _liquidityPool);
-    }
-
-    function _getPoolHarvestSomeRewardCodes(
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyHash,
-        DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
-    ) internal view returns (bytes[] memory) {
-        (address _liquidityPool, address _adapter, address _rewardToken) =
-            _getLastStepLiquidityPool(_investStrategyHash);
-        //  get reward token balance for vault
-        uint256 _rewardTokenBalance = IERC20(_rewardToken).balanceOf(_vault);
-        //  calculation in basis points
-        uint256 _harvestableRewardTokens =
-            _vaultRewardStrategy.hold == uint256(0) && _vaultRewardStrategy.convert == uint256(0)
-                ? _rewardTokenBalance
-                : _rewardTokenBalance.mul(_vaultRewardStrategy.convert).div(10000);
-        return
-            IAdapterFull(_adapter).getHarvestSomeCodes(
-                _vault,
-                _underlyingToken,
-                _liquidityPool,
-                _harvestableRewardTokens
-            );
-    }
-
-    function _getAddLiquidityCodes(
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyHash
-    ) internal view returns (bytes[] memory) {
-        (, address _adapter, ) = _getLastStepLiquidityPool(_investStrategyHash);
-        return IAdapterFull(_adapter).getAddLiquidityCodes(_vault, _underlyingToken);
-    }
-
-    function _getPoolClaimAllRewardCodes(address payable _vault, bytes32 _investStrategyhash)
-        internal
-        view
-        returns (bytes[] memory)
-    {
-        (address _liquidityPool, address _adapter, ) = _getLastStepLiquidityPool(_investStrategyhash);
-        return IAdapterFull(_adapter).getClaimRewardTokenCode(_vault, _liquidityPool);
-    }
-
-    function _getLastStepLiquidityPool(bytes32 _investStrategyHash)
-        internal
-        view
-        returns (
-            address _liquidityPool,
-            address _adapter,
-            address _rewardToken
-        )
-    {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(_investStrategyHash);
-        _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
-        _adapter = registryContract.getLiquidityPoolToAdapter(_liquidityPool);
-        _rewardToken = IAdapterFull(_adapter).getRewardToken(_liquidityPool);
     }
 }

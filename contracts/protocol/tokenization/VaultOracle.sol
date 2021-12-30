@@ -9,7 +9,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
 import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
-import { VaultStorage } from "./VaultStorage.sol";
+import { VaultStorageV2 } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // libraries
@@ -39,7 +39,7 @@ contract VaultOracle is
     MultiCall,
     Modifiers,
     ReentrancyGuard,
-    VaultStorage
+    VaultStorageV2
 {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -102,6 +102,34 @@ contract VaultOracle is
     /**
      * @inheritdoc IVaultOracle
      */
+    function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external override onlyGovernance {
+        depositFeeFlatUT = _depositFeeFlatUT;
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function setDepositFeePct(uint256 _depositFeePct) external override onlyGovernance {
+        depositFeePct = _depositFeePct;
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external override onlyGovernance {
+        withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyGovernance {
+        withdrawalFeePct = _withdrawalFeePct;
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
     function rebalance() external override ifNotPausedAndDiscontinued(address(this)) {}
 
     /**
@@ -149,7 +177,7 @@ contract VaultOracle is
     function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
             return
-                _calVaultValueInUnderlyingToken(registryContract.getStrategyManager()).mul(Constants.WEI_DECIMAL).div(
+                _oraVaultValueInUnderlyingToken(registryContract.getStrategyManager()).mul(Constants.WEI_DECIMAL).div(
                     totalSupply()
                 );
         } else {
@@ -412,14 +440,14 @@ contract VaultOracle is
         if (_vaultBalanceUT < _oraUserAmountUT) {
             uint256 _withdrawAmountUT = _oraUserAmountUT.sub(_vaultBalanceUT);
             // TODO withdraw from strategy
-            executeCodes();
+            // executeCodes();
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserAmountUT);
         // transfer withdraw fee to vaultFeeAddress
         if (_withdrawFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _withdrawFeeUT);
         }
-        IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _oraUserAmountUT.sub(_withdrawFeeUT));
+        IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserAmountUT.sub(_withdrawFeeUT));
     }
 
     /**
@@ -447,14 +475,12 @@ contract VaultOracle is
 
     /**
      * @notice Computes deposit fee in underlying
+     * @dev
      * @param _userDepositUT user deposit amount in underlying
-     * @return _depositFeeUT deposit fee in underlying
+     * @return deposit fee in underlying
      */
-    function calcDepositFeeUT(uint256 _userDepositUT) public view returns (uint256 _depositFeeUT) {
-        // TODO _depositFeeFlat and _depositFeePct part of  Vault Configuration defined in Registry?
-        uint256 _depositFeeFlatUT = 100;
-        uint256 _depositFeePct = 100; // basis points
-        _depositFeeUT = ((_userDepositUT.mul(_depositFeePct)).div(10000)).add(_depositFeeFlatUT);
+    function calcDepositFeeUT(uint256 _userDepositUT) public view returns (uint256) {
+        return ((_userDepositUT.mul(depositFeePct)).div(10000)).add(depositFeeFlatUT);
     }
 
     /**
@@ -462,11 +488,8 @@ contract VaultOracle is
      * @param _userWithdrawUT user withdraw amount in underlying
      * @return _withdrawalFeeUT withdrawal fee in underlying
      */
-    function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view returns (uint256 _withdrawalFeeUT) {
-        // TODO _withdrawalFeeFlat and _withdrawalFeePct part of Vault Configuration defined in Registry?
-        uint256 _withdrawalFeeFlatUT = 100;
-        uint256 _withdrawalFeePct = 100; // basis points
-        _withdrawalFeeUT = ((_userWithdrawUT.mul(_withdrawalFeePct)).div(10000)).add(_withdrawalFeeFlatUT);
+    function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view returns (uint256) {
+        return ((_userWithdrawUT.mul(withdrawalFeePct)).div(10000)).add(withdrawalFeeFlatUT);
     }
 
     /**

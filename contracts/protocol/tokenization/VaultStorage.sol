@@ -77,3 +77,17 @@ contract VaultStorage {
      */
     event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
 }
+
+contract VaultStorageV2 is VaultStorage {
+    /**@notice flat deposit fee in underlying tokens*/
+    uint256 public depositFeeFlatUT;
+
+    /**@notice  deposit fee in percentage basis points*/
+    uint256 public depositFeePct;
+
+    /**@notice flat withdrawal fee in underlying token*/
+    uint256 public withdrawalFeeFlatUT;
+
+    /**@notice withdrawal fee in percentage basis points*/
+    uint256 public withdrawalFeePct;
+}
