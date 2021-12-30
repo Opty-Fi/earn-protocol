@@ -188,19 +188,18 @@ library StrategyManagerLib {
         for (uint256 _i = 0; _i < _strategySteps.length; _i++) {
             if (_i != 0) {
                 _underlyingToken = _strategySteps[_i - 1].outputToken;
+                _depositAmountUT = IERC20(_underlyingToken).balanceOf(_vault);
             }
             // assuming borrow step is not happening
             if (_stepIndex == _subStepCounter) {
                 address _liquidityPool = _strategySteps[_i].pool;
                 address _adapter = registryContract.getLiquidityPoolToAdapter(_liquidityPool);
-                _codes = _stepIndex == 0
-                    ? IAdapterFull(_adapter).getDepositSomeCodes(
-                        _vault,
-                        _underlyingToken,
-                        _liquidityPool,
-                        _depositAmountUT
-                    )
-                    : IAdapterFull(_adapter).getDepositAllCodes(_vault, _underlyingToken, _liquidityPool);
+                _codes = IAdapterFull(_adapter).getDepositSomeCodes(
+                    _vault,
+                    _underlyingToken,
+                    _liquidityPool,
+                    _depositAmountUT
+                );
                 break;
             } // deposit at ith step
             if (_stepIndex == (_subStepCounter + 1) && _i == (_strategySteps.length - 1)) {
@@ -290,22 +289,18 @@ library StrategyManagerLib {
             uint256 _iterator = _strategySteps.length - 1 - _i;
             // Assuming borrow strategy is not happening
             if (_stepIndex == _subStepCounter) {
-                _underlyingToken = (_iterator != 0) ? _strategySteps[_iterator - 1].outputToken : _underlyingToken;
-                address _adapter = registryContract.getLiquidityPoolToAdapter(_strategySteps[_iterator].pool);
-                _codes = (_iterator == (_strategySteps.length - 1) &&
-                    IAdapterFull(_adapter).canStake(_strategySteps[_iterator].pool))
-                    ? IAdapterFull(_adapter).getUnstakeAndWithdrawSomeCodes(
-                        _vault,
-                        _underlyingToken,
-                        _strategySteps[_iterator].pool,
-                        _redeemAmountLP
-                    )
-                    : IAdapterFull(_adapter).getWithdrawSomeCodes(
-                        _vault,
-                        _underlyingToken,
-                        _strategySteps[_iterator].pool,
-                        _redeemAmountLP
-                    );
+                address _liquidityPool = _strategySteps[_iterator].pool;
+                IAdapterFull _adapter = IAdapterFull(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+                bool _canStake = _adapter.canStake(_liquidityPool);
+                if (_iterator != 0) {
+                    _underlyingToken = _strategySteps[_iterator - 1].outputToken;
+                    _redeemAmountLP = _canStake
+                        ? _adapter.getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool)
+                        : _adapter.getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+                }
+                _codes = (_iterator == (_strategySteps.length - 1) && _canStake)
+                    ? _adapter.getUnstakeAndWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmountLP)
+                    : _adapter.getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmountLP);
                 break;
             } // withdraw/unstakeAndWithdraw at _iterator th step
             _subStepCounter--;
