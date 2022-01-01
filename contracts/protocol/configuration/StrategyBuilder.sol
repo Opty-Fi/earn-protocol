@@ -22,44 +22,31 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * claim/harvest reward tokens from the adapters and pass it onto vault contract
  */
 library StrategyBuilder {
-    function getWithdrawStepsCount(IRegistry registryContract, bytes32 _investStrategyhash)
-        internal
-        view
-        returns (uint256)
-    {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
+    function getDepositInternalTransactionCount(
+        DataTypes.StrategyStep[] memory _strategySteps,
+        address _registryContract
+    ) internal view returns (uint256) {
         uint256 _strategyStepCount = _strategySteps.length;
-        uint256 _nStrategySteps = _strategyStepCount;
-        return _getStrategySteps(registryContract, _investStrategyhash).length;
-    }
-
-    function getDepositStepsCount(IRegistry registryContract, bytes32 _investStrategyhash)
-        internal
-        view
-        returns (uint256)
-    {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
-        uint256 _strategyStepCount = _strategySteps.length;
-        uint256 _lastStepIndex = _strategyStepCount - 1;
-        address _lastStepLiquidityPool = _strategySteps[_lastStepIndex].pool;
-        IAdapterFull _lastStepAdapter =
-            IAdapterFull(registryContract.getLiquidityPoolToAdapter(_lastStepLiquidityPool));
-        if (_lastStepAdapter.canStake(_lastStepLiquidityPool)) {
+        address _lastStepLiquidityPool = _strategySteps[_strategyStepCount - 1].pool;
+        if (
+            IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_lastStepLiquidityPool)).canStake(
+                _lastStepLiquidityPool
+            )
+        ) {
             return (_strategyStepCount + 1);
         }
         return _strategyStepCount;
     }
 
-    function getBalanceInUnderlyingToken(
+    function getAmountUT(
         IRegistry registryContract,
         address payable _vault,
         address _underlyingToken,
-        bytes32 _investStrategyhash
-    ) internal view returns (uint256 _balance) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
+        DataTypes.StrategyStep[] memory _strategySteps
+    ) internal view returns (uint256 _amountUT) {
         uint256 _nStrategySteps = _strategySteps.length;
         uint256 _outputTokenAmount;
-        for (uint256 _i = 0; _i < _nStrategySteps; _i++) {
+        for (uint256 _i; _i < _nStrategySteps; _i++) {
             uint256 _iterator = _nStrategySteps - 1 - _i;
             address _liquidityPool = _strategySteps[_iterator].pool;
             IAdapterFull _adapter = IAdapterFull(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
@@ -69,76 +56,90 @@ library StrategyBuilder {
             }
             if (_iterator == (_nStrategySteps - 1)) {
                 if (_adapter.canStake(_liquidityPool)) {
-                    _balance = _adapter.getAllAmountInTokenStake(_vault, _inputToken, _liquidityPool);
+                    _amountUT = _adapter.getAllAmountInTokenStake(_vault, _inputToken, _liquidityPool);
                 } else {
-                    _balance = _adapter.getAllAmountInToken(_vault, _inputToken, _liquidityPool);
+                    _amountUT = _adapter.getAllAmountInToken(_vault, _inputToken, _liquidityPool);
                 }
             } else {
-                _balance = _adapter.getSomeAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
+                _amountUT = _adapter.getSomeAmountInToken(_inputToken, _liquidityPool, _outputTokenAmount);
             }
-            _outputTokenAmount = _balance;
+            _outputTokenAmount = _amountUT;
         }
     }
 
+    function getSomeAmountLP() internal view returns (uint256) {}
+
     function getPoolDepositCodes(
-        IRegistry registryContract,
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyhash,
-        uint256 _depositAmountUT,
-        uint256 _stepIndex,
-        uint256 _strategyStepCount
+        DataTypes.StrategyStep[] memory _strategySteps,
+        DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
     ) internal view returns (bytes[] memory _codes) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
-        address _liquidityPool;
-        IAdapterFull _adapter;
-        if (_stepIndex == _strategyStepCount) {
-            _liquidityPool = _strategySteps[_stepIndex - 1].pool;
-            _adapter = IAdapterFull(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
-            _underlyingToken = _strategySteps[_stepIndex - 1].outputToken;
-            _depositAmountUT = IERC20(_underlyingToken).balanceOf(_vault);
-            _codes = _adapter.getStakeAllCodes(_vault, _underlyingToken, _liquidityPool);
+        IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
+        address _underlyingToken = _strategyConfigurationParams.underlyingToken;
+        uint256 _depositAmountUT = _strategyConfigurationParams.initialStepInputAmount;
+        if (
+            _strategyConfigurationParams.internalTransactionIndex ==
+            _strategyConfigurationParams.internalTransactionCount
+        ) {
+            address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].pool;
+            IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+            _underlyingToken = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].outputToken;
+            _depositAmountUT = IERC20(_strategyConfigurationParams.underlyingToken).balanceOf(
+                _strategyConfigurationParams.vault
+            );
+            _codes = _adapter.getStakeAllCodes(
+                _strategyConfigurationParams.vault,
+                _strategyConfigurationParams.underlyingToken,
+                _liquidityPool
+            );
         } else {
-            _liquidityPool = _strategySteps[_stepIndex].pool;
-            _adapter = IAdapterFull(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
-            if (_stepIndex != 0) {
-                _underlyingToken = _strategySteps[_stepIndex - 1].outputToken;
-                _depositAmountUT = IERC20(_underlyingToken).balanceOf(_vault);
+            address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].pool;
+            IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+            if (_strategyConfigurationParams.internalTransactionIndex != 0) {
+                _underlyingToken = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1]
+                    .outputToken;
+                _depositAmountUT = IERC20(_underlyingToken).balanceOf(_strategyConfigurationParams.vault);
             }
-            _codes = _adapter.getDepositSomeCodes(_vault, _underlyingToken, _liquidityPool, _depositAmountUT);
+            _codes = _adapter.getDepositSomeCodes(
+                _strategyConfigurationParams.vault,
+                _underlyingToken,
+                _liquidityPool,
+                _depositAmountUT
+            );
         }
     }
 
     function getPoolWithdrawCodes(
-        IRegistry registryContract,
-        address payable _vault,
-        address _underlyingToken,
-        bytes32 _investStrategyhash,
-        uint256 _redeemAmountLP,
-        uint256 _stepIndex,
-        uint256 _strategyStepCount
+        DataTypes.StrategyStep[] memory _strategySteps,
+        DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
     ) internal view returns (bytes[] memory _codes) {
-        DataTypes.StrategyStep[] memory _strategySteps = _getStrategySteps(registryContract, _investStrategyhash);
-        address _liquidityPool = _strategySteps[_stepIndex].pool;
-        IAdapterFull _adapter = IAdapterFull(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
-        if (_stepIndex != 0) {
-            _underlyingToken = _strategySteps[_stepIndex - 1].outputToken;
+        address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].pool;
+        IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
+        IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+        address _underlyingToken = _strategyConfigurationParams.underlyingToken;
+        uint256 _redeemAmountLP = _strategyConfigurationParams.initialStepInputAmount;
+        if (_strategyConfigurationParams.internalTransactionIndex != 0) {
+            _underlyingToken = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].outputToken;
         }
-        if (_stepIndex != (_strategyStepCount - 1)) {
-            _redeemAmountLP = IERC20(_underlyingToken).balanceOf(_vault);
+        if (
+            _strategyConfigurationParams.internalTransactionIndex !=
+            (_strategyConfigurationParams.internalTransactionCount - 1)
+        ) {
+            _redeemAmountLP = IERC20(_underlyingToken).balanceOf(_strategyConfigurationParams.vault);
         }
-        _codes = (_stepIndex == (_strategyStepCount - 1) && _adapter.canStake(_liquidityPool))
-            ? _adapter.getUnstakeAndWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmountLP)
-            : _adapter.getWithdrawSomeCodes(_vault, _underlyingToken, _liquidityPool, _redeemAmountLP);
-    }
-
-    function _getStrategySteps(IRegistry registryContract, bytes32 _investStrategyhash)
-        internal
-        view
-        returns (DataTypes.StrategyStep[] memory _strategySteps)
-    {
-        (, _strategySteps) = IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(
-            _investStrategyhash
-        );
+        _codes = (_strategyConfigurationParams.internalTransactionIndex ==
+            (_strategyConfigurationParams.internalTransactionCount - 1) &&
+            _adapter.canStake(_liquidityPool))
+            ? _adapter.getUnstakeAndWithdrawSomeCodes(
+                _strategyConfigurationParams.vault,
+                _underlyingToken,
+                _liquidityPool,
+                _redeemAmountLP
+            )
+            : _adapter.getWithdrawSomeCodes(
+                _strategyConfigurationParams.vault,
+                _underlyingToken,
+                _liquidityPool,
+                _redeemAmountLP
+            );
     }
 }

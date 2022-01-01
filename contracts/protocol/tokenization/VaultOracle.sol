@@ -17,12 +17,16 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
+import { StrategyBuilder } from "../configuration/StrategyBuilder.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IVaultOracle } from "../../interfaces/opty/IVaultOracle.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
+import {
+    IInvestStrategyRegistry
+} from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum/interfaces/IHarvestCodeProvider.sol";
 
@@ -43,6 +47,7 @@ contract VaultOracle is
 {
     using SafeERC20 for IERC20;
     using Address for address;
+    using StrategyBuilder for DataTypes.StrategyStep[];
 
     /**
      * @dev The version of the Vault business logic
@@ -439,7 +444,6 @@ contract VaultOracle is
         uint256 _vaultBalanceUT = _balance();
         if (_vaultBalanceUT < _oraUserAmountUT) {
             uint256 _withdrawAmountUT = _oraUserAmountUT.sub(_vaultBalanceUT);
-            // TODO withdraw from strategy
             // executeCodes();
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserAmountUT);
@@ -448,6 +452,33 @@ contract VaultOracle is
             IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _withdrawFeeUT);
         }
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserAmountUT.sub(_withdrawFeeUT));
+    }
+
+    function vaultDepositToStrategy() public {
+        if (investStrategyHash != Constants.ZERO_BYTES32) {
+            (, DataTypes.StrategyStep[] memory _strategySteps) =
+                IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(investStrategyHash);
+            uint256 _internalTransactionCount =
+                _strategySteps.getDepositInternalTransactionCount(address(registryContract));
+            uint256 _initialStepInputAmountUT = _balance();
+            for (uint256 _i; _i < _internalTransactionCount; _i++) {
+                executeCodes(
+                    (
+                        _strategySteps.getPoolDepositCodes(
+                            DataTypes.StrategyConfigurationParams({
+                                registryContract: address(registryContract),
+                                vault: payable(address(this)),
+                                underlyingToken: underlyingToken,
+                                initialStepInputAmount: _initialStepInputAmountUT,
+                                internalTransactionIndex: _i,
+                                internalTransactionCount: _internalTransactionCount
+                            })
+                        )
+                    ),
+                    Errors.VAULT_DEPOSIT_ERROR
+                );
+            }
+        }
     }
 
     /**
@@ -490,6 +521,16 @@ contract VaultOracle is
      */
     function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view returns (uint256) {
         return ((_userWithdrawUT.mul(withdrawalFeePct)).div(10000)).add(withdrawalFeeFlatUT);
+    }
+
+    /**
+     * @notice Returns next best invest strategy that the vault will execute on next rebalance
+     * @return the bytes32 hash of the invest strategy
+     */
+    function getNextBestStrategy() public view returns (bytes32) {
+        address[] memory _underlyingTokens = new address[](1);
+        _underlyingTokens[0] = underlyingToken;
+        return IRiskManager(registryContract.getRiskManager()).getBestStrategy(riskProfileCode, _underlyingTokens);
     }
 
     /**
