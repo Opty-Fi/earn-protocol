@@ -90,4 +90,7 @@ contract VaultStorageV2 is VaultStorage {
 
     /**@notice withdrawal fee in percentage basis points*/
     uint256 public withdrawalFeePct;
+
+    /**@notice address that collects vault deposit and withdraw fee*/
+    address public vaultFeeAddress;
 }

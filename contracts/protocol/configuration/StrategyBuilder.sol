@@ -142,4 +142,16 @@ library StrategyBuilder {
                 _redeemAmountLP
             );
     }
+
+    function getLastStrategyStepBalanceLP(
+        DataTypes.StrategyStep[] memory _strategySteps,
+        address _registryContract,
+        address payable _vault,
+        address _underlyingToken
+    ) internal view returns (uint256) {
+        address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
+        return
+            IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool))
+                .getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+    }
 }

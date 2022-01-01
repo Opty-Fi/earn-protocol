@@ -21,6 +21,7 @@ import { StrategyBuilder } from "../configuration/StrategyBuilder.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
 import { IVaultOracle } from "../../interfaces/opty/IVaultOracle.sol";
 import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
@@ -131,11 +132,6 @@ contract VaultOracle is
     function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyGovernance {
         withdrawalFeePct = _withdrawalFeePct;
     }
-
-    /**
-     * @inheritdoc IVaultOracle
-     */
-    function rebalance() external override ifNotPausedAndDiscontinued(address(this)) {}
 
     /**
      * @inheritdoc IVaultOracle
@@ -405,8 +401,6 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
-        // TODO the vault fee address should be defined in Registry?
-        address _vaultFeeAddress = address(0);
         uint256 _oraBalanceUT = _oraVaultValueInUnderlyingToken(registryContract.getStrategyManager());
         // check balance before user token transfer
         uint256 _balanceBeforeUT = _balance();
@@ -421,7 +415,7 @@ contract VaultOracle is
         );
         // transfer deposit fee to vaultFeeAddress
         if (_depositFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _depositFeeUT);
+            IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _depositFeeUT);
         }
         if (_oraBalanceUT == 0) {
             _mint(msg.sender, _actualDepositAmountUT);
@@ -434,8 +428,6 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
-        // TODO the vault fee address should be defined in Registry?
-        address _vaultFeeAddress = address(0);
         uint256 _userBalanceVT = balanceOf(msg.sender);
         require(_userWithdrawVT > 0 && _userWithdrawVT <= _userBalanceVT, Errors.USER_WITHDRAW_NOT_PERMITTED);
         uint256 _oraBalanceUT = _oraVaultValueInUnderlyingToken(registryContract.getStrategyManager());
@@ -449,7 +441,7 @@ contract VaultOracle is
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserAmountUT);
         // transfer withdraw fee to vaultFeeAddress
         if (_withdrawFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(_vaultFeeAddress, _withdrawFeeUT);
+            IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _withdrawFeeUT);
         }
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserAmountUT.sub(_withdrawFeeUT));
     }
@@ -478,6 +470,21 @@ contract VaultOracle is
                     Errors.VAULT_DEPOSIT_ERROR
                 );
             }
+        }
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function rebalance() external override {
+        bytes32 _nextBestInvestStrategyHash = getNextBestStrategy();
+        if (_nextBestInvestStrategyHash != investStrategyHash) {
+            // withdraw
+            investStrategyHash = _nextBestInvestStrategyHash;
+            vaultDepositToStrategy();
+        }
+        if (_balance() > 0) {
+            vaultDepositToStrategy();
         }
     }
 
@@ -532,6 +539,19 @@ contract VaultOracle is
         _underlyingTokens[0] = underlyingToken;
         return IRiskManager(registryContract.getRiskManager()).getBestStrategy(riskProfileCode, _underlyingTokens);
     }
+
+    function getLastStrategyStepBalanceLP() public view returns (uint256) {
+        (, DataTypes.StrategyStep[] memory _strategySteps) =
+            IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(investStrategyHash);
+        return
+            _strategySteps.getLastStrategyStepBalanceLP(
+                address(registryContract),
+                payable(address(this)),
+                underlyingToken
+            );
+    }
+
+    function _withdraw(uint256 _amountLP) internal {}
 
     /**
      * @dev Redeem some the assets deployed in the current vault invest strategy
