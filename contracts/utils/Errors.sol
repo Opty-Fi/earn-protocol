@@ -6,4 +6,5 @@ library Errors {
     string public constant USER_DEPOSIT_NOT_PERMITTED = "1";
     string public constant USER_WITHDRAW_NOT_PERMITTED = "2";
     string public constant VAULT_DEPOSIT_ERROR = "3";
+    string public constant VAULT_WITHDRAW_ERROR = "4";
 }

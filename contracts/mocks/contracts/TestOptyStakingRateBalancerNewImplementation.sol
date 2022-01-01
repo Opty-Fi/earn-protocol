@@ -44,7 +44,7 @@ contract TestOptyStakingRateBalancerNewImplementation is OPTYStakingRateBalancer
         return true;
     }
 
-    function balanceOf(address) public view returns (uint256) {
+    function balanceOf(address) public pure returns (uint256) {
         return 0;
     }
 }

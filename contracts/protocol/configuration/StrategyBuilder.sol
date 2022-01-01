@@ -39,17 +39,17 @@ library StrategyBuilder {
     }
 
     function getAmountUT(
-        IRegistry registryContract,
+        DataTypes.StrategyStep[] memory _strategySteps,
+        address registryContract,
         address payable _vault,
-        address _underlyingToken,
-        DataTypes.StrategyStep[] memory _strategySteps
+        address _underlyingToken
     ) internal view returns (uint256 _amountUT) {
         uint256 _nStrategySteps = _strategySteps.length;
         uint256 _outputTokenAmount;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             uint256 _iterator = _nStrategySteps - 1 - _i;
             address _liquidityPool = _strategySteps[_iterator].pool;
-            IAdapterFull _adapter = IAdapterFull(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+            IAdapterFull _adapter = IAdapterFull(IRegistry(registryContract).getLiquidityPoolToAdapter(_liquidityPool));
             address _inputToken = _underlyingToken;
             if (_iterator != 0) {
                 _inputToken = _strategySteps[_iterator - 1].outputToken;
@@ -67,7 +67,28 @@ library StrategyBuilder {
         }
     }
 
-    function getSomeAmountLP() internal view returns (uint256) {}
+    function getSomeAmountLP(
+        DataTypes.StrategyStep[] memory _strategySteps,
+        address registryContract,
+        address _underlyingToken,
+        uint256 _wantAmountUT
+    ) internal view returns (uint256 _amountLP) {
+        uint256 _nStrategySteps = _strategySteps.length;
+        for (uint256 _i; _i < _nStrategySteps; _i++) {
+            address _liquidityPool = _strategySteps[_i].pool;
+            IAdapterFull _adapter = IAdapterFull(IRegistry(registryContract).getLiquidityPoolToAdapter(_liquidityPool));
+            address _inputToken = _underlyingToken;
+            if (_i != 0) {
+                _inputToken = _strategySteps[_i - 1].outputToken;
+            }
+            _amountLP = _adapter.calculateAmountInLPToken(
+                _inputToken,
+                _liquidityPool,
+                _i == 0 ? _wantAmountUT : _amountLP
+            );
+            // the _amountLP will be actually _wantAmountUT for _i+1th step
+        }
+    }
 
     function getPoolDepositCodes(
         DataTypes.StrategyStep[] memory _strategySteps,
