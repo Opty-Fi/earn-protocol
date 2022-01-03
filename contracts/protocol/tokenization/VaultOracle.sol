@@ -28,7 +28,6 @@ import {
     IInvestStrategyRegistry
 } from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
-import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum/interfaces/IHarvestCodeProvider.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -39,6 +38,7 @@ import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum
 // TODO :
 // - Whitelist management
 // - Harvesting functionality
+// - The shares can be only transfered to whitelisted users if in whitelisted state
 
 contract VaultOracle is
     VersionedInitializable,
