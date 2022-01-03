@@ -36,6 +36,10 @@ import { IHarvestCodeProvider } from "../team-defi-adapters/contracts/1_ethereum
  * @notice Implementation of the risk specific interest bearing vault
  */
 
+// TODO :
+// - Whitelist management
+// - Harvesting functionality
+
 contract VaultOracle is
     VersionedInitializable,
     IVaultOracle,
