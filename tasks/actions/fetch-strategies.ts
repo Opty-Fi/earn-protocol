@@ -12,7 +12,7 @@ import { isAddress } from "../../helpers/helpers";
 
 task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGIES.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
-  .addParam("chainid", "the id of chain", "0x1", types.string)
+  .addParam("chainid", "the id of chain", "", types.string)
   .setAction(async ({ token, chainid }, hre) => {
     if (!isAddress(token)) {
       throw new Error("token address is invalid");
@@ -50,7 +50,7 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
         try {
           lpTokenSymbol = lpToken !== hre.ethers.constants.AddressZero ? await lpContract.symbol() : "0x0";
         } catch (error) {
-          //Ignore in a case that symbol() fails
+          //A token like MKR does not return string type on call to symbol() or name() function
         }
         strategyName = `${strategyName}-DEPOSIT-${step.protocol}-${lpTokenSymbol}`;
         strategyData.push({

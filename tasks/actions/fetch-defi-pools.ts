@@ -9,7 +9,7 @@ import axios, { Method } from "axios";
 
 task(TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.NAME, TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.DESCRIPTION)
   .addParam("protocol", "the name of protocol", "", types.string)
-  .addParam("chainid", "the id of chain", "0x1", types.string)
+  .addParam("chainid", "the id of chain", "", types.string)
   .setAction(async ({ protocol, chainid }) => {
     const network = NETWORKS[chainid.toString()];
     if (!network) {
