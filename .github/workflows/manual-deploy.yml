@@ -26,7 +26,7 @@ jobs:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
         uses: actions/checkout@v2
         with:
-         token: ${{secrets.TEAM_DEFI_ADAPTERS}}
+         token: ${{secrets.PAT}}
          submodules: recursive
          ref: ${{ github.event.inputs.git-ref }}
       - name: Add public IP to AWS security group
