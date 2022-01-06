@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x.x]
+        node-version: [14.x]
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
