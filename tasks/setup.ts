@@ -14,7 +14,7 @@ task(TASKS.SETUP.NAME, TASKS.SETUP.DESCRIPTION)
     console.log(`\tDeploying Infrastructure contracts ...`);
     const [owner] = await hre.ethers.getSigners();
     let essentialContracts: CONTRACTS;
-    const { APPROVE_TOKEN, APPROVE_TOKENS, MAP_LIQUIDITYPOOLS_ADAPTER, SET_STRATEGIES } = TASKS.ACTION_TASKS;
+    const { APPROVE_TOKEN, APPROVE_TOKENS, MAP_LIQUIDITYPOOLS_TO_ADAPTER, SET_STRATEGIES } = TASKS.ACTION_TASKS;
     const { DEPLOY_VAULT, DEPLOY_VAULTS } = TASKS.DEPLOYMENT_TASKS;
     try {
       essentialContracts = await deployEssentialContracts(hre, owner, deployedonce);
@@ -72,7 +72,7 @@ task(TASKS.SETUP.NAME, TASKS.SETUP.DESCRIPTION)
     console.log(`\tMapping Liquidity Pools to Adapters ...`);
 
     for (const adapterName in adaptersContracts) {
-      await hre.run(MAP_LIQUIDITYPOOLS_ADAPTER.NAME, {
+      await hre.run(MAP_LIQUIDITYPOOLS_TO_ADAPTER.NAME, {
         adapter: adaptersContracts[adapterName].address,
         adaptername: adapterName,
         registry: essentialContracts["registry"].address,

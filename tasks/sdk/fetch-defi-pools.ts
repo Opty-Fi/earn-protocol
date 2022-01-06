@@ -7,7 +7,7 @@ import { getMoralisConfig } from "../../helpers/helpers";
 import TASKS from "../task-names";
 import axios, { Method } from "axios";
 
-task(TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.NAME, TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.DESCRIPTION)
+task(TASKS.SDK_TASKS.FETCH_DEFI_POOLS.NAME, TASKS.SDK_TASKS.FETCH_DEFI_POOLS.DESCRIPTION)
   .addParam("protocol", "the name of protocol", "", types.string)
   .addParam("chainid", "the id of chain", "", types.string)
   .setAction(async ({ protocol, chainid }) => {
@@ -20,7 +20,7 @@ task(TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.NAME, TASKS.ACTION_TASKS.FETCH_DEFI_POO
       throw new Error("protocol doesn't exist");
     }
 
-    const dirPath = `.opty-sdk/${network.network}`;
+    const dirPath = `.optyfi-sdk/${network.network}`;
     createDir(`/${dirPath}`);
 
     console.log(`Fetching all defi pools for ${protocolName} protocol from Moralis...`);

@@ -1,5 +1,5 @@
-import { default as DaiStrategies } from "../../.opty-sdk/ethereum/DAI.json";
-import { default as SlpStrategies } from "../../.opty-sdk/ethereum/SLP.json";
+import { default as DaiStrategies } from "../../.optyfi-sdk/ethereum/DAI.json";
+import { default as SlpStrategies } from "../../.optyfi-sdk/ethereum/SLP_WETH_USDC.json";
 import { ADAPTER_WITH_STRATEGIES_DATA } from "../type";
 import {
   AAVE_V1_ADAPTER_NAME,
@@ -26,5 +26,5 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   [YVAULT_ADAPTER_NAME]: [DaiStrategies["DAI-DEPOSIT-YVault-yDAI"]],
   [FULCRUM_ADAPTER_NAME]: [DaiStrategies["DAI-DEPOSIT-Fulcrum-iDAI"]],
   [HARVEST_V1_ADAPTER_NAME]: [DaiStrategies["DAI-DEPOSIT-HarvestV1-fDAI"]],
-  [SUSHISWAP_ADAPTER_NAME]: [SlpStrategies["SLP-DEPOSIT-Sushiswap"]],
+  [SUSHISWAP_ADAPTER_NAME]: [SlpStrategies["SLP_WETH_USDC-DEPOSIT-Sushiswap"]],
 };

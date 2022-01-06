@@ -653,7 +653,7 @@ Options:
   --amount 500000
 ```
 
-### map-liquiditypool-adapter
+### map-liquiditypool-to-adapter
 
 ```
 Usage: approve and map liquidity pool to adapter
@@ -668,14 +668,14 @@ Options:
 - Example:
 
 ```
-yarn hardhat map-liquiditypool-adapter \
+yarn hardhat map-liquiditypool-to-adapter \
 --network localhost \
 --registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
 --liquiditypool 0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5 \
 --adapter 0xbf78A1a02e34CF7aCDB8BD9D0f225cB6AA6B85C5
 ```
 
-### map-liquiditypools-adapter
+### map-liquiditypools-to-adapter
 
 ```
 Usage: approve and map liquidity pools to a specific adapter
@@ -690,7 +690,7 @@ Options:
 - Example:
 
 ```
-yarn hardhat map-liquiditypools-adapter \
+yarn hardhat map-liquiditypools-to-adapter \
 --network localhost \
 --registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
 --adaptername CompoundAdapter \
@@ -796,7 +796,7 @@ yarn hardhat get-action \
 --params 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1
 ```
 
-## Initialize Data
+## OptyFI SDK
 
 ### fetch-defi-pools
 
@@ -810,7 +810,7 @@ Usage: fetch all defi pools for a specific protocol from Moralis under .opty-sdk
 
 ```
   yarn hardhat fetch-defi-pools \
-  --token AaveV1 \
+  --protocol AaveV1 \
   --chainid 0x1
 ```
 
@@ -830,16 +830,16 @@ Usage: fetch all strategies with a particular token from Moralis under .opty-sdk
   --chainid 0x1
 ```
 
-### init-data
+### optyfi-sdk
 
 ```
-Usage: to initialize data for testing purposes.
+Usage: to create optyfi sdk.
 --chainid     required <string>  the id of chain
 ```
 
 - Example:
 
 ```
-  yarn hardhat init-data \
+  yarn hardhat optyfi-sdk \
   --chainid 0x1
 ```

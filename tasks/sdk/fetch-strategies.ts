@@ -10,21 +10,24 @@ import axios, { Method } from "axios";
 import { STRATEGIES, STRATEGY_DATA } from "../../helpers/type";
 import { isAddress } from "../../helpers/helpers";
 
-task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGIES.DESCRIPTION)
+task(TASKS.SDK_TASKS.FETCH_STRATEGIES.NAME, TASKS.SDK_TASKS.FETCH_STRATEGIES.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
   .addParam("chainid", "the id of chain", "", types.string)
   .setAction(async ({ token, chainid }, hre) => {
     if (!isAddress(token)) {
       throw new Error("token address is invalid");
     }
-    const tokenContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, token);
-    const tokenSymbol = await tokenContract.symbol();
+
+    const tokenSymbol = Object.keys(TypedTokens).find(
+      symbol => TypedTokens[symbol].toUpperCase() === token.toUpperCase(),
+    );
+
     const network = NETWORKS[chainid.toString()];
     if (!network) {
       throw new Error("chain id doesn't exist");
     }
 
-    const dirPath = `.opty-sdk/${network.network}`;
+    const dirPath = `.optyfi-sdk/${network.network}`;
     createDir(`/${dirPath}`);
 
     console.log(`Fetching strategies for ${tokenSymbol} from Moralis...`);
@@ -40,7 +43,7 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
 
     for (let i = 0; i < data.length; i++) {
       const steps = data[i].strategySteps;
-      let strategyName: string = tokenSymbol;
+      let strategyName: string = tokenSymbol ? tokenSymbol : "";
       const strategyData: STRATEGY_DATA[] = [];
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];

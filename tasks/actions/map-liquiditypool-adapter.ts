@@ -4,7 +4,7 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts
 import { approveLiquidityPoolAndMapAdapter } from "../../helpers/contracts-actions";
 import TASKS from "../task-names";
 
-task(TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_ADAPTER.NAME, TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_ADAPTER.DESCRIPTION)
+task(TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_TO_ADAPTER.NAME, TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_TO_ADAPTER.DESCRIPTION)
   .addParam("adapter", "the address of defi adapter", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("liquiditypool", "the address of liquidity", "", types.string)
@@ -43,7 +43,7 @@ task(TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_ADAPTER.NAME, TASKS.ACTION_TASKS.MAP_L
       await approveLiquidityPoolAndMapAdapter(owner, registryContract, adapter, liquiditypool);
       console.log(`Finished mapping liquidity pool to adapter`);
     } catch (error) {
-      console.error(`${TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_ADAPTER.NAME}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOL_TO_ADAPTER.NAME}: `, error);
       throw error;
     }
   });

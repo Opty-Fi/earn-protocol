@@ -7,7 +7,10 @@ import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { removeDuplicateFromStringArray } from "../../helpers/utils";
 import TASKS from "../task-names";
 
-task(TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.NAME, TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.DESCRIPTION)
+task(
+  TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_TO_ADAPTER.NAME,
+  TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_TO_ADAPTER.DESCRIPTION,
+)
   .addParam("adapter", "the address of defi adapter", "", types.string)
   .addParam("adaptername", "the name of defi adapter", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)
@@ -48,7 +51,7 @@ task(TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.NAME, TASKS.ACTION_TASKS.MAP_
       console.log(`Finished mapping liquidityPools to adapter : ${adaptername}`);
       console.log("------------------");
     } catch (error) {
-      console.error(`${TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_ADAPTER.NAME}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_TO_ADAPTER.NAME}: `, error);
       throw error;
     }
   });

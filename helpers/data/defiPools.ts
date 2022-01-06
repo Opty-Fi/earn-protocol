@@ -1,16 +1,15 @@
-import { default as CompoundDefiPools } from "../../.opty-sdk/ethereum/Compound.json";
-import { default as AaveV1DefiPools } from "../../.opty-sdk/ethereum/AaveV1.json";
-import { default as AaveV2DefiPools } from "../../.opty-sdk/ethereum/AaveV2.json";
-import { default as ConvexDefiPools } from "../../.opty-sdk/ethereum/Convex.json";
-import { default as CreamDefiPools } from "../../.opty-sdk/ethereum/Cream.json";
-import { default as CurveDepositDefiPools } from "../../.opty-sdk/ethereum/CurveDepositPool.json";
-import { default as CurveSwapDefiPools } from "../../.opty-sdk/ethereum/CurveSwapPool.json";
-import { default as DForceDefiPools } from "../../.opty-sdk/ethereum/DForce.json";
-import { default as DyDxDefiPools } from "../../.opty-sdk/ethereum/DyDx.json";
-import { default as FulcrumDefiPools } from "../../.opty-sdk/ethereum/Fulcrum.json";
-import { default as HarvestDefiPools } from "../../.opty-sdk/ethereum/HarvestV1.json";
-import { default as SushiSwapDefiPools } from "../../.opty-sdk/ethereum/Sushiswap.json";
-import { default as YVaultDefiPools } from "../../.opty-sdk/ethereum/YVault.json";
+import { default as CompoundDefiPools } from "../../.optyfi-sdk/ethereum/Compound.json";
+import { default as AaveV1DefiPools } from "../../.optyfi-sdk/ethereum/AaveV1.json";
+import { default as AaveV2DefiPools } from "../../.optyfi-sdk/ethereum/AaveV2.json";
+import { default as CreamDefiPools } from "../../.optyfi-sdk/ethereum/Cream.json";
+import { default as CurveDepositDefiPools } from "../../.optyfi-sdk/ethereum/CurveDepositPool.json";
+import { default as CurveSwapDefiPools } from "../../.optyfi-sdk/ethereum/CurveSwapPool.json";
+import { default as DForceDefiPools } from "../../.optyfi-sdk/ethereum/DForce.json";
+import { default as DyDxDefiPools } from "../../.optyfi-sdk/ethereum/DyDx.json";
+import { default as FulcrumDefiPools } from "../../.optyfi-sdk/ethereum/Fulcrum.json";
+import { default as HarvestDefiPools } from "../../.optyfi-sdk/ethereum/HarvestV1.json";
+import { default as SushiSwapDefiPools } from "../../.optyfi-sdk/ethereum/Sushiswap.json";
+import { default as YVaultDefiPools } from "../../.optyfi-sdk/ethereum/YVault.json";
 
 import {
   AAVE_V1_ADAPTER_NAME,
@@ -43,5 +42,4 @@ export const TypedDefiPools: DEFI_POOLS_DATA = {
   [HARVEST_V1_ADAPTER_NAME]: HarvestDefiPools,
   [YVAULT_ADAPTER_NAME]: YVaultDefiPools,
   [SUSHISWAP_ADAPTER_NAME]: SushiSwapDefiPools,
-  [CONVEX_ADAPTER_NAME]: ConvexDefiPools,
 };

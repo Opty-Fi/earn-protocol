@@ -3,9 +3,19 @@ export default {
     NAME: "setup",
     DESCRIPTION: "Deploy Registry, HarvestCodeProvider and Adapter contracts and setup all necessary actions",
   },
-  INIT_DATA: {
-    NAME: "init-data",
-    DESCRIPTION: "Initialize data used for test cases",
+  SDK_TASKS: {
+    OPTYFI_SDK: {
+      NAME: "optyfi-sdk",
+      DESCRIPTION: "Create ./optyfi-sdk",
+    },
+    FETCH_STRATEGIES: {
+      NAME: "fetch-strategies",
+      DESCRIPTION: "Fetch all strategies of a specific token from Moralis",
+    },
+    FETCH_DEFI_POOLS: {
+      NAME: "fetch-defi-pools",
+      DESCRIPTION: "Fetch all pools of a specific protocol from Moralis",
+    },
   },
   DEPLOYMENT_TASKS: {
     DEPLOY_ERC20: { NAME: "deploy-erc20", DESCRIPTION: "Deploy ERC20" },
@@ -44,12 +54,12 @@ export default {
     APPROVE_TOKENS: { NAME: "approve-tokens", DESCRIPTION: "Approve a list of tokens in Registry" },
     GET_STRATEGIES: { NAME: "get-strategies", DESCRIPTION: "Get all available strategies for a specific token" },
     GET_BEST_STRATEGY: { NAME: "get-best-strategy", DESCRIPTION: "Get best strategy for a specific token" },
-    MAP_LIQUIDITYPOOL_ADAPTER: {
-      NAME: "map-liquiditypool-adapter",
+    MAP_LIQUIDITYPOOL_TO_ADAPTER: {
+      NAME: "map-liquiditypool-to-adapter",
       DESCRIPTION: "Map a liquidity pool with a specific adapter",
     },
-    MAP_LIQUIDITYPOOLS_ADAPTER: {
-      NAME: "map-liquiditypools-adapter",
+    MAP_LIQUIDITYPOOLS_TO_ADAPTER: {
+      NAME: "map-liquiditypools-to-adapter",
       DESCRIPTION: "Map a list of liquidity pools with a specific adapter",
     },
     SET_BEST_STRATEGY: { NAME: "set-best-strategy", DESCRIPTION: "Set the best strategy for a specific token" },
@@ -65,13 +75,5 @@ export default {
     },
     ADD_RISK_PROFILE: { NAME: "add-risk-profile", DESCRIPTION: "Add a new risk profile" },
     GET_STRATEGY: { NAME: "get-strategy", DESCRIPTION: "Get the details of a specific strategy" },
-    FETCH_STRATEGIES: {
-      NAME: "fetch-strategies",
-      DESCRIPTION: "Fetch all strategies of a specific token from Moralis",
-    },
-    FETCH_DEFI_POOLS: {
-      NAME: "fetch-defi-pools",
-      DESCRIPTION: "Fetch all pools of a specific protocol from Moralis",
-    },
   },
 };
