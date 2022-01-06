@@ -99,6 +99,10 @@ jobs:
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_SUBMODULE_PRIV_KEY }}
+      - name: Checkout Use Node.js ${{ matrix.node-version}}
         uses: actions/checkout@v2
         with:
          ssh-key: ${{secrets.SSH_SUBMODULE_PRIV_KEY}}
