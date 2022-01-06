@@ -83,6 +83,9 @@ jobs:
       - name: Compile
         run: |
           yarn compile
+      - name: Optyfi-SDK
+        run: |
+          yarn optyfi-sdk:ethereum
       - name: Google Chat Notification
         uses: Co-qn/google-chat-notification@releases/v1
         if: always()
@@ -125,7 +128,7 @@ jobs:
           yarn install --frozen-lockfile
       - name: Optyfi-SDK
         run: |
-          yarn optyfi-sdk:ethereum
+          yarn typechain && yarn optyfi-sdk:ethereum
       - name: Test
         run: |
           yarn test-fast
