@@ -53,11 +53,13 @@ jobs:
       MNEMONIC: ${{ secrets.MNEMONIC}}
 
     steps:
+      - uses: actions/checkout@v2
       - name: Checkout Use Node.js ${{ matrix.node-version}}
-        uses: actions/checkout@v2
-        with:
-         ssh-key: ${{secrets.SSH_SUBMODULE_PRIV_KEY}}
-         submodules: recursive
+        env:
+          SSH_SUBMODULE_PRIV_KEY: ${{secrets.SSH_SUBMODULE_PRIV_KEY}}
+        run: | 
+            mkdir $HOME/.ssh && echo "$SSH_SUBMODULE_PRIV_KEY" > $HOME/.ssh/id_rsa && chmod 600 $HOME/.ssh/id_rsa
+            git submodule update --init --recursive
       - name: Cache node modules
         uses: actions/cache@v2
         id: cache
