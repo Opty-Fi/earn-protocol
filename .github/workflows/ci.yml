@@ -70,9 +70,6 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
-      - name: Optyfi-SDK
-        run: |
-          yarn optyfi-sdk:ethereum
       - name: Compile
         run: |
           yarn compile
