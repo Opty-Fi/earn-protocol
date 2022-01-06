@@ -51,6 +51,8 @@ jobs:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
+      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
+      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -68,6 +70,9 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
+      - name: Optyfi-SDK
+        run: |
+          yarn optyfi-sdk:ethereum
       - name: Compile
         run: |
           yarn compile
@@ -94,6 +99,8 @@ jobs:
       MNEMONIC: ${{ secrets.MNEMONIC}}
       STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
       STRATEGY_DIVISOR: 2
+      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
+      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}

@@ -21,6 +21,9 @@ jobs:
       MNEMONIC: ${{ secrets.MNEMONIC}}
       STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
       STRATEGY_DIVISOR: 2
+      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
+      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
+      
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
         uses: actions/checkout@v2
@@ -38,6 +41,9 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
+      - name: Optyfi-SDK
+        run: |
+          yarn optyfi-sdk:ethereum
       - name: Compile
         run: |
           yarn compile
