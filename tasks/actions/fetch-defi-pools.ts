@@ -19,13 +19,11 @@ task(TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.NAME, TASKS.ACTION_TASKS.FETCH_DEFI_POO
     if (!protocolName) {
       throw new Error("protocol doesn't exist");
     }
-    if (!NETWORKS[chainid.toString()]) {
-      throw new Error("chain id doesn't exist");
-    }
+
     const dirPath = `.opty-sdk/${network.network}`;
     createDir(`/${dirPath}`);
 
-    console.log("Fetching all defi pools from Moralis...");
+    console.log(`Fetching all defi pools for ${protocolName} protocol from Moralis...`);
 
     const response = await axios(
       getMoralisConfig("get" as Method, "getDefiPools", {
@@ -35,7 +33,7 @@ task(TASKS.ACTION_TASKS.FETCH_DEFI_POOLS.NAME, TASKS.ACTION_TASKS.FETCH_DEFI_POO
     );
     const data = response.data.result;
     let defiPools: DEFI_POOL_DATA = {};
-    console.log(`Creating the defiPools file`);
+    console.log(`Creating the defiPools file...`);
     for (let i = 0; i < data.protocolPools.length; i++) {
       const pool = data.protocolPools[i];
       if (Object.keys(defiPools).length === 0) {

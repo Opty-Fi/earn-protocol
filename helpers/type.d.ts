@@ -49,6 +49,10 @@ export type STRATEGY = {
   strategy: STRATEGY_DATA[];
 };
 
+export type STRATEGIES = {
+  [key: string]: STRATEGY;
+};
+
 export type STRATEGY_DATA = {
   contract: string;
   outputTokenSymbol?: string;

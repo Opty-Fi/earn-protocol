@@ -27,19 +27,19 @@ import {
   Vault,
 } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { TypedDefiPools, TypedTokens } from "../../helpers/data";
+import { TypedTokens } from "../../helpers/data";
+import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { deployContract, generateStrategyHash, generateTokenHash } from "../../helpers/helpers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
-
 chai.use(solidity);
 
 const USDC_LIQUIDITY_POOLS = [
   TypedDefiPools.CompoundAdapter.usdc.pool,
   TypedDefiPools.AaveV1Adapter.usdc.pool,
   TypedDefiPools.AaveV2Adapter.usdc.pool,
-  TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
-  TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-  TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
+  TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
+  TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+  TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
 ];
 
 const USDC_TOKEN_HASH = generateTokenHash([TypedTokens.USDC]);
@@ -80,8 +80,8 @@ const USDC_AAVEV2_HASH = generateStrategyHash(
 const USDC_CURVE_DEPOSIT_HASH = generateStrategyHash(
   [
     {
-      contract: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
-      outputToken: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].lpToken,
+      contract: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
+      outputToken: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].lpToken,
       isBorrow: false,
     },
   ],
@@ -91,8 +91,8 @@ const USDC_CURVE_DEPOSIT_HASH = generateStrategyHash(
 const USDC_CURVE_SWAP_HASH = generateStrategyHash(
   [
     {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+      contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
       isBorrow: false,
     },
   ],
@@ -102,13 +102,13 @@ const USDC_CURVE_SWAP_HASH = generateStrategyHash(
 const USDC_3CRV_CURVE_SWAP_HASH = generateStrategyHash(
   [
     {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+      contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
       isBorrow: false,
     },
     {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].lpToken,
+      contract: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
       isBorrow: false,
     },
   ],
@@ -131,6 +131,7 @@ describe("Integration tests", function () {
     this.signers.governance = signers[9];
     this.signers.eve = signers[10];
   });
+
   describe("Deployment, config and actions", function () {
     it("0. Registry and Registry proxy deployment and connecting", async function () {
       this.registry = <Registry>await deployRegistry(hre, this.signers.admin, false);
@@ -367,22 +368,22 @@ describe("Integration tests", function () {
             adapter: this.aaveV2Adapter.address,
           },
           {
-            pool: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+            pool: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
             adapter: this.curveDepositPoolAdapter.address,
           },
           {
-            pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+            pool: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
             adapter: this.curveSwapPoolAdapter.address,
           },
           {
-            pool: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
+            pool: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
             adapter: this.curveSwapPoolAdapter.address,
           },
         ]),
       )
         .to.emit(this.registry, "LogLiquidityPoolToAdapter")
         .withArgs(
-          TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
+          TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
           this.curveSwapPoolAdapter.address,
           this.signers.operator.address,
         );
@@ -397,14 +398,14 @@ describe("Integration tests", function () {
       );
       expect(
         await this.registry.getLiquidityPoolToAdapter(
-          TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
+          TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
         ),
       ).to.equal(this.curveDepositPoolAdapter.address);
       expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool),
+        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool),
       ).to.equal(this.curveSwapPoolAdapter.address);
       expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool),
+        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool),
       ).to.equal(this.curveSwapPoolAdapter.address);
     });
 
@@ -453,27 +454,27 @@ describe("Integration tests", function () {
 
             [
               {
-                pool: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
-                outputToken: TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].lpToken,
+                pool: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
+                outputToken: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].lpToken,
                 isBorrow: false,
               },
             ],
             [
               {
-                pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-                outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+                pool: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
                 isBorrow: false,
               },
             ],
             [
               {
-                pool: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-                outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+                pool: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
                 isBorrow: false,
               },
               {
-                pool: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
-                outputToken: TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].lpToken,
+                pool: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
                 isBorrow: false,
               },
             ],
@@ -485,8 +486,8 @@ describe("Integration tests", function () {
           generateStrategyHash(
             [
               {
-                contract: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-                outputToken: TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+                contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
                 isBorrow: false,
               },
             ],
@@ -529,25 +530,25 @@ describe("Integration tests", function () {
 
       expect(usdcCurveDeposit._index).to.equal("3");
       expect(usdcCurveDeposit._strategySteps[0]).to.have.members([
-        TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].pool,
-        TypedDefiPools.CurveDepositPoolAdapter["usdc_dai+usdc+usdt+gusd"].lpToken,
+        TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
+        TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].lpToken,
         false,
       ]);
       expect(usdcCurveSwap._index).to.equal("4");
       expect(usdcCurveSwap._strategySteps[0]).to.have.members([
-        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+        TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
         false,
       ]);
       expect(usdc3CrvCurveSwap._index).to.equal("5");
       expect(usdc3CrvCurveSwap._strategySteps[0]).to.have.members([
-        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].pool,
-        TypedDefiPools.CurveSwapPoolAdapter["usdc_3crv"].lpToken,
+        TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
         false,
       ]);
       expect(usdc3CrvCurveSwap._strategySteps[1]).to.have.members([
-        TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].pool,
-        TypedDefiPools.CurveSwapPoolAdapter["3Crv_mim+3Crv"].lpToken,
+        TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
         false,
       ]);
     });

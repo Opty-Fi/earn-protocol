@@ -387,38 +387,6 @@ Options:
 
 To execute functions in a OptyFi's contract.
 
-### fetch-defi-pools
-
-```
-Usage: fetch all defi pools for a specific protocol from Moralis under .opty-sdk
---protcol     required <string> the name of protocol
---chainid     required <string>  the id of chain
-```
-
-- Example:
-
-```
-  yarn hardhat fetch-defi-pools \
-  --token AaveV1 \
-  --chainid 0x1
-```
-
-### fetch-strategies
-
-```
-Usage: fetch all strategies with a particular token from Moralis under .opty-sdk
---token       required <address> the address of token
---chainid     required <string>  the id of chain
-```
-
-- Example:
-
-```
-  yarn hardhat fetch-strategies \
-  --token 0x0000000000000000000000000000000000000000 \
-  --chainid 0x1
-```
-
 ### set-strategies
 
 ```
@@ -826,4 +794,52 @@ yarn hardhat get-action \
 --address 0x6B175474E89094C44Da98b954EedeAC495271d0F \
 --functionabi 'balanceOf(address)' \
 --params 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1
+```
+
+## Initialize Data
+
+### fetch-defi-pools
+
+```
+Usage: fetch all defi pools for a specific protocol from Moralis under .opty-sdk
+--protcol     required <string> the name of protocol
+--chainid     required <string>  the id of chain
+```
+
+- Example:
+
+```
+  yarn hardhat fetch-defi-pools \
+  --token AaveV1 \
+  --chainid 0x1
+```
+
+### fetch-strategies
+
+```
+Usage: fetch all strategies with a particular token from Moralis under .opty-sdk
+--token       required <address> the address of token
+--chainid     required <string>  the id of chain
+```
+
+- Example:
+
+```
+  yarn hardhat fetch-strategies \
+  --token 0x0000000000000000000000000000000000000000 \
+  --chainid 0x1
+```
+
+### init-data
+
+```
+Usage: to initialize data for testing purposes.
+--chainid     required <string>  the id of chain
+```
+
+- Example:
+
+```
+  yarn hardhat init-data \
+  --chainid 0x1
 ```

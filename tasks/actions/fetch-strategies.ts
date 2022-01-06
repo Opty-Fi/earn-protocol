@@ -7,7 +7,7 @@ import TASKS from "../task-names";
 import { createDir, createFile } from "../../helpers/utils";
 import { getMoralisConfig } from "../../helpers/helpers";
 import axios, { Method } from "axios";
-import { STRATEGY, STRATEGY_DATA } from "../../helpers/type";
+import { STRATEGIES, STRATEGY_DATA } from "../../helpers/type";
 import { isAddress } from "../../helpers/helpers";
 
 task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGIES.DESCRIPTION)
@@ -27,7 +27,7 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
     const dirPath = `.opty-sdk/${network.network}`;
     createDir(`/${dirPath}`);
 
-    console.log("Fetching strategies from Moralis...");
+    console.log(`Fetching strategies for ${tokenSymbol} from Moralis...`);
     const response = await axios(
       getMoralisConfig("get" as Method, "getStrategiesForUnderlyingTokens", {
         chain: chainid,
@@ -35,12 +35,12 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
       }),
     );
     const data = response.data.result;
-    const strategies: STRATEGY[] = [];
+    const strategies: STRATEGIES = {};
     console.log(`Creating strategies files`);
 
     for (let i = 0; i < data.length; i++) {
       const steps = data[i].strategySteps;
-      let strategyName = tokenSymbol;
+      let strategyName: string = tokenSymbol;
       const strategyData: STRATEGY_DATA[] = [];
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
@@ -48,23 +48,29 @@ task(TASKS.ACTION_TASKS.FETCH_STRATEGIES.NAME, TASKS.ACTION_TASKS.FETCH_STRATEGI
         const lpContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, lpToken);
         let lpTokenSymbol = lpToken;
         try {
-          lpTokenSymbol = lpToken !== hre.ethers.constants.AddressZero ? await lpContract.symbol() : "0x0";
-        } catch (error) {
+          lpTokenSymbol = lpToken !== hre.ethers.constants.AddressZero ? await lpContract.symbol() : "";
+        } catch (error: any) {
           //A token like MKR does not return string type on call to symbol() or name() function
+          if (error.message !== "Transaction reverted without a reason string") {
+            throw error;
+          }
         }
-        strategyName = `${strategyName}-DEPOSIT-${step.protocol}-${lpTokenSymbol}`;
+
+        strategyName = `${strategyName}-${step.isBorrow ? "BORROW" : "DEPOSIT"}-${step.protocol}${
+          lpTokenSymbol ? "-" + lpTokenSymbol : ""
+        }`;
         strategyData.push({
           contract: step.pool,
           outputToken: step.outputToken,
           isBorrow: step.isBorrow,
           outputTokenSymbol: lpTokenSymbol,
         });
-        strategies.push({
-          strategyName: strategyName,
-          token: token,
-          strategy: strategyData,
-        });
       }
+      strategies[strategyName] = {
+        strategyName,
+        token,
+        strategy: strategyData,
+      };
     }
     createFile(`${dirPath}/${tokenSymbol}.json`, JSON.stringify(strategies));
     console.log(`Data is ready in ${dirPath}/${tokenSymbol}.json`);

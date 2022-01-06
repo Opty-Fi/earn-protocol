@@ -9,7 +9,8 @@ import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
-import { TypedTokenStrategies, TypedAdapterStrategies, TypedTokens } from "../../helpers/data";
+import { TypedTokenStrategies, TypedTokens } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { delay } from "../../helpers/utils";
 import {
   executeFunc,
@@ -24,8 +25,6 @@ import {
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
@@ -143,7 +142,6 @@ describe(scenario.title, () => {
       const vault = scenario.vaults[i];
       const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
-
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
@@ -151,15 +149,13 @@ describe(scenario.title, () => {
         describe(`${adapterName}`, async () => {
           for (let i = 0; i < strategies.length; i++) {
             const TOKEN_STRATEGY = strategies[i];
-            const tokenAddress = VAULT_TOKENS[TOKEN_STRATEGY.token].address;
+            const tokenAddress = TOKEN_STRATEGY.token;
             const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
               rewardTokenAdapterName.toLowerCase(),
             );
             let underlyingTokenName: string;
             let underlyingTokenSymbol: string;
             before(async () => {
-              underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
-              underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
               const adapter = adapters[adapterName];
 
               for (let i = 0; i < TOKEN_STRATEGY.strategy.length; i++) {
@@ -182,6 +178,9 @@ describe(scenario.title, () => {
               );
 
               const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+
+              underlyingTokenName = await Token_ERC20Instance.name();
+              underlyingTokenSymbol = await Token_ERC20Instance.symbol();
 
               const CHIInstance = await hre.ethers.getContractAt("IChi", TypedTokens["CHI"]);
               Vault = await deployVault(
@@ -241,7 +240,7 @@ describe(scenario.title, () => {
                         case "initData()": {
                           const { amount }: ARGUMENTS = action.args;
                           if (amount) {
-                            const halfAmount = BigNumber.from(amount[TOKEN_STRATEGY.token]).div(BigNumber.from(2));
+                            const halfAmount = BigNumber.from(amount[underlyingTokenSymbol]).div(BigNumber.from(2));
                             const userAddress = await users[userIndex].getAddress();
                             const balanceTx = await contracts["vault"]
                               .connect(users[userIndex])
@@ -306,7 +305,7 @@ describe(scenario.title, () => {
                               hre,
                               tokenAddress,
                               users[userIndex],
-                              BigNumber.from(amount[TOKEN_STRATEGY.token]),
+                              BigNumber.from(amount[underlyingTokenSymbol]),
                               timestamp,
                             );
                           }
@@ -325,7 +324,7 @@ describe(scenario.title, () => {
                               hre,
                               tokenAddress,
                               users[userIndex],
-                              BigNumber.from(amount[TOKEN_STRATEGY.token]),
+                              BigNumber.from(amount[underlyingTokenSymbol]),
                               timestamp,
                               contracts["vault"].address,
                             );
@@ -338,12 +337,12 @@ describe(scenario.title, () => {
 
                           if (contractName && amount) {
                             let investedAmount: string | undefined;
-                            if (amount[TOKEN_STRATEGY.token] === "all") {
+                            if (amount[underlyingTokenSymbol] === "all") {
                               const userAddr = await users[userIndex].getAddress();
                               const value = await contracts[action.contract].balanceOf(userAddr);
                               investedAmount = value.toString();
                             } else {
-                              investedAmount = amount[TOKEN_STRATEGY.token];
+                              investedAmount = amount[underlyingTokenSymbol];
                             }
                             await contracts[action.contract]
                               .connect(users[userIndex])
@@ -377,7 +376,7 @@ describe(scenario.title, () => {
 
                           if (amount) {
                             let investedAmount: string | undefined;
-                            if (amount[TOKEN_STRATEGY.token] === "all") {
+                            if (amount[underlyingTokenSymbol] === "all") {
                               if (action.action.includes("userWithdrawRebalance")) {
                                 const userAddr = await users[userIndex].getAddress();
                                 const value = await contracts[action.contract].balanceOf(userAddr);
@@ -391,7 +390,7 @@ describe(scenario.title, () => {
                                 investedAmount = value.toString();
                               }
                             } else {
-                              investedAmount = amount[TOKEN_STRATEGY.token];
+                              investedAmount = amount[underlyingTokenSymbol];
                             }
                             if (action.action === "userDeposit(uint256)") {
                               const queue = await contracts[action.contract].getDepositQueue();

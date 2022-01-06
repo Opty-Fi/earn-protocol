@@ -3,6 +3,10 @@ export default {
     NAME: "setup",
     DESCRIPTION: "Deploy Registry, HarvestCodeProvider and Adapter contracts and setup all necessary actions",
   },
+  INIT_DATA: {
+    NAME: "init-data",
+    DESCRIPTION: "Initialize data used for test cases",
+  },
   DEPLOYMENT_TASKS: {
     DEPLOY_ERC20: { NAME: "deploy-erc20", DESCRIPTION: "Deploy ERC20" },
     DEPLOY_ADAPTER: { NAME: "deploy-adapter", DESCRIPTION: "Deploy Adapter contract" },
