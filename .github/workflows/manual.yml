@@ -57,8 +57,6 @@ jobs:
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
       STRATEGY_DIVISOR: ${{ secrets.STRATEGY_DIVISOR}}
-      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
-      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -80,9 +78,6 @@ jobs:
       - name: Compile
         run: |
           yarn compile
-      - name: Optyfi-SDK
-        run: |
-          yarn optyfi-sdk:ethereum
       - name: Google Chat Notification
         uses: Co-qn/google-chat-notification@releases/v1
         if: always()
@@ -125,7 +120,7 @@ jobs:
           yarn install --frozen-lockfile
       - name: Optyfi-SDK
         run: |
-          yarn typechain && yarn optyfi-sdk:ethereum
+          yarn typechain && yarn optyfi-sdk
       - name: Test
         run: |
           yarn test-fast
