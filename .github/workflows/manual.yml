@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x.x]
+        node-version: [14.x]
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
@@ -50,19 +50,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x.x]
+        node-version: [14.x]
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       MNEMONIC: ${{ secrets.MNEMONIC}}
       STRATEGY_DIVISOR: ${{ secrets.STRATEGY_DIVISOR}}
+      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
+      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
         uses: actions/checkout@v2
         with:
-         token: ${{secrets.TEAM_DEFI_ADAPTERS}}
+         token: ${{secrets.PAT}}
          submodules: recursive
          ref: ${{ github.event.inputs.git-ref }}
       - name: Cache node modules
@@ -78,6 +80,9 @@ jobs:
       - name: Compile
         run: |
           yarn compile
+      - name: Optyfi-SDK
+        run: |
+          yarn optyfi-sdk:ethereum
       - name: Google Chat Notification
         uses: Co-qn/google-chat-notification@releases/v1
         if: always()
@@ -89,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x.x]
+        node-version: [14.x]
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
@@ -98,12 +103,14 @@ jobs:
       MNEMONIC: ${{ secrets.MNEMONIC}}
       STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
       STRATEGY_DIVISOR: ${{ secrets.STRATEGY_DIVISOR}}
+      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
+      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
         uses: actions/checkout@v2
         with:
-         token: ${{secrets.TEAM_DEFI_ADAPTERS}}
+         token: ${{secrets.PAT}}
          submodules: recursive
          ref: ${{ github.event.inputs.git-ref }}
       - name: Cache node modules
@@ -116,6 +123,9 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
+      - name: Optyfi-SDK
+        run: |
+          yarn typechain && yarn optyfi-sdk:ethereum
       - name: Test
         run: |
           yarn test-fast

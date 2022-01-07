@@ -101,7 +101,7 @@
     "watch:ci": "hardhat --max-memory 4096 watch ci",
     "optyfi-sdk:ethereum": "hardhat optyfi-sdk --chainid 0x1",
     "optyfi-sdk:polygon": "hardhat optyfi-sdk --chainid 137",
-    "test": "yarn optyfi-sdk:ethereum && env SKIP_LOAD=true hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
+    "test": "env SKIP_LOAD=true hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "test-clean": "yarn clean && yarn test",
     "test-fast": "yarn optyfi-sdk:ethereum && env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "watch:test": "hardhat --max-memory 4096 watch test",
