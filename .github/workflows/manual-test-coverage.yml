@@ -46,7 +46,7 @@ jobs:
           yarn compile
       - name: Optyfi-SDK
         run: |
-          yarn optyfi-sdk:ethereum
+          yarn optyfi-sdk
       - name: Test Coverage
         run: |
           yarn coverage
