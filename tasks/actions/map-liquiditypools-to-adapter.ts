@@ -3,7 +3,6 @@ import { isAddress } from "../../helpers/helpers";
 
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { approveLiquidityPoolAndMapAdapters } from "../../helpers/contracts-actions";
-import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { removeDuplicateFromStringArray } from "../../helpers/utils";
 import TASKS from "../task-names";
 
@@ -36,6 +35,7 @@ task(
     if (adaptername === "") {
       throw new Error("adaptername cannot be empty");
     }
+    const TypedDefiPools = (await import("../../helpers/data/defiPools")).TypedDefiPools;
 
     if (!TypedDefiPools[adaptername]) {
       throw new Error("wrong adapter name");

@@ -1,22 +1,29 @@
 import { CHAINID_NETWORKS } from "../type";
+export enum NETWORKS_ID {
+  MAINNET = "0x1",
+  ROPSTEN = "0x3",
+  RINKEBY = "0x4",
+  GOERLI = "0x5",
+  POLYGON = "0x89",
+}
 export const NETWORKS: CHAINID_NETWORKS = {
-  "0x1": {
+  [NETWORKS_ID.MAINNET]: {
     name: "mainnet",
     network: "ethereum",
   },
-  "0x3": {
+  [NETWORKS_ID.ROPSTEN]: {
     name: "ropsten",
     network: "ethereum",
   },
-  "0x4": {
+  [NETWORKS_ID.RINKEBY]: {
     name: "rinkeby",
     network: "ethereum",
   },
-  "0x5": {
+  [NETWORKS_ID.GOERLI]: {
     name: "gorli",
     network: "ethereum",
   },
-  "0x89": {
+  [NETWORKS_ID.POLYGON]: {
     name: "mainnet",
     network: "polygon",
   },

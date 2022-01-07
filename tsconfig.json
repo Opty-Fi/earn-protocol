@@ -18,5 +18,13 @@
   },
   "exclude": ["node_modules", "specification_docs"],
   "files": ["./hardhat.config.ts"],
-  "include": ["helpers/**/*.ts", "tasks/**/*.ts", "test/**/*.ts", "typechain/**/*.d.ts", "typechain/**/*.ts"]
+  "include": [
+    "helpers/**/*.ts",
+    "tasks/**/*.ts",
+    "test/**/*.ts",
+    "typechain/**/*.d.ts",
+    "typechain/**/*.ts",
+    "optyfi-sdk/**/*.ts",
+    "scripts/*.ts"
+  ]
 }

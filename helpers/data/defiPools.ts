@@ -1,15 +1,15 @@
-import { default as CompoundDefiPools } from "../../.optyfi-sdk/ethereum/Compound.json";
-import { default as AaveV1DefiPools } from "../../.optyfi-sdk/ethereum/AaveV1.json";
-import { default as AaveV2DefiPools } from "../../.optyfi-sdk/ethereum/AaveV2.json";
-import { default as CreamDefiPools } from "../../.optyfi-sdk/ethereum/Cream.json";
-import { default as CurveDepositDefiPools } from "../../.optyfi-sdk/ethereum/CurveDepositPool.json";
-import { default as CurveSwapDefiPools } from "../../.optyfi-sdk/ethereum/CurveSwapPool.json";
-import { default as DForceDefiPools } from "../../.optyfi-sdk/ethereum/DForce.json";
-import { default as DyDxDefiPools } from "../../.optyfi-sdk/ethereum/DyDx.json";
-import { default as FulcrumDefiPools } from "../../.optyfi-sdk/ethereum/Fulcrum.json";
-import { default as HarvestDefiPools } from "../../.optyfi-sdk/ethereum/HarvestV1.json";
-import { default as SushiSwapDefiPools } from "../../.optyfi-sdk/ethereum/Sushiswap.json";
-import { default as YVaultDefiPools } from "../../.optyfi-sdk/ethereum/YVault.json";
+import { default as CompoundDefiPools } from "optyfi-sdk/ethereum/pools/Compound.json";
+import { default as AaveV1DefiPools } from "optyfi-sdk/ethereum/pools/AaveV1.json";
+import { default as AaveV2DefiPools } from "optyfi-sdk/ethereum/pools/AaveV2.json";
+import { default as CreamDefiPools } from "optyfi-sdk/ethereum/pools/Cream.json";
+import { default as CurveDepositDefiPools } from "optyfi-sdk/ethereum/pools/CurveDepositPool.json";
+import { default as CurveSwapDefiPools } from "optyfi-sdk/ethereum/pools/CurveSwapPool.json";
+import { default as DForceDefiPools } from "optyfi-sdk/ethereum/pools/DForce.json";
+import { default as DyDxDefiPools } from "optyfi-sdk/ethereum/pools/DyDx.json";
+import { default as FulcrumDefiPools } from "optyfi-sdk/ethereum/pools/Fulcrum.json";
+import { default as HarvestDefiPools } from "optyfi-sdk/ethereum/pools/HarvestV1.json";
+import { default as SushiSwapDefiPools } from "optyfi-sdk/ethereum/pools/Sushiswap.json";
+import { default as YVaultDefiPools } from "optyfi-sdk/ethereum/pools/YVault.json";
 
 import {
   AAVE_V1_ADAPTER_NAME,

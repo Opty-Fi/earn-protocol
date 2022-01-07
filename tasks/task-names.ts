@@ -3,20 +3,6 @@ export default {
     NAME: "setup",
     DESCRIPTION: "Deploy Registry, HarvestCodeProvider and Adapter contracts and setup all necessary actions",
   },
-  SDK_TASKS: {
-    OPTYFI_SDK: {
-      NAME: "optyfi-sdk",
-      DESCRIPTION: "Create ./optyfi-sdk",
-    },
-    FETCH_STRATEGIES: {
-      NAME: "fetch-strategies",
-      DESCRIPTION: "Fetch all strategies of a specific token from Moralis",
-    },
-    FETCH_DEFI_POOLS: {
-      NAME: "fetch-defi-pools",
-      DESCRIPTION: "Fetch all pools of a specific protocol from Moralis",
-    },
-  },
   DEPLOYMENT_TASKS: {
     DEPLOY_ERC20: { NAME: "deploy-erc20", DESCRIPTION: "Deploy ERC20" },
     DEPLOY_ADAPTER: { NAME: "deploy-adapter", DESCRIPTION: "Deploy Adapter contract" },
