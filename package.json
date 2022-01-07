@@ -102,7 +102,7 @@
     "optyfi-sdk": "hardhat run scripts/optyfi-sdk.ts",
     "test": "env SKIP_LOAD=true hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "test-clean": "yarn clean && yarn test",
-    "test-fast": "yarn optyfi-sdk:ethereum && env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
+    "test-fast": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "watch:test": "hardhat --max-memory 4096 watch test",
     "coverage": "cross-env CODE_COVERAGE=true hardhat --max-memory 4096 coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/test-opty/*.spec.ts\"",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat --max-memory 4096 typechain",
