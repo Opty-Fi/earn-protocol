@@ -971,7 +971,7 @@ describe(testVaultConfigurationScenario.title, () => {
   });
 });
 
-describe(testVaultScenario.title, () => {
+describe.only(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};
@@ -996,6 +996,9 @@ describe(testVaultScenario.title, () => {
   const profile = vault.riskProfileCode;
   const defaultData = VAULT_DEFAULT_DATA;
   for (const token in TypedTokenStrategies) {
+    if (token !== "USDC") {
+      continue;
+    }
     describe(token, async () => {
       for (let i = 0; i < TypedTokenStrategies[token].length; i = i + strategyDivisor) {
         const TOKEN_STRATEGY = TypedTokenStrategies[token][i];
@@ -1010,6 +1013,7 @@ describe(testVaultScenario.title, () => {
           }
           description = description + TOKEN_STRATEGY.steps[i].protocol.name;
         }
+
         describe(description, async () => {
           const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
             rewardTokenAdapterName.toLowerCase(),
@@ -1412,10 +1416,10 @@ describe(testVaultScenario.title, () => {
                     ).to.be.revertedWith(action.message);
                     break;
                   }
-                  case "wait10000Seconds": {
+                  case "wait10Seconds": {
                     const blockNumber = await hre.ethers.provider.getBlockNumber();
                     const block = await hre.ethers.provider.getBlock(blockNumber);
-                    await moveToSpecificBlock(hre, block.timestamp + 10000);
+                    await moveToSpecificBlock(hre, block.timestamp + 10);
                     break;
                   }
                 }
