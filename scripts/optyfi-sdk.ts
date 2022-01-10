@@ -113,7 +113,7 @@ async function main() {
             }
             strategies[strategyName] = {
               strategyName,
-              token,
+              token: networkData.strategies[token],
               strategy: strategyData,
             };
           }
