@@ -971,7 +971,7 @@ describe(testVaultConfigurationScenario.title, () => {
   });
 });
 
-describe.only(testVaultScenario.title, () => {
+describe(testVaultScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};
@@ -996,9 +996,6 @@ describe.only(testVaultScenario.title, () => {
   const profile = vault.riskProfileCode;
   const defaultData = VAULT_DEFAULT_DATA;
   for (const token in TypedTokenStrategies) {
-    if (token !== "USDC") {
-      continue;
-    }
     describe(token, async () => {
       for (let i = 0; i < TypedTokenStrategies[token].length; i = i + strategyDivisor) {
         const TOKEN_STRATEGY = TypedTokenStrategies[token][i];
