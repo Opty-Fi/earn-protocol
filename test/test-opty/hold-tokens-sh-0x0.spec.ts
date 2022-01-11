@@ -7,7 +7,7 @@ import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
-import { generateTokenHash } from "../../helpers/helpers";
+import { generateTokenHash, retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
@@ -98,12 +98,19 @@ describe(scenarios.title, () => {
                   ethers.constants.MaxUint256,
                 );
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
-                await approveLiquidityPoolAndMapAdapter(
-                  users["owner"],
-                  essentialContracts.registry,
-                  adapter.address,
-                  strategy.strategy[0].contract,
-                );
+                const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
+                for (let i = 0; i < strategy.strategy.length; i++) {
+                  await approveLiquidityPoolAndMapAdapter(
+                    users[0],
+                    essentialContracts.registry,
+                    adapters[usedAdapters[i]].address,
+                    strategy.strategy[i].contract,
+                  );
+                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
+                  }
+                }
+
                 vaultRiskProfile = await Vault.riskProfileCode();
                 bestStrategyHash = await setBestStrategy(
                   strategy.strategy,

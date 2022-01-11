@@ -133,10 +133,8 @@ describe(scenario.title, () => {
             let underlyingTokenName: string;
             let underlyingTokenSymbol: string;
             before(async () => {
-              console.log(TOKEN_STRATEGY.strategyName);
               const usedAdapters = retrieveAdapterFromStrategyName(TOKEN_STRATEGY.strategyName);
               for (let i = 0; i < TOKEN_STRATEGY.strategy.length; i++) {
-                console.log(usedAdapters);
                 await approveLiquidityPoolAndMapAdapter(
                   users[0],
                   essentialContracts.registry,

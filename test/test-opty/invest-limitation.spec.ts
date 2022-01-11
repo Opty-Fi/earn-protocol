@@ -4,6 +4,7 @@ import { Signer, BigNumber } from "ethers";
 import { solidity } from "ethereum-waffle";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
+import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
@@ -85,12 +86,18 @@ describe(scenarios.title, () => {
 
                 const adapter = adapters[adapterName];
                 canStake = await adapter.canStake(strategy.strategy[0].contract);
-                await approveLiquidityPoolAndMapAdapter(
-                  users["owner"],
-                  essentialContracts.registry,
-                  adapter.address,
-                  strategy.strategy[0].contract,
-                );
+                const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
+                for (let i = 0; i < strategy.strategy.length; i++) {
+                  await approveLiquidityPoolAndMapAdapter(
+                    users[0],
+                    essentialContracts.registry,
+                    adapters[usedAdapters[i]].address,
+                    strategy.strategy[i].contract,
+                  );
+                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
+                  }
+                }
                 await setBestStrategy(
                   strategy.strategy,
                   users["owner"],

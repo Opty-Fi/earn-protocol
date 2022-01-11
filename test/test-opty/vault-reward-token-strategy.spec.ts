@@ -21,6 +21,7 @@ import {
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { executeFunc, generateTokenHash } from "../../helpers/helpers";
+import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -133,6 +134,19 @@ describe(scenario.title, () => {
                   <string>REWARD_TOKENS[adapterName].tokenAddress,
                 );
                 vaultRewardTokens = [Vault.address, <string>REWARD_TOKENS[adapterName].tokenAddress];
+              }
+
+              const usedAdapters = retrieveAdapterFromStrategyName(TOKEN_STRATEGY.strategyName);
+              for (let i = 0; i < TOKEN_STRATEGY.strategy.length; i++) {
+                await approveLiquidityPoolAndMapAdapter(
+                  users[0],
+                  essentialContracts.registry,
+                  adapters[usedAdapters[i]].address,
+                  TOKEN_STRATEGY.strategy[i].contract,
+                );
+                if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                  await adapters[usedAdapters[i]].setPoolCoinData(TOKEN_STRATEGY.strategy[i].contract);
+                }
               }
 
               await approveLiquidityPoolAndMapAdapter(

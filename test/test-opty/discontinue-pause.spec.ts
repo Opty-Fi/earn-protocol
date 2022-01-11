@@ -2,6 +2,7 @@ import { expect, assert } from "chai";
 import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
+import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
@@ -76,15 +77,17 @@ describe(scenario.title, () => {
                 underlyingTokenName = await ERC20Instance.name();
                 underlyingTokenSymbol = await ERC20Instance.symbol();
 
-                const adapter = adapters[adapterName];
-
+                const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
                 for (let i = 0; i < strategy.strategy.length; i++) {
                   await approveLiquidityPoolAndMapAdapter(
-                    users["owner"],
+                    users[0],
                     essentialContracts.registry,
-                    adapter.address,
+                    adapters[usedAdapters[i]].address,
                     strategy.strategy[i].contract,
                   );
+                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
+                  }
                 }
 
                 vault = await deployVault(
