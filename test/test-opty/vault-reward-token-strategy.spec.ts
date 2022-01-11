@@ -139,7 +139,7 @@ describe(scenario.title, () => {
               const usedAdapters = retrieveAdapterFromStrategyName(TOKEN_STRATEGY.strategyName);
               for (let i = 0; i < TOKEN_STRATEGY.strategy.length; i++) {
                 await approveLiquidityPoolAndMapAdapter(
-                  users[0],
+                  users["operator"],
                   essentialContracts.registry,
                   adapters[usedAdapters[i]].address,
                   TOKEN_STRATEGY.strategy[i].contract,
@@ -148,13 +148,6 @@ describe(scenario.title, () => {
                   await adapters[usedAdapters[i]].setPoolCoinData(TOKEN_STRATEGY.strategy[i].contract);
                 }
               }
-
-              await approveLiquidityPoolAndMapAdapter(
-                users["operator"],
-                essentialContracts.registry,
-                adapter.address,
-                TOKEN_STRATEGY.strategy[0].contract,
-              );
 
               investStrategyHash = await setBestStrategy(
                 TOKEN_STRATEGY.strategy,

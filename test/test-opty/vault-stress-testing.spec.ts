@@ -119,10 +119,6 @@ describe(scenario.title, () => {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
         const defaultData = VAULT_DEFAULT_DATA;
-        if (adapterName !== "ConvexFinanceAdapter") {
-          continue;
-        }
-
         describe(`${adapterName}`, async () => {
           for (let i = 0; i < strategies.length; i++) {
             const TOKEN_STRATEGY = strategies[i];

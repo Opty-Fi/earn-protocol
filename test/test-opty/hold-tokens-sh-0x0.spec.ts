@@ -101,7 +101,7 @@ describe(scenarios.title, () => {
                 const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
                 for (let i = 0; i < strategy.strategy.length; i++) {
                   await approveLiquidityPoolAndMapAdapter(
-                    users[0],
+                    users["owner"],
                     essentialContracts.registry,
                     adapters[usedAdapters[i]].address,
                     strategy.strategy[i].contract,
