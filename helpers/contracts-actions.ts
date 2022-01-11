@@ -2,6 +2,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
 import Compound from "@compound-finance/compound-js";
+import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces";
 import { expect } from "chai";
 import { Provider } from "@compound-finance/compound-js/dist/nodejs/types";
 import { STRATEGY_DATA } from "./type";
@@ -316,7 +317,10 @@ export async function fundWalletToken(
         }
       }
     } else if (getAddress(tokenAddress) === getAddress(TypedTokens["WETH"])) {
-      const wEthInstance = await hre.ethers.getContractAt("IWETH", TypedTokens["WETH"]);
+      const wEthInstance = await hre.ethers.getContractAt(
+        "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH",
+        TypedTokens["WETH"],
+      );
       //  Funding user's wallet with WETH tokens
       await wEthInstance.deposit({ value: amount });
       await wEthInstance.transfer(address, amount);
