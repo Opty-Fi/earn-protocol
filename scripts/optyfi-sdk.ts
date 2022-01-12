@@ -38,26 +38,15 @@ async function main() {
             }),
           );
           const data = response.data.result;
-          let defiPools: DEFI_POOL_DATA = {};
+          const defiPools: DEFI_POOL_DATA = {};
           for (let i = 0; i < data.protocolPools.length; i++) {
             const pool = data.protocolPools[i];
-            if (Object.keys(defiPools).length === 0) {
-              defiPools = {
-                [pool.poolName]: {
-                  pool: pool.poolAddress,
-                  lpToken: pool.lpTokenAddress,
-                  tokens: pool.underlyingTokens,
-                  rewardTokens: pool.rewardTokens,
-                },
-              };
-            } else {
-              defiPools[pool.poolName] = {
-                pool: pool.poolAddress,
-                lpToken: pool.lpTokenAddress,
-                tokens: pool.underlyingTokens,
-                rewardTokens: pool.rewardTokens,
-              };
-            }
+            defiPools[pool.poolName] = {
+              pool: pool.poolAddress,
+              lpToken: pool.lpTokenAddress,
+              tokens: pool.underlyingTokens,
+              rewardTokens: pool.rewardTokens,
+            };
           }
           createFile(`${poolPath}/${protocol}.json`, JSON.stringify(defiPools));
           console.log(`✅ Fetched defi pools for ${protocol} successfully.`);
