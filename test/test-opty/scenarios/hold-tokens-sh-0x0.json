@@ -36,11 +36,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -51,11 +47,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -69,21 +61,13 @@
               "executer": "owner",
               "expect": "success",
               "message": "",
-              "expectedValue": {
-                "DAI": "30000000000000000000",
-                "USDT": "30000000",
-                "SLP": "30000000000000"
-              }
+              "expectedValue": "3"
             },
             {
               "contract": "vault",
               "action": "userWithdrawRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -110,11 +94,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -125,11 +105,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -143,21 +119,13 @@
               "executer": "owner",
               "expect": "success",
               "message": "",
-              "expectedValue": {
-                "DAI": "0",
-                "USDT": "0",
-                "SLP": "0"
-              }
+              "expectedValue": "0"
             },
             {
               "contract": "vault",
               "action": "userWithdrawRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -185,11 +153,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -200,11 +164,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -218,11 +178,7 @@
               "executer": "owner",
               "expect": "success",
               "message": "",
-              "expectedValue": {
-                "DAI": "30000000000000000000",
-                "USDT": "30000000",
-                "SLP": "30000000000000"
-              }
+              "expectedValue": "3"
             },
             {
               "contract": "strategyProvider",
@@ -239,11 +195,7 @@
               "contract": "vault",
               "action": "userWithdrawRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -257,11 +209,7 @@
               "executer": "owner",
               "expect": "success",
               "message": "",
-              "expectedValue": {
-                "DAI": "0",
-                "USDT": "0",
-                "SLP": "0"
-              }
+              "expectedValue": "0"
             }
           ]
         },
@@ -284,11 +232,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -299,11 +243,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -317,11 +257,7 @@
               "executer": "owner",
               "expect": "success",
               "message": "",
-              "expectedValue": {
-                "DAI": "30000000000000000000",
-                "USDT": "30000000",
-                "SLP": "30000000000000"
-              }
+              "expectedValue": "3"
             },
             {
               "contract": "strategyProvider",
@@ -338,11 +274,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -353,11 +285,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -368,11 +296,7 @@
               "contract": "vault",
               "action": "userWithdrawRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "30000000000000000000",
-                  "USDT": "30000000",
-                  "SLP": "30000000000000"
-                }
+                "amount": "3"
               },
               "executer": "owner",
               "expect": "success",
@@ -386,11 +310,7 @@
               "executer": "owner",
               "expect": "success",
               "message": "",
-              "expectedValue": {
-                "DAI": "0",
-                "USDT": "0",
-                "SLP": "0"
-              }
+              "expectedValue": "0"
             }
           ]
         }

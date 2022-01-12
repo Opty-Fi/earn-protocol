@@ -3,6 +3,7 @@ import hre, { ethers } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
+import { to_10powNumber_BN } from "../../helpers/utils";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
@@ -20,7 +21,7 @@ import {
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 
 type ARGUMENTS = {
-  amount?: { [key: string]: string };
+  amount?: string;
   riskProfileCode?: string;
   strategyHash?: string;
   defaultStrategyState?: string;
@@ -28,11 +29,7 @@ type ARGUMENTS = {
 
 describe(scenarios.title, () => {
   // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
-  const MAX_AMOUNT: { [key: string]: BigNumber } = {
-    DAI: BigNumber.from("1000000000000000000000"),
-    USDT: BigNumber.from("1000000000"),
-    SLP: BigNumber.from("1000000000000000"),
-  };
+  const MAX_AMOUNT = BigNumber.from("1000");
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   let users: { [key: string]: Signer };
@@ -57,6 +54,7 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
+      let decimals: string;
       const profile = vault.riskProfileCode;
       const stories = vault.stories;
       const adaptersName = Object.keys(TypedAdapterStrategies);
@@ -76,7 +74,7 @@ describe(scenarios.title, () => {
                 const ERC20Instance = await hre.ethers.getContractAt("ERC20", strategy.token);
                 underlyingTokenName = await ERC20Instance.name();
                 underlyingTokenSymbol = await ERC20Instance.symbol();
-
+                decimals = (await ERC20Instance.decimals()).toString();
                 const adapter = adapters[adapterName];
                 const Vault = await deployVault(
                   hre,
@@ -127,7 +125,7 @@ describe(scenarios.title, () => {
                   hre,
                   strategy.token,
                   users["owner"],
-                  MAX_AMOUNT[underlyingTokenSymbol.toUpperCase()],
+                  MAX_AMOUNT.mul(to_10powNumber_BN(decimals)),
                   timestamp,
                 );
 
@@ -183,7 +181,7 @@ describe(scenarios.title, () => {
                           .connect(users[action.executer])
                           [action.action](
                             contracts["vault"].address,
-                            amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0",
+                            amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0",
                           );
                       } else {
                         await expect(
@@ -191,7 +189,7 @@ describe(scenarios.title, () => {
                             .connect(users[action.executer])
                             [action.action](
                               contracts["vault"].address,
-                              amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0",
+                              amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0",
                             ),
                         ).to.be.revertedWith(action.message);
                       }
@@ -203,19 +201,19 @@ describe(scenarios.title, () => {
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0");
+                          [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0");
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0"),
+                            [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0"),
                         ).to.be.revertedWith(action.message);
                       }
                       break;
                     }
                     case "balance()": {
                       expect(await contracts[action.contract][action.action]()).to.equal(
-                        action.expectedValue[<keyof typeof action.expectedValue>underlyingTokenSymbol.toUpperCase()],
+                        BigNumber.from(action.expectedValue).mul(to_10powNumber_BN(decimals)),
                       );
                       break;
                     }
@@ -224,12 +222,12 @@ describe(scenarios.title, () => {
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0");
+                          [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0");
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0"),
+                            [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0"),
                         ).to.be.revertedWith(action.message);
                       }
                       break;
