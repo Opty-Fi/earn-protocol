@@ -21,15 +21,13 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VA
       console.log("Deploying Vaults...");
       for (const token in VAULT_TOKENS) {
         for (const riskProfile of RISK_PROFILES) {
-          if (riskProfile.code === 1) {
-            await hre.run(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, {
-              token: VAULT_TOKENS[token].address,
-              riskprofilecode: riskProfile.code,
-              registry: registry,
-              unpause: unpause,
-              insertindb: insertindb,
-            });
-          }
+          await hre.run(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, {
+            token: VAULT_TOKENS[token].address,
+            riskprofilecode: riskProfile.code,
+            registry: registry,
+            unpause: unpause,
+            insertindb: insertindb,
+          });
         }
       }
       console.log("Finished deploying vaults");
