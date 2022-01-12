@@ -5,7 +5,6 @@ import { getSoliditySHA3Hash, capitalizeFirstLetter, to_10powNumber_BN } from ".
 import { getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "./data";
 import { MockContract } from "@defi-wonderland/smock";
-
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
@@ -208,9 +207,9 @@ export function retrieveAdapterFromStrategyName(strategyName: string): string[] 
   for (let i = 1; i < strategyStep.length; i++) {
     const strategySymbol = strategyStep[i].split("-");
     let adapterName;
-    if (strategySymbol[0].toUpperCase() === "AAVE") {
+    if (strategySymbol[0].toUpperCase() === "AAVEV1") {
       adapterName = "AaveV1";
-    } else if (strategySymbol[0].toUpperCase() === "AAVE_V2") {
+    } else if (strategySymbol[0].toUpperCase() === "AAVEV2") {
       adapterName = "AaveV2";
     } else if (strategySymbol[0].toUpperCase() === "CURVE") {
       adapterName = strategySymbol[1].toUpperCase() === "3Crv" ? "CurveSwapPool" : "CurveDepositPool";

@@ -6,11 +6,11 @@ import { setUp } from "./setup";
 import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
-import { ZERO_BYTES32, ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { COMPOUND_ADAPTER_NAME, HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
-import { TypedTokenStrategies, TypedAdapterStrategies, TypedTokens } from "../../helpers/data";
+import { TypedTokenStrategies, TypedTokens } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { delay } from "../../helpers/utils";
 import {
   executeFunc,
@@ -25,8 +25,6 @@ import {
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
@@ -144,7 +142,6 @@ describe(scenario.title, () => {
       const vault = scenario.vaults[i];
       const profile = vault.riskProfileCode;
       const adaptersName = Object.keys(TypedAdapterStrategies);
-
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
@@ -152,15 +149,13 @@ describe(scenario.title, () => {
         describe(`${adapterName}`, async () => {
           for (let i = 0; i < strategies.length; i++) {
             const TOKEN_STRATEGY = strategies[i];
-            const tokenAddress = VAULT_TOKENS[TOKEN_STRATEGY.token].address;
+            const tokenAddress = TOKEN_STRATEGY.token;
             const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
               rewardTokenAdapterName.toLowerCase(),
             );
             let underlyingTokenName: string;
             let underlyingTokenSymbol: string;
             before(async () => {
-              underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
-              underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
               const adapter = adapters[adapterName];
 
               for (let i = 0; i < TOKEN_STRATEGY.strategy.length; i++) {
@@ -183,6 +178,9 @@ describe(scenario.title, () => {
               );
 
               const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+
+              underlyingTokenName = await Token_ERC20Instance.name();
+              underlyingTokenSymbol = await Token_ERC20Instance.symbol();
 
               const CHIInstance = await hre.ethers.getContractAt("IChi", TypedTokens["CHI"]);
               Vault = await deployVault(
@@ -242,7 +240,7 @@ describe(scenario.title, () => {
                         case "initData()": {
                           const { amount }: ARGUMENTS = action.args;
                           if (amount) {
-                            const halfAmount = BigNumber.from(amount[TOKEN_STRATEGY.token]).div(BigNumber.from(2));
+                            const halfAmount = BigNumber.from(amount[underlyingTokenSymbol]).div(BigNumber.from(2));
                             const userAddress = await users[userIndex].getAddress();
                             const balanceTx = await contracts["vault"]
                               .connect(users[userIndex])
@@ -307,7 +305,7 @@ describe(scenario.title, () => {
                               hre,
                               tokenAddress,
                               users[userIndex],
-                              BigNumber.from(amount[TOKEN_STRATEGY.token]),
+                              BigNumber.from(amount[underlyingTokenSymbol]),
                               timestamp,
                             );
                           }
@@ -326,7 +324,7 @@ describe(scenario.title, () => {
                               hre,
                               tokenAddress,
                               users[userIndex],
-                              BigNumber.from(amount[TOKEN_STRATEGY.token]),
+                              BigNumber.from(amount[underlyingTokenSymbol]),
                               timestamp,
                               contracts["vault"].address,
                             );
@@ -339,12 +337,12 @@ describe(scenario.title, () => {
 
                           if (contractName && amount) {
                             let investedAmount: string | undefined;
-                            if (amount[TOKEN_STRATEGY.token] === "all") {
+                            if (amount[underlyingTokenSymbol] === "all") {
                               const userAddr = await users[userIndex].getAddress();
                               const value = await contracts[action.contract].balanceOf(userAddr);
                               investedAmount = value.toString();
                             } else {
-                              investedAmount = amount[TOKEN_STRATEGY.token];
+                              investedAmount = amount[underlyingTokenSymbol];
                             }
                             await contracts[action.contract]
                               .connect(users[userIndex])
@@ -378,7 +376,7 @@ describe(scenario.title, () => {
 
                           if (amount) {
                             let investedAmount: string | undefined;
-                            if (amount[TOKEN_STRATEGY.token] === "all") {
+                            if (amount[underlyingTokenSymbol] === "all") {
                               if (action.action.includes("userWithdrawRebalance")) {
                                 const userAddr = await users[userIndex].getAddress();
                                 const value = await contracts[action.contract].balanceOf(userAddr);
@@ -392,7 +390,7 @@ describe(scenario.title, () => {
                                 investedAmount = value.toString();
                               }
                             } else {
-                              investedAmount = amount[TOKEN_STRATEGY.token];
+                              investedAmount = amount[underlyingTokenSymbol];
                             }
                             if (action.action === "userDeposit(uint256)") {
                               const queue = await contracts[action.contract].getDepositQueue();
@@ -952,7 +950,8 @@ describe(testVaultConfigurationScenario.title, () => {
                   const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
                   const lastAdapterName = adapterNames[numberOfSteps - 1];
                   if (
-                    (rewardToken != ADDRESS_ZERO && REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
+                    (rewardToken != hre.ethers.constants.AddressZero &&
+                      REWARD_TOKENS[lastAdapterName].distributionActive == true) ||
                     !unpaused
                   ) {
                     expect(value).to.be.gt(0);
@@ -1011,6 +1010,7 @@ describe(testVaultScenario.title, () => {
           }
           description = description + TOKEN_STRATEGY.steps[i].protocol.name;
         }
+
         describe(description, async () => {
           const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
             rewardTokenAdapterName.toLowerCase(),
@@ -1243,7 +1243,7 @@ describe(testVaultScenario.title, () => {
                     const tokenHash = generateTokenHash([tokenAddress]);
                     await essentialContracts.strategyProvider
                       .connect(users[0])
-                      .setBestStrategy(1, tokenHash, ZERO_BYTES32);
+                      .setBestStrategy(1, tokenHash, hre.ethers.constants.HashZero);
 
                     const userAddr = await users[action.executor].getAddress();
                     const value = await contracts["vault"].balanceOf(userAddr);
@@ -1274,7 +1274,7 @@ describe(testVaultScenario.title, () => {
                     const rewardToken = await adapters[lastAdapterName].getRewardToken(
                       TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
                     );
-                    if (rewardToken != ADDRESS_ZERO) {
+                    if (rewardToken != hre.ethers.constants.AddressZero) {
                       claimableTokens = await adapters[lastAdapterName].getUnclaimedRewardTokenAmount(
                         contracts["vault"].address,
                         TOKEN_STRATEGY.steps[numberOfSteps - 1].poolContractAddress,
@@ -1413,10 +1413,10 @@ describe(testVaultScenario.title, () => {
                     ).to.be.revertedWith(action.message);
                     break;
                   }
-                  case "wait10000Seconds": {
+                  case "wait10Seconds": {
                     const blockNumber = await hre.ethers.provider.getBlockNumber();
                     const block = await hre.ethers.provider.getBlock(blockNumber);
-                    await moveToSpecificBlock(hre, block.timestamp + 10000);
+                    await moveToSpecificBlock(hre, block.timestamp + 10);
                     break;
                   }
                 }
@@ -1476,7 +1476,7 @@ describe(testVaultScenario.title, () => {
                     if (action.expectedValue == ">") {
                       const rewardToken = await essentialContracts.strategyManager.getRewardToken(investStrategyHash);
                       if (
-                        (rewardToken != ADDRESS_ZERO && claimableTokens.gt(0)) ||
+                        (rewardToken != hre.ethers.constants.AddressZero && claimableTokens.gt(0)) ||
                         getAddress(rewardToken) == getAddress(TypedTokens.COMP) ||
                         getAddress(rewardToken) == getAddress(TypedTokens.CRV) ||
                         !unpaused
@@ -1530,12 +1530,12 @@ describe(testVaultScenario.title, () => {
                     const tokenHash = generateTokenHash([tokenAddress]);
                     await essentialContracts.strategyProvider
                       .connect(users[0])
-                      .setBestStrategy(1, tokenHash, ZERO_BYTES32);
+                      .setBestStrategy(1, tokenHash, hre.ethers.constants.HashZero);
                     const bestStrategy = await essentialContracts.strategyProvider.rpToTokenToBestStrategy(
                       1,
                       tokenHash,
                     );
-                    expect(bestStrategy).to.be.eq(ZERO_BYTES32);
+                    expect(bestStrategy).to.be.eq(hre.ethers.constants.HashZero);
                     break;
                   }
                   case "approve(address,uint256)": {

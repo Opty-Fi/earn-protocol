@@ -12,7 +12,7 @@
     ]
   },
   {
-    "strategyName": "DAI-deposit-AAVE-aDAI",
+    "strategyName": "DAI-deposit-AAVEV1-aDAI",
     "token": "DAI",
     "strategy": [
       {
@@ -24,7 +24,7 @@
     ]
   },
   {
-    "strategyName": "DAI-deposit-AAVE_V2-aDAI",
+    "strategyName": "DAI-deposit-AAVEV2-aDAI",
     "token": "DAI",
     "strategy": [
       {

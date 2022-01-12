@@ -7,15 +7,13 @@ import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
-import { TypedAdapterStrategies } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
@@ -35,7 +33,7 @@ describe(scenarios.title, () => {
     DAI: BigNumber.from("20000000000000000000"),
     USDC: BigNumber.from("20000000"),
     USDT: BigNumber.from("20000000"),
-    SLP_WETH_USDC: BigNumber.from("200000000000000"),
+    SLP: BigNumber.from("200000000000000"),
   };
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
@@ -73,7 +71,7 @@ describe(scenarios.title, () => {
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
-            const token = VAULT_TOKENS[strategy.token].address;
+            const token = strategy.token;
             const contracts: CONTRACTS = {};
             let underlyingTokenName: string;
             let underlyingTokenSymbol: string;
@@ -81,6 +79,10 @@ describe(scenarios.title, () => {
             let canStake = false;
             before(async () => {
               try {
+                const ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
+                underlyingTokenName = await ERC20Instance.name();
+                underlyingTokenSymbol = await ERC20Instance.symbol();
+
                 const adapter = adapters[adapterName];
                 canStake = await adapter.canStake(strategy.strategy[0].contract);
                 await approveLiquidityPoolAndMapAdapter(
@@ -99,10 +101,8 @@ describe(scenarios.title, () => {
                   false,
                 );
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
-                await fundWalletToken(hre, token, users["owner"], MAX_AMOUNT[strategy.token], timestamp);
+                await fundWalletToken(hre, token, users["owner"], MAX_AMOUNT[underlyingTokenSymbol], timestamp);
 
-                underlyingTokenName = await getTokenName(hre, strategy.token);
-                underlyingTokenSymbol = await getTokenSymbol(hre, strategy.token);
                 const Vault = await deployVault(
                   hre,
                   essentialContracts.registry.address,
@@ -123,8 +123,6 @@ describe(scenarios.title, () => {
                   await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
                 }
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
-
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
 
                 contracts["adapter"] = adapter;
 
@@ -163,7 +161,7 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositAmount(address,address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositAmount = amount ? amount[strategy.token] : "0";
+                      const maxDepositAmount = amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -183,7 +181,7 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositPoolPct(address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositPoolPct = amount ? amount[strategy.token] : "0";
+                      const maxDepositPoolPct = amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -203,7 +201,7 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositProtocolPct(uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositProtocolPct = amount ? amount[strategy.token] : "0";
+                      const maxDepositProtocolPct = amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -226,12 +224,18 @@ describe(scenarios.title, () => {
                       if (setAction.expect === "success") {
                         await contracts[setAction.contract]
                           .connect(users[setAction.executer])
-                          [setAction.action](contracts["vault"].address, amount ? amount[strategy.token] : "0");
+                          [setAction.action](
+                            contracts["vault"].address,
+                            amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0",
+                          );
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](contracts["vault"].address, amount ? amount[strategy.token] : "0"),
+                            [setAction.action](
+                              contracts["vault"].address,
+                              amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0",
+                            ),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;
@@ -254,12 +258,12 @@ describe(scenarios.title, () => {
                       if (setAction.expect === "success") {
                         await contracts[setAction.contract]
                           .connect(users[setAction.executer])
-                          [setAction.action](amount ? amount[strategy.token] : "0");
+                          [setAction.action](amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0");
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](amount ? amount[strategy.token] : "0"),
+                            [setAction.action](amount ? amount[underlyingTokenSymbol.toUpperCase()] : "0"),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;
@@ -275,13 +279,13 @@ describe(scenarios.title, () => {
                       const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                       expect(
                         await contracts[getAction.contract][getAction.action](strategy.strategy[0].contract),
-                      ).to.equal(+expectedValue[strategy.token]);
+                      ).to.equal(+expectedValue[underlyingTokenSymbol.toUpperCase()]);
                       break;
                     }
                     case "maxDepositProtocolPct()": {
                       const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                       expect(+(await contracts[getAction.contract][getAction.action]())).to.equal(
-                        +expectedValue[strategy.token],
+                        +expectedValue[underlyingTokenSymbol.toUpperCase()],
                       );
                       break;
                     }
@@ -292,11 +296,11 @@ describe(scenarios.title, () => {
                           await contracts[getAction.contract]["maxDepositAmount(address)"](
                             strategy.strategy[0].contract,
                           ),
-                        ).to.equal(expectedValue[strategy.token]);
+                        ).to.equal(expectedValue[underlyingTokenSymbol.toUpperCase()]);
                       } else {
                         expect(
                           await contracts[getAction.contract][getAction.action](strategy.strategy[0].contract, token),
-                        ).to.equal(expectedValue[strategy.token]);
+                        ).to.equal(expectedValue[underlyingTokenSymbol.toUpperCase()]);
                       }
 
                       break;
@@ -312,7 +316,7 @@ describe(scenarios.title, () => {
                         const address = await users[userName].getAddress();
                         const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                         expect(await contracts[getAction.contract][getAction.action](address)).to.equal(
-                          expectedValue[strategy.token],
+                          expectedValue[underlyingTokenSymbol.toUpperCase()],
                         );
                       }
                       break;
@@ -320,7 +324,7 @@ describe(scenarios.title, () => {
                     case "balance()": {
                       const balance = await contracts[getAction.contract][getAction.action]();
                       const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
-                      expect(balance).to.equal(expectedValue[strategy.token]);
+                      expect(balance).to.equal(expectedValue[underlyingTokenSymbol.toUpperCase()]);
 
                       if (balance > 0) {
                         await contracts["vault"].userWithdrawAllRebalance();
@@ -339,9 +343,9 @@ describe(scenarios.title, () => {
                             token,
                             strategy.strategy[0].contract,
                           );
-                      if (expectedValue[strategy.token] === "<") {
+                      if (expectedValue[underlyingTokenSymbol.toUpperCase()] === "<") {
                         expect(value.sub(currentPoolValue)).to.lt(0);
-                      } else if (expectedValue[strategy.token] === "=") {
+                      } else if (expectedValue[underlyingTokenSymbol.toUpperCase()] === "=") {
                         expect(value.sub(currentPoolValue)).to.equal(0);
                       } else {
                         expect(value.sub(currentPoolValue)).to.gt(0);

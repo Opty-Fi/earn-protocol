@@ -6,7 +6,7 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts
 import { TypedStrategies } from "../../helpers/data";
 import { STRATEGY } from "../../helpers/type";
 import fs from "fs";
-import { SET_STRATEGIES } from "../task-names";
+import TASKS from "../task-names";
 /**
  * strategy.json structure
  * [
@@ -39,7 +39,7 @@ import { SET_STRATEGIES } from "../task-names";
       }
     ]
  */
-task(SET_STRATEGIES, "Set strategies")
+task(TASKS.ACTION_TASKS.SET_STRATEGIES.NAME, TASKS.ACTION_TASKS.SET_STRATEGIES.DESCRIPTION)
   .addParam("investstrategyregistry", "the address of investStrategyRegistry", "", types.string)
   .addParam("fromfile", "path to strategies json file", "", types.string)
   .setAction(async ({ investstrategyregistry, fromfile }, hre) => {
@@ -86,7 +86,7 @@ task(SET_STRATEGIES, "Set strategies")
       }
       console.log("Finished setting strategies");
     } catch (error: any) {
-      console.error(`${SET_STRATEGIES}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.SET_STRATEGIES.NAME}: `, error);
       throw error;
     }
   });

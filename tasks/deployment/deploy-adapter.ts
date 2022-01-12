@@ -4,9 +4,9 @@ import { deployAdapter } from "../../helpers/contracts-deployments";
 import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
 import { ADAPTERS } from "../../helpers/constants/adapters";
-import { DEPLOY_ADAPTER } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_ADAPTER, "Deploy Adapter contract")
+task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("name", "the name of adapter", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
@@ -40,7 +40,7 @@ task(DEPLOY_ADAPTER, "Deploy Adapter contract")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_ADAPTER}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME}: `, error);
       throw new Error();
     }
   });

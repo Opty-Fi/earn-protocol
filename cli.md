@@ -653,7 +653,7 @@ Options:
   --amount 500000
 ```
 
-### map-liquiditypool-adapter
+### map-liquiditypool-to-adapter
 
 ```
 Usage: approve and map liquidity pool to adapter
@@ -668,14 +668,14 @@ Options:
 - Example:
 
 ```
-yarn hardhat map-liquiditypool-adapter \
+yarn hardhat map-liquiditypool-to-adapter \
 --network localhost \
 --registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
 --liquiditypool 0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5 \
 --adapter 0xbf78A1a02e34CF7aCDB8BD9D0f225cB6AA6B85C5
 ```
 
-### map-liquiditypools-adapter
+### map-liquiditypools-to-adapter
 
 ```
 Usage: approve and map liquidity pools to a specific adapter
@@ -690,7 +690,7 @@ Options:
 - Example:
 
 ```
-yarn hardhat map-liquiditypools-adapter \
+yarn hardhat map-liquiditypools-to-adapter \
 --network localhost \
 --registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
 --adaptername CompoundAdapter \

@@ -6,14 +6,12 @@ import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 
-import { TypedAdapterStrategies } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   approveLiquidityPoolAndMapAdapter,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
@@ -67,13 +65,17 @@ describe(scenario.title, () => {
         let ERC20Instance: Contract;
         for (let i = 0; i < strategies.length; i++) {
           const strategy = strategies[i];
+          const tokenAddress = strategy.token;
 
           describe(`${adapterName}- ${strategy.strategyName}`, async () => {
             let decimals: BigNumber;
             before(async () => {
               try {
-                underlyingTokenName = await getTokenName(hre, strategy.token);
-                underlyingTokenSymbol = await getTokenSymbol(hre, strategy.token);
+                ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+                decimals = await ERC20Instance.decimals();
+                underlyingTokenName = await ERC20Instance.name();
+                underlyingTokenSymbol = await ERC20Instance.symbol();
+
                 const adapter = adapters[adapterName];
 
                 for (let i = 0; i < strategy.strategy.length; i++) {
@@ -88,7 +90,7 @@ describe(scenario.title, () => {
                 vault = await deployVault(
                   hre,
                   essentialContracts.registry.address,
-                  VAULT_TOKENS[strategy.token].address,
+                  tokenAddress,
                   owner,
                   admin,
                   underlyingTokenName,
@@ -106,7 +108,7 @@ describe(scenario.title, () => {
                 await setBestStrategy(
                   strategy.strategy,
                   owner,
-                  VAULT_TOKENS[strategy.token].address,
+                  tokenAddress,
                   essentialContracts.investStrategyRegistry,
                   essentialContracts.strategyProvider,
                   profile,
@@ -115,11 +117,9 @@ describe(scenario.title, () => {
 
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
 
-                ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[strategy.token].address);
-                decimals = await ERC20Instance.decimals();
                 await fundWalletToken(
                   hre,
-                  VAULT_TOKENS[strategy.token].address,
+                  tokenAddress,
                   owner,
                   BigNumber.from(MAX_AMOUNT).mul(BigNumber.from(10).pow(decimals)),
                   timestamp,

@@ -2,9 +2,9 @@ import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress, deployContract, executeFunc } from "../../helpers/helpers";
-import { DEPLOY_OPTY_DISTRIBUTOR } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_OPTY_DISTRIBUTOR, "Deploy Opty Distributor")
+task(TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_DISTRIBUTOR.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_DISTRIBUTOR.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("opty", "the address of opty", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
@@ -46,7 +46,7 @@ task(DEPLOY_OPTY_DISTRIBUTOR, "Deploy Opty Distributor")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_OPTY_DISTRIBUTOR}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_OPTY_DISTRIBUTOR.NAME}: `, error);
       throw error;
     }
   });

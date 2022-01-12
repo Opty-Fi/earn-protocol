@@ -49,6 +49,10 @@ export type STRATEGY = {
   strategy: STRATEGY_DATA[];
 };
 
+export type STRATEGIES = {
+  [key: string]: STRATEGY;
+};
+
 export type STRATEGY_DATA = {
   contract: string;
   outputTokenSymbol?: string;
@@ -66,6 +70,18 @@ export type DEFI_POOLS_DATA = {
       pid?: string;
       deprecated?: boolean;
     };
+  };
+};
+
+export type DEFI_POOL_DATA = {
+  [name: string]: {
+    pool: string;
+    lpToken: string;
+    tokens: string[];
+    rewardTokens: string[];
+    stakingVault?: string;
+    pid?: string;
+    deprecated?: boolean;
   };
 };
 
@@ -133,4 +149,13 @@ export type TOKEN_STRATEGIES = {
       underlyingTokens: string[];
     }[];
   }[];
+};
+
+export type NETWORKS_TYPE = "ethereum" | "polygon";
+
+export type CHAINID_NETWORKS = {
+  [chainID: string]: {
+    name: string;
+    network: NETWORKS_TYPE;
+  };
 };

@@ -5,7 +5,7 @@ import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { TypedAdapterStrategies } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { deployContract, executeFunc, moveToNextBlock } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
