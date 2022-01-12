@@ -606,7 +606,7 @@ export async function addWhiteListForHarvest(
     params: [TypedEOA.HARVEST_GOVERNANCE],
   });
   const harvestController = await hre.ethers.getContractAt(
-    "IHarvestController",
+    "@optyfi/defi-legos/ethereum/harvest.finance/contracts/IHarvestController.sol:IHarvestController",
     TypedContracts.HARVEST_CONTROLLER,
     await hre.ethers.getSigner(TypedEOA.HARVEST_GOVERNANCE),
   );
