@@ -8,6 +8,7 @@ import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
 import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
+import { TypedTokens } from "../../helpers/data";
 import { generateTokenHash, retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -29,7 +30,6 @@ type ARGUMENTS = {
 
 describe(scenarios.title, () => {
   // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
-  const MAX_AMOUNT = BigNumber.from("1000");
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   let users: { [key: string]: Signer };
@@ -65,16 +65,19 @@ describe(scenarios.title, () => {
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
-            const tokensHash = generateTokenHash([strategy.token]);
+            const token = strategy.token;
+            const tokensHash = generateTokenHash([token]);
             let bestStrategyHash: string;
             let vaultRiskProfile: number;
             const contracts: CONTRACTS = {};
+            const MAX_AMOUNT = token === TypedTokens["SLP_WETH_USDC"] ? BigNumber.from("20") : BigNumber.from("1000");
             before(async () => {
               try {
                 const ERC20Instance = await hre.ethers.getContractAt("ERC20", strategy.token);
                 underlyingTokenName = await ERC20Instance.name();
                 underlyingTokenSymbol = await ERC20Instance.symbol();
-                decimals = (await ERC20Instance.decimals()).toString();
+                decimals = token === TypedTokens["SLP_WETH_USDC"] ? "6" : (await ERC20Instance.decimals()).toString();
+
                 const adapter = adapters[adapterName];
                 const Vault = await deployVault(
                   hre,
