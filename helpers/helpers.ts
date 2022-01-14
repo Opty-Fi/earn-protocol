@@ -202,7 +202,7 @@ export function generateTokenHash(addresses: string[]): string {
 export function retrieveAdapterFromStrategyName(strategyName: string): string[] {
   // strategyName should follow format TOKEN-DEPOSIT-STRATEGY-TOKEN
   // For Ex: DAI-deposit-COMPOUND-cDAI
-  const strategyStep = strategyName.split("-deposit-");
+  const strategyStep = strategyName.toUpperCase().split("-DEPOSIT-");
   const adapterNames: string[] = [];
   for (let i = 1; i < strategyStep.length; i++) {
     const strategySymbol = strategyStep[i].split("-");
@@ -213,12 +213,20 @@ export function retrieveAdapterFromStrategyName(strategyName: string): string[] 
       adapterName = "AaveV2";
     } else if (strategySymbol[0].toUpperCase() === "CURVE") {
       adapterName = strategySymbol[1].toUpperCase() === "3Crv" ? "CurveSwapPool" : "CurveDepositPool";
+    } else if (strategySymbol[0].toUpperCase() === "CURVEDEPOSITPOOL") {
+      adapterName = "CurveDepositPool";
+    } else if (strategySymbol[0].toUpperCase() === "CURVESWAPPOOL") {
+      adapterName = "CurveSwapPool";
+    } else if (strategySymbol[0].toUpperCase() === "CONVEX") {
+      adapterName = "ConvexFinance";
     } else if (strategySymbol[0].toUpperCase() === "DFORCE") {
       adapterName = "DForce";
     } else if (strategySymbol[0].toUpperCase() === "DYDX") {
       adapterName = "DyDx";
-    } else if (strategySymbol[0].toUpperCase() === "YEARN") {
+    } else if (strategySymbol[0].toUpperCase() === "YEARN" || strategySymbol[0].toUpperCase() === "YVAULT") {
       adapterName = "YVault";
+    } else if (strategySymbol[0].toUpperCase() === "HARVESTV1") {
+      adapterName = "HarvestV1";
     } else {
       adapterName = capitalizeFirstLetter(strategySymbol[0].toLowerCase());
     }

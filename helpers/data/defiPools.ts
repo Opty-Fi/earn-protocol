@@ -10,6 +10,7 @@ import { default as FulcrumDefiPools } from "optyfi-sdk/ethereum/pools/Fulcrum.j
 import { default as HarvestDefiPools } from "optyfi-sdk/ethereum/pools/HarvestV1.json";
 import { default as SushiSwapDefiPools } from "optyfi-sdk/ethereum/pools/Sushiswap.json";
 import { default as YVaultDefiPools } from "optyfi-sdk/ethereum/pools/YVault.json";
+import { default as ConvexDefiPools } from "optyfi-sdk/ethereum/pools/Convex.json";
 
 import {
   AAVE_V1_ADAPTER_NAME,
@@ -42,4 +43,5 @@ export const TypedDefiPools: DEFI_POOLS_DATA = {
   [HARVEST_V1_ADAPTER_NAME]: HarvestDefiPools,
   [YVAULT_ADAPTER_NAME]: YVaultDefiPools,
   [SUSHISWAP_ADAPTER_NAME]: SushiSwapDefiPools,
+  [CONVEX_ADAPTER_NAME]: ConvexDefiPools,
 };

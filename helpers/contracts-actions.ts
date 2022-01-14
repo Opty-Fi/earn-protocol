@@ -316,7 +316,10 @@ export async function fundWalletToken(
         }
       }
     } else if (getAddress(tokenAddress) === getAddress(TypedTokens["WETH"])) {
-      const wEthInstance = await hre.ethers.getContractAt("IWETH", TypedTokens["WETH"]);
+      const wEthInstance = await hre.ethers.getContractAt(
+        "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH",
+        TypedTokens["WETH"],
+      );
       //  Funding user's wallet with WETH tokens
       await wEthInstance.deposit({ value: amount });
       await wEthInstance.transfer(address, amount);
@@ -603,7 +606,7 @@ export async function addWhiteListForHarvest(
     params: [TypedEOA.HARVEST_GOVERNANCE],
   });
   const harvestController = await hre.ethers.getContractAt(
-    "IHarvestController",
+    "@optyfi/defi-legos/ethereum/harvest.finance/contracts/IHarvestController.sol:IHarvestController",
     TypedContracts.HARVEST_CONTROLLER,
     await hre.ethers.getSigner(TypedEOA.HARVEST_GOVERNANCE),
   );

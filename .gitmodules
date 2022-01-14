@@ -4,3 +4,6 @@
 [submodule "contracts/protocol/earn-protocol-configuration"]
 	path = contracts/protocol/earn-protocol-configuration
 	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
+[submodule "contracts/protocol/defi-adapters"]
+	path = contracts/protocol/defi-adapters
+	url = https://github.com/Opty-Fi/defi-adapters.git

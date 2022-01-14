@@ -2,6 +2,7 @@ import { expect, assert } from "chai";
 import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { CONTRACTS } from "../../helpers/type";
+import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
@@ -70,69 +71,67 @@ describe(scenario.title, () => {
           describe(`${adapterName}- ${strategy.strategyName}`, async () => {
             let decimals: BigNumber;
             before(async () => {
-              try {
-                ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
-                decimals = await ERC20Instance.decimals();
-                underlyingTokenName = await ERC20Instance.name();
-                underlyingTokenSymbol = await ERC20Instance.symbol();
+              ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+              decimals = await ERC20Instance.decimals();
+              underlyingTokenName = await ERC20Instance.name();
+              underlyingTokenSymbol = await ERC20Instance.symbol();
 
-                const adapter = adapters[adapterName];
-
-                for (let i = 0; i < strategy.strategy.length; i++) {
-                  await approveLiquidityPoolAndMapAdapter(
-                    users["owner"],
-                    essentialContracts.registry,
-                    adapter.address,
-                    strategy.strategy[i].contract,
-                  );
+              const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
+              for (let i = 0; i < strategy.strategy.length; i++) {
+                await approveLiquidityPoolAndMapAdapter(
+                  users["owner"],
+                  essentialContracts.registry,
+                  adapters[usedAdapters[i]].address,
+                  strategy.strategy[i].contract,
+                );
+                if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                  await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
                 }
-
-                vault = await deployVault(
-                  hre,
-                  essentialContracts.registry.address,
-                  tokenAddress,
-                  owner,
-                  admin,
-                  underlyingTokenName,
-                  underlyingTokenSymbol,
-                  profile,
-                  TESTING_DEPLOYMENT_ONCE,
-                );
-
-                await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
-                  vault.address,
-                  ethers.constants.MaxUint256,
-                );
-                await essentialContracts.registry.setQueueCap(vault.address, ethers.constants.MaxUint256);
-
-                await setBestStrategy(
-                  strategy.strategy,
-                  owner,
-                  tokenAddress,
-                  essentialContracts.investStrategyRegistry,
-                  essentialContracts.strategyProvider,
-                  profile,
-                  false,
-                );
-
-                const timestamp = (await getBlockTimestamp(hre)) * 2;
-
-                await fundWalletToken(
-                  hre,
-                  tokenAddress,
-                  owner,
-                  BigNumber.from(MAX_AMOUNT).mul(BigNumber.from(10).pow(decimals)),
-                  timestamp,
-                );
-
-                if (adapterName === HARVEST_V1_ADAPTER_NAME) {
-                  await addWhiteListForHarvest(hre, vault.address, admin);
-                }
-                contracts["vault"] = vault;
-                contracts["erc20"] = ERC20Instance;
-              } catch (error: any) {
-                console.error(error);
               }
+
+              vault = await deployVault(
+                hre,
+                essentialContracts.registry.address,
+                tokenAddress,
+                owner,
+                admin,
+                underlyingTokenName,
+                underlyingTokenSymbol,
+                profile,
+                TESTING_DEPLOYMENT_ONCE,
+              );
+
+              await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
+                vault.address,
+                ethers.constants.MaxUint256,
+              );
+              await essentialContracts.registry.setQueueCap(vault.address, ethers.constants.MaxUint256);
+
+              await setBestStrategy(
+                strategy.strategy,
+                owner,
+                tokenAddress,
+                essentialContracts.investStrategyRegistry,
+                essentialContracts.strategyProvider,
+                profile,
+                false,
+              );
+
+              const timestamp = (await getBlockTimestamp(hre)) * 2;
+
+              await fundWalletToken(
+                hre,
+                tokenAddress,
+                owner,
+                BigNumber.from(MAX_AMOUNT).mul(BigNumber.from(10).pow(decimals)),
+                timestamp,
+              );
+
+              if (adapterName === HARVEST_V1_ADAPTER_NAME) {
+                await addWhiteListForHarvest(hre, vault.address, admin);
+              }
+              contracts["vault"] = vault;
+              contracts["erc20"] = ERC20Instance;
             });
             for (let i = 0; i < vaults.vaultStories.length; i++) {
               const story = vaults.vaultStories[i];
