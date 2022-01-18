@@ -16,5 +16,9 @@
   "opUSDCgrow": {
     "Vault": "0xfad37e3197e6331647030954512964cd2e55acaf",
     "VaultProxy": "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88"
+  },
+  "opWETHgrow": {
+    "Vault": "0x72ce52a66713257b9805ffa0a0b14162d4b95b69",
+    "VaultProxy": "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8"
   }
 }
