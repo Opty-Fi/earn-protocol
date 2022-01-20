@@ -15,9 +15,9 @@ interface IVaultOracle {
     /**
      * @notice Set maximum absolute jump allowed of vault value in a single block
      * @dev the maximum vault value jump is in percentage basis points set by governance
+     *      A big drop in value can flag an exploit.
+     *      Exploits usually involve big drop or big fall in priceFullShare.
      * @param _maxVaultValueJump the maximum aboslute allowed from a vault value in basis points
-     * @custom:edu A big drop in value can flag an exploit.
-     *             Exploits usually involve big drop or big fall in priceFullShare.
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
