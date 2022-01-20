@@ -2,9 +2,12 @@ import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress, deployContract, executeFunc } from "../../helpers/helpers";
-import { DEPLOY_ODEFI_VAULT_BOOSTER } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_ODEFI_VAULT_BOOSTER, "Deploy Odefi Vault Booster")
+task(
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_ODEFI_VAULT_BOOSTER.NAME,
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_ODEFI_VAULT_BOOSTER.DESCRIPTION,
+)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("odefi", "the address of odefi", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
@@ -49,7 +52,7 @@ task(DEPLOY_ODEFI_VAULT_BOOSTER, "Deploy Odefi Vault Booster")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_ODEFI_VAULT_BOOSTER}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_ODEFI_VAULT_BOOSTER.NAME}: `, error);
       throw error;
     }
   });

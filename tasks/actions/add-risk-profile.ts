@@ -3,9 +3,9 @@ import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { addRiskProfile } from "../../helpers/contracts-actions";
-import { ADD_RISK_PROFILE } from "../task-names";
+import TASKS from "../task-names";
 
-task(ADD_RISK_PROFILE, "Add Risk Profile")
+task(TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME, TASKS.ACTION_TASKS.ADD_RISK_PROFILE.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
   .addParam("name", "the name of risk profile", "", types.string)
@@ -48,7 +48,7 @@ task(ADD_RISK_PROFILE, "Add Risk Profile")
       ]);
       console.log("Finished adding risk profile : ", name);
     } catch (error) {
-      console.error(`${ADD_RISK_PROFILE}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME}: `, error);
       throw error;
     }
   });

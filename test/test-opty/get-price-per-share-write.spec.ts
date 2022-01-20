@@ -5,15 +5,13 @@ import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
-import { TypedAdapterStrategies } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   approveAndSetTokenHashToTokens,
   unpauseVault,
 } from "../../helpers/contracts-actions";
@@ -65,13 +63,14 @@ describe(scenario.title, () => {
           let RewardToken_ERC20Instance: any;
 
           before(async () => {
-            underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
-            underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
+            const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKEN_STRATEGY.token);
+            underlyingTokenName = await Token_ERC20Instance.name();
+            underlyingTokenSymbol = await Token_ERC20Instance.symbol();
             const adapter = adapters[ADAPTER_NAME];
             Vault = await deployVault(
               hre,
               essentialContracts.registry.address,
-              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
+              TOKEN_STRATEGY.token,
               users["owner"],
               users["admin"],
               underlyingTokenName,
@@ -109,17 +108,13 @@ describe(scenario.title, () => {
             await setBestStrategy(
               TOKEN_STRATEGY.strategy,
               users["owner"],
-              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
+              TOKEN_STRATEGY.token,
               essentialContracts.investStrategyRegistry,
               essentialContracts.strategyProvider,
               profile,
               false,
             );
 
-            const Token_ERC20Instance = await hre.ethers.getContractAt(
-              "ERC20",
-              VAULT_TOKENS[TOKEN_STRATEGY.token].address,
-            );
             contracts["vault"] = Vault;
             contracts["registry"] = essentialContracts.registry;
             contracts["tokenErc20"] = Token_ERC20Instance;
@@ -142,9 +137,9 @@ describe(scenario.title, () => {
                         const timestamp = (await getBlockTimestamp(hre)) * 2;
                         await fundWalletToken(
                           hre,
-                          VAULT_TOKENS[TOKEN_STRATEGY.token].address,
+                          TOKEN_STRATEGY.token,
                           users[addressName],
-                          BigNumber.from(amount[TOKEN_STRATEGY.token]),
+                          BigNumber.from(amount[underlyingTokenSymbol]),
                           timestamp,
                         );
                       }
@@ -167,7 +162,7 @@ describe(scenario.title, () => {
                       if (addressName && amount) {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](contracts[addressName].address, amount[TOKEN_STRATEGY.token]);
+                          [action.action](contracts[addressName].address, amount[underlyingTokenSymbol]);
                       }
                     } catch (error: any) {
                       if (action.expect === "success") {
@@ -188,7 +183,7 @@ describe(scenario.title, () => {
                       if (amount) {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](amount[TOKEN_STRATEGY.token]);
+                          [action.action](amount[underlyingTokenSymbol]);
                       }
                     } catch (error: any) {
                       if (action.expect === "success") {

@@ -100,6 +100,7 @@
     "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat --max-memory 4096 compile",
     "watch:compile": "hardhat --max-memory 4096 watch compilation",
     "watch:ci": "hardhat --max-memory 4096 watch ci",
+    "optyfi-sdk": "hardhat run scripts/optyfi-sdk.ts",
     "test": "env SKIP_LOAD=true hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "test-clean": "yarn clean && yarn test",
     "test-fast": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
@@ -127,7 +128,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.1.7",
     "@openzeppelin/contracts": "3.4.0",
-    "@optyfi/defi-legos": "0.1.0-rc.9",
+    "@optyfi/defi-legos": "0.1.0-rc.15",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0"
   }

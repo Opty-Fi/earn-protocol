@@ -3,26 +3,26 @@ import hre, { ethers } from "hardhat";
 import { Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
+import { to_10powNumber_BN } from "../../helpers/utils";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
-import { TypedAdapterStrategies } from "../../helpers/data";
-import { generateTokenHash } from "../../helpers/helpers";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
+import { TypedTokens } from "../../helpers/data";
+import { generateTokenHash, retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
 
 type ARGUMENTS = {
-  amount?: { [key: string]: string };
+  amount?: string;
   riskProfileCode?: string;
   strategyHash?: string;
   defaultStrategyState?: string;
@@ -30,11 +30,6 @@ type ARGUMENTS = {
 
 describe(scenarios.title, () => {
   // TODO: ADD TEST SCENARIOES, ADVANCED PROFILE, STRATEGIES.
-  const MAX_AMOUNT: { [key: string]: BigNumber } = {
-    DAI: BigNumber.from("1000000000000000000000"),
-    USDT: BigNumber.from("1000000000"),
-    SLP_WETH_USDC: BigNumber.from("1000000000000000"),
-  };
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   let users: { [key: string]: Signer };
@@ -59,6 +54,7 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       let underlyingTokenName: string;
       let underlyingTokenSymbol: string;
+      let decimals: string;
       const profile = vault.riskProfileCode;
       const stories = vault.stories;
       const adaptersName = Object.keys(TypedAdapterStrategies);
@@ -69,19 +65,24 @@ describe(scenarios.title, () => {
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
-            const tokensHash = generateTokenHash([VAULT_TOKENS[strategy.token].address]);
+            const token = strategy.token;
+            const tokensHash = generateTokenHash([token]);
             let bestStrategyHash: string;
             let vaultRiskProfile: number;
             const contracts: CONTRACTS = {};
+            const MAX_AMOUNT = token === TypedTokens["SLP_WETH_USDC"] ? BigNumber.from("20") : BigNumber.from("1000");
             before(async () => {
               try {
-                underlyingTokenName = await getTokenName(hre, strategy.token);
-                underlyingTokenSymbol = await getTokenSymbol(hre, strategy.token);
+                const ERC20Instance = await hre.ethers.getContractAt("ERC20", strategy.token);
+                underlyingTokenName = await ERC20Instance.name();
+                underlyingTokenSymbol = await ERC20Instance.symbol();
+                decimals = token === TypedTokens["SLP_WETH_USDC"] ? "6" : (await ERC20Instance.decimals()).toString();
+
                 const adapter = adapters[adapterName];
                 const Vault = await deployVault(
                   hre,
                   essentialContracts.registry.address,
-                  VAULT_TOKENS[strategy.token].address,
+                  strategy.token,
                   users["owner"],
                   users["admin"],
                   underlyingTokenName,
@@ -98,17 +99,24 @@ describe(scenarios.title, () => {
                   ethers.constants.MaxUint256,
                 );
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
-                await approveLiquidityPoolAndMapAdapter(
-                  users["owner"],
-                  essentialContracts.registry,
-                  adapter.address,
-                  strategy.strategy[0].contract,
-                );
+                const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
+                for (let i = 0; i < strategy.strategy.length; i++) {
+                  await approveLiquidityPoolAndMapAdapter(
+                    users["owner"],
+                    essentialContracts.registry,
+                    adapters[usedAdapters[i]].address,
+                    strategy.strategy[i].contract,
+                  );
+                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
+                  }
+                }
+
                 vaultRiskProfile = await Vault.riskProfileCode();
                 bestStrategyHash = await setBestStrategy(
                   strategy.strategy,
                   users["owner"],
-                  VAULT_TOKENS[strategy.token].address,
+                  strategy.token,
                   essentialContracts.investStrategyRegistry,
                   essentialContracts.strategyProvider,
                   vaultRiskProfile,
@@ -118,13 +126,11 @@ describe(scenarios.title, () => {
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
                 await fundWalletToken(
                   hre,
-                  VAULT_TOKENS[strategy.token].address,
+                  strategy.token,
                   users["owner"],
-                  MAX_AMOUNT[strategy.token],
+                  MAX_AMOUNT.mul(to_10powNumber_BN(decimals)),
                   timestamp,
                 );
-
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[strategy.token].address);
 
                 contracts["strategyProvider"] = essentialContracts.strategyProvider;
                 contracts["adapter"] = adapter;
@@ -176,12 +182,18 @@ describe(scenarios.title, () => {
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](contracts["vault"].address, amount ? amount[strategy.token] : "0");
+                          [action.action](
+                            contracts["vault"].address,
+                            amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0",
+                          );
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](contracts["vault"].address, amount ? amount[strategy.token] : "0"),
+                            [action.action](
+                              contracts["vault"].address,
+                              amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0",
+                            ),
                         ).to.be.revertedWith(action.message);
                       }
                       break;
@@ -192,19 +204,19 @@ describe(scenarios.title, () => {
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](amount ? amount[strategy.token] : "0");
+                          [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0");
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](amount ? amount[strategy.token] : "0"),
+                            [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0"),
                         ).to.be.revertedWith(action.message);
                       }
                       break;
                     }
                     case "balance()": {
                       expect(await contracts[action.contract][action.action]()).to.equal(
-                        action.expectedValue[<keyof typeof action.expectedValue>strategy.token],
+                        BigNumber.from(action.expectedValue).mul(to_10powNumber_BN(decimals)),
                       );
                       break;
                     }
@@ -213,12 +225,12 @@ describe(scenarios.title, () => {
                       if (action.expect === "success") {
                         await contracts[action.contract]
                           .connect(users[action.executer])
-                          [action.action](amount ? amount[strategy.token] : "0");
+                          [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0");
                       } else {
                         await expect(
                           contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](amount ? amount[strategy.token] : "0"),
+                            [action.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0"),
                         ).to.be.revertedWith(action.message);
                       }
                       break;

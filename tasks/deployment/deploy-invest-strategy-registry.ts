@@ -2,9 +2,12 @@ import { task, types } from "hardhat/config";
 import { insertContractIntoDB } from "../../helpers/db";
 import { deployContract, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { DEPLOY_INVEST_STRATEGY_REGISTRY } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_INVEST_STRATEGY_REGISTRY, "Deploy InvestStrategyRegistry")
+task(
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_INVEST_STRATEGY_REGISTRY.NAME,
+  TASKS.DEPLOYMENT_TASKS.DEPLOY_INVEST_STRATEGY_REGISTRY.DESCRIPTION,
+)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
@@ -33,7 +36,7 @@ task(DEPLOY_INVEST_STRATEGY_REGISTRY, "Deploy InvestStrategyRegistry")
         }
       }
     } catch (error) {
-      console.error(`${DEPLOY_INVEST_STRATEGY_REGISTRY}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_INVEST_STRATEGY_REGISTRY.NAME}: `, error);
       throw error;
     }
   });

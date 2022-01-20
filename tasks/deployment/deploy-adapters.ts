@@ -1,9 +1,9 @@
 import { task, types } from "hardhat/config";
 import { ADAPTERS } from "../../helpers/constants/adapters";
 import { isAddress } from "../../helpers/helpers";
-import { DEPLOY_ADAPTER, DEPLOY_ADAPTERS } from "../task-names";
+import TASKS from "../task-names";
 
-task(DEPLOY_ADAPTERS, "Deploy Adapter contracts")
+task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "insert the deployed contract addresses in DB", false, types.boolean)
@@ -19,7 +19,7 @@ task(DEPLOY_ADAPTERS, "Deploy Adapter contracts")
     try {
       for (const adapter of ADAPTERS) {
         try {
-          await hre.run(DEPLOY_ADAPTER, {
+          await hre.run(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, {
             registry: registry,
             name: adapter,
             insertindb: insertindb,
@@ -32,7 +32,7 @@ task(DEPLOY_ADAPTERS, "Deploy Adapter contracts")
       }
       console.log("Finished deploying adapters");
     } catch (error) {
-      console.error(`${DEPLOY_ADAPTERS}: `, error);
+      console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.NAME}: `, error);
       throw error;
     }
   });

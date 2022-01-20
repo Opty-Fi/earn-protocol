@@ -4,25 +4,26 @@ import { Signer, BigNumber } from "ethers";
 import { solidity } from "ethereum-waffle";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
+import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
+import { to_10powNumber_BN } from "../../helpers/utils";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
-import { TypedAdapterStrategies } from "../../helpers/data";
+import { HARVEST_V1_ADAPTER_NAME, CONVEX_ADAPTER_NAME } from "../../helpers/constants/adapters";
+import { TypedTokens } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   setBestStrategy,
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/invest-limitation.json";
 
 type ARGUMENTS = {
-  amount?: { [key: string]: string };
+  amount?: string;
   type?: number;
   userName?: string;
 };
@@ -31,12 +32,6 @@ type EXPECTED_ARGUMENTS = {
 };
 chai.use(solidity);
 describe(scenarios.title, () => {
-  const MAX_AMOUNT: { [key: string]: BigNumber } = {
-    DAI: BigNumber.from("20000000000000000000"),
-    USDC: BigNumber.from("20000000"),
-    USDT: BigNumber.from("20000000"),
-    SLP_WETH_USDC: BigNumber.from("200000000000000"),
-  };
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   let users: { [key: string]: Signer };
@@ -66,29 +61,44 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       const stories = vault.stories;
       const profile = vault.riskProfileCode;
-      const adaptersName = Object.keys(TypedAdapterStrategies);
+      const adaptersName = Object.keys(TypedAdapterStrategies).filter(item => item !== CONVEX_ADAPTER_NAME);
+      // Convex Adapter doesn't have invest limitation
       for (let i = 0; i < adaptersName.length; i++) {
         const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
             const strategy = strategies[i];
-            const token = VAULT_TOKENS[strategy.token].address;
+            const token = strategy.token;
             const contracts: CONTRACTS = {};
             let underlyingTokenName: string;
             let underlyingTokenSymbol: string;
+            let decimals: string;
             let currentPoolValue: BigNumber;
             let canStake = false;
+            const MAX_AMOUNT = token === TypedTokens["SLP_WETH_USDC"] ? BigNumber.from("20") : BigNumber.from("2000");
             before(async () => {
               try {
+                const ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
+                underlyingTokenName = await ERC20Instance.name();
+                underlyingTokenSymbol = await ERC20Instance.symbol();
+                // decrease amount if token = SLP_WETH_USDC
+                decimals = token === TypedTokens["SLP_WETH_USDC"] ? "6" : (await ERC20Instance.decimals()).toString();
+
                 const adapter = adapters[adapterName];
                 canStake = await adapter.canStake(strategy.strategy[0].contract);
-                await approveLiquidityPoolAndMapAdapter(
-                  users["owner"],
-                  essentialContracts.registry,
-                  adapter.address,
-                  strategy.strategy[0].contract,
-                );
+                const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
+                for (let i = 0; i < strategy.strategy.length; i++) {
+                  await approveLiquidityPoolAndMapAdapter(
+                    users["owner"],
+                    essentialContracts.registry,
+                    adapters[usedAdapters[i]].address,
+                    strategy.strategy[i].contract,
+                  );
+                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
+                  }
+                }
                 await setBestStrategy(
                   strategy.strategy,
                   users["owner"],
@@ -99,10 +109,14 @@ describe(scenarios.title, () => {
                   false,
                 );
                 const timestamp = (await getBlockTimestamp(hre)) * 2;
-                await fundWalletToken(hre, token, users["owner"], MAX_AMOUNT[strategy.token], timestamp);
+                await fundWalletToken(
+                  hre,
+                  token,
+                  users["owner"],
+                  MAX_AMOUNT.mul(to_10powNumber_BN(decimals)),
+                  timestamp,
+                );
 
-                underlyingTokenName = await getTokenName(hre, strategy.token);
-                underlyingTokenSymbol = await getTokenSymbol(hre, strategy.token);
                 const Vault = await deployVault(
                   hre,
                   essentialContracts.registry.address,
@@ -123,8 +137,6 @@ describe(scenarios.title, () => {
                   await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
                 }
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
-
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
 
                 contracts["adapter"] = adapter;
 
@@ -163,7 +175,7 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositAmount(address,address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositAmount = amount ? amount[strategy.token] : "0";
+                      const maxDepositAmount = amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -183,7 +195,7 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositPoolPct(address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositPoolPct = amount ? amount[strategy.token] : "0";
+                      const maxDepositPoolPct = amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -203,7 +215,9 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositProtocolPct(uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositProtocolPct = amount ? amount[strategy.token] : "0";
+                      const maxDepositProtocolPct = amount
+                        ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals))
+                        : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -226,12 +240,18 @@ describe(scenarios.title, () => {
                       if (setAction.expect === "success") {
                         await contracts[setAction.contract]
                           .connect(users[setAction.executer])
-                          [setAction.action](contracts["vault"].address, amount ? amount[strategy.token] : "0");
+                          [setAction.action](
+                            contracts["vault"].address,
+                            amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0",
+                          );
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](contracts["vault"].address, amount ? amount[strategy.token] : "0"),
+                            [setAction.action](
+                              contracts["vault"].address,
+                              amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0",
+                            ),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;
@@ -254,12 +274,12 @@ describe(scenarios.title, () => {
                       if (setAction.expect === "success") {
                         await contracts[setAction.contract]
                           .connect(users[setAction.executer])
-                          [setAction.action](amount ? amount[strategy.token] : "0");
+                          [setAction.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0");
                       } else {
                         await expect(
                           contracts[setAction.contract]
                             .connect(users[setAction.executer])
-                            [setAction.action](amount ? amount[strategy.token] : "0"),
+                            [setAction.action](amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0"),
                         ).to.be.revertedWith(setAction.message);
                       }
                       break;
@@ -272,31 +292,28 @@ describe(scenarios.title, () => {
                   const getAction = story.getActions[i];
                   switch (getAction.action) {
                     case "maxDepositPoolPct(address)": {
-                      const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                       expect(
                         await contracts[getAction.contract][getAction.action](strategy.strategy[0].contract),
-                      ).to.equal(+expectedValue[strategy.token]);
+                      ).to.equal(BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)));
                       break;
                     }
                     case "maxDepositProtocolPct()": {
-                      const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
-                      expect(+(await contracts[getAction.contract][getAction.action]())).to.equal(
-                        +expectedValue[strategy.token],
+                      expect(await contracts[getAction.contract][getAction.action]()).to.equal(
+                        BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)),
                       );
                       break;
                     }
                     case "maxDepositAmount(address,address)": {
-                      const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                       if (["CurveSwapPoolAdapter", "CurveDepositPoolAdapter"].includes(adapterName)) {
                         expect(
                           await contracts[getAction.contract]["maxDepositAmount(address)"](
                             strategy.strategy[0].contract,
                           ),
-                        ).to.equal(expectedValue[strategy.token]);
+                        ).to.equal(BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)));
                       } else {
                         expect(
                           await contracts[getAction.contract][getAction.action](strategy.strategy[0].contract, token),
-                        ).to.equal(expectedValue[strategy.token]);
+                        ).to.equal(BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)));
                       }
 
                       break;
@@ -310,17 +327,17 @@ describe(scenarios.title, () => {
                       const { userName }: ARGUMENTS = getAction.args;
                       if (userName) {
                         const address = await users[userName].getAddress();
-                        const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                         expect(await contracts[getAction.contract][getAction.action](address)).to.equal(
-                          expectedValue[strategy.token],
+                          BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)),
                         );
                       }
                       break;
                     }
                     case "balance()": {
                       const balance = await contracts[getAction.contract][getAction.action]();
-                      const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
-                      expect(balance).to.equal(expectedValue[strategy.token]);
+                      expect(balance).to.equal(
+                        BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)),
+                      );
 
                       if (balance > 0) {
                         await contracts["vault"].userWithdrawAllRebalance();
@@ -328,7 +345,6 @@ describe(scenarios.title, () => {
                       break;
                     }
                     case "getLiquidityPoolTokenBalance(address,address,address)": {
-                      const expectedValue: EXPECTED_ARGUMENTS = getAction.expectedValue;
                       const value = canStake
                         ? await contracts["adapter"].getLiquidityPoolTokenBalanceStake(
                             contracts["vault"].address,
@@ -339,9 +355,9 @@ describe(scenarios.title, () => {
                             token,
                             strategy.strategy[0].contract,
                           );
-                      if (expectedValue[strategy.token] === "<") {
+                      if (getAction.expectedValue === "<") {
                         expect(value.sub(currentPoolValue)).to.lt(0);
-                      } else if (expectedValue[strategy.token] === "=") {
+                      } else if (getAction.expectedValue === "=") {
                         expect(value.sub(currentPoolValue)).to.equal(0);
                       } else {
                         expect(value.sub(currentPoolValue)).to.gt(0);

@@ -7,7 +7,6 @@ import { CONTRACTS, STRATEGY_DATA } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedStrategies, TypedTokens } from "../../helpers/data";
-import { to_10powNumber_BN } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
   fundWalletToken,

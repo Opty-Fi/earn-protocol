@@ -1,42 +1,65 @@
-export const TASK_ACCOUNTS: string = "accounts";
-export const SETUP: string = "setup";
-
-/** DEPLOYMENT TASKS */
-export const DEPLOY_ADAPTER: string = "deploy-adapter";
-export const DEPLOY_ADAPTERS: string = "deploy-adapters";
-export const DEPLOY_ERC20: string = "deploy-erc20";
-export const DEPLOY_HARVEST_CODE_PROVIDER: string = "deploy-harvest-code-provider";
-export const DEPLOY_INFRA: string = "deploy-infra";
-export const DEPLOY_OPTY: string = "deploy-opty";
-export const DEPLOY_REGISTRY: string = "deploy-registry";
-export const DEPLOY_RISK_MANAGER: string = "deploy-risk-manager";
-export const DEPLOY_STRATEGY_MANAGER: string = "deploy-strategy-manager";
-export const DEPLOY_STRATEGY_PROVIDER: string = "deploy-strategy-provider";
-export const DEPLOY_INVEST_STRATEGY_REGISTRY: string = "deploy-invest-strategy-registry";
-export const DEPLOY_VAULT: string = "deploy-vault";
-export const DEPLOY_VAULTS: string = "deploy-vaults";
-export const DEPLOY_ODEFI_VAULT_BOOSTER = "deploy-odefi-vault-booster";
-export const DEPLOY_OPTY_DISTRIBUTOR = "deploy-opty-distributor";
-export const DEPLOY_OPTY_STAKING_RATE_BALANCER = "deploy-opty-staking-rate-balancer";
-export const DEPLOY_OPTY_STAKING_VAULTS = "deploy-opty-staking-vaults";
-export const DEPLOY_APR_ORACLE = "deploy-apr-oracle";
-
-/** ACTION TASKS */
-export const APPROVE_TOKEN: string = "approve-token";
-export const APPROVE_TOKENS: string = "approve-tokens";
-export const GET_STRATEGIES: string = "get-strategies";
-export const GET_BEST_STRATEGY: string = "get-best-strategy";
-export const MAP_LIQUIDITYPOOL_ADAPTER: string = "map-liquiditypool-adapter";
-export const MAP_LIQUIDITYPOOLS_ADAPTER: string = "map-liquiditypools-adapter";
-export const SET_BEST_STRATEGY: string = "set-best-strategy";
-export const SET_STRATEGIES: string = "set-strategies";
-export const SET_INVEST_STRATEGY_REGISTRY: string = "set-invest-strategy-registry";
-export const UNPAUSE_VAULT: string = "unpause-vault";
-export const VAULT_ACTIONS: string = "vault-actions";
-export const ADD_RISK_PROFILE: string = "add-risk-profile";
-export const APPROVE_ERC20: string = "approve-erc20";
-export const BALANCE_OF: string = "balance-of";
-export const GET_ACTION: string = "get-action";
-export const GET_STRATEGY: string = "get-strategy";
-export const SET_MAX_DEPOSIT_MODE: string = "set-max-deposit-mode";
-export const SET_MAX_DEPOSIT: string = "set-max-deposit";
+export default {
+  SETUP: {
+    NAME: "setup",
+    DESCRIPTION: "Deploy Registry, HarvestCodeProvider and Adapter contracts and setup all necessary actions",
+  },
+  DEPLOYMENT_TASKS: {
+    DEPLOY_ERC20: { NAME: "deploy-erc20", DESCRIPTION: "Deploy ERC20" },
+    DEPLOY_ADAPTER: { NAME: "deploy-adapter", DESCRIPTION: "Deploy Adapter contract" },
+    DEPLOY_ADAPTERS: { NAME: "deploy-adapters", DESCRIPTION: "Deploy Adapter contracts" },
+    DEPLOY_HARVEST_CODE_PROVIDER: { NAME: "deploy-harvest-code-provider", DESCRIPTION: "Deploy Harvest Code Provider" },
+    DEPLOY_INFRA: { NAME: "deploy-infra", DESCRIPTION: "Deploy infrastructure contracts" },
+    DEPLOY_REGISTRY: { NAME: "deploy-registry", DESCRIPTION: "Deploy Registry" },
+    DEPLOY_OPTY: { NAME: "deploy-opty", DESCRIPTION: "Deploy Opty" },
+    DEPLOY_RISK_MANAGER: { NAME: "deploy-risk-manager", DESCRIPTION: "Deploy Risk Manager" },
+    DEPLOY_STRATEGY_MANAGER: { NAME: "deploy-strategy-manager", DESCRIPTION: "Deploy Strategy Manager" },
+    DEPLOY_STRATEGY_PROVIDER: { NAME: "deploy-strategy-provider", DESCRIPTION: "Deploy Strategy Provider" },
+    DEPLOY_INVEST_STRATEGY_REGISTRY: {
+      NAME: "deploy-invest-strategy-registry",
+      DESCRIPTION: "Deploy Invest Strategy Registry",
+    },
+    DEPLOY_VAULT: { NAME: "deploy-vault", DESCRIPTION: "Deploy Vault" },
+    DEPLOY_VAULTS: { NAME: "deploy-vaults", DESCRIPTION: "Deploy all vault contracts" },
+    DEPLOY_ODEFI_VAULT_BOOSTER: { NAME: "deploy-odefi-vault-booster", DESCRIPTION: "Deploy Odefi Vault Booster" },
+    DEPLOY_OPTY_DISTRIBUTOR: { NAME: "deploy-opty-distributor", DESCRIPTION: "Deploy Opty Distributor" },
+    DEPLOY_OPTY_STAKING_RATE_BALANCER: {
+      NAME: "deploy-opty-staking-rate-balancer",
+      DESCRIPTION: "Deploy Opty Staking Rate Balancer",
+    },
+    DEPLOY_OPTY_STAKING_VAULTS: { NAME: "deploy-opty-staking-vaults", DESCRIPTION: "Deploy Opty Staking Vaults" },
+    DEPLOY_APR_ORACLE: { NAME: "deploy-apr-oracle", DESCRIPTION: "Deploy Apr Oracle" },
+  },
+  ACTION_TASKS: {
+    SET_MAX_DEPOSIT_MODE: { NAME: "set-max-deposit-mode", DESCRIPTION: "Set max deposit mode for adapter" },
+    SET_MAX_DEPOSIT: { NAME: "set-max-deposit", DESCRIPTION: "Set max deposit amount for adapter" },
+    APPROVE_ERC20: { NAME: "approve-erc20", DESCRIPTION: "Approve erc20 token" },
+    BALANCE_OF: { NAME: "balance-of", DESCRIPTION: "Check token balance of address" },
+    GET_ACTION: { NAME: "get-action", DESCRIPTION: "execute a get action in smart contract" },
+    LIST_ACCOUNTS: { NAME: "list-accounts", DESCRIPTION: "Prints the list of accounts" },
+    APPROVE_TOKEN: { NAME: "approve-token", DESCRIPTION: "Approve a token in Registry" },
+    APPROVE_TOKENS: { NAME: "approve-tokens", DESCRIPTION: "Approve a list of tokens in Registry" },
+    GET_STRATEGIES: { NAME: "get-strategies", DESCRIPTION: "Get all available strategies for a specific token" },
+    GET_BEST_STRATEGY: { NAME: "get-best-strategy", DESCRIPTION: "Get best strategy for a specific token" },
+    MAP_LIQUIDITYPOOL_TO_ADAPTER: {
+      NAME: "map-liquiditypool-to-adapter",
+      DESCRIPTION: "Map a liquidity pool with a specific adapter",
+    },
+    MAP_LIQUIDITYPOOLS_TO_ADAPTER: {
+      NAME: "map-liquiditypools-to-adapter",
+      DESCRIPTION: "Map a list of liquidity pools with a specific adapter",
+    },
+    SET_BEST_STRATEGY: { NAME: "set-best-strategy", DESCRIPTION: "Set the best strategy for a specific token" },
+    SET_STRATEGIES: { NAME: "set-strategies", DESCRIPTION: "Set a list of strategies in Registry" },
+    SET_INVEST_STRATEGY_REGISTRY: {
+      NAME: "set-invest-strategy-registry",
+      DESCRIPTION: "Set invest strategy registry in Registry",
+    },
+    UNPAUSE_VAULT: { NAME: "unpause-vault", DESCRIPTION: "Set pause state for a specific vault" },
+    VAULT_ACTIONS: {
+      NAME: "vault-actions",
+      DESCRIPTION: "Execute vault actions such as deposit, deposit with rebalance, etc",
+    },
+    ADD_RISK_PROFILE: { NAME: "add-risk-profile", DESCRIPTION: "Add a new risk profile" },
+    GET_STRATEGY: { NAME: "get-strategy", DESCRIPTION: "Get the details of a specific strategy" },
+  },
+};

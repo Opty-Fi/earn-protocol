@@ -1,10 +1,9 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
-import { ADDRESS_ZERO } from "../../helpers/constants/utils";
 import { MAX_DEPOSIT_MODE } from "../../helpers/constants/utils";
-import { SET_MAX_DEPOSIT } from "../task-names";
+import TASKS from "../task-names";
 
-task(SET_MAX_DEPOSIT, "Set max deposit amount for adapter")
+task(TASKS.ACTION_TASKS.SET_MAX_DEPOSIT.NAME, TASKS.ACTION_TASKS.SET_MAX_DEPOSIT.DESCRIPTION)
   .addParam("adapter", "the address of defi adapter", "", types.string)
   .addParam("amount", "the max deposit amount", "0", types.string)
   .addParam("liquiditypool", "the address of liquiditypool", "", types.string)
@@ -72,7 +71,11 @@ task(SET_MAX_DEPOSIT, "Set max deposit amount for adapter")
       } else {
         switch (mode.toLowerCase()) {
           case "number": {
-            await contract.setMaxDepositAmount(liquiditypool, underlyingtoken ? underlyingtoken : ADDRESS_ZERO, amount);
+            await contract.setMaxDepositAmount(
+              liquiditypool,
+              underlyingtoken ? underlyingtoken : hre.ethers.constants.AddressZero,
+              amount,
+            );
             break;
           }
           case "pct": {
@@ -83,7 +86,7 @@ task(SET_MAX_DEPOSIT, "Set max deposit amount for adapter")
       }
       console.log(`Finished setting max deposit`);
     } catch (error) {
-      console.error(`${SET_MAX_DEPOSIT}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.SET_MAX_DEPOSIT.NAME}: `, error);
       throw error;
     }
   });

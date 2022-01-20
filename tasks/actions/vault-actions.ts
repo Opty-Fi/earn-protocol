@@ -3,12 +3,12 @@ import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { ethers } from "ethers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
-import { VAULT_ACTIONS } from "../task-names";
+import TASKS from "../task-names";
 import { expect } from "chai";
 import { getAddress } from "@ethersproject/address";
 import { TypedTokens } from "../../helpers/data";
 
-task(VAULT_ACTIONS, "perform actions in Vault")
+task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
   .addParam("action", "deposit, withdraw or rebalance", "DEPOSIT" || "WITHDRAW" || "REBALANCE", types.string)
   .addParam("user", "account address of the user", "", types.string)
@@ -175,7 +175,7 @@ task(VAULT_ACTIONS, "perform actions in Vault")
       }
       console.log("Finished executing Vault actions");
     } catch (error) {
-      console.error(`${VAULT_ACTIONS}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME}: `, error);
       throw error;
     }
   });

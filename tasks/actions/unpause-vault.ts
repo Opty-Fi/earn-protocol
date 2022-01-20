@@ -2,9 +2,9 @@ import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { unpauseVault } from "../../helpers/contracts-actions";
-import { UNPAUSE_VAULT } from "../task-names";
+import TASKS from "../task-names";
 
-task(UNPAUSE_VAULT, "Unpause Vault")
+task(TASKS.ACTION_TASKS.UNPAUSE_VAULT.NAME, TASKS.ACTION_TASKS.UNPAUSE_VAULT.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("vault", "the address of vault", "", types.string)
   .setAction(async ({ registry, vault }, hre) => {
@@ -31,7 +31,7 @@ task(UNPAUSE_VAULT, "Unpause Vault")
       await unpauseVault(owner, registryContract, vault, true);
       console.log("Finished unpausing Vault");
     } catch (error) {
-      console.error(`${UNPAUSE_VAULT}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.UNPAUSE_VAULT.NAME}: `, error);
       throw error;
     }
   });

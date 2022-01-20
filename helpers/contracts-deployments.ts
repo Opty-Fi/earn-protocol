@@ -245,7 +245,13 @@ export async function deployAdapter(
   registryAddr: string,
   isDeployedOnce: boolean,
 ): Promise<Contract> {
-  const contract: Contract = await deployContract(hre, adapterName, isDeployedOnce, owner, [registryAddr]);
+  const contract: Contract = await deployContract(
+    hre,
+    adapterName,
+    isDeployedOnce,
+    owner,
+    adapterName === "ConvexFinanceAdapter" ? [] : [registryAddr],
+  );
   return contract;
 }
 

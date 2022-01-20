@@ -13,12 +13,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -28,12 +23,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -45,23 +35,13 @@
               "contract": "vault",
               "action": "balance()",
               "args": {},
-              "expectedValue": {
-                "DAI": "0",
-                "USDC": "0",
-                "USDT": "0",
-                "SLP_WETH_USDC": "0"
-              }
+              "expectedValue": "0"
             },
             {
               "contract": "adapter",
               "action": "getLiquidityPoolTokenBalance(address,address,address)",
               "args": {},
-              "expectedValue": {
-                "DAI": ">",
-                "USDC": ">",
-                "USDT": ">",
-                "SLP_WETH_USDC": ">"
-              }
+              "expectedValue": ">"
             }
           ]
         },
@@ -72,12 +52,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -87,12 +62,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -102,12 +72,7 @@
               "contract": "vault",
               "action": "userWithdrawRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -119,23 +84,13 @@
               "contract": "vault",
               "action": "balance()",
               "args": {},
-              "expectedValue": {
-                "DAI": "0",
-                "USDC": "0",
-                "USDT": "0",
-                "SLP_WETH_USDC": "0"
-              }
+              "expectedValue": "0"
             },
             {
               "contract": "adapter",
               "action": "getLiquidityPoolTokenBalance(address,address,address)",
               "args": {},
-              "expectedValue": {
-                "DAI": "<",
-                "USDC": "<",
-                "USDT": "<",
-                "SLP_WETH_USDC": "<"
-              }
+              "expectedValue": "<"
             }
           ]
         },
@@ -146,12 +101,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -161,12 +111,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -178,23 +123,13 @@
               "contract": "vault",
               "action": "balance()",
               "args": {},
-              "expectedValue": {
-                "DAI": "0",
-                "USDC": "0",
-                "USDT": "0",
-                "SLP_WETH_USDC": "0"
-              }
+              "expectedValue": "0"
             },
             {
               "contract": "adapter",
               "action": "getLiquidityPoolTokenBalance(address,address,address)",
               "args": {},
-              "expectedValue": {
-                "DAI": ">",
-                "USDC": ">",
-                "USDT": ">",
-                "SLP_WETH_USDC": ">"
-              }
+              "expectedValue": ">"
             }
           ]
         },
@@ -215,12 +150,7 @@
               "contract": "adapter",
               "action": "setMaxDepositAmount(address,address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "500000000000000000",
-                  "USDC": "500000",
-                  "USDT": "500000",
-                  "SLP_WETH_USDC": "5000000000000"
-                }
+                "amount": "1"
               },
               "executer": "owner",
               "expect": "success",
@@ -230,12 +160,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -245,12 +170,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -262,12 +182,7 @@
               "contract": "vault",
               "action": "balance()",
               "args": {},
-              "expectedValue": {
-                "DAI": "1500000000000000000",
-                "USDC": "1500000",
-                "USDT": "1500000",
-                "SLP_WETH_USDC": "15000000000000"
-              }
+              "expectedValue": "1"
             }
           ]
         },
@@ -288,12 +203,7 @@
               "contract": "adapter",
               "action": "setMaxDepositAmount(address,address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "0",
-                  "USDC": "0",
-                  "USDT": "0",
-                  "SLP_WETH_USDC": "0"
-                }
+                "amount": "0"
               },
               "executer": "owner",
               "expect": "success",
@@ -303,12 +213,7 @@
               "contract": "erc20",
               "action": "approve(address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -318,12 +223,7 @@
               "contract": "vault",
               "action": "userDepositRebalance(uint256)",
               "args": {
-                "amount": {
-                  "DAI": "2000000000000000000",
-                  "USDC": "2000000",
-                  "USDT": "2000000",
-                  "SLP_WETH_USDC": "20000000000000"
-                }
+                "amount": "2"
               },
               "executer": "owner",
               "expect": "success",
@@ -335,12 +235,7 @@
               "contract": "vault",
               "action": "balance()",
               "args": {},
-              "expectedValue": {
-                "DAI": "2000000000000000000",
-                "USDC": "2000000",
-                "USDT": "2000000",
-                "SLP_WETH_USDC": "20000000000000"
-              }
+              "expectedValue": "2"
             }
           ]
         },
@@ -393,12 +288,7 @@
               "contract": "adapter",
               "action": "setMaxDepositAmount(address,address,uint256)",
               "args": {
-                "amount": {
-                  "DAI": "500000000000000000",
-                  "USDC": "500000",
-                  "USDT": "500000",
-                  "SLP_WETH_USDC": "5000000000000"
-                }
+                "amount": "5"
               },
               "executer": "riskOperator",
               "expect": "success",
@@ -410,12 +300,7 @@
               "contract": "adapter",
               "action": "maxDepositAmount(address,address)",
               "args": {},
-              "expectedValue": {
-                "DAI": "500000000000000000",
-                "USDC": "500000",
-                "USDT": "500000",
-                "SLP_WETH_USDC": "5000000000000"
-              }
+              "expectedValue": "5"
             }
           ]
         },
@@ -427,7 +312,7 @@
               "contract": "adapter",
               "action": "setMaxDepositAmount(address,address,uint256)",
               "args": {
-                "amount": { "DAI": "0", "USDC": "0", "USDT": "0", "SLP_WETH_USDC": "0" }
+                "amount": "0"
               },
               "executer": "admin",
               "expect": "fail",
@@ -443,7 +328,7 @@
               "contract": "adapter",
               "action": "setMaxDepositPoolPct(address,uint256)",
               "args": {
-                "amount": { "DAI": "5", "USDC": "5", "USDT": "5", "SLP_WETH_USDC": "5" }
+                "amount": "5"
               },
               "executer": "riskOperator",
               "expect": "success",
@@ -455,12 +340,7 @@
               "contract": "adapter",
               "action": "maxDepositPoolPct(address)",
               "args": {},
-              "expectedValue": {
-                "DAI": "5",
-                "USDC": "5",
-                "USDT": "5",
-                "SLP_WETH_USDC": "5"
-              }
+              "expectedValue": "5"
             }
           ]
         },
@@ -471,7 +351,7 @@
               "contract": "adapter",
               "action": "setMaxDepositPoolPct(address,uint256)",
               "args": {
-                "amount": { "DAI": "0", "USDC": "0", "USDT": "0", "SLP_WETH_USDC": "0" }
+                "amount": "0"
               },
               "executer": "admin",
               "expect": "fail",
@@ -487,7 +367,7 @@
               "contract": "adapter",
               "action": "setMaxDepositProtocolPct(uint256)",
               "args": {
-                "amount": { "DAI": "5", "USDC": "5", "USDT": "5", "SLP_WETH_USDC": "5" }
+                "amount": "5"
               },
               "executer": "riskOperator",
               "expect": "success",
@@ -499,12 +379,7 @@
               "contract": "adapter",
               "action": "maxDepositProtocolPct()",
               "args": {},
-              "expectedValue": {
-                "DAI": "5",
-                "USDC": "5",
-                "USDT": "5",
-                "SLP_WETH_USDC": "5"
-              }
+              "expectedValue": "5"
             }
           ]
         },
@@ -515,7 +390,7 @@
               "contract": "adapter",
               "action": "setMaxDepositProtocolPct(uint256)",
               "args": {
-                "amount": { "DAI": "0", "USDC": "0", "USDT": "0", "SLP_WETH_USDC": "0" }
+                "amount": "0"
               },
               "executer": "admin",
               "expect": "fail",

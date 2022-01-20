@@ -24,6 +24,7 @@
     "test/**/*.ts",
     "typechain/**/*.d.ts",
     "typechain/**/*.ts",
-    "scripts/**/*.ts"
+    "optyfi-sdk/**/*.ts",
+    "scripts/*.ts"
   ]
 }

@@ -4,9 +4,9 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts
 import { TypedTokens } from "../../helpers/data";
 import { approveAndSetTokenHashToToken } from "../../helpers/contracts-actions";
 import { getAddress } from "ethers/lib/utils";
-import { APPROVE_TOKEN } from "../task-names";
+import TASKS from "../task-names";
 
-task(APPROVE_TOKEN, "Approve Token")
+task(TASKS.ACTION_TASKS.APPROVE_TOKEN.NAME, TASKS.ACTION_TASKS.APPROVE_TOKEN.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)
   .setAction(async ({ token, registry }, hre) => {
@@ -34,7 +34,7 @@ task(APPROVE_TOKEN, "Approve Token")
         await approveAndSetTokenHashToToken(owner, registryContract, token);
         console.log(`Finished approving token: ${token}`);
       } catch (error) {
-        console.error(`${APPROVE_TOKEN}:`, error);
+        console.error(`${TASKS.ACTION_TASKS.APPROVE_TOKEN.NAME}:`, error);
         throw error;
       }
     }

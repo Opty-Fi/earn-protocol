@@ -4,10 +4,10 @@ import hre, { ethers } from "hardhat";
 import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
-import { ADDRESS_ZERO, TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
+import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
 import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { HARVEST_V1_ADAPTER_NAME } from "../../helpers/constants/adapters";
-import { TypedAdapterStrategies } from "../../helpers/data";
+import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { delay } from "../../helpers/utils";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -15,14 +15,13 @@ import {
   approveLiquidityPoolAndMapAdapter,
   fundWalletToken,
   getBlockTimestamp,
-  getTokenName,
-  getTokenSymbol,
   approveAndSetTokenHashToTokens,
   unpauseVault,
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { executeFunc, generateTokenHash } from "../../helpers/helpers";
+import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -77,7 +76,7 @@ describe(scenario.title, () => {
           const TOKEN_STRATEGY = strategies[i];
 
           describe(`${strategies[i].strategyName}`, async () => {
-            const token = VAULT_TOKENS[TOKEN_STRATEGY.token].address;
+            const token = TOKEN_STRATEGY.token;
             const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
               rewardTokenAdapterName.toLowerCase(),
             );
@@ -88,8 +87,9 @@ describe(scenario.title, () => {
             let RewardToken_ERC20Instance: Contract;
             let vaultRewardTokens: string[] = [];
             before(async () => {
-              underlyingTokenName = await getTokenName(hre, TOKEN_STRATEGY.token);
-              underlyingTokenSymbol = await getTokenSymbol(hre, TOKEN_STRATEGY.token);
+              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
+              underlyingTokenName = await Token_ERC20Instance.name();
+              underlyingTokenSymbol = await Token_ERC20Instance.symbol();
               const adapter = adapters[adapterName];
               const operator = await essentialContracts.registry.operator();
               const operatorSigner = await hre.ethers.getSigner(operator);
@@ -136,12 +136,18 @@ describe(scenario.title, () => {
                 vaultRewardTokens = [Vault.address, <string>REWARD_TOKENS[adapterName].tokenAddress];
               }
 
-              await approveLiquidityPoolAndMapAdapter(
-                users["operator"],
-                essentialContracts.registry,
-                adapter.address,
-                TOKEN_STRATEGY.strategy[0].contract,
-              );
+              const usedAdapters = retrieveAdapterFromStrategyName(TOKEN_STRATEGY.strategyName);
+              for (let i = 0; i < TOKEN_STRATEGY.strategy.length; i++) {
+                await approveLiquidityPoolAndMapAdapter(
+                  users["operator"],
+                  essentialContracts.registry,
+                  adapters[usedAdapters[i]].address,
+                  TOKEN_STRATEGY.strategy[i].contract,
+                );
+                if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                  await adapters[usedAdapters[i]].setPoolCoinData(TOKEN_STRATEGY.strategy[i].contract);
+                }
+              }
 
               investStrategyHash = await setBestStrategy(
                 TOKEN_STRATEGY.strategy,
@@ -152,8 +158,6 @@ describe(scenario.title, () => {
                 profile,
                 false,
               );
-
-              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
 
               contracts["vault"] = Vault;
               contracts["registry"] = essentialContracts.registry;
@@ -213,7 +217,7 @@ describe(scenario.title, () => {
                             hre,
                             token,
                             users[addressName],
-                            BigNumber.from(amount[TOKEN_STRATEGY.token]),
+                            BigNumber.from(amount[underlyingTokenSymbol.toUpperCase()]),
                             timestamp,
                           );
                         }
@@ -236,7 +240,10 @@ describe(scenario.title, () => {
                         if (addressName && amount) {
                           await contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](contracts[addressName].address, amount[TOKEN_STRATEGY.token]);
+                            [action.action](
+                              contracts[addressName].address,
+                              amount[underlyingTokenSymbol.toUpperCase()],
+                            );
                         }
                       } catch (error: any) {
                         if (action.expect === "success") {
@@ -257,7 +264,7 @@ describe(scenario.title, () => {
                           const rewardToken = await essentialContracts.strategyManager.getRewardToken(
                             investStrategyHash,
                           );
-                          if (rewardToken != ADDRESS_ZERO) {
+                          if (rewardToken != hre.ethers.constants.AddressZero) {
                             const rewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardToken);
                             rewardTokenBalanceBefore = await rewardTokenInstance.balanceOf(Vault.address);
                           } else {
@@ -288,7 +295,7 @@ describe(scenario.title, () => {
                         if (amount) {
                           await contracts[action.contract]
                             .connect(users[action.executer])
-                            [action.action](amount[TOKEN_STRATEGY.token]);
+                            [action.action](amount[underlyingTokenSymbol.toUpperCase()]);
                         }
                       } catch (error: any) {
                         if (action.expect === "success") {
