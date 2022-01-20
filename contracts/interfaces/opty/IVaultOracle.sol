@@ -13,9 +13,11 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  */
 interface IVaultOracle {
     /**
-     * @notice Set maximum standard deviation of vault value in a single block
+     * @notice Set maximum absolute jump allowed of vault value in a single block
      * @dev the maximum vault value jump is in percentage basis points set by governance
-     * @param _maxVaultValueJump the standard deviation from a vault value in basis points
+     * @param _maxVaultValueJump the maximum aboslute allowed from a vault value in basis points
+     * @custom:edu A big drop in value can flag an exploit.
+     *             Exploits usually involve big drop or big fall in priceFullShare.
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
@@ -55,12 +57,6 @@ interface IVaultOracle {
      * @dev the vault will be charged to compensate gas fees if operator calls this function
      */
     function rebalance() external;
-
-    /**
-     * @notice Claim the rewards if any strategy have it and swap for underlying token
-     * @param _investStrategyHash vault invest strategy hash
-     */
-    function harvest(bytes32 _investStrategyHash) external;
 
     /**
      * @notice Deposit underlying tokens to the vault

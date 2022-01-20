@@ -37,7 +37,6 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
 
 // TODO :
 // - Whitelist management
-// - Harvesting functionality
 // - The shares can be only transfered to whitelisted users if in whitelisted state
 
 contract VaultOracle is
@@ -91,8 +90,8 @@ contract VaultOracle is
         string memory _symbol,
         uint256 _riskProfileCode
     ) external virtual initializer {
-        require(bytes(_name).length > 0, "e1");
-        require(bytes(_symbol).length > 0, "e2");
+        require(bytes(_name).length > 0, Errors.EMPTY_STRING);
+        require(bytes(_symbol).length > 0, Errors.EMPTY_STRING);
         registryContract = IRegistry(_registry);
         setRiskProfileCode(_riskProfileCode);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
@@ -139,17 +138,24 @@ contract VaultOracle is
     /**
      * @inheritdoc IVaultOracle
      */
-    function harvest(bytes32 _investStrategyHash) external override onlyOperator {}
+    function discontinue() external override onlyOperator {
+        // TODO withdraw all tokens from strategies
+        // TODO set discontinued variable to be true
+        // If a vault is discontinued, user can only withdraw from vault
+        investStrategyHash = Constants.ZERO_BYTES32;
+    }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function discontinue() external override {}
-
-    /**
-     * @inheritdoc IVaultOracle
-     */
-    function setUnpaused(bool _unpaused) external override {}
+    function setUnpaused(bool _unpaused) external override onlyOperator {
+        // TODO if investStrategyHash is zero and unpaused = true,
+        //      -   allow user deposit and user withdraw
+        // TODO if investstrategyHash is non-zero and unpaused = false,
+        //      - withdraw all tokens
+        //      - set investstrategyHash to zero
+        //      - withdraw and deposit are not allowed
+    }
 
     /**
      * @inheritdoc IVaultOracle
@@ -163,7 +169,7 @@ contract VaultOracle is
      */
     function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
         DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
-        require(_riskProfile.exists, "e3");
+        require(_riskProfile.exists, Errors.RISK_PROFILE_EXISTS);
         riskProfileCode = _riskProfileCode;
     }
 
@@ -171,8 +177,8 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function setToken(address _underlyingToken) public override onlyOperator {
-        require(_underlyingToken.isContract(), "e4");
-        require(registryContract.isApprovedToken(_underlyingToken), "e5");
+        require(_underlyingToken.isContract(), Errors.NOT_A_CONTRACT);
+        require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
         underlyingToken = _underlyingToken;
     }
 
@@ -181,15 +187,19 @@ contract VaultOracle is
      */
     function rebalance() external override {
         bytes32 _nextBestInvestStrategyHash = getNextBestStrategy();
+        bool _deposited;
         if (_nextBestInvestStrategyHash != investStrategyHash && investStrategyHash != Constants.ZERO_BYTES32) {
             DataTypes.StrategyStep[] memory _strategySteps = getStrategySteps(investStrategyHash);
             _withdraw(_strategySteps, getLastStrategyStepBalanceLP(_strategySteps));
             investStrategyHash = _nextBestInvestStrategyHash;
             if (investStrategyHash != Constants.ZERO_BYTES32) {
                 _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
+                _deposited = true;
             }
         }
-        if (_balance() > 0) {
+        // _balance() might be greater than zero if the adapter limited the investment to strategy
+        // _deposited is to protect vault from depositing again in to strategy in above scenario.
+        if (!_deposited && _balance() > 0) {
             _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
         }
     }
@@ -271,12 +281,20 @@ contract VaultOracle is
     /**
      * @inheritdoc IVaultOracle
      * @notice read-only function to compute price per share of the vault
-     *         Note : This function does not add amount of underlying tokens that
-     *         are available in protocols like compound and Curve when reward tokens
-     *         are claimed and swapped into vault's underlying token. If the protocol of the current
-     *         strategy of the vault allows to read unclaimed reward token for free then a
-     *         read call to this function shall add amount of underlying token available when
-     *         unclaimed tokens are swapped into vault's underlying token.
+     *         Note : This function calculates the pricePerFullShare (i.e. the number of underlyingTokens
+     *         per each vaultToken entitles you to).
+     *
+     *         Please note the following quantities are included in underlyingTokens :
+     *         - underlyingTokens in vault that are not yet deployed in strategy
+     *
+     *        Please note the following quantities are *NOT* included in underlyingTokens :
+     *         - unclaimed reward tokens from the current or past strategies
+     *         - claimed reward tokens that are not yet harvested to underlyingTokens
+     *         - any tokens other than underlyingTokens of the vault.
+     *
+     *         Please note we relay on the getAmountUT() function of StrategyManager which in turn relies on individual
+     *         protocol adapters to obtain the current underlying token amount. Thus we are relying on a third party
+     *         contract (i.e. an oracle). This oracle should be made resilient via best practices.
      */
     function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
@@ -302,6 +320,15 @@ contract VaultOracle is
         } else {
             _oraVaultValue = _balance();
         }
+    }
+
+    function _oraBalanceInUnderlyingToken() internal view returns (uint256) {
+        return
+            getStrategySteps(investStrategyHash).getAmountUT(
+                address(registryContract),
+                payable(address(this)),
+                underlyingToken
+            );
     }
 
     /**
@@ -376,7 +403,7 @@ contract VaultOracle is
     function userDepositPermitted(address _user, uint256 _userDepositUT) public view override returns (bool) {
         DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
         uint256 _userMinimumDepositLimitUT = _vaultConfiguration.minimumDepositAmount;
-        if (_userDepositUT > 0 && _userDepositUT < _userMinimumDepositLimitUT) {
+        if (_userDepositUT < _userMinimumDepositLimitUT) {
             return false;
         }
         uint256 _vaultTVLCapUT = _vaultConfiguration.totalValueLockedLimitInUnderlying;
@@ -438,7 +465,9 @@ contract VaultOracle is
     function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
         uint256 _internalTransactionCount =
             _strategySteps.getDepositInternalTransactionCount(address(registryContract));
-        uint256 _initialStepInputAmountUT = _balance();
+        // _emergencyBrake(_balance());
+        uint256 _balanceBeforeDepositToStrategyUT = _balance();
+        // TODO make sure the amount is deposited to the vault
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -447,14 +476,18 @@ contract VaultOracle is
                             registryContract: address(registryContract),
                             vault: payable(address(this)),
                             underlyingToken: underlyingToken,
-                            initialStepInputAmount: _initialStepInputAmountUT,
+                            initialStepInputAmount: _balanceBeforeDepositToStrategyUT,
                             internalTransactionIndex: _i,
                             internalTransactionCount: _internalTransactionCount
                         })
                     )
                 ),
-                Errors.VAULT_DEPOSIT_ERROR
+                Errors.VAULT_DEPOSIT
             );
+        }
+        uint256 _balanceAfterDepositToStrategyUT = _balance();
+        if (_balanceAfterDepositToStrategyUT != 0) {
+            revert();
         }
     }
 
@@ -462,6 +495,8 @@ contract VaultOracle is
         uint256 _oraAmountLP =
             _strategySteps.getSomeAmountLP(address(registryContract), underlyingToken, _withdrawAmountUT);
         uint256 _internalWithdrawTransactionCount = _strategySteps.length;
+        // TODO make sure the amount is actually withdrawn
+        uint256 _balanceBeforeWithdrawUT = _balance();
         for (uint256 _i; _i < _internalWithdrawTransactionCount; _i++) {
             executeCodes(
                 _strategySteps.getPoolWithdrawCodes(
@@ -474,7 +509,7 @@ contract VaultOracle is
                         internalTransactionCount: _internalWithdrawTransactionCount
                     })
                 ),
-                Errors.VAULT_WITHDRAW_ERROR
+                Errors.VAULT_WITHDRAW
             );
         }
     }
@@ -487,5 +522,15 @@ contract VaultOracle is
         (, _strategySteps) = IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(
             _investStrategyHash
         );
+    }
+
+    function _beforeTokenTransfer(
+        address, // _from
+        address, // _to
+        uint256
+    ) internal override {
+        // the token can only be transferred to the whitelisted recipient
+        // if the vault token is listed on any DEX like uniswap, then the pair contract address
+        // should be whitelisted.
     }
 }
