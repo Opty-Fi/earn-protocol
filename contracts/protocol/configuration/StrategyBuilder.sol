@@ -38,7 +38,7 @@ library StrategyBuilder {
         return _strategyStepCount;
     }
 
-    function getAmountUT(
+    function getOraValueUT(
         DataTypes.StrategyStep[] memory _strategySteps,
         address registryContract,
         address payable _vault,
@@ -67,7 +67,7 @@ library StrategyBuilder {
         }
     }
 
-    function getSomeAmountLP(
+    function getOraSomeValueLP(
         DataTypes.StrategyStep[] memory _strategySteps,
         address registryContract,
         address _underlyingToken,
