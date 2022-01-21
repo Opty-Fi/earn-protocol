@@ -208,26 +208,38 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
-        uint256 _oraVaultValueUT = _oraVaultValueUT();
-        // check balance before user token transfer
-        uint256 _valueBeforeUT = _balance();
+        // check vault + strategy balance (in UT) before user token transfer
+        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
+        uint256 _oraPricePerSharePreDeposit = _oraVaultAndStratValuePreDepositUT.div(totalSupply());
+        // check vault balance (in UT) before user token transfer
+        uint256 _vaultValuePreDepositUT = _balance();
+        // receive user deposit
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
         // check balance after user token transfer
-        uint256 _valueAfterUT = _balance();
-        uint256 _actualDepositValueUT = _valueAfterUT.sub(_valueBeforeUT);
-        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositValueUT);
+        uint256 _vaultValuePostDepositUT = _balance();
+        // only count the actual deposited tokens received into vault
+        uint256 _actualDepositAmountUT = _vaultValuePostDepositUT.sub(_vaultValuePreDepositUT);
+        // remove deposit fees (if any) but only if deposit is accepted
+        // if deposit is not accepted, the entire transaction should revert
+        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
         require(
-            userDepositPermitted(msg.sender, _actualDepositValueUT.sub(_depositFeeUT)),
+            userDepositPermitted(msg.sender, _actualDepositAmountUT.sub(_depositFeeUT)),
             Errors.USER_DEPOSIT_NOT_PERMITTED
         );
         // transfer deposit fee to vaultFeeAddress
         if (_depositFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _depositFeeUT);
         }
-        if (_oraVaultValueUT == 0) {
-            _mint(msg.sender, _actualDepositValueUT);
+
+        // mint vault tokens
+        // if _oraVaultAndStratValuePreDepositUT == 0, mint vault tokens 1:1 for underlying tokens
+        // if _oraVaultAndStratValuePreDepositUT > 0, mint vault tokens at constant pre deposit price
+        // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
+        //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
+        if (_oraVaultAndStratValuePreDepositUT == 0) {
+            _mint(msg.sender, _actualDepositAmountUT);
         } else {
-            _mint(msg.sender, (_actualDepositValueUT.mul(totalSupply())).div(_oraVaultValueUT));
+            _mint(msg.sender, (_actualDepositAmountUT).div(_oraPricePerSharePreDeposit));
         }
     }
 
@@ -235,27 +247,46 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
+        // require: 0 < withdrawal amount in vault tokens < user's vault token balance
         uint256 _userBalanceVT = balanceOf(msg.sender);
         require(_userWithdrawVT > 0 && _userWithdrawVT <= _userBalanceVT, Errors.USER_WITHDRAW_NOT_PERMITTED);
-        uint256 _oraValueUT = _oraVaultValueUT();
-        uint256 _oraUserAmountUT = _oraValueUT.mul(_userWithdrawVT).div(totalSupply());
+
+        // burning should occur at pre userwithdraw price UNLESS there is slippage
+        // if there is slippage, the withdrawing user should absorb that cost (see below)
+        // i.e. get less underlying tokens than calculated by pre userwithdraw price
+        uint256 _oraVaultAndStratValueUT = _oraVaultAndStratValueUT();
+        uint256 _oraPricePerSharePreWithdrawUT = _oraVaultAndStratValueUT.div(totalSupply());
+        uint256 _oraUserWithdrawUT = _userWithdrawVT.div(_oraPricePerSharePreWithdrawUT);
         _burn(msg.sender, _userWithdrawVT);
-        uint256 _vaultValueBeforeUT = _balance();
-        if (_vaultValueBeforeUT < _oraUserAmountUT) {
-            uint256 _withdrawAmountUT = _oraUserAmountUT.sub(_vaultValueBeforeUT);
-            _withdraw(getStrategySteps(investStrategyHash), _withdrawAmountUT);
-            uint256 _vaultValueAfterUT = _balance();
-            uint256 _vaultValueDifferenceUT = _vaultValueAfterUT.sub(_vaultValueBeforeUT);
-            if (_vaultValueDifferenceUT < _withdrawAmountUT) {
-                _oraUserAmountUT = _vaultValueBeforeUT.add(_vaultValueDifferenceUT);
+
+        uint256 _vaultValuePreStratWithdrawUT = _balance();
+
+        // if vault does not have sufficient UT, we need to withdraw from strategy
+        if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
+            // withdraw UT shortage from strategy
+            uint256 _requestStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            _withdraw(getStrategySteps(investStrategyHash), _requestStratWithdrawUT);
+
+            // Identify Slippage
+            // UT requested from strategy withdraw  = _requestStratWithdrawUT
+            // UT actually received from strategy withdraw = _realizedStratWithdrawUT
+            //                                             = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
+            // slippage = _requestStratWithdrawUT - _realizedStratWithdrawUT
+            uint256 _vaultValuePostStratWithdrawUT = _balance();
+            uint256 _realizedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            uint256 _slippage = _requestStratWithdrawUT - _realizedStratWithdrawUT;
+
+            // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
+            if (_requestStratWithdrawUT < _oraUserWithdrawUT) {
+                _oraUserWithdrawUT = _oraUserWithdrawUT - _slippage;
             }
         }
-        uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserAmountUT);
+        uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
         // transfer withdraw fee to vaultFeeAddress
         if (_withdrawFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _withdrawFeeUT);
         }
-        IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserAmountUT.sub(_withdrawFeeUT));
+        IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
     }
 
     function vaultDepositAllToStrategy() public {
@@ -496,7 +527,6 @@ contract VaultOracle is
         uint256 _oraAmountLP =
             _strategySteps.getOraSomeValueLP(address(registryContract), underlyingToken, _withdrawAmountUT);
         uint256 _internalWithdrawTransactionCount = _strategySteps.length;
-        uint256 _balanceBeforeWithdrawUT = _balance();
         for (uint256 _i; _i < _internalWithdrawTransactionCount; _i++) {
             executeCodes(
                 _strategySteps.getPoolWithdrawCodes(
