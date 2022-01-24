@@ -38,6 +38,7 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
 // TODO :
 // - Whitelist management
 // - The shares can be only transfered to whitelisted users if in whitelisted state
+// - keep vault config local to vault
 
 contract VaultOracle is
     VersionedInitializable,
