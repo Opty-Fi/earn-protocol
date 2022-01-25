@@ -4,7 +4,7 @@ pragma solidity ^0.6.12;
 
 library Errors {
     string public constant USER_DEPOSIT_NOT_PERMITTED = "1";
-    string public constant USER_WITHDRAW_NOT_PERMITTED = "2";
+    string public constant USER_WITHDRAW_INSUFFICIENT_VT = "2";
     string public constant VAULT_DEPOSIT = "3";
     string public constant VAULT_WITHDRAW = "4";
     string public constant EMPTY_STRING = "5";
@@ -15,4 +15,7 @@ library Errors {
     string public constant MINIMUM_USER_DEPOSIT_VALUE_UT = "10";
     string public constant TOTAL_VALUE_LOCKED_LIMIT_UT = "11";
     string public constant USER_DEPOSIT_CAP_UT = "12";
+    string public constant VAULT_DISCONTINUED = "13";
+    string public constant VAULT_PAUSED = "14";
+    string public constant ADMIN_CALL = "15";
 }

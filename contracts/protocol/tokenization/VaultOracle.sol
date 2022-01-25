@@ -112,38 +112,41 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external override onlyGovernance {
-        depositFeeFlatUT = _depositFeeFlatUT;
+        vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
     function setDepositFeePct(uint256 _depositFeePct) external override onlyGovernance {
-        depositFeePct = _depositFeePct;
+        vaultConfiguration.depositFeePct = _depositFeePct;
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
     function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external override onlyGovernance {
-        withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
+        vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
     function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyGovernance {
-        withdrawalFeePct = _withdrawalFeePct;
+        vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
     function discontinue() external override onlyOperator {
-        // TODO withdraw all tokens from strategies
-        // TODO set discontinued variable to be true
-        // If a vault is discontinued, user can only withdraw from vault
+        if (investStrategyHash != Constants.ZERO_BYTES32) {
+            _withdrawAll();
+        }
+        vaultConfiguration.discontinued = true;
+        // TODO If a vault is discontinued, user can only withdraw from vault
         investStrategyHash = Constants.ZERO_BYTES32;
+        LogDiscontinue(vaultConfiguration.discontinued, msg.sender);
     }
 
     /**
@@ -190,8 +193,7 @@ contract VaultOracle is
         bytes32 _nextBestInvestStrategyHash = getNextBestStrategy();
         bool _deposited;
         if (_nextBestInvestStrategyHash != investStrategyHash && investStrategyHash != Constants.ZERO_BYTES32) {
-            DataTypes.StrategyStep[] memory _strategySteps = getStrategySteps(investStrategyHash);
-            _withdraw(_strategySteps, getLastStrategyStepBalanceLP(_strategySteps));
+            _withdrawAll();
             investStrategyHash = _nextBestInvestStrategyHash;
             if (investStrategyHash != Constants.ZERO_BYTES32) {
                 _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
@@ -247,10 +249,8 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
-        // require: 0 < withdrawal amount in vault tokens < user's vault token balance
-        uint256 _userBalanceVT = balanceOf(msg.sender);
-        require(_userWithdrawVT > 0 && _userWithdrawVT <= _userBalanceVT, Errors.USER_WITHDRAW_NOT_PERMITTED);
-
+        (bool _permitted, string memory _reason) = userWithdrawalPermitted(msg.sender, _userWithdrawVT);
+        require(_permitted, _reason);
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
@@ -306,7 +306,7 @@ contract VaultOracle is
      * @inheritdoc IVaultOracle
      */
     function adminCall(bytes[] memory _codes) external override onlyOperator {
-        executeCodes(_codes, "e6");
+        executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
     /**
@@ -442,6 +442,12 @@ contract VaultOracle is
         override
         returns (bool, string memory)
     {
+        if (!vaultConfiguration.unpaused) {
+            return (false, Errors.VAULT_PAUSED);
+        }
+        if (vaultCofiguration.discontinued) {
+            return (false, Errors.VAULT_DISCONTINUED);
+        }
         if (vaultConfiguration.allowWhitelistedState && !whitelistedUsers[_user]) {
             return (false, Errors.USER_NOT_WHITELISTED);
         }
@@ -454,6 +460,17 @@ contract VaultOracle is
         }
         if (totalDeposits[_user].add(_userDepositUT) > vaultConfiguration.userDepositCapUT) {
             return (false, Errors.USER_DEPOSIT_CAP_UT);
+        }
+        return (true, "");
+    }
+
+    function userWithdrawalPermitted(address _user, uint256 _userWithdrawVT) public view returns (bool, string memory) {
+        // require: 0 < withdrawal amount in vault tokens < user's vault token balance
+        if (!vaultConfiguration.unpaused) {
+            return (false, Errors.VAULT_PAUSED);
+        }
+        if (!(_userWithdrawVT > 0 && _userWithdrawVT <= balanceOf(_user))) {
+            return (false, Errors.USER_WITHDRAW_INSUFFICIENT_VT);
         }
         return (true, "");
     }
@@ -529,6 +546,11 @@ contract VaultOracle is
                 Errors.VAULT_DEPOSIT
             );
         }
+    }
+
+    function _withdrawAll() internal {
+        DataTypes.StrategyStep[] memory _strategySteps = getStrategySteps(investStrategyHash);
+        _withdraw(_strategySteps, getLastStrategyStepBalanceLP(_strategySteps));
     }
 
     function _withdraw(DataTypes.StrategyStep[] memory _strategySteps, uint256 _withdrawAmountUT) internal {
