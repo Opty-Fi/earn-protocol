@@ -36,9 +36,10 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
  */
 
 // TODO :
-// - Whitelist management
-// - The shares can be only transfered to whitelisted users if in whitelisted state
-// - keep vault config local to vault
+// - Setters for vault config
+// - integrate emergency brake
+// - verify deposit to strategy actually happened
+// - verify withdraw from strategy actually happened
 
 contract VaultOracle is
     VersionedInitializable,
@@ -136,6 +137,10 @@ contract VaultOracle is
         vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
     }
 
+    function setVaultFeeAddress(address _vaultFeeAddress) external onlyOperator {
+        vaultConfiguration.vaultFeeAddress = _vaultFeeAddress;
+    }
+
     /**
      * @inheritdoc IVaultOracle
      */
@@ -230,7 +235,7 @@ contract VaultOracle is
         require(_permitted, _reason);
         // transfer deposit fee to vaultFeeAddress
         if (_depositFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _depositFeeUT);
+            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeAddress, _depositFeeUT);
         }
 
         // mint vault tokens
@@ -284,7 +289,7 @@ contract VaultOracle is
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
         // transfer withdraw fee to vaultFeeAddress
         if (_withdrawFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _withdrawFeeUT);
+            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeAddress, _withdrawFeeUT);
         }
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
     }
@@ -445,7 +450,7 @@ contract VaultOracle is
         if (!vaultConfiguration.unpaused) {
             return (false, Errors.VAULT_PAUSED);
         }
-        if (vaultCofiguration.discontinued) {
+        if (vaultConfiguration.discontinued) {
             return (false, Errors.VAULT_DISCONTINUED);
         }
         if (vaultConfiguration.allowWhitelistedState && !whitelistedUsers[_user]) {
@@ -598,23 +603,23 @@ contract VaultOracle is
     }
 
     function _setUserDepositCapUT(uint256 _userDepositCapUT) internal {
-        vaultToVaultConfiguration.userDepositCapUT = _userDepositCapUT;
-        emit LogUserDepositCap(vaultToVaultConfiguration.userDepositCapUT, msg.sender);
+        vaultConfiguration.userDepositCapUT = _userDepositCapUT;
+        emit LogUserDepositCapUT(vaultConfiguration.userDepositCapUT, msg.sender);
     }
 
-    function _setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) internal {
-        vaultToVaultConfiguration[_vault].minimumDepositAmount = _minimumDepositAmount;
-        emit LogMinimumDepositAmount(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
+    function _setMinimumDepositValueUT(uint256 _minimumDepositValueUT) internal {
+        vaultConfiguration.minimumDepositValueUT = _minimumDepositValueUT;
+        emit LogMinimumDepositValueUT(vaultConfiguration.minimumDepositValueUT, msg.sender);
     }
 
     function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
-        vaultToVaultConfiguration.totalValueLockedLimitUT = _totalValueLockedLimitUT;
-        emit LogVaultTotalValueLockedLimitUT(vaultToVaultConfiguration.totalValueLockedLimitUT, msg.sender);
+        vaultConfiguration.totalValueLockedLimitUT = _totalValueLockedLimitUT;
+        emit LogTotalValueLockedLimitUT(vaultConfiguration.totalValueLockedLimitUT, msg.sender);
     }
 
     function _setQueueCap(uint256 _queueCap) internal {
         vaultConfiguration.queueCap = _queueCap;
-        emit LogQueueCapVault(vaultConfiguration.queueCap, msg.sender);
+        emit LogQueueCap(vaultConfiguration.queueCap, msg.sender);
     }
 
     function _setWhitelistedUser(address _user, bool _whitelist) internal {

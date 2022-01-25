@@ -104,9 +104,12 @@ interface IVaultOracle {
      *         to allow user deposits
      * @param _user address of the depositor
      * @param _userDepositUnderlying deposit amount in underlying
-     * @return returns true if user deposit is permitted, false otherwise
+     * @return returns true if user deposit is permitted, false otherwise with reason
      */
-    function userDepositPermitted(address _user, uint256 _userDepositUnderlying) external view returns (bool);
+    function userDepositPermitted(address _user, uint256 _userDepositUnderlying)
+        external
+        view
+        returns (bool, string memory);
 
     /**
      * @notice Assign a risk profile name
