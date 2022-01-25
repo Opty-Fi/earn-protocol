@@ -223,10 +223,9 @@ contract VaultOracle is
         // remove deposit fees (if any) but only if deposit is accepted
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
-        require(
-            userDepositPermitted(msg.sender, _actualDepositAmountUT.sub(_depositFeeUT)),
-            Errors.USER_DEPOSIT_NOT_PERMITTED
-        );
+        (bool _permitted, string memory _reason) =
+            userDepositPermitted(msg.sender, _actualDepositAmountUT.sub(_depositFeeUT));
+        require(_permitted, _reason);
         // transfer deposit fee to vaultFeeAddress
         if (_depositFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(vaultFeeAddress, _depositFeeUT);
@@ -437,24 +436,26 @@ contract VaultOracle is
     /**
      * @inheritdoc IVaultOracle
      */
-    function userDepositPermitted(address _user, uint256 _userDepositUT) public view override returns (bool) {
-        DataTypes.VaultConfiguration memory _vaultConfiguration = registryContract.getVaultConfiguration(address(this));
-        uint256 _userMinimumDepositLimitUT = _vaultConfiguration.minimumDepositAmount;
-        if (_userDepositUT < _userMinimumDepositLimitUT) {
-            return false;
+    function userDepositPermitted(address _user, uint256 _userDepositUT)
+        public
+        view
+        override
+        returns (bool, string memory)
+    {
+        if (vaultConfiguration.allowWhitelistedState && !whitelistedUsers[_user]) {
+            return (false, Errors.USER_NOT_WHITELISTED);
         }
-        uint256 _vaultTVLCapUT = _vaultConfiguration.totalValueLockedLimitInUnderlying;
+        if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {
+            return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
+        }
         uint256 _vaultTVLUT = _oraVaultValueUT();
-        if (_vaultTVLUT.add(_userDepositUT) > _vaultTVLCapUT) {
-            return false;
+        if (_vaultTVLUT.add(_userDepositUT) > vaultConfiguration.totalValueLockedLimitUT) {
+            return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
         }
-        bool _userDepositCapState = _vaultConfiguration.isLimitedState;
-        uint256 _userDepositCapUT = _vaultConfiguration.userDepositCap;
-        uint256 _userDepositsSumUT = totalDeposits[_user];
-        if (_userDepositCapState && _userDepositsSumUT.add(_userDepositUT) > _userDepositCapUT) {
-            return false;
+        if (totalDeposits[_user].add(_userDepositUT) > vaultConfiguration.userDepositCapUT) {
+            return (false, Errors.USER_DEPOSIT_CAP_UT);
         }
-        return true;
+        return (true, "");
     }
 
     /**
@@ -464,7 +465,10 @@ contract VaultOracle is
      * @return deposit fee in underlying
      */
     function calcDepositFeeUT(uint256 _userDepositUT) public view returns (uint256) {
-        return ((_userDepositUT.mul(depositFeePct)).div(10000)).add(depositFeeFlatUT);
+        return
+            ((_userDepositUT.mul(vaultConfiguration.depositFeePct)).div(10000)).add(
+                vaultConfiguration.depositFeeFlatUT
+            );
     }
 
     /**
@@ -473,7 +477,10 @@ contract VaultOracle is
      * @return _withdrawalFeeUT withdrawal fee in underlying
      */
     function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view returns (uint256) {
-        return ((_userWithdrawUT.mul(withdrawalFeePct)).div(10000)).add(withdrawalFeeFlatUT);
+        return
+            ((_userWithdrawUT.mul(vaultConfiguration.withdrawalFeePct)).div(10000)).add(
+                vaultConfiguration.withdrawalFeeFlatUT
+            );
     }
 
     /**
@@ -556,12 +563,39 @@ contract VaultOracle is
     }
 
     function _beforeTokenTransfer(
-        address, // _from
-        address, // _to
+        address,
+        address _to,
         uint256
     ) internal override {
         // the token can only be transferred to the whitelisted recipient
         // if the vault token is listed on any DEX like uniswap, then the pair contract address
         // should be whitelisted.
+        if (vaultConfiguration.allowWhitelistedState && !whitelistedUsers[_to]) {
+            revert(Errors.USER_NOT_WHITELISTED);
+        }
+    }
+
+    function _setUserDepositCapUT(uint256 _userDepositCapUT) internal {
+        vaultToVaultConfiguration.userDepositCapUT = _userDepositCapUT;
+        emit LogUserDepositCap(vaultToVaultConfiguration.userDepositCapUT, msg.sender);
+    }
+
+    function _setMinimumDepositAmount(address _vault, uint256 _minimumDepositAmount) internal {
+        vaultToVaultConfiguration[_vault].minimumDepositAmount = _minimumDepositAmount;
+        emit LogMinimumDepositAmount(_vault, vaultToVaultConfiguration[_vault].minimumDepositAmount, msg.sender);
+    }
+
+    function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
+        vaultToVaultConfiguration.totalValueLockedLimitUT = _totalValueLockedLimitUT;
+        emit LogVaultTotalValueLockedLimitUT(vaultToVaultConfiguration.totalValueLockedLimitUT, msg.sender);
+    }
+
+    function _setQueueCap(uint256 _queueCap) internal {
+        vaultConfiguration.queueCap = _queueCap;
+        emit LogQueueCapVault(vaultConfiguration.queueCap, msg.sender);
+    }
+
+    function _setWhitelistedUser(address _user, bool _whitelist) internal {
+        whitelistedUsers[_user] = _whitelist;
     }
 }

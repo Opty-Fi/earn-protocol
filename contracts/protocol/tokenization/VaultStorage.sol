@@ -79,18 +79,60 @@ contract VaultStorage {
 }
 
 contract VaultStorageV2 is VaultStorage {
-    /**@notice flat deposit fee in underlying tokens*/
-    uint256 public depositFeeFlatUT;
+    /**
+     * @notice users allowed to deposit/withdraw with vault if whitelisted
+     */
+    mapping(address => bool) public whitelistedUsers;
 
-    /**@notice  deposit fee in percentage basis points*/
-    uint256 public depositFeePct;
+    /**@notice Configuration params of the vault*/
+    DataTypes.VaultConfigurationV2 public vaultConfiguration;
 
-    /**@notice flat withdrawal fee in underlying token*/
-    uint256 public withdrawalFeeFlatUT;
+    /**
+     * @dev Emitted when Discontinue over vault is activated
+     * @param discontinued Discontinue status (true) of OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogDiscontinue(bool indexed discontinued, address indexed caller);
 
-    /**@notice withdrawal fee in percentage basis points*/
-    uint256 public withdrawalFeePct;
+    /**
+     * @notice Emitted when Pause over vault is activated/deactivated
+     * @param unpaused Unpause status of OptyFi's Vault contract - false (if paused) and true (if unpaused)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogUnpause(bool indexed unpaused, address indexed caller);
 
-    /**@notice address that collects vault deposit and withdraw fee*/
-    address public vaultFeeAddress;
+    /**
+     * @notice Emitted when setLimitStatus is called
+     * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogAllowWhitelistedState(bool indexed allowWhitelistedState, address indexed caller);
+
+    /**
+     * @notice Emitted when setUserDepositCapUT is called
+     * @param userDepositCapUT Cap in underlying for user deposits in OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogUserDepositCapUT(uint256 indexed userDepositCapUT, address indexed caller);
+
+    /**
+     * @notice Emitted when setMinimumDepositAmount is called
+     * @param minimumDepositValueUT Minimum deposit in OptyFi's Vault contract - only for deposits (without rebalance)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogMinimumDepositValueUT(uint256 indexed minimumDepositValueUT, address indexed caller);
+
+    /**
+     * @notice Emitted when setTotalValueLockedLimitUT is called
+     * @param totalValueLockedLimitUT Maximum limit for total value locked of OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
+
+    /**
+     * @notice Emitted when setQueueCap is called
+     * @param queueCap Maximum queue length in OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogQueueCap(uint256 indexed queueCap, address indexed caller);
 }
