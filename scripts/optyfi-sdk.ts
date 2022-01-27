@@ -73,10 +73,12 @@ async function main() {
           const strategies: STRATEGIES = {};
           for (let i = 0; i < data.length; i++) {
             const steps = data[i].strategySteps;
+
             let strategyName: string = token ? token : "";
             const strategyData: STRATEGY_DATA[] = [];
             for (let i = 0; i < steps.length; i++) {
               const step = steps[i];
+
               const lpToken = step.lpToken === ETH ? TypedTokens["WETH"] : step.outputToken;
               const lpContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, lpToken);
 
@@ -90,7 +92,7 @@ async function main() {
                 }
               }
 
-              strategyName = `${strategyName}-${step.isBorrow ? "BORROW" : "DEPOSIT"}-${step.protocol}${
+              strategyName = `${strategyName}-${step.isBorrow ? "BORROW" : "DEPOSIT"}-${step.adapterName}${
                 lpTokenSymbol ? "-" + lpTokenSymbol : ""
               }`;
               strategyData.push({
