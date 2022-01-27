@@ -103,43 +103,67 @@ contract VaultOracle is
         _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
     }
 
-    /**
-     * @inheritdoc IVaultOracle
-     */
-    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external override onlyGovernance {
-        maxVaultValueJump = _maxVaultValueJump;
+    function setVaultConfiguration(
+        bool _allowWhitelistedState,
+        uint256 _userDepositCapUT,
+        uint256 _minimumDepositValueUT,
+        uint256 _totalValueLockedLimitUT,
+        uint256 _maxVaultValueJump,
+        uint256 _depositFeeFlatUT,
+        uint256 _depositFeePct,
+        uint256 _withdrawalFeeFlatUT,
+        uint256 _withdrawalFeePct,
+        address _vaultFeeAddress
+    ) external override onlyFinanceOperator {
+        _setAllowWhitelistedState(_allowWhitelistedState);
+        _setUserDepositCapUT(_userDepositCapUT);
+        _setMinimumDepositValueUT(_minimumDepositValueUT);
+        _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
+        _setMaxVaultValueJump(_maxVaultValueJump);
+        _setDepositFeeFlatUT(_depositFeeFlatUT);
+        _setDepositFeePct(_depositFeePct);
+        _setWithdrawalFeeFlatUT(_withdrawalFeeFlatUT);
+        _setWithdrawalFeePct(_withdrawalFeePct);
+        _setVaultFeeAddress(_vaultFeeAddress);
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external override onlyGovernance {
-        vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
+    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external override onlyFinanceOperator {
+        _setMaxVaultValueJump(_maxVaultValueJump);
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function setDepositFeePct(uint256 _depositFeePct) external override onlyGovernance {
-        vaultConfiguration.depositFeePct = _depositFeePct;
+    function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external override onlyFinanceOperator {
+        _setDepositFeeFlatUT(_depositFeeFlatUT);
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external override onlyGovernance {
-        vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
+    function setDepositFeePct(uint256 _depositFeePct) external override onlyFinanceOperator {
+        _setDepositFeePct(_depositFeePct);
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyGovernance {
-        vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
+    function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external override onlyFinanceOperator {
+        _setWithdrawalFeeFlatUT(_withdrawalFeeFlatUT);
     }
 
-    function setVaultFeeAddress(address _vaultFeeAddress) external onlyOperator {
-        vaultConfiguration.vaultFeeAddress = _vaultFeeAddress;
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyFinanceOperator {
+        _setWithdrawalFeePct(_withdrawalFeePct);
+    }
+
+    function setVaultFeeAddress(address _vaultFeeAddress) external onlyFinanceOperator {
+        _setVaultFeeAddress(_vaultFeeAddress);
     }
 
     /**
@@ -167,31 +191,6 @@ contract VaultOracle is
             _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
         }
         vaultConfiguration.unpaused = _unpaused;
-    }
-
-    /**
-     * @inheritdoc IVaultOracle
-     */
-    function balance() public view override returns (uint256) {
-        return _balance();
-    }
-
-    /**
-     * @inheritdoc IVaultOracle
-     */
-    function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
-        DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
-        require(_riskProfile.exists, Errors.RISK_PROFILE_EXISTS);
-        riskProfileCode = _riskProfileCode;
-    }
-
-    /**
-     * @inheritdoc IVaultOracle
-     */
-    function setToken(address _underlyingToken) public override onlyOperator {
-        require(_underlyingToken.isContract(), Errors.NOT_A_CONTRACT);
-        require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
-        underlyingToken = _underlyingToken;
     }
 
     /**
@@ -306,7 +305,7 @@ contract VaultOracle is
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
     }
 
-    function vaultDepositAllToStrategy() public {
+    function vaultDepositAllToStrategy() external {
         (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         if (investStrategyHash != Constants.ZERO_BYTES32) {
@@ -317,15 +316,40 @@ contract VaultOracle is
     /**
      * @inheritdoc IVaultOracle
      */
-    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) public view override returns (bool) {
-        return (_diff.mul(10000)).div(_currentVaultValue) < maxVaultValueJump;
+    function adminCall(bytes[] memory _codes) external override onlyOperator {
+        executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
     /**
      * @inheritdoc IVaultOracle
      */
-    function adminCall(bytes[] memory _codes) external override onlyOperator {
-        executeCodes(_codes, Errors.ADMIN_CALL);
+    function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
+        DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
+        require(_riskProfile.exists, Errors.RISK_PROFILE_EXISTS);
+        riskProfileCode = _riskProfileCode;
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function setToken(address _underlyingToken) public override onlyOperator {
+        require(_underlyingToken.isContract(), Errors.NOT_A_CONTRACT);
+        require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
+        underlyingToken = _underlyingToken;
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function balance() public view override returns (uint256) {
+        return _balance();
+    }
+
+    /**
+     * @inheritdoc IVaultOracle
+     */
+    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) public view override returns (bool) {
+        return (_diff.mul(10000)).div(_currentVaultValue) < maxVaultValueJump;
     }
 
     /**
@@ -351,104 +375,6 @@ contract VaultOracle is
             return _oraVaultValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
         } else {
             return uint256(0);
-        }
-    }
-
-    /**
-     * @dev This function computes the market value of shares
-     * @return _oraVaultValue the market value of the shares
-     */
-    function _oraVaultValueUT() internal view returns (uint256) {
-        return _oraVaultAndStratValueUT();
-    }
-
-    function _oraStratValueUT() internal view returns (uint256) {
-        return
-            investStrategyHash != Constants.ZERO_BYTES32
-                ? getStrategySteps(investStrategyHash).getOraValueUT(
-                    address(registryContract),
-                    payable(address(this)),
-                    underlyingToken
-                )
-                : 0;
-    }
-
-    function _oraVaultAndStratValueUT() internal view returns (uint256) {
-        return _oraStratValueUT().add(_balance());
-    }
-
-    function _oraValueUT() internal view returns (uint256) {
-        return
-            getStrategySteps(investStrategyHash).getOraValueUT(
-                address(registryContract),
-                payable(address(this)),
-                underlyingToken
-            );
-    }
-
-    /**
-     * @dev Internal function to get the underlying token balance of vault
-     * @return underlying asset balance in this vault
-     */
-    function _balance() internal view returns (uint256) {
-        return IERC20(underlyingToken).balanceOf(address(this));
-    }
-
-    function getRevision() internal pure virtual override returns (uint256) {
-        return opTOKEN_REVISION;
-    }
-
-    /**
-     * @dev A helper function to calculate the absolute difference
-     * @param _a value
-     * @param _b value
-     * @return _result absolute difference between _a and _b
-     */
-    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a > _b ? _a.sub(_b) : _b.sub(_a);
-    }
-
-    /**
-     * @notice It checks the min/max balance of the first transaction of the current block
-     *         with the value from the previous block.
-     *         It is not a protection against flash loan attacks rather just an arbitrary sanity check.
-     * @dev Mechanism to restrict the vault value deviating from maxVaultValueJump
-     * @param _vaultValue The value of vault in underlying token
-     */
-    function _emergencyBrake(uint256 _vaultValue) private {
-        uint256 _blockTransactions = blockToBlockVaultValues[block.number].length;
-        if (_blockTransactions > 0) {
-            blockToBlockVaultValues[block.number].push(
-                DataTypes.BlockVaultValue({
-                    actualVaultValue: _vaultValue,
-                    blockMinVaultValue: _vaultValue <
-                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue
-                        ? _vaultValue
-                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue,
-                    blockMaxVaultValue: _vaultValue >
-                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
-                        ? _vaultValue
-                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
-                })
-            );
-            require(
-                isMaxVaultValueJumpAllowed(
-                    _abs(
-                        blockToBlockVaultValues[block.number][_blockTransactions].blockMinVaultValue,
-                        blockToBlockVaultValues[block.number][_blockTransactions].blockMaxVaultValue
-                    ),
-                    _vaultValue
-                ),
-                Errors.EMERGENCY_BRAKE
-            );
-        } else {
-            blockToBlockVaultValues[block.number].push(
-                DataTypes.BlockVaultValue({
-                    actualVaultValue: _vaultValue,
-                    blockMinVaultValue: _vaultValue,
-                    blockMaxVaultValue: _vaultValue
-                })
-            );
         }
     }
 
@@ -553,6 +479,16 @@ contract VaultOracle is
             );
     }
 
+    function getStrategySteps(bytes32 _investStrategyHash)
+        public
+        view
+        returns (DataTypes.StrategyStep[] memory _strategySteps)
+    {
+        (, _strategySteps) = IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(
+            _investStrategyHash
+        );
+    }
+
     function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
         _vaultDepositSomeToStrategy(_strategySteps, _balance());
     }
@@ -609,16 +545,6 @@ contract VaultOracle is
         }
     }
 
-    function getStrategySteps(bytes32 _investStrategyHash)
-        public
-        view
-        returns (DataTypes.StrategyStep[] memory _strategySteps)
-    {
-        (, _strategySteps) = IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(
-            _investStrategyHash
-        );
-    }
-
     function _beforeTokenTransfer(
         address,
         address _to,
@@ -654,5 +580,146 @@ contract VaultOracle is
 
     function _setWhitelistedUser(address _user, bool _whitelist) internal {
         whitelistedUsers[_user] = _whitelist;
+    }
+
+    function _setMaxVaultValueJump(uint256 _maxVaultValueJump) internal {
+        maxVaultValueJump = _maxVaultValueJump;
+    }
+
+    function _setDepositFeeFlatUT(uint256 _depositFeeFlatUT) internal {
+        vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
+    }
+
+    function _setDepositFeePct(uint256 _depositFeePct) internal {
+        vaultConfiguration.depositFeePct = _depositFeePct;
+    }
+
+    function _setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) internal {
+        vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
+    }
+
+    function _setWithdrawalFeePct(uint256 _withdrawalFeePct) internal {
+        vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
+    }
+
+    function _setVaultFeeAddress(address _vaultFeeAddress) internal {
+        vaultConfiguration.vaultFeeAddress = _vaultFeeAddress;
+    }
+
+    function _setTreasuryShares(DataTypes.TreasuryShare[] memory _treasuryShares) internal {
+        if (_treasuryShares.length > 0) {
+            uint256 _sharesSum;
+            for (uint256 _i; _i < _treasuryShares.length; _i++) {
+                require(_treasuryShares[_i].treasury != address(0), "!address(0)");
+                _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
+            }
+            require(_sharesSum == vaultConfiguration[_vault].withdrawalFee, "FeeShares!=WithdrawalFee");
+
+            //  delete the existing the treasury accounts if any to reset them
+            if (vaultConfiguration.treasuryShares.length > 0) {
+                delete vaultConfiguration.treasuryShares;
+            }
+            for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
+                vaultConfiguration.treasuryShares.push(_treasuryShares[_i]);
+            }
+        }
+    }
+
+    /**
+     * @dev This function computes the market value of shares
+     * @return _oraVaultValue the market value of the shares
+     */
+    function _oraVaultValueUT() internal view returns (uint256) {
+        return _oraVaultAndStratValueUT();
+    }
+
+    function _oraStratValueUT() internal view returns (uint256) {
+        return
+            investStrategyHash != Constants.ZERO_BYTES32
+                ? getStrategySteps(investStrategyHash).getOraValueUT(
+                    address(registryContract),
+                    payable(address(this)),
+                    underlyingToken
+                )
+                : 0;
+    }
+
+    function _oraVaultAndStratValueUT() internal view returns (uint256) {
+        return _oraStratValueUT().add(_balance());
+    }
+
+    function _oraValueUT() internal view returns (uint256) {
+        return
+            getStrategySteps(investStrategyHash).getOraValueUT(
+                address(registryContract),
+                payable(address(this)),
+                underlyingToken
+            );
+    }
+
+    /**
+     * @dev Internal function to get the underlying token balance of vault
+     * @return underlying asset balance in this vault
+     */
+    function _balance() internal view returns (uint256) {
+        return IERC20(underlyingToken).balanceOf(address(this));
+    }
+
+    function getRevision() internal pure virtual override returns (uint256) {
+        return opTOKEN_REVISION;
+    }
+
+    /**
+     * @dev A helper function to calculate the absolute difference
+     * @param _a value
+     * @param _b value
+     * @return _result absolute difference between _a and _b
+     */
+    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        return _a > _b ? _a.sub(_b) : _b.sub(_a);
+    }
+
+    /**
+     * @notice It checks the min/max balance of the first transaction of the current block
+     *         with the value from the previous block.
+     *         It is not a protection against flash loan attacks rather just an arbitrary sanity check.
+     * @dev Mechanism to restrict the vault value deviating from maxVaultValueJump
+     * @param _vaultValue The value of vault in underlying token
+     */
+    function _emergencyBrake(uint256 _vaultValue) private {
+        uint256 _blockTransactions = blockToBlockVaultValues[block.number].length;
+        if (_blockTransactions > 0) {
+            blockToBlockVaultValues[block.number].push(
+                DataTypes.BlockVaultValue({
+                    actualVaultValue: _vaultValue,
+                    blockMinVaultValue: _vaultValue <
+                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue
+                        ? _vaultValue
+                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue,
+                    blockMaxVaultValue: _vaultValue >
+                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
+                        ? _vaultValue
+                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
+                })
+            );
+            require(
+                isMaxVaultValueJumpAllowed(
+                    _abs(
+                        blockToBlockVaultValues[block.number][_blockTransactions].blockMinVaultValue,
+                        blockToBlockVaultValues[block.number][_blockTransactions].blockMaxVaultValue
+                    ),
+                    _vaultValue
+                ),
+                Errors.EMERGENCY_BRAKE
+            );
+        } else {
+            blockToBlockVaultValues[block.number].push(
+                DataTypes.BlockVaultValue({
+                    actualVaultValue: _vaultValue,
+                    blockMinVaultValue: _vaultValue,
+                    blockMaxVaultValue: _vaultValue
+                })
+            );
+        }
     }
 }
