@@ -345,7 +345,7 @@ describe("Integration tests", function () {
 
     it("16. Risk operator deploys Convex Adapter", async function () {
       this.convexAdapter = <ConvexFinanceAdapter>(
-        await deployContract(hre, "ConvexFinanceAdapter", false, this.signers.riskOperator, [])
+        await deployContract(hre, "ConvexFinanceAdapter", false, this.signers.riskOperator, [this.registry.address])
       );
       assert.isDefined(this.convexAdapter, "!ConvexFinanceAdapter");
     });
@@ -476,7 +476,6 @@ describe("Integration tests", function () {
         ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
         this.investStrategyRegistry.address,
       );
-      console.log("hello");
 
       await expect(
         investStrategyRegistryContractInstance

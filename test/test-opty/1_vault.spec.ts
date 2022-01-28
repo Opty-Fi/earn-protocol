@@ -113,7 +113,7 @@ const VAULT_DEFAULT_DATA: { [key: string]: { getFunction: string; input: any[]; 
 
 const strategyDivisor: number = parseInt(process.env.STRATEGY_DIVISOR as string);
 
-describe(testVaultConfigurationScenario.title, () => {
+describe.only(testVaultConfigurationScenario.title, () => {
   let essentialContracts: CONTRACTS;
   let adapters: CONTRACTS;
   const contracts: CONTRACTS = {};
@@ -536,7 +536,9 @@ describe(testVaultScenario.title, () => {
           }
           description = description + TOKEN_STRATEGY.steps[i].protocol.name;
         }
-
+        if (description !== "Fulcrum") {
+          continue;
+        }
         describe(description, async () => {
           const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
             rewardTokenAdapterName.toLowerCase(),

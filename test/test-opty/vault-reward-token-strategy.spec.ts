@@ -145,9 +145,6 @@ describe(scenario.title, () => {
                   adapters[usedAdapters[i]].address,
                   TOKEN_STRATEGY.strategy[i].contract,
                 );
-                if (usedAdapters[i] === "ConvexFinanceAdapter") {
-                  await adapters[usedAdapters[i]].setPoolCoinData(TOKEN_STRATEGY.strategy[i].contract);
-                }
               }
 
               investStrategyHash = await setBestStrategy(
