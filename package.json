@@ -127,6 +127,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.1.7",
     "@openzeppelin/contracts": "3.4.0",
+    "@openzeppelin/contracts-0.8.x": "npm:@openzeppelin/contracts@4.4.1",
     "@optyfi/defi-legos": "0.1.0-rc.15",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0"
