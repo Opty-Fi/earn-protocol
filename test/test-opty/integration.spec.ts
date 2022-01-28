@@ -1117,7 +1117,7 @@ describe("Integration tests", function () {
       expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_DEPOSIT_HASH);
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
     });
-    it("55. The strategy operator can set the best strategy to be 2 step usdc-3crv", async function () {
+    it("55. The strategy operator can set the best strategy to be 2 steps usdc-3crv", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_3CRV_CURVE_SWAP_HASH);
@@ -1235,7 +1235,7 @@ describe("Integration tests", function () {
       console.log("# of rebalance events", txc.events?.length);
       expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
     });
-    it("59. The strategy operator can set the best strategy to be 2 step usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
+    it("59. The strategy operator can set the best strategy to be 3 steps usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CONVEX_HASH);
