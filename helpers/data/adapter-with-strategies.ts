@@ -30,5 +30,9 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   [FULCRUM_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-Fulcrum-iDAI"]],
   [HARVEST_V1_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-HarvestV1-fDAI"]],
   [SUSHISWAP_ADAPTER_NAME]: [SlpStrategies["slp-DEPOSIT-Sushiswap"]],
-  [CONVEX_ADAPTER_NAME]: [UsdcStrategies["usdc-DEPOSIT-CurveDepositPool-cDAI+cUSDC-DEPOSIT-Convex-cvxcDAI+cUSDC"]],
+  [CONVEX_ADAPTER_NAME]: [
+    UsdcStrategies[
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f"
+    ],
+  ],
 };
