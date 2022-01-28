@@ -81,16 +81,6 @@ const getCommonNetworkConfig = (networkName: eEthereumNetwork, networkId: number
 const buidlerConfig: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
-    version: "0.6.12",
-    settings: {
-      optimizer: { enabled: true, runs: 200 },
-      evmVersion: "istanbul",
-      outputSelection: {
-        "*": {
-          "*": ["storageLayout"],
-        },
-      },
-    },
     compilers: [
       {
         version: "0.6.12",
