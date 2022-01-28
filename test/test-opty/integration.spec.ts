@@ -714,7 +714,7 @@ describe("Integration tests", function () {
     });
 
     it("27. Alice deposit*, withdraw*, rebalance and harvest transactions should fail", async function () {
-      this.erc20 = <ERC20>await hre.ethers.getContractAt("ERC20", TypedTokens.USDC);
+      this.erc20 = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.USDC);
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,

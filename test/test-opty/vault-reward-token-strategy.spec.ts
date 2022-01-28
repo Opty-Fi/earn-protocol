@@ -22,6 +22,7 @@ import {
 import scenario from "./scenarios/vault-reward-token-strategy.json";
 import { executeFunc, generateTokenHash } from "../../helpers/helpers";
 import { retrieveAdapterFromStrategyName } from "../../helpers/helpers";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 chai.use(solidity);
 
@@ -87,7 +88,7 @@ describe(scenario.title, () => {
             let RewardToken_ERC20Instance: Contract;
             let vaultRewardTokens: string[] = [];
             before(async () => {
-              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", token);
+              const Token_ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, token);
               underlyingTokenName = await Token_ERC20Instance.name();
               underlyingTokenSymbol = await Token_ERC20Instance.symbol();
               const adapter = adapters[adapterName];
@@ -130,7 +131,7 @@ describe(scenario.title, () => {
                   false,
                 );
                 RewardToken_ERC20Instance = await hre.ethers.getContractAt(
-                  "ERC20",
+                  ESSENTIAL_CONTRACTS.ERC20,
                   <string>REWARD_TOKENS[adapterName].tokenAddress,
                 );
                 vaultRewardTokens = [Vault.address, <string>REWARD_TOKENS[adapterName].tokenAddress];
@@ -265,7 +266,10 @@ describe(scenario.title, () => {
                             investStrategyHash,
                           );
                           if (rewardToken != hre.ethers.constants.AddressZero) {
-                            const rewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardToken);
+                            const rewardTokenInstance = await hre.ethers.getContractAt(
+                              ESSENTIAL_CONTRACTS.ERC20,
+                              rewardToken,
+                            );
                             rewardTokenBalanceBefore = await rewardTokenInstance.balanceOf(Vault.address);
                           } else {
                             rewardTokenBalanceBefore = BigNumber.from(0);

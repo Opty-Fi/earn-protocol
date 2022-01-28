@@ -97,7 +97,7 @@ describe(scenario.title, () => {
       );
       await unpauseVault(users["owner"], essentialContracts.registry, Vault2.address, true);
 
-      const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
+      const ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddr);
 
       await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
       await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(

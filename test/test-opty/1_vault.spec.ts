@@ -158,7 +158,7 @@ describe(testVaultConfigurationScenario.title, () => {
       const strategySteps: STRATEGY_DATA[] = [];
       let investStrategyHash: string;
       before(async () => {
-        const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+        const Token_ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
         underlyingTokenName = await Token_ERC20Instance.name();
         underlyingTokenSymbol = await Token_ERC20Instance.symbol();
         underlyingTokenDecimals = await Token_ERC20Instance.decimals();
@@ -548,7 +548,7 @@ describe(testVaultScenario.title, () => {
           let investStrategyHash: string;
           let claimableTokens: BigNumber;
           before(async () => {
-            const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+            const Token_ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
             underlyingTokenName = await Token_ERC20Instance.name();
             underlyingTokenSymbol = await Token_ERC20Instance.symbol();
             underlyingTokenDecimals = await Token_ERC20Instance.decimals();
@@ -837,7 +837,7 @@ describe(testVaultScenario.title, () => {
                   }
                   case "testGetDepositAllCodes": {
                     const liquidityPoolInstance = await hre.ethers.getContractAt(
-                      "ERC20",
+                      ESSENTIAL_CONTRACTS.ERC20,
                       TOKEN_STRATEGY.steps[0].poolContractAddress,
                     );
                     const balanceBefore = await liquidityPoolInstance.balanceOf(contracts["vault"].address);
@@ -897,7 +897,7 @@ describe(testVaultScenario.title, () => {
                       await liquidityPoolInstance.comptroller(),
                     );
                     const rewardTokenInstance = await hre.ethers.getContractAt(
-                      "ERC20",
+                      ESSENTIAL_CONTRACTS.ERC20,
                       await comptroller.getCompAddress(),
                     );
                     const balanceBefore = await rewardTokenInstance.balanceOf(contracts["vault"].address);

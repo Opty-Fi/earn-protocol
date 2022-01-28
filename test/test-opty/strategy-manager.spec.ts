@@ -118,11 +118,11 @@ describe(scenario.title, () => {
         const story = scenario.stories[i];
 
         it(`${story.description}`, async function () {
-          const ERC20Instance = await hre.ethers.getContractAt("ERC20", underlyingToken);
+          const ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, underlyingToken);
           const rewardTokenAddress = await adapters[adapterNames[steps - 1]].getRewardToken(lastStrategyStep.contract);
           let RewardTokenInstance: Contract | undefined;
           if (rewardTokenAddress !== hre.ethers.constants.AddressZero) {
-            RewardTokenInstance = await hre.ethers.getContractAt("ERC20", rewardTokenAddress);
+            RewardTokenInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, rewardTokenAddress);
           }
           const decimals = await ERC20Instance.decimals();
           let defaultFundAmount: BigNumber = getDefaultFundAmountInDecimal(underlyingToken, decimals);

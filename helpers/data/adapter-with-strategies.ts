@@ -25,8 +25,6 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   [AAVE_V1_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-AaveV1-aDAI"]],
   [AAVE_V2_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-AaveV2-aDAI"]],
   [DFORCE_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-DForce-dDAI"]],
-  [DYDX_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-DyDx"]],
-  [YVAULT_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-YVault-yDAI"]],
   [FULCRUM_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-Fulcrum-iDAI"]],
   [HARVEST_V1_ADAPTER_NAME]: [DaiStrategies["dai-DEPOSIT-HarvestV1-fDAI"]],
   [SUSHISWAP_ADAPTER_NAME]: [SlpStrategies["slp-DEPOSIT-Sushiswap"]],

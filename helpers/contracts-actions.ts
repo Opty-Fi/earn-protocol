@@ -17,6 +17,7 @@ import {
 import { amountInHex } from "./utils";
 import { TypedEOA } from "./data";
 import { RISK_PROFILES } from "./constants/contracts-data";
+import { ESSENTIAL_CONTRACTS } from "./constants/essential-contracts-name";
 
 export async function approveLiquidityPoolAndMapAdapter(
   owner: Signer,
@@ -184,7 +185,7 @@ export async function fundWalletToken(
     TypedContracts.UNISWAPV2_ROUTER,
   );
   const sushiswapRouterInstance = await hre.ethers.getContractAt("IUniswapV2Router02", TypedContracts.SUSHISWAP_ROUTER);
-  const tokenInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+  const tokenInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
   const walletAddress = await wallet.getAddress();
   try {
     if (ValidatedPairTokens.includes(getAddress(tokenAddress))) {
@@ -261,14 +262,14 @@ export async function fundWalletToken(
         const swap = curveToken?.swap;
         const old = curveToken?.old;
         const curveRegistryInstance = await hre.ethers.getContractAt("ICurveRegistry", TypedContracts.CURVE_REGISTRY);
-        const tokenAddressInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+        const tokenAddressInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
         const instance = await hre.ethers.getContractAt(swap ? "ICurveSwap" : "ICurveDeposit", pool);
         const coin = swap
           ? await instance.coins(0)
           : old
           ? await instance.underlying_coins(0)
           : await instance.base_coins(0);
-        const coinInstance = await hre.ethers.getContractAt("ERC20", coin);
+        const coinInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, coin);
         await uniswapV2Router02Instance
           .connect(wallet)
           .swapExactETHForTokens(
@@ -381,7 +382,7 @@ async function transferSLPOrUNI(
     await swapAndApproveToken(hre, routerInstance, wallet, deadlineTimestamp, tokens[i].address, tokens[i].path);
   }
   if (tokens.length === 1) {
-    const tokenInstance = await hre.ethers.getContractAt("ERC20", tokens[0].address);
+    const tokenInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokens[0].address);
     await routerInstance
       .connect(wallet)
       .addLiquidityETH(
@@ -394,8 +395,8 @@ async function transferSLPOrUNI(
         getEthValueGasOverrideOptions(hre, "9500"),
       );
   } else {
-    const token0Instance = await hre.ethers.getContractAt("ERC20", tokens[0].address);
-    const token1Instance = await hre.ethers.getContractAt("ERC20", tokens[1].address);
+    const token0Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokens[0].address);
+    const token1Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokens[1].address);
     await routerInstance
       .connect(wallet)
       .addLiquidity(
@@ -420,7 +421,7 @@ async function swapAndApproveToken(
   tokenAddress: string,
   tokenPath: string[],
 ) {
-  const tokenInstance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+  const tokenInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
   await routerInstance
     .connect(wallet)
     .swapExactETHForTokens(
@@ -448,7 +449,7 @@ export async function fundWalletFromImpersonatedAccount(
     params: [impersonatedAccountAddr],
   });
   const impersonatedAccount = await hre.ethers.getSigner(impersonatedAccountAddr);
-  const erc20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+  const erc20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
   const balance = await erc20Instance.balanceOf(impersonatedAccountAddr);
   if (+balance >= +fundAmount) {
     await erc20Instance.connect(impersonatedAccount).transfer(toAddress, fundAmount);
@@ -468,7 +469,10 @@ export async function getTokenName(hre: HardhatRuntimeEnvironment, tokenName: st
   if (tokenName.toLowerCase() == "mkr") {
     return "Maker";
   } else {
-    const ERC20Instance = await hre.ethers.getContractAt("ERC20", TypedTokens[tokenName.toUpperCase()]);
+    const ERC20Instance = await hre.ethers.getContractAt(
+      ESSENTIAL_CONTRACTS.ERC20,
+      TypedTokens[tokenName.toUpperCase()],
+    );
     const name: string = await ERC20Instance.name();
     return name;
   }
@@ -478,7 +482,10 @@ export async function getTokenSymbol(hre: HardhatRuntimeEnvironment, tokenName: 
   if (tokenName.toLowerCase() == "mkr") {
     return "MKR";
   } else {
-    const ERC20Instance = await hre.ethers.getContractAt("ERC20", TypedTokens[tokenName.toUpperCase()]);
+    const ERC20Instance = await hre.ethers.getContractAt(
+      ESSENTIAL_CONTRACTS.ERC20,
+      TypedTokens[tokenName.toUpperCase()],
+    );
     const symbol = await ERC20Instance.symbol();
     return symbol;
   }
@@ -488,7 +495,7 @@ export async function getTokenInforWithAddress(
   hre: HardhatRuntimeEnvironment,
   address: string,
 ): Promise<{ name: string; symbol: string }> {
-  const ERC20Instance = await hre.ethers.getContractAt("ERC20", address);
+  const ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, address);
 
   const symbol = getAddress(address) == getAddress(TypedTokens.MKR) ? "MKR" : await ERC20Instance.symbol();
   const name: string = getAddress(address) == getAddress(TypedTokens.MKR) ? "MAKER" : await ERC20Instance.name();

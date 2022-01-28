@@ -15,6 +15,8 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/emergency-brake.json";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+
 describe(scenario.title, () => {
   const token = "DAI";
   const MAX_AMOUNT = 100000000;
@@ -70,7 +72,7 @@ describe(scenario.title, () => {
           const EmergencyBrakeFactory = await hre.ethers.getContractFactory(TESTING_CONTRACTS.TESTING_EMERGENCY_BRAKE);
           emergencyBrake = await EmergencyBrakeFactory.deploy(Vault.address, VAULT_TOKENS[token].address);
 
-          ERC20Instance = await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token].address);
+          ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, VAULT_TOKENS[token].address);
           await ERC20Instance.connect(owner).transfer(emergencyBrake.address, MAX_AMOUNT * 2);
         } catch (error: any) {
           console.error(error);
