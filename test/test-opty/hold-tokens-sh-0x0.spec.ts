@@ -20,6 +20,7 @@ import {
   addWhiteListForHarvest,
 } from "../../helpers/contracts-actions";
 import scenarios from "./scenarios/hold-tokens-sh-0x0.json";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 type ARGUMENTS = {
   amount?: string;
@@ -73,7 +74,7 @@ describe(scenarios.title, () => {
             const MAX_AMOUNT = token === TypedTokens["SLP_WETH_USDC"] ? BigNumber.from("20") : BigNumber.from("1000");
             before(async () => {
               try {
-                const ERC20Instance = await hre.ethers.getContractAt("ERC20", strategy.token);
+                const ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, strategy.token);
                 underlyingTokenName = await ERC20Instance.name();
                 underlyingTokenSymbol = await ERC20Instance.symbol();
                 decimals = token === TypedTokens["SLP_WETH_USDC"] ? "6" : (await ERC20Instance.decimals()).toString();

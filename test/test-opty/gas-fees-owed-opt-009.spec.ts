@@ -23,6 +23,8 @@ import {
   generateStrategyStep,
 } from "../../helpers/helpers";
 import { ERC20 } from "../../typechain/ERC20";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+
 chai.use(solidity);
 
 type ARGUMENTS = {
@@ -106,7 +108,9 @@ describe(scenario.title, () => {
 
         await unpauseVault(operator, essentialContracts.registry, Vault.address, true);
 
-        const Token_ERC20Instance = <ERC20>await hre.ethers.getContractAt("ERC20", VAULT_TOKENS[token].address);
+        const Token_ERC20Instance = <ERC20>(
+          await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, VAULT_TOKENS[token].address)
+        );
 
         decimals = await Token_ERC20Instance.decimals();
 

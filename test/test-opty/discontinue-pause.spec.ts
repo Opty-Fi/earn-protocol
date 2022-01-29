@@ -18,6 +18,7 @@ import {
 } from "../../helpers/contracts-actions";
 import { setUp } from "./setup";
 import scenario from "./scenarios/discontinue-pause.json";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 type ARGUMENTS = {
   addressName?: string;
@@ -71,7 +72,7 @@ describe(scenario.title, () => {
           describe(`${adapterName}- ${strategy.strategyName}`, async () => {
             let decimals: BigNumber;
             before(async () => {
-              ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+              ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
               decimals = await ERC20Instance.decimals();
               underlyingTokenName = await ERC20Instance.name();
               underlyingTokenSymbol = await ERC20Instance.symbol();

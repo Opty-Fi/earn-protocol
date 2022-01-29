@@ -42,7 +42,7 @@ const USDC_LIQUIDITY_POOLS = [
   TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool,
   TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
   TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
-  TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].pool,
+  TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
 ];
 
 const USDC_TOKEN_HASH = generateTokenHash([TypedTokens.USDC]);
@@ -121,13 +121,18 @@ const USDC_3CRV_CURVE_SWAP_HASH = generateStrategyHash(
 const USDC_CONVEX_HASH = generateStrategyHash(
   [
     {
-      contract: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool,
-      outputToken: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].lpToken,
+      contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
       isBorrow: false,
     },
     {
-      contract: TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].pool,
-      outputToken: TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].lpToken,
+      contract: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
+      outputToken: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
+      isBorrow: false,
+    },
+    {
+      contract: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
+      outputToken: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].lpToken,
       isBorrow: false,
     },
   ],
@@ -340,7 +345,7 @@ describe("Integration tests", function () {
 
     it("16. Risk operator deploys Convex Adapter", async function () {
       this.convexAdapter = <ConvexFinanceAdapter>(
-        await deployContract(hre, "ConvexFinanceAdapter", false, this.signers.riskOperator, [])
+        await deployContract(hre, "ConvexFinanceAdapter", false, this.signers.riskOperator, [this.registry.address])
       );
       assert.isDefined(this.convexAdapter, "!ConvexFinanceAdapter");
     });
@@ -416,7 +421,7 @@ describe("Integration tests", function () {
             adapter: this.curveSwapPoolAdapter.address,
           },
           {
-            pool: TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].pool,
+            pool: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
             adapter: this.convexAdapter.address,
           },
         ]),
@@ -451,7 +456,7 @@ describe("Integration tests", function () {
         await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool),
       ).to.equal(this.curveSwapPoolAdapter.address);
       expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].pool),
+        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool),
       ).to.equal(this.convexAdapter.address);
     });
 
@@ -471,6 +476,7 @@ describe("Integration tests", function () {
         ESSENTIAL_CONTRACTS.INVEST_STRATEGY_REGISTRY,
         this.investStrategyRegistry.address,
       );
+
       await expect(
         investStrategyRegistryContractInstance
           .connect(this.signers.operator)
@@ -524,13 +530,18 @@ describe("Integration tests", function () {
             ],
             [
               {
-                pool: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool,
-                outputToken: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].lpToken,
+                pool: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
                 isBorrow: false,
               },
               {
-                pool: TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].pool,
-                outputToken: TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].lpToken,
+                pool: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
+                outputToken: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
+                isBorrow: false,
+              },
+              {
+                pool: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
+                outputToken: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].lpToken,
                 isBorrow: false,
               },
             ],
@@ -611,13 +622,18 @@ describe("Integration tests", function () {
       ]);
       expect(usdcConvex._index).to.equal("6");
       expect(usdcConvex._strategySteps[0]).to.have.members([
-        TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool,
-        TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].lpToken,
+        TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
         false,
       ]);
       expect(usdcConvex._strategySteps[1]).to.have.members([
-        TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].pool,
-        TypedDefiPools.ConvexFinanceAdapter["cDAI+cUSDC"].lpToken,
+        TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
+        TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
+        false,
+      ]);
+      expect(usdcConvex._strategySteps[2]).to.have.members([
+        TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
+        TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].lpToken,
         false,
       ]);
     });
@@ -697,7 +713,7 @@ describe("Integration tests", function () {
     });
 
     it("27. Alice deposit*, withdraw*, rebalance and harvest transactions should fail", async function () {
-      this.erc20 = <ERC20>await hre.ethers.getContractAt("ERC20", TypedTokens.USDC);
+      this.erc20 = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.USDC);
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
@@ -1100,7 +1116,7 @@ describe("Integration tests", function () {
       expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_DEPOSIT_HASH);
       expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
     });
-    it("55. The strategy operator can set the best strategy to be 2 step usdc-3crv", async function () {
+    it("55. The strategy operator can set the best strategy to be 2 steps usdc-3crv", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_3CRV_CURVE_SWAP_HASH);
@@ -1218,7 +1234,7 @@ describe("Integration tests", function () {
       console.log("# of rebalance events", txc.events?.length);
       expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
     });
-    it("59. The strategy operator can set the best strategy to be 2 step usdc-cDAI+cUSDC-cvxcDAI+cUSDC", async function () {
+    it("59. The strategy operator can set the best strategy to be 3 steps usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CONVEX_HASH);
@@ -1255,7 +1271,7 @@ describe("Integration tests", function () {
           .toString()} opINTUSDC`,
       );
     });
-    it("60. Rebalance to usdc-cDAI+cUSDC-cvxcDAI+cUSDC", async function () {
+    it("60. Rebalance to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
       await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000"));
       await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("1000000000"));
       console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
