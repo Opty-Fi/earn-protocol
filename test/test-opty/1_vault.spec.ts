@@ -536,9 +536,6 @@ describe(testVaultScenario.title, () => {
           }
           description = description + TOKEN_STRATEGY.steps[i].protocol.name;
         }
-        if (description !== "Fulcrum") {
-          continue;
-        }
         describe(description, async () => {
           const rewardTokenAdapterNames = Object.keys(REWARD_TOKENS).map(rewardTokenAdapterName =>
             rewardTokenAdapterName.toLowerCase(),
