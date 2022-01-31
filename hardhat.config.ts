@@ -82,16 +82,40 @@ const getCommonNetworkConfig = (networkName: eEthereumNetwork, networkId: number
 const buidlerConfig: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
-    version: "0.6.12",
-    settings: {
-      optimizer: { enabled: true, runs: 200 },
-      evmVersion: "istanbul",
-      outputSelection: {
-        "*": {
-          "*": ["storageLayout"],
+    compilers: [
+      {
+        version: "0.6.12",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/solidity-template/issues/31
+            bytecodeHash: "none",
+          },
+          // Disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
         },
       },
-    },
+      {
+        version: "0.8.11",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/solidity-template/issues/31
+            bytecodeHash: "none",
+          },
+          // Disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

@@ -15,6 +15,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/claim-opty-timestamp-limitation.json";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 type ARGUMENTS = {
   contractName?: string;
@@ -61,7 +62,7 @@ describe(scenario.title, () => {
 
       await contracts.registry.setTotalValueLockedLimitInUnderlying(Vault.address, ethers.constants.MaxUint256);
 
-      const ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddr);
+      const ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddr);
 
       contracts["vault"] = Vault;
 

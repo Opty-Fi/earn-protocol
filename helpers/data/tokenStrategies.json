@@ -45,88 +45,6 @@
       ]
     },
     {
-      "hash": "0xf0db508906155186a040562d1df660d9d33f059877c0cd50256a90883b3178f0",
-      "underlyingTokens": [
-        {
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-          "symbol": "WETH",
-          "name": "Wrapped Ether"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "YVault",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
-          },
-          "poolContractAddress": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
-          "lpToken": "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7",
-          "isBorrow": false,
-          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
-        }
-      ]
-    },
-    {
-      "hash": "0x3abbe913c094c869aa9e211f26b25f347d8471df7436fa96a8f6cfbf2251f6c6",
-      "underlyingTokens": [
-        {
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-          "symbol": "WETH",
-          "name": "Wrapped Ether"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "DyDx",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
-          },
-          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
-          "lpToken": "0x0000000000000000000000000000000000000000",
-          "isBorrow": false,
-          "underlyingTokens": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
-        }
-      ]
-    },
-    {
-      "hash": "0xd36801c9ce8a0c3519311bd03d3407baa056a57631b530365e369834f0a4aa83",
-      "underlyingTokens": [
-        {
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-          "symbol": "WETH",
-          "name": "Wrapped Ether"
-        },
-        { "address": "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359" },
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        },
-        {
-          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-          "symbol": "DAI",
-          "name": "Dai Stablecoin"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "DyDx",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
-          },
-          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
-          "lpToken": "0x0000000000000000000000000000000000000000",
-          "isBorrow": false,
-          "underlyingTokens": [
-            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359",
-            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-          ]
-        }
-      ]
-    },
-    {
       "hash": "0x7e808e20afc9d1289a838462edff13e8135b9e9e9a0da06b891f4d4bb58fc362",
       "underlyingTokens": [
         {
@@ -260,28 +178,7 @@
         }
       ]
     },
-    {
-      "hash": "0xc6a86a6d8762222fcf2617b4a0e2fda022e68d08f770f7843551527e2308e108",
-      "underlyingTokens": [
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "YVault",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
-          },
-          "poolContractAddress": "0x597aD1e0c13Bfe8025993D9e79C69E1c0233522e",
-          "lpToken": "0x597aD1e0c13Bfe8025993D9e79C69E1c0233522e",
-          "isBorrow": false,
-          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
-        }
-      ]
-    },
+
     {
       "hash": "0xe9366ec585c516348a27487ce44c201488e9248eeda77cdfcaf6b0c2216f0daa",
       "underlyingTokens": [
@@ -1701,38 +1598,6 @@
       ]
     },
     {
-      "hash": "0xf052c36d244e4e8e0ed7b06b33946dbabed47985f7eece027033a04374e246cc",
-      "underlyingTokens": [
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "CurveSwapPool",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
-          },
-          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-          "isBorrow": false,
-          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
-        },
-        {
-          "protocol": {
-            "name": "YVault",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
-          },
-          "poolContractAddress": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
-          "lpToken": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
-          "isBorrow": false,
-          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
-        }
-      ]
-    },
-    {
       "hash": "0xe5891eea25a7926245b1148cd1a74ef7f9e73ada4d635dd34b63d16438de3284",
       "underlyingTokens": [
         {
@@ -2191,52 +2056,6 @@
           },
           "poolContractAddress": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
           "lpToken": "0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5",
-          "isBorrow": false,
-          "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
-        }
-      ]
-    },
-    {
-      "hash": "0x1d66e94970335d6c621a3e54cff3947b6fb941aae700bca518b4e519b193f33c",
-      "underlyingTokens": [
-        {
-          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-          "symbol": "DAI",
-          "name": "Dai Stablecoin"
-        },
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        },
-        {
-          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-          "symbol": "USDT",
-          "name": "Tether USD"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "CurveSwapPool",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/curve/logo.png"
-          },
-          "poolContractAddress": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-          "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-          "isBorrow": false,
-          "underlyingTokens": [
-            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-          ]
-        },
-        {
-          "protocol": {
-            "name": "YVault",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/yearn/logo.png"
-          },
-          "poolContractAddress": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
-          "lpToken": "0x9cA85572E6A3EbF24dEDd195623F188735A5179f",
           "isBorrow": false,
           "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
         }
@@ -2775,66 +2594,6 @@
           "lpToken": "0x3a664Ab939FD8482048609f652f9a0B0677337B9",
           "isBorrow": false,
           "underlyingTokens": ["0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"]
-        }
-      ]
-    },
-    {
-      "hash": "0x3ed0fd5d15fcf9233942c60d9dfa6f7e5d698ea16d455f0628b438775a32b981",
-      "underlyingTokens": [
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "DyDx",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
-          },
-          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
-          "lpToken": "0x0000000000000000000000000000000000000000",
-          "isBorrow": false,
-          "underlyingTokens": ["0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]
-        }
-      ]
-    },
-    {
-      "hash": "0xd36801c9ce8a0c3519311bd03d3407baa056a57631b530365e369834f0a4aa83",
-      "underlyingTokens": [
-        {
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-          "symbol": "WETH",
-          "name": "Wrapped Ether"
-        },
-        { "address": "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359" },
-        {
-          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          "symbol": "USDC",
-          "name": "USD Coin"
-        },
-        {
-          "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-          "symbol": "DAI",
-          "name": "Dai Stablecoin"
-        }
-      ],
-      "steps": [
-        {
-          "protocol": {
-            "name": "DyDx",
-            "logoURL": "https://raw.githubusercontent.com/Opty-Fi/assets/master/blockchains/ethereum/defiPoolsProtocols/dydx/logo.png"
-          },
-          "poolContractAddress": "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
-          "lpToken": "0x0000000000000000000000000000000000000000",
-          "isBorrow": false,
-          "underlyingTokens": [
-            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359",
-            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-          ]
         }
       ]
     },

@@ -4,7 +4,7 @@ import { Contract, Signer, BigNumber } from "ethers";
 import { setUp } from "./setup";
 import { CONTRACTS } from "../../helpers/type";
 import { TESTING_DEPLOYMENT_ONCE } from "../../helpers/constants/utils";
-import { VAULT_TOKENS, REWARD_TOKENS } from "../../helpers/constants/tokens";
+import { REWARD_TOKENS } from "../../helpers/constants/tokens";
 import { TypedAdapterStrategies } from "../../helpers/data/adapter-with-strategies";
 import { deployVault } from "../../helpers/contracts-deployments";
 import {
@@ -16,6 +16,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/get-price-per-share-write.json";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 type ARGUMENTS = {
   addressName?: string;
@@ -63,7 +64,7 @@ describe(scenario.title, () => {
           let RewardToken_ERC20Instance: any;
 
           before(async () => {
-            const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", TOKEN_STRATEGY.token);
+            const Token_ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TOKEN_STRATEGY.token);
             underlyingTokenName = await Token_ERC20Instance.name();
             underlyingTokenSymbol = await Token_ERC20Instance.symbol();
             const adapter = adapters[ADAPTER_NAME];
@@ -93,7 +94,7 @@ describe(scenario.title, () => {
                 false,
               );
               RewardToken_ERC20Instance = await hre.ethers.getContractAt(
-                "ERC20",
+                ESSENTIAL_CONTRACTS.ERC20,
                 <string>REWARD_TOKENS[ADAPTER_NAME].tokenAddress,
               );
             }

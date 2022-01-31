@@ -137,9 +137,6 @@ describe(scenario.title, () => {
                   adapters[usedAdapters[i]].address,
                   TOKEN_STRATEGY.strategy[i].contract,
                 );
-                if (usedAdapters[i] === "ConvexFinanceAdapter") {
-                  await adapters[usedAdapters[i]].setPoolCoinData(TOKEN_STRATEGY.strategy[i].contract);
-                }
               }
 
               await setBestStrategy(
@@ -152,7 +149,7 @@ describe(scenario.title, () => {
                 false,
               );
 
-              const Token_ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+              const Token_ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
 
               underlyingTokenName = await Token_ERC20Instance.name();
               underlyingTokenSymbol = await Token_ERC20Instance.symbol();
@@ -407,7 +404,7 @@ describe(scenario.title, () => {
                         }
                         case "testGetDepositAllCodes": {
                           const liquidityPoolInstace = await hre.ethers.getContractAt(
-                            "ERC20",
+                            ESSENTIAL_CONTRACTS.ERC20,
                             TOKEN_STRATEGY.strategy[0].contract,
                           );
                           const balanceBefore = await liquidityPoolInstace.balanceOf(contracts["vault"].address);
@@ -469,7 +466,7 @@ describe(scenario.title, () => {
                             await liquidityPoolInstance.comptroller(),
                           );
                           const rewardTokenInstance = await hre.ethers.getContractAt(
-                            "ERC20",
+                            ESSENTIAL_CONTRACTS.ERC20,
                             await comptroller.getCompAddress(),
                           );
                           const balanceBefore = await rewardTokenInstance.balanceOf(contracts["vault"].address);

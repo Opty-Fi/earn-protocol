@@ -19,6 +19,7 @@ import {
   unpauseVault,
 } from "../../helpers/contracts-actions";
 import scenario from "./scenarios/withdrawal-fee.json";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 chai.use(solidity);
 
@@ -97,7 +98,7 @@ describe(scenario.title, () => {
         );
         await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
-        ERC20Instance = await hre.ethers.getContractAt("ERC20", tokenAddress);
+        ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
         contracts["vault"] = Vault;
         contracts["erc20"] = ERC20Instance;
       });

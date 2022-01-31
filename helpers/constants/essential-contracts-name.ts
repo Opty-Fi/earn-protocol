@@ -19,5 +19,5 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   OPTY_STAKING_RATE_BALANCER_PROXY: "OPTYStakingRateBalancerProxy",
   APR_ORACLE: "contracts/protocol/earn-protocol-configuration/contracts/APROracle.sol:APROracle",
   ODEFI_VAULT_BOOSTER: "ODEFIVaultBooster",
-  ERC20: "ERC20",
+  ERC20: "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol:ERC20",
 };
