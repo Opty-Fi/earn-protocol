@@ -10,12 +10,13 @@ library Errors {
     string public constant RISK_PROFILE_EXISTS = "4";
     string public constant NOT_A_CONTRACT = "6";
     string public constant TOKEN_NOT_APPROVED = "7";
-    string public constant USER_NOT_WHITELISTED = "8";
-    string public constant MINIMUM_USER_DEPOSIT_VALUE_UT = "9";
-    string public constant TOTAL_VALUE_LOCKED_LIMIT_UT = "10";
-    string public constant USER_DEPOSIT_CAP_UT = "11";
-    string public constant VAULT_DISCONTINUED = "12";
-    string public constant VAULT_PAUSED = "13";
-    string public constant ADMIN_CALL = "14";
-    string public constant EMERGENCY_BRAKE = "15";
+    string public constant EOA_NOT_WHITELISTED = "8";
+    string public constant CA_NOT_WHITELISTED = "9";
+    string public constant MINIMUM_USER_DEPOSIT_VALUE_UT = "10";
+    string public constant TOTAL_VALUE_LOCKED_LIMIT_UT = "11";
+    string public constant USER_DEPOSIT_CAP_UT = "12";
+    string public constant VAULT_DISCONTINUED = "13";
+    string public constant VAULT_PAUSED = "14";
+    string public constant ADMIN_CALL = "15";
+    string public constant EMERGENCY_BRAKE = "16";
 }

@@ -80,9 +80,14 @@ contract VaultStorage {
 
 contract VaultStorageV2 is VaultStorage {
     /**
-     * @notice users allowed to deposit/withdraw with vault if whitelisted
+     * @notice users allowed to interact with vault if whitelisted
      */
-    mapping(address => bool) public whitelistedUsers;
+    mapping(address => bool) public whitelistedEOA;
+
+    /**
+     * @notice smart contract allowed to interact with vault if whitelisted
+     */
+    mapping(address => bool) public whitelistedCA;
 
     /**@notice Configuration params of the vault*/
     DataTypes.VaultConfigurationV2 public vaultConfiguration;

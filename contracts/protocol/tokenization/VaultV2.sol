@@ -22,7 +22,7 @@ import { StrategyBuilder } from "../configuration/StrategyBuilder.sol";
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
-import { IVaultOracle } from "../../interfaces/opty/IVaultOracle.sol";
+import { IVaultV2 } from "../../interfaces/opty/IVaultV2.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import {
     IInvestStrategyRegistry
@@ -36,15 +36,10 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
  */
 
 // TODO :
-// - Setters for vault config
-// - integrate emergency brake
-// - verify deposit to strategy actually happened
-// - verify withdraw from strategy actually happened
-// - claimAndHarvest()
 
-contract VaultOracle is
+contract VaultV2 is
     VersionedInitializable,
-    IVaultOracle,
+    IVaultV2,
     IncentivisedERC20,
     MultiCall,
     Modifiers,
@@ -103,6 +98,9 @@ contract VaultOracle is
         _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
     }
 
+    /**
+     * @inheritdoc IVaultV2
+     */
     function setVaultConfiguration(
         bool _allowWhitelistedState,
         uint256 _userDepositCapUT,
@@ -128,46 +126,77 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external override onlyFinanceOperator {
         _setMaxVaultValueJump(_maxVaultValueJump);
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external override onlyFinanceOperator {
         _setDepositFeeFlatUT(_depositFeeFlatUT);
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setDepositFeePct(uint256 _depositFeePct) external override onlyFinanceOperator {
         _setDepositFeePct(_depositFeePct);
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external override onlyFinanceOperator {
         _setWithdrawalFeeFlatUT(_withdrawalFeeFlatUT);
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyFinanceOperator {
         _setWithdrawalFeePct(_withdrawalFeePct);
     }
 
-    function setVaultFeeAddress(address _vaultFeeAddress) external onlyFinanceOperator {
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setVaultFeeAddress(address _vaultFeeAddress) external override onlyFinanceOperator {
         _setVaultFeeAddress(_vaultFeeAddress);
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
+     */
+    function setAllowWhitelistedState(bool _allowWhitelistedState) external override onlyOperator {
+        _setAllowWhitelistedState(_allowWhitelistedState);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setUserDepositCapUT(uint256 _userDepositCapUT) external override onlyOperator {
+        _setUserDepositCapUT(_userDepositCapUT);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setMinimumDepositValueUT(uint256 _minimumDepositValueUT) external override onlyOperator {
+        _setMinimumDepositValueUT(_minimumDepositValueUT);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external override onlyOperator {
+        _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
      */
     function discontinue() external override onlyOperator {
         if (investStrategyHash != Constants.ZERO_BYTES32) {
@@ -179,7 +208,7 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setUnpaused(bool _unpaused) external override onlyOperator {
         if (investStrategyHash != Constants.ZERO_BYTES32 && _unpaused == false) {
@@ -194,7 +223,7 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function rebalance() external override {
         (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
@@ -219,7 +248,7 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
         // check vault + strategy balance (in UT) before user token transfer
@@ -259,7 +288,7 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
         (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
@@ -305,7 +334,10 @@ contract VaultOracle is
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
     }
 
-    function vaultDepositAllToStrategy() external {
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function vaultDepositAllToStrategy() external override {
         (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         if (investStrategyHash != Constants.ZERO_BYTES32) {
@@ -314,14 +346,14 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function adminCall(bytes[] memory _codes) external override onlyOperator {
         executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
         DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
@@ -330,7 +362,7 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function setToken(address _underlyingToken) public override onlyOperator {
         require(_underlyingToken.isContract(), Errors.NOT_A_CONTRACT);
@@ -339,36 +371,21 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function balance() public view override returns (uint256) {
         return _balance();
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) public view override returns (bool) {
         return (_diff.mul(10000)).div(_currentVaultValue) < maxVaultValueJump;
     }
 
     /**
-     * @inheritdoc IVaultOracle
-     * @notice read-only function to compute price per share of the vault
-     *         Note : This function calculates the pricePerFullShare (i.e. the number of underlyingTokens
-     *         per each vaultToken entitles you to).
-     *
-     *         Please note the following quantities are included in underlyingTokens :
-     *         - underlyingTokens in vault that are not yet deployed in strategy
-     *
-     *        Please note the following quantities are *NOT* included in underlyingTokens :
-     *         - unclaimed reward tokens from the current or past strategies
-     *         - claimed reward tokens that are not yet harvested to underlyingTokens
-     *         - any tokens other than underlyingTokens of the vault.
-     *
-     *         Please note we relay on the getAmountUT() function of StrategyManager which in turn relies on individual
-     *         protocol adapters to obtain the current underlying token amount. Thus we are relying on a third party
-     *         contract (i.e. an oracle). This oracle should be made resilient via best practices.
+     * @inheritdoc IVaultV2
      */
     function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
@@ -379,7 +396,7 @@ contract VaultOracle is
     }
 
     /**
-     * @inheritdoc IVaultOracle
+     * @inheritdoc IVaultV2
      */
     function userDepositPermitted(address _user, uint256 _userDepositUT)
         public
@@ -387,8 +404,11 @@ contract VaultOracle is
         override
         returns (bool, string memory)
     {
-        if (vaultConfiguration.allowWhitelistedState && !whitelistedUsers[_user]) {
-            return (false, Errors.USER_NOT_WHITELISTED);
+        if (vaultConfiguration.allowWhitelistedState && !whitelistedEOA[_user]) {
+            return (false, Errors.EOA_NOT_WHITELISTED);
+        }
+        if (msg.sender != tx.origin && !whitelistedCA[msg.sender]) {
+            return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
@@ -403,7 +423,10 @@ contract VaultOracle is
         return (true, "");
     }
 
-    function vaultDepositPermitted() public view returns (bool, string memory) {
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function vaultDepositPermitted() public view override returns (bool, string memory) {
         if (!vaultConfiguration.unpaused) {
             return (false, Errors.VAULT_PAUSED);
         }
@@ -413,7 +436,15 @@ contract VaultOracle is
         return (true, "");
     }
 
-    function userWithdrawPermitted(address _user, uint256 _userWithdrawVT) public view returns (bool, string memory) {
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function userWithdrawPermitted(address _user, uint256 _userWithdrawVT)
+        public
+        view
+        override
+        returns (bool, string memory)
+    {
         // require: 0 < withdrawal amount in vault tokens < user's vault token balance
         if (!vaultConfiguration.unpaused) {
             return (false, Errors.VAULT_PAUSED);
@@ -424,7 +455,10 @@ contract VaultOracle is
         return (true, "");
     }
 
-    function vaultWithdrawPermitted() public view returns (bool, string memory) {
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function vaultWithdrawPermitted() public view override returns (bool, string memory) {
         if (!vaultConfiguration.unpaused) {
             return (false, Errors.VAULT_PAUSED);
         }
@@ -432,12 +466,9 @@ contract VaultOracle is
     }
 
     /**
-     * @notice Computes deposit fee in underlying
-     * @dev
-     * @param _userDepositUT user deposit amount in underlying
-     * @return deposit fee in underlying
+     * @inheritdoc IVaultV2
      */
-    function calcDepositFeeUT(uint256 _userDepositUT) public view returns (uint256) {
+    function calcDepositFeeUT(uint256 _userDepositUT) public view override returns (uint256) {
         return
             ((_userDepositUT.mul(vaultConfiguration.depositFeePct)).div(10000)).add(
                 vaultConfiguration.depositFeeFlatUT
@@ -445,11 +476,9 @@ contract VaultOracle is
     }
 
     /**
-     * @notice Computes withdrawal fee in underlying
-     * @param _userWithdrawUT user withdraw amount in underlying
-     * @return _withdrawalFeeUT withdrawal fee in underlying
+     * @inheritdoc IVaultV2
      */
-    function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view returns (uint256) {
+    function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view override returns (uint256) {
         return
             ((_userWithdrawUT.mul(vaultConfiguration.withdrawalFeePct)).div(10000)).add(
                 vaultConfiguration.withdrawalFeeFlatUT
@@ -457,18 +486,21 @@ contract VaultOracle is
     }
 
     /**
-     * @notice Returns next best invest strategy that the vault will execute on next rebalance
-     * @return the bytes32 hash of the invest strategy
+     * @inheritdoc IVaultV2
      */
-    function getNextBestStrategy() public view returns (bytes32) {
+    function getNextBestStrategy() public view override returns (bytes32) {
         address[] memory _underlyingTokens = new address[](1);
         _underlyingTokens[0] = underlyingToken;
         return IRiskManager(registryContract.getRiskManager()).getBestStrategy(riskProfileCode, _underlyingTokens);
     }
 
+    /**
+     * @inheritdoc IVaultV2
+     */
     function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _strategySteps)
         public
         view
+        override
         returns (uint256)
     {
         return
@@ -479,9 +511,13 @@ contract VaultOracle is
             );
     }
 
+    /**
+     * @inheritdoc IVaultV2
+     */
     function getStrategySteps(bytes32 _investStrategyHash)
         public
         view
+        override
         returns (DataTypes.StrategyStep[] memory _strategySteps)
     {
         (, _strategySteps) = IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(
@@ -553,9 +589,17 @@ contract VaultOracle is
         // the token can only be transferred to the whitelisted recipient
         // if the vault token is listed on any DEX like uniswap, then the pair contract address
         // should be whitelisted.
-        if (vaultConfiguration.allowWhitelistedState && !whitelistedUsers[_to]) {
-            revert(Errors.USER_NOT_WHITELISTED);
+        if (vaultConfiguration.allowWhitelistedState && !whitelistedEOA[_to]) {
+            revert(Errors.EOA_NOT_WHITELISTED);
         }
+        if (msg.sender != tx.origin && !whitelistedCA[msg.sender]) {
+            revert(Errors.CA_NOT_WHITELISTED);
+        }
+    }
+
+    function _setAllowWhitelistedState(bool _allowWhitelistedState) internal {
+        vaultConfiguration.allowWhitelistedState = _allowWhitelistedState;
+        emit LogAllowWhitelistedState(_allowWhitelistedState, msg.sender);
     }
 
     function _setUserDepositCapUT(uint256 _userDepositCapUT) internal {
@@ -573,13 +617,12 @@ contract VaultOracle is
         emit LogTotalValueLockedLimitUT(vaultConfiguration.totalValueLockedLimitUT, msg.sender);
     }
 
-    function _setQueueCap(uint256 _queueCap) internal {
-        vaultConfiguration.queueCap = _queueCap;
-        emit LogQueueCap(vaultConfiguration.queueCap, msg.sender);
+    function _setWhitelistedEOA(address _eoa, bool _whitelist) internal {
+        whitelistedEOA[_eoa] = _whitelist;
     }
 
-    function _setWhitelistedUser(address _user, bool _whitelist) internal {
-        whitelistedUsers[_user] = _whitelist;
+    function _setWhitelistedCA(address _ca, bool _whitelist) internal {
+        whitelistedCA[_ca] = _whitelist;
     }
 
     function _setMaxVaultValueJump(uint256 _maxVaultValueJump) internal {
@@ -604,25 +647,6 @@ contract VaultOracle is
 
     function _setVaultFeeAddress(address _vaultFeeAddress) internal {
         vaultConfiguration.vaultFeeAddress = _vaultFeeAddress;
-    }
-
-    function _setTreasuryShares(DataTypes.TreasuryShare[] memory _treasuryShares) internal {
-        if (_treasuryShares.length > 0) {
-            uint256 _sharesSum;
-            for (uint256 _i; _i < _treasuryShares.length; _i++) {
-                require(_treasuryShares[_i].treasury != address(0), "!address(0)");
-                _sharesSum = _sharesSum.add(_treasuryShares[_i].share);
-            }
-            require(_sharesSum == vaultConfiguration[_vault].withdrawalFee, "FeeShares!=WithdrawalFee");
-
-            //  delete the existing the treasury accounts if any to reset them
-            if (vaultConfiguration.treasuryShares.length > 0) {
-                delete vaultConfiguration.treasuryShares;
-            }
-            for (uint256 _i = 0; _i < _treasuryShares.length; _i++) {
-                vaultConfiguration.treasuryShares.push(_treasuryShares[_i]);
-            }
-        }
     }
 
     /**
