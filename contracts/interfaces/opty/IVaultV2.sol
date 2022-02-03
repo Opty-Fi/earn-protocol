@@ -12,6 +12,20 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  * @notice Contains mix of permissioned and permissionless vault methods
  */
 interface IVaultV2 {
+    /**
+     * @notice
+     * @dev
+     * @param _allowWhitelistedState vault's whitelisted state flag
+     * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
+     * @param _minimumDepositValueUT minimum deposit value in underlying token required
+     * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
+     * @param _maxVaultValueJump The standard deviation allowed for vault value
+     * @param _depositFeeFlatUT flat deposit fee in underlying token
+     * @param _depositFeePct deposit fee in percentage basis points
+     * @param _withdrawalFeeFlatUT flat withdrawal fee in underlying token
+     * @param _withdrawalFeePct withdrawal fee in percentage basis points
+     * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
+     */
     function setVaultConfiguration(
         bool _allowWhitelistedState,
         uint256 _userDepositCapUT,
@@ -30,7 +44,7 @@ interface IVaultV2 {
      * @dev the maximum vault value jump is in percentage basis points set by governance
      *      A big drop in value can flag an exploit.
      *      Exploits usually involve big drop or big fall in priceFullShare.
-     * @param _maxVaultValueJump the maximum aboslute allowed from a vault value in basis points
+     * @param _maxVaultValueJump the maximum absolute allowed from a vault value in basis points
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
@@ -62,14 +76,39 @@ interface IVaultV2 {
      */
     function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
 
+    /**
+     * @notice
+     * @dev
+     * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
+     */
     function setVaultFeeAddress(address _vaultFeeAddress) external;
 
+    /**
+     * @notice
+     * @dev
+     * @param _allowWhitelistedState vault's whitelisted state flag
+     */
     function setAllowWhitelistedState(bool _allowWhitelistedState) external;
 
+    /**
+     * @notice
+     * @dev
+     * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
+     */
     function setUserDepositCapUT(uint256 _userDepositCapUT) external;
 
+    /**
+     * @notice
+     * @dev
+     * @param _minimumDepositValueUT Minimum deposit value in underlying token required
+     */
     function setMinimumDepositValueUT(uint256 _minimumDepositValueUT) external;
 
+    /**
+     * @notice
+     * @dev
+     * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
+     */
     function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external;
 
     /**
@@ -110,6 +149,10 @@ interface IVaultV2 {
      */
     function userWithdrawVault(uint256 _userWithdrawVT) external;
 
+    /**
+     * @notice
+     * @dev
+     */
     function vaultDepositAllToStrategy() external;
 
     /**
@@ -132,6 +175,13 @@ interface IVaultV2 {
      * @param _underlyingToken the address of the underlying asset
      */
     function setToken(address _underlyingToken) external;
+
+    /**
+     * @notice
+     * @dev
+     * @param _underlyingTokensHash keccak256 hash of the underlying tokens of the vault
+     */
+    function setTokensHash(bytes32 _underlyingTokensHash) external;
 
     /**
      * @notice Retrieve underlying token balance in the vault
@@ -181,10 +231,24 @@ interface IVaultV2 {
         view
         returns (bool, string memory);
 
+    /**
+     * @notice
+     * @dev
+     */
     function vaultDepositPermitted() external view returns (bool, string memory);
 
+    /**
+     * @notice
+     * @dev
+     * @param _user account address of the iser
+     * @param _userWithdrawVT amount of vault tokens to burn
+     */
     function userWithdrawPermitted(address _user, uint256 _userWithdrawVT) external view returns (bool, string memory);
 
+    /**
+     * @notice
+     * @dev
+     */
     function vaultWithdrawPermitted() external view returns (bool, string memory);
 
     /**
@@ -207,11 +271,21 @@ interface IVaultV2 {
      */
     function getNextBestStrategy() external view returns (bytes32);
 
+    /**
+     * @notice
+     * @dev
+     * @param _strategySteps array of strategy step tuple
+     */
     function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _strategySteps)
         external
         view
         returns (uint256);
 
+    /**
+     * @notice
+     * @dev
+     * @param _investStrategyHash keccak256 hash of the strategy step
+     */
     function getStrategySteps(bytes32 _investStrategyHash)
         external
         view

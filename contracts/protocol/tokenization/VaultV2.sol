@@ -55,6 +55,8 @@ contract VaultV2 is
      */
     uint256 public constant opTOKEN_REVISION = 0x3;
 
+    //===Constructor===//
+
     /* solhint-disable no-empty-blocks */
     constructor(
         address _registry,
@@ -73,10 +75,13 @@ contract VaultV2 is
 
     /* solhint-enable no-empty-blocks */
 
+    //===External functions===//
+
     /**
      * @dev Initialize the vault
      * @param _registry the address of registry for helping get the protocol configuration
      * @param _underlyingToken The address of underlying asset of this vault
+     * @param _underlyingTokensHash The keccak256 hash of the tokens and chain id
      * @param _name The name of the underlying asset
      * @param _symbol The symbol of the underlying  asset
      * @param _riskProfileCode Risk profile code of this vault
@@ -84,6 +89,7 @@ contract VaultV2 is
     function initialize(
         address _registry,
         address _underlyingToken,
+        bytes32 _underlyingTokensHash,
         string memory _name,
         string memory _symbol,
         uint256 _riskProfileCode
@@ -93,6 +99,7 @@ contract VaultV2 is
         registryContract = IRegistry(_registry);
         setRiskProfileCode(_riskProfileCode);
         setToken(_underlyingToken); //  underlying token contract address (for example DAI)
+        underlyingTokensHash = _underlyingTokensHash;
         _setName(string(abi.encodePacked("op ", _name, " ", registryContract.getRiskProfile(_riskProfileCode).name)));
         _setSymbol(string(abi.encodePacked("op", _symbol, registryContract.getRiskProfile(_riskProfileCode).symbol)));
         _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
@@ -163,7 +170,7 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setVaultFeeAddress(address _vaultFeeAddress) external override onlyFinanceOperator {
+    function setVaultFeeAddress(address _vaultFeeAddress) external override onlyOperator {
         _setVaultFeeAddress(_vaultFeeAddress);
     }
 
@@ -352,6 +359,8 @@ contract VaultV2 is
         executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
+    //===Public view functions===//
+
     /**
      * @inheritdoc IVaultV2
      */
@@ -368,6 +377,13 @@ contract VaultV2 is
         require(_underlyingToken.isContract(), Errors.NOT_A_CONTRACT);
         require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
         underlyingToken = _underlyingToken;
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setTokensHash(bytes32 _underlyingTokensHash) public override onlyOperator {
+        underlyingTokensHash = _underlyingTokensHash;
     }
 
     /**
@@ -525,10 +541,21 @@ contract VaultV2 is
         );
     }
 
+    //===Internal functions===//
+
+    /**
+     * @dev
+     * @param _strategySteps array of strategy step tuple
+     */
     function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
         _vaultDepositSomeToStrategy(_strategySteps, _balance());
     }
 
+    /**
+     * @dev
+     * @param _strategySteps array of strategy step tuple
+     * @param _depositValueUT amount in underlying token
+     */
     function _vaultDepositSomeToStrategy(DataTypes.StrategyStep[] memory _strategySteps, uint256 _depositValueUT)
         internal
     {
@@ -554,10 +581,19 @@ contract VaultV2 is
         }
     }
 
+    /**
+     * @dev
+     * @param _strategySteps array of strategy step tuple
+     */
     function _vaultWithdrawAllFromStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
         _vaultWithdrawSomeFromStrategy(_strategySteps, getLastStrategyStepBalanceLP(_strategySteps));
     }
 
+    /**
+     * @dev
+     * @param _strategySteps array of strategy step tuple
+     * @param _withdrawAmountUT amount in underlying token
+     */
     function _vaultWithdrawSomeFromStrategy(DataTypes.StrategyStep[] memory _strategySteps, uint256 _withdrawAmountUT)
         internal
     {
@@ -581,6 +617,9 @@ contract VaultV2 is
         }
     }
 
+    /**
+     * @inheritdoc IncentivisedERC20
+     */
     function _beforeTokenTransfer(
         address,
         address _to,
@@ -589,6 +628,9 @@ contract VaultV2 is
         // the token can only be transferred to the whitelisted recipient
         // if the vault token is listed on any DEX like uniswap, then the pair contract address
         // should be whitelisted.
+        if (!vaultConfiguration.unpaused) {
+            revert(Errors.VAULT_PAUSED);
+        }
         if (vaultConfiguration.allowWhitelistedState && !whitelistedEOA[_to]) {
             revert(Errors.EOA_NOT_WHITELISTED);
         }
@@ -597,57 +639,109 @@ contract VaultV2 is
         }
     }
 
+    /**
+     * @dev
+     * @param _allowWhitelistedState vault's whitelisted state flag
+     */
     function _setAllowWhitelistedState(bool _allowWhitelistedState) internal {
         vaultConfiguration.allowWhitelistedState = _allowWhitelistedState;
         emit LogAllowWhitelistedState(_allowWhitelistedState, msg.sender);
     }
 
+    /**
+     * @dev
+     * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
+     */
     function _setUserDepositCapUT(uint256 _userDepositCapUT) internal {
         vaultConfiguration.userDepositCapUT = _userDepositCapUT;
         emit LogUserDepositCapUT(vaultConfiguration.userDepositCapUT, msg.sender);
     }
 
+    /**
+     * @dev
+     * @param _minimumDepositValueUT minimum deposit value in underlying token required
+     */
     function _setMinimumDepositValueUT(uint256 _minimumDepositValueUT) internal {
         vaultConfiguration.minimumDepositValueUT = _minimumDepositValueUT;
         emit LogMinimumDepositValueUT(vaultConfiguration.minimumDepositValueUT, msg.sender);
     }
 
+    /**
+     * @dev
+     * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
+     */
     function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
         vaultConfiguration.totalValueLockedLimitUT = _totalValueLockedLimitUT;
         emit LogTotalValueLockedLimitUT(vaultConfiguration.totalValueLockedLimitUT, msg.sender);
     }
 
+    /**
+     * @dev
+     * @param _eoa externally owner account address
+     * @param _whitelist flag indicating whitelist or not
+     */
     function _setWhitelistedEOA(address _eoa, bool _whitelist) internal {
         whitelistedEOA[_eoa] = _whitelist;
     }
 
+    /**
+     * @dev
+     * @param _ca smart contract account address
+     * @param _whitelist flag indicating whitelist or not
+     */
     function _setWhitelistedCA(address _ca, bool _whitelist) internal {
         whitelistedCA[_ca] = _whitelist;
     }
 
+    /**
+     * @dev
+     * @param _maxVaultValueJump the maximum absolute allowed from a vault value in basis points
+     */
     function _setMaxVaultValueJump(uint256 _maxVaultValueJump) internal {
         maxVaultValueJump = _maxVaultValueJump;
     }
 
+    /**
+     * @dev
+     * @param _depositFeeFlatUT amount of deposit fee in underlying token
+     */
     function _setDepositFeeFlatUT(uint256 _depositFeeFlatUT) internal {
         vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
     }
 
+    /**
+     * @dev
+     * @param _depositFeePct deposit fee in percentage basis points
+     */
     function _setDepositFeePct(uint256 _depositFeePct) internal {
         vaultConfiguration.depositFeePct = _depositFeePct;
     }
 
+    /**
+     * @dev
+     * @return _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
+     */
     function _setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) internal {
         vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
     }
 
+    /**
+     * @dev
+     * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
+     */
     function _setWithdrawalFeePct(uint256 _withdrawalFeePct) internal {
         vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
     }
 
+    /**
+     * @dev
+     * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
+     */
     function _setVaultFeeAddress(address _vaultFeeAddress) internal {
         vaultConfiguration.vaultFeeAddress = _vaultFeeAddress;
     }
+
+    //===Internal view functions===//
 
     /**
      * @dev This function computes the market value of shares
@@ -657,6 +751,10 @@ contract VaultV2 is
         return _oraVaultAndStratValueUT();
     }
 
+    /**
+     * @dev
+     * @return
+     */
     function _oraStratValueUT() internal view returns (uint256) {
         return
             investStrategyHash != Constants.ZERO_BYTES32
@@ -668,10 +766,18 @@ contract VaultV2 is
                 : 0;
     }
 
+    /**
+     * @dev
+     * @return
+     */
     function _oraVaultAndStratValueUT() internal view returns (uint256) {
         return _oraStratValueUT().add(_balance());
     }
 
+    /**
+     * @dev
+     * @return
+     */
     function _oraValueUT() internal view returns (uint256) {
         return
             getStrategySteps(investStrategyHash).getOraValueUT(
@@ -689,6 +795,11 @@ contract VaultV2 is
         return IERC20(underlyingToken).balanceOf(address(this));
     }
 
+    //===Internal pure functions===//
+
+    /**
+     * @inheritdoc VersionedInitializable
+     */
     function getRevision() internal pure virtual override returns (uint256) {
         return opTOKEN_REVISION;
     }
@@ -702,6 +813,8 @@ contract VaultV2 is
     function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
         return _a > _b ? _a.sub(_b) : _b.sub(_a);
     }
+
+    //===Private functions===//
 
     /**
      * @notice It checks the min/max balance of the first transaction of the current block

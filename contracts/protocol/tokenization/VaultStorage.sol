@@ -89,6 +89,12 @@ contract VaultStorageV2 is VaultStorage {
      */
     mapping(address => bool) public whitelistedCA;
 
+    /**
+     * @notice underlying tokens's hash
+     * @dev keccak256 hash of the underlying tokens and chain id
+     */
+    bytes32 public underlyingTokensHash;
+
     /**@notice Configuration params of the vault*/
     DataTypes.VaultConfigurationV2 public vaultConfiguration;
 
@@ -133,11 +139,4 @@ contract VaultStorageV2 is VaultStorage {
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
-
-    /**
-     * @notice Emitted when setQueueCap is called
-     * @param queueCap Maximum queue length in OptyFi's Vault contract
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogQueueCap(uint256 indexed queueCap, address indexed caller);
 }
