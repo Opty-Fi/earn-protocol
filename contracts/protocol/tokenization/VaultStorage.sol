@@ -80,14 +80,14 @@ contract VaultStorage {
 
 contract VaultStorageV2 is VaultStorage {
     /**
-     * @notice users allowed to interact with vault if whitelisted
+     * @notice accounts allowed to interact with vault if whitelisted
      */
-    mapping(address => bool) public whitelistedEOA;
+    mapping(address => bool) public whitelistedAccounts;
 
     /**
      * @notice smart contract allowed to interact with vault if whitelisted
      */
-    mapping(address => bool) public whitelistedCA;
+    mapping(bytes32 => bool) public whitelistedCodes;
 
     /**
      * @notice underlying tokens's hash

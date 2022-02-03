@@ -203,6 +203,28 @@ contract VaultV2 is
     }
 
     /**
+     * @dev
+     * @param _account externally owner account address
+     * @param _whitelist flag indicating whitelist or not
+     */
+    function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external onlyGovernance {
+        for (uint256 _i; _i < _accounts.length; _i++) {
+            whitelistedAccounts[_accounts[_i]] = _whitelist;
+        }
+    }
+
+    /**
+     * @dev
+     * @param _ca smart contract account address
+     * @param _whitelist flag indicating whitelist or not
+     */
+    function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external onlyGovernance {
+        for (uint256 _i; _i < _accounts.length; _i++) {
+            whitelistedCodes[_getContractHash(_accounts[_i])] = _whitelist;
+        }
+    }
+
+    /**
      * @inheritdoc IVaultV2
      */
     function discontinue() external override onlyOperator {
@@ -359,7 +381,7 @@ contract VaultV2 is
         executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
-    //===Public view functions===//
+    //===Public functions===//
 
     /**
      * @inheritdoc IVaultV2
@@ -385,6 +407,8 @@ contract VaultV2 is
     function setTokensHash(bytes32 _underlyingTokensHash) public override onlyOperator {
         underlyingTokensHash = _underlyingTokensHash;
     }
+
+    //===Public view functions===//
 
     /**
      * @inheritdoc IVaultV2
@@ -420,10 +444,10 @@ contract VaultV2 is
         override
         returns (bool, string memory)
     {
-        if (vaultConfiguration.allowWhitelistedState && !whitelistedEOA[_user]) {
+        if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_user]) {
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
-        if (msg.sender != tx.origin && !whitelistedCA[msg.sender]) {
+        if (msg.sender != tx.origin && _greyList(_user)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {
@@ -621,7 +645,7 @@ contract VaultV2 is
      * @inheritdoc IncentivisedERC20
      */
     function _beforeTokenTransfer(
-        address,
+        address _from,
         address _to,
         uint256
     ) internal override {
@@ -631,10 +655,10 @@ contract VaultV2 is
         if (!vaultConfiguration.unpaused) {
             revert(Errors.VAULT_PAUSED);
         }
-        if (vaultConfiguration.allowWhitelistedState && !whitelistedEOA[_to]) {
+        if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_from] && !whitelistedAccounts[_to]) {
             revert(Errors.EOA_NOT_WHITELISTED);
         }
-        if (msg.sender != tx.origin && !whitelistedCA[msg.sender]) {
+        if (msg.sender != tx.origin && _greyList(msg.sender)) {
             revert(Errors.CA_NOT_WHITELISTED);
         }
     }
@@ -673,24 +697,6 @@ contract VaultV2 is
     function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
         vaultConfiguration.totalValueLockedLimitUT = _totalValueLockedLimitUT;
         emit LogTotalValueLockedLimitUT(vaultConfiguration.totalValueLockedLimitUT, msg.sender);
-    }
-
-    /**
-     * @dev
-     * @param _eoa externally owner account address
-     * @param _whitelist flag indicating whitelist or not
-     */
-    function _setWhitelistedEOA(address _eoa, bool _whitelist) internal {
-        whitelistedEOA[_eoa] = _whitelist;
-    }
-
-    /**
-     * @dev
-     * @param _ca smart contract account address
-     * @param _whitelist flag indicating whitelist or not
-     */
-    function _setWhitelistedCA(address _ca, bool _whitelist) internal {
-        whitelistedCA[_ca] = _whitelist;
     }
 
     /**
@@ -793,6 +799,16 @@ contract VaultV2 is
      */
     function _balance() internal view returns (uint256) {
         return IERC20(underlyingToken).balanceOf(address(this));
+    }
+
+    function _getContractHash(address _account) internal view returns (bytes32 hash) {
+        assembly {
+            hash := extcodehash(_account)
+        }
+    }
+
+    function _greyList(address _addr) internal view returns (bool) {
+        return !whitelistedAccounts[_addr] && !whitelistedCodes[_getContractHash(_addr)];
     }
 
     //===Internal pure functions===//
