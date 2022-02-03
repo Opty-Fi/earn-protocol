@@ -62,10 +62,9 @@ describe(scenarios.title, () => {
       const vault = scenarios.vaults[i];
       const stories = vault.stories;
       const profile = vault.riskProfileCode;
-      const adaptersName = Object.keys(TypedAdapterStrategies).filter(item => item !== CONVEX_ADAPTER_NAME);
-      // Convex Adapter doesn't have invest limitation
+      const adaptersName = Object.keys(TypedAdapterStrategies);
+      let usedAdapters: string[] = [];
       for (let i = 0; i < adaptersName.length; i++) {
-        const adapterName = adaptersName[i];
         const strategies = TypedAdapterStrategies[adaptersName[i]];
         for (let i = 0; i < strategies.length; i++) {
           describe(`${strategies[i].strategyName}`, async () => {
@@ -78,6 +77,7 @@ describe(scenarios.title, () => {
             let currentPoolValue: BigNumber;
             let canStake = false;
             const MAX_AMOUNT = token === TypedTokens["SLP_WETH_USDC"] ? BigNumber.from("20") : BigNumber.from("2000");
+            const strategyLength = strategies[i].strategy.length;
             before(async () => {
               try {
                 const ERC20Instance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, token);
@@ -86,20 +86,11 @@ describe(scenarios.title, () => {
                 // decrease amount if token = SLP_WETH_USDC
                 decimals = token === TypedTokens["SLP_WETH_USDC"] ? "6" : (await ERC20Instance.decimals()).toString();
 
-                const adapter = adapters[adapterName];
-                canStake = await adapter.canStake(strategy.strategy[0].contract);
-                const usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
-                for (let i = 0; i < strategy.strategy.length; i++) {
-                  await approveLiquidityPoolAndMapAdapter(
-                    users["owner"],
-                    essentialContracts.registry,
-                    adapters[usedAdapters[i]].address,
-                    strategy.strategy[i].contract,
-                  );
-                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
-                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
-                  }
-                }
+                usedAdapters = retrieveAdapterFromStrategyName(strategy.strategyName);
+                const firstAdapter = adapters[usedAdapters[0]];
+                const lastAdapter = adapters[usedAdapters[strategyLength - 1]];
+                canStake = await lastAdapter.canStake(strategy.strategy[0].contract);
+
                 await setBestStrategy(
                   strategy.strategy,
                   users["owner"],
@@ -129,17 +120,32 @@ describe(scenarios.title, () => {
                   profile,
                   TESTING_DEPLOYMENT_ONCE,
                 );
+
+                for (let i = 0; i < strategy.strategy.length; i++) {
+                  await approveLiquidityPoolAndMapAdapter(
+                    users["owner"],
+                    essentialContracts.registry,
+                    adapters[usedAdapters[i]].address,
+                    strategy.strategy[i].contract,
+                  );
+                  if (usedAdapters[i] === "ConvexFinanceAdapter") {
+                    await adapters[usedAdapters[i]].setPoolCoinData(strategy.strategy[i].contract);
+                  }
+                  if (usedAdapters[i] === HARVEST_V1_ADAPTER_NAME) {
+                    await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
+                  }
+                }
                 await essentialContracts.registry.setQueueCap(Vault.address, ethers.constants.MaxUint256);
                 await essentialContracts.registry.setTotalValueLockedLimitInUnderlying(
                   Vault.address,
                   ethers.constants.MaxUint256,
                 );
-                if (adapterName === HARVEST_V1_ADAPTER_NAME) {
-                  await addWhiteListForHarvest(hre, Vault.address, users["admin"]);
-                }
+
                 await unpauseVault(users["owner"], essentialContracts.registry, Vault.address, true);
 
-                contracts["adapter"] = adapter;
+                contracts["firstAdapter"] = firstAdapter;
+
+                contracts["lastAdapter"] = lastAdapter;
 
                 contracts["erc20"] = ERC20Instance;
 
@@ -176,7 +182,15 @@ describe(scenarios.title, () => {
                     }
                     case "setMaxDepositAmount(address,address,uint256)": {
                       const { amount }: ARGUMENTS = setAction.args;
-                      const maxDepositAmount = amount ? BigNumber.from(amount).mul(to_10powNumber_BN(decimals)) : "0";
+                      const maxDepositAmount = amount
+                        ? BigNumber.from(amount).mul(
+                            to_10powNumber_BN(
+                              ["CurveSwapPoolAdapter", "CurveDepositPoolAdapter"].includes(usedAdapters[0])
+                                ? 18
+                                : decimals,
+                            ),
+                          )
+                        : "0";
                       if (setAction.expect === "success") {
                         await expect(
                           contracts[setAction.contract]
@@ -262,14 +276,14 @@ describe(scenarios.title, () => {
                       const { amount }: ARGUMENTS = setAction.args;
 
                       currentPoolValue = canStake
-                        ? await contracts["adapter"].getLiquidityPoolTokenBalanceStake(
+                        ? await contracts["lastAdapter"].getLiquidityPoolTokenBalanceStake(
                             contracts["vault"].address,
-                            strategy.strategy[0].contract,
+                            strategy.strategy[strategyLength - 1].contract,
                           )
-                        : await contracts["adapter"].getLiquidityPoolTokenBalance(
+                        : await contracts["lastAdapter"].getLiquidityPoolTokenBalance(
                             contracts["vault"].address,
                             token,
-                            strategy.strategy[0].contract,
+                            strategy.strategy[strategyLength - 1].contract,
                           );
 
                       if (setAction.expect === "success") {
@@ -305,12 +319,12 @@ describe(scenarios.title, () => {
                       break;
                     }
                     case "maxDepositAmount(address,address)": {
-                      if (["CurveSwapPoolAdapter", "CurveDepositPoolAdapter"].includes(adapterName)) {
+                      if (["CurveSwapPoolAdapter", "CurveDepositPoolAdapter"].includes(usedAdapters[0])) {
                         expect(
                           await contracts[getAction.contract]["maxDepositAmount(address)"](
                             strategy.strategy[0].contract,
                           ),
-                        ).to.equal(BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(decimals)));
+                        ).to.equal(BigNumber.from(getAction.expectedValue).mul(to_10powNumber_BN(18)));
                       } else {
                         expect(
                           await contracts[getAction.contract][getAction.action](strategy.strategy[0].contract, token),
@@ -347,14 +361,14 @@ describe(scenarios.title, () => {
                     }
                     case "getLiquidityPoolTokenBalance(address,address,address)": {
                       const value = canStake
-                        ? await contracts["adapter"].getLiquidityPoolTokenBalanceStake(
+                        ? await contracts["lastAdapter"].getLiquidityPoolTokenBalanceStake(
                             contracts["vault"].address,
-                            strategy.strategy[0].contract,
+                            strategy.strategy[strategyLength - 1].contract,
                           )
-                        : await contracts["adapter"].getLiquidityPoolTokenBalance(
+                        : await contracts["lastAdapter"].getLiquidityPoolTokenBalance(
                             contracts["vault"].address,
                             token,
-                            strategy.strategy[0].contract,
+                            strategy.strategy[strategyLength - 1].contract,
                           );
                       if (getAction.expectedValue === "<") {
                         expect(value.sub(currentPoolValue)).to.lt(0);
