@@ -112,6 +112,20 @@ interface IVaultV2 {
     function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external;
 
     /**
+     * @dev
+     * @param _account externally owner account address
+     * @param _whitelist flag indicating whitelist or not
+     */
+    function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external;
+
+    /**
+     * @dev
+     * @param _ca smart contract account address
+     * @param _whitelist flag indicating whitelist or not
+     */
+    function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external;
+
+    /**
      * @notice Recall vault investments from current strategy, restricts deposits
      *         and allows redemption of the shares
      * @dev this function can be invoked by governance via registry

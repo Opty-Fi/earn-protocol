@@ -35,8 +35,6 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
  * @notice Implementation of the risk specific interest bearing vault
  */
 
-// TODO :
-
 contract VaultV2 is
     VersionedInitializable,
     IVaultV2,
@@ -203,22 +201,18 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
-     * @param _account externally owner account address
-     * @param _whitelist flag indicating whitelist or not
+     * @inheritdoc IVaultV2
      */
-    function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external onlyGovernance {
+    function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external override onlyGovernance {
         for (uint256 _i; _i < _accounts.length; _i++) {
             whitelistedAccounts[_accounts[_i]] = _whitelist;
         }
     }
 
     /**
-     * @dev
-     * @param _ca smart contract account address
-     * @param _whitelist flag indicating whitelist or not
+     * @inheritdoc IVaultV2
      */
-    function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external onlyGovernance {
+    function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external override onlyGovernance {
         for (uint256 _i; _i < _accounts.length; _i++) {
             whitelistedCodes[_getContractHash(_accounts[_i])] = _whitelist;
         }
@@ -447,6 +441,7 @@ contract VaultV2 is
         if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_user]) {
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
+        //solhint-disable-next-line avoid-tx-origin
         if (msg.sender != tx.origin && _greyList(_user)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
@@ -568,7 +563,7 @@ contract VaultV2 is
     //===Internal functions===//
 
     /**
-     * @dev
+     * @dev Internal function to deposit whole balance of underlying token to current strategy
      * @param _strategySteps array of strategy step tuple
      */
     function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
@@ -576,7 +571,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to deposit some balance of underlying token from current strategy
      * @param _strategySteps array of strategy step tuple
      * @param _depositValueUT amount in underlying token
      */
@@ -606,7 +601,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to withdraw all investments from current strategy
      * @param _strategySteps array of strategy step tuple
      */
     function _vaultWithdrawAllFromStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
@@ -614,7 +609,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to withdraw some investments from current strategy
      * @param _strategySteps array of strategy step tuple
      * @param _withdrawAmountUT amount in underlying token
      */
@@ -658,13 +653,14 @@ contract VaultV2 is
         if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_from] && !whitelistedAccounts[_to]) {
             revert(Errors.EOA_NOT_WHITELISTED);
         }
+        //solhint-disable-next-line avoid-tx-origin
         if (msg.sender != tx.origin && _greyList(msg.sender)) {
             revert(Errors.CA_NOT_WHITELISTED);
         }
     }
 
     /**
-     * @dev
+     * @dev Internal function to control whitelisted state flag
      * @param _allowWhitelistedState vault's whitelisted state flag
      */
     function _setAllowWhitelistedState(bool _allowWhitelistedState) internal {
@@ -673,7 +669,8 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the maximum amount in underlying token
+     *      that a user could deposit in entire life cycle of this vault
      * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
      */
     function _setUserDepositCapUT(uint256 _userDepositCapUT) internal {
@@ -682,7 +679,8 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set minimum amount in underlying token required
+     *      to be deposited by the user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
      */
     function _setMinimumDepositValueUT(uint256 _minimumDepositValueUT) internal {
@@ -691,7 +689,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the total value locked limit in underlying token
      * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
      */
     function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
@@ -700,7 +698,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the maximum vault value jump in percentage basis points
      * @param _maxVaultValueJump the maximum absolute allowed from a vault value in basis points
      */
     function _setMaxVaultValueJump(uint256 _maxVaultValueJump) internal {
@@ -708,7 +706,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the deposit fee in underlying token
      * @param _depositFeeFlatUT amount of deposit fee in underlying token
      */
     function _setDepositFeeFlatUT(uint256 _depositFeeFlatUT) internal {
@@ -716,7 +714,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the deposit fee in percentage basis points
      * @param _depositFeePct deposit fee in percentage basis points
      */
     function _setDepositFeePct(uint256 _depositFeePct) internal {
@@ -724,15 +722,15 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
-     * @return _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
+     * @dev Internal function to set the withdrawal fee in underlying token
+     * @param _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
      */
     function _setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) internal {
         vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the withdrawal fee in percentage basis points
      * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
      */
     function _setWithdrawalFeePct(uint256 _withdrawalFeePct) internal {
@@ -740,7 +738,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
+     * @dev Internal function to set the vault fee collector address
      * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
      */
     function _setVaultFeeAddress(address _vaultFeeAddress) internal {
@@ -758,8 +756,17 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
-     * @return
+     * @dev Computes the vault value in underlying token that includes balance of underlying token
+     *      in vault and that of investment made in the strategy
+     * @return amount in underlying token
+     */
+    function _oraVaultAndStratValueUT() internal view returns (uint256) {
+        return _oraStratValueUT().add(_balance());
+    }
+
+    /**
+     * @dev Computes the amount in underlying token for the investment made in strategy
+     * @return amount in underlying token
      */
     function _oraStratValueUT() internal view returns (uint256) {
         return
@@ -773,27 +780,6 @@ contract VaultV2 is
     }
 
     /**
-     * @dev
-     * @return
-     */
-    function _oraVaultAndStratValueUT() internal view returns (uint256) {
-        return _oraStratValueUT().add(_balance());
-    }
-
-    /**
-     * @dev
-     * @return
-     */
-    function _oraValueUT() internal view returns (uint256) {
-        return
-            getStrategySteps(investStrategyHash).getOraValueUT(
-                address(registryContract),
-                payable(address(this)),
-                underlyingToken
-            );
-    }
-
-    /**
      * @dev Internal function to get the underlying token balance of vault
      * @return underlying asset balance in this vault
      */
@@ -801,14 +787,25 @@ contract VaultV2 is
         return IERC20(underlyingToken).balanceOf(address(this));
     }
 
-    function _getContractHash(address _account) internal view returns (bytes32 hash) {
+    /**
+     * @dev Internal function to compute the hash of the smart contract code
+     * @param _account account address
+     * @return _hash bytes32 hash of the smart contract code
+     */
+    function _getContractHash(address _account) internal view returns (bytes32 _hash) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            hash := extcodehash(_account)
+            _hash := extcodehash(_account)
         }
     }
 
-    function _greyList(address _addr) internal view returns (bool) {
-        return !whitelistedAccounts[_addr] && !whitelistedCodes[_getContractHash(_addr)];
+    /**
+     * @dev Internal function to compute whether smart contract is grey listed or not
+     * @param _account account address
+     * @return false if contract account is allowed to interact, true otherwise
+     */
+    function _greyList(address _account) internal view returns (bool) {
+        return !whitelistedAccounts[_account] && !whitelistedCodes[_getContractHash(_account)];
     }
 
     //===Internal pure functions===//
