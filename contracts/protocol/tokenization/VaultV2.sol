@@ -660,7 +660,7 @@ contract VaultV2 is
     }
 
     /**
-     * @dev Internal function to control whitelisted state flag
+     * @dev Internal function to control whitelisted state
      * @param _allowWhitelistedState vault's whitelisted state flag
      */
     function _setAllowWhitelistedState(bool _allowWhitelistedState) internal {

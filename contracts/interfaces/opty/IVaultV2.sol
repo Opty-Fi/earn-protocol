@@ -13,8 +13,7 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  */
 interface IVaultV2 {
     /**
-     * @notice
-     * @dev
+     * @notice Single function to configure the vault
      * @param _allowWhitelistedState vault's whitelisted state flag
      * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
@@ -77,50 +76,49 @@ interface IVaultV2 {
     function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice function to set the vault fee collector address
      * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
      */
     function setVaultFeeAddress(address _vaultFeeAddress) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice function to control whitelisted state
      * @param _allowWhitelistedState vault's whitelisted state flag
      */
     function setAllowWhitelistedState(bool _allowWhitelistedState) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice function to set the maximum amount in underlying token
+     *         that a user could deposit in entire life cycle of this vault
      * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
      */
     function setUserDepositCapUT(uint256 _userDepositCapUT) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice function to set minimum amount in underlying token required
+     *         to be deposited by the user
      * @param _minimumDepositValueUT Minimum deposit value in underlying token required
      */
     function setMinimumDepositValueUT(uint256 _minimumDepositValueUT) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice function to set the total value locked limit in underlying token
      * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
      */
     function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external;
 
     /**
-     * @dev
-     * @param _account externally owner account address
+     * @notice function to control the allowance of user interaction
+     *         only when vault's whitelistedstate is enabled
+     * @param _accounts externally owner account address
      * @param _whitelist flag indicating whitelist or not
      */
     function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external;
 
     /**
-     * @dev
-     * @param _ca smart contract account address
+     * @notice function to control the allowance of smart contract interaction
+     *         with vault
+     * @param _accounts smart contract account address
      * @param _whitelist flag indicating whitelist or not
      */
     function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external;
@@ -164,8 +162,7 @@ interface IVaultV2 {
     function userWithdrawVault(uint256 _userWithdrawVT) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice function to deposit whole balance of underlying token to current strategy
      */
     function vaultDepositAllToStrategy() external;
 
@@ -191,8 +188,7 @@ interface IVaultV2 {
     function setToken(address _underlyingToken) external;
 
     /**
-     * @notice
-     * @dev
+     * @notice Assigns the keccka256 hash of the underlying token address
      * @param _underlyingTokensHash keccak256 hash of the underlying tokens of the vault
      */
     function setTokensHash(bytes32 _underlyingTokensHash) external;
@@ -238,7 +234,8 @@ interface IVaultV2 {
      *         to allow user deposits
      * @param _user address of the depositor
      * @param _userDepositUnderlying deposit amount in underlying
-     * @return returns true if user deposit is permitted, false otherwise with reason
+     * @return true if permitted, false otherwise
+     * @return reason string if return false, empty otherwise
      */
     function userDepositPermitted(address _user, uint256 _userDepositUnderlying)
         external
@@ -246,22 +243,25 @@ interface IVaultV2 {
         returns (bool, string memory);
 
     /**
-     * @notice
-     * @dev
+     * @notice function to decide whether to allow vault to deposit to the strategy
+     * @return true if permitted, false otherwise
+     * @return reason string if return false, empty otherwise
      */
     function vaultDepositPermitted() external view returns (bool, string memory);
 
     /**
-     * @notice
-     * @dev
+     * @notice function to decide whether user can withdraw or not
      * @param _user account address of the iser
      * @param _userWithdrawVT amount of vault tokens to burn
+     * @return true if permitted, false otherwise
+     * @return reason string if return false, empty otherwise
      */
     function userWithdrawPermitted(address _user, uint256 _userWithdrawVT) external view returns (bool, string memory);
 
     /**
-     * @notice
-     * @dev
+     * @notice function to decide whether vault can withdraw from strategy or not
+     * @return true if permitted, false otherwise
+     * @return reason string if return false, empty otherwise
      */
     function vaultWithdrawPermitted() external view returns (bool, string memory);
 
@@ -286,9 +286,10 @@ interface IVaultV2 {
     function getNextBestStrategy() external view returns (bytes32);
 
     /**
-     * @notice
-     * @dev
+     * @notice function to compute the balance of lptoken of the vault
+     *         in the last step of the strategy
      * @param _strategySteps array of strategy step tuple
+     * @return balance in lptoken
      */
     function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _strategySteps)
         external
@@ -296,9 +297,9 @@ interface IVaultV2 {
         returns (uint256);
 
     /**
-     * @notice
-     * @dev
+     * @notice function to return the strategy metadata given hash
      * @param _investStrategyHash keccak256 hash of the strategy step
+     * @return _strategySteps strategy steps array
      */
     function getStrategySteps(bytes32 _investStrategyHash)
         external
