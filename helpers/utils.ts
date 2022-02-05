@@ -5,6 +5,7 @@ import {
   AaveV1Adapter,
   AaveV1ETHGateway,
   AaveV2Adapter,
+  AdminUpgradeabilityProxy,
   APROracle,
   CompoundAdapter,
   CompoundETHGateway,
@@ -13,6 +14,7 @@ import {
   CurveSwapPoolAdapter,
   ERC20,
   HarvestCodeProvider,
+  InitializableImmutableAdminUpgradeabilityProxy,
   InvestStrategyRegistry,
   Registry,
   RegistryProxy,
@@ -21,6 +23,7 @@ import {
   StrategyManager,
   StrategyProvider,
   Vault,
+  VaultV2,
 } from "../typechain";
 import fs from "fs";
 import { AxiosRequestConfig, Method } from "axios";
@@ -79,6 +82,9 @@ declare module "mocha" {
     aprOracle: APROracle;
     strategyManager: StrategyManager;
     vault: Vault;
+    vaultProxy: InitializableImmutableAdminUpgradeabilityProxy;
+    vaultV2: VaultV2;
+    vaultProxyV2: AdminUpgradeabilityProxy;
     erc20: ERC20;
   }
 }
