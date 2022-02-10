@@ -40,4 +40,4 @@ export const NETWORKS_DEFAULT_GAS: iEthereumParamsPerNetwork<number> = {
   [eEthereumNetwork.tenderlyMain]: 0.01 * GWEI,
 };
 
-export const CURRENT_BLOCK_NUMBER = 14094668;
+export const CURRENT_BLOCK_NUMBER = 14166300;
