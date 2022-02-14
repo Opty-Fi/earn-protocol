@@ -25,7 +25,7 @@ library StrategyBuilder {
     function getDepositInternalTransactionCount(
         DataTypes.StrategyStep[] memory _strategySteps,
         address _registryContract
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         uint256 _strategyStepCount = _strategySteps.length;
         address _lastStepLiquidityPool = _strategySteps[_strategyStepCount - 1].pool;
         if (
@@ -43,7 +43,7 @@ library StrategyBuilder {
         address registryContract,
         address payable _vault,
         address _underlyingToken
-    ) public view returns (uint256 _amountUT) {
+    ) internal view returns (uint256 _amountUT) {
         uint256 _nStrategySteps = _strategySteps.length;
         uint256 _outputTokenAmount;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
@@ -72,7 +72,7 @@ library StrategyBuilder {
         address registryContract,
         address _underlyingToken,
         uint256 _wantAmountUT
-    ) public view returns (uint256 _amountLP) {
+    ) internal view returns (uint256 _amountLP) {
         uint256 _nStrategySteps = _strategySteps.length;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             address _liquidityPool = _strategySteps[_i].pool;
@@ -93,7 +93,7 @@ library StrategyBuilder {
     function getPoolDepositCodes(
         DataTypes.StrategyStep[] memory _strategySteps,
         DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
-    ) public view returns (bytes[] memory _codes) {
+    ) internal view returns (bytes[] memory _codes) {
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
         address _underlyingToken = _strategyConfigurationParams.underlyingToken;
         uint256 _depositAmountUT = _strategyConfigurationParams.initialStepInputAmount;
@@ -132,7 +132,7 @@ library StrategyBuilder {
     function getPoolWithdrawCodes(
         DataTypes.StrategyStep[] memory _strategySteps,
         DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
-    ) public view returns (bytes[] memory _codes) {
+    ) internal view returns (bytes[] memory _codes) {
         address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].pool;
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
         IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
@@ -169,7 +169,7 @@ library StrategyBuilder {
         address _registryContract,
         address payable _vault,
         address _underlyingToken
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
         return
             IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool))
