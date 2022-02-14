@@ -34,13 +34,13 @@ async function main() {
           const response = await axios(
             getMoralisConfig("get" as Method, "getDefiPools", {
               chain: networkID,
-              protocolName: protocol,
+              adapterName: protocol,
             }),
           );
           const data = response.data.result;
           const defiPools: DEFI_POOL_DATA = {};
-          for (let i = 0; i < data.protocolPools.length; i++) {
-            const pool = data.protocolPools[i];
+          for (let i = 0; i < data.adapterPools.length; i++) {
+            const pool = data.adapterPools[i];
             defiPools[pool.poolName] = {
               pool: pool.poolAddress,
               lpToken: pool.lpTokenAddress,
