@@ -98,6 +98,12 @@ contract VaultStorageV2 is VaultStorage {
     /**@notice Configuration params of the vault*/
     DataTypes.VaultConfigurationV2 public vaultConfiguration;
 
+    /**@notice current strategy metadata*/
+    DataTypes.StrategyStep[] public investStrategySteps;
+
+    /**@dev cache strategy metadata*/
+    DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
+
     /**
      * @dev Emitted when Discontinue over vault is activated
      * @param discontinued Discontinue status (true) of OptyFi's Vault contract

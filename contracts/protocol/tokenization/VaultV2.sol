@@ -24,10 +24,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
 import { IVaultV2 } from "../../interfaces/opty/IVaultV2.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
-import {
-    IInvestStrategyRegistry
-} from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
-import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
+import { IRiskManagerV2 } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManagerV2.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -116,7 +113,7 @@ contract VaultV2 is
         uint256 _depositFeePct,
         uint256 _withdrawalFeeFlatUT,
         uint256 _withdrawalFeePct,
-        address _vaultFeeAddress
+        address _vaultFeeCollector
     ) external override onlyFinanceOperator {
         _setAllowWhitelistedState(_allowWhitelistedState);
         _setUserDepositCapUT(_userDepositCapUT);
@@ -127,7 +124,7 @@ contract VaultV2 is
         _setDepositFeePct(_depositFeePct);
         _setWithdrawalFeeFlatUT(_withdrawalFeeFlatUT);
         _setWithdrawalFeePct(_withdrawalFeePct);
-        _setVaultFeeAddress(_vaultFeeAddress);
+        _setVaultFeeCollector(_vaultFeeCollector);
     }
 
     /**
@@ -168,8 +165,8 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setVaultFeeAddress(address _vaultFeeAddress) external override onlyOperator {
-        _setVaultFeeAddress(_vaultFeeAddress);
+    function setVaultFeeCollector(address _vaultFeeCollector) external override onlyOperator {
+        _setVaultFeeCollector(_vaultFeeCollector);
     }
 
     /**
@@ -231,7 +228,7 @@ contract VaultV2 is
      */
     function discontinue() external override onlyOperator {
         if (investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultWithdrawAllFromStrategy(getStrategySteps(investStrategyHash));
+            _vaultWithdrawAllFromStrategy(investStrategySteps);
         }
         vaultConfiguration.discontinued = true;
         investStrategyHash = Constants.ZERO_BYTES32;
@@ -243,12 +240,12 @@ contract VaultV2 is
      */
     function setUnpaused(bool _unpaused) external override onlyOperator {
         if (investStrategyHash != Constants.ZERO_BYTES32 && _unpaused == false) {
-            _vaultWithdrawAllFromStrategy(getStrategySteps(investStrategyHash));
+            _vaultWithdrawAllFromStrategy(investStrategySteps);
             investStrategyHash = Constants.ZERO_BYTES32;
         }
         if (_unpaused == true) {
-            investStrategyHash = getNextBestStrategy();
-            _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
+            _setInvestStrategySteps(getNextBestInvestStrategy());
+            _vaultDepositAllToStrategy(investStrategySteps);
         }
         vaultConfiguration.unpaused = _unpaused;
     }
@@ -261,20 +258,22 @@ contract VaultV2 is
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
         require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
-        bytes32 _nextBestInvestStrategyHash = getNextBestStrategy();
+        _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
+        bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
         bool _deposited;
         if (_nextBestInvestStrategyHash != investStrategyHash && investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultWithdrawAllFromStrategy(getStrategySteps(investStrategyHash));
+            _vaultWithdrawAllFromStrategy(investStrategySteps);
+            _setInvestStrategySteps(_cacheNextInvestStrategySteps);
             investStrategyHash = _nextBestInvestStrategyHash;
             if (investStrategyHash != Constants.ZERO_BYTES32) {
-                _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
+                _vaultDepositAllToStrategy(investStrategySteps);
                 _deposited = true;
             }
         }
         // _balance() might be greater than zero if the adapter limited the investment
         // _deposited is to protect vault from depositing again in to strategy.
         if (!_deposited && _balance() > 0) {
-            _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
+            _vaultDepositAllToStrategy(investStrategySteps);
         }
     }
 
@@ -341,7 +340,7 @@ contract VaultV2 is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _requestStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            _vaultWithdrawSomeFromStrategy(getStrategySteps(investStrategyHash), _requestStratWithdrawUT);
+            _vaultWithdrawSomeFromStrategy(investStrategySteps, _requestStratWithdrawUT);
 
             // Identify Slippage
             // UT requested from strategy withdraw  = _requestStratWithdrawUT
@@ -372,7 +371,7 @@ contract VaultV2 is
         (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         if (investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultDepositAllToStrategy(getStrategySteps(investStrategyHash));
+            _vaultDepositAllToStrategy(investStrategySteps);
         }
     }
 
@@ -531,68 +530,73 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function getNextBestStrategy() public view override returns (bytes32) {
-        address[] memory _underlyingTokens = new address[](1);
-        _underlyingTokens[0] = underlyingToken;
-        return IRiskManager(registryContract.getRiskManager()).getBestStrategy(riskProfileCode, _underlyingTokens);
+    function getNextBestInvestStrategy() public view override returns (DataTypes.StrategyStep[] memory) {
+        return IRiskManagerV2(registryContract.getRiskManager()).getBestStrategy(riskProfileCode, underlyingTokensHash);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _strategySteps)
+    function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _investStrategySteps)
         public
         view
         override
         returns (uint256)
     {
         return
-            _strategySteps.getLastStrategyStepBalanceLP(
+            _investStrategySteps.getLastStrategyStepBalanceLP(
                 address(registryContract),
                 payable(address(this)),
                 underlyingToken
             );
     }
 
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function getStrategySteps(bytes32 _investStrategyHash)
+    function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
         public
         view
-        override
-        returns (DataTypes.StrategyStep[] memory _strategySteps)
+        returns (bytes32)
     {
-        (, _strategySteps) = IInvestStrategyRegistry(registryContract.getInvestStrategyRegistry()).getStrategy(
-            _investStrategyHash
-        );
+        if (_investStrategySteps.length > 0) {
+            bytes32[] memory hashes = new bytes32[](_investStrategySteps.length);
+            for (uint256 _i; _i < _investStrategySteps.length; _i++) {
+                hashes[_i] = keccak256(
+                    abi.encodePacked(
+                        _investStrategySteps[_i].pool,
+                        _investStrategySteps[_i].outputToken,
+                        _investStrategySteps[_i].isBorrow
+                    )
+                );
+            }
+            return keccak256(abi.encodePacked(underlyingTokensHash, hashes));
+        }
+        return Constants.ZERO_BYTES32;
     }
 
     //===Internal functions===//
 
     /**
      * @dev Internal function to deposit whole balance of underlying token to current strategy
-     * @param _strategySteps array of strategy step tuple
+     * @param _investStrategySteps array of strategy step tuple
      */
-    function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
-        _vaultDepositSomeToStrategy(_strategySteps, _balance());
+    function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
+        _vaultDepositSomeToStrategy(_investStrategySteps, _balance());
     }
 
     /**
      * @dev Internal function to deposit some balance of underlying token from current strategy
-     * @param _strategySteps array of strategy step tuple
+     * @param _investStrategySteps array of strategy step tuple
      * @param _depositValueUT amount in underlying token
      */
-    function _vaultDepositSomeToStrategy(DataTypes.StrategyStep[] memory _strategySteps, uint256 _depositValueUT)
+    function _vaultDepositSomeToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
         uint256 _internalTransactionCount =
-            _strategySteps.getDepositInternalTransactionCount(address(registryContract));
+            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         _emergencyBrake(_oraVaultAndStratValueUT());
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
-                    _strategySteps.getPoolDepositCodes(
+                    _investStrategySteps.getPoolDepositCodes(
                         DataTypes.StrategyConfigurationParams({
                             registryContract: address(registryContract),
                             vault: payable(address(this)),
@@ -610,26 +614,27 @@ contract VaultV2 is
 
     /**
      * @dev Internal function to withdraw all investments from current strategy
-     * @param _strategySteps array of strategy step tuple
+     * @param _investStrategySteps array of strategy step tuple
      */
-    function _vaultWithdrawAllFromStrategy(DataTypes.StrategyStep[] memory _strategySteps) internal {
-        _vaultWithdrawSomeFromStrategy(_strategySteps, getLastStrategyStepBalanceLP(_strategySteps));
+    function _vaultWithdrawAllFromStrategy(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
+        _vaultWithdrawSomeFromStrategy(_investStrategySteps, getLastStrategyStepBalanceLP(_investStrategySteps));
     }
 
     /**
      * @dev Internal function to withdraw some investments from current strategy
-     * @param _strategySteps array of strategy step tuple
+     * @param _investStrategySteps array of strategy step tuple
      * @param _withdrawAmountUT amount in underlying token
      */
-    function _vaultWithdrawSomeFromStrategy(DataTypes.StrategyStep[] memory _strategySteps, uint256 _withdrawAmountUT)
-        internal
-    {
+    function _vaultWithdrawSomeFromStrategy(
+        DataTypes.StrategyStep[] memory _investStrategySteps,
+        uint256 _withdrawAmountUT
+    ) internal {
         uint256 _oraAmountLP =
-            _strategySteps.getOraSomeValueLP(address(registryContract), underlyingToken, _withdrawAmountUT);
-        uint256 _internalWithdrawTransactionCount = _strategySteps.length;
+            _investStrategySteps.getOraSomeValueLP(address(registryContract), underlyingToken, _withdrawAmountUT);
+        uint256 _internalWithdrawTransactionCount = _investStrategySteps.length;
         for (uint256 _i; _i < _internalWithdrawTransactionCount; _i++) {
             executeCodes(
-                _strategySteps.getPoolWithdrawCodes(
+                _investStrategySteps.getPoolWithdrawCodes(
                     DataTypes.StrategyConfigurationParams({
                         registryContract: address(registryContract),
                         vault: payable(address(this)),
@@ -747,10 +752,24 @@ contract VaultV2 is
 
     /**
      * @dev Internal function to set the vault fee collector address
-     * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
+     * @param _vaultFeeCollector address that collects vault deposit and withdraw fee
      */
-    function _setVaultFeeAddress(address _vaultFeeAddress) internal {
-        vaultConfiguration.vaultFeeAddress = _vaultFeeAddress;
+    function _setVaultFeeCollector(address _vaultFeeCollector) internal {
+        vaultConfiguration.vaultFeeAddress = _vaultFeeCollector;
+    }
+
+    function _setCacheNextInvestStrategySteps(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
+        delete _cacheNextInvestStrategySteps;
+        for (uint256 _i; _i < _investStrategySteps.length; _i++) {
+            _cacheNextInvestStrategySteps.push(_investStrategySteps[_i]);
+        }
+    }
+
+    function _setInvestStrategySteps(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
+        delete investStrategySteps;
+        for (uint256 _i; _i < _investStrategySteps.length; _i++) {
+            investStrategySteps.push(_investStrategySteps[_i]);
+        }
     }
 
     //===Internal view functions===//
@@ -779,11 +798,7 @@ contract VaultV2 is
     function _oraStratValueUT() internal view returns (uint256) {
         return
             investStrategyHash != Constants.ZERO_BYTES32
-                ? getStrategySteps(investStrategyHash).getOraValueUT(
-                    address(registryContract),
-                    payable(address(this)),
-                    underlyingToken
-                )
+                ? investStrategySteps.getOraValueUT(address(registryContract), payable(address(this)), underlyingToken)
                 : 0;
     }
 

@@ -77,9 +77,9 @@ interface IVaultV2 {
 
     /**
      * @notice function to set the vault fee collector address
-     * @param _vaultFeeAddress address that collects vault deposit and withdrawal fee
+     * @param _vaultFeeCollector address that collects vault deposit and withdrawal fee
      */
-    function setVaultFeeAddress(address _vaultFeeAddress) external;
+    function setVaultFeeCollector(address _vaultFeeCollector) external;
 
     /**
      * @notice function to control whitelisted state
@@ -281,9 +281,9 @@ interface IVaultV2 {
 
     /**
      * @notice Returns next best invest strategy that the vault will execute on next rebalance
-     * @return the bytes32 hash of the invest strategy
+     * @return the strategy metadata
      */
-    function getNextBestStrategy() external view returns (bytes32);
+    function getNextBestInvestStrategy() external view returns (DataTypes.StrategyStep[] memory);
 
     /**
      * @notice function to compute the balance of lptoken of the vault
@@ -295,14 +295,4 @@ interface IVaultV2 {
         external
         view
         returns (uint256);
-
-    /**
-     * @notice function to return the strategy metadata given hash
-     * @param _investStrategyHash keccak256 hash of the strategy step
-     * @return _strategySteps strategy steps array
-     */
-    function getStrategySteps(bytes32 _investStrategyHash)
-        external
-        view
-        returns (DataTypes.StrategyStep[] memory _strategySteps);
 }
