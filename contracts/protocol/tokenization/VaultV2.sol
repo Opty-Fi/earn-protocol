@@ -203,18 +203,26 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external override onlyGovernance {
+    function setWhitelistedAccounts(address[] memory _accounts, bool[] memory _whitelist)
+        external
+        override
+        onlyGovernance
+    {
         for (uint256 _i; _i < _accounts.length; _i++) {
-            whitelistedAccounts[_accounts[_i]] = _whitelist;
+            whitelistedAccounts[_accounts[_i]] = _whitelist[_i];
         }
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external override onlyGovernance {
+    function setWhitelistedCodes(address[] memory _accounts, bool[] memory _whitelist)
+        external
+        override
+        onlyGovernance
+    {
         for (uint256 _i; _i < _accounts.length; _i++) {
-            whitelistedCodes[_getContractHash(_accounts[_i])] = _whitelist;
+            whitelistedCodes[_getContractHash(_accounts[_i])] = _whitelist[_i];
         }
     }
 

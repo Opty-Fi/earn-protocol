@@ -27,7 +27,7 @@ const HARDFORK = "london";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 
 if (!SKIP_LOAD) {
-  ["", "deployment", "actions"].forEach(folder => {
+  ["", "actions"].forEach(folder => {
     const tasksPath = path.join(__dirname, "tasks", folder);
     fs.readdirSync(tasksPath)
       .filter(pth => pth.includes(".ts"))

@@ -1,7 +1,7 @@
+import hre from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import hre from "hardhat";
 import { Artifact } from "hardhat/types";
 import { Signers } from "../../helpers/utils";
 import { InitializableImmutableAdminUpgradeabilityProxy, Registry, VaultV2 } from "../../typechain";

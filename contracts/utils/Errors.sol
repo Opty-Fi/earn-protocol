@@ -7,7 +7,7 @@ library Errors {
     string public constant VAULT_DEPOSIT = "2";
     string public constant VAULT_WITHDRAW = "3";
     string public constant EMPTY_STRING = "4";
-    string public constant RISK_PROFILE_EXISTS = "4";
+    string public constant RISK_PROFILE_EXISTS = "5";
     string public constant NOT_A_CONTRACT = "6";
     string public constant TOKEN_NOT_APPROVED = "7";
     string public constant EOA_NOT_WHITELISTED = "8";

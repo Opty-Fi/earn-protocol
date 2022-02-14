@@ -85,7 +85,7 @@ contract VaultStorageV2 is VaultStorage {
     mapping(address => bool) public whitelistedAccounts;
 
     /**
-     * @notice smart contract allowed to interact with vault if whitelisted
+     * @notice smart contracts allowed to interact with vault if whitelisted
      */
     mapping(bytes32 => bool) public whitelistedCodes;
 
@@ -113,7 +113,7 @@ contract VaultStorageV2 is VaultStorage {
     event LogUnpause(bool indexed unpaused, address indexed caller);
 
     /**
-     * @notice Emitted when setLimitStatus is called
+     * @notice Emitted when setAllowWhitelistedState is called
      * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
      * @param caller Address of user who has called the respective function to trigger this event
      */
@@ -127,7 +127,7 @@ contract VaultStorageV2 is VaultStorage {
     event LogUserDepositCapUT(uint256 indexed userDepositCapUT, address indexed caller);
 
     /**
-     * @notice Emitted when setMinimumDepositAmount is called
+     * @notice Emitted when setMinimumDepositValueUT is called
      * @param minimumDepositValueUT Minimum deposit in OptyFi's Vault contract - only for deposits (without rebalance)
      * @param caller Address of user who has called the respective function to trigger this event
      */

@@ -18,8 +18,8 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @title StrategyBuilder Library
  * @author Opty.fi
  * @notice Central processing unit of the earn protocol
- * @dev Contains the functionality for getting the codes for deposit/withdraw tokens,
- * claim/harvest reward tokens from the adapters and pass it onto vault contract
+ * @dev Contains the functionality for getting the codes to deposit/withdraw tokens,
+ * from the adapters and pass it onto vault contract
  */
 library StrategyBuilder {
     function getDepositInternalTransactionCount(

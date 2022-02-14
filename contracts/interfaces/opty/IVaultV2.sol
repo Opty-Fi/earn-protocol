@@ -14,16 +14,16 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
 interface IVaultV2 {
     /**
      * @notice Single function to configure the vault
-     * @param _allowWhitelistedState vault's whitelisted state flag
+     * @param _allowWhitelistedState vault's allow whitelisted state flag
      * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
      * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
      * @param _maxVaultValueJump The standard deviation allowed for vault value
      * @param _depositFeeFlatUT flat deposit fee in underlying token
-     * @param _depositFeePct deposit fee in percentage basis points
+     * @param _depositFeePct deposit fee in basis points
      * @param _withdrawalFeeFlatUT flat withdrawal fee in underlying token
-     * @param _withdrawalFeePct withdrawal fee in percentage basis points
-     * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
+     * @param _withdrawalFeePct withdrawal fee in basis points
+     * @param _vaultFeeCollector address that collects vault deposit and withdraw fee
      */
     function setVaultConfiguration(
         bool _allowWhitelistedState,
@@ -35,29 +35,29 @@ interface IVaultV2 {
         uint256 _depositFeePct,
         uint256 _withdrawalFeeFlatUT,
         uint256 _withdrawalFeePct,
-        address _vaultFeeAddress
+        address _vaultFeeCollector
     ) external;
 
     /**
      * @notice Set maximum absolute jump allowed of vault value in a single block
-     * @dev the maximum vault value jump is in percentage basis points set by governance
+     * @dev the maximum vault value jump is in basis points set by governance
      *      A big drop in value can flag an exploit.
-     *      Exploits usually involve big drop or big fall in priceFullShare.
-     * @param _maxVaultValueJump the maximum absolute allowed from a vault value in basis points
+     *      Exploits usually involve big drop or big fall in pricePerFullShare.
+     * @param _maxVaultValueJump the maximum variation allowed from a vault value in basis points
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
     /**
      * @notice sets flat deposit fee
      * @dev the deposit fee is in underlying token
-     * @param _depositFeeFlatUT amount of deposit fee in underlying token
+     * @param _depositFeeFlatUT deposit fee in underlying token
      */
     function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external;
 
     /**
      * @notice sets the deposit fee in percentage
-     * @dev the deposit fee is in percentage basis points
-     * @param _depositFeePct deposit fee in percentage basis points
+     * @dev the deposit fee is in basis points
+     * @param _depositFeePct deposit fee in basis points
      */
     function setDepositFeePct(uint256 _depositFeePct) external;
 
@@ -70,20 +70,20 @@ interface IVaultV2 {
 
     /**
      * @notice sets the withdrawal fee in percentage
-     * @dev the withdrawal fee is in percentage basis points
+     * @dev the withdrawal fee is in basis points
      * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
      */
     function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
 
     /**
      * @notice function to set the vault fee collector address
-     * @param _vaultFeeAddress address that collects vault deposit and withdraw fee
+     * @param _vaultFeeAddress address that collects vault deposit and withdrawal fee
      */
     function setVaultFeeAddress(address _vaultFeeAddress) external;
 
     /**
      * @notice function to control whitelisted state
-     * @param _allowWhitelistedState vault's whitelisted state flag
+     * @param _allowWhitelistedState vault's allow whitelisted state flag
      */
     function setAllowWhitelistedState(bool _allowWhitelistedState) external;
 
@@ -110,18 +110,18 @@ interface IVaultV2 {
     /**
      * @notice function to control the allowance of user interaction
      *         only when vault's whitelistedstate is enabled
-     * @param _accounts externally owner account address
-     * @param _whitelist flag indicating whitelist or not
+     * @param _accounts externally owned account addresses
+     * @param _whitelist list of flags indicating whitelist or not
      */
-    function setWhitelistedAccounts(address[] memory _accounts, bool _whitelist) external;
+    function setWhitelistedAccounts(address[] memory _accounts, bool[] memory _whitelist) external;
 
     /**
      * @notice function to control the allowance of smart contract interaction
      *         with vault
      * @param _accounts smart contract account address
-     * @param _whitelist flag indicating whitelist or not
+     * @param _whitelist list of flag indicating whitelist or not
      */
-    function setWhitelistedCodes(address[] memory _accounts, bool _whitelist) external;
+    function setWhitelistedCodes(address[] memory _accounts, bool[] memory _whitelist) external;
 
     /**
      * @notice Recall vault investments from current strategy, restricts deposits
@@ -139,7 +139,7 @@ interface IVaultV2 {
     function setUnpaused(bool _unpaused) external;
 
     /**
-     * @notice Withdraw the underying asset of vault from previous strategy if any,
+     * @notice Withdraw the underlying asset of vault from previous strategy if any,
      *         claims and swaps the reward tokens for the underlying token
      *         performs batch minting of shares for users deposited previously without rebalance,
      *         deposits the assets into the new strategy if any or holds the same in the vault
@@ -174,8 +174,8 @@ interface IVaultV2 {
     function adminCall(bytes[] memory _codes) external;
 
     /**
-     * @notice Assign a risk profile name
-     * @dev name of the risk profile should be approved by governance
+     * @notice Assign a risk profile code
+     * @dev function to set code of risk profile
      * @param _riskProfileCode code of the risk profile
      */
     function setRiskProfileCode(uint256 _riskProfileCode) external;
@@ -188,8 +188,8 @@ interface IVaultV2 {
     function setToken(address _underlyingToken) external;
 
     /**
-     * @notice Assigns the keccka256 hash of the underlying token address
-     * @param _underlyingTokensHash keccak256 hash of the underlying tokens of the vault
+     * @notice Assigns the keccak256 hash of the underlying token address and chain id
+     * @param _underlyingTokensHash keccak256 hash of the underlying tokens of the vault and chain id
      */
     function setTokensHash(bytes32 _underlyingTokensHash) external;
 
@@ -200,7 +200,7 @@ interface IVaultV2 {
     function balance() external view returns (uint256);
 
     /**
-     * @dev A helper function to validate the vault value will not be deviated from max vault value
+     * @dev A helper function to validate the vault value will not surpass max or min vault value
      *      within the same block
      * @param _diff absolute difference between minimum and maximum vault value within a block
      * @param _currentVaultValue the underlying token balance of the vault
@@ -222,7 +222,7 @@ interface IVaultV2 {
      *         - claimed reward tokens that are not yet harvested to underlyingTokens
      *         - any tokens other than underlyingTokens of the vault.
      *
-     *         Please note we relay on the getAmountUT() function of StrategyManager which in turn relies on individual
+     *         Please note we rely on the getOraValueUT() function of StrategyBuilder which in turn relies on individual
      *         protocol adapters to obtain the current underlying token amount. Thus we are relying on a third party
      *         contract (i.e. an oracle). This oracle should be made resilient via best practices.
      * @return The underlying token worth a vault share is
@@ -251,7 +251,7 @@ interface IVaultV2 {
 
     /**
      * @notice function to decide whether user can withdraw or not
-     * @param _user account address of the iser
+     * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
