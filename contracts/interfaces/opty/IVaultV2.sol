@@ -13,24 +13,30 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  */
 interface IVaultV2 {
     /**
-     * @notice Single function to configure the vault
+     * @notice Single function to configure the vault's value control params
      * @param _allowWhitelistedState vault's allow whitelisted state flag
      * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
      * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
      * @param _maxVaultValueJump The standard deviation allowed for vault value
+     */
+    function setValueControlParams(
+        bool _allowWhitelistedState,
+        uint256 _userDepositCapUT,
+        uint256 _minimumDepositValueUT,
+        uint256 _totalValueLockedLimitUT,
+        uint256 _maxVaultValueJump
+    ) external;
+
+    /**
+     * @notice Single function to configure the vault's fee params
      * @param _depositFeeFlatUT flat deposit fee in underlying token
      * @param _depositFeePct deposit fee in basis points
      * @param _withdrawalFeeFlatUT flat withdrawal fee in underlying token
      * @param _withdrawalFeePct withdrawal fee in basis points
      * @param _vaultFeeCollector address that collects vault deposit and withdraw fee
      */
-    function setVaultConfiguration(
-        bool _allowWhitelistedState,
-        uint256 _userDepositCapUT,
-        uint256 _minimumDepositValueUT,
-        uint256 _totalValueLockedLimitUT,
-        uint256 _maxVaultValueJump,
+    function setFeeParams(
         uint256 _depositFeeFlatUT,
         uint256 _depositFeePct,
         uint256 _withdrawalFeeFlatUT,
@@ -47,39 +53,39 @@ interface IVaultV2 {
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
-    /**
-     * @notice sets flat deposit fee
-     * @dev the deposit fee is in underlying token
-     * @param _depositFeeFlatUT deposit fee in underlying token
-     */
-    function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external;
+    // /**
+    //  * @notice sets flat deposit fee
+    //  * @dev the deposit fee is in underlying token
+    //  * @param _depositFeeFlatUT deposit fee in underlying token
+    //  */
+    // function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external;
 
-    /**
-     * @notice sets the deposit fee in percentage
-     * @dev the deposit fee is in basis points
-     * @param _depositFeePct deposit fee in basis points
-     */
-    function setDepositFeePct(uint256 _depositFeePct) external;
+    // /**
+    //  * @notice sets the deposit fee in percentage
+    //  * @dev the deposit fee is in basis points
+    //  * @param _depositFeePct deposit fee in basis points
+    //  */
+    // function setDepositFeePct(uint256 _depositFeePct) external;
 
-    /**
-     * @notice sets flat withdrawal fee
-     * @dev the withdrawal fee is in underlying token
-     * @param _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
-     */
-    function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external;
+    // /**
+    //  * @notice sets flat withdrawal fee
+    //  * @dev the withdrawal fee is in underlying token
+    //  * @param _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
+    //  */
+    // function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external;
 
-    /**
-     * @notice sets the withdrawal fee in percentage
-     * @dev the withdrawal fee is in basis points
-     * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
-     */
-    function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
+    // /**
+    //  * @notice sets the withdrawal fee in percentage
+    //  * @dev the withdrawal fee is in basis points
+    //  * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
+    //  */
+    // function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
 
-    /**
-     * @notice function to set the vault fee collector address
-     * @param _vaultFeeCollector address that collects vault deposit and withdrawal fee
-     */
-    function setVaultFeeCollector(address _vaultFeeCollector) external;
+    // /**
+    //  * @notice function to set the vault fee collector address
+    //  * @param _vaultFeeCollector address that collects vault deposit and withdrawal fee
+    //  */
+    // function setVaultFeeCollector(address _vaultFeeCollector) external;
 
     /**
      * @notice function to control whitelisted state
@@ -197,7 +203,7 @@ interface IVaultV2 {
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
-    function balance() external view returns (uint256);
+    function balanceUT() external view returns (uint256);
 
     /**
      * @dev A helper function to validate the vault value will not surpass max or min vault value

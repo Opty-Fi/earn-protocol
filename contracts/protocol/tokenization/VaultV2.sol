@@ -21,7 +21,6 @@ import { StrategyBuilder } from "../configuration/StrategyBuilder.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
 import { IVaultV2 } from "../../interfaces/opty/IVaultV2.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManagerV2 } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManagerV2.sol";
@@ -103,28 +102,35 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setVaultConfiguration(
+    function setValueControlParams(
         bool _allowWhitelistedState,
         uint256 _userDepositCapUT,
         uint256 _minimumDepositValueUT,
         uint256 _totalValueLockedLimitUT,
-        uint256 _maxVaultValueJump,
-        uint256 _depositFeeFlatUT,
-        uint256 _depositFeePct,
-        uint256 _withdrawalFeeFlatUT,
-        uint256 _withdrawalFeePct,
-        address _vaultFeeCollector
+        uint256 _maxVaultValueJump
     ) external override onlyFinanceOperator {
         _setAllowWhitelistedState(_allowWhitelistedState);
         _setUserDepositCapUT(_userDepositCapUT);
         _setMinimumDepositValueUT(_minimumDepositValueUT);
         _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
         _setMaxVaultValueJump(_maxVaultValueJump);
-        _setDepositFeeFlatUT(_depositFeeFlatUT);
-        _setDepositFeePct(_depositFeePct);
-        _setWithdrawalFeeFlatUT(_withdrawalFeeFlatUT);
-        _setWithdrawalFeePct(_withdrawalFeePct);
-        _setVaultFeeCollector(_vaultFeeCollector);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setFeeParams(
+        uint256 _depositFeeFlatUT,
+        uint256 _depositFeePct,
+        uint256 _withdrawalFeeFlatUT,
+        uint256 _withdrawalFeePct,
+        address _vaultFeeCollector
+    ) external override onlyFinanceOperator {
+        vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
+        vaultConfiguration.depositFeePct = _depositFeePct;
+        vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
+        vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
+        vaultConfiguration.vaultFeeCollector = _vaultFeeCollector;
     }
 
     /**
@@ -132,41 +138,6 @@ contract VaultV2 is
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external override onlyFinanceOperator {
         _setMaxVaultValueJump(_maxVaultValueJump);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external override onlyFinanceOperator {
-        _setDepositFeeFlatUT(_depositFeeFlatUT);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setDepositFeePct(uint256 _depositFeePct) external override onlyFinanceOperator {
-        _setDepositFeePct(_depositFeePct);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external override onlyFinanceOperator {
-        _setWithdrawalFeeFlatUT(_withdrawalFeeFlatUT);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setWithdrawalFeePct(uint256 _withdrawalFeePct) external override onlyFinanceOperator {
-        _setWithdrawalFeePct(_withdrawalFeePct);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setVaultFeeCollector(address _vaultFeeCollector) external override onlyOperator {
-        _setVaultFeeCollector(_vaultFeeCollector);
     }
 
     /**
@@ -260,19 +231,12 @@ contract VaultV2 is
         require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
         _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
         bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
-        bool _deposited;
         if (_nextBestInvestStrategyHash != investStrategyHash && investStrategyHash != Constants.ZERO_BYTES32) {
             _vaultWithdrawAllFromStrategy(investStrategySteps);
             _setInvestStrategySteps(_cacheNextInvestStrategySteps);
             investStrategyHash = _nextBestInvestStrategyHash;
-            if (investStrategyHash != Constants.ZERO_BYTES32) {
-                _vaultDepositAllToStrategy(investStrategySteps);
-                _deposited = true;
-            }
         }
-        // _balance() might be greater than zero if the adapter limited the investment
-        // _deposited is to protect vault from depositing again in to strategy.
-        if (!_deposited && _balance() > 0) {
+        if (investStrategyHash != Constants.ZERO_BYTES32 && _balance() > 0) {
             _vaultDepositAllToStrategy(investStrategySteps);
         }
     }
@@ -300,9 +264,9 @@ contract VaultV2 is
         (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
             userDepositPermitted(msg.sender, _actualDepositAmountUT.sub(_depositFeeUT));
         require(_userDepositPermitted, _userDepositPermittedReason);
-        // transfer deposit fee to vaultFeeAddress
+        // transfer deposit fee to vaultFeeCollector
         if (_depositFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeAddress, _depositFeeUT);
+            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeCollector, _depositFeeUT);
         }
 
         // mint vault tokens
@@ -357,9 +321,9 @@ contract VaultV2 is
             }
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
-        // transfer withdraw fee to vaultFeeAddress
+        // transfer withdraw fee to vaultFeeCollector
         if (_withdrawFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeAddress, _withdrawFeeUT);
+            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeCollector, _withdrawFeeUT);
         }
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
     }
@@ -414,7 +378,7 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function balance() public view override returns (uint256) {
+    function balanceUT() public view override returns (uint256) {
         return _balance();
     }
 
@@ -551,6 +515,11 @@ contract VaultV2 is
             );
     }
 
+    /**
+     * @dev function to compute the keccak256 hash of the strategy steps
+     * @param _investStrategySteps metadata for invest strategy
+     * @return keccak256 hash of the invest strategy and underlying tokens hash
+     */
     function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
         public
         view
@@ -719,45 +688,9 @@ contract VaultV2 is
     }
 
     /**
-     * @dev Internal function to set the deposit fee in underlying token
-     * @param _depositFeeFlatUT amount of deposit fee in underlying token
+     * @dev Internal function for caching the next invest strategy metadata
+     * @param _investStrategySteps list strategy steps
      */
-    function _setDepositFeeFlatUT(uint256 _depositFeeFlatUT) internal {
-        vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
-    }
-
-    /**
-     * @dev Internal function to set the deposit fee in percentage basis points
-     * @param _depositFeePct deposit fee in percentage basis points
-     */
-    function _setDepositFeePct(uint256 _depositFeePct) internal {
-        vaultConfiguration.depositFeePct = _depositFeePct;
-    }
-
-    /**
-     * @dev Internal function to set the withdrawal fee in underlying token
-     * @param _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
-     */
-    function _setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) internal {
-        vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
-    }
-
-    /**
-     * @dev Internal function to set the withdrawal fee in percentage basis points
-     * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
-     */
-    function _setWithdrawalFeePct(uint256 _withdrawalFeePct) internal {
-        vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
-    }
-
-    /**
-     * @dev Internal function to set the vault fee collector address
-     * @param _vaultFeeCollector address that collects vault deposit and withdraw fee
-     */
-    function _setVaultFeeCollector(address _vaultFeeCollector) internal {
-        vaultConfiguration.vaultFeeAddress = _vaultFeeCollector;
-    }
-
     function _setCacheNextInvestStrategySteps(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
         delete _cacheNextInvestStrategySteps;
         for (uint256 _i; _i < _investStrategySteps.length; _i++) {
@@ -765,6 +698,10 @@ contract VaultV2 is
         }
     }
 
+    /**
+     * @dev Internal function for saving the invest strategy metadata
+     * @param _investStrategySteps list of strategy steps
+     */
     function _setInvestStrategySteps(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
         delete investStrategySteps;
         for (uint256 _i; _i < _investStrategySteps.length; _i++) {
