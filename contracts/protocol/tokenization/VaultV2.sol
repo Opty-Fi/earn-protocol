@@ -245,6 +245,7 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
+        _emergencyBrake(_oraStratValueUT());
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
         uint256 _oraPricePerSharePreDeposit = _oraVaultAndStratValuePreDepositUT.div(totalSupply());
@@ -268,7 +269,6 @@ contract VaultV2 is
         if (_depositFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeCollector, _depositFeeUT);
         }
-
         // mint vault tokens
         // if _oraVaultAndStratValuePreDepositUT == 0, mint vault tokens 1:1 for underlying tokens
         // if _oraVaultAndStratValuePreDepositUT > 0, mint vault tokens at constant pre deposit price
@@ -285,6 +285,7 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
+        _emergencyBrake(_oraStratValueUT());
         (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
         require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
         (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
@@ -561,7 +562,6 @@ contract VaultV2 is
     {
         uint256 _internalTransactionCount =
             _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
-        _emergencyBrake(_oraVaultAndStratValueUT());
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -733,6 +733,7 @@ contract VaultV2 is
      * @return amount in underlying token
      */
     function _oraStratValueUT() internal view returns (uint256) {
+        // totaldebt
         return
             investStrategyHash != Constants.ZERO_BYTES32
                 ? investStrategySteps.getOraValueUT(address(registryContract), payable(address(this)), underlyingToken)
