@@ -47,12 +47,17 @@ describe("VaultV2", () => {
     this.signers.admin = signers[1];
     this.registry = <Registry>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, REGISTRY_PROXY);
     const operatorAddress = await this.registry.getOperator();
+    const financeOperatorAddress = await this.registry.getFinanceOperator();
     await hre.network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [operatorAddress],
     });
+    await hre.network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [financeOperatorAddress],
+    });
     this.signers.operator = await hre.ethers.getSigner(operatorAddress);
-    this.signers.financeOperator = await hre.ethers.getSigner(operatorAddress);
+    this.signers.financeOperator = await hre.ethers.getSigner(financeOperatorAddress);
     this.riskManagerProxy = <RiskManagerProxy>(
       await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, RISK_MANAGER_PROXY)
     );
@@ -197,7 +202,7 @@ describe("VaultV2", () => {
     it("setFeeParams() by Finance operator", async function () {
       await this.opUSDCgrowV2.connect(this.signers.financeOperator).setFeeParams(
         "1000000", // 1 USDC
-        "5", // 0.05
+        "5", // 0.05%
         "1000000", // 1 USDC
         "5", // 0.05%
         this.signers.admin.address, // address for vault collector
@@ -208,6 +213,48 @@ describe("VaultV2", () => {
       expect(vaultConfigurationV2.withdrawalFeeFlatUT).to.eq("1000000");
       expect(vaultConfigurationV2.withdrawalFeePct).to.eq("5");
       expect(vaultConfigurationV2.vaultFeeCollector).to.eq(this.signers.admin.address);
+    });
+    it("fails setMaxVaultValueJump() call by non finance operator", async function () {
+      await expect(this.opUSDCgrowV2.setMaxVaultValueJump("100")).to.be.revertedWith(
+        "caller is not the financeOperator",
+      );
+    });
+    it("setMaxVaultValueJump() call by finance operator", async function () {
+      await this.opUSDCgrowV2.connect(this.signers.financeOperator).setMaxVaultValueJump("100");
+      expect(await this.opUSDCgrowV2.maxVaultValueJump()).to.eq("100");
+    });
+    it("fails setAllowWhitelistedState() call by non finance operator", async function () {
+      await expect(this.opUSDCgrowV2.setAllowWhitelistedState(false)).to.be.revertedWith("caller is not the operator");
+    });
+    it("setAllowWhitelistedState() call by finance operator", async function () {
+      await this.opUSDCgrowV2.connect(this.signers.operator).setAllowWhitelistedState(false);
+      expect((await this.opUSDCgrowV2.vaultConfiguration())[2]).to.be.false;
+    });
+
+    it("fails setUserDepositCapUT() call by non finance operator", async function () {
+      await expect(this.opUSDCgrowV2.setUserDepositCapUT("10")).to.be.revertedWith("caller is not the operator");
+    });
+    it("setUserDepositCapUT() call by finance operator", async function () {
+      await this.opUSDCgrowV2.connect(this.signers.operator).setUserDepositCapUT("10");
+      expect((await this.opUSDCgrowV2.vaultConfiguration())[8]).to.eq("10");
+    });
+
+    it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
+      await expect(this.opUSDCgrowV2.setMinimumDepositValueUT("1000")).to.be.revertedWith("caller is not the operator");
+    });
+    it("setMinimumDepositValueUT() call by finance operator", async function () {
+      await this.opUSDCgrowV2.connect(this.signers.operator).setMinimumDepositValueUT("1000");
+      expect((await this.opUSDCgrowV2.vaultConfiguration())[9]).to.eq("1000");
+    });
+
+    it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {
+      await expect(this.opUSDCgrowV2.setTotalValueLockedLimitUT("100000000")).to.be.revertedWith(
+        "caller is not the operator",
+      );
+    });
+    it("setTotalValueLockedLimitUT() call by finance operator", async function () {
+      await this.opUSDCgrowV2.connect(this.signers.operator).setTotalValueLockedLimitUT("100000000");
+      expect((await this.opUSDCgrowV2.vaultConfiguration())[10]).to.eq("100000000");
     });
   });
   describe("VaultV2 strategies", () => {
