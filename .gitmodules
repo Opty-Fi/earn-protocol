@@ -7,3 +7,18 @@
 [submodule "contracts/protocol/defi-adapters"]
 	path = contracts/protocol/defi-adapters
 	url = https://github.com/Opty-Fi/defi-adapters.git
+[submodule "contracts/protocol/curve-metapool-swap-adapter"]
+	path = contracts/protocol/curve-metapool-swap-adapter
+	url = git@github.com:Opty-Fi/curve-metapool-swap-adapter.git
+[submodule "contracts/protocol/curve-metapool-deposit-adapter"]
+	path = contracts/protocol/curve-metapool-deposit-adapter
+	url = git@github.com:Opty-Fi/curve-metapool-deposit-adapter.git
+[submodule "contracts/protocol/curve-metapool-gauge-adapter"]
+	path = contracts/protocol/curve-metapool-gauge-adapter
+	url = git@github.com:Opty-Fi/curve-metapool-gauge-adapter.git
+[submodule "contracts/protocol/old-curve-metapool-deposit-adapter"]
+	path = contracts/protocol/old-curve-metapool-deposit-adapter
+	url = git@github.com:Opty-Fi/old-curve-metapool-deposit-adapter.git
+[submodule "contracts/protocol/curve-polygon-adapter"]
+	path = contracts/protocol/curve-polygon-adapter
+	url = git@github.com:Opty-Fi/curve-polygon-adapter.git
