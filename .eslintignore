@@ -11,6 +11,6 @@ specification_docs/
 deployments/
 contracts/protocol/team-defi-adapters
 contracts/protocol/earn-protocol-configuration
-
+contracts/protocol/*-adapter
 # files
 .solcover.js

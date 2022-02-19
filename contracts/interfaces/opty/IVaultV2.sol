@@ -187,17 +187,12 @@ interface IVaultV2 {
     function setRiskProfileCode(uint256 _riskProfileCode) external;
 
     /**
-     * @notice Assign the address of the underlying asset of the vault
+     * @notice Assign the address of the underlying asset and its keccak256 hash
      * @dev the underlying asset should be approved by the governance
      * @param _underlyingToken the address of the underlying asset
+     * @param _underlyingTokensHash keccak256 hash of underlying token address and chain id
      */
-    function setToken(address _underlyingToken) external;
-
-    /**
-     * @notice Assigns the keccak256 hash of the underlying token address and chain id
-     * @param _underlyingTokensHash keccak256 hash of the underlying tokens of the vault and chain id
-     */
-    function setTokensHash(bytes32 _underlyingTokensHash) external;
+    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash) external;
 
     /**
      * @notice Retrieve underlying token balance in the vault

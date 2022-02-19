@@ -91,11 +91,12 @@ contract VaultV2 is
         require(bytes(_name).length > 0, Errors.EMPTY_STRING);
         require(bytes(_symbol).length > 0, Errors.EMPTY_STRING);
         registryContract = IRegistry(_registry);
-        setRiskProfileCode(_riskProfileCode);
-        setToken(_underlyingToken); //  underlying token contract address (for example DAI)
-        underlyingTokensHash = _underlyingTokensHash;
-        _setName(string(abi.encodePacked("op ", _name, " ", registryContract.getRiskProfile(_riskProfileCode).name)));
-        _setSymbol(string(abi.encodePacked("op", _symbol, registryContract.getRiskProfile(_riskProfileCode).symbol)));
+        DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
+        _setRiskProfileCode(_riskProfileCode, _riskProfile.exists);
+        _setUnderlyingToken(_underlyingToken); //  underlying token contract address (for example DAI)
+        _setUnderlyingTokensHash(_underlyingTokensHash);
+        _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile.name)));
+        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
         _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
     }
 
@@ -309,8 +310,9 @@ contract VaultV2 is
 
             // Identify Slippage
             // UT requested from strategy withdraw  = _requestStratWithdrawUT
-            // UT actually received from strategy withdraw = _realizedStratWithdrawUT
-            //                                             = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
+            // UT actually received from strategy withdraw
+            // = _realizedStratWithdrawUT
+            // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
             // slippage = _requestStratWithdrawUT - _realizedStratWithdrawUT
             uint256 _vaultValuePostStratWithdrawUT = _balance();
             uint256 _realizedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
@@ -353,25 +355,19 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
-        DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
-        require(_riskProfile.exists, Errors.RISK_PROFILE_EXISTS);
-        riskProfileCode = _riskProfileCode;
+        _setRiskProfileCode(_riskProfileCode, registryContract.getRiskProfile(_riskProfileCode).exists);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setToken(address _underlyingToken) public override onlyOperator {
-        require(_underlyingToken.isContract(), Errors.NOT_A_CONTRACT);
-        require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
-        underlyingToken = _underlyingToken;
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setTokensHash(bytes32 _underlyingTokensHash) public override onlyOperator {
-        underlyingTokensHash = _underlyingTokensHash;
+    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash)
+        external
+        override
+        onlyOperator
+    {
+        _setUnderlyingToken(_underlyingToken);
+        _setUnderlyingTokensHash(_underlyingTokensHash);
     }
 
     //===Public view functions===//
@@ -707,6 +703,38 @@ contract VaultV2 is
         for (uint256 _i; _i < _investStrategySteps.length; _i++) {
             investStrategySteps.push(_investStrategySteps[_i]);
         }
+    }
+
+    /**
+     * @dev Internal function to save risk profile code
+     * @param _riskProfileCode risk profile code
+     * @param _exists true if risk profile exists
+     */
+    function _setRiskProfileCode(uint256 _riskProfileCode, bool _exists) internal {
+        require(_exists, Errors.RISK_PROFILE_EXISTS);
+        riskProfileCode = _riskProfileCode;
+    }
+
+    /**
+     * @dev Internal function to save underlying token address
+     * @param _underlyingToken underlying token contract address
+     */
+    function _setUnderlyingToken(address _underlyingToken) internal {
+        require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
+        underlyingToken = _underlyingToken;
+    }
+
+    /**
+     * @dev Internal function to save underlying tokens hash
+     * @param _underlyingTokensHash keccak256 hash of underlying token address and chain id
+     */
+    function _setUnderlyingTokensHash(bytes32 _underlyingTokensHash) internal {
+        require(
+            registryContract.getTokensHashByIndex(registryContract.getTokensHashIndexByHash(_underlyingTokensHash)) ==
+                _underlyingTokensHash,
+            Errors.UNDERLYING_TOKENS_HASH_EXISTS
+        );
+        underlyingTokensHash = _underlyingTokensHash;
     }
 
     //===Internal view functions===//
