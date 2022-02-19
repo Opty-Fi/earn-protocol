@@ -2,6 +2,7 @@ import { DATA_OBJECT } from "../type";
 
 export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   REGISTRY: "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
+  REGISTRY_V2: "contracts/protocol/earn-protocol-configuration/contracts/RegistryV2.sol:RegistryV2",
   REGISTRY_PROXY: "contracts/protocol/earn-protocol-configuration/contracts/RegistryProxy.sol:RegistryProxy",
   INVEST_STRATEGY_REGISTRY:
     "contracts/protocol/earn-protocol-configuration/contracts/InvestStrategyRegistry.sol:InvestStrategyRegistry",

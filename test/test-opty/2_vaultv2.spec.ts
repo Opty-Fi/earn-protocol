@@ -3,11 +3,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";
+import { getAddress } from "ethers/lib/utils";
 import { getSoliditySHA3Hash, Signers } from "../../helpers/utils";
 import {
   AdminUpgradeabilityProxy,
   InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
+  RegistryProxy,
+  RegistryV2,
   RiskManagerProxy,
   RiskManagerV2,
   StrategyProviderV2,
@@ -16,32 +19,34 @@ import {
 import {
   opUSDCgrow,
   opWETHgrow,
-  RegistryProxy,
+  RegistryProxy as RegistryProxyAddress,
   RiskManagerProxy as RiskManagerProxyAddress,
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedTokens } from "../../helpers/data";
-import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 
 const OPUSDCGROW_VAULT_PROXY_ADDRESS = opUSDCgrow.VaultProxy;
 const OPWETHGROW_VAULT_PROXY_ADDRESS = opWETHgrow.VaultProxy;
-const REGISTRY_PROXY = RegistryProxy;
+const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 const RISK_MANAGER_PROXY = RiskManagerProxyAddress;
 
-// TODO: upgrade to RegistryV2
 const chainId = "1";
 describe("VaultV2", () => {
   before(async function () {
     this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT_V2);
+    this.registryV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.REGISTRY_V2);
     const riskManagerV2Artifact: Artifact = await artifacts.readArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER_V2);
     const strategyProviderV2Artifact: Artifact = await artifacts.readArtifact(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER_V2);
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
     this.signers.admin = signers[1];
-    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, REGISTRY_PROXY);
+    this.registryProxy = <RegistryProxy>(
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, REGISTRY_PROXY_ADDRESS)
+    );
+    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
     await network.provider.request({
@@ -54,20 +59,28 @@ describe("VaultV2", () => {
     });
     this.signers.operator = await ethers.getSigner(operatorAddress);
     this.signers.financeOperator = await ethers.getSigner(financeOperatorAddress);
+
+    this.registryV2 = <RegistryV2>await waffle.deployContract(this.signers.deployer, this.registryV2Artifact);
+    // the operator is not impersonated before calling below fn, please get operator from v1 then upgrade v2
+    await this.registryProxy.connect(this.signers.operator).setPendingImplementation(this.registryV2.address);
+    await this.registryV2.connect(this.signers.operator).become(this.registryProxy.address);
+    this.registryV2 = <RegistryV2>(
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, this.registryProxy.address)
+    );
     this.riskManagerProxy = <RiskManagerProxy>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, RISK_MANAGER_PROXY)
     );
     this.riskManagerV2 = <RiskManagerV2>(
-      await deployContract(this.signers.deployer, riskManagerV2Artifact, [REGISTRY_PROXY])
+      await deployContract(this.signers.deployer, riskManagerV2Artifact, [REGISTRY_PROXY_ADDRESS])
     );
     await this.riskManagerProxy.connect(this.signers.operator).setPendingImplementation(this.riskManagerV2.address);
     await this.riskManagerV2.connect(this.signers.operator).become(this.riskManagerProxy.address);
     this.strategyProviderV2 = <StrategyProviderV2>(
-      await deployContract(this.signers.deployer, strategyProviderV2Artifact, [REGISTRY_PROXY])
+      await deployContract(this.signers.deployer, strategyProviderV2Artifact, [REGISTRY_PROXY_ADDRESS])
     );
 
-    await this.registry.connect(this.signers.operator).setStrategyProvider(this.strategyProviderV2.address);
-    await this.registry.connect(this.signers.operator).setRiskManager(this.riskManagerV2.address);
+    await this.registryV2.connect(this.signers.operator).setStrategyProvider(this.strategyProviderV2.address);
+    await this.registryV2.connect(this.signers.operator).setRiskManager(this.riskManagerV2.address);
   });
   describe("opUSDCgrowV2 and opWETHgrowV2 after on-chain upgrade", () => {
     before(async function () {
@@ -97,7 +110,7 @@ describe("VaultV2", () => {
       // // ====================================================
       this.opUSDCgrowV2 = <VaultV2>(
         await deployContract(this.signers.deployer, this.vaultV2Artifact, [
-          REGISTRY_PROXY,
+          REGISTRY_PROXY_ADDRESS,
           "USD Coin",
           "USDC",
           "Growth",
@@ -111,7 +124,7 @@ describe("VaultV2", () => {
       // ====================================================
       this.opWETHgrowV2 = <VaultV2>(
         await waffle.deployContract(this.signers.deployer, this.vaultV2Artifact, [
-          REGISTRY_PROXY,
+          REGISTRY_PROXY_ADDRESS,
           "Wrapped Ether",
           "WETH",
           "Growth",
@@ -126,7 +139,7 @@ describe("VaultV2", () => {
 
     it("default values from for v1 opUSDCgrow should be as expected", async function () {
       expect(await this.opUSDCgrowV2.opTOKEN_REVISION()).to.eq("0x3");
-      expect(await this.opUSDCgrowV2.registryContract()).to.eq(getAddress(this.registry.address));
+      expect(await this.opUSDCgrowV2.registryContract()).to.eq(getAddress(this.registryV2.address));
       expect(await this.opUSDCgrowV2.riskProfileCode()).to.eq("1");
       expect(await this.opUSDCgrowV2.underlyingToken()).to.eq(TypedTokens["USDC"]);
       expect(await this.opUSDCgrowV2.underlyingTokensHash()).to.eq(ethers.constants.HashZero);
@@ -138,7 +151,7 @@ describe("VaultV2", () => {
 
     it("default values for v1 opWETHgrow should be as expected", async function () {
       expect(await this.opWETHgrowV2.opTOKEN_REVISION()).to.eq("0x3");
-      expect(await this.opWETHgrowV2.registryContract()).to.eq(getAddress(this.registry.address));
+      expect(await this.opWETHgrowV2.registryContract()).to.eq(getAddress(this.registryV2.address));
       expect(await this.opWETHgrowV2.riskProfileCode()).to.eq("1");
       expect(await this.opWETHgrowV2.underlyingToken()).to.eq(TypedTokens["WETH"]);
       expect(await this.opWETHgrowV2.underlyingTokensHash()).to.eq(ethers.constants.HashZero);
@@ -180,7 +193,7 @@ describe("VaultV2", () => {
     before(async function () {
       this.vaultV2 = <VaultV2>(
         await waffle.deployContract(this.signers.deployer, this.vaultV2Artifact, [
-          REGISTRY_PROXY,
+          REGISTRY_PROXY_ADDRESS,
           "USD Coin",
           "USDC",
           "Growth",
@@ -192,14 +205,18 @@ describe("VaultV2", () => {
         await waffle.deployContract(this.signers.deployer, vaultProxyV2Artifact, [
           this.vaultV2.address,
           this.signers.admin.address,
-          "",
+          "0x",
         ])
       );
       this.vaultV2 = <VaultV2>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, this.vaultV2.address);
+      const usdcTokenHash = getSoliditySHA3Hash(["address", "uint256"], [TypedTokens["USDC"], chainId]);
+      await this.registryV2
+        .connect(this.signers.operator)
+        ["setTokensHashToTokens(bytes32,address[])"](usdcTokenHash, [TypedTokens["USDC"]]);
       await this.vaultV2.initialize(
-        this.registry.address,
+        this.registryV2.address,
         TypedTokens["USDC"],
-        getSoliditySHA3Hash(["address", "uint256"], [TypedTokens["USDC"], chainId]),
+        usdcTokenHash,
         "USDC Coin",
         "USDC",
         "1",
@@ -354,7 +371,7 @@ describe("VaultV2", () => {
   });
   describe("VaultV2 strategies", () => {
     before(async function () {
-      console.log(await this.opUSDCgrowV2.vaultConfiguration());
+      console.log("rmv2 ", this.riskManagerV2.address);
     });
     for (let i = 0; i < 10; i++) {
       it(`strategy${i}`, async function () {

@@ -18,6 +18,7 @@ import {
   InvestStrategyRegistry,
   Registry,
   RegistryProxy,
+  RegistryV2,
   RiskManager,
   RiskManagerProxy,
   RiskManagerV2,
@@ -68,6 +69,8 @@ declare module "mocha" {
   export interface Context {
     signers: Signers;
     registry: Registry;
+    registryV2Artifact: Artifact;
+    registryV2: RegistryV2;
     registryProxy: RegistryProxy;
     harvestCodeProvider: HarvestCodeProvider;
     compoundAdapter: CompoundAdapter;
