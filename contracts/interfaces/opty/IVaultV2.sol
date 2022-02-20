@@ -15,9 +15,9 @@ interface IVaultV2 {
     /**
      * @notice Single function to configure the vault's value control params
      * @param _allowWhitelistedState vault's allow whitelisted state flag
-     * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
+     * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
-     * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
+     * @param _totalValueLockedLimitUT maximum TVL in underlying token allowed for the vault
      * @param _maxVaultValueJump The standard deviation allowed for vault value
      */
     function setValueControlParams(
@@ -239,15 +239,15 @@ interface IVaultV2 {
 
     /**
      * @notice Computes deposit fee in underlying
-     * @param _userDepositUT user deposit amount in underlying
-     * @return deposit fee in underlying
+     * @param _userDepositUT user deposit amount in underlying token
+     * @return deposit fee in underlying token
      */
     function calcDepositFeeUT(uint256 _userDepositUT) external view returns (uint256);
 
     /**
      * @notice Computes withdrawal fee in underlying
-     * @param _userWithdrawUT user withdraw amount in underlying
-     * @return _withdrawalFeeUT withdrawal fee in underlying
+     * @param _userWithdrawUT user withdraw amount in underlying token
+     * @return _withdrawalFeeUT withdrawal fee in underlying token
      */
     function calcWithdrawalFeeUT(uint256 _userWithdrawUT) external view returns (uint256);
 
