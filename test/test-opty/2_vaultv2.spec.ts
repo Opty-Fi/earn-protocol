@@ -4,9 +4,11 @@ import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
-import { getSoliditySHA3Hash, Signers } from "../../helpers/utils";
+import { BigNumber } from "ethers";
+import { getSoliditySHA3Hash, Signers, to_10powNumber_BN } from "../../helpers/utils";
 import {
   AdminUpgradeabilityProxy,
+  ERC20,
   InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
   RegistryProxy,
@@ -25,6 +27,7 @@ import {
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedTokens } from "../../helpers/data";
+import { setTokenBalanceInStorage } from "./utils";
 
 chai.use(solidity);
 
@@ -88,6 +91,8 @@ describe("VaultV2", () => {
     await this.registryV2.connect(this.signers.operator).setRiskManager(this.riskManagerV2.address);
     this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_ADDRESS);
     this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHGROW_VAULT_ADDRESS);
+    this.usdc = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens["USDC"]);
+    await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
   });
   describe("opUSDCgrowV2 and opWETHgrowV2 after on-chain upgrade", () => {
     before(async function () {
@@ -339,13 +344,28 @@ describe("VaultV2", () => {
       await this.vaultV2.connect(this.signers.governance).setWhitelistedCodes([this.opUSDCgrow.address], [true]);
       expect(await this.vaultV2.whitelistedCodes(codeHash)).to.be.true;
     });
-    it("fail discontinue() call by non operator", async function () {});
+    it("fail discontinue() call by non operator", async function () {
+      await expect(this.vaultV2.discontinue()).to.be.revertedWith("caller is not having governance");
+    });
     it("discontinue() call by operator", async function () {});
-    it("fail setUnpaused() call by non operator", async function () {});
+    it("fail setUnpaused() call by non operator", async function () {
+      await expect(this.vaultV2.setUnpaused(false)).to.be.revertedWith("caller is not having governance");
+    });
     it("setUnpaused() call by operator (null strategy)", async function () {});
-    it("fail rebalance() call, vault is paused", async function () {});
-    it("fail userDepositVault() call, vault is paused", async function () {});
-    it("fail userWithdrawVault() call, vault is paused", async function () {});
+    it("fail rebalance() call, vault is paused", async function () {
+      await expect(this.vaultV2.rebalance()).to.be.revertedWith("14");
+    });
+    it("fail userDepositVault() call, vault is paused", async function () {
+      const usdcDepositAmount = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, usdcDepositAmount);
+      await this.usdc.connect(this.signers.alice).approve(this.vaultV2.address, usdcDepositAmount);
+      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(usdcDepositAmount)).to.be.revertedWith(
+        "14",
+      );
+    });
+    it("fail userWithdrawVault() call, vault is paused", async function () {
+      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault("12")).to.be.revertedWith("14");
+    });
     it("fail vaultDepositAllToStrategy() call, vault is paused", async function () {});
     it("fail adminCall() call by non operator", async function () {});
     it("fail setRiskProfileCode() call by non operator", async function () {});

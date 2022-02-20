@@ -198,19 +198,19 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function discontinue() external override onlyOperator {
+    function discontinue() external override onlyGovernance {
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             _vaultWithdrawAllFromStrategy(investStrategySteps);
         }
         vaultConfiguration.discontinued = true;
         investStrategyHash = Constants.ZERO_BYTES32;
-        LogDiscontinue(vaultConfiguration.discontinued, msg.sender);
+        emit LogDiscontinue(vaultConfiguration.discontinued, msg.sender);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setUnpaused(bool _unpaused) external override onlyOperator {
+    function setUnpaused(bool _unpaused) external override onlyGovernance {
         if (investStrategyHash != Constants.ZERO_BYTES32 && _unpaused == false) {
             _vaultWithdrawAllFromStrategy(investStrategySteps);
             investStrategyHash = Constants.ZERO_BYTES32;
@@ -220,6 +220,7 @@ contract VaultV2 is
             _vaultDepositAllToStrategy(investStrategySteps);
         }
         vaultConfiguration.unpaused = _unpaused;
+        emit LogUnpause(vaultConfiguration.unpaused, msg.sender);
     }
 
     /**
@@ -249,7 +250,6 @@ contract VaultV2 is
         _emergencyBrake(_oraStratValueUT());
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
-        uint256 _oraPricePerSharePreDeposit = _oraVaultAndStratValuePreDepositUT.div(totalSupply());
         // check vault balance (in UT) before user token transfer
         uint256 _vaultValuePreDepositUT = _balance();
         // receive user deposit
@@ -263,22 +263,25 @@ contract VaultV2 is
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
         (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
         (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(msg.sender, _actualDepositAmountUT.sub(_depositFeeUT));
+            userDepositPermitted(msg.sender, _netUserDepositUT);
         require(_userDepositPermitted, _userDepositPermittedReason);
+        // add net deposit amount to user's total deposit
+        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
         // transfer deposit fee to vaultFeeCollector
         if (_depositFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeCollector, _depositFeeUT);
         }
         // mint vault tokens
-        // if _oraVaultAndStratValuePreDepositUT == 0, mint vault tokens 1:1 for underlying tokens
-        // if _oraVaultAndStratValuePreDepositUT > 0, mint vault tokens at constant pre deposit price
+        // if _oraVaultAndStratValuePreDepositUT == 0 or totalSupply == 0, mint vault tokens 1:1 for underlying tokens
+        // else, mint vault tokens at constant pre deposit price
         // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
         //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
-        if (_oraVaultAndStratValuePreDepositUT == 0) {
+        if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
             _mint(msg.sender, _actualDepositAmountUT);
         } else {
-            _mint(msg.sender, (_actualDepositAmountUT).div(_oraPricePerSharePreDeposit));
+            _mint(msg.sender, (_actualDepositAmountUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
         }
     }
 
@@ -391,7 +394,7 @@ contract VaultV2 is
      */
     function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
-            return _oraVaultValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
+            return _oraVaultAndStratValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
         } else {
             return uint256(0);
         }
@@ -416,8 +419,7 @@ contract VaultV2 is
         if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
         }
-        uint256 _vaultTVLUT = _oraVaultValueUT();
-        if (_vaultTVLUT.add(_userDepositUT) > vaultConfiguration.totalValueLockedLimitUT) {
+        if (_oraVaultAndStratValueUT() > vaultConfiguration.totalValueLockedLimitUT) {
             return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
         }
         if (totalDeposits[_user].add(_userDepositUT) > vaultConfiguration.userDepositCapUT) {
@@ -738,14 +740,6 @@ contract VaultV2 is
     }
 
     //===Internal view functions===//
-
-    /**
-     * @dev This function computes the market value of shares
-     * @return _oraVaultValue the market value of the shares
-     */
-    function _oraVaultValueUT() internal view returns (uint256) {
-        return _oraVaultAndStratValueUT();
-    }
 
     /**
      * @dev Computes the vault value in underlying token that includes balance of underlying token

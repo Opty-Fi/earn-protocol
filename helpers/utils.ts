@@ -101,6 +101,7 @@ declare module "mocha" {
     opUSDCgrowV2: VaultV2;
     opWETHgrowV2: VaultV2;
     erc20: ERC20;
+    usdc: ERC20;
   }
 }
 

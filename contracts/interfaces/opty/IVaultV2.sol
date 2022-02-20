@@ -53,40 +53,6 @@ interface IVaultV2 {
      */
     function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
 
-    // /**
-    //  * @notice sets flat deposit fee
-    //  * @dev the deposit fee is in underlying token
-    //  * @param _depositFeeFlatUT deposit fee in underlying token
-    //  */
-    // function setDepositFeeFlatUT(uint256 _depositFeeFlatUT) external;
-
-    // /**
-    //  * @notice sets the deposit fee in percentage
-    //  * @dev the deposit fee is in basis points
-    //  * @param _depositFeePct deposit fee in basis points
-    //  */
-    // function setDepositFeePct(uint256 _depositFeePct) external;
-
-    // /**
-    //  * @notice sets flat withdrawal fee
-    //  * @dev the withdrawal fee is in underlying token
-    //  * @param _withdrawalFeeFlatUT amount of withdrawal fee in percentage basis points
-    //  */
-    // function setWithdrawalFeeFlatUT(uint256 _withdrawalFeeFlatUT) external;
-
-    // /**
-    //  * @notice sets the withdrawal fee in percentage
-    //  * @dev the withdrawal fee is in basis points
-    //  * @param _withdrawalFeePct amount of withdrawal fee in percentage basis points
-    //  */
-    // function setWithdrawalFeePct(uint256 _withdrawalFeePct) external;
-
-    // /**
-    //  * @notice function to set the vault fee collector address
-    //  * @param _vaultFeeCollector address that collects vault deposit and withdrawal fee
-    //  */
-    // function setVaultFeeCollector(address _vaultFeeCollector) external;
-
     /**
      * @notice function to control whitelisted state
      * @param _allowWhitelistedState vault's allow whitelisted state flag
@@ -132,14 +98,14 @@ interface IVaultV2 {
     /**
      * @notice Recall vault investments from current strategy, restricts deposits
      *         and allows redemption of the shares
-     * @dev this function can be invoked by governance via registry
+     * @dev this function can be invoked by governance
      */
     function discontinue() external;
 
     /**
      * @notice This function can temporarily restrict user from depositing
      *         or withdrawing assets to and from the vault
-     * @dev this function can be invoked by governance via registry
+     * @dev this function can be invoked by governance
      * @param _unpaused for invoking/revoking pause over the vault
      */
     function setUnpaused(bool _unpaused) external;
@@ -234,14 +200,13 @@ interface IVaultV2 {
      * @notice Makes a decision based on vault configuration parameters
      *         to allow user deposits
      * @param _user address of the depositor
-     * @param _userDepositUnderlying deposit amount in underlying
+     * @param _userDepositUT actual deposit amount after deducting
+     *                               third party transfer fees and
+     *                               deposit fees if any
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
-    function userDepositPermitted(address _user, uint256 _userDepositUnderlying)
-        external
-        view
-        returns (bool, string memory);
+    function userDepositPermitted(address _user, uint256 _userDepositUT) external view returns (bool, string memory);
 
     /**
      * @notice function to decide whether to allow vault to deposit to the strategy
