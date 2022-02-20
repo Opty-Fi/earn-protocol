@@ -14,6 +14,7 @@ import {
   RiskManagerProxy,
   RiskManagerV2,
   StrategyProviderV2,
+  Vault,
   VaultV2,
 } from "../../typechain";
 import {
@@ -29,6 +30,8 @@ chai.use(solidity);
 
 const OPUSDCGROW_VAULT_PROXY_ADDRESS = opUSDCgrow.VaultProxy;
 const OPWETHGROW_VAULT_PROXY_ADDRESS = opWETHgrow.VaultProxy;
+const OPUSDCGROW_VAULT_ADDRESS = opUSDCgrow.Vault;
+const OPWETHGROW_VAULT_ADDRESS = opWETHgrow.Vault;
 const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 const RISK_MANAGER_PROXY = RiskManagerProxyAddress;
 
@@ -43,23 +46,25 @@ describe("VaultV2", () => {
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
     this.signers.admin = signers[1];
+    this.signers.alice = signers[3];
+    this.signers.bob = signers[4];
+    this.signers.eve = signers[10];
     this.registryProxy = <RegistryProxy>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, REGISTRY_PROXY_ADDRESS)
     );
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [operatorAddress],
-    });
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [financeOperatorAddress],
+    const governanceAddress = await this.registry.getGovernance();
+    [operatorAddress, financeOperatorAddress, governanceAddress].forEach(async addr => {
+      await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [addr],
+      });
     });
     this.signers.operator = await ethers.getSigner(operatorAddress);
     this.signers.financeOperator = await ethers.getSigner(financeOperatorAddress);
-
+    this.signers.governance = await ethers.getSigner(governanceAddress);
     this.registryV2 = <RegistryV2>await waffle.deployContract(this.signers.deployer, this.registryV2Artifact);
     // the operator is not impersonated before calling below fn, please get operator from v1 then upgrade v2
     await this.registryProxy.connect(this.signers.operator).setPendingImplementation(this.registryV2.address);
@@ -81,6 +86,8 @@ describe("VaultV2", () => {
 
     await this.registryV2.connect(this.signers.operator).setStrategyProvider(this.strategyProviderV2.address);
     await this.registryV2.connect(this.signers.operator).setRiskManager(this.riskManagerV2.address);
+    this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_ADDRESS);
+    this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHGROW_VAULT_ADDRESS);
   });
   describe("opUSDCgrowV2 and opWETHgrowV2 after on-chain upgrade", () => {
     before(async function () {
@@ -313,22 +320,24 @@ describe("VaultV2", () => {
     });
 
     it("fails setWhitelistedAccounts() call by non governance", async function () {
-      // await expect(this.vaultV2.setTotalValueLockedLimitUT("100000000")).to.be.revertedWith(
-      //   "caller is not the operator",
-      // );
+      await expect(this.vaultV2.setWhitelistedAccounts([this.signers.alice.address], [true])).to.be.revertedWith(
+        "caller is not having governance",
+      );
     });
     it("setWhitelistedAccounts() call by governance", async function () {
-      // await this.vaultV2.connect(this.signers.operator).setTotalValueLockedLimitUT("100000000");
-      // expect((await this.vaultV2.vaultConfiguration())[10]).to.eq("100000000");
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccounts([this.signers.alice.address], [true]);
+      expect(await this.vaultV2.whitelistedAccounts(this.signers.alice.address)).to.be.true;
     });
     it("fails setWhitelistedCodes() call by non governance", async function () {
-      // await expect(this.vaultV2.setTotalValueLockedLimitUT("100000000")).to.be.revertedWith(
-      //   "caller is not the operator",
-      // );
+      await expect(this.vaultV2.setWhitelistedCodes([this.opUSDCgrow.address], [true])).to.be.revertedWith(
+        "caller is not having governance",
+      );
     });
     it("setWhitelistedCodes() call by governance", async function () {
-      // await this.vaultV2.connect(this.signers.operator).setTotalValueLockedLimitUT("100000000");
-      // expect((await this.vaultV2.vaultConfiguration())[10]).to.eq("100000000");
+      const code = await ethers.provider.getCode(this.opUSDCgrow.address);
+      const codeHash = ethers.utils.keccak256(code);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedCodes([this.opUSDCgrow.address], [true]);
+      expect(await this.vaultV2.whitelistedCodes(codeHash)).to.be.true;
     });
     it("fail discontinue() call by non operator", async function () {});
     it("discontinue() call by operator", async function () {});
