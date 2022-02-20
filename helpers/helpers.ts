@@ -78,6 +78,17 @@ export function generateStrategyHash(strategy: STRATEGY_DATA[], tokenAddress: st
   return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
 }
 
+export function generateStrategyHashV2(strategy: STRATEGY_DATA[], tokensHash: string): string {
+  const strategyStepsHash: string[] = [];
+  for (let index = 0; index < strategy.length; index++) {
+    strategyStepsHash[index] = getSoliditySHA3Hash(
+      ["address", "address", "bool"],
+      [strategy[index].contract, strategy[index].outputToken, strategy[index].isBorrow],
+    );
+  }
+  return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
+}
+
 export function generateStrategyStep(strategy: STRATEGY_DATA[]): [string, string, boolean][] {
   const strategySteps: [string, string, boolean][] = [];
   for (let index = 0; index < strategy.length; index++) {

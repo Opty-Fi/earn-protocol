@@ -28,6 +28,8 @@ import {
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedTokens } from "../../helpers/data";
 import { setTokenBalanceInStorage } from "./utils";
+import { TypedDefiPools } from "../../helpers/data/defiPools";
+import { generateStrategyHashV2 } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -442,9 +444,7 @@ describe("VaultV2", () => {
         "8",
       ]);
     });
-    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {
-      // expect(await this.vaultV2.userDepositPermitted(this.opWETHgrow.address, "1")).to.have.members([false, "8"]);
-    });
+    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {});
     it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
       expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100", true)).to.have.members([
         false,
@@ -469,20 +469,75 @@ describe("VaultV2", () => {
         "",
       ]);
     });
-    it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {});
-    it("vaultDepositPermitted() return false,VAULT_DISCONTINUED", async function () {});
-    it('vaultDepositPermitted() return true,""', async function () {});
-    it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {});
-    it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {});
-    it('userWithdrawPermitted() return true,""', async function () {});
-    it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {});
-    it('vaultWithdrawPermitted() return true,""', async function () {});
-    it("calcDepositFeeUT()", async function () {});
-    it("calcWithdrawalFeeUT()", async function () {});
+    it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {
+      expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "14"]);
+    });
+    it('vaultDepositPermitted() return true,""', async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([true, ""]);
+    });
+    it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "14"]);
+    });
+    it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "1"]);
+    });
+    it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([false, "14"]);
+    });
+    it('vaultWithdrawPermitted() return true,""', async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([true, ""]);
+    });
+    it("calcDepositFeeUT()", async function () {
+      const vaultConfiguration = await this.vaultV2.vaultConfiguration();
+      const { depositFeePct, depositFeeFlatUT } = vaultConfiguration;
+      const amount = BigNumber.from("10000000");
+      const expectedFee = amount.mul(depositFeePct).div(10000).add(depositFeeFlatUT);
+      expect(await this.vaultV2.calcDepositFeeUT(amount)).to.eq(expectedFee);
+    });
+    it("calcWithdrawalFeeUT()", async function () {
+      const vaultConfiguration = await this.vaultV2.vaultConfiguration();
+      const { withdrawalFeePct, withdrawalFeeFlatUT } = vaultConfiguration;
+      const amount = BigNumber.from("10000000");
+      const expectedFee = amount.mul(withdrawalFeePct).div(10000).add(withdrawalFeeFlatUT);
+      expect(await this.vaultV2.calcWithdrawalFeeUT(amount)).to.eq(expectedFee);
+    });
+    it("computeInvestStrategyHash()", async function () {
+      const USDC_TOKEN_HASH = await this.vaultV2.underlyingTokensHash();
+
+      const USDC_COMPOUND_HASH = generateStrategyHashV2(
+        [
+          {
+            contract: TypedDefiPools.CompoundAdapter.usdc.pool,
+            outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
+            isBorrow: false,
+          },
+        ],
+        USDC_TOKEN_HASH,
+      );
+      expect(
+        await this.vaultV2.computeInvestStrategyHash([
+          {
+            pool: TypedDefiPools.CompoundAdapter.usdc.pool,
+            outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
+            isBorrow: false,
+          },
+        ]),
+      ).to.eq(USDC_COMPOUND_HASH);
+    });
+    // ========
     it("getNextBestInvestStrategy()", async function () {});
     it("getLastStrategyStepBalanceLP()", async function () {});
-    it("computeInvestStrategyHash()", async function () {});
+    it("userDepositVault()", async function () {});
+    it('userWithdrawPermitted() return true,""', async function () {});
+    it("userWithdrawVault()", async function () {});
+    // ========
     it("discontinue() call by operator", async function () {});
+    it("vaultDepositPermitted() return false,VAULT_DISCONTINUED", async function () {});
   });
   describe("VaultV2 strategies", () => {
     before(async function () {
