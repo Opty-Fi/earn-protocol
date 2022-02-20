@@ -215,10 +215,6 @@ contract VaultV2 is
             _vaultWithdrawAllFromStrategy(investStrategySteps);
             investStrategyHash = Constants.ZERO_BYTES32;
         }
-        if (_unpaused == true) {
-            _setInvestStrategySteps(getNextBestInvestStrategy());
-            _vaultDepositAllToStrategy(investStrategySteps);
-        }
         vaultConfiguration.unpaused = _unpaused;
         emit LogUnpause(vaultConfiguration.unpaused, msg.sender);
     }
@@ -265,7 +261,7 @@ contract VaultV2 is
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
         (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(msg.sender, _netUserDepositUT);
+            userDepositPermitted(msg.sender, _netUserDepositUT, false);
         require(_userDepositPermitted, _userDepositPermittedReason);
         // add net deposit amount to user's total deposit
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
@@ -403,12 +399,11 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function userDepositPermitted(address _user, uint256 _userDepositUT)
-        public
-        view
-        override
-        returns (bool, string memory)
-    {
+    function userDepositPermitted(
+        address _user,
+        uint256 _userDepositUT,
+        bool _addUserDepositUT
+    ) public view override returns (bool, string memory) {
         if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_user]) {
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
@@ -419,7 +414,9 @@ contract VaultV2 is
         if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
         }
-        if (_oraVaultAndStratValueUT() > vaultConfiguration.totalValueLockedLimitUT) {
+        if (!_addUserDepositUT && _oraVaultAndStratValueUT() > vaultConfiguration.totalValueLockedLimitUT) {
+            return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
+        } else if (_oraVaultAndStratValueUT().add(_userDepositUT) > vaultConfiguration.totalValueLockedLimitUT) {
             return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
         }
         if (totalDeposits[_user].add(_userDepositUT) > vaultConfiguration.userDepositCapUT) {

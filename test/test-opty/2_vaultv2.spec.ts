@@ -95,6 +95,7 @@ describe("VaultV2", () => {
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
   });
   describe("opUSDCgrowV2 and opWETHgrowV2 after on-chain upgrade", () => {
+    // TODO : recall all investments, pause the vault then upgrade
     before(async function () {
       // testing already deployed contracts
       // this code block may fail if the block number is made greater than
@@ -220,7 +221,7 @@ describe("VaultV2", () => {
           "0x",
         ])
       );
-      this.vaultV2 = <VaultV2>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, this.vaultV2.address);
+      this.vaultV2 = <VaultV2>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, this.vaultProxyV2.address);
       const usdcTokenHash = getSoliditySHA3Hash(["address", "uint256"], [TypedTokens["USDC"], chainId]);
       await this.registryV2
         .connect(this.signers.operator)
@@ -299,11 +300,11 @@ describe("VaultV2", () => {
     });
 
     it("fails setUserDepositCapUT() call by non finance operator", async function () {
-      await expect(this.vaultV2.setUserDepositCapUT("10")).to.be.revertedWith("caller is not the operator");
+      await expect(this.vaultV2.setUserDepositCapUT("2000")).to.be.revertedWith("caller is not the operator");
     });
     it("setUserDepositCapUT() call by finance operator", async function () {
-      await this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("10");
-      expect((await this.vaultV2.vaultConfiguration())[8]).to.eq("10");
+      await this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("2000");
+      expect((await this.vaultV2.vaultConfiguration())[8]).to.eq("2000");
     });
 
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
@@ -347,12 +348,15 @@ describe("VaultV2", () => {
     it("fail discontinue() call by non operator", async function () {
       await expect(this.vaultV2.discontinue()).to.be.revertedWith("caller is not having governance");
     });
-    it("discontinue() call by operator", async function () {});
     it("fail setUnpaused() call by non operator", async function () {
       await expect(this.vaultV2.setUnpaused(false)).to.be.revertedWith("caller is not having governance");
     });
-    it("setUnpaused() call by operator (null strategy)", async function () {});
+    it("setUnpaused() call by operator (null strategy)", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      expect((await this.vaultV2.vaultConfiguration()).unpaused).to.be.true;
+    });
     it("fail rebalance() call, vault is paused", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
       await expect(this.vaultV2.rebalance()).to.be.revertedWith("14");
     });
     it("fail userDepositVault() call, vault is paused", async function () {
@@ -366,24 +370,105 @@ describe("VaultV2", () => {
     it("fail userWithdrawVault() call, vault is paused", async function () {
       await expect(this.vaultV2.connect(this.signers.alice).userDepositVault("12")).to.be.revertedWith("14");
     });
-    it("fail vaultDepositAllToStrategy() call, vault is paused", async function () {});
-    it("fail adminCall() call by non operator", async function () {});
-    it("fail setRiskProfileCode() call by non operator", async function () {});
-    it("setRiskProfileCode() call by operator", async function () {});
+    it("fail vaultDepositAllToStrategy() call, vault is paused", async function () {
+      await expect(this.vaultV2.vaultDepositAllToStrategy()).to.be.revertedWith("14");
+    });
+    it("fail adminCall() call by non operator", async function () {
+      const _codes = [];
+      const iface = new ethers.utils.Interface(["function approve(address,uint256)"]);
+      _codes.push(
+        ethers.utils.defaultAbiCoder.encode(
+          ["address", "bytes"],
+          [this.usdc.address, iface.encodeFunctionData("approve", [this.signers.alice.address, "200"])],
+        ),
+      );
+      await expect(this.vaultV2.adminCall(_codes)).to.be.revertedWith("caller is not the operator");
+    });
+    it("fail setRiskProfileCode() call by non operator", async function () {
+      await expect(this.vaultV2.setRiskProfileCode(1)).to.be.revertedWith("caller is not the operator");
+    });
+    it("setRiskProfileCode() call by operator", async function () {
+      await this.vaultV2.connect(this.signers.operator).setRiskProfileCode(1);
+      expect(await this.vaultV2.riskProfileCode()).to.be.eq("1");
+    });
+    it("fail setRiskProfileCode(), non-existant code", async function () {
+      await expect(this.vaultV2.connect(this.signers.operator).setRiskProfileCode(3)).to.be.revertedWith("5");
+    });
 
-    it("fail setUnderlyingTokenAndTokensHash() call by non operator", async function () {});
-    it("setUnderlyingTokenAndTokensHash() call by operator", async function () {});
-    it("balanceUT() return 0", async function () {});
-    it("isMaxVaultValueJumpAllowed() return true", async function () {});
-    it("isMaxVaultValueJumpAllowed() return false", async function () {});
-    it("getPricePerFullShare() return 0", async function () {});
+    it("fail setUnderlyingTokenAndTokensHash() call by non operator", async function () {
+      await expect(
+        this.vaultV2.setUnderlyingTokenAndTokensHash(TypedTokens["USDC"], ethers.constants.HashZero),
+      ).to.be.revertedWith("caller is not the operator");
+    });
+    it("fail setUnderlyingTokenAndTokensHash(), registry not approved", async function () {
+      await expect(
+        this.vaultV2
+          .connect(this.signers.operator)
+          .setUnderlyingTokenAndTokensHash(
+            TypedTokens["USDC"],
+            getSoliditySHA3Hash(["address", "uint256"], [TypedTokens["USDC"], chainId.concat("a")]),
+          ),
+      ).to.be.revertedWith("17");
+    });
+    it("setUnderlyingTokenAndTokensHash() call by operator", async function () {
+      await this.vaultV2
+        .connect(this.signers.operator)
+        .setUnderlyingTokenAndTokensHash(
+          TypedTokens["USDC"],
+          getSoliditySHA3Hash(["address", "uint256"], [TypedTokens["USDC"], chainId]),
+        );
+      expect(await this.vaultV2.underlyingToken()).to.eq(TypedTokens["USDC"]);
+      expect(await this.vaultV2.underlyingTokensHash()).to.eq(
+        getSoliditySHA3Hash(["address", "uint256"], [TypedTokens["USDC"], chainId]),
+      );
+    });
+    it("balanceUT() return 0", async function () {
+      expect(await this.vaultV2.balanceUT()).to.eq("0");
+    });
+    it("isMaxVaultValueJumpAllowed() return true", async function () {
+      expect(await this.vaultV2.isMaxVaultValueJumpAllowed("1", "10000")).to.be.true;
+    });
+    it("isMaxVaultValueJumpAllowed() return false", async function () {
+      expect(await this.vaultV2.isMaxVaultValueJumpAllowed("10000", "1")).to.be.false;
+    });
+    it("getPricePerFullShare() return 0", async function () {
+      expect(await this.vaultV2.getPricePerFullShare()).to.eq("0");
+    });
 
-    it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {});
-    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {});
-    it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {});
-    it("userDepositPermitted() return false,TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {});
-    it("userDepositPermitted() return false,USER_DEPOSIT_CAP_UT", async function () {});
-    it('userDepositPermitted() return true,""', async function () {});
+    it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {
+      await this.vaultV2.connect(this.signers.financeOperator).setAllowWhitelistedState(true);
+      expect(await this.vaultV2.userDepositPermitted(this.signers.bob.address, "1", true)).to.have.members([
+        false,
+        "8",
+      ]);
+    });
+    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {
+      // expect(await this.vaultV2.userDepositPermitted(this.opWETHgrow.address, "1")).to.have.members([false, "8"]);
+    });
+    it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
+      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100", true)).to.have.members([
+        false,
+        "10",
+      ]);
+    });
+    it("userDepositPermitted() return false,TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
+      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "1000000000", true)).to.have.members([
+        false,
+        "11",
+      ]);
+    });
+    it("userDepositPermitted() return false,USER_DEPOSIT_CAP_UT", async function () {
+      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "10000000", true)).to.have.members([
+        false,
+        "12",
+      ]);
+    });
+    it('userDepositPermitted() return true,""', async function () {
+      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "1500", true)).to.have.members([
+        true,
+        "",
+      ]);
+    });
     it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {});
     it("vaultDepositPermitted() return false,VAULT_DISCONTINUED", async function () {});
     it('vaultDepositPermitted() return true,""', async function () {});
@@ -397,12 +482,13 @@ describe("VaultV2", () => {
     it("getNextBestInvestStrategy()", async function () {});
     it("getLastStrategyStepBalanceLP()", async function () {});
     it("computeInvestStrategyHash()", async function () {});
+    it("discontinue() call by operator", async function () {});
   });
   describe("VaultV2 strategies", () => {
     before(async function () {
       console.log("rmv2 ", this.riskManagerV2.address);
     });
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 1; i++) {
       it(`strategy${i}`, async function () {
         console.log("fn1");
       });

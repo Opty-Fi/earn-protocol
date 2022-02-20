@@ -203,10 +203,16 @@ interface IVaultV2 {
      * @param _userDepositUT actual deposit amount after deducting
      *                               third party transfer fees and
      *                               deposit fees if any
+     * @param _addUserDepositUT whether to add _userDepositUT while
+     *                          checking for TVL
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
-    function userDepositPermitted(address _user, uint256 _userDepositUT) external view returns (bool, string memory);
+    function userDepositPermitted(
+        address _user,
+        uint256 _userDepositUT,
+        bool _addUserDepositUT
+    ) external view returns (bool, string memory);
 
     /**
      * @notice function to decide whether to allow vault to deposit to the strategy
