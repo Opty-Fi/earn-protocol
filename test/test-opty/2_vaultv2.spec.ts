@@ -33,6 +33,7 @@ import { VAULT_TOKENS } from "../../helpers/constants/tokens";
 
 chai.use(solidity);
 
+const chainId = "1";
 const OPUSDCGROW_VAULT_PROXY_ADDRESS = opUSDCgrow.VaultProxy;
 const OPWETHGROW_VAULT_PROXY_ADDRESS = opWETHgrow.VaultProxy;
 const OPUSDCGROW_VAULT_ADDRESS = opUSDCgrow.Vault;
@@ -47,6 +48,17 @@ const USDC_COMPOUND_ETHEREUM = [
     isBorrow: false,
   },
 ];
+
+const USDC_COMPOUND_ETHEREUM_HASH = generateStrategyHashV2(
+  [
+    {
+      contract: USDC_COMPOUND_ETHEREUM[0].pool,
+      outputToken: USDC_COMPOUND_ETHEREUM[0].outputToken,
+      isBorrow: USDC_COMPOUND_ETHEREUM[0].isBorrow,
+    },
+  ],
+  VAULT_TOKENS.USDC.hash[chainId],
+);
 
 const USDC_AAVEV1_ETHEREUM = [
   {
@@ -64,7 +76,6 @@ const USDC_AAVEV2_ETHEREUM = [
   },
 ];
 
-const chainId = "1";
 describe("VaultV2", () => {
   before(async function () {
     this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT_V2);
@@ -257,10 +268,15 @@ describe("VaultV2", () => {
         this.registryV2.address,
         VAULT_TOKENS.USDC.address,
         VAULT_TOKENS.USDC.hash[chainId],
-        "USDC Coin",
+        "USD Coin",
         "USDC",
         "1",
       );
+    });
+    it("name,symbol,decimals as expected", async function () {
+      expect(await this.vaultV2.name()).to.eq("op USD Coin Growth");
+      expect(await this.vaultV2.symbol()).to.eq("opUSDCgrow");
+      expect(await this.vaultV2.decimals()).to.eq(6);
     });
     it("fail setValueControlParams() by non Finance operator", async function () {
       await expect(
@@ -530,19 +546,7 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.calcWithdrawalFeeUT(amount)).to.eq(expectedFee);
     });
     it("computeInvestStrategyHash()", async function () {
-      const USDC_TOKEN_HASH = await this.vaultV2.underlyingTokensHash();
-
-      const USDC_COMPOUND_HASH = generateStrategyHashV2(
-        [
-          {
-            contract: TypedDefiPools.CompoundAdapter.usdc.pool,
-            outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-            isBorrow: false,
-          },
-        ],
-        USDC_TOKEN_HASH,
-      );
-      expect(await this.vaultV2.computeInvestStrategyHash(USDC_COMPOUND_ETHEREUM)).to.eq(USDC_COMPOUND_HASH);
+      expect(await this.vaultV2.computeInvestStrategyHash(USDC_COMPOUND_ETHEREUM)).to.eq(USDC_COMPOUND_ETHEREUM_HASH);
     });
     // ========
     it("getNextBestInvestStrategy()", async function () {
@@ -566,9 +570,58 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(_depositAmountUSDC))
         .to.emit(this.vaultV2, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDC);
+      expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_depositAmountUSDC);
+      expect(await this.vaultV2.totalSupply()).to.eq(_depositAmountUSDC);
+      expect(await this.vaultV2.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDC);
+      expect(await this.vaultV2.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDC);
     });
-    it("rebalance(), deposit asset into strategy", async function () {});
-    it('userWithdrawPermitted() return true,""', async function () {});
+    it("rebalance(), deposit asset into strategy", async function () {
+      const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      const _pool = USDC_COMPOUND_ETHEREUM[0].pool;
+      const _adapterAddress = await this.registryV2.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      await this.vaultV2.rebalance();
+      const _expectedVaultUsdcBalance = BigNumber.from("0");
+      expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_expectedVaultUsdcBalance);
+      const canStake: boolean = await _adapterInstance.canStake(_pool);
+      let expectedlpTokenBalance = BigNumber.from("0");
+      if (canStake) {
+        expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalanceStake(this.vaultV2.address, _pool);
+      }
+      expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalance(
+        this.vaultV2.address,
+        VAULT_TOKENS.USDC.address,
+        _pool,
+      );
+      const _lpTokenAddress = USDC_COMPOUND_ETHEREUM[0].outputToken;
+      const _lpTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, _lpTokenAddress);
+      const _actuallpTokenBalance = await _lpTokenInstance.balanceOf(this.vaultV2.address);
+      expect(_actuallpTokenBalance).to.eq(expectedlpTokenBalance);
+      let _allAmountInToken = BigNumber.from("0");
+      if (canStake) {
+        _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
+          this.vaultV2.address,
+          VAULT_TOKENS.USDC.address,
+          _pool,
+        );
+      } else {
+        _allAmountInToken = await _adapterInstance.getAllAmountInToken(
+          this.vaultV2.address,
+          VAULT_TOKENS.USDC.address,
+          _pool,
+        );
+      }
+      const _expectedPricePerFullShare = _allAmountInToken.mul(to_10powNumber_BN("18")).div(_totalSupply);
+      expect(await this.vaultV2.getPricePerFullShare()).to.eq(_expectedPricePerFullShare);
+      expect(await this.vaultV2.getInvestStrategySteps()).to.deep.eq([
+        [USDC_COMPOUND_ETHEREUM[0].pool, USDC_COMPOUND_ETHEREUM[0].outputToken, USDC_COMPOUND_ETHEREUM[0].isBorrow],
+      ]);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(USDC_COMPOUND_ETHEREUM_HASH);
+    });
+    it('userWithdrawPermitted() return true,""', async function () {
+      const _balanceVT = await this.vaultV2.balanceOf(this.signers.alice.address);
+      expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, _balanceVT)).members([true, ""]);
+    });
     it("userWithdrawVault()", async function () {});
     // ========
     it("discontinue() call by operator", async function () {});

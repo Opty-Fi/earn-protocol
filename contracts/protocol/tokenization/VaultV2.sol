@@ -229,8 +229,10 @@ contract VaultV2 is
         require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
         _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
         bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
-        if (_nextBestInvestStrategyHash != investStrategyHash && investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultWithdrawAllFromStrategy(investStrategySteps);
+        if (_nextBestInvestStrategyHash != investStrategyHash) {
+            if (investStrategyHash != Constants.ZERO_BYTES32) {
+                _vaultWithdrawAllFromStrategy(investStrategySteps);
+            }
             _setInvestStrategySteps(_cacheNextInvestStrategySteps);
             investStrategyHash = _nextBestInvestStrategyHash;
         }
