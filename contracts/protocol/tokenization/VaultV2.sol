@@ -512,6 +512,13 @@ contract VaultV2 is
     }
 
     /**
+     * @inheritdoc IVaultV2
+     */
+    function getInvestStrategySteps() public view override returns (DataTypes.StrategyStep[] memory) {
+        return investStrategySteps;
+    }
+
+    /**
      * @dev function to compute the keccak256 hash of the strategy steps
      * @param _investStrategySteps metadata for invest strategy
      * @return keccak256 hash of the invest strategy and underlying tokens hash

@@ -127,6 +127,7 @@ export type TOKENS_DATA = {
   [name: string]: {
     address: string;
     pair: boolean;
+    hash: { [key: string]: string };
   };
 };
 

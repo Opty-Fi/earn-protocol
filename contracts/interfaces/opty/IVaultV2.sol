@@ -267,4 +267,10 @@ interface IVaultV2 {
         external
         view
         returns (uint256);
+
+    /**
+     * @notice retireves current strategy metadata
+     * @return array of strategy steps
+     */
+    function getInvestStrategySteps() external view returns (DataTypes.StrategyStep[] memory);
 }
