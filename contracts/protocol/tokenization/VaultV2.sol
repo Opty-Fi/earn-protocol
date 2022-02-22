@@ -409,7 +409,7 @@ contract VaultV2 is
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
         //solhint-disable-next-line avoid-tx-origin
-        if (msg.sender != tx.origin && _greyList(_user)) {
+        if (_user != tx.origin && _greyList(_user)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {

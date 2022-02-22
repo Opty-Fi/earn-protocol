@@ -99,6 +99,7 @@ declare module "mocha" {
     vaultV2Artifact: Artifact;
     vaultV2: VaultV2;
     vaultProxyV2: AdminUpgradeabilityProxy;
+    testVaultV2Artifact: Artifact;
     testVaultV2: TestVaultV2;
     opUSDCgrowV2: VaultV2;
     opWETHgrowV2: VaultV2;

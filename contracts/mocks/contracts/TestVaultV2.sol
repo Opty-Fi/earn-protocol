@@ -31,4 +31,8 @@ contract TestVaultV2 {
     function withdrawETH(address payable _recipient) external {
         _recipient.transfer(payable(address(this)).balance);
     }
+
+    function testUserDepositPermitted(IVaultV2 _vault, uint256 _valueUT) external view returns (bool, string memory) {
+        return _vault.userDepositPermitted(address(this), _valueUT, true);
+    }
 }

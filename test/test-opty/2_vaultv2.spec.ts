@@ -16,6 +16,7 @@ import {
   RiskManagerProxy,
   RiskManagerV2,
   StrategyProviderV2,
+  TestVaultV2,
   Vault,
   VaultV2,
 } from "../../typechain";
@@ -115,6 +116,7 @@ describe("VaultV2", () => {
   before(async function () {
     this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT_V2);
     this.registryV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.REGISTRY_V2);
+    this.testVaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.TEST_VAULT_V2);
     const riskManagerV2Artifact: Artifact = await artifacts.readArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER_V2);
     const strategyProviderV2Artifact: Artifact = await artifacts.readArtifact(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER_V2);
     this.signers = {} as Signers;
@@ -143,7 +145,6 @@ describe("VaultV2", () => {
     this.signers.governance = await ethers.getSigner(governanceAddress);
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
     this.registryV2 = <RegistryV2>await waffle.deployContract(this.signers.deployer, this.registryV2Artifact);
-    // the operator is not impersonated before calling below fn, please get operator from v1 then upgrade v2
     await this.registryProxy.connect(this.signers.operator).setPendingImplementation(this.registryV2.address);
     await this.registryV2.connect(this.signers.operator).become(this.registryProxy.address);
     this.registryV2 = <RegistryV2>(
@@ -311,6 +312,7 @@ describe("VaultV2", () => {
         "USDC",
         "1",
       );
+      this.testVaultV2 = <TestVaultV2>await deployContract(this.signers.deployer, this.testVaultV2Artifact, []);
     });
     it("name,symbol,decimals as expected", async function () {
       expect(await this.vaultV2.name()).to.eq("op USD Coin Growth");
@@ -421,7 +423,7 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.whitelistedAccounts(this.signers.alice.address)).to.be.true;
     });
     it("fails setWhitelistedCodes() call by non governance", async function () {
-      await expect(this.vaultV2.setWhitelistedCodes([this.opUSDCgrow.address], [true])).to.be.revertedWith(
+      await expect(this.vaultV2.setWhitelistedCodes([this.testVaultV2.address], [true])).to.be.revertedWith(
         "caller is not having governance",
       );
     });
@@ -533,7 +535,12 @@ describe("VaultV2", () => {
         "8",
       ]);
     });
-    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {});
+    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {
+      expect(await this.testVaultV2.testUserDepositPermitted(this.vaultV2.address, "1000000000")).to.have.members([
+        false,
+        "8",
+      ]);
+    });
     it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
       expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100", true)).to.have.members([
         false,
@@ -551,8 +558,16 @@ describe("VaultV2", () => {
         "12",
       ]);
     });
-    it('userDepositPermitted() return true,""', async function () {
+    it('call userDepositPermitted() from EOA return true,""', async function () {
       expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "1500000000", true)).to.have.members([
+        true,
+        "",
+      ]);
+    });
+    it('call userDepositPermitted() from CA return true,""', async function () {
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccounts([this.testVaultV2.address], [true]);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedCodes([this.testVaultV2.address], [true]);
+      expect(await this.testVaultV2.testUserDepositPermitted(this.vaultV2.address, "1500000000")).to.have.members([
         true,
         "",
       ]);
@@ -604,7 +619,6 @@ describe("VaultV2", () => {
         testStrategy[fork][strategyKeys[0]].hash,
       );
     });
-    // ========
     it("getNextBestInvestStrategy()", async function () {
       expect((await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
       await this.strategyProviderV2
