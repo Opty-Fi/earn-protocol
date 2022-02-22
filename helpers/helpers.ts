@@ -89,6 +89,11 @@ export function generateStrategyHashV2(strategy: STRATEGY_DATA[], tokensHash: st
   return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
 }
 
+//  function to generate the token/list of tokens's hash
+export function generateTokenHashV2(addresses: string[], chainId: string): string {
+  return getSoliditySHA3Hash(["address[]", "string"], [addresses, chainId]);
+}
+
 export function generateStrategyStep(strategy: STRATEGY_DATA[]): [string, string, boolean][] {
   const strategySteps: [string, string, boolean][] = [];
   for (let index = 0; index < strategy.length; index++) {

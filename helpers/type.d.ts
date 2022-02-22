@@ -127,7 +127,16 @@ export type TOKENS_DATA = {
   [name: string]: {
     address: string;
     pair: boolean;
-    hash: { [key: string]: string };
+  };
+};
+
+export type MULTI_CHAIN_TOKENS_DATA = {
+  [key: string]: {
+    [name: string]: {
+      address: string;
+      pair: boolean;
+      hash: string;
+    };
   };
 };
 
