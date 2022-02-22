@@ -252,7 +252,7 @@ describe("VaultV2", () => {
 
     it("vaultConfigurationV2() for opUSDCgrow V2", async function () {
       const vaultConfigurationV2 = await this.opUSDCgrowV2.vaultConfiguration();
-      expect(vaultConfigurationV2.discontinued).to.be.false;
+      expect(vaultConfigurationV2.emergencyShutdown).to.be.false;
       expect(vaultConfigurationV2.unpaused).to.be.false;
       expect(vaultConfigurationV2.allowWhitelistedState).to.be.false;
       expect(vaultConfigurationV2.depositFeeFlatUT).to.eq("0");
@@ -266,7 +266,7 @@ describe("VaultV2", () => {
 
     it("vaultConfigurationV2() for opWETHgrow V2", async function () {
       const vaultConfigurationV2 = await this.opWETHgrowV2.vaultConfiguration();
-      expect(vaultConfigurationV2.discontinued).to.be.false;
+      expect(vaultConfigurationV2.emergencyShutdown).to.be.false;
       expect(vaultConfigurationV2.unpaused).to.be.false;
       expect(vaultConfigurationV2.allowWhitelistedState).to.be.false;
       expect(vaultConfigurationV2.depositFeeFlatUT).to.eq("0");
@@ -431,13 +431,17 @@ describe("VaultV2", () => {
       await this.vaultV2.connect(this.signers.governance).setWhitelistedCodes([this.opUSDCgrow.address], [true]);
       expect(await this.vaultV2.whitelistedCodes(codeHash)).to.be.true;
     });
-    it("fail discontinue() call by non operator", async function () {
-      await expect(this.vaultV2.discontinue()).to.be.revertedWith("caller is not having governance");
+    it("fail setEmergencyShutdown() call by non governance", async function () {
+      await expect(this.vaultV2.setEmergencyShutdown(true)).to.be.revertedWith("caller is not having governance");
     });
-    it("fail setUnpaused() call by non operator", async function () {
+    it("setEmergencyShutdown() call by governance", async function () {
+      await this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(true);
+      expect((await this.vaultV2.vaultConfiguration()).emergencyShutdown).to.be.true;
+    });
+    it("fail setUnpaused() call by non governance", async function () {
       await expect(this.vaultV2.setUnpaused(false)).to.be.revertedWith("caller is not having governance");
     });
-    it("setUnpaused() call by operator (null strategy)", async function () {
+    it("setUnpaused() call by governance (null strategy)", async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
       expect((await this.vaultV2.vaultConfiguration()).unpaused).to.be.true;
     });
@@ -556,8 +560,13 @@ describe("VaultV2", () => {
     it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "14"]);
     });
-    it('vaultDepositPermitted() return true,""', async function () {
+    it("vaultDepositPermitted() return false,VAULT_EMERGENCY_SHUTDOWN", async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "13"]);
+    });
+    it('vaultDepositPermitted() return true,""', async function () {
+      await this.vaultV2.connect(this.signers.governance).setAllowWhitelistedState(false);
+      await this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(false);
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([true, ""]);
     });
     it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
@@ -669,10 +678,10 @@ describe("VaultV2", () => {
       const _balanceVT = await this.vaultV2.balanceOf(this.signers.alice.address);
       expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, _balanceVT)).members([true, ""]);
     });
-    it("userWithdrawVault()", async function () {});
-    // ========
-    it("discontinue() call by operator", async function () {});
-    it("vaultDepositPermitted() return false,VAULT_DISCONTINUED", async function () {});
+    it("userWithdrawVault()", async function () {
+      const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
+      await this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT);
+    });
   });
   describe("VaultV2 strategies", () => {
     before(async function () {

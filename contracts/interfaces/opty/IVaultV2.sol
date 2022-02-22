@@ -96,17 +96,26 @@ interface IVaultV2 {
     function setWhitelistedCodes(address[] memory _accounts, bool[] memory _whitelist) external;
 
     /**
-     * @notice Recall vault investments from current strategy, restricts deposits
-     *         and allows redemption of the shares
-     * @dev this function can be invoked by governance
+     * @notice activates or deactives vault mode where
+     *        all strategies go into full withdrawal. During emergency shutdown
+     *        - No Users may deposit into the Vault (but may withdraw as usual.)
+     *        - Only Governance may undo Emergency Shutdown.
+     *        - No user may transfer vault tokens
+     * @dev current strategy will be null
+     * @param _active If true, the Vault goes into Emergency Shutdown. If false, the Vault
+     *        goes back into Normal Operation
      */
-    function discontinue() external;
+    function setEmergencyShutdown(bool _active) external;
 
     /**
-     * @notice This function can temporarily restrict user from depositing
-     *         or withdrawing assets to and from the vault
-     * @dev this function can be invoked by governance
-     * @param _unpaused for invoking/revoking pause over the vault
+     * @notice activates or deactivates vault mode where all strategies
+     *        go into full withdrawal. During pause
+     *        - No users may deposit nor withdraw from vault
+     *        - No user may transfer vault tokens
+     *        This function can only be invoked by governance
+     * @dev current strategy of vault will be null
+     * @param _unpaused If true, the vault goes into unpause mode. If false(default), the vault
+     *      goes into pause mode
      */
     function setUnpaused(bool _unpaused) external;
 
@@ -273,4 +282,46 @@ interface IVaultV2 {
      * @return array of strategy steps
      */
     function getInvestStrategySteps() external view returns (DataTypes.StrategyStep[] memory);
+
+    /**
+     * @dev Emitted when emergency shutdown over vault is changed
+     * @param emergencyShutdown true mean vault is in emergency shutdown mode
+     * @param caller address of user who has called the respective function to trigger this event
+     */
+    event LogEmergencyShutdown(bool indexed emergencyShutdown, address indexed caller);
+
+    /**
+     * @notice Emitted when Pause over vault is activated/deactivated
+     * @param unpaused Unpause status of OptyFi's Vault contract - false (if paused) and true (if unpaused)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogUnpause(bool indexed unpaused, address indexed caller);
+
+    /**
+     * @notice Emitted when setAllowWhitelistedState is called
+     * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogAllowWhitelistedState(bool indexed allowWhitelistedState, address indexed caller);
+
+    /**
+     * @notice Emitted when setUserDepositCapUT is called
+     * @param userDepositCapUT Cap in underlying for user deposits in OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogUserDepositCapUT(uint256 indexed userDepositCapUT, address indexed caller);
+
+    /**
+     * @notice Emitted when setMinimumDepositValueUT is called
+     * @param minimumDepositValueUT Minimum deposit in OptyFi's Vault contract - only for deposits (without rebalance)
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogMinimumDepositValueUT(uint256 indexed minimumDepositValueUT, address indexed caller);
+
+    /**
+     * @notice Emitted when setTotalValueLockedLimitUT is called
+     * @param totalValueLockedLimitUT Maximum limit for total value locked of OptyFi's Vault contract
+     * @param caller Address of user who has called the respective function to trigger this event
+     */
+    event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
 }

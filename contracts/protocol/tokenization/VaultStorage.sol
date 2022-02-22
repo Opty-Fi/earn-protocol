@@ -103,46 +103,4 @@ contract VaultStorageV2 is VaultStorage {
 
     /**@dev cache strategy metadata*/
     DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
-
-    /**
-     * @dev Emitted when Discontinue over vault is activated
-     * @param discontinued Discontinue status (true) of OptyFi's Vault contract
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogDiscontinue(bool indexed discontinued, address indexed caller);
-
-    /**
-     * @notice Emitted when Pause over vault is activated/deactivated
-     * @param unpaused Unpause status of OptyFi's Vault contract - false (if paused) and true (if unpaused)
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogUnpause(bool indexed unpaused, address indexed caller);
-
-    /**
-     * @notice Emitted when setAllowWhitelistedState is called
-     * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogAllowWhitelistedState(bool indexed allowWhitelistedState, address indexed caller);
-
-    /**
-     * @notice Emitted when setUserDepositCapUT is called
-     * @param userDepositCapUT Cap in underlying for user deposits in OptyFi's Vault contract
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogUserDepositCapUT(uint256 indexed userDepositCapUT, address indexed caller);
-
-    /**
-     * @notice Emitted when setMinimumDepositValueUT is called
-     * @param minimumDepositValueUT Minimum deposit in OptyFi's Vault contract - only for deposits (without rebalance)
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogMinimumDepositValueUT(uint256 indexed minimumDepositValueUT, address indexed caller);
-
-    /**
-     * @notice Emitted when setTotalValueLockedLimitUT is called
-     * @param totalValueLockedLimitUT Maximum limit for total value locked of OptyFi's Vault contract
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
 }

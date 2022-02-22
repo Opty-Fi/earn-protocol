@@ -15,7 +15,7 @@ library Errors {
     string public constant MINIMUM_USER_DEPOSIT_VALUE_UT = "10";
     string public constant TOTAL_VALUE_LOCKED_LIMIT_UT = "11";
     string public constant USER_DEPOSIT_CAP_UT = "12";
-    string public constant VAULT_DISCONTINUED = "13";
+    string public constant VAULT_EMERGENCY_SHUTDOWN = "13";
     string public constant VAULT_PAUSED = "14";
     string public constant ADMIN_CALL = "15";
     string public constant EMERGENCY_BRAKE = "16";

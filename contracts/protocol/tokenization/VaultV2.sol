@@ -198,13 +198,13 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function discontinue() external override onlyGovernance {
-        if (investStrategyHash != Constants.ZERO_BYTES32) {
+    function setEmergencyShutdown(bool _active) external override onlyGovernance {
+        if (_active && investStrategyHash != Constants.ZERO_BYTES32) {
             _vaultWithdrawAllFromStrategy(investStrategySteps);
+            investStrategyHash = Constants.ZERO_BYTES32;
         }
-        vaultConfiguration.discontinued = true;
-        investStrategyHash = Constants.ZERO_BYTES32;
-        emit LogDiscontinue(vaultConfiguration.discontinued, msg.sender);
+        vaultConfiguration.emergencyShutdown = _active;
+        emit LogEmergencyShutdown(vaultConfiguration.emergencyShutdown, msg.sender);
     }
 
     /**
@@ -296,9 +296,7 @@ contract VaultV2 is
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
-        uint256 _oraVaultAndStratValueUT = _oraVaultAndStratValueUT();
-        uint256 _oraPricePerSharePreWithdrawUT = _oraVaultAndStratValueUT.div(totalSupply());
-        uint256 _oraUserWithdrawUT = _userWithdrawVT.div(_oraPricePerSharePreWithdrawUT);
+        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(totalSupply()).div(_oraVaultAndStratValueUT());
         _burn(msg.sender, _userWithdrawVT);
 
         uint256 _vaultValuePreStratWithdrawUT = _balance();
@@ -306,21 +304,23 @@ contract VaultV2 is
         // if vault does not have sufficient UT, we need to withdraw from strategy
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
-            uint256 _requestStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            _vaultWithdrawSomeFromStrategy(investStrategySteps, _requestStratWithdrawUT);
+            uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            _vaultWithdrawSomeFromStrategy(investStrategySteps, _expectedStratWithdrawUT);
 
             // Identify Slippage
-            // UT requested from strategy withdraw  = _requestStratWithdrawUT
+            // UT requested from strategy withdraw  = _expectedStratWithdrawUT
             // UT actually received from strategy withdraw
-            // = _realizedStratWithdrawUT
+            // = _receivedStratWithdrawUT
             // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
-            // slippage = _requestStratWithdrawUT - _realizedStratWithdrawUT
+            // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
             uint256 _vaultValuePostStratWithdrawUT = _balance();
-            uint256 _realizedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            uint256 _slippage = _requestStratWithdrawUT - _realizedStratWithdrawUT;
+            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+
+            // TODO positive slippage
+            uint256 _slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT;
 
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
-            if (_requestStratWithdrawUT < _oraUserWithdrawUT) {
+            if (_expectedStratWithdrawUT < _oraUserWithdrawUT) {
                 _oraUserWithdrawUT = _oraUserWithdrawUT - _slippage;
             }
         }
@@ -434,8 +434,8 @@ contract VaultV2 is
         if (!vaultConfiguration.unpaused) {
             return (false, Errors.VAULT_PAUSED);
         }
-        if (vaultConfiguration.discontinued) {
-            return (false, Errors.VAULT_DISCONTINUED);
+        if (vaultConfiguration.emergencyShutdown) {
+            return (false, Errors.VAULT_EMERGENCY_SHUTDOWN);
         }
         return (true, "");
     }
@@ -635,6 +635,9 @@ contract VaultV2 is
         // should be whitelisted.
         if (!vaultConfiguration.unpaused) {
             revert(Errors.VAULT_PAUSED);
+        }
+        if (vaultConfiguration.emergencyShutdown) {
+            revert(Errors.VAULT_EMERGENCY_SHUTDOWN);
         }
         if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_from] && !whitelistedAccounts[_to]) {
             revert(Errors.EOA_NOT_WHITELISTED);
