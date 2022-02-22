@@ -13,6 +13,21 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  */
 interface IVaultV2 {
     /**
+     * @notice Assign a risk profile code
+     * @dev function to set code of risk profile
+     * @param _riskProfileCode code of the risk profile
+     */
+    function setRiskProfileCode(uint256 _riskProfileCode) external;
+
+    /**
+     * @notice Assign the address of the underlying asset and its keccak256 hash
+     * @dev the underlying asset should be approved by the governance
+     * @param _underlyingToken the address of the underlying asset
+     * @param _underlyingTokensHash keccak256 hash of underlying token address and chain id
+     */
+    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash) external;
+
+    /**
      * @notice Single function to configure the vault's value control params
      * @param _allowWhitelistedState vault's allow whitelisted state flag
      * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
@@ -62,7 +77,7 @@ interface IVaultV2 {
     /**
      * @notice function to set the maximum amount in underlying token
      *         that a user could deposit in entire life cycle of this vault
-     * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
+     * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
      */
     function setUserDepositCapUT(uint256 _userDepositCapUT) external;
 
@@ -75,7 +90,7 @@ interface IVaultV2 {
 
     /**
      * @notice function to set the total value locked limit in underlying token
-     * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
+     * @param _totalValueLockedLimitUT maximum TVL in underlying token allowed for the vault
      */
     function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external;
 
@@ -155,21 +170,6 @@ interface IVaultV2 {
     function adminCall(bytes[] memory _codes) external;
 
     /**
-     * @notice Assign a risk profile code
-     * @dev function to set code of risk profile
-     * @param _riskProfileCode code of the risk profile
-     */
-    function setRiskProfileCode(uint256 _riskProfileCode) external;
-
-    /**
-     * @notice Assign the address of the underlying asset and its keccak256 hash
-     * @dev the underlying asset should be approved by the governance
-     * @param _underlyingToken the address of the underlying asset
-     * @param _underlyingTokensHash keccak256 hash of underlying token address and chain id
-     */
-    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash) external;
-
-    /**
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
@@ -247,14 +247,14 @@ interface IVaultV2 {
     function vaultWithdrawPermitted() external view returns (bool, string memory);
 
     /**
-     * @notice Computes deposit fee in underlying
+     * @notice Computes deposit fee in underlying token
      * @param _userDepositUT user deposit amount in underlying token
      * @return deposit fee in underlying token
      */
     function calcDepositFeeUT(uint256 _userDepositUT) external view returns (uint256);
 
     /**
-     * @notice Computes withdrawal fee in underlying
+     * @notice Computes withdrawal fee in underlying token
      * @param _userWithdrawUT user withdraw amount in underlying token
      * @return _withdrawalFeeUT withdrawal fee in underlying token
      */
@@ -306,7 +306,7 @@ interface IVaultV2 {
 
     /**
      * @notice Emitted when setUserDepositCapUT is called
-     * @param userDepositCapUT Cap in underlying for user deposits in OptyFi's Vault contract
+     * @param userDepositCapUT Cap in underlying token for user deposits in OptyFi's Vault contract
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogUserDepositCapUT(uint256 indexed userDepositCapUT, address indexed caller);

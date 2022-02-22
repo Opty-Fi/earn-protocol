@@ -103,6 +103,25 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
+    function setRiskProfileCode(uint256 _riskProfileCode) external override onlyOperator {
+        _setRiskProfileCode(_riskProfileCode, registryContract.getRiskProfile(_riskProfileCode).exists);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
+    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash)
+        external
+        override
+        onlyOperator
+    {
+        _setUnderlyingToken(_underlyingToken);
+        _setUnderlyingTokensHash(_underlyingTokensHash);
+    }
+
+    /**
+     * @inheritdoc IVaultV2
+     */
     function setValueControlParams(
         bool _allowWhitelistedState,
         uint256 _userDepositCapUT,
@@ -236,7 +255,7 @@ contract VaultV2 is
             _setInvestStrategySteps(_cacheNextInvestStrategySteps);
             investStrategyHash = _nextBestInvestStrategyHash;
         }
-        if (investStrategyHash != Constants.ZERO_BYTES32 && _balance() > 0) {
+        if (investStrategyHash != Constants.ZERO_BYTES32 && balanceUT() > 0) {
             _vaultDepositAllToStrategy(investStrategySteps);
         }
     }
@@ -249,11 +268,11 @@ contract VaultV2 is
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
         // check vault balance (in UT) before user token transfer
-        uint256 _vaultValuePreDepositUT = _balance();
+        uint256 _vaultValuePreDepositUT = balanceUT();
         // receive user deposit
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
         // check balance after user token transfer
-        uint256 _vaultValuePostDepositUT = _balance();
+        uint256 _vaultValuePostDepositUT = balanceUT();
         // only count the actual deposited tokens received into vault
         uint256 _actualDepositAmountUT = _vaultValuePostDepositUT.sub(_vaultValuePreDepositUT);
         // remove deposit fees (if any) but only if deposit is accepted
@@ -299,7 +318,7 @@ contract VaultV2 is
         uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(totalSupply()).div(_oraVaultAndStratValueUT());
         _burn(msg.sender, _userWithdrawVT);
 
-        uint256 _vaultValuePreStratWithdrawUT = _balance();
+        uint256 _vaultValuePreStratWithdrawUT = balanceUT();
 
         // if vault does not have sufficient UT, we need to withdraw from strategy
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
@@ -313,12 +332,13 @@ contract VaultV2 is
             // = _receivedStratWithdrawUT
             // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
             // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
-            uint256 _vaultValuePostStratWithdrawUT = _balance();
+            uint256 _vaultValuePostStratWithdrawUT = balanceUT();
             uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
-            // TODO positive slippage
-            uint256 _slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT;
-
+            uint256 _slippage;
+            if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
+                _slippage = _expectedStratWithdrawUT.sub(_receivedStratWithdrawUT);
+            }
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
             if (_expectedStratWithdrawUT < _oraUserWithdrawUT) {
                 _oraUserWithdrawUT = _oraUserWithdrawUT - _slippage;
@@ -350,34 +370,13 @@ contract VaultV2 is
         executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
-    //===Public functions===//
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setRiskProfileCode(uint256 _riskProfileCode) public override onlyOperator {
-        _setRiskProfileCode(_riskProfileCode, registryContract.getRiskProfile(_riskProfileCode).exists);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash)
-        external
-        override
-        onlyOperator
-    {
-        _setUnderlyingToken(_underlyingToken);
-        _setUnderlyingTokensHash(_underlyingTokensHash);
-    }
-
     //===Public view functions===//
 
     /**
      * @inheritdoc IVaultV2
      */
     function balanceUT() public view override returns (uint256) {
-        return _balance();
+        return IERC20(underlyingToken).balanceOf(address(this));
     }
 
     /**
@@ -553,7 +552,7 @@ contract VaultV2 is
      * @param _investStrategySteps array of strategy step tuple
      */
     function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
-        _vaultDepositSomeToStrategy(_investStrategySteps, _balance());
+        _vaultDepositSomeToStrategy(_investStrategySteps, balanceUT());
     }
 
     /**
@@ -756,7 +755,7 @@ contract VaultV2 is
      * @return amount in underlying token
      */
     function _oraVaultAndStratValueUT() internal view returns (uint256) {
-        return _oraStratValueUT().add(_balance());
+        return _oraStratValueUT().add(balanceUT());
     }
 
     /**
@@ -769,14 +768,6 @@ contract VaultV2 is
             investStrategyHash != Constants.ZERO_BYTES32
                 ? investStrategySteps.getOraValueUT(address(registryContract), payable(address(this)), underlyingToken)
                 : 0;
-    }
-
-    /**
-     * @dev Internal function to get the underlying token balance of vault
-     * @return underlying asset balance in this vault
-     */
-    function _balance() internal view returns (uint256) {
-        return IERC20(underlyingToken).balanceOf(address(this));
     }
 
     /**
