@@ -123,13 +123,11 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function setValueControlParams(
-        bool _allowWhitelistedState,
         uint256 _userDepositCapUT,
         uint256 _minimumDepositValueUT,
         uint256 _totalValueLockedLimitUT,
         uint256 _maxVaultValueJump
     ) external override onlyFinanceOperator {
-        _setAllowWhitelistedState(_allowWhitelistedState);
         _setUserDepositCapUT(_userDepositCapUT);
         _setMinimumDepositValueUT(_minimumDepositValueUT);
         _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
@@ -170,21 +168,21 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setUserDepositCapUT(uint256 _userDepositCapUT) external override onlyOperator {
+    function setUserDepositCapUT(uint256 _userDepositCapUT) external override onlyFinanceOperator {
         _setUserDepositCapUT(_userDepositCapUT);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setMinimumDepositValueUT(uint256 _minimumDepositValueUT) external override onlyOperator {
+    function setMinimumDepositValueUT(uint256 _minimumDepositValueUT) external override onlyFinanceOperator {
         _setMinimumDepositValueUT(_minimumDepositValueUT);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external override onlyOperator {
+    function setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) external override onlyFinanceOperator {
         _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
     }
 
@@ -221,6 +219,7 @@ contract VaultV2 is
         if (_active && investStrategyHash != Constants.ZERO_BYTES32) {
             _vaultWithdrawAllFromStrategy(investStrategySteps);
             investStrategyHash = Constants.ZERO_BYTES32;
+            delete investStrategySteps;
         }
         vaultConfiguration.emergencyShutdown = _active;
         emit LogEmergencyShutdown(vaultConfiguration.emergencyShutdown, msg.sender);
@@ -233,6 +232,7 @@ contract VaultV2 is
         if (investStrategyHash != Constants.ZERO_BYTES32 && _unpaused == false) {
             _vaultWithdrawAllFromStrategy(investStrategySteps);
             investStrategyHash = Constants.ZERO_BYTES32;
+            delete investStrategySteps;
         }
         vaultConfiguration.unpaused = _unpaused;
         emit LogUnpause(vaultConfiguration.unpaused, msg.sender);
@@ -296,9 +296,9 @@ contract VaultV2 is
         // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
         //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
-            _mint(msg.sender, _actualDepositAmountUT);
+            _mint(msg.sender, _netUserDepositUT);
         } else {
-            _mint(msg.sender, (_actualDepositAmountUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
+            _mint(msg.sender, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
         }
     }
 

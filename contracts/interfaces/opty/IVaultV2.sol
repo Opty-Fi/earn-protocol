@@ -29,14 +29,12 @@ interface IVaultV2 {
 
     /**
      * @notice Single function to configure the vault's value control params
-     * @param _allowWhitelistedState vault's allow whitelisted state flag
      * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
      * @param _totalValueLockedLimitUT maximum TVL in underlying token allowed for the vault
      * @param _maxVaultValueJump The standard deviation allowed for vault value
      */
     function setValueControlParams(
-        bool _allowWhitelistedState,
         uint256 _userDepositCapUT,
         uint256 _minimumDepositValueUT,
         uint256 _totalValueLockedLimitUT,

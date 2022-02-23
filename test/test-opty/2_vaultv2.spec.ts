@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
-import { BigNumber } from "ethers";
+import { BigNumber, ContractReceipt, Event } from "ethers";
 import { getSoliditySHA3Hash, Signers, to_10powNumber_BN } from "../../helpers/utils";
 import {
   AdminUpgradeabilityProxy,
@@ -321,20 +321,41 @@ describe("VaultV2", () => {
     });
     it("fail setValueControlParams() by non Finance operator", async function () {
       await expect(
-        this.vaultV2.setValueControlParams(true, "10000000000", "1000000000", "1000000000000", "100"),
+        this.vaultV2.setValueControlParams("10000000000", "1000000000", "1000000000000", "100"),
       ).to.be.revertedWith("caller is not the financeOperator");
     });
 
     it("setValueControlParams() by Finance operator", async function () {
-      await this.vaultV2.connect(this.signers.financeOperator).setValueControlParams(
-        true,
+      const tx = await this.vaultV2.connect(this.signers.financeOperator).setValueControlParams(
         "10000000000", // 10,000 USDC
         "1000000000", // 1000 USDC
         "1000000000000", // 1,000,000 USDC
         "100", // 1%
       );
+      const { events }: ContractReceipt = await tx.wait();
+      const eventsArr = events as Event[];
+      expect(eventsArr[0]).to.include({
+        address: this.vaultV2.address,
+        event: "LogUserDepositCapUT",
+        eventSignature: "LogUserDepositCapUT(uint256,address)",
+      });
+      expect(eventsArr[0].args?.userDepositCapUT).to.eq("10000000000");
+      expect(eventsArr[0].args?.caller).to.eq(this.signers.financeOperator.address);
+      expect(eventsArr[1]).to.include({
+        address: this.vaultV2.address,
+        event: "LogMinimumDepositValueUT",
+        eventSignature: "LogMinimumDepositValueUT(uint256,address)",
+      });
+      expect(eventsArr[1].args?.minimumDepositValueUT).to.eq("1000000000");
+      expect(eventsArr[1].args?.caller).to.eq(this.signers.financeOperator.address);
+      expect(eventsArr[2]).to.include({
+        address: this.vaultV2.address,
+        event: "LogTotalValueLockedLimitUT",
+        eventSignature: "LogTotalValueLockedLimitUT(uint256,address)",
+      });
+      expect(eventsArr[2].args?.totalValueLockedLimitUT).to.eq("1000000000000");
+      expect(eventsArr[2].args?.caller).to.eq(this.signers.financeOperator.address);
       const vaultConfigurationV2 = await this.vaultV2.vaultConfiguration();
-      expect(vaultConfigurationV2.allowWhitelistedState).to.be.true;
       expect(vaultConfigurationV2.userDepositCapUT).to.eq("10000000000");
       expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("1000000000");
       expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("1000000000000");
@@ -375,41 +396,55 @@ describe("VaultV2", () => {
       await this.vaultV2.connect(this.signers.financeOperator).setMaxVaultValueJump("100");
       expect(await this.vaultV2.maxVaultValueJump()).to.eq("100");
     });
-    it("fails setAllowWhitelistedState() call by non finance operator", async function () {
+    it("fails setAllowWhitelistedState() call by non operator", async function () {
       await expect(this.vaultV2.setAllowWhitelistedState(false)).to.be.revertedWith("caller is not the operator");
     });
-    it("setAllowWhitelistedState() call by finance operator", async function () {
-      await this.vaultV2.connect(this.signers.operator).setAllowWhitelistedState(false);
+    it("setAllowWhitelistedState() call by operator", async function () {
+      await expect(this.vaultV2.connect(this.signers.operator).setAllowWhitelistedState(false))
+        .to.emit(this.vaultV2, "LogAllowWhitelistedState")
+        .withArgs(false, this.signers.operator.address);
       expect((await this.vaultV2.vaultConfiguration())[2]).to.be.false;
     });
 
     it("fails setUserDepositCapUT() call by non finance operator", async function () {
-      await expect(this.vaultV2.setUserDepositCapUT("2000")).to.be.revertedWith("caller is not the operator");
+      await expect(this.vaultV2.setUserDepositCapUT("2000")).to.be.revertedWith("caller is not the financeOperator");
     });
     it("setUserDepositCapUT() call by finance operator", async function () {
-      await this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("2000000000");
+      await expect(this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("2000000000"))
+        .to.emit(this.vaultV2, "LogUserDepositCapUT")
+        .withArgs("2000000000", this.signers.operator.address);
       expect((await this.vaultV2.vaultConfiguration())[8]).to.eq("2000000000");
     });
 
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
-      await expect(this.vaultV2.setMinimumDepositValueUT("1000")).to.be.revertedWith("caller is not the operator");
+      await expect(this.vaultV2.setMinimumDepositValueUT("1000")).to.be.revertedWith(
+        "caller is not the financeOperator",
+      );
     });
     it("setMinimumDepositValueUT() call by finance operator", async function () {
-      await this.vaultV2
-        .connect(this.signers.operator)
-        .setMinimumDepositValueUT(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
+      await expect(
+        this.vaultV2
+          .connect(this.signers.operator)
+          .setMinimumDepositValueUT(BigNumber.from("1000").mul(to_10powNumber_BN("6"))),
+      )
+        .to.emit(this.vaultV2, "LogMinimumDepositValueUT")
+        .withArgs("1000000000", this.signers.operator.address);
       expect((await this.vaultV2.vaultConfiguration())[9]).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
     });
 
     it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {
       await expect(this.vaultV2.setTotalValueLockedLimitUT("100000000")).to.be.revertedWith(
-        "caller is not the operator",
+        "caller is not the financeOperator",
       );
     });
     it("setTotalValueLockedLimitUT() call by finance operator", async function () {
-      await this.vaultV2
-        .connect(this.signers.operator)
-        .setTotalValueLockedLimitUT(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
+      await expect(
+        this.vaultV2
+          .connect(this.signers.operator)
+          .setTotalValueLockedLimitUT(BigNumber.from("10000").mul(to_10powNumber_BN("6"))),
+      )
+        .to.emit(this.vaultV2, "LogTotalValueLockedLimitUT")
+        .withArgs("10000000000", this.signers.operator.address);
       expect((await this.vaultV2.vaultConfiguration())[10]).to.eq(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
     });
 
@@ -437,15 +472,23 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.setEmergencyShutdown(true)).to.be.revertedWith("caller is not having governance");
     });
     it("setEmergencyShutdown() call by governance", async function () {
-      await this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(true);
+      await expect(this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(true))
+        .to.emit(this.vaultV2, "LogEmergencyShutdown")
+        .withArgs(true, this.signers.governance.address);
       expect((await this.vaultV2.vaultConfiguration()).emergencyShutdown).to.be.true;
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
     });
     it("fail setUnpaused() call by non governance", async function () {
       await expect(this.vaultV2.setUnpaused(false)).to.be.revertedWith("caller is not having governance");
     });
     it("setUnpaused() call by governance (null strategy)", async function () {
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(true, this.signers.governance.address);
       expect((await this.vaultV2.vaultConfiguration()).unpaused).to.be.true;
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
     });
     it("fail rebalance() call, vault is paused", async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
@@ -632,18 +675,21 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
     });
     it("first userDepositVault(), mint same shares as deposit", async function () {
-      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
-      await this.vaultV2.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
       await this.vaultV2
         .connect(this.signers.financeOperator)
         .setFeeParams("0", "0", "0", "0", ethers.constants.AddressZero);
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      const _depositFee = await this.vaultV2.calcDepositFeeUT(_depositAmountUSDC);
+      const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
+      await this.vaultV2.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
       await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(_depositAmountUSDC))
         .to.emit(this.vaultV2, "Transfer")
-        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDC);
-      expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_depositAmountUSDC);
-      expect(await this.vaultV2.totalSupply()).to.eq(_depositAmountUSDC);
-      expect(await this.vaultV2.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDC);
-      expect(await this.vaultV2.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDC);
+        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
+      expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vaultV2.totalSupply()).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vaultV2.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+      // the vault shares VT will be same as total supply is zero
+      expect(await this.vaultV2.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
     });
     it("rebalance(), deposit asset into strategy", async function () {
       const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
@@ -694,7 +740,37 @@ describe("VaultV2", () => {
     });
     it("userWithdrawVault()", async function () {
       const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
-      await this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT);
+      const _userbalanceBefore = await this.usdc.balanceOf(this.signers.alice.address);
+      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+      const _adapterAddress = await this.registryV2.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const canStake: boolean = await _adapterInstance.canStake(_pool);
+      let _allAmountInToken = BigNumber.from("0");
+      if (canStake) {
+        _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
+          this.vaultV2.address,
+          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          _pool,
+        );
+      } else {
+        _allAmountInToken = await _adapterInstance.getAllAmountInToken(
+          this.vaultV2.address,
+          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          _pool,
+        );
+      }
+      const _vaultBalanceUT = await this.usdc.balanceOf(this.vaultV2.address);
+      const _totalSupply = await this.vaultV2.totalSupply();
+      const _calculatedReceivableUT = _redeemVT.mul(_totalSupply).div(_allAmountInToken.add(_vaultBalanceUT));
+      const _calculatedWithdrawalFee = await this.vaultV2.calcWithdrawalFeeUT(_calculatedReceivableUT);
+      const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT))
+        .to.emit(this.vaultV2, "Transfer")
+        .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
+      const _userBalanceAfter = await this.usdc.balanceOf(this.signers.alice.address);
+      const _actualReceivedUT = _userBalanceAfter.sub(_userbalanceBefore);
+      expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
+      expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
     });
   });
   describe("VaultV2 strategies", () => {
