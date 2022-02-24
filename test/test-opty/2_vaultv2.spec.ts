@@ -420,7 +420,7 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("2000000000"))
         .to.emit(this.vaultV2, "LogUserDepositCapUT")
         .withArgs("2000000000", this.signers.operator.address);
-      expect(await this.vaultV2.userDepositCapUT).to.eq("2000000000");
+      expect(await this.vaultV2.userDepositCapUT()).to.eq("2000000000");
     });
 
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
@@ -436,7 +436,7 @@ describe("VaultV2", () => {
       )
         .to.emit(this.vaultV2, "LogMinimumDepositValueUT")
         .withArgs("1000000000", this.signers.operator.address);
-      expect(await this.vaultV2.minimumDepositValueUT).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.minimumDepositValueUT()).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
     });
 
     it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {

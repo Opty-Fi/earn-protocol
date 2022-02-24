@@ -266,7 +266,7 @@ contract VaultV2 is
     function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
         _emergencyBrake(_oraStratValueUT());
         // check vault + strategy balance (in UT) before user token transfer
-        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT(uint256(0));
+        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
         // check vault balance (in UT) before user token transfer
         uint256 _vaultValuePreDepositUT = balanceUT();
         // receive user deposit
@@ -315,7 +315,7 @@ contract VaultV2 is
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
-        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(totalSupply()).div(_oraVaultAndStratValueUT(uint256(0)));
+        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(totalSupply()).div(_oraVaultAndStratValueUT());
         _burn(msg.sender, _userWithdrawVT);
 
         uint256 _vaultValuePreStratWithdrawUT = balanceUT();
@@ -391,7 +391,7 @@ contract VaultV2 is
      */
     function getPricePerFullShare() public view override returns (uint256) {
         if (totalSupply() != 0) {
-            return _oraVaultAndStratValueUT(uint256(0)).mul(Constants.WEI_DECIMAL).div(totalSupply());
+            return _oraVaultAndStratValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
         } else {
             return uint256(0);
         }
@@ -416,10 +416,10 @@ contract VaultV2 is
         if (_userDepositUTWithDeductions < minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
         }
-        uint256 _oraVaultAndStratValueWithDeductionsUT = _oraVaultAndStratValueUT(_deductions);
-        if (!_addUserDepositUT && _oraVaultAndStratValueWithDeductionsUT > totalValueLockedLimitUT) {
+        uint256 _oraVaultAndStratValueUT = _oraVaultAndStratValueUT();
+        if (!_addUserDepositUT && _oraVaultAndStratValueUT.sub(_deductions) > totalValueLockedLimitUT) {
             return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
-        } else if (_oraVaultAndStratValueWithDeductionsUT.add(_userDepositUTWithDeductions) > totalValueLockedLimitUT) {
+        } else if (_oraVaultAndStratValueUT.add(_userDepositUTWithDeductions) > totalValueLockedLimitUT) {
             return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
         }
         if (totalDeposits[_user].add(_userDepositUTWithDeductions) > userDepositCapUT) {
@@ -754,11 +754,10 @@ contract VaultV2 is
     /**
      * @dev Computes the vault value in underlying token that includes balance of underlying token
      *      in vault and that of investment made in the strategy
-     * @param _deductions amount not to consider for computing vault value
      * @return amount in underlying token
      */
-    function _oraVaultAndStratValueUT(uint256 _deductions) internal view returns (uint256) {
-        return _oraStratValueUT().add(balanceUT()).sub(_deductions);
+    function _oraVaultAndStratValueUT() internal view returns (uint256) {
+        return _oraStratValueUT().add(balanceUT());
     }
 
     /**
