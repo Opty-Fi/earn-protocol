@@ -58,6 +58,8 @@ export type STRATEGY_DATA = {
   outputTokenSymbol?: string;
   outputToken: string;
   isBorrow: boolean;
+  adapterName?: string;
+  protocol?: string;
 };
 
 export type DEFI_POOLS_DATA = {
@@ -168,4 +170,12 @@ export type CHAINID_NETWORKS = {
     name: string;
     network: NETWORKS_TYPE;
   };
+};
+
+export type TokenStrategyType = {
+  [name: string]: STRATEGIES;
+};
+
+export type StrategiesByTokenByChainType = {
+  [key: string]: TokenStrategyType;
 };

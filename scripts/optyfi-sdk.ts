@@ -65,7 +65,7 @@ async function main() {
           console.log(`Fetching strategies for ${token} from Moralis...`);
           const response = await axios(
             getMoralisConfig("get" as Method, "getStrategiesForUnderlyingTokens", {
-              chain: networkID,
+              chain: "0x1",
               underlyingTokens: [networkData.strategies[token]],
             }),
           );
@@ -100,6 +100,8 @@ async function main() {
                 outputToken: step.outputToken,
                 isBorrow: step.isBorrow,
                 outputTokenSymbol: lpTokenSymbol,
+                adapterName: `${step.adapterName}Adapter`,
+                protocol: step.protocol,
               });
             }
             strategies[strategyName] = {
