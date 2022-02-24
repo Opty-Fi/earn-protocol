@@ -112,6 +112,7 @@ const config: HardhatUserConfig = {
       chainId: NETWORKS_CHAIN_ID[eEVMNetwork.ganache],
     },
     kovan: getCommonNetworkConfig(eEVMNetwork.kovan, NETWORKS_CHAIN_ID[eEVMNetwork.kovan]),
+    polygon: getCommonNetworkConfig(eEVMNetwork.polygon, NETWORKS_CHAIN_ID[eEVMNetwork.polygon]),
     hardhat: {
       hardfork: "london",
       initialBaseFeePerGas: 1_00_000_000,

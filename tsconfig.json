@@ -25,6 +25,7 @@
     "typechain/**/*.d.ts",
     "typechain/**/*.ts",
     "optyfi-sdk/**/*.ts",
+    "deploy/*.ts",
     "scripts/*.ts"
   ]
 }
