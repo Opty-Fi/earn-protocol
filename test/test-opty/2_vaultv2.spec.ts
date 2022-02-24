@@ -181,6 +181,10 @@ describe("VaultV2", () => {
       this.opUSDCgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPUSDCGROW_VAULT_PROXY_ADDRESS)
       );
+      this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_PROXY_ADDRESS);
+      this.opUSDCgrowGasOwedToOperator = await this.opUSDCgrow.gasOwedToOperator();
+      this.opUSDCgrowDepositQueue = await this.opUSDCgrow.depositQueue();
+      this.opUSDCgrowPricePerShareWrite = await this.opUSDCgrow.pricePerShareWrite();
       const opUSDCgrowAdminAddress = await this.opUSDCgrowProxy.admin();
       const opUSDCgrowAdminSigner = await ethers.getSigner(opUSDCgrowAdminAddress);
       await network.provider.request({
@@ -191,6 +195,10 @@ describe("VaultV2", () => {
       this.opWETHgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPWETHGROW_VAULT_PROXY_ADDRESS)
       );
+      this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHGROW_VAULT_PROXY_ADDRESS);
+      this.opWETHgrowGasOwedToOperator = await this.opWETHgrow.gasOwedToOperator();
+      this.opWETHgrowDepositQueue = await this.opWETHgrow.depositQueue();
+      this.opWETHgrowPricePerShareWrite = await this.opWETHgrow.pricePerShareWrite();
       const opWETHgrowAdminAddress = await this.opWETHgrowProxy.admin();
       const opWETHgrowAdminSigner = await ethers.getSigner(opWETHgrowAdminAddress);
       await network.provider.request({
@@ -260,9 +268,9 @@ describe("VaultV2", () => {
       expect(vaultConfigurationV2.depositFeePct).to.eq("0");
       expect(vaultConfigurationV2.withdrawalFeeFlatUT).to.eq("0");
       expect(vaultConfigurationV2.withdrawalFeePct).to.eq("0");
-      expect(vaultConfigurationV2.userDepositCapUT).to.eq("0");
-      expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("0");
-      expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("0");
+      expect(await this.opUSDCgrowV2.userDepositCapUT()).to.eq(this.opUSDCgrowGasOwedToOperator); //gasOwedToOperator
+      expect(await this.opUSDCgrowV2.minimumDepositValueUT()).to.eq(this.opUSDCgrowDepositQueue); //depositQueue
+      expect(await this.opUSDCgrowV2.totalValueLockedLimitUT()).to.eq(this.opUSDCgrowPricePerShareWrite); //pricePerShareWrite
     });
 
     it("vaultConfigurationV2() for opWETHgrow V2", async function () {
@@ -274,9 +282,9 @@ describe("VaultV2", () => {
       expect(vaultConfigurationV2.depositFeePct).to.eq("0");
       expect(vaultConfigurationV2.withdrawalFeeFlatUT).to.eq("0");
       expect(vaultConfigurationV2.withdrawalFeePct).to.eq("0");
-      expect(vaultConfigurationV2.userDepositCapUT).to.eq("0");
-      expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("0");
-      expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("0");
+      expect(await this.opWETHgrowV2.userDepositCapUT()).to.eq(this.opWETHgrowGasOwedToOperator); //gasOwedToOperator
+      expect(await this.opWETHgrowV2.minimumDepositValueUT()).to.eq(this.opWETHgrowDepositQueue); //depositQueue
+      expect(await this.opWETHgrowV2.totalValueLockedLimitUT()).to.eq(this.opWETHgrowPricePerShareWrite); //pricePerShareWrite
     });
   });
   describe("VaultV2 unit testing", () => {
@@ -355,10 +363,9 @@ describe("VaultV2", () => {
       });
       expect(eventsArr[2].args?.totalValueLockedLimitUT).to.eq("1000000000000");
       expect(eventsArr[2].args?.caller).to.eq(this.signers.financeOperator.address);
-      const vaultConfigurationV2 = await this.vaultV2.vaultConfiguration();
-      expect(vaultConfigurationV2.userDepositCapUT).to.eq("10000000000");
-      expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("1000000000");
-      expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("1000000000000");
+      expect(await this.vaultV2.userDepositCapUT()).to.eq("10000000000");
+      expect(await this.vaultV2.minimumDepositValueUT()).to.eq("1000000000");
+      expect(await this.vaultV2.totalValueLockedLimitUT()).to.eq("1000000000000");
       expect(await this.vaultV2.maxVaultValueJump()).to.eq("100");
     });
 
@@ -413,7 +420,7 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("2000000000"))
         .to.emit(this.vaultV2, "LogUserDepositCapUT")
         .withArgs("2000000000", this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[8]).to.eq("2000000000");
+      expect(await this.vaultV2.userDepositCapUT).to.eq("2000000000");
     });
 
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
@@ -429,7 +436,7 @@ describe("VaultV2", () => {
       )
         .to.emit(this.vaultV2, "LogMinimumDepositValueUT")
         .withArgs("1000000000", this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[9]).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.minimumDepositValueUT).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
     });
 
     it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {
@@ -445,7 +452,7 @@ describe("VaultV2", () => {
       )
         .to.emit(this.vaultV2, "LogTotalValueLockedLimitUT")
         .withArgs("10000000000", this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[10]).to.eq(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.totalValueLockedLimitUT()).to.eq(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
     });
 
     it("fails setWhitelistedAccounts() call by non governance", async function () {
@@ -573,7 +580,7 @@ describe("VaultV2", () => {
 
     it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {
       await this.vaultV2.connect(this.signers.financeOperator).setAllowWhitelistedState(true);
-      expect(await this.vaultV2.userDepositPermitted(this.signers.bob.address, "1", true)).to.have.members([
+      expect(await this.vaultV2.userDepositPermitted(this.signers.bob.address, true, "1", "0")).to.have.members([
         false,
         "8",
       ]);
@@ -585,27 +592,25 @@ describe("VaultV2", () => {
       ]);
     });
     it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100", true)).to.have.members([
+      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "100", "0")).to.have.members([
         false,
         "10",
       ]);
     });
     it("userDepositPermitted() return false,TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100000000000", true)).to.have.members(
-        [false, "11"],
-      );
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "100000000000", "0"),
+      ).to.have.members([false, "11"]);
     });
     it("userDepositPermitted() return false,USER_DEPOSIT_CAP_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "3000000000", true)).to.have.members([
-        false,
-        "12",
-      ]);
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "3000000000", "0"),
+      ).to.have.members([false, "12"]);
     });
     it('call userDepositPermitted() from EOA return true,""', async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "1500000000", true)).to.have.members([
-        true,
-        "",
-      ]);
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "1500000000", "0"),
+      ).to.have.members([true, ""]);
     });
     it('call userDepositPermitted() from CA return true,""', async function () {
       await this.vaultV2.connect(this.signers.governance).setWhitelistedAccounts([this.testVaultV2.address], [true]);
