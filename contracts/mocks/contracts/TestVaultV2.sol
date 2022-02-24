@@ -5,11 +5,14 @@ pragma experimental ABIEncoderV2;
 
 // helpers
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 // interfaces
 import { IVaultV2 } from "../../interfaces/opty/IVaultV2.sol";
 
 contract TestVaultV2 {
+    using SafeMath for uint256;
+
     function deposit(
         IVaultV2 _vault,
         ERC20 _token,
@@ -33,6 +36,7 @@ contract TestVaultV2 {
     }
 
     function testUserDepositPermitted(IVaultV2 _vault, uint256 _valueUT) external view returns (bool, string memory) {
-        return _vault.userDepositPermitted(address(this), _valueUT, true);
+        uint256 _depositFee = _vault.calcDepositFeeUT(_valueUT);
+        return _vault.userDepositPermitted(address(this), true, _valueUT.sub(_depositFee), _depositFee);
     }
 }

@@ -39,14 +39,14 @@ contract VaultStorage {
     bytes32 public investStrategyHash;
 
     /**
-     * @dev Operational cost for rebalance owed by the vault to operator
+     * @dev Maximum amount in underlying token allowed to be deposited by user
      */
-    uint256 public gasOwedToOperator;
+    uint256 public userDepositCapUT;
 
     /**
-     * @dev Total amount of unprocessed deposit till next rebalance
+     * @dev Minimum deposit value in underlying token required
      */
-    uint256 public depositQueue;
+    uint256 public minimumDepositValueUT;
 
     /**
      * @dev The standard deviation allowed for vault value
@@ -64,9 +64,9 @@ contract VaultStorage {
     uint256 public riskProfileCode;
 
     /**
-     * @dev The pricePerShare of the vault
+     * @dev Maximum TVL in underlying token allowed for the vault
      */
-    uint256 public pricePerShareWrite;
+    uint256 public totalValueLockedLimitUT;
 
     /**
      * @notice Log an event when user calls user deposit underlying asset without rebalance
@@ -76,4 +76,31 @@ contract VaultStorage {
      * @param amount the amount of underlying asset deposit
      */
     event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
+}
+
+contract VaultStorageV2 is VaultStorage {
+    /**
+     * @notice accounts allowed to interact with vault if whitelisted
+     */
+    mapping(address => bool) public whitelistedAccounts;
+
+    /**
+     * @notice smart contracts allowed to interact with vault if whitelisted
+     */
+    mapping(bytes32 => bool) public whitelistedCodes;
+
+    /**
+     * @notice underlying tokens's hash
+     * @dev keccak256 hash of the underlying tokens and chain id
+     */
+    bytes32 public underlyingTokensHash;
+
+    /**@notice Configuration params of the vault*/
+    DataTypes.VaultConfigurationV2 public vaultConfiguration;
+
+    /**@notice current strategy metadata*/
+    DataTypes.StrategyStep[] public investStrategySteps;
+
+    /**@dev cache strategy metadata*/
+    DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
 }
