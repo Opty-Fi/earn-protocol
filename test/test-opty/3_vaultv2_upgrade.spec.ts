@@ -209,4 +209,14 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     expect(await this.opWETHgrowV2.minimumDepositValueUT()).to.eq(this.opWETHgrowDepositQueue); //depositQueue
     expect(await this.opWETHgrowV2.totalValueLockedLimitUT()).to.eq(this.opWETHgrowPricePerShareWrite); //pricePerShareWrite
   });
+
+  it("deposit()", async function () {
+    console.log("user deposit on v2");
+  });
+  it("rebalance()", async function () {
+    console.log("rebalance on v2");
+  });
+  it("withdraw()", async function () {
+    console.log("user withdraw on v2");
+  });
 });
