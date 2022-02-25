@@ -106,6 +106,8 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   networks: {
+    ethereum: getCommonNetworkConfig(eEVMNetwork.ethereum, NETWORKS_CHAIN_ID[eEVMNetwork.ethereum]),
+    polygon: getCommonNetworkConfig(eEVMNetwork.polygon, NETWORKS_CHAIN_ID[eEVMNetwork.polygon]),
     staging: getCommonNetworkConfig(eEVMNetwork.staging, NETWORKS_CHAIN_ID[eEVMNetwork.ganache]),
     localhost: {
       url: NETWORKS_RPC_URL[eEVMNetwork.hardhat],

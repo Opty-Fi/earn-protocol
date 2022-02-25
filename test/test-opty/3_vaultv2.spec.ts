@@ -30,7 +30,6 @@ import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../../helper-hardhat-config";
-import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 
 chai.use(solidity);
 
@@ -104,7 +103,7 @@ const testStrategy: {
       ),
     },
   },
-  [eEVMNetwork.matic || eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.matic]]: {},
+  [eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: {},
 };
 
 const strategyKeys = Object.keys(testStrategy[fork]);
@@ -658,24 +657,5 @@ describe("VaultV2", () => {
       expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
       expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
     });
-  });
-  describe.only("VaultV2 strategies", () => {
-    // before(async function () {
-    //   console.log("rmv2 ", this.riskManagerV2.address);
-    // });
-    // for (let i = 0; i < 1; i++) {
-    //   it(`strategy${i}`, async function () {
-    //     console.log("fn1");
-    //   });
-    // }
-    for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
-      for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
-        describe(`${strategy}`, () => {
-          it("should deposit withdraw", async function () {
-            console.log("-");
-          });
-        });
-      }
-    }
   });
 });

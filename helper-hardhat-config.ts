@@ -9,7 +9,6 @@ export enum eEVMNetwork {
   ethereum = "ethereum",
   hardhat = "hardhat",
   staging = "staging",
-  matic = "matic",
   polygon = "polygon",
   avalanche = "avalanche",
   ganache = "ganache",
@@ -23,11 +22,20 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.kovan]: 42,
   [eEVMNetwork.ethereum]: 1,
   [eEVMNetwork.hardhat]: 31337,
-  [eEVMNetwork.matic]: 137,
   [eEVMNetwork.polygon]: 137,
   [eEVMNetwork.avalanche]: 43114,
   [eEVMNetwork.staging]: 1337,
   [eEVMNetwork.ganache]: 1337,
+};
+
+export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
+  [eEVMNetwork.kovan]: "0x2a",
+  [eEVMNetwork.ethereum]: "0x1",
+  [eEVMNetwork.hardhat]: "0x7a69",
+  [eEVMNetwork.polygon]: "0x89",
+  [eEVMNetwork.avalanche]: "0xa86a",
+  [eEVMNetwork.staging]: "0x539",
+  [eEVMNetwork.ganache]: "0x539",
 };
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
@@ -36,7 +44,6 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.staging]: process.env.STAGING_NETWORK_URL ? process.env.STAGING_NETWORK_URL : "",
   [eEVMNetwork.hardhat]: "http://localhost:8545",
   [eEVMNetwork.polygon]: process.env.POLYGON_NODE_URL ? process.env.POLYGON_NODE_URL : "",
-  [eEVMNetwork.matic]: process.env.MATIC_NODE_URL ? process.env.MATIC_NODE_URL : "",
   [eEVMNetwork.avalanche]: process.env.AVALANCHE_NODE_URL ? process.env.AVALANCHE_NODE_URL : "",
   [eEVMNetwork.ganache]: "http://localhost:8545",
 };
@@ -46,7 +53,6 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.ethereum]: 65 * GWEI,
   [eEVMNetwork.hardhat]: "auto",
   [eEVMNetwork.staging]: "auto",
-  [eEVMNetwork.matic]: 65 * GWEI,
   [eEVMNetwork.polygon]: 65 * GWEI,
   [eEVMNetwork.avalanche]: 65 * GWEI,
   [eEVMNetwork.ganache]: "auto",
@@ -56,7 +62,6 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.ethereum]: 14269106,
   [eEVMNetwork.kovan]: 29962003,
   [eEVMNetwork.hardhat]: undefined,
-  [eEVMNetwork.matic]: 25200204,
   [eEVMNetwork.polygon]: 25200204,
   [eEVMNetwork.avalanche]: 11215586,
   [eEVMNetwork.staging]: undefined,

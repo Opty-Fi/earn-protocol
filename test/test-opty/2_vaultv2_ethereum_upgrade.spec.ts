@@ -13,6 +13,7 @@ import {
   RegistryV2,
   RiskManagerProxy,
   RiskManagerV2,
+  StrategyProvider,
   StrategyProviderV2,
   Vault,
   VaultV2,
@@ -22,6 +23,7 @@ import {
   opWETHgrow,
   RegistryProxy as RegistryProxyAddress,
   RiskManagerProxy as RiskManagerProxyAddress,
+  StrategyProvider as StrategyProviderAddress,
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { setTokenBalanceInStorage } from "./utils";
@@ -37,6 +39,8 @@ const OPUSDCGROW_VAULT_ADDRESS = opUSDCgrow.Vault;
 const OPWETHGROW_VAULT_ADDRESS = opWETHgrow.Vault;
 const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 const RISK_MANAGER_PROXY = RiskManagerProxyAddress;
+const STRATEGY_PROVIDER_ADDRESS = StrategyProviderAddress;
+
 describe("VaultV2 Ethereum on-chain upgrade", () => {
   before(async function () {
     this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT_V2);
@@ -66,6 +70,23 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     this.signers.financeOperator = await ethers.getSigner(financeOperatorAddress);
     this.signers.governance = await ethers.getSigner(governanceAddress);
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
+    this.strategyProvider = <StrategyProvider>(
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, STRATEGY_PROVIDER_ADDRESS)
+    );
+    const oldUSDCTokensHash = "0x987a96a91381a62e90a58f1c68177b52aa669f3bd7798e321819de5f870d4ddd";
+    await this.strategyProvider
+      .connect(this.signers.strategyOperator)
+      .setBestStrategy("1", oldUSDCTokensHash, ethers.constants.HashZero);
+    await this.strategyProvider
+      .connect(this.signers.strategyOperator)
+      .setBestDefaultStrategy("1", oldUSDCTokensHash, ethers.constants.HashZero);
+    const oldWETHTokensHash = "0x23a659933d87059bc00a17f29f4d98c03eb8986a90c1bec799741278c741576d";
+    await this.strategyProvider
+      .connect(this.signers.strategyOperator)
+      .setBestStrategy("1", oldWETHTokensHash, ethers.constants.HashZero);
+    await this.strategyProvider
+      .connect(this.signers.strategyOperator)
+      .setBestDefaultStrategy("1", oldWETHTokensHash, ethers.constants.HashZero);
     this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_ADDRESS);
     this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHGROW_VAULT_ADDRESS);
     this.usdc = <ERC20>(
@@ -85,7 +106,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     );
     this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_PROXY_ADDRESS);
     await this.opUSDCgrow.rebalance();
-    await this.registry.connect(this.signers.operator).unpauseVaultContract(this.opUSDCgrow.address, false);
     this.opUSDCgrowGasOwedToOperator = await this.opUSDCgrow.gasOwedToOperator();
     this.opUSDCgrowDepositQueue = await this.opUSDCgrow.depositQueue();
     this.opUSDCgrowPricePerShareWrite = await this.opUSDCgrow.pricePerShareWrite();
@@ -101,7 +121,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     );
     this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHGROW_VAULT_PROXY_ADDRESS);
     await this.opWETHgrow.rebalance();
-    await this.registry.connect(this.signers.operator).unpauseVaultContract(this.opWETHgrow.address, false);
     this.opWETHgrowGasOwedToOperator = await this.opWETHgrow.gasOwedToOperator();
     this.opWETHgrowDepositQueue = await this.opWETHgrow.depositQueue();
     this.opWETHgrowPricePerShareWrite = await this.opWETHgrow.pricePerShareWrite();
@@ -210,13 +229,23 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     expect(await this.opWETHgrowV2.totalValueLockedLimitUT()).to.eq(this.opWETHgrowPricePerShareWrite); //pricePerShareWrite
   });
 
-  it("deposit()", async function () {
+  it("null strategy for USDC vault", async function () {
+    expect(await this.opUSDCgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+    expect(await (await this.opUSDCgrowV2.getInvestStrategySteps()).length).to.eq(0);
+  });
+
+  it("null strategy for WETH vault", async function () {
+    expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+    expect(await (await this.opWETHgrowV2.getInvestStrategySteps()).length).to.eq(0);
+  });
+
+  it("userDepositVault() for opUSDCgrow", async function () {
     console.log("user deposit on v2");
   });
-  it("rebalance()", async function () {
+  it("rebalance() for opUSDCgrow", async function () {
     console.log("rebalance on v2");
   });
-  it("withdraw()", async function () {
+  it("userWithdrawVault()", async function () {
     console.log("user withdraw on v2");
   });
 });
