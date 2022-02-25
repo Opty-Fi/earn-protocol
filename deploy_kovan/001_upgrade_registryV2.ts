@@ -20,13 +20,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, KOVAN.RegistryProxy)
   );
 
-  const registryContract: RegistryV2 = <RegistryV2>(
+  let registryContract: RegistryV2 = <RegistryV2>(
     await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryAddress)
   );
 
   await registryProxyContract.connect(owner).setPendingImplementation(registryAddress);
   await registryContract.connect(owner).become(KOVAN.RegistryProxy);
+
+  registryContract = <RegistryV2>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, KOVAN.RegistryProxy);
+  await registryContract.resetV1Contracts();
 };
 
 export default func;
-func.tags = ["RegistryV2"];
+func.tags = ["RegistryV2_Kovan"];

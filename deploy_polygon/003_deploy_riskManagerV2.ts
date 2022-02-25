@@ -42,6 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await riskManagerProxyContract.connect(owner).setPendingImplementation(riskManagerAddress);
   await riskManagerContract.connect(owner).become(riskManagerProxyAddress);
+
   await executeFunc(registryContract, owner, "setRiskManager(address)", [riskManagerContract.address]);
 };
 
