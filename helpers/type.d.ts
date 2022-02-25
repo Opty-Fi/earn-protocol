@@ -60,29 +60,19 @@ export type STRATEGY_DATA = {
   isBorrow: boolean;
 };
 
-export type DEFI_POOLS_DATA = {
-  [key: string]: {
-    [name: string]: {
-      pool: string;
-      lpToken: string;
-      tokens: string[];
-      stakingVault?: string;
-      pid?: string;
-      deprecated?: boolean;
-    };
-  };
-};
-
-export type DEFI_POOL_DATA = {
+export type DEFI_POOLS = {
   [name: string]: {
     pool: string;
     lpToken: string;
     tokens: string[];
-    rewardTokens: string[];
     stakingVault?: string;
+    rewardTokens?: string[];
     pid?: string;
     deprecated?: boolean;
   };
+};
+export type DEFI_POOLS_DATA = {
+  [key: string]: DEFI_POOLS;
 };
 
 export type ADAPTER_WITH_STRATEGIES_DATA = {

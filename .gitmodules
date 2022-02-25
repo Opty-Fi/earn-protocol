@@ -22,3 +22,6 @@
 [submodule "contracts/protocol/curve-polygon-adapter"]
 	path = contracts/protocol/curve-polygon-adapter
 	url = git@github.com:Opty-Fi/curve-polygon-adapter.git
+[submodule "contracts/protocol/aave-polygon-adapter"]
+	path = contracts/protocol/aave-polygon-adapter
+	url = git@github.com:Opty-Fi/aave-polygon-adapter.git
