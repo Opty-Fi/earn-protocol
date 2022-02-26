@@ -12,4 +12,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["VaultV2"];
+func.tags = ["Rebalance"];

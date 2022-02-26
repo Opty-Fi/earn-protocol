@@ -3,8 +3,9 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { AAVE_ADAPTER_NAME } from "../helpers/constants/adapters-polygon";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { TypedDefiPools as PolygonDefiPools } from "../helpers/data/polygon_defiPools";
+import { TypedMumbaiDefiPools } from "../helpers/data/polygon_defiPools";
 import { approveLiquidityPoolAndMapAdaptersV2 } from "../helpers/contracts-actions";
+import { TypedMumbaiTokens } from "../helpers/data";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments } = hre;
@@ -21,9 +22,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     })
   ).address;
 
-  const tokenKeys = MULTI_CHAIN_VAULT_TOKENS[hre.network.name]
-    ? Object.keys(MULTI_CHAIN_VAULT_TOKENS[hre.network.name])
-    : [];
+  const tokenKeys = Object.keys(TypedMumbaiTokens);
 
   const liquidityPoolsAddressesMapAdapter: string[][] = [];
 
@@ -32,7 +31,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       owner,
       registryContract,
       [],
-      tokenKeys.map(token => [adapter, PolygonDefiPools[AAVE_ADAPTER_NAME.split("Adapter")[0]][token].lpToken]),
+      tokenKeys.map(token => [adapter, TypedMumbaiDefiPools[AAVE_ADAPTER_NAME][token].lpToken]),
       false,
     );
   }

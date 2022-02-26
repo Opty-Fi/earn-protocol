@@ -7,6 +7,7 @@ import { default as TokenHolders } from "./token_holders.json";
 import { default as Contracts } from "./contracts.json";
 import { default as EOA } from "./eoa.json";
 import { default as TokenStrategies } from "./tokenStrategies.json";
+import { default as MumbaiTokens } from "./mumbai_tokens.json";
 
 import { STRATEGY, DATA_OBJECT, MULTI_ASSET_TOKEN_DATA, CURVE_TOKEN_DATA, TOKEN_STRATEGIES } from "../type";
 
@@ -19,3 +20,4 @@ export const TypedTokenHolders = TokenHolders as DATA_OBJECT;
 export const TypedContracts = Contracts as DATA_OBJECT;
 export const TypedEOA = EOA as DATA_OBJECT;
 export const TypedTokenStrategies = TokenStrategies as TOKEN_STRATEGIES;
+export const TypedMumbaiTokens = MumbaiTokens as DATA_OBJECT;
