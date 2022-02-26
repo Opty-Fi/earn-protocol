@@ -199,7 +199,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
 };
 
 export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
-  [eEVMNetwork.ethereum || NETWORKS_CHAIN_ID[eEVMNetwork.ethereum]]: {
+  [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
     USDC: {
       "usdc-DEPOSIT-CurveMetapoolDepositPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
         strategyName: "usdc-DEPOSIT-CurveMetapoolDepositPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",

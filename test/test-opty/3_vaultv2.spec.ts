@@ -108,6 +108,7 @@ const testStrategy: {
 
 const strategyKeys = Object.keys(testStrategy[fork]);
 
+// ToDo deploy fresh contract may be through migration scripts
 describe("VaultV2", () => {
   before(async function () {
     this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT_V2);

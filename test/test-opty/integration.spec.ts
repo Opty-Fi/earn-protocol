@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";

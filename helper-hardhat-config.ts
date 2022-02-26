@@ -6,7 +6,7 @@ const GWEI = 1000 * 1000 * 1000;
 
 export enum eEVMNetwork {
   kovan = "kovan",
-  ethereum = "ethereum",
+  mainnet = "mainnet",
   hardhat = "hardhat",
   staging = "staging",
   polygon = "polygon",
@@ -20,7 +20,7 @@ export type iEVMParamsPerNetwork<T> = {
 
 export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.kovan]: 42,
-  [eEVMNetwork.ethereum]: 1,
+  [eEVMNetwork.mainnet]: 1,
   [eEVMNetwork.hardhat]: 31337,
   [eEVMNetwork.polygon]: 137,
   [eEVMNetwork.avalanche]: 43114,
@@ -30,7 +30,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
 
 export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.kovan]: "0x2a",
-  [eEVMNetwork.ethereum]: "0x1",
+  [eEVMNetwork.mainnet]: "0x1",
   [eEVMNetwork.hardhat]: "0x7a69",
   [eEVMNetwork.polygon]: "0x89",
   [eEVMNetwork.avalanche]: "0xa86a",
@@ -40,7 +40,7 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.kovan]: process.env.KOVAN_NODE_URL ? process.env.KOVAN_NODE_URL : "",
-  [eEVMNetwork.ethereum]: process.env.ETHEREUM_NODE_URL ? process.env.ETHEREUM_NODE_URL : "",
+  [eEVMNetwork.mainnet]: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",
   [eEVMNetwork.staging]: process.env.STAGING_NETWORK_URL ? process.env.STAGING_NETWORK_URL : "",
   [eEVMNetwork.hardhat]: "http://localhost:8545",
   [eEVMNetwork.polygon]: process.env.POLYGON_NODE_URL ? process.env.POLYGON_NODE_URL : "",
@@ -50,7 +50,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
 
 export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.kovan]: 65 * GWEI,
-  [eEVMNetwork.ethereum]: 65 * GWEI,
+  [eEVMNetwork.mainnet]: 65 * GWEI,
   [eEVMNetwork.hardhat]: "auto",
   [eEVMNetwork.staging]: "auto",
   [eEVMNetwork.polygon]: 65 * GWEI,
@@ -59,7 +59,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
 };
 
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
-  [eEVMNetwork.ethereum]: 14269106,
+  [eEVMNetwork.mainnet]: 14269106,
   [eEVMNetwork.kovan]: 29962003,
   [eEVMNetwork.hardhat]: undefined,
   [eEVMNetwork.polygon]: 25200204,
