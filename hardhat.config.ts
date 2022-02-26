@@ -58,7 +58,7 @@ const getCommonNetworkConfig = (networkName: eEVMNetwork, networkId: number): Ne
   gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
   accounts: process.env.PK?.split(","),
-  deploy: [`deploy`],
+  deploy: [`deploy`, `deploy_${networkName}`],
 });
 
 const config: HardhatUserConfig = {
