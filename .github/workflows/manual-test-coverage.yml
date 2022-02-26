@@ -44,9 +44,9 @@ jobs:
       - name: Compile
         run: |
           yarn compile
-      - name: Optyfi-SDK Ethereum
+      - name: Optyfi-SDK Mainnet
         run: |
-          yarn optyfi-sdk:ethereum
+          yarn optyfi-sdk:mainnet
       - name: Test Coverage
         run: |
           yarn coverage
