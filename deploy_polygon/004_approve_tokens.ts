@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { NETWORKS_CHAIN_ID, eEVMNetwork } from "../helper-hardhat-config";
+import { NETWORKS_CHAIN_ID_HEX, eEVMNetwork } from "../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { addRiskProfiles, approveAndMapTokenHashToTokensV2 } from "../helpers/contracts-actions";
 
@@ -27,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       registryContract,
       tokens,
       true,
-      NETWORKS_CHAIN_ID.polygon.toString(),
+      NETWORKS_CHAIN_ID_HEX.polygon.toString(),
       false,
     );
 

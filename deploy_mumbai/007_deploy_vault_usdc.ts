@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { executeFunc, generateTokenHashV2 } from "../helpers/helpers";
 import { RISK_PROFILES } from "../helpers/constants/contracts-data";
-import { NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
+import { NETWORKS_CHAIN_ID_HEX } from "../helper-hardhat-config";
 import { TypedMumbaiTokens } from "../helpers/data";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -45,7 +45,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await executeFunc(vault, owner, "initialize(address,address,bytes32,string,string,uint256)", [
     registryAddress,
     underlyingToken,
-    generateTokenHashV2([underlyingToken], NETWORKS_CHAIN_ID.mumbai.toString()),
+    generateTokenHashV2([underlyingToken], NETWORKS_CHAIN_ID_HEX.mumbai.toString()),
     underlyingTokenName,
     underlyingTokenSymbol,
     riskProfileCode,
