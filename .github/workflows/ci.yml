@@ -110,9 +110,9 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
-      - name: Optyfi-SDK
+      - name: Optyfi-SDK Mainnet
         run: |
-          yarn typechain && yarn optyfi-sdk
+          yarn typechain && yarn optyfi-sdk:mainnet
       - name: Test
         run: |
           yarn test-fast

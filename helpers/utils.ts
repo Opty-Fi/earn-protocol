@@ -1,6 +1,6 @@
 import abi from "ethereumjs-abi";
 import { BigNumber, BigNumberish } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import fs from "fs";
 import { AxiosRequestConfig, Method } from "axios";
 import { Artifact } from "hardhat/types";
@@ -157,4 +157,12 @@ export function getMoralisConfig(
   };
 
   return config;
+}
+
+export function waitforme(milisec: number): Promise<string> {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve("");
+    }, milisec);
+  });
 }

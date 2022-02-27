@@ -128,7 +128,7 @@ interface IVaultV2 {
      *        This function can only be invoked by governance
      * @dev current strategy of vault will be null
      * @param _unpaused If true, the vault goes into unpause mode. If false(default), the vault
-     *      goes into pause mode
+     *        goes into pause mode
      */
     function setUnpaused(bool _unpaused) external;
 
@@ -207,18 +207,20 @@ interface IVaultV2 {
      * @notice Makes a decision based on vault configuration parameters
      *         to allow user deposits
      * @param _user address of the depositor
-     * @param _userDepositUT actual deposit amount after deducting
-     *                               third party transfer fees and
-     *                               deposit fees if any
      * @param _addUserDepositUT whether to add _userDepositUT while
-     *                          checking for TVL
+     *         checking for TVL
+     * @param _userDepositUTWithDeductions actual deposit amount after deducting
+     *        third party transfer fees and deposit fees if any
+     * @param _deductions amount in underlying token to not consider in as a part of
+     *       user deposit amount
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
     function userDepositPermitted(
         address _user,
-        uint256 _userDepositUT,
-        bool _addUserDepositUT
+        bool _addUserDepositUT,
+        uint256 _userDepositUTWithDeductions,
+        uint256 _deductions
     ) external view returns (bool, string memory);
 
     /**

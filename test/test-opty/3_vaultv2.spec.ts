@@ -3,13 +3,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";
-import { getAddress } from "ethers/lib/utils";
 import { BigNumber, ContractReceipt, Event } from "ethers";
 import { getSoliditySHA3Hash, Signers, to_10powNumber_BN } from "../../helpers/utils";
 import {
   AdminUpgradeabilityProxy,
   ERC20,
-  InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
   RegistryProxy,
   RegistryV2,
@@ -36,8 +34,6 @@ import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../../helper-hardhat-config";
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
-const OPUSDCGROW_VAULT_PROXY_ADDRESS = opUSDCgrow.VaultProxy;
-const OPWETHGROW_VAULT_PROXY_ADDRESS = opWETHgrow.VaultProxy;
 const OPUSDCGROW_VAULT_ADDRESS = opUSDCgrow.Vault;
 const OPWETHGROW_VAULT_ADDRESS = opWETHgrow.Vault;
 const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
@@ -107,11 +103,12 @@ const testStrategy: {
       ),
     },
   },
-  [eEVMNetwork.matic || eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.matic]]: {},
+  [eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: {},
 };
 
 const strategyKeys = Object.keys(testStrategy[fork]);
 
+// ToDo deploy fresh contract may be through migration scripts
 describe("VaultV2", () => {
   before(async function () {
     this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT_V2);
@@ -170,114 +167,6 @@ describe("VaultV2", () => {
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
-  });
-  describe("opUSDCgrowV2 and opWETHgrowV2 after on-chain upgrade", () => {
-    // TODO : recall all investments, pause the vault then upgrade
-    before(async function () {
-      // testing already deployed contracts
-      // this code block may fail if the block number is made greater than
-      // the block at which vaults are upgraded to V2 or fork is other than Ethereum
-      // ====================================================
-      this.opUSDCgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
-        await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPUSDCGROW_VAULT_PROXY_ADDRESS)
-      );
-      const opUSDCgrowAdminAddress = await this.opUSDCgrowProxy.admin();
-      const opUSDCgrowAdminSigner = await ethers.getSigner(opUSDCgrowAdminAddress);
-      await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [opUSDCgrowAdminAddress],
-      });
-      // ====================================================
-      this.opWETHgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
-        await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPWETHGROW_VAULT_PROXY_ADDRESS)
-      );
-      const opWETHgrowAdminAddress = await this.opWETHgrowProxy.admin();
-      const opWETHgrowAdminSigner = await ethers.getSigner(opWETHgrowAdminAddress);
-      await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [opWETHgrowAdminAddress],
-      });
-      // // ====================================================
-      this.opUSDCgrowV2 = <VaultV2>(
-        await deployContract(this.signers.deployer, this.vaultV2Artifact, [
-          REGISTRY_PROXY_ADDRESS,
-          "USD Coin",
-          "USDC",
-          "Growth",
-          "grow",
-        ])
-      );
-      await this.opUSDCgrowProxy.connect(opUSDCgrowAdminSigner).upgradeTo(this.opUSDCgrowV2.address);
-      this.opUSDCgrowV2 = <VaultV2>(
-        await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, this.opUSDCgrowProxy.address)
-      );
-      // ====================================================
-      this.opWETHgrowV2 = <VaultV2>(
-        await waffle.deployContract(this.signers.deployer, this.vaultV2Artifact, [
-          REGISTRY_PROXY_ADDRESS,
-          "Wrapped Ether",
-          "WETH",
-          "Growth",
-          "grow",
-        ])
-      );
-      await this.opWETHgrowProxy.connect(opWETHgrowAdminSigner).upgradeTo(this.opWETHgrowV2.address);
-      this.opWETHgrowV2 = <VaultV2>(
-        await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, this.opWETHgrowProxy.address)
-      );
-    });
-
-    it("default values from for v1 opUSDCgrow should be as expected", async function () {
-      expect(await this.opUSDCgrowV2.opTOKEN_REVISION()).to.eq("0x3");
-      expect(await this.opUSDCgrowV2.registryContract()).to.eq(getAddress(this.registryV2.address));
-      expect(await this.opUSDCgrowV2.riskProfileCode()).to.eq("1");
-      expect(await this.opUSDCgrowV2.underlyingToken()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address);
-      expect(await this.opUSDCgrowV2.underlyingTokensHash()).to.eq(ethers.constants.HashZero);
-      expect(await this.opUSDCgrowV2.name()).to.eq("op USD Coin Growth");
-      expect(await this.opUSDCgrowV2.symbol()).to.eq("opUSDCgrow");
-      expect(await this.opUSDCgrowV2.decimals()).to.eq(6);
-      expect(await this.opUSDCgrowV2.maxVaultValueJump()).to.eq("100");
-    });
-
-    it("default values for v1 opWETHgrow should be as expected", async function () {
-      expect(await this.opWETHgrowV2.opTOKEN_REVISION()).to.eq("0x3");
-      expect(await this.opWETHgrowV2.registryContract()).to.eq(getAddress(this.registryV2.address));
-      expect(await this.opWETHgrowV2.riskProfileCode()).to.eq("1");
-      expect(await this.opWETHgrowV2.underlyingToken()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].WETH.address);
-      expect(await this.opWETHgrowV2.underlyingTokensHash()).to.eq(ethers.constants.HashZero);
-      expect(await this.opWETHgrowV2.name()).to.eq("op Wrapped Ether Growth");
-      expect(await this.opWETHgrowV2.symbol()).to.eq("opWETHgrow");
-      expect(await this.opWETHgrowV2.decimals()).to.eq(18);
-      expect(await this.opWETHgrowV2.maxVaultValueJump()).to.eq("100");
-    });
-
-    it("vaultConfigurationV2() for opUSDCgrow V2", async function () {
-      const vaultConfigurationV2 = await this.opUSDCgrowV2.vaultConfiguration();
-      expect(vaultConfigurationV2.emergencyShutdown).to.be.false;
-      expect(vaultConfigurationV2.unpaused).to.be.false;
-      expect(vaultConfigurationV2.allowWhitelistedState).to.be.false;
-      expect(vaultConfigurationV2.depositFeeFlatUT).to.eq("0");
-      expect(vaultConfigurationV2.depositFeePct).to.eq("0");
-      expect(vaultConfigurationV2.withdrawalFeeFlatUT).to.eq("0");
-      expect(vaultConfigurationV2.withdrawalFeePct).to.eq("0");
-      expect(vaultConfigurationV2.userDepositCapUT).to.eq("0");
-      expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("0");
-      expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("0");
-    });
-
-    it("vaultConfigurationV2() for opWETHgrow V2", async function () {
-      const vaultConfigurationV2 = await this.opWETHgrowV2.vaultConfiguration();
-      expect(vaultConfigurationV2.emergencyShutdown).to.be.false;
-      expect(vaultConfigurationV2.unpaused).to.be.false;
-      expect(vaultConfigurationV2.allowWhitelistedState).to.be.false;
-      expect(vaultConfigurationV2.depositFeeFlatUT).to.eq("0");
-      expect(vaultConfigurationV2.depositFeePct).to.eq("0");
-      expect(vaultConfigurationV2.withdrawalFeeFlatUT).to.eq("0");
-      expect(vaultConfigurationV2.withdrawalFeePct).to.eq("0");
-      expect(vaultConfigurationV2.userDepositCapUT).to.eq("0");
-      expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("0");
-      expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("0");
-    });
   });
   describe("VaultV2 unit testing", () => {
     before(async function () {
@@ -355,10 +244,9 @@ describe("VaultV2", () => {
       });
       expect(eventsArr[2].args?.totalValueLockedLimitUT).to.eq("1000000000000");
       expect(eventsArr[2].args?.caller).to.eq(this.signers.financeOperator.address);
-      const vaultConfigurationV2 = await this.vaultV2.vaultConfiguration();
-      expect(vaultConfigurationV2.userDepositCapUT).to.eq("10000000000");
-      expect(vaultConfigurationV2.minimumDepositValueUT).to.eq("1000000000");
-      expect(vaultConfigurationV2.totalValueLockedLimitUT).to.eq("1000000000000");
+      expect(await this.vaultV2.userDepositCapUT()).to.eq("10000000000");
+      expect(await this.vaultV2.minimumDepositValueUT()).to.eq("1000000000");
+      expect(await this.vaultV2.totalValueLockedLimitUT()).to.eq("1000000000000");
       expect(await this.vaultV2.maxVaultValueJump()).to.eq("100");
     });
 
@@ -413,7 +301,7 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.connect(this.signers.operator).setUserDepositCapUT("2000000000"))
         .to.emit(this.vaultV2, "LogUserDepositCapUT")
         .withArgs("2000000000", this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[8]).to.eq("2000000000");
+      expect(await this.vaultV2.userDepositCapUT()).to.eq("2000000000");
     });
 
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
@@ -429,7 +317,7 @@ describe("VaultV2", () => {
       )
         .to.emit(this.vaultV2, "LogMinimumDepositValueUT")
         .withArgs("1000000000", this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[9]).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.minimumDepositValueUT()).to.eq(BigNumber.from("1000").mul(to_10powNumber_BN("6")));
     });
 
     it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {
@@ -445,7 +333,7 @@ describe("VaultV2", () => {
       )
         .to.emit(this.vaultV2, "LogTotalValueLockedLimitUT")
         .withArgs("10000000000", this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[10]).to.eq(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.totalValueLockedLimitUT()).to.eq(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
     });
 
     it("fails setWhitelistedAccounts() call by non governance", async function () {
@@ -573,7 +461,7 @@ describe("VaultV2", () => {
 
     it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {
       await this.vaultV2.connect(this.signers.financeOperator).setAllowWhitelistedState(true);
-      expect(await this.vaultV2.userDepositPermitted(this.signers.bob.address, "1", true)).to.have.members([
+      expect(await this.vaultV2.userDepositPermitted(this.signers.bob.address, true, "1", "0")).to.have.members([
         false,
         "8",
       ]);
@@ -585,27 +473,25 @@ describe("VaultV2", () => {
       ]);
     });
     it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100", true)).to.have.members([
+      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "100", "0")).to.have.members([
         false,
         "10",
       ]);
     });
     it("userDepositPermitted() return false,TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "100000000000", true)).to.have.members(
-        [false, "11"],
-      );
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "100000000000", "0"),
+      ).to.have.members([false, "11"]);
     });
     it("userDepositPermitted() return false,USER_DEPOSIT_CAP_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "3000000000", true)).to.have.members([
-        false,
-        "12",
-      ]);
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "3000000000", "0"),
+      ).to.have.members([false, "12"]);
     });
     it('call userDepositPermitted() from EOA return true,""', async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, "1500000000", true)).to.have.members([
-        true,
-        "",
-      ]);
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "1500000000", "0"),
+      ).to.have.members([true, ""]);
     });
     it('call userDepositPermitted() from CA return true,""', async function () {
       await this.vaultV2.connect(this.signers.governance).setWhitelistedAccounts([this.testVaultV2.address], [true]);
@@ -772,15 +658,5 @@ describe("VaultV2", () => {
       expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
       expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
     });
-  });
-  describe("VaultV2 strategies", () => {
-    before(async function () {
-      console.log("rmv2 ", this.riskManagerV2.address);
-    });
-    for (let i = 0; i < 1; i++) {
-      it(`strategy${i}`, async function () {
-        console.log("fn1");
-      });
-    }
   });
 });

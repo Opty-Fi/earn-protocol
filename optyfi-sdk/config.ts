@@ -18,6 +18,9 @@ export default defineConfig({
     strategies: {
       usdc: PolygonLegos.tokens.USDC,
       wmatic: PolygonLegos.tokens.WMATIC,
+      dai: PolygonLegos.tokens.DAI,
+      slp: PolygonLegos.tokens.SLP,
+      weth: PolygonLegos.tokens.WETH,
     },
     protocols: POLYGON_PROTOCOLS,
   },

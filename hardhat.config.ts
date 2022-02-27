@@ -7,6 +7,7 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
+import "@tenderly/hardhat-tenderly";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "solidity-coverage";
@@ -56,17 +57,17 @@ const getCommonNetworkConfig = (networkName: eEVMNetwork, networkId: number): Ne
   gasMultiplier: DEFAULT_GAS_MUL,
   gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
-  accounts: {
-    mnemonic,
-    path: MNEMONIC_PATH,
-    initialIndex: 0,
-    count: 20,
-  },
-  deploy: [`deploy_${networkName}`],
+  accounts: process.env.PK?.split(","),
+  deploy: [`deploy`, `deploy_${networkName}`],
 });
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
+  namedAccounts: {
+    deployer: 0,
+    admin: 1,
+    operator: 2,
+  },
   solidity: {
     compilers: [
       {
@@ -104,16 +105,23 @@ const config: HardhatUserConfig = {
     ],
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: process.env.ETHERSCAN_API_KEY as string,
+      ropsten: process.env.ETHERSCAN_API_KEY as string,
+      bsc: process.env.BSCSCAN_API_KEY as string,
+      polygon: process.env.POLYGONSCAN_API_KEY as string,
+      avalanche: process.env.SNOWTRACE_API_KEY as string,
+    },
   },
   networks: {
+    mainnet: getCommonNetworkConfig(eEVMNetwork.mainnet, NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]),
+    polygon: getCommonNetworkConfig(eEVMNetwork.polygon, NETWORKS_CHAIN_ID[eEVMNetwork.polygon]),
     staging: getCommonNetworkConfig(eEVMNetwork.staging, NETWORKS_CHAIN_ID[eEVMNetwork.ganache]),
     localhost: {
       url: NETWORKS_RPC_URL[eEVMNetwork.hardhat],
       chainId: NETWORKS_CHAIN_ID[eEVMNetwork.ganache],
     },
     kovan: getCommonNetworkConfig(eEVMNetwork.kovan, NETWORKS_CHAIN_ID[eEVMNetwork.kovan]),
-    polygon: getCommonNetworkConfig(eEVMNetwork.polygon, NETWORKS_CHAIN_ID[eEVMNetwork.polygon]),
     mumbai: getCommonNetworkConfig(eEVMNetwork.mumbai, NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]),
     hardhat: {
       hardfork: "london",
@@ -157,6 +165,11 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: "typechain",
     target: "ethers-v5",
+  },
+  tenderly: {
+    username: process.env.TENDERLY_USERNAME as string,
+    project: process.env.TENDERLY_PROJECT as string,
+    forkNetwork: "1", //Network id of the network we want to fork
   },
 };
 

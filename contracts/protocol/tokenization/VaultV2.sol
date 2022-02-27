@@ -9,7 +9,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
 import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
-import { VaultStorageV2 } from "./VaultStorage.sol";
+import { VaultStorageV2 } from "./VaultStorageV2.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // libraries
@@ -282,7 +282,7 @@ contract VaultV2 is
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
         (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(msg.sender, _netUserDepositUT, false);
+            userDepositPermitted(msg.sender, false, _netUserDepositUT, _depositFeeUT);
         require(_userDepositPermitted, _userDepositPermittedReason);
         // add net deposit amount to user's total deposit
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
@@ -402,8 +402,9 @@ contract VaultV2 is
      */
     function userDepositPermitted(
         address _user,
-        uint256 _userDepositUT,
-        bool _addUserDepositUT
+        bool _addUserDepositUT,
+        uint256 _userDepositUTWithDeductions,
+        uint256 _deductions
     ) public view override returns (bool, string memory) {
         if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_user]) {
             return (false, Errors.EOA_NOT_WHITELISTED);
@@ -412,15 +413,16 @@ contract VaultV2 is
         if (_user != tx.origin && _greyList(_user)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
-        if (_userDepositUT < vaultConfiguration.minimumDepositValueUT) {
+        if (_userDepositUTWithDeductions < minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
         }
-        if (!_addUserDepositUT && _oraVaultAndStratValueUT() > vaultConfiguration.totalValueLockedLimitUT) {
+        uint256 _oraVaultAndStratValueUT = _oraVaultAndStratValueUT();
+        if (!_addUserDepositUT && _oraVaultAndStratValueUT.sub(_deductions) > totalValueLockedLimitUT) {
             return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
-        } else if (_oraVaultAndStratValueUT().add(_userDepositUT) > vaultConfiguration.totalValueLockedLimitUT) {
+        } else if (_oraVaultAndStratValueUT.add(_userDepositUTWithDeductions) > totalValueLockedLimitUT) {
             return (false, Errors.TOTAL_VALUE_LOCKED_LIMIT_UT);
         }
-        if (totalDeposits[_user].add(_userDepositUT) > vaultConfiguration.userDepositCapUT) {
+        if (totalDeposits[_user].add(_userDepositUTWithDeductions) > userDepositCapUT) {
             return (false, Errors.USER_DEPOSIT_CAP_UT);
         }
         return (true, "");
@@ -662,8 +664,8 @@ contract VaultV2 is
      * @param _userDepositCapUT maximum amount in underlying allowed to be deposited by user
      */
     function _setUserDepositCapUT(uint256 _userDepositCapUT) internal {
-        vaultConfiguration.userDepositCapUT = _userDepositCapUT;
-        emit LogUserDepositCapUT(vaultConfiguration.userDepositCapUT, msg.sender);
+        userDepositCapUT = _userDepositCapUT;
+        emit LogUserDepositCapUT(userDepositCapUT, msg.sender);
     }
 
     /**
@@ -672,8 +674,8 @@ contract VaultV2 is
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
      */
     function _setMinimumDepositValueUT(uint256 _minimumDepositValueUT) internal {
-        vaultConfiguration.minimumDepositValueUT = _minimumDepositValueUT;
-        emit LogMinimumDepositValueUT(vaultConfiguration.minimumDepositValueUT, msg.sender);
+        minimumDepositValueUT = _minimumDepositValueUT;
+        emit LogMinimumDepositValueUT(minimumDepositValueUT, msg.sender);
     }
 
     /**
@@ -681,8 +683,8 @@ contract VaultV2 is
      * @param _totalValueLockedLimitUT maximum TVL in underlying allowed for the vault
      */
     function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
-        vaultConfiguration.totalValueLockedLimitUT = _totalValueLockedLimitUT;
-        emit LogTotalValueLockedLimitUT(vaultConfiguration.totalValueLockedLimitUT, msg.sender);
+        totalValueLockedLimitUT = _totalValueLockedLimitUT;
+        emit LogTotalValueLockedLimitUT(totalValueLockedLimitUT, msg.sender);
     }
 
     /**

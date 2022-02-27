@@ -44,9 +44,9 @@ jobs:
       - name: Compile
         run: |
           yarn compile
-      - name: Optyfi-SDK
+      - name: Optyfi-SDK Mainnet
         run: |
-          yarn optyfi-sdk
+          yarn optyfi-sdk:mainnet
       - name: Test Coverage
         run: |
           yarn coverage
