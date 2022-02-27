@@ -4,7 +4,7 @@ import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-na
 import { executeFunc, generateTokenHashV2 } from "../helpers/helpers";
 import { RISK_PROFILES } from "../helpers/constants/contracts-data";
 import { legos as PolygonLegos } from "@optyfi/defi-legos/polygon";
-import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
+import { NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments } = hre;
