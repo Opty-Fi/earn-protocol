@@ -1,9 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { executeFunc } from "../helpers/helpers";
+import { executeFunc, generateTokenHashV2 } from "../helpers/helpers";
 import { RISK_PROFILES } from "../helpers/constants/contracts-data";
 import { legos as PolygonLegos } from "@optyfi/defi-legos/polygon";
+import { NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments } = hre;
   const [owner, admin] = await hre.ethers.getSigners();
@@ -40,9 +41,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const vault = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, vaultProxyAddress, owner);
 
-  await executeFunc(vault, owner, "initialize(address,address,string,string,uint256)", [
+  await executeFunc(vault, owner, "initialize(address,address,bytes32,string,string,uint256)", [
     registryAddress,
     underlyingToken,
+    generateTokenHashV2([underlyingToken], NETWORKS_CHAIN_ID.polygon.toString()),
     underlyingTokenName,
     underlyingTokenSymbol,
     riskProfileCode,

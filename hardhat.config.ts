@@ -62,6 +62,7 @@ const getCommonNetworkConfig = (networkName: eEVMNetwork, networkId: number): Ne
     initialIndex: 0,
     count: 20,
   },
+  deploy: [`deploy_${networkName}`],
 });
 
 const config: HardhatUserConfig = {
@@ -113,6 +114,7 @@ const config: HardhatUserConfig = {
     },
     kovan: getCommonNetworkConfig(eEVMNetwork.kovan, NETWORKS_CHAIN_ID[eEVMNetwork.kovan]),
     polygon: getCommonNetworkConfig(eEVMNetwork.polygon, NETWORKS_CHAIN_ID[eEVMNetwork.polygon]),
+    mumbai: getCommonNetworkConfig(eEVMNetwork.mumbai, NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]),
     hardhat: {
       hardfork: "london",
       initialBaseFeePerGas: 1_00_000_000,
@@ -127,6 +129,7 @@ const config: HardhatUserConfig = {
         count: 20,
         accountsBalance: "1000000000000000000000000000",
       },
+      deploy: [`deploy_${FORK}`],
     },
   },
   paths: {

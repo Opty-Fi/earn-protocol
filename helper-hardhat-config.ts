@@ -13,6 +13,7 @@ export enum eEVMNetwork {
   polygon = "polygon",
   avalanche = "avalanche",
   ganache = "ganache",
+  mumbai = "mumbai",
 }
 
 export type iEVMParamsPerNetwork<T> = {
@@ -28,6 +29,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.avalanche]: 43114,
   [eEVMNetwork.staging]: 1337,
   [eEVMNetwork.ganache]: 1337,
+  [eEVMNetwork.mumbai]: 80001,
 };
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
@@ -38,6 +40,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.polygon]: process.env.POLYGON_NODE_URL ? process.env.POLYGON_NODE_URL : "",
   [eEVMNetwork.matic]: process.env.MATIC_NODE_URL ? process.env.MATIC_NODE_URL : "",
   [eEVMNetwork.avalanche]: process.env.AVALANCHE_NODE_URL ? process.env.AVALANCHE_NODE_URL : "",
+  [eEVMNetwork.mumbai]: process.env.MUMBAI_NODE_URL ? process.env.MUMBAI_NODE_URL : "",
   [eEVMNetwork.ganache]: "http://localhost:8545",
 };
 
@@ -49,6 +52,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.matic]: 65 * GWEI,
   [eEVMNetwork.polygon]: 65 * GWEI,
   [eEVMNetwork.avalanche]: 65 * GWEI,
+  [eEVMNetwork.mumbai]: 65 * GWEI,
   [eEVMNetwork.ganache]: "auto",
 };
 
@@ -61,6 +65,7 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.avalanche]: 11215586,
   [eEVMNetwork.staging]: undefined,
   [eEVMNetwork.ganache]: undefined,
+  [eEVMNetwork.mumbai]: 25291667,
 };
 
 export const buildForkConfig = (

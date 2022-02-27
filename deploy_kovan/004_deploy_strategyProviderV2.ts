@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ).address;
 
   const registryContract = <RegistryV2>(
-    await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, KOVAN.RegistryProxy)
+    await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, KOVAN.RegistryProxy)
   );
 
   await executeFunc(registryContract, owner, "setStrategyProvider(address)", [strategyProviderAddress]);

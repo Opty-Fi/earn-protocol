@@ -1,7 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { AAVE_ADAPTER_NAME } from "../helpers/constants/adapters-polygon";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { TypedMumbaiDefiPools } from "../helpers/data/polygon_defiPools";
 import { approveLiquidityPoolAndMapAdaptersV2 } from "../helpers/contracts-actions";
@@ -12,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const [owner] = await hre.ethers.getSigners();
   const { deploy } = deployments;
   const registryAddress = (await deployments.get("RegistryProxy")).address;
-  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryAddress);
+  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryAddress);
   const adapter = (
     await deploy(AAVE_ADAPTER_NAME, {
       from: await owner.getAddress(),

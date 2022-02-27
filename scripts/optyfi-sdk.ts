@@ -1,7 +1,7 @@
 import data from "../optyfi-sdk/config";
 import { NETWORKS, NETWORKS_ID } from "../helpers/constants/network";
 import { createDir, createFile, getMoralisConfig } from "../helpers/utils";
-import { DEFI_POOL_DATA, STRATEGIES, STRATEGY_DATA } from "../helpers/type";
+import { DEFI_POOLS, STRATEGIES, STRATEGY_DATA } from "../helpers/type";
 import { ETH } from "../helpers/constants/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
@@ -38,7 +38,7 @@ async function main() {
             }),
           );
           const data = response.data.result;
-          const defiPools: DEFI_POOL_DATA = {};
+          const defiPools: DEFI_POOLS = {};
           for (let i = 0; i < data.adapterPools.length; i++) {
             const pool = data.adapterPools[i];
             defiPools[pool.poolName] = {

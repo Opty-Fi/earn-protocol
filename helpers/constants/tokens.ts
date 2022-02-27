@@ -115,10 +115,10 @@ export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
       hash: generateTokenHashV2([TypedTokens["MKR"]], NETWORKS_CHAIN_ID[eEVMNetwork.ethereum].toString()),
     },
   },
-  [eEVMNetwork.matic ||
-  NETWORKS_CHAIN_ID[eEVMNetwork.matic] ||
-  eEVMNetwork.polygon ||
-  NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: {
+  [eEVMNetwork.polygon ||
+  NETWORKS_CHAIN_ID[eEVMNetwork.polygon] ||
+  eEVMNetwork.matic ||
+  NETWORKS_CHAIN_ID[eEVMNetwork.matic]]: {
     USDC: {
       address: PolygonLegos.tokens.USDC,
       pair: false,
