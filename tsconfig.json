@@ -27,6 +27,6 @@
     "optyfi-sdk/**/*.ts",
     "scripts/*.ts",
     "deploy/**/*.ts",
-    "deploy_*/**/*.ts"
+    "deploy_mainnet/**/*.ts"
   ]
 }

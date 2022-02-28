@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { RegistryV2, RiskManagerProxy } from "../typechain";
+import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -44,16 +45,23 @@ const func: DeployFunction = async ({
   );
   const operatorAddress = await registryV2Instance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
+  const governanceAddress = await registryV2Instance.governance();
+  const governanceSigner = await ethers.getSigner(governanceAddress);
 
-  const setPendingImplementationTx = await riskManagerInstance
-    .connect(operatorSigner)
-    .setPendingImplementation(riskManagerV2.address);
-  await setPendingImplementationTx.wait();
-  const becomeTx = await riskManagerV2Instance.become(riskManagerProxy.address);
-  await becomeTx.wait();
+  const riskManagerImplementation = await riskManagerInstance.riskManagerImplementation();
 
-  const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxy.address);
-  await setRiskManagerTx.wait();
+  if (getAddress(riskManagerV2.address) != getAddress(riskManagerImplementation)) {
+    console.log("upgrading RiskManager...");
+    const setPendingImplementationTx = await riskManagerInstance
+      .connect(operatorSigner)
+      .setPendingImplementation(riskManagerV2.address);
+    await setPendingImplementationTx.wait();
+    const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxy.address);
+    await becomeTx.wait();
+    console.log("Registering upgraded RiskManager ...");
+    const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxy.address);
+    await setRiskManagerTx.wait();
+  }
 
   if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
     if (result.newlyDeployed) {
