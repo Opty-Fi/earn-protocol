@@ -30,7 +30,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
     skipIfAlreadyDeployed: true,
   });
 
-  if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
+  if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       const curveSwapPoolAdapter = await deployments.get("CurveSwapPoolAdapter");
       if (networkName === "tenderly") {

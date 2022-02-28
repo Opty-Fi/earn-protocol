@@ -63,7 +63,7 @@ const func: DeployFunction = async ({
     await setRiskManagerTx.wait();
   }
 
-  if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
+  if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
         await hre.tenderly.verify({

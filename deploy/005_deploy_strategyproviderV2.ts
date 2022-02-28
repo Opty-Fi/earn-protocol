@@ -50,7 +50,7 @@ const func: DeployFunction = async ({
     await setStrategyProviderTx.wait();
   }
 
-  if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
+  if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       const strategyProviderV2 = await deployments.get("StrategyProviderV2");
       if (networkName === "tenderly") {
