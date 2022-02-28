@@ -2,7 +2,7 @@ import { artifacts, ethers, network, waffle } from "hardhat";
 import { Artifact } from "hardhat/types";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Signers } from "../../helpers/utils";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";

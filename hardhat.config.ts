@@ -5,20 +5,20 @@ import path from "path";
 import fs from "fs";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "@tenderly/hardhat-tenderly";
 import "@nomiclabs/hardhat-etherscan";
-import "@typechain/hardhat";
 import "solidity-coverage";
-import "hardhat-docgen";
 import "hardhat-deploy";
+import "hardhat-gas-reporter";
+import "hardhat-docgen";
+import "@typechain/hardhat";
+import "@tenderly/hardhat-tenderly";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,
   eEVMNetwork,
   buildForkConfig,
   NETWORKS_CHAIN_ID,
+  buildDeployConfig,
 } from "./helper-hardhat-config";
 
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
@@ -137,7 +137,7 @@ const config: HardhatUserConfig = {
         count: 20,
         accountsBalance: "1000000000000000000000000000",
       },
-      deploy: [`deploy_${FORK}`],
+      deploy: buildDeployConfig(FORK as eEVMNetwork),
     },
   },
   paths: {

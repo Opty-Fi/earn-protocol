@@ -1,5 +1,5 @@
 import { artifacts, waffle, ethers, network } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";

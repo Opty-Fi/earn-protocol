@@ -3,6 +3,8 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { RegistryV2, RiskManagerProxy } from "../typechain";
+import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -34,17 +36,32 @@ const func: DeployFunction = async ({
   const riskManagerV2 = await deployments.get("RiskManagerV2");
   const riskManagerV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_V2, riskManagerV2.address);
   const riskManagerProxy = await deployments.get("RiskManagerProxy");
-  const riskManagerInstance = await ethers.getContractAt(
-    ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY,
-    riskManagerProxy.address,
+  const riskManagerInstance = <RiskManagerProxy>(
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, riskManagerProxy.address)
   );
-  const setPendingImplementationTx = await riskManagerInstance.setPendingImplementation(riskManagerV2.address);
-  await setPendingImplementationTx.wait();
-  const becomeTx = await riskManagerV2Instance.become(riskManagerProxy.address);
-  await becomeTx.wait();
-  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address);
-  const setRiskManagerTx = await registryV2Instance.setRiskManager(riskManagerProxy.address);
-  await setRiskManagerTx.wait();
+
+  const registryV2Instance = <RegistryV2>(
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address)
+  );
+  const operatorAddress = await registryV2Instance.operator();
+  const operatorSigner = await ethers.getSigner(operatorAddress);
+  const governanceAddress = await registryV2Instance.governance();
+  const governanceSigner = await ethers.getSigner(governanceAddress);
+
+  const riskManagerImplementation = await riskManagerInstance.riskManagerImplementation();
+
+  if (getAddress(riskManagerV2.address) != getAddress(riskManagerImplementation)) {
+    console.log("upgrading RiskManager...");
+    const setPendingImplementationTx = await riskManagerInstance
+      .connect(operatorSigner)
+      .setPendingImplementation(riskManagerV2.address);
+    await setPendingImplementationTx.wait();
+    const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxy.address);
+    await becomeTx.wait();
+    console.log("Registering upgraded RiskManager ...");
+    const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxy.address);
+    await setRiskManagerTx.wait();
+  }
 
   if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
     if (result.newlyDeployed) {
@@ -69,4 +86,4 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["RiskManager"];
+func.tags = ["RiskManagerV2"];
