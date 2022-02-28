@@ -1,5 +1,5 @@
 import { artifacts, waffle, ethers, network } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";
@@ -44,7 +44,7 @@ const testStrategy: {
     [name: string]: { steps: { pool: string; outputToken: string; isBorrow: boolean }[]; hash: string };
   };
 } = {
-  [eEVMNetwork.ethereum || NETWORKS_CHAIN_ID[eEVMNetwork.ethereum]]: {
+  [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
     USDC_COMPOUND: {
       steps: [
         {

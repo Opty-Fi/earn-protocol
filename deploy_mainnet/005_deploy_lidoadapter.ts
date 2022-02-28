@@ -26,7 +26,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
     skipIfAlreadyDeployed: true,
   });
 
-  if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
+  if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       const lidoAdapter = await deployments.get("LidoAdapter");
       if (networkName === "tenderly") {
