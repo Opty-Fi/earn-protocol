@@ -31,9 +31,15 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
   });
 
-  const strategyProviderV2 = await deployments.get("StrategyProviderV2");
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address);
-  const setStrategyProviderTx = await registryV2Instance.setStrategyProvider(strategyProviderV2.address);
+  const operatorAddress = await registryV2Instance.operator();
+  const operatorSigner = await ethers.getSigner(operatorAddress);
+
+  const strategyProviderV2 = await deployments.get("StrategyProviderV2");
+
+  const setStrategyProviderTx = await registryV2Instance
+    .connect(operatorSigner)
+    .setStrategyProvider(strategyProviderV2.address);
   await setStrategyProviderTx.wait();
 
   if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
@@ -62,4 +68,4 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["StrategyProvider"];
+func.tags = ["StrategyProviderV2"];

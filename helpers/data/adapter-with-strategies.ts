@@ -281,7 +281,7 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
             outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
             isBorrow: false,
             outputTokenSymbol: "cvxsteCRV",
-            adapterName: "ConvexAdapter",
+            adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
           },
         ],

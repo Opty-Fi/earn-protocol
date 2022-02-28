@@ -3,6 +3,8 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
+import { RegistryProxy, RegistryV2 } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -31,13 +33,44 @@ const func: DeployFunction = async ({
   });
 
   const registryV2 = await deployments.get("RegistryV2");
-  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryV2.address);
+  let registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryV2.address);
   const registryProxy = await deployments.get("RegistryProxy");
-  const registryProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxy.address);
+  let registryProxyInstance = <RegistryProxy>(
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxy.address)
+  );
+  const operatorAddress = await registryProxyInstance.operator();
+  const operatorSigner = await ethers.getSigner(operatorAddress);
+  registryProxyInstance = <RegistryProxy>(
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxy.address, operatorSigner)
+  );
+  // upgrade registry
   const setPendingImplementationTx = await registryProxyInstance.setPendingImplementation(registryV2.address);
   await setPendingImplementationTx.wait();
   const becomeTx = await registryV2Instance.become(registryProxy.address);
   await becomeTx.wait();
+
+  registryV2Instance = <RegistryV2>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address);
+
+  // approve tokens and map to tokens hash
+  const tokensObj: { tokensHash: string; tokens: string[] }[] = [
+    {
+      tokensHash: MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
+      tokens: [MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.address],
+    },
+    {
+      tokensHash: MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.hash,
+      tokens: [MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.address],
+    },
+  ];
+
+  const approveTokenAndMapToTokensHashTx = await registryV2Instance["approveTokenAndMapToTokensHash(tuple[])"](
+    tokensObj,
+  );
+  await approveTokenAndMapToTokensHashTx.wait();
+
+  // add risk profile
+  const addRiskProfileTx = await registryV2Instance.addRiskProfile("1", "Growth", "grow", false, [0, 100]); // code,name,symbol,canBorrow,pool rating range
+  await addRiskProfileTx.wait();
 
   if (typeof CONTRACTS_VERIFY == "boolean" && CONTRACTS_VERIFY) {
     if (result.newlyDeployed) {
@@ -62,4 +95,4 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["Registry"];
+func.tags = ["RegistryV2"];
