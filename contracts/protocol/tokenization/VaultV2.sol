@@ -252,7 +252,11 @@ contract VaultV2 is
             if (investStrategyHash != Constants.ZERO_BYTES32) {
                 _vaultWithdrawAllFromStrategy(investStrategySteps);
             }
-            _setInvestStrategySteps(_cacheNextInvestStrategySteps);
+            // _setInvestStrategySteps
+            delete investStrategySteps;
+            for (uint256 _i; _i < _cacheNextInvestStrategySteps.length; _i++) {
+                investStrategySteps.push(_cacheNextInvestStrategySteps[_i]);
+            }
             investStrategyHash = _nextBestInvestStrategyHash;
         }
         if (investStrategyHash != Constants.ZERO_BYTES32 && balanceUT() > 0) {
@@ -703,17 +707,6 @@ contract VaultV2 is
         delete _cacheNextInvestStrategySteps;
         for (uint256 _i; _i < _investStrategySteps.length; _i++) {
             _cacheNextInvestStrategySteps.push(_investStrategySteps[_i]);
-        }
-    }
-
-    /**
-     * @dev Internal function for saving the invest strategy metadata
-     * @param _investStrategySteps list of strategy steps
-     */
-    function _setInvestStrategySteps(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
-        delete investStrategySteps;
-        for (uint256 _i; _i < _investStrategySteps.length; _i++) {
-            investStrategySteps.push(_investStrategySteps[_i]);
         }
     }
 

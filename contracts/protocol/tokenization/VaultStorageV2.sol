@@ -67,15 +67,6 @@ contract VaultStorage {
      * @dev Maximum TVL in underlying token allowed for the vault
      */
     uint256 public totalValueLockedLimitUT;
-
-    /**
-     * @notice Log an event when user calls user deposit underlying asset without rebalance
-     * @dev the shares are not minted until next rebalance
-     * @param sender the account address of the user
-     * @param index the position of user in the queue
-     * @param amount the amount of underlying asset deposit
-     */
-    event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
 }
 
 contract VaultStorageV2 is VaultStorage {

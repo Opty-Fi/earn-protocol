@@ -97,10 +97,8 @@ library StrategyBuilder {
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
         address _underlyingToken = _strategyConfigurationParams.underlyingToken;
         uint256 _depositAmountUT = _strategyConfigurationParams.initialStepInputAmount;
-        if (
-            _strategyConfigurationParams.internalTransactionIndex ==
-            _strategyConfigurationParams.internalTransactionCount
-        ) {
+        uint256 _stepCount = _strategySteps.length;
+        if (_strategyConfigurationParams.internalTransactionIndex == _stepCount) {
             address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].pool;
             IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
             _underlyingToken = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].outputToken;
