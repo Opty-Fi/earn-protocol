@@ -1,9 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { AAVE_ADAPTER_NAME } from "../helpers/constants/adapters-polygon";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
+import { CURVE_GAUGE_ADAPTER } from "../helpers/constants/adapters-polygon";
+import { TypedMumbaiDefiPools } from "../helpers/data/polygon_defiPools";
+import { TypedMumbaiTokens } from "../helpers/data";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { TypedDefiPools as PolygonDefiPools } from "../helpers/data/polygon_defiPools";
 import { approveLiquidityPoolAndMapAdaptersV2 } from "../helpers/contracts-actions";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -12,31 +12,32 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
   const registryAddress = (await deployments.get("RegistryProxy")).address;
   const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryAddress);
-  const adapter = (
-    await deploy(AAVE_ADAPTER_NAME, {
+  const curveAdapter = (
+    await deploy(CURVE_GAUGE_ADAPTER, {
       from: await owner.getAddress(),
       args: [registryAddress],
       log: true,
-      contract: AAVE_ADAPTER_NAME,
+      contract: CURVE_GAUGE_ADAPTER,
     })
   ).address;
 
-  const tokenKeys = MULTI_CHAIN_VAULT_TOKENS[hre.network.name]
-    ? Object.keys(MULTI_CHAIN_VAULT_TOKENS[hre.network.name])
-    : [];
+  const tokenKeys = Object.keys(TypedMumbaiTokens);
 
   const liquidityPoolsAddressesMapAdapter: string[][] = [];
 
+  for (let j = 0; j < tokenKeys.length; j += 1) {
+    if (TypedMumbaiDefiPools[CURVE_GAUGE_ADAPTER] && TypedMumbaiDefiPools[CURVE_GAUGE_ADAPTER][tokenKeys[j]]) {
+      liquidityPoolsAddressesMapAdapter.push([
+        TypedMumbaiDefiPools[CURVE_GAUGE_ADAPTER][tokenKeys[j]].lpToken,
+        curveAdapter,
+      ]);
+    }
+  }
+
   if (liquidityPoolsAddressesMapAdapter.length > 0) {
-    await approveLiquidityPoolAndMapAdaptersV2(
-      owner,
-      registryContract,
-      [],
-      tokenKeys.map(token => [adapter, PolygonDefiPools[AAVE_ADAPTER_NAME][token].lpToken]),
-      false,
-    );
+    await approveLiquidityPoolAndMapAdaptersV2(owner, registryContract, [], liquidityPoolsAddressesMapAdapter, false);
   }
 };
 
 export default func;
-func.tags = ["Setup"];
+func.tags = ["CurveGaugeAdapter"];

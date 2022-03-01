@@ -126,7 +126,12 @@ export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
       pair: false,
       hash: generateTokenHashV2([PolygonLegos.tokens.DAI], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
     },
-    ["WMATIC" || "WETH"]: {
+    WMATIC: {
+      address: PolygonLegos.tokens.WMATIC,
+      pair: false,
+      hash: generateTokenHashV2([PolygonLegos.tokens.WMATIC], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
+    },
+    WETH: {
       address: PolygonLegos.tokens.WMATIC,
       pair: false,
       hash: generateTokenHashV2([PolygonLegos.tokens.WMATIC], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
