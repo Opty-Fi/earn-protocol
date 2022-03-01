@@ -59,7 +59,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
 };
 
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
-  [eEVMNetwork.mainnet]: 14269106,
+  [eEVMNetwork.mainnet]: 14297281,
   [eEVMNetwork.kovan]: 29962003,
   [eEVMNetwork.hardhat]: undefined,
   [eEVMNetwork.polygon]: 25200204,
@@ -87,7 +87,7 @@ export const buildForkConfig = (
 
 export const buildDeployConfig = (fork: eEVMNetwork): string[] | undefined => {
   if (fork) {
-    const deployFolders: string[] = [`deploy`, `deploy_${eEVMNetwork}`];
+    const deployFolders: string[] = [`deploy`, `deploy_${fork}`];
     return deployFolders;
   }
 };
