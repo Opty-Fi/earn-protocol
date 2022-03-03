@@ -328,7 +328,15 @@ contract VaultV2 is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            _vaultWithdrawSomeFromStrategy(investStrategySteps, _expectedStratWithdrawUT);
+
+            uint256 _oraAmountLP =
+                investStrategySteps.getOraSomeValueLP(
+                    address(registryContract),
+                    underlyingToken,
+                    _expectedStratWithdrawUT
+                );
+
+            _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
 
             // Identify Slippage
             // UT requested from strategy withdraw  = _expectedStratWithdrawUT
@@ -337,14 +345,14 @@ contract VaultV2 is
             // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
             // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
             uint256 _vaultValuePostStratWithdrawUT = balanceUT();
-            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT); // 440
 
             uint256 _slippage;
             if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
                 _slippage = _expectedStratWithdrawUT.sub(_receivedStratWithdrawUT);
             }
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
-            if (_expectedStratWithdrawUT < _oraUserWithdrawUT) {
+            if (_receivedStratWithdrawUT < _oraUserWithdrawUT) {
                 _oraUserWithdrawUT = _oraUserWithdrawUT - _slippage;
             }
         }
@@ -607,8 +615,6 @@ contract VaultV2 is
         DataTypes.StrategyStep[] memory _investStrategySteps,
         uint256 _withdrawAmountLP
     ) internal {
-        // uint256 _oraAmountLP =
-        //     _investStrategySteps.getOraSomeValueLP(address(registryContract), underlyingToken, _withdrawAmountUT);
         uint256 _internalWithdrawTransactionCount = _investStrategySteps.length;
         for (uint256 _i; _i < _internalWithdrawTransactionCount; _i++) {
             executeCodes(

@@ -97,7 +97,7 @@ const func: DeployFunction = async ({
     console.log("approve WETH and set hash");
     approveTokenAndMapHash.push([
       MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.address],
+      [MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.address],
     ]);
   }
 
