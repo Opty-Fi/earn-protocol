@@ -601,14 +601,14 @@ contract VaultV2 is
     /**
      * @dev Internal function to withdraw some investments from current strategy
      * @param _investStrategySteps array of strategy step tuple
-     * @param _withdrawAmountUT amount in underlying token
+     * @param _withdrawAmountLP amount in lpToken
      */
     function _vaultWithdrawSomeFromStrategy(
         DataTypes.StrategyStep[] memory _investStrategySteps,
-        uint256 _withdrawAmountUT
+        uint256 _withdrawAmountLP
     ) internal {
-        uint256 _oraAmountLP =
-            _investStrategySteps.getOraSomeValueLP(address(registryContract), underlyingToken, _withdrawAmountUT);
+        // uint256 _oraAmountLP =
+        //     _investStrategySteps.getOraSomeValueLP(address(registryContract), underlyingToken, _withdrawAmountUT);
         uint256 _internalWithdrawTransactionCount = _investStrategySteps.length;
         for (uint256 _i; _i < _internalWithdrawTransactionCount; _i++) {
             executeCodes(
@@ -617,8 +617,8 @@ contract VaultV2 is
                         registryContract: address(registryContract),
                         vault: payable(address(this)),
                         underlyingToken: underlyingToken,
-                        initialStepInputAmount: _oraAmountLP,
-                        internalTransactionIndex: _i,
+                        initialStepInputAmount: _withdrawAmountLP,
+                        internalTransactionIndex: _internalWithdrawTransactionCount - 1 - _i,
                         internalTransactionCount: _internalWithdrawTransactionCount
                     })
                 ),
