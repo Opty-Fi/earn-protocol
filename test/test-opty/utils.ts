@@ -1,7 +1,9 @@
 // !! Important !!
 // Please do not keep this file under helpers/utils as it is import hre from hardhat
+import { BigNumber, BigNumberish } from "ethers";
 import hre, { ethers } from "hardhat";
-import { ERC20 } from "../../typechain";
+import { StrategyStepType } from "../../helpers/type";
+import { ERC20, IAdapterFull, RegistryV2, VaultV2 } from "../../typechain";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -68,4 +70,49 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
           .padStart(64, "0"),
     );
   }
+}
+
+export async function getDepositInternalTransactionCount(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+): Promise<BigNumberish> {
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
+  const adapterInstance = <IAdapterFull>(
+    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+  );
+  if (await adapterInstance.canStake(lastStepPool)) {
+    return strategyStepCount.add("1");
+  }
+  return strategyStepCount;
+}
+
+export async function getOraValueUT(): Promise<BigNumberish> {
+  return BigNumber.from("0");
+}
+
+export async function getLastStrategyStepBalanceLP(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+  vault: VaultV2,
+  underlyingToken: ERC20,
+): Promise<BigNumberish> {
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
+  const adapterInstance = <IAdapterFull>(
+    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+  );
+  if (await adapterInstance.canStake(lastStepPool)) {
+    return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
+  }
+  return await adapterInstance.getLiquidityPoolTokenBalance(vault.address, underlyingToken.address, lastStepPool);
+}
+
+export async function getOraSomeValueLP(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+  underlyinToken: ERC20,
+  wantAmount: BigNumber,
+): Promise<BigNumberish> {
+  return BigNumber.from("0");
 }

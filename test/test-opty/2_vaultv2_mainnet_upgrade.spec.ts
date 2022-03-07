@@ -31,6 +31,7 @@ import { setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
+import { BigNumber, BigNumberish } from "ethers";
 
 chai.use(solidity);
 
@@ -380,7 +381,7 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       console.log("WETH before ", await (await this.weth.balanceOf(this.opWETHgrowV2.address)).toString());
       console.log("USDC before ", await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString());
       await this.opUSDCgrowV2.rebalance();
-      // await this.opWETHgrowV2.rebalance();
+      await this.opWETHgrowV2.rebalance();
     });
 
     it("userDepositVault() for opUSDCgrow", async function () {
@@ -416,7 +417,12 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
 
     it("userDepositVault() for opWETHgrow", async function () {
       console.log("user deposit on v2");
-      console.log("weth - getLastStrategyStepBalance");
+      console.log(
+        "weth - getLastStrategyStepBalance ",
+        await (
+          await this.opWETHgrowV2.getLastStrategyStepBalanceLP(await this.opWETHgrowV2.getInvestStrategySteps())
+        ).toString(),
+      );
       console.log("weth strategy : ", await this.opWETHgrowV2.investStrategyHash());
       console.log("WETH after ", await this.weth.balanceOf(this.opWETHgrowV2.address));
       await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(false);
