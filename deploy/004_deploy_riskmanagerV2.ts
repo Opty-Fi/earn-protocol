@@ -50,6 +50,7 @@ const func: DeployFunction = async ({
 
   const riskManagerImplementation = await riskManagerInstance.riskManagerImplementation();
 
+  console.log("==RiskManager implementation==");
   if (getAddress(riskManagerV2.address) != getAddress(riskManagerImplementation)) {
     console.log("upgrading RiskManager...");
     const setPendingImplementationTx = await riskManagerInstance
@@ -61,6 +62,8 @@ const func: DeployFunction = async ({
     console.log("Registering upgraded RiskManager ...");
     const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxy.address);
     await setRiskManagerTx.wait();
+  } else {
+    console.log("RiskManager is already upgraded");
   }
 
   if (CONTRACTS_VERIFY == "true") {

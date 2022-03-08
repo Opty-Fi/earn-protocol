@@ -77,6 +77,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     }
   }
 
+  console.log("==Approve liquidity pool and map to adapter==");
   if (approveLiquidityPoolAndMap.length > 0) {
     // approve liquidity pool and map adapter
     console.log(`approving and mapping ${approveLiquidityPoolAndMap.length} pools ...`, approveLiquidityPoolAndMap);
@@ -84,8 +85,11 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       .connect(operatorSigner)
       ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap);
     await approveLiquidityPoolAndMapAdapterTx.wait();
+  } else {
+    console.log("Already approved liquidity pool and map to adapter");
   }
 
+  console.log("==Only map liquidity pool to adapter==");
   if (onlyMapPoolsToAdapters.length > 0) {
     // only map pool to adapter
     console.log(`only mapping ${onlyMapPoolsToAdapters.length} pools ...`, onlyMapPoolsToAdapters);
@@ -93,8 +97,11 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       .connect(operatorSigner)
       ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters);
     await mapToAdapterTx.wait();
+  } else {
+    console.log("Already mapped to adapter");
   }
 
+  console.log("==Only rate liquidity pool==");
   if (ratePools.length > 0) {
     // rate pools
     console.log(`rating ${ratePools.length} pools ...`, ratePools);
@@ -102,6 +109,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       .connect(riskOperatorSigner)
       ["rateLiquidityPool((address,uint8)[])"](ratePools);
     await rateAdapterTx.wait();
+  } else {
+    console.log("Already rate liquidity pool");
   }
 };
 export default func;

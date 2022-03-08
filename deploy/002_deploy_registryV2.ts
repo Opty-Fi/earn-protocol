@@ -118,6 +118,7 @@ const func: DeployFunction = async ({
   }
 
   // add risk profile
+  console.log("==Risk Profile config==");
   const growRiskProfilExists = (await registryV2Instance.getRiskProfile("1")).exists;
   if (!growRiskProfilExists) {
     console.log("Adding grow risk profile...");
@@ -125,6 +126,8 @@ const func: DeployFunction = async ({
       .connect(riskOperatorSigner)
       ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100]); // code,name,symbol,canBorrow,pool rating range
     await addRiskProfileTx.wait();
+  } else {
+    console.log("Already configured risk profile");
   }
 
   if (CONTRACTS_VERIFY === "true") {
