@@ -87,8 +87,37 @@ export async function getDepositInternalTransactionCount(
   return strategyStepCount;
 }
 
-export async function getOraValueUT(): Promise<BigNumberish> {
-  return BigNumber.from("0");
+export async function getOraValueUT(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+  vault: VaultV2,
+  underlyingToken: ERC20,
+): Promise<BigNumberish> {
+  let outputTokenAmount = BigNumber.from("0");
+  let amountUT = BigNumber.from("0");
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  investStrategySteps.forEach(async (_: StrategyStepType, index: number, investStrategySteps: StrategyStepType[]) => {
+    const iterator = strategyStepCount.sub("1").sub(index);
+    const poolAddress = investStrategySteps[iterator.toNumber()].pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputTokenAddress = underlyingToken.address;
+    if (!iterator.eq("0")) {
+      inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
+    }
+    if (iterator.eq(strategyStepCount.sub("1"))) {
+      if (await adapterInstance.canStake(poolAddress)) {
+        amountUT = await adapterInstance.getAllAmountInTokenStake(vault.address, inputTokenAddress, poolAddress);
+      } else {
+        amountUT = await adapterInstance.getAllAmountInToken(vault.address, inputTokenAddress, poolAddress);
+      }
+    } else {
+      amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
+    }
+    outputTokenAmount = amountUT;
+  });
+  return amountUT;
 }
 
 export async function getLastStrategyStepBalanceLP(
@@ -111,8 +140,26 @@ export async function getLastStrategyStepBalanceLP(
 export async function getOraSomeValueLP(
   investStrategySteps: StrategyStepType[],
   registryContract: RegistryV2,
-  underlyinToken: ERC20,
+  underlyingToken: ERC20,
   wantAmount: BigNumber,
 ): Promise<BigNumberish> {
-  return BigNumber.from("0");
+  let amountLP = BigNumber.from("0");
+  investStrategySteps.forEach(
+    async (investStrategyStep: StrategyStepType, index: number, investStrategySteps: StrategyStepType[]) => {
+      const poolAddress = investStrategyStep.pool;
+      const adapterInstance = <IAdapterFull>(
+        await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+      );
+      let inputToken = underlyingToken.address;
+      if (index != 0) {
+        inputToken = investStrategySteps[index - 1].outputToken;
+      }
+      amountLP = await adapterInstance.calculateAmountInLPToken(
+        inputToken,
+        poolAddress,
+        index == 0 ? wantAmount : amountLP,
+      );
+    },
+  );
+  return amountLP;
 }
