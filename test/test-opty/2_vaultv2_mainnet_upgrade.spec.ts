@@ -27,11 +27,11 @@ import {
   ConvexFinanceAdapter as ConvexFinanceAdapterAddress,
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { setTokenBalanceInStorage } from "./utils";
+import { getLastStrategyStepBalanceLP, getOraSomeValueLP, setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
-import { BigNumber, BigNumberish } from "ethers";
+import { StrategyStepType } from "../../helpers/type";
 
 chai.use(solidity);
 
@@ -44,6 +44,27 @@ const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 const RISK_MANAGER_PROXY = RiskManagerProxyAddress;
 const STRATEGY_PROVIDER_ADDRESS = StrategyProviderAddress;
 const CONVEX_FINANCE_ADAPTER = ConvexFinanceAdapterAddress;
+
+const mim =
+  StrategiesByTokenByChain["mainnet"].USDC[
+    "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f"
+  ].strategy;
+
+const mimStrategySteps = mim.map(strategy => ({
+  pool: strategy.contract,
+  outputToken: strategy.outputToken,
+  isBorrow: false,
+}));
+
+const cvxsteCRV =
+  StrategiesByTokenByChain["mainnet"].WETH[
+    "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+  ].strategy;
+const convexSteCRVStrategySteps = cvxsteCRV.map(strategy => ({
+  pool: strategy.contract,
+  outputToken: strategy.outputToken,
+  isBorrow: false,
+}));
 
 describe("VaultV2 Ethereum on-chain upgrade", () => {
   before(async function () {
@@ -260,18 +281,18 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.address)
       );
 
-      const curveMetapoolDepositAdapterArtifact = await artifacts.readArtifact("CurveMetapoolDepositAdapter");
+      // const curveMetapoolDepositAdapterArtifact = await artifacts.readArtifact("CurveMetapoolDepositAdapter");
       const curveSwapPoolAdapterArtifact = await artifacts.readArtifact("CurveSwapPoolAdapter");
       const curveMetapoolSwapAdapterArtifact = await artifacts.readArtifact("CurveMetapoolSwapAdapter");
       const lidoAdapterArtifact = await artifacts.readArtifact("LidoAdapter");
 
-      // deploy curve metapool deposit adapter
-      const curveMetapoolDepositAdapter = await deployContract(
-        this.signers.operator,
-        curveMetapoolDepositAdapterArtifact,
-        [this.registryV2.address],
-      );
-      console.log("curveMetapoolDepositAdapter ", curveMetapoolDepositAdapter.address);
+      // // deploy curve metapool deposit adapter
+      // const curveMetapoolDepositAdapter = await deployContract(
+      //   this.signers.operator,
+      //   curveMetapoolDepositAdapterArtifact,
+      //   [this.registryV2.address],
+      // );
+      // console.log("curveMetapoolDepositAdapter ", curveMetapoolDepositAdapter.address);
       // deploy curve swap pool
       const curveSwapPoolAdapter = await deployContract(this.signers.operator, curveSwapPoolAdapterArtifact, [
         this.registryV2.address,
@@ -294,7 +315,7 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
           ["0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84", lidoAdapter.address],
           ["0xDC24316b9AE028F1497c275EB9192a3Ea0f67022", curveSwapPoolAdapter.address],
           ["0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0", ConvexFinanceAdapterAddress],
-          ["0x5a6A4D54456819380173272A5E8E9B9904BdF41B", curveMetapoolDepositAdapter.address],
+          ["0x5a6A4D54456819380173272A5E8E9B9904BdF41B", curveMetapoolSwapAdapter.address],
           ["0xabB54222c2b77158CC975a2b715a3d703c256F05", ConvexFinanceAdapterAddress],
         ]);
       await registryV2Instance.connect(this.signers.riskOperator)["rateLiquidityPool((address,uint8)[])"]([
@@ -309,10 +330,10 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         ["0xabB54222c2b77158CC975a2b715a3d703c256F05", 80],
       ]);
 
-      console.log(
-        "curvemetapooldeposit adapter from registry ",
-        await this.registryV2.getLiquidityPoolToAdapter("0xA79828DF1850E8a3A3064576f380D90aECDD3359"),
-      );
+      // console.log(
+      //   "curvemetapooldeposit adapter from registry ",
+      //   await this.registryV2.getLiquidityPoolToAdapter("0xA79828DF1850E8a3A3064576f380D90aECDD3359"),
+      // );
 
       console.log(
         "convex adapter from registry ",
@@ -336,34 +357,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         .connect(this.signers.operator)
         .setUnderlyingTokenAndTokensHash(this.weth.address, MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash);
 
-      const mim =
-        StrategiesByTokenByChain["mainnet"].USDC[
-          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f"
-        ].strategy;
-
-      const mimStrategySteps = mim.map(strategy => ({
-        pool: strategy.contract,
-        outputToken: strategy.outputToken,
-        isBorrow: false,
-      }));
-
-      await this.strategyProviderV2
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, mimStrategySteps);
-
-      const cvxsteCRV =
-        StrategiesByTokenByChain["mainnet"].WETH[
-          "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
-        ].strategy;
-      const convexSteCRVStrategySteps = cvxsteCRV.map(strategy => ({
-        pool: strategy.contract,
-        outputToken: strategy.outputToken,
-        isBorrow: false,
-      }));
-      await this.strategyProviderV2
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash, convexSteCRVStrategySteps);
-
       await this.opUSDCgrowV2.connect(this.signers.governance).setUnpaused(true);
       await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(true);
       await this.opUSDCgrowV2.connect(this.signers.financeOperator).setValueControlParams(
@@ -378,16 +371,50 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         "1000000000000000000000000", // 1,000,000 USDC TVL
         "100", // 0.01% vault jump
       );
-      console.log("WETH before ", await (await this.weth.balanceOf(this.opWETHgrowV2.address)).toString());
-      console.log("USDC before ", await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString());
-      await this.opUSDCgrowV2.rebalance();
-      await this.opWETHgrowV2.rebalance();
     });
 
-    it("userDepositVault() for opUSDCgrow", async function () {
+    it.only("lp token balance should be as expected after rebalance of opUSDCgrowV2 to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
+      await this.strategyProviderV2
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, mimStrategySteps);
+      await this.opUSDCgrowV2.rebalance();
+      expect(await this.usdc.balanceOf(this.opUSDCgrowV2.address)).to.eq("0");
+      const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
+        mimStrategySteps as StrategyStepType[],
+        this.registryV2,
+        this.opUSDCgrowV2,
+        this.usdc,
+      );
+      const actualLPTokenBalance = await this.opUSDCgrowV2.getLastStrategyStepBalanceLP(mimStrategySteps);
+      expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
+    });
+
+    it.only("lp token balance should be as expected after rebalance of opWETHgrowV2 to weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV", async function () {
+      await this.strategyProviderV2
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash, convexSteCRVStrategySteps);
+      await this.opWETHgrowV2.rebalance();
+      expect(await this.weth.balanceOf(this.opWETHgrowV2.address)).to.eq("0");
+      const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
+        convexSteCRVStrategySteps as StrategyStepType[],
+        this.registryV2,
+        this.opWETHgrowV2,
+        this.weth,
+      );
+      const actualLPTokenBalance = await this.opWETHgrowV2.getLastStrategyStepBalanceLP(convexSteCRVStrategySteps);
+      expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
+    });
+
+    it("underlying token balance of opUSDCgrowV2 should be expected after pausing", async function () {
       console.log("USDC after ", await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString());
       await this.opUSDCgrowV2.connect(this.signers.governance).setUnpaused(false);
       console.log("USDC after pause ", await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString());
+    });
+
+    it("underlying token balance of opWETHgrowV2 should be expected after pausing", async function () {
+      console.log("WETH after ", await (await this.weth.balanceOf(this.opWETHgrowV2.address)).toString());
+      await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(false);
+      console.log("WETH after pause ", await (await this.weth.balanceOf(this.opWETHgrowV2.address)).toString());
     });
 
     it("unpause and rebalance to mim", async function () {
