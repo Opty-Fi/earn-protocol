@@ -20,7 +20,6 @@ const func: DeployFunction = async ({
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY_V2);
   const chainId = await getChainId();
   const networkName = hre.network.name;
-
   const result = await deploy("RegistryV2", {
     from: deployer,
     contract: {
@@ -66,38 +65,38 @@ const func: DeployFunction = async ({
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
   const tokenHashes: string[] = await registryV2Instance.getTokenHashes();
-  const usdcApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.address);
+  const usdcApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address);
 
-  if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash)) {
+  if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
     console.log("only set USDC hash");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
 
-  if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash)) {
+  if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
     console.log("approve USDC and set hash");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
-  const wethApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.address);
+  const wethApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
 
-  if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.hash)) {
+  if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
     console.log("only set WETH hash");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
 
-  if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.hash)) {
+  if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
     console.log("approve WETH and set hash");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[networkName].WETH.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
 

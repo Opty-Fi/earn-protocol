@@ -27,11 +27,12 @@ import {
   ConvexFinanceAdapter as ConvexFinanceAdapterAddress,
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { getLastStrategyStepBalanceLP, getOraSomeValueLP, setTokenBalanceInStorage } from "./utils";
+import { getLastStrategyStepBalanceLP, setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { StrategyStepType } from "../../helpers/type";
+import { generateStrategyHashV2 } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -56,12 +57,23 @@ const mimStrategySteps = mim.map(strategy => ({
   isBorrow: false,
 }));
 
+const mimStrategyStepsContract = mim.map(strategy => ({
+  contract: strategy.contract,
+  outputToken: strategy.outputToken,
+  isBorrow: false,
+}));
+
 const cvxsteCRV =
   StrategiesByTokenByChain["mainnet"].WETH[
     "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
   ].strategy;
 const convexSteCRVStrategySteps = cvxsteCRV.map(strategy => ({
   pool: strategy.contract,
+  outputToken: strategy.outputToken,
+  isBorrow: false,
+}));
+const convexSteCRVStrategyStepsContract = cvxsteCRV.map(strategy => ({
+  contract: strategy.contract,
   outputToken: strategy.outputToken,
   isBorrow: false,
 }));
@@ -270,10 +282,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
 
   describe("test frax and steth strategy", async function () {
     before(async function () {
-      console.log("USDC token", await this.opUSDCgrowV2.underlyingToken());
-      console.log("WETH token", await this.opWETHgrowV2.underlyingToken());
-      console.log("registryproxy ", RegistryProxyAddress);
-      console.log("registryv2 ", this.registryV2.address);
       this.usdc = <ERC20>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.address)
       );
@@ -335,11 +343,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       //   await this.registryV2.getLiquidityPoolToAdapter("0xA79828DF1850E8a3A3064576f380D90aECDD3359"),
       // );
 
-      console.log(
-        "convex adapter from registry ",
-        await this.registryV2.getLiquidityPoolToAdapter("0xbE0F6478E0E4894CFb14f32855603A083A57c7dA"),
-      );
-
       await this.registryV2
         .connect(this.signers.operator)
         ["setTokensHashToTokens(bytes32,address[])"](MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, [
@@ -378,6 +381,11 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         .connect(this.signers.strategyOperator)
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, mimStrategySteps);
       await this.opUSDCgrowV2.rebalance();
+      // assert invest strategy hash
+      expect(await this.opUSDCgrowV2.getInvestStrategySteps()).to.deep.eq(mimStrategySteps.map(v => Object.values(v)));
+      expect(await this.opUSDCgrowV2.investStrategyHash()).to.eq(
+        generateStrategyHashV2(mimStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash),
+      );
       expect(await this.usdc.balanceOf(this.opUSDCgrowV2.address)).to.eq("0");
       const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
         mimStrategySteps as StrategyStepType[],
@@ -394,6 +402,12 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         .connect(this.signers.strategyOperator)
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash, convexSteCRVStrategySteps);
       await this.opWETHgrowV2.rebalance();
+      expect(await this.opWETHgrowV2.getInvestStrategySteps()).to.deep.eq(
+        convexSteCRVStrategySteps.map(v => Object.values(v)),
+      );
+      expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(
+        generateStrategyHashV2(convexSteCRVStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash),
+      );
       expect(await this.weth.balanceOf(this.opWETHgrowV2.address)).to.eq("0");
       const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
         convexSteCRVStrategySteps as StrategyStepType[],
@@ -403,21 +417,34 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       );
       const actualLPTokenBalance = await this.opWETHgrowV2.getLastStrategyStepBalanceLP(convexSteCRVStrategySteps);
       expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
+      expect(expectedLPTokenBalance).to.gt("0");
     });
 
-    it("underlying token balance of opUSDCgrowV2 should be expected after pausing", async function () {
-      console.log("USDC after ", await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString());
+    it.only("underlying token balance of opUSDCgrowV2 should be expected after pausing", async function () {
+      const underlyingTokenBalanceBefore = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
       await this.opUSDCgrowV2.connect(this.signers.governance).setUnpaused(false);
-      console.log("USDC after pause ", await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString());
+      expect((await this.opUSDCgrowV2.getInvestStrategySteps()).length).to.eq(0);
+      expect(await this.opUSDCgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      const underlyingTokenBalanceAfter = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
+      expect(underlyingTokenBalanceAfter).gt(underlyingTokenBalanceBefore);
+      const lpTokenBalance = await this.opUSDCgrowV2.getLastStrategyStepBalanceLP(mimStrategySteps);
+      expect(lpTokenBalance).to.eq("0");
+      expect(await this.opUSDCgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
     });
 
-    it("underlying token balance of opWETHgrowV2 should be expected after pausing", async function () {
-      console.log("WETH after ", await (await this.weth.balanceOf(this.opWETHgrowV2.address)).toString());
+    it.only("underlying token balance of opWETHgrowV2 should be expected after pausing", async function () {
+      const underlyingTokenBalanceBefore = await this.weth.balanceOf(this.opWETHgrowV2.address);
       await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(false);
-      console.log("WETH after pause ", await (await this.weth.balanceOf(this.opWETHgrowV2.address)).toString());
+      expect((await this.opWETHgrowV2.getInvestStrategySteps()).length).to.eq(0);
+      expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      const underlyingTokenBalanceAfter = await this.weth.balanceOf(this.opWETHgrowV2.address);
+      expect(underlyingTokenBalanceAfter).gt(underlyingTokenBalanceBefore);
+      const lpTokenBalance = await this.opWETHgrowV2.getLastStrategyStepBalanceLP(mimStrategySteps);
+      expect(lpTokenBalance).to.eq("0");
+      expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
     });
 
-    it("unpause and rebalance to mim", async function () {
+    it("unpause opUSDCgrowV2 and rebalance to mim", async function () {
       console.log(
         "USDC before rebalance to mim ",
         await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString(),

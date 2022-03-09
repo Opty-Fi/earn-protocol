@@ -144,22 +144,22 @@ export async function getOraSomeValueLP(
   wantAmount: BigNumber,
 ): Promise<BigNumberish> {
   let amountLP = BigNumber.from("0");
-  investStrategySteps.forEach(
-    async (investStrategyStep: StrategyStepType, index: number, investStrategySteps: StrategyStepType[]) => {
-      const poolAddress = investStrategyStep.pool;
-      const adapterInstance = <IAdapterFull>(
-        await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
-      );
-      let inputToken = underlyingToken.address;
-      if (index != 0) {
-        inputToken = investStrategySteps[index - 1].outputToken;
-      }
-      amountLP = await adapterInstance.calculateAmountInLPToken(
-        inputToken,
-        poolAddress,
-        index == 0 ? wantAmount : amountLP,
-      );
-    },
-  );
+  let index = 0;
+  for (const investStrategyStep of investStrategySteps) {
+    const poolAddress = investStrategyStep.pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputToken = underlyingToken.address;
+    if (index != 0) {
+      inputToken = investStrategySteps[index - 1].outputToken;
+    }
+    amountLP = await adapterInstance.calculateAmountInLPToken(
+      inputToken,
+      poolAddress,
+      index == 0 ? wantAmount : amountLP,
+    );
+    index++;
+  }
   return amountLP;
 }

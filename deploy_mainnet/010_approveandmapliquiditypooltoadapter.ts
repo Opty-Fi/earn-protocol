@@ -9,7 +9,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const curveDepositPoolAdapter = await deployments.get("CurveDepositPoolAdapter");
   const curveSwapPoolAdapter = await deployments.get("CurveSwapPoolAdapter");
   const curveMetaPoolSwapAdapter = await deployments.get("CurveMetapoolSwapAdapter");
-  const curveMetaPoolDepositAdapter = await deployments.get("CurveMetapoolDepositAdapter");
+  // const curveMetaPoolDepositAdapter = await deployments.get("CurveMetapoolDepositAdapter");
   const lidoAdapter = await deployments.get("LidoAdapter");
   const aaveV1Adapter = await deployments.get("AaveV1Adapter");
   const aaveV2Adapter = await deployments.get("AaveV2Adapter");
@@ -26,7 +26,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022": { rate: 80, adapter: curveSwapPoolAdapter.address }, // curve ETH/stETH StableSwap
     "0x5a6A4D54456819380173272A5E8E9B9904BdF41B": { rate: 80, adapter: curveSwapPoolAdapter.address }, // curve MIM Metapool
     "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B": { rate: 80, adapter: curveMetaPoolSwapAdapter.address }, // curve swap pool for FRAX3CRV
-    "0xA79828DF1850E8a3A3064576f380D90aECDD3359": { rate: 80, adapter: curveMetaPoolDepositAdapter.address }, // curve deposit Pool for FRAX3CRV-f
+    // "0xA79828DF1850E8a3A3064576f380D90aECDD3359": { rate: 80, adapter: curveMetaPoolDepositAdapter.address }, // curve deposit Pool for FRAX3CRV-f
     "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84": { rate: 80, adapter: lidoAdapter.address }, // lido deposit Pool for stETH
     "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8": { rate: 90, adapter: aaveV1Adapter.address }, // aave v1 lending pool address provider
     "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413": { rate: 90, adapter: aaveV2Adapter.address }, // aave v2 lending pool address provider

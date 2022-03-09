@@ -50,8 +50,8 @@ if (!process.env.MNEMONIC) {
   mnemonic = process.env.MNEMONIC as string;
 }
 
-const getCommonNetworkConfig = (networkName: eEVMNetwork, networkId: number): NetworkUserConfig => ({
-  url: NETWORKS_RPC_URL[networkName],
+const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networkId: number): NetworkUserConfig => ({
+  url: rpcUrl,
   hardfork: HARDFORK,
   blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
   gasMultiplier: DEFAULT_GAS_MUL,
@@ -114,14 +114,33 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    mainnet: getCommonNetworkConfig(eEVMNetwork.mainnet, NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]),
-    polygon: getCommonNetworkConfig(eEVMNetwork.polygon, NETWORKS_CHAIN_ID[eEVMNetwork.polygon]),
-    staging: getCommonNetworkConfig(eEVMNetwork.staging, NETWORKS_CHAIN_ID[eEVMNetwork.ganache]),
+    mainnet: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.mainnet],
+      eEVMNetwork.mainnet,
+      NETWORKS_CHAIN_ID[eEVMNetwork.mainnet],
+    ),
+    dashboard: {
+      url: NETWORKS_RPC_URL[eEVMNetwork.dashboard],
+    },
+    polygon: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.polygon],
+      eEVMNetwork.polygon,
+      NETWORKS_CHAIN_ID[eEVMNetwork.polygon],
+    ),
+    staging: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.staging],
+      eEVMNetwork.staging,
+      NETWORKS_CHAIN_ID[eEVMNetwork.ganache],
+    ),
     localhost: {
       url: NETWORKS_RPC_URL[eEVMNetwork.hardhat],
       chainId: NETWORKS_CHAIN_ID[eEVMNetwork.ganache],
     },
-    kovan: getCommonNetworkConfig(eEVMNetwork.kovan, NETWORKS_CHAIN_ID[eEVMNetwork.kovan]),
+    kovan: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.kovan],
+      eEVMNetwork.kovan,
+      NETWORKS_CHAIN_ID[eEVMNetwork.kovan],
+    ),
     hardhat: {
       hardfork: "london",
       initialBaseFeePerGas: 1_00_000_000,
