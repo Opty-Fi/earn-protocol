@@ -444,9 +444,9 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
     });
 
-    it("unpause opUSDCgrowV2 and rebalance to mim", async function () {
+    it.only("unpause opUSDCgrowV2 and rebalance to cvxFRAX3CRV", async function () {
       console.log(
-        "USDC before rebalance to mim ",
+        "USDC before rebalance to cvxFRAX3CRV ",
         await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString(),
       );
       await this.opUSDCgrowV2.connect(this.signers.governance).setUnpaused(true);
@@ -464,30 +464,14 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, convexFraxStrategySteps);
       await this.opUSDCgrowV2.rebalance();
       console.log(
-        "USDC after rebalance to mim ",
+        "USDC after rebalance to cvxFRAX3CRV ",
         await (await this.usdc.balanceOf(this.opUSDCgrowV2.address)).toString(),
       );
     });
 
-    it("userDepositVault() for opWETHgrow", async function () {
-      console.log("user deposit on v2");
-      console.log(
-        "weth - getLastStrategyStepBalance ",
-        await (
-          await this.opWETHgrowV2.getLastStrategyStepBalanceLP(await this.opWETHgrowV2.getInvestStrategySteps())
-        ).toString(),
-      );
-      console.log("weth strategy : ", await this.opWETHgrowV2.investStrategyHash());
-      console.log("WETH after ", await this.weth.balanceOf(this.opWETHgrowV2.address));
-      await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(false);
-      console.log("WETH after pause", await this.weth.balanceOf(this.opWETHgrowV2.address));
-      console.log("weth strategy after pause: ", await this.opWETHgrowV2.investStrategyHash());
-    });
-    it("rebalance() for opUSDCgrow", async function () {
-      console.log("rebalance on v2");
-    });
-    it("userWithdrawVault()", async function () {
-      console.log("user withdraw on v2");
-    });
+    it("alice deposit some to opWETHgrowV2, calls vault deposit", async function () {});
+    it("alice withdraw some to opWETHgrowV2", async function () {});
+    it("alice deposit some to opUSDCgrowV2, calls vault deposit", async function () {});
+    it("alice withdraw some to opUSDCgrowV2", async function () {});
   });
 });

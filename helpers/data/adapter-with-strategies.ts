@@ -201,28 +201,6 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
 export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
   [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
     USDC: {
-      "usdc-DEPOSIT-CurveMetapoolDepositPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
-        strategyName: "usdc-DEPOSIT-CurveMetapoolDepositPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
-            outputTokenSymbol: "FRAX3CRV-f",
-            adapterName: "CurveMetapoolDepositAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isBorrow: false,
-            outputTokenSymbol: "cvxFRAX3CRV-f",
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-          },
-        ],
-      },
       "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
         strategyName:
           "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
