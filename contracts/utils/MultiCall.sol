@@ -14,7 +14,7 @@ import "hardhat/console.sol";
 abstract contract MultiCall {
     function executeCode(bytes memory _code, string memory _errorMsg) internal {
         (address _contract, bytes memory _data) = abi.decode(_code, (address, bytes));
-        (bool _success, bytes memory _returndata) = _contract.call(_data); //solhint-disable-line avoid-low-level-calls
+        (bool _success, ) = _contract.call(_data); //solhint-disable-line avoid-low-level-calls
         require(_success, _errorMsg);
     }
 

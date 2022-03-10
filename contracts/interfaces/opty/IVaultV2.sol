@@ -32,45 +32,28 @@ interface IVaultV2 {
      * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
      * @param _totalValueLockedLimitUT maximum TVL in underlying token allowed for the vault
-     * @param _maxVaultValueJump The standard deviation allowed for vault value
      */
     function setValueControlParams(
         uint256 _userDepositCapUT,
         uint256 _minimumDepositValueUT,
-        uint256 _totalValueLockedLimitUT,
-        uint256 _maxVaultValueJump
+        uint256 _totalValueLockedLimitUT
     ) external;
 
     /**
      * @notice Single function to configure the vault's fee params
-     * @param _depositFeeFlatUT flat deposit fee in underlying token
-     * @param _depositFeePct deposit fee in basis points
-     * @param _withdrawalFeeFlatUT flat withdrawal fee in underlying token
-     * @param _withdrawalFeePct withdrawal fee in basis points
-     * @param _vaultFeeCollector address that collects vault deposit and withdraw fee
+     * @dev bit 0-15 deposit fee in underlying token without decimals
+     *      bit 16-31 deposit fee in basis points
+     *      bit 32-47 withdrawal fee in underlying token without decimals
+     *      bit 48-63 withdrawal fee in basis points
+     *      bit 64-79 max vault value jump allowed in basis points (standard deviation allowed for vault value)
+     *      bit 80-239 vault fee collection address
+     *      bit 240-247 risk profile code
+     *      bit 248 emergency shutdown flag
+     *      bit 249 pause flag (deposit/withdraw is pause when bit is unset, unpause otherwise)
+     *      bit 250 white list state flag
+     * @param _vaultConfiguration bit banging value for vault config
      */
-    function setFeeParams(
-        uint256 _depositFeeFlatUT,
-        uint256 _depositFeePct,
-        uint256 _withdrawalFeeFlatUT,
-        uint256 _withdrawalFeePct,
-        address _vaultFeeCollector
-    ) external;
-
-    /**
-     * @notice Set maximum absolute jump allowed of vault value in a single block
-     * @dev the maximum vault value jump is in basis points set by governance
-     *      A big drop in value can flag an exploit.
-     *      Exploits usually involve big drop or big fall in pricePerFullShare.
-     * @param _maxVaultValueJump the maximum variation allowed from a vault value in basis points
-     */
-    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external;
-
-    /**
-     * @notice function to control whitelisted state
-     * @param _allowWhitelistedState vault's allow whitelisted state flag
-     */
-    function setAllowWhitelistedState(bool _allowWhitelistedState) external;
+    function setVaultConfiguration(uint256 _vaultConfiguration) external;
 
     /**
      * @notice function to set the maximum amount in underlying token
@@ -95,18 +78,16 @@ interface IVaultV2 {
     /**
      * @notice function to control the allowance of user interaction
      *         only when vault's whitelistedstate is enabled
-     * @param _accounts externally owned account addresses
-     * @param _whitelist list of flags indicating whitelist or not
+     * @param _whitelistedAccountsRoot whitelisted accounts root hash
      */
-    function setWhitelistedAccounts(address[] memory _accounts, bool[] memory _whitelist) external;
+    function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external;
 
     /**
      * @notice function to control the allowance of smart contract interaction
      *         with vault
-     * @param _accounts smart contract account address
-     * @param _whitelist list of flag indicating whitelist or not
+     * @param _whitelistedCodesRoot whitelisted codes root hash
      */
-    function setWhitelistedCodes(address[] memory _accounts, bool[] memory _whitelist) external;
+    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external;
 
     /**
      * @notice activates or deactives vault mode where
@@ -145,15 +126,27 @@ interface IVaultV2 {
      * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
      * @param _userDepositUT Amount in underlying token
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
-    function userDepositVault(uint256 _userDepositUT) external;
+    function userDepositVault(
+        uint256 _userDepositUT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external;
 
     /**
      * @notice redeems the vault shares and transfers underlying token to the withdrawer
      * @dev Burn the shares right away as per oracle based price per full share value
      * @param _userWithdrawVT amount in vault token
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
-    function userWithdrawVault(uint256 _userWithdrawVT) external;
+    function userWithdrawVault(
+        uint256 _userWithdrawVT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external;
 
     /**
      * @notice function to deposit whole balance of underlying token to current strategy
@@ -213,6 +206,8 @@ interface IVaultV2 {
      *        third party transfer fees and deposit fees if any
      * @param _deductions amount in underlying token to not consider in as a part of
      *       user deposit amount
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
@@ -220,7 +215,9 @@ interface IVaultV2 {
         address _user,
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
-        uint256 _deductions
+        uint256 _deductions,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
     ) external view returns (bool, string memory);
 
     /**
@@ -234,10 +231,17 @@ interface IVaultV2 {
      * @notice function to decide whether user can withdraw or not
      * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
-    function userWithdrawPermitted(address _user, uint256 _userWithdrawVT) external view returns (bool, string memory);
+    function userWithdrawPermitted(
+        address _user,
+        uint256 _userWithdrawVT,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) external view returns (bool, string memory);
 
     /**
      * @notice function to decide whether vault can withdraw from strategy or not
@@ -296,13 +300,6 @@ interface IVaultV2 {
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogUnpause(bool indexed unpaused, address indexed caller);
-
-    /**
-     * @notice Emitted when setAllowWhitelistedState is called
-     * @param allowWhitelistedState Whitelisted state of OptyFi's Vault contract - false (if not ) and true (if limited)
-     * @param caller Address of user who has called the respective function to trigger this event
-     */
-    event LogAllowWhitelistedState(bool indexed allowWhitelistedState, address indexed caller);
 
     /**
      * @notice Emitted when setUserDepositCapUT is called

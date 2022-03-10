@@ -18,6 +18,7 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyBuilder } from "../configuration/StrategyBuilder.sol";
+import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -103,7 +104,7 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setRiskProfileCode(uint256 _riskProfileCode) external override onlyOperator {
+    function setRiskProfileCode(uint256 _riskProfileCode) external override onlyGovernance {
         _setRiskProfileCode(_riskProfileCode, registryContract.getRiskProfile(_riskProfileCode).exists);
     }
 
@@ -125,44 +126,18 @@ contract VaultV2 is
     function setValueControlParams(
         uint256 _userDepositCapUT,
         uint256 _minimumDepositValueUT,
-        uint256 _totalValueLockedLimitUT,
-        uint256 _maxVaultValueJump
+        uint256 _totalValueLockedLimitUT
     ) external override onlyFinanceOperator {
         _setUserDepositCapUT(_userDepositCapUT);
         _setMinimumDepositValueUT(_minimumDepositValueUT);
         _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
-        _setMaxVaultValueJump(_maxVaultValueJump);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setFeeParams(
-        uint256 _depositFeeFlatUT,
-        uint256 _depositFeePct,
-        uint256 _withdrawalFeeFlatUT,
-        uint256 _withdrawalFeePct,
-        address _vaultFeeCollector
-    ) external override onlyFinanceOperator {
-        vaultConfiguration.depositFeeFlatUT = _depositFeeFlatUT;
-        vaultConfiguration.depositFeePct = _depositFeePct;
-        vaultConfiguration.withdrawalFeeFlatUT = _withdrawalFeeFlatUT;
-        vaultConfiguration.withdrawalFeePct = _withdrawalFeePct;
-        vaultConfiguration.vaultFeeCollector = _vaultFeeCollector;
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setMaxVaultValueJump(uint256 _maxVaultValueJump) external override onlyFinanceOperator {
-        _setMaxVaultValueJump(_maxVaultValueJump);
-    }
-
-    /**
-     * @inheritdoc IVaultV2
-     */
-    function setAllowWhitelistedState(bool _allowWhitelistedState) external override onlyOperator {
-        _setAllowWhitelistedState(_allowWhitelistedState);
+    function setVaultConfiguration(uint256 _vaultConfiguration) external override onlyGovernance {
+        vaultConfiguration = _vaultConfiguration;
     }
 
     /**
@@ -189,53 +164,57 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function setWhitelistedAccounts(address[] memory _accounts, bool[] memory _whitelist)
-        external
-        override
-        onlyGovernance
-    {
-        for (uint256 _i; _i < _accounts.length; _i++) {
-            whitelistedAccounts[_accounts[_i]] = _whitelist[_i];
-        }
+    function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external override onlyGovernance {
+        whitelistedAccountsRoot = _whitelistedAccountsRoot;
     }
 
     /**
      * @inheritdoc IVaultV2
      */
-    function setWhitelistedCodes(address[] memory _accounts, bool[] memory _whitelist)
-        external
-        override
-        onlyGovernance
-    {
-        for (uint256 _i; _i < _accounts.length; _i++) {
-            whitelistedCodes[_getContractHash(_accounts[_i])] = _whitelist[_i];
-        }
+    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external override onlyGovernance {
+        whitelistedCodesRoot = _whitelistedCodesRoot;
     }
 
     /**
      * @inheritdoc IVaultV2
      */
     function setEmergencyShutdown(bool _active) external override onlyGovernance {
-        if (_active && investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultWithdrawAllFromStrategy(investStrategySteps);
-            investStrategyHash = Constants.ZERO_BYTES32;
-            delete investStrategySteps;
+        if (_active) {
+            vaultConfiguration =
+                vaultConfiguration |
+                0x0100000000000000000000000000000000000000000000000000000000000000;
+            if (investStrategyHash != Constants.ZERO_BYTES32) {
+                _vaultWithdrawAllFromStrategy(investStrategySteps);
+                investStrategyHash = Constants.ZERO_BYTES32;
+                delete investStrategySteps;
+            }
+        } else {
+            vaultConfiguration =
+                vaultConfiguration &
+                0xFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         }
-        vaultConfiguration.emergencyShutdown = _active;
-        emit LogEmergencyShutdown(vaultConfiguration.emergencyShutdown, msg.sender);
+        emit LogEmergencyShutdown((vaultConfiguration & (1 << 248)) != 0, msg.sender);
     }
 
     /**
      * @inheritdoc IVaultV2
      */
     function setUnpaused(bool _unpaused) external override onlyGovernance {
-        if (investStrategyHash != Constants.ZERO_BYTES32 && _unpaused == false) {
-            _vaultWithdrawAllFromStrategy(investStrategySteps);
-            investStrategyHash = Constants.ZERO_BYTES32;
-            delete investStrategySteps;
+        if (!_unpaused) {
+            vaultConfiguration =
+                vaultConfiguration &
+                0xFF7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+            if (investStrategyHash != Constants.ZERO_BYTES32) {
+                _vaultWithdrawAllFromStrategy(investStrategySteps);
+                investStrategyHash = Constants.ZERO_BYTES32;
+                delete investStrategySteps;
+            }
+        } else {
+            vaultConfiguration =
+                vaultConfiguration |
+                0x0080000000000000000000000000000000000000000000000000000000000000;
         }
-        vaultConfiguration.unpaused = _unpaused;
-        emit LogUnpause(vaultConfiguration.unpaused, msg.sender);
+        emit LogUnpause((vaultConfiguration & (1 << 249)) != 0, msg.sender);
     }
 
     /**
@@ -267,7 +246,11 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function userDepositVault(uint256 _userDepositUT) external override nonReentrant {
+    function userDepositVault(
+        uint256 _userDepositUT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external override nonReentrant {
         _emergencyBrake(_oraStratValueUT());
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
@@ -282,17 +265,17 @@ contract VaultV2 is
         // remove deposit fees (if any) but only if deposit is accepted
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
-        (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-        require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        {
+            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
+            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        }
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(msg.sender, false, _netUserDepositUT, _depositFeeUT);
-        require(_userDepositPermitted, _userDepositPermittedReason);
+        _checkUserDeposit(msg.sender, false, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
         // add net deposit amount to user's total deposit
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
         // transfer deposit fee to vaultFeeCollector
         if (_depositFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeCollector, _depositFeeUT);
+            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _depositFeeUT);
         }
         // mint vault tokens
         // if _oraVaultAndStratValuePreDepositUT == 0 or totalSupply == 0, mint vault tokens 1:1 for underlying tokens
@@ -306,16 +289,41 @@ contract VaultV2 is
         }
     }
 
+    function _checkUserDeposit(
+        address _user,
+        bool _addUserDepositUT,
+        uint256 _userDepositUTWithDeductions,
+        uint256 _deductions,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) internal view {
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
+            userDepositPermitted(
+                _user,
+                _addUserDepositUT,
+                _userDepositUTWithDeductions,
+                _deductions,
+                _accountsProof,
+                _codesProof
+            );
+        require(_userDepositPermitted, _userDepositPermittedReason);
+    }
+
     /**
      * @inheritdoc IVaultV2
      */
-    function userWithdrawVault(uint256 _userWithdrawVT) external override nonReentrant {
+    function userWithdrawVault(
+        uint256 _userWithdrawVT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external override nonReentrant {
         _emergencyBrake(_oraStratValueUT());
-        (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
-        require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
-            userWithdrawPermitted(msg.sender, _userWithdrawVT);
-        require(_userWithdrawPermitted, _userWithdrawPermittedReason);
+        {
+            (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
+            require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
+        }
+        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
+
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
@@ -359,9 +367,20 @@ contract VaultV2 is
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
         // transfer withdraw fee to vaultFeeCollector
         if (_withdrawFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(vaultConfiguration.vaultFeeCollector, _withdrawFeeUT);
+            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
         }
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
+    }
+
+    function _checkUserWithdraw(
+        address _user,
+        uint256 _userWithdrawVT,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) internal view {
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
+            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
+        require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
     /**
@@ -395,7 +414,7 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) public view override returns (bool) {
-        return (_diff.mul(10000)).div(_currentVaultValue) < maxVaultValueJump;
+        return (_diff.mul(10000)).div(_currentVaultValue) < ((vaultConfiguration >> 64) & 0xFFFF);
     }
 
     /**
@@ -416,13 +435,15 @@ contract VaultV2 is
         address _user,
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
-        uint256 _deductions
+        uint256 _deductions,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
     ) public view override returns (bool, string memory) {
-        if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_user]) {
+        if ((vaultConfiguration & (1 << 250)) != 0 && !_verifyWhitelistedAccount(_accountLeaf(_user), _accountsProof)) {
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
         //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && _greyList(_user)) {
+        if (_user != tx.origin && _greyList(_user, _accountsProof, _codesProof)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUTWithDeductions < minimumDepositValueUT) {
@@ -444,10 +465,10 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function vaultDepositPermitted() public view override returns (bool, string memory) {
-        if (!vaultConfiguration.unpaused) {
+        if (!((vaultConfiguration & (1 << 249)) != 0)) {
             return (false, Errors.VAULT_PAUSED);
         }
-        if (vaultConfiguration.emergencyShutdown) {
+        if ((vaultConfiguration & (1 << 248)) != 0) {
             return (false, Errors.VAULT_EMERGENCY_SHUTDOWN);
         }
         return (true, "");
@@ -456,14 +477,21 @@ contract VaultV2 is
     /**
      * @inheritdoc IVaultV2
      */
-    function userWithdrawPermitted(address _user, uint256 _userWithdrawVT)
-        public
-        view
-        override
-        returns (bool, string memory)
-    {
+    function userWithdrawPermitted(
+        address _user,
+        uint256 _userWithdrawVT,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) public view override returns (bool, string memory) {
+        if ((vaultConfiguration & (1 << 250)) != 0 && !_verifyWhitelistedAccount(_accountLeaf(_user), _accountsProof)) {
+            return (false, Errors.EOA_NOT_WHITELISTED);
+        }
+        //solhint-disable-next-line avoid-tx-origin
+        if (_user != tx.origin && _greyList(_user, _accountsProof, _codesProof)) {
+            return (false, Errors.CA_NOT_WHITELISTED);
+        }
         // require: 0 < withdrawal amount in vault tokens < user's vault token balance
-        if (!vaultConfiguration.unpaused) {
+        if (!((vaultConfiguration & (1 << 249)) != 0)) {
             return (false, Errors.VAULT_PAUSED);
         }
         if (!(_userWithdrawVT > 0 && _userWithdrawVT <= balanceOf(_user))) {
@@ -476,7 +504,7 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function vaultWithdrawPermitted() public view override returns (bool, string memory) {
-        if (!vaultConfiguration.unpaused) {
+        if (!((vaultConfiguration & (1 << 249)) != 0)) {
             return (false, Errors.VAULT_PAUSED);
         }
         return (true, "");
@@ -487,8 +515,8 @@ contract VaultV2 is
      */
     function calcDepositFeeUT(uint256 _userDepositUT) public view override returns (uint256) {
         return
-            ((_userDepositUT.mul(vaultConfiguration.depositFeePct)).div(10000)).add(
-                vaultConfiguration.depositFeeFlatUT
+            ((_userDepositUT.mul((vaultConfiguration >> 16) & 0xFFFF)).div(10000)).add(
+                (vaultConfiguration & 0xFFFF) * 10**uint256(decimals())
             );
     }
 
@@ -497,8 +525,8 @@ contract VaultV2 is
      */
     function calcWithdrawalFeeUT(uint256 _userWithdrawUT) public view override returns (uint256) {
         return
-            ((_userWithdrawUT.mul(vaultConfiguration.withdrawalFeePct)).div(10000)).add(
-                vaultConfiguration.withdrawalFeeFlatUT
+            ((_userWithdrawUT.mul((vaultConfiguration >> 48) & 0xFFFF)).div(10000)).add(
+                ((vaultConfiguration >> 32) & 0xFFFF) * 10**uint256(decimals())
             );
     }
 
@@ -506,7 +534,11 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function getNextBestInvestStrategy() public view override returns (DataTypes.StrategyStep[] memory) {
-        return IRiskManagerV2(registryContract.getRiskManager()).getBestStrategy(riskProfileCode, underlyingTokensHash);
+        return
+            IRiskManagerV2(registryContract.getRiskManager()).getBestStrategy(
+                uint256(uint8(vaultConfiguration >> 240)),
+                underlyingTokensHash
+            );
     }
 
     /**
@@ -637,35 +669,11 @@ contract VaultV2 is
      * @inheritdoc IncentivisedERC20
      */
     function _beforeTokenTransfer(
-        address _from,
+        address,
         address _to,
         uint256
     ) internal override {
-        // the token can only be transferred to the whitelisted recipient
-        // if the vault token is listed on any DEX like uniswap, then the pair contract address
-        // should be whitelisted.
-        if (!vaultConfiguration.unpaused) {
-            revert(Errors.VAULT_PAUSED);
-        }
-        if (vaultConfiguration.emergencyShutdown) {
-            revert(Errors.VAULT_EMERGENCY_SHUTDOWN);
-        }
-        if (vaultConfiguration.allowWhitelistedState && !whitelistedAccounts[_from] && !whitelistedAccounts[_to]) {
-            revert(Errors.EOA_NOT_WHITELISTED);
-        }
-        //solhint-disable-next-line avoid-tx-origin
-        if (msg.sender != tx.origin && _greyList(msg.sender)) {
-            revert(Errors.CA_NOT_WHITELISTED);
-        }
-    }
-
-    /**
-     * @dev Internal function to control whitelisted state
-     * @param _allowWhitelistedState vault's whitelisted state flag
-     */
-    function _setAllowWhitelistedState(bool _allowWhitelistedState) internal {
-        vaultConfiguration.allowWhitelistedState = _allowWhitelistedState;
-        emit LogAllowWhitelistedState(_allowWhitelistedState, msg.sender);
+        require(_to != address(this), Errors.TRANSFER_TO_THIS_CONTRACT);
     }
 
     /**
@@ -698,14 +706,6 @@ contract VaultV2 is
     }
 
     /**
-     * @dev Internal function to set the maximum vault value jump in percentage basis points
-     * @param _maxVaultValueJump the maximum absolute allowed from a vault value in basis points
-     */
-    function _setMaxVaultValueJump(uint256 _maxVaultValueJump) internal {
-        maxVaultValueJump = _maxVaultValueJump;
-    }
-
-    /**
      * @dev Internal function for caching the next invest strategy metadata
      * @param _investStrategySteps list strategy steps
      */
@@ -723,7 +723,7 @@ contract VaultV2 is
      */
     function _setRiskProfileCode(uint256 _riskProfileCode, bool _exists) internal {
         require(_exists, Errors.RISK_PROFILE_EXISTS);
-        riskProfileCode = _riskProfileCode;
+        vaultConfiguration = (_riskProfileCode << 240) | vaultConfiguration;
     }
 
     /**
@@ -788,8 +788,22 @@ contract VaultV2 is
      * @param _account account address
      * @return false if contract account is allowed to interact, true otherwise
      */
-    function _greyList(address _account) internal view returns (bool) {
-        return !whitelistedAccounts[_account] && !whitelistedCodes[_getContractHash(_account)];
+    function _greyList(
+        address _account,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) internal view returns (bool) {
+        return
+            !_verifyWhitelistedAccount(_accountLeaf(_account), _accountsProof) &&
+            !_verifyWhitelistedCode(_codeLeaf(_getContractHash(_account)), _codesProof);
+    }
+
+    function _verifyWhitelistedAccount(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
+        return MerkleProof.verify(_proof, whitelistedAccountsRoot, _leaf);
+    }
+
+    function _verifyWhitelistedCode(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
+        return MerkleProof.verify(_proof, whitelistedCodesRoot, _leaf);
     }
 
     //===Internal pure functions===//
@@ -809,6 +823,14 @@ contract VaultV2 is
      */
     function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
         return _a > _b ? _a.sub(_b) : _b.sub(_a);
+    }
+
+    function _accountLeaf(address _account) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_account));
+    }
+
+    function _codeLeaf(bytes32 _hash) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_hash));
     }
 
     //===Private functions===//

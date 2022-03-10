@@ -20,4 +20,5 @@ library Errors {
     string public constant ADMIN_CALL = "15";
     string public constant EMERGENCY_BRAKE = "16";
     string public constant UNDERLYING_TOKENS_HASH_EXISTS = "17";
+    string public constant TRANSFER_TO_THIS_CONTRACT = "18";
 }
