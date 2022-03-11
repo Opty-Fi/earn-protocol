@@ -381,22 +381,22 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.totalValueLockedLimitUT()).to.eq(BigNumber.from("10000").mul(to_10powNumber_BN("6")));
     });
 
-    it("fails setWhitelistedAccounts() call by non governance", async function () {
+    it("fails setWhitelistedAccountsRoot() call by non governance", async function () {
       await expect(this.vaultV2.setWhitelistedAccountsRoot(ethers.constants.HashZero)).to.be.revertedWith(
         "caller is not having governance",
       );
     });
-    it("setWhitelistedAccounts() call by governance", async function () {
+    it("setWhitelistedAccountsRoot() call by governance", async function () {
       const _root = getAccountsMerkleRoot([this.signers.alice.address, this.signers.bob.address]);
       await this.vaultV2.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
       expect(await this.vaultV2.whitelistedAccountsRoot()).to.eq(_root);
     });
-    it("fails setWhitelistedCodes() call by non governance", async function () {
+    it("fails setWhitelistedCodesRoot() call by non governance", async function () {
       await expect(this.vaultV2.setWhitelistedCodesRoot(ethers.constants.HashZero)).to.be.revertedWith(
         "caller is not having governance",
       );
     });
-    it("setWhitelistedCodes() call by governance", async function () {
+    it("setWhitelistedCodesRoot() call by governance", async function () {
       const code = await ethers.provider.getCode(this.opUSDCgrow.address);
       const codeHash = ethers.utils.keccak256(code);
       const _root = getCodesMerkleRoot([codeHash]);
@@ -1010,6 +1010,38 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.vaultDepositAllToStrategy()).to.revertedWith("14");
     });
 
+    it("fail userWithdrawVault, VAULT_PAUSED", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
+      const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT, _proofs, [])).to.revertedWith(
+        "14",
+      );
+    });
+
+    it("fail userDepositVault, VAULT_PAUSED", async function () {
+      const _accountRoot = getAccountsMerkleRoot([
+        this.signers.alice.address,
+        this.signers.bob.address,
+        this.testVaultV2.address,
+        this.signers.eve.address,
+      ]);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
+      expect(await this.vaultV2.whitelistedAccountsRoot()).to.eq(_accountRoot);
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address, this.signers.eve.address],
+        this.signers.eve.address,
+      );
+      const _depositAmountUSDC = "1000000000";
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+      await this.usdc.connect(this.signers.eve).approve(this.vaultV2.address, _depositAmountUSDC);
+      await expect(
+        this.vaultV2.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []),
+      ).to.revertedWith("14");
+    });
+
     it("vaultDepositAllToStrategy() by any user", async function () {
       await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
         .to.emit(this.vaultV2, "LogUnpause")
@@ -1069,6 +1101,28 @@ describe("VaultV2", () => {
         true,
       );
       await expect(this.vaultV2.vaultDepositAllToStrategy()).to.revertedWith("13");
+    });
+
+    it("fail userDepositVault, VAULT_EMERGENCY_SHUTDOWN", async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address, this.signers.eve.address],
+        this.signers.eve.address,
+      );
+      const _depositAmountUSDC = "1000000000";
+      await expect(
+        this.vaultV2.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []),
+      ).to.revertedWith("13");
+    });
+
+    it("userWithdrawVault, during emergency shutdown", async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address, this.signers.eve.address],
+        this.signers.alice.address,
+      );
+      const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT, _proof, []))
+        .to.emit(this.vaultV2, "Transfer")
+        .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
     });
   });
 });
