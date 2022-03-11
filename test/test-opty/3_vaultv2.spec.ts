@@ -806,105 +806,134 @@ describe("VaultV2", () => {
     it("getLastStrategyStepBalanceLP() return 0", async function () {
       expect(await this.vaultV2.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
     });
-    //   it("first userDepositVault(), mint same shares as deposit", async function () {
-    // const _proofs = getAccountsMerkleProof([this.signers.alice.address, this.signers.bob.address], this.signers.alice.address)
-    //     await this.vaultV2
-    //       .connect(this.signers.financeOperator)
-    //       .setFeeParams("0", "0", "0", "0", ethers.constants.AddressZero);
-    //     const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
-    //     const _depositFee = await this.vaultV2.calcDepositFeeUT(_depositAmountUSDC);
-    //     const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
-    //     await this.vaultV2.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
-    //     await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(_depositAmountUSDC))
-    //       .to.emit(this.vaultV2, "Transfer")
-    //       .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
-    //     expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_depositAmountUSDCWithFee);
-    //     expect(await this.vaultV2.totalSupply()).to.eq(_depositAmountUSDCWithFee);
-    //     expect(await this.vaultV2.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
-    //     // the vault shares VT will be same as total supply is zero
-    //     expect(await this.vaultV2.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
-    //   });
-    //   it("rebalance(), deposit asset into strategy", async function () {
-    //     const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
-    //     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-    //     const _adapterAddress = await this.registryV2.liquidityPoolToAdapter(_pool);
-    //     const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
-    //     await this.vaultV2.rebalance();
-    //     const _expectedVaultUsdcBalance = BigNumber.from("0");
-    //     expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_expectedVaultUsdcBalance);
-    //     const canStake: boolean = await _adapterInstance.canStake(_pool);
-    //     let expectedlpTokenBalance = BigNumber.from("0");
-    //     if (canStake) {
-    //       expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalanceStake(this.vaultV2.address, _pool);
-    //     }
-    //     expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalance(
-    //       this.vaultV2.address,
-    //       MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-    //       _pool,
-    //     );
-    //     const _lpTokenAddress = testStrategy[fork][strategyKeys[0]].steps[0].outputToken;
-    //     const _lpTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, _lpTokenAddress);
-    //     const _actuallpTokenBalance = await _lpTokenInstance.balanceOf(this.vaultV2.address);
-    //     expect(_actuallpTokenBalance).to.eq(expectedlpTokenBalance);
-    //     let _allAmountInToken = BigNumber.from("0");
-    //     if (canStake) {
-    //       _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
-    //         this.vaultV2.address,
-    //         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-    //         _pool,
-    //       );
-    //     } else {
-    //       _allAmountInToken = await _adapterInstance.getAllAmountInToken(
-    //         this.vaultV2.address,
-    //         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-    //         _pool,
-    //       );
-    //     }
-    //     const _expectedPricePerFullShare = _allAmountInToken.mul(to_10powNumber_BN("18")).div(_totalSupply);
-    //     expect(await this.vaultV2.getPricePerFullShare()).to.eq(_expectedPricePerFullShare);
-    //     expect(await this.vaultV2.getInvestStrategySteps()).to.deep.eq([
-    //       Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
-    //     ]);
-    //     expect(await this.vaultV2.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
-    //   });
-    //   it('userWithdrawPermitted() return true,""', async function () {
-    //     const _balanceVT = await this.vaultV2.balanceOf(this.signers.alice.address);
-    //     expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, _balanceVT)).members([true, ""]);
-    //   });
-    //   it("userWithdrawVault()", async function () {
-    //     const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
-    //     const _userbalanceBefore = await this.usdc.balanceOf(this.signers.alice.address);
-    //     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-    //     const _adapterAddress = await this.registryV2.liquidityPoolToAdapter(_pool);
-    //     const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
-    //     const canStake: boolean = await _adapterInstance.canStake(_pool);
-    //     let _allAmountInToken = BigNumber.from("0");
-    //     if (canStake) {
-    //       _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
-    //         this.vaultV2.address,
-    //         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-    //         _pool,
-    //       );
-    //     } else {
-    //       _allAmountInToken = await _adapterInstance.getAllAmountInToken(
-    //         this.vaultV2.address,
-    //         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-    //         _pool,
-    //       );
-    //     }
-    //     const _vaultBalanceUT = await this.usdc.balanceOf(this.vaultV2.address);
-    //     const _totalSupply = await this.vaultV2.totalSupply();
-    //     const _calculatedReceivableUT = _redeemVT.mul(_totalSupply).div(_allAmountInToken.add(_vaultBalanceUT));
-    //     const _calculatedWithdrawalFee = await this.vaultV2.calcWithdrawalFeeUT(_calculatedReceivableUT);
-    //     const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
-    //     await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT))
-    //       .to.emit(this.vaultV2, "Transfer")
-    //       .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
-    //     const _userBalanceAfter = await this.usdc.balanceOf(this.signers.alice.address);
-    //     const _actualReceivedUT = _userBalanceAfter.sub(_userbalanceBefore);
-    //     expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
-    //     expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
-    //   });
+    it("first userDepositVault(), mint same shares as deposit", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
+      // (0-15) Deposit fee UT = 0 USDC = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 USDC = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
+      await this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      const _depositFee = await this.vaultV2.calcDepositFeeUT(_depositAmountUSDC);
+      const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
+      await this.vaultV2.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
+      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(_depositAmountUSDC, _proofs, []))
+        .to.emit(this.vaultV2, "Transfer")
+        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
+      expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vaultV2.totalSupply()).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vaultV2.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+      // the vault shares VT will be same as total supply is zero
+      expect(await this.vaultV2.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+    });
+    it("rebalance(), deposit asset into strategy", async function () {
+      const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+      const _adapterAddress = await this.registryV2.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      await this.vaultV2.rebalance();
+      const _expectedVaultUsdcBalance = BigNumber.from("0");
+      expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_expectedVaultUsdcBalance);
+      const canStake: boolean = await _adapterInstance.canStake(_pool);
+      let expectedlpTokenBalance = BigNumber.from("0");
+      if (canStake) {
+        expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalanceStake(this.vaultV2.address, _pool);
+      }
+      expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalance(
+        this.vaultV2.address,
+        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+        _pool,
+      );
+      const _lpTokenAddress = testStrategy[fork][strategyKeys[0]].steps[0].outputToken;
+      const _lpTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, _lpTokenAddress);
+      const _actuallpTokenBalance = await _lpTokenInstance.balanceOf(this.vaultV2.address);
+      expect(_actuallpTokenBalance).to.eq(expectedlpTokenBalance);
+      let _allAmountInToken = BigNumber.from("0");
+      if (canStake) {
+        _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
+          this.vaultV2.address,
+          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          _pool,
+        );
+      } else {
+        _allAmountInToken = await _adapterInstance.getAllAmountInToken(
+          this.vaultV2.address,
+          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          _pool,
+        );
+      }
+      const _expectedPricePerFullShare = _allAmountInToken.mul(to_10powNumber_BN("18")).div(_totalSupply);
+      expect(await this.vaultV2.getPricePerFullShare()).to.eq(_expectedPricePerFullShare);
+      expect(await this.vaultV2.getInvestStrategySteps()).to.deep.eq([
+        Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
+      ]);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
+    });
+    it('userWithdrawPermitted() return true,""', async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
+      const _balanceVT = await this.vaultV2.balanceOf(this.signers.alice.address);
+      expect(
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userWithdrawPermitted(this.signers.alice.address, _balanceVT, _proofs, []),
+      ).members([true, ""]);
+    });
+    it("userWithdrawVault()", async function () {
+      const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
+      const _userbalanceBefore = await this.usdc.balanceOf(this.signers.alice.address);
+      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+      const _adapterAddress = await this.registryV2.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const canStake: boolean = await _adapterInstance.canStake(_pool);
+      let _allAmountInToken = BigNumber.from("0");
+      if (canStake) {
+        _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
+          this.vaultV2.address,
+          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          _pool,
+        );
+      } else {
+        _allAmountInToken = await _adapterInstance.getAllAmountInToken(
+          this.vaultV2.address,
+          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          _pool,
+        );
+      }
+      const _vaultBalanceUT = await this.usdc.balanceOf(this.vaultV2.address);
+      const _totalSupply = await this.vaultV2.totalSupply();
+      const _calculatedReceivableUT = _redeemVT.mul(_totalSupply).div(_allAmountInToken.add(_vaultBalanceUT));
+      const _calculatedWithdrawalFee = await this.vaultV2.calcWithdrawalFeeUT(_calculatedReceivableUT);
+      const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT, [], []))
+        .to.emit(this.vaultV2, "Transfer")
+        .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
+      const _userBalanceAfter = await this.usdc.balanceOf(this.signers.alice.address);
+      const _actualReceivedUT = _userBalanceAfter.sub(_userbalanceBefore);
+      expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
+      expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
+    });
   });
 });
 
@@ -921,29 +950,18 @@ function assertVaultConfiguration(
   expectedUnpause: boolean,
   expectedAllowWhitelistedState: boolean,
 ): void {
-  const _actualMaxVaultValueJump = (BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535);
-  const _actualVaultFeeCollectorAddress = `0x${ethers.utils
-    .hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80))
-    .slice(-40)}`;
-  const _actualRiskProfileCode = `0x${ethers.utils
-    .hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(240))
-    .slice(-2)}`;
-  const _actualEmergencyShutdown = (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(248))) != BigInt(0);
-  const _actualUnpause = (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
-  const _actualAllowWhitelistedState =
-    (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
   expect(getDepositFeeUT(vaultConfigurationV2)).to.eq(expectedDepositFeeUT);
   expect(getDepositFeePct(vaultConfigurationV2)).to.eq(expectedDepositFeePct);
   expect(getWithdrawalFeeUT(vaultConfigurationV2)).to.eq(expectedWithdrawalFeeUT);
   expect(getWithdrawalFeePct(vaultConfigurationV2)).to.eq(expectedWithdrawalFeePct);
-  expect(BigNumber.from(_actualMaxVaultValueJump)).to.eq(expectedMaxVaultValueJump);
-  expect(ethers.utils.getAddress(_actualVaultFeeCollectorAddress)).to.eq(
+  expect(getMaxVaultValueJump(vaultConfigurationV2)).to.eq(expectedMaxVaultValueJump);
+  expect(ethers.utils.getAddress(getVaultFeeCollectorAddress(vaultConfigurationV2))).to.eq(
     ethers.utils.getAddress(expectedVaultFeeCollector),
   );
-  expect(BigNumber.from(_actualRiskProfileCode)).to.eq(expectedRiskProfileCode);
-  expect(_actualEmergencyShutdown).to.eq(expectedEmergencyShutdown);
-  expect(_actualUnpause).to.eq(expectedUnpause);
-  expect(_actualAllowWhitelistedState).to.eq(expectedAllowWhitelistedState);
+  expect(getRiskProfileCode(vaultConfigurationV2)).to.eq(expectedRiskProfileCode);
+  expect(getEmergencyShutdown(vaultConfigurationV2)).to.eq(expectedEmergencyShutdown);
+  expect(getUnpause(vaultConfigurationV2)).to.eq(expectedUnpause);
+  expect(getAllowWhitelistState(vaultConfigurationV2)).to.eq(expectedAllowWhitelistedState);
 }
 
 function getDepositFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
@@ -960,4 +978,28 @@ function getWithdrawalFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
 
 function getWithdrawalFeePct(vaultConfigurationV2: BigNumber): BigNumber {
   return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535));
+}
+
+function getMaxVaultValueJump(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535));
+}
+
+function getVaultFeeCollectorAddress(vaultConfigurationV2: BigNumber): string {
+  return `0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80)).slice(-40)}`;
+}
+
+function getRiskProfileCode(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from(`0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(240)).slice(-2)}`);
+}
+
+function getEmergencyShutdown(vaultConfigurationV2: BigNumber): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(248))) != BigInt(0);
+}
+
+function getUnpause(vaultConfigurationV2: BigNumber): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
+}
+
+function getAllowWhitelistState(vaultConfigurationV2: BigNumber): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
 }
