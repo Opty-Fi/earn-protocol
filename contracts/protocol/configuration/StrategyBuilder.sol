@@ -97,10 +97,8 @@ library StrategyBuilder {
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
         address _underlyingToken = _strategyConfigurationParams.underlyingToken;
         uint256 _depositAmountUT = _strategyConfigurationParams.initialStepInputAmount;
-        if (
-            _strategyConfigurationParams.internalTransactionIndex ==
-            _strategyConfigurationParams.internalTransactionCount
-        ) {
+        uint256 _stepCount = _strategySteps.length;
+        if (_strategyConfigurationParams.internalTransactionIndex == _stepCount) {
             address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].pool;
             IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
             _underlyingToken = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].outputToken;
@@ -145,7 +143,8 @@ library StrategyBuilder {
             _strategyConfigurationParams.internalTransactionIndex !=
             (_strategyConfigurationParams.internalTransactionCount - 1)
         ) {
-            _redeemAmountLP = IERC20(_underlyingToken).balanceOf(_strategyConfigurationParams.vault);
+            _redeemAmountLP = IERC20(_strategySteps[_strategyConfigurationParams.internalTransactionIndex].outputToken)
+                .balanceOf(_strategyConfigurationParams.vault);
         }
         _codes = (_strategyConfigurationParams.internalTransactionIndex ==
             (_strategyConfigurationParams.internalTransactionCount - 1) &&
@@ -171,8 +170,10 @@ library StrategyBuilder {
         address _underlyingToken
     ) internal view returns (uint256) {
         address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
+        IAdapterFull _adapter = IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
         return
-            IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool))
-                .getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+            _adapter.canStake(_liquidityPool)
+                ? _adapter.getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool)
+                : _adapter.getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
     }
 }

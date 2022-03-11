@@ -201,28 +201,6 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
 export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
   [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
     USDC: {
-      "usdc-DEPOSIT-CurveMetapoolDepositPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
-        strategyName: "usdc-DEPOSIT-CurveMetapoolDepositPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xA79828DF1850E8a3A3064576f380D90aECDD3359",
-            outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
-            outputTokenSymbol: "FRAX3CRV-f",
-            adapterName: "CurveMetapoolDepositAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isBorrow: false,
-            outputTokenSymbol: "cvxFRAX3CRV-f",
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-          },
-        ],
-      },
       "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
         strategyName:
           "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
@@ -249,6 +227,37 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
             outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
             isBorrow: false,
             outputTokenSymbol: "cvxFRAX3CRV-f",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
+        strategyName:
+          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+            outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+            isBorrow: false,
+            outputTokenSymbol: "MIM-3LP3CRV-f",
+            adapterName: "CurveMetapoolSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+            outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+            isBorrow: false,
+            outputTokenSymbol: "cvxMIM-3LP3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
           },

@@ -1,7 +1,11 @@
 // !! Important !!
 // Please do not keep this file under helpers/utils as it is import hre from hardhat
+import { BigNumber, BigNumberish } from "ethers";
 import hre, { ethers } from "hardhat";
-import { ERC20 } from "../../typechain";
+import { MerkleTree } from "merkletreejs";
+import keccak256 from "keccak256";
+import { StrategyStepType } from "../../helpers/type";
+import { ERC20, IAdapterFull, RegistryV2, VaultV2 } from "../../typechain";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -69,3 +73,141 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
     );
   }
 }
+
+export async function getDepositInternalTransactionCount(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+): Promise<BigNumberish> {
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
+  const adapterInstance = <IAdapterFull>(
+    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+  );
+  if (await adapterInstance.canStake(lastStepPool)) {
+    return strategyStepCount.add("1");
+  }
+  return strategyStepCount;
+}
+
+export async function getOraValueUT(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+  vault: VaultV2,
+  underlyingToken: ERC20,
+): Promise<BigNumberish> {
+  let outputTokenAmount = BigNumber.from("0");
+  let amountUT = BigNumber.from("0");
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  investStrategySteps.forEach(async (_: StrategyStepType, index: number, investStrategySteps: StrategyStepType[]) => {
+    const iterator = strategyStepCount.sub("1").sub(index);
+    const poolAddress = investStrategySteps[iterator.toNumber()].pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputTokenAddress = underlyingToken.address;
+    if (!iterator.eq("0")) {
+      inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
+    }
+    if (iterator.eq(strategyStepCount.sub("1"))) {
+      if (await adapterInstance.canStake(poolAddress)) {
+        amountUT = await adapterInstance.getAllAmountInTokenStake(vault.address, inputTokenAddress, poolAddress);
+      } else {
+        amountUT = await adapterInstance.getAllAmountInToken(vault.address, inputTokenAddress, poolAddress);
+      }
+    } else {
+      amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
+    }
+    outputTokenAmount = amountUT;
+  });
+  return amountUT;
+}
+
+export async function getLastStrategyStepBalanceLP(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+  vault: VaultV2,
+  underlyingToken: ERC20,
+): Promise<BigNumberish> {
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
+  const adapterInstance = <IAdapterFull>(
+    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+  );
+  if (await adapterInstance.canStake(lastStepPool)) {
+    return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
+  }
+  return await adapterInstance.getLiquidityPoolTokenBalance(vault.address, underlyingToken.address, lastStepPool);
+}
+
+export async function getOraSomeValueLP(
+  investStrategySteps: StrategyStepType[],
+  registryContract: RegistryV2,
+  underlyingToken: ERC20,
+  wantAmount: BigNumber,
+): Promise<BigNumberish> {
+  let amountLP = BigNumber.from("0");
+  let index = 0;
+  for (const investStrategyStep of investStrategySteps) {
+    const poolAddress = investStrategyStep.pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputToken = underlyingToken.address;
+    if (index != 0) {
+      inputToken = investStrategySteps[index - 1].outputToken;
+    }
+    amountLP = await adapterInstance.calculateAmountInLPToken(
+      inputToken,
+      poolAddress,
+      index == 0 ? wantAmount : amountLP,
+    );
+    index++;
+  }
+  return amountLP;
+}
+
+function hashToken(account: string) {
+  return Buffer.from(ethers.utils.solidityKeccak256(["address"], [account]).slice(2), "hex");
+}
+
+function hashCodehash(hash: string) {
+  return Buffer.from(ethers.utils.solidityKeccak256(["bytes32"], [hash]).slice(2), "hex");
+}
+
+export function generateMerkleTree(addresses: string[]): MerkleTree {
+  const leaves = addresses.map((addr: string) => hashToken(addr));
+  return new MerkleTree(leaves, keccak256, { sortPairs: true });
+}
+
+export function generateMerkleTreeForCodehash(hashes: string[]): MerkleTree {
+  const leaves = hashes.map((hash: string) => hashCodehash(hash));
+  return new MerkleTree(leaves, keccak256, { sortPairs: true });
+}
+
+export const getProof = (tree: MerkleTree, address: string): string[] => {
+  return tree.getHexProof(hashToken(address));
+};
+
+export const getProofForCode = (tree: MerkleTree, codeHash: string): string[] => {
+  return tree.getHexProof(hashCodehash(codeHash));
+};
+
+export const getAccountsMerkleRoot = (goodAddresses: string[]): string => {
+  const tree: MerkleTree = generateMerkleTree(goodAddresses);
+  return tree.getHexRoot();
+};
+
+export const getAccountsMerkleProof = (goodAddresses: string[], address: string): string[] => {
+  const tree: MerkleTree = generateMerkleTree(goodAddresses);
+  return getProof(tree, address);
+};
+
+export const getCodesMerkleRoot = (goodCodehashes: string[]): string => {
+  const tree: MerkleTree = generateMerkleTreeForCodehash(goodCodehashes);
+  return tree.getHexRoot();
+};
+
+export const getCodesMerkleProof = (goodCodehashes: string[], codehash: string): string[] => {
+  const tree: MerkleTree = generateMerkleTree(goodCodehashes);
+  return getProofForCode(tree, codehash);
+};

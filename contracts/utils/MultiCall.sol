@@ -2,7 +2,8 @@
 
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
-import { IMultiCall } from "../interfaces/opty/IMultiCall.sol";
+
+import "hardhat/console.sol";
 
 /**
  * @title MultiCall Contract

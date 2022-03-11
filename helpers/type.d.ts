@@ -169,3 +169,9 @@ export type TokenStrategyType = {
 export type StrategiesByTokenByChainType = {
   [key: string]: TokenStrategyType;
 };
+
+export type StrategyStepType = [string, string, boolean] & {
+  pool: string;
+  outputToken: string;
+  isBorrow: boolean;
+};

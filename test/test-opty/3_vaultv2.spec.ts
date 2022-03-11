@@ -25,7 +25,13 @@ import {
   RiskManagerProxy as RiskManagerProxyAddress,
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { setTokenBalanceInStorage } from "./utils";
+import {
+  getAccountsMerkleProof,
+  getAccountsMerkleRoot,
+  getCodesMerkleProof,
+  getCodesMerkleRoot,
+  setTokenBalanceInStorage,
+} from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
@@ -209,9 +215,9 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.decimals()).to.eq(6);
     });
     it("fail setValueControlParams() by non Finance operator", async function () {
-      await expect(
-        this.vaultV2.setValueControlParams("10000000000", "1000000000", "1000000000000", "100"),
-      ).to.be.revertedWith("caller is not the financeOperator");
+      await expect(this.vaultV2.setValueControlParams("10000000000", "1000000000", "1000000000000")).to.be.revertedWith(
+        "caller is not the financeOperator",
+      );
     });
 
     it("setValueControlParams() by Finance operator", async function () {
@@ -219,7 +225,6 @@ describe("VaultV2", () => {
         "10000000000", // 10,000 USDC
         "1000000000", // 1000 USDC
         "1000000000000", // 1,000,000 USDC
-        "100", // 1%
       );
       const { events }: ContractReceipt = await tx.wait();
       const eventsArr = events as Event[];
@@ -247,51 +252,91 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.userDepositCapUT()).to.eq("10000000000");
       expect(await this.vaultV2.minimumDepositValueUT()).to.eq("1000000000");
       expect(await this.vaultV2.totalValueLockedLimitUT()).to.eq("1000000000000");
-      expect(await this.vaultV2.maxVaultValueJump()).to.eq("100");
     });
 
-    it("fail setFeeParams() by non Finance operator", async function () {
-      await expect(
-        this.vaultV2.setFeeParams(
-          "1000000", // 1 USDC
-          "5", // 0.05
-          "1000000", // 1 USDC
-          "5", // 0.05%
-          this.signers.admin.address, // address for vault collector
-        ),
-      ).to.be.revertedWith("caller is not the financeOperator");
-    });
-
-    it("setFeeParams() by Finance operator", async function () {
-      await this.vaultV2.connect(this.signers.financeOperator).setFeeParams(
-        "1000000", // 1 USDC
-        "5", // 0.05%
-        "1000000", // 1 USDC
-        "5", // 0.05%
-        this.signers.admin.address, // address for vault collector
+    it("fail setVaultConfiguration() by non governance", async function () {
+      const _vaultConfiguration = BigNumber.from(
+        "3533694129556768659166595001485837031654967793751237934691363855473639425",
       );
+      await expect(this.vaultV2.setVaultConfiguration(_vaultConfiguration)).to.be.revertedWith(
+        "caller is not having governance",
+      );
+    });
+
+    it("setVaultConfiguration() by governance", async function () {
+      // (0-15) Deposit fee UT = 1 USDC = 0001
+      // (16-31) Deposit fee % = 0.05% = 0005
+      // (32-47) Withdrawal fee UT = 1 USDC = 0001
+      // (48-63) Withdrawal fee % = 0.05% = 0005
+      // (64-79) Max vault value jump % = 0.01% = 0001
+      // (80-239) vault fee address = 0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5
+      // (240-247) risk profile code = 2 = 02
+      // (248) emergency shutdown = false = 0
+      // (249) unpause = true = 1
+      // (250) allow whitelisted state = true = 1
+      // (251) - 0
+      // (252) - 0
+      // (253) - 0
+      // (254) - 0
+      // (255) - 0
+      // 0x060219cDeDF678aBE15a921a2AB26C9Bc8867fc35cE500010005000100050001
+      const _vaultConfiguration = BigNumber.from(
+        "2717588881137297196073629478594403830637904256449768059589359748078440349697",
+      );
+      await this.vaultV2.connect(this.signers.governance).setVaultConfiguration(_vaultConfiguration);
       const vaultConfigurationV2 = await this.vaultV2.vaultConfiguration();
-      expect(vaultConfigurationV2.depositFeeFlatUT).to.eq("1000000");
-      expect(vaultConfigurationV2.depositFeePct).to.eq("5");
-      expect(vaultConfigurationV2.withdrawalFeeFlatUT).to.eq("1000000");
-      expect(vaultConfigurationV2.withdrawalFeePct).to.eq("5");
-      expect(vaultConfigurationV2.vaultFeeCollector).to.eq(this.signers.admin.address);
+      assertVaultConfiguration(
+        vaultConfigurationV2,
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        false,
+        true,
+        true,
+      );
     });
-    it("fails setMaxVaultValueJump() call by non finance operator", async function () {
-      await expect(this.vaultV2.setMaxVaultValueJump("100")).to.be.revertedWith("caller is not the financeOperator");
+    it("setVaultConfiguration() - MaxVaultValueJump call by governance", async function () {
+      // (64-79) Max vault value jump % = 1% = 0064
+      await this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2717588881137297196073629478594403830637904256449768061415587411375685959681");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        false,
+        true,
+        true,
+      );
     });
-    it("setMaxVaultValueJump() call by finance operator", async function () {
-      await this.vaultV2.connect(this.signers.financeOperator).setMaxVaultValueJump("100");
-      expect(await this.vaultV2.maxVaultValueJump()).to.eq("100");
-    });
-    it("fails setAllowWhitelistedState() call by non operator", async function () {
-      await expect(this.vaultV2.setAllowWhitelistedState(false)).to.be.revertedWith("caller is not the operator");
-    });
-    it("setAllowWhitelistedState() call by operator", async function () {
-      await expect(this.vaultV2.connect(this.signers.operator).setAllowWhitelistedState(false))
-        .to.emit(this.vaultV2, "LogAllowWhitelistedState")
-        .withArgs(false, this.signers.operator.address);
-      expect((await this.vaultV2.vaultConfiguration())[2]).to.be.false;
+    it("setVaultConfiguration - AllowWhitelistedState() call by governance", async function () {
+      // (250) allow whitelisted state = false = 0
+      this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("908337486804231642580332837833655270430560746049134248299062661252043309057");
+
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        false,
+        true,
+        false,
+      );
     });
 
     it("fails setUserDepositCapUT() call by non finance operator", async function () {
@@ -337,24 +382,26 @@ describe("VaultV2", () => {
     });
 
     it("fails setWhitelistedAccounts() call by non governance", async function () {
-      await expect(this.vaultV2.setWhitelistedAccounts([this.signers.alice.address], [true])).to.be.revertedWith(
+      await expect(this.vaultV2.setWhitelistedAccountsRoot(ethers.constants.HashZero)).to.be.revertedWith(
         "caller is not having governance",
       );
     });
     it("setWhitelistedAccounts() call by governance", async function () {
-      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccounts([this.signers.alice.address], [true]);
-      expect(await this.vaultV2.whitelistedAccounts(this.signers.alice.address)).to.be.true;
+      const _root = getAccountsMerkleRoot([this.signers.alice.address, this.signers.bob.address]);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+      expect(await this.vaultV2.whitelistedAccountsRoot()).to.eq(_root);
     });
     it("fails setWhitelistedCodes() call by non governance", async function () {
-      await expect(this.vaultV2.setWhitelistedCodes([this.testVaultV2.address], [true])).to.be.revertedWith(
+      await expect(this.vaultV2.setWhitelistedCodesRoot(ethers.constants.HashZero)).to.be.revertedWith(
         "caller is not having governance",
       );
     });
     it("setWhitelistedCodes() call by governance", async function () {
       const code = await ethers.provider.getCode(this.opUSDCgrow.address);
       const codeHash = ethers.utils.keccak256(code);
-      await this.vaultV2.connect(this.signers.governance).setWhitelistedCodes([this.opUSDCgrow.address], [true]);
-      expect(await this.vaultV2.whitelistedCodes(codeHash)).to.be.true;
+      const _root = getCodesMerkleRoot([codeHash]);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedCodesRoot(_root);
+      expect(await this.vaultV2.whitelistedCodesRoot()).to.eq(_root);
     });
     it("fail setEmergencyShutdown() call by non governance", async function () {
       await expect(this.vaultV2.setEmergencyShutdown(true)).to.be.revertedWith("caller is not having governance");
@@ -363,7 +410,19 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(true))
         .to.emit(this.vaultV2, "LogEmergencyShutdown")
         .withArgs(true, this.signers.governance.address);
-      expect((await this.vaultV2.vaultConfiguration()).emergencyShutdown).to.be.true;
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        true,
+        true,
+        false,
+      );
       expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
       expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
     });
@@ -374,24 +433,50 @@ describe("VaultV2", () => {
       await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
         .to.emit(this.vaultV2, "LogUnpause")
         .withArgs(true, this.signers.governance.address);
-      expect((await this.vaultV2.vaultConfiguration()).unpaused).to.be.true;
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        true,
+        true,
+        false,
+      );
       expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
       expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
     });
     it("fail rebalance() call, vault is paused", async function () {
+      // (249) unpause = false = 0
       await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
       await expect(this.vaultV2.rebalance()).to.be.revertedWith("14");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        true,
+        false,
+        false,
+      );
     });
     it("fail userDepositVault() call, vault is paused", async function () {
       const usdcDepositAmount = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, usdcDepositAmount);
       await this.usdc.connect(this.signers.alice).approve(this.vaultV2.address, usdcDepositAmount);
-      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(usdcDepositAmount)).to.be.revertedWith(
-        "14",
-      );
+      await expect(
+        this.vaultV2.connect(this.signers.alice).userDepositVault(usdcDepositAmount, [], []),
+      ).to.be.revertedWith("14");
     });
     it("fail userWithdrawVault() call, vault is paused", async function () {
-      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault("12")).to.be.revertedWith("14");
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault("12", [], [])).to.be.revertedWith("14");
     });
     it("fail vaultDepositAllToStrategy() call, vault is paused", async function () {
       await expect(this.vaultV2.vaultDepositAllToStrategy()).to.be.revertedWith("14");
@@ -407,12 +492,24 @@ describe("VaultV2", () => {
       );
       await expect(this.vaultV2.adminCall(_codes)).to.be.revertedWith("caller is not the operator");
     });
-    it("fail setRiskProfileCode() call by non operator", async function () {
-      await expect(this.vaultV2.setRiskProfileCode(1)).to.be.revertedWith("caller is not the operator");
+    it("fail setRiskProfileCode() call by non governance", async function () {
+      await expect(this.vaultV2.setRiskProfileCode(1)).to.be.revertedWith("caller is not having governance");
     });
-    it("setRiskProfileCode() call by operator", async function () {
-      await this.vaultV2.connect(this.signers.operator).setRiskProfileCode(1);
-      expect(await this.vaultV2.riskProfileCode()).to.be.eq("1");
+    it("setRiskProfileCode() call by governance", async function () {
+      await this.vaultV2.connect(this.signers.governance).setRiskProfileCode("1");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        true,
+        false,
+        false,
+      );
     });
     it("fail setRiskProfileCode(), non-existant code", async function () {
       await expect(this.vaultV2.connect(this.signers.operator).setRiskProfileCode(3)).to.be.revertedWith("5");
@@ -460,87 +557,236 @@ describe("VaultV2", () => {
     });
 
     it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {
-      await this.vaultV2.connect(this.signers.financeOperator).setAllowWhitelistedState(true);
-      expect(await this.vaultV2.userDepositPermitted(this.signers.bob.address, true, "1", "0")).to.have.members([
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.eve.address,
+      );
+      // (250) allow whitelisted state = true = 1
+      await this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2263509185489252423370722020903473772070240894952733989178334617643482677249");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        true,
         false,
-        "8",
-      ]);
+        true,
+      );
+      expect(
+        await this.vaultV2.userDepositPermitted(this.signers.eve.address, true, "1", "0", _proof, []),
+      ).to.have.members([false, "8"]);
     });
     it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {
-      expect(await this.testVaultV2.testUserDepositPermitted(this.vaultV2.address, "1000000000")).to.have.members([
-        false,
-        "8",
-      ]);
+      expect(
+        await this.testVaultV2.testUserDepositPermitted(this.vaultV2.address, "1000000000", [], []),
+      ).to.have.members([false, "8"]);
     });
     it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
-      expect(await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "100", "0")).to.have.members([
-        false,
-        "10",
-      ]);
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.alice.address,
+      );
+      expect(
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userDepositPermitted(this.signers.alice.address, true, "100", "0", _proof, []),
+      ).to.have.members([false, "10"]);
     });
     it("userDepositPermitted() return false,TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.alice.address,
+      );
       expect(
-        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "100000000000", "0"),
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userDepositPermitted(this.signers.alice.address, true, "100000000000", "0", _proof, []),
       ).to.have.members([false, "11"]);
     });
     it("userDepositPermitted() return false,USER_DEPOSIT_CAP_UT", async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.alice.address,
+      );
       expect(
-        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "3000000000", "0"),
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userDepositPermitted(this.signers.alice.address, true, "3000000000", "0", _proof, []),
       ).to.have.members([false, "12"]);
     });
     it('call userDepositPermitted() from EOA return true,""', async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.alice.address,
+      );
       expect(
-        await this.vaultV2.userDepositPermitted(this.signers.alice.address, true, "1500000000", "0"),
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userDepositPermitted(this.signers.alice.address, true, "1500000000", "0", _proof, []),
       ).to.have.members([true, ""]);
     });
     it('call userDepositPermitted() from CA return true,""', async function () {
-      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccounts([this.testVaultV2.address], [true]);
-      await this.vaultV2.connect(this.signers.governance).setWhitelistedCodes([this.testVaultV2.address], [true]);
-      expect(await this.testVaultV2.testUserDepositPermitted(this.vaultV2.address, "1500000000")).to.have.members([
-        true,
-        "",
+      const _accountRoot = getAccountsMerkleRoot([
+        this.signers.alice.address,
+        this.signers.bob.address,
+        this.testVaultV2.address,
       ]);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
+      const code = await ethers.provider.getCode(this.testVaultV2.address);
+      const codeHash = ethers.utils.keccak256(code);
+      const _codeRoot = getCodesMerkleRoot([codeHash]);
+      await this.vaultV2.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
+      const _accountProof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.testVaultV2.address,
+      );
+      const _codeProof = getCodesMerkleProof([codeHash], ethers.constants.HashZero);
+      expect(
+        await this.testVaultV2.testUserDepositPermitted(this.vaultV2.address, "1500000000", _accountProof, _codeProof),
+      ).to.have.members([true, ""]);
     });
     it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "14"]);
     });
     it("vaultDepositPermitted() return false,VAULT_EMERGENCY_SHUTDOWN", async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        true,
+        true,
+        true,
+      );
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "13"]);
     });
     it('vaultDepositPermitted() return true,""', async function () {
-      await this.vaultV2.connect(this.signers.governance).setAllowWhitelistedState(false);
-      await this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(false);
+      // (248) emergency shutdown = false = 0
+      // 249 unpause = true = 1
+      // (250) allow whitelisted state = false = 0
+      await this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906570639739453258250749540332912351914733262152258629340941055050750689281");
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([true, ""]);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
     });
     it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
-      expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "14"]);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        false,
+        false,
+      );
+      expect(
+        await this.vaultV2.connect(this.signers.alice).userWithdrawPermitted(this.signers.alice.address, 1, [], []),
+      ).to.have.members([false, "14"]);
     });
     it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
+      const _accountProof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
       await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
-      expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "1"]);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      expect(
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userWithdrawPermitted(this.signers.alice.address, 1, _accountProof, []),
+      ).to.have.members([false, "1"]);
     });
     it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        false,
+        false,
+      );
       expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([false, "14"]);
     });
     it('vaultWithdrawPermitted() return true,""', async function () {
       await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
       expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([true, ""]);
     });
     it("calcDepositFeeUT()", async function () {
       const vaultConfiguration = await this.vaultV2.vaultConfiguration();
-      const { depositFeePct, depositFeeFlatUT } = vaultConfiguration;
       const amount = BigNumber.from("10000000");
-      const expectedFee = amount.mul(depositFeePct).div(10000).add(depositFeeFlatUT);
+      const expectedFee = amount
+        .mul(getDepositFeePct(vaultConfiguration))
+        .div(10000)
+        .add(getDepositFeeUT(vaultConfiguration).mul(to_10powNumber_BN("6")));
       expect(await this.vaultV2.calcDepositFeeUT(amount)).to.eq(expectedFee);
     });
     it("calcWithdrawalFeeUT()", async function () {
       const vaultConfiguration = await this.vaultV2.vaultConfiguration();
-      const { withdrawalFeePct, withdrawalFeeFlatUT } = vaultConfiguration;
       const amount = BigNumber.from("10000000");
-      const expectedFee = amount.mul(withdrawalFeePct).div(10000).add(withdrawalFeeFlatUT);
+      const expectedFee = amount
+        .mul(getWithdrawalFeePct(vaultConfiguration))
+        .div(10000)
+        .add(getWithdrawalFeeUT(vaultConfiguration).mul(to_10powNumber_BN("6")));
       expect(await this.vaultV2.calcWithdrawalFeeUT(amount)).to.eq(expectedFee);
     });
     it("computeInvestStrategyHash()", async function () {
@@ -561,14 +807,36 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
     });
     it("first userDepositVault(), mint same shares as deposit", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
+      // (0-15) Deposit fee UT = 0 USDC = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 USDC = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
       await this.vaultV2
-        .connect(this.signers.financeOperator)
-        .setFeeParams("0", "0", "0", "0", ethers.constants.AddressZero);
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
       const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       const _depositFee = await this.vaultV2.calcDepositFeeUT(_depositAmountUSDC);
       const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
       await this.vaultV2.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
-      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(_depositAmountUSDC))
+      await expect(this.vaultV2.connect(this.signers.alice).userDepositVault(_depositAmountUSDC, _proofs, []))
         .to.emit(this.vaultV2, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
       expect(await this.usdc.balanceOf(this.vaultV2.address)).to.eq(_depositAmountUSDCWithFee);
@@ -621,8 +889,16 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
     });
     it('userWithdrawPermitted() return true,""', async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
       const _balanceVT = await this.vaultV2.balanceOf(this.signers.alice.address);
-      expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, _balanceVT)).members([true, ""]);
+      expect(
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userWithdrawPermitted(this.signers.alice.address, _balanceVT, _proofs, []),
+      ).members([true, ""]);
     });
     it("userWithdrawVault()", async function () {
       const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
@@ -650,7 +926,7 @@ describe("VaultV2", () => {
       const _calculatedReceivableUT = _redeemVT.mul(_totalSupply).div(_allAmountInToken.add(_vaultBalanceUT));
       const _calculatedWithdrawalFee = await this.vaultV2.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
-      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT))
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT, [], []))
         .to.emit(this.vaultV2, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
       const _userBalanceAfter = await this.usdc.balanceOf(this.signers.alice.address);
@@ -660,3 +936,70 @@ describe("VaultV2", () => {
     });
   });
 });
+
+function assertVaultConfiguration(
+  vaultConfigurationV2: BigNumber,
+  expectedDepositFeeUT: BigNumber,
+  expectedDepositFeePct: BigNumber,
+  expectedWithdrawalFeeUT: BigNumber,
+  expectedWithdrawalFeePct: BigNumber,
+  expectedMaxVaultValueJump: BigNumber,
+  expectedVaultFeeCollector: string,
+  expectedRiskProfileCode: BigNumber,
+  expectedEmergencyShutdown: boolean,
+  expectedUnpause: boolean,
+  expectedAllowWhitelistedState: boolean,
+): void {
+  expect(getDepositFeeUT(vaultConfigurationV2)).to.eq(expectedDepositFeeUT);
+  expect(getDepositFeePct(vaultConfigurationV2)).to.eq(expectedDepositFeePct);
+  expect(getWithdrawalFeeUT(vaultConfigurationV2)).to.eq(expectedWithdrawalFeeUT);
+  expect(getWithdrawalFeePct(vaultConfigurationV2)).to.eq(expectedWithdrawalFeePct);
+  expect(getMaxVaultValueJump(vaultConfigurationV2)).to.eq(expectedMaxVaultValueJump);
+  expect(ethers.utils.getAddress(getVaultFeeCollectorAddress(vaultConfigurationV2))).to.eq(
+    ethers.utils.getAddress(expectedVaultFeeCollector),
+  );
+  expect(getRiskProfileCode(vaultConfigurationV2)).to.eq(expectedRiskProfileCode);
+  expect(getEmergencyShutdown(vaultConfigurationV2)).to.eq(expectedEmergencyShutdown);
+  expect(getUnpause(vaultConfigurationV2)).to.eq(expectedUnpause);
+  expect(getAllowWhitelistState(vaultConfigurationV2)).to.eq(expectedAllowWhitelistedState);
+}
+
+function getDepositFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from(BigInt(vaultConfigurationV2.toString()) & BigInt(65535));
+}
+
+function getDepositFeePct(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(16)) & BigInt(65535));
+}
+
+function getWithdrawalFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(32)) & BigInt(65535));
+}
+
+function getWithdrawalFeePct(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535));
+}
+
+function getMaxVaultValueJump(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535));
+}
+
+function getVaultFeeCollectorAddress(vaultConfigurationV2: BigNumber): string {
+  return `0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80)).slice(-40)}`;
+}
+
+function getRiskProfileCode(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from(`0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(240)).slice(-2)}`);
+}
+
+function getEmergencyShutdown(vaultConfigurationV2: BigNumber): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(248))) != BigInt(0);
+}
+
+function getUnpause(vaultConfigurationV2: BigNumber): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
+}
+
+function getAllowWhitelistState(vaultConfigurationV2: BigNumber): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
+}

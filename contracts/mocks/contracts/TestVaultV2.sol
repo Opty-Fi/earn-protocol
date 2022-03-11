@@ -16,15 +16,22 @@ contract TestVaultV2 {
     function deposit(
         IVaultV2 _vault,
         ERC20 _token,
-        uint256 _amountUT
+        uint256 _amountUT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
     ) external {
         _token.transferFrom(msg.sender, address(this), _amountUT);
         _token.approve(address(_vault), _amountUT);
-        _vault.userDepositVault(_amountUT);
+        _vault.userDepositVault(_amountUT, _accountsProof, _codesProof);
     }
 
-    function withdraw(IVaultV2 _vault, uint256 _amountVT) external {
-        _vault.userWithdrawVault(_amountVT);
+    function withdraw(
+        IVaultV2 _vault,
+        uint256 _amountVT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external {
+        _vault.userWithdrawVault(_amountVT, _accountsProof, _codesProof);
     }
 
     function withdrawERC20(ERC20 _token, address _recipient) external {
@@ -35,8 +42,21 @@ contract TestVaultV2 {
         _recipient.transfer(payable(address(this)).balance);
     }
 
-    function testUserDepositPermitted(IVaultV2 _vault, uint256 _valueUT) external view returns (bool, string memory) {
+    function testUserDepositPermitted(
+        IVaultV2 _vault,
+        uint256 _valueUT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external view returns (bool, string memory) {
         uint256 _depositFee = _vault.calcDepositFeeUT(_valueUT);
-        return _vault.userDepositPermitted(address(this), true, _valueUT.sub(_depositFee), _depositFee);
+        return
+            _vault.userDepositPermitted(
+                address(this),
+                true,
+                _valueUT.sub(_depositFee),
+                _depositFee,
+                _accountsProof,
+                _codesProof
+            );
     }
 }

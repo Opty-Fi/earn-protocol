@@ -13,6 +13,7 @@ export enum eEVMNetwork {
   avalanche = "avalanche",
   ganache = "ganache",
   mumbai = "mumbai",
+  dashboard = "dashboard",
 }
 
 export type iEVMParamsPerNetwork<T> = {
@@ -28,6 +29,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.staging]: 1337,
   [eEVMNetwork.ganache]: 1337,
   [eEVMNetwork.mumbai]: 80001,
+  [eEVMNetwork.dashboard]: 1,
 };
 
 export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
@@ -39,6 +41,7 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.staging]: "0x539",
   [eEVMNetwork.ganache]: "0x539",
   [eEVMNetwork.mumbai]: "0x13881",
+  [eEVMNetwork.dashboard]: "0x1",
 };
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
@@ -50,6 +53,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.avalanche]: process.env.AVALANCHE_NODE_URL ? process.env.AVALANCHE_NODE_URL : "",
   [eEVMNetwork.mumbai]: process.env.MUMBAI_NODE_URL ? process.env.MUMBAI_NODE_URL : "",
   [eEVMNetwork.ganache]: "http://localhost:8545",
+  [eEVMNetwork.dashboard]: "http://localhost:24012/rpc",
 };
 
 export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
@@ -61,10 +65,11 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.avalanche]: 65 * GWEI,
   [eEVMNetwork.mumbai]: 65 * GWEI,
   [eEVMNetwork.ganache]: "auto",
+  [eEVMNetwork.dashboard]: "auto",
 };
 
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
-  [eEVMNetwork.mainnet]: 14269106,
+  [eEVMNetwork.mainnet]: 14349626,
   [eEVMNetwork.kovan]: 29962003,
   [eEVMNetwork.hardhat]: undefined,
   [eEVMNetwork.polygon]: 25200204,
@@ -72,6 +77,7 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.staging]: undefined,
   [eEVMNetwork.ganache]: undefined,
   [eEVMNetwork.mumbai]: 25291667,
+  [eEVMNetwork.dashboard]: undefined,
 };
 
 export const buildForkConfig = (

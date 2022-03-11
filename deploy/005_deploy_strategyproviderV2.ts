@@ -42,12 +42,15 @@ const func: DeployFunction = async ({
   const oldStrategyProvider = await registryV2Instance.getStrategyOperator();
   const strategyProviderV2 = await deployments.get("StrategyProviderV2");
 
+  console.log("==StrategyProvider registration==");
   if (getAddress(oldStrategyProvider) !== getAddress(strategyProviderV2.address)) {
     console.log("Registering StrategyProvider");
     const setStrategyProviderTx = await registryV2Instance
       .connect(operatorSigner)
       .setStrategyProvider(strategyProviderV2.address);
     await setStrategyProviderTx.wait();
+  } else {
+    console.log("StrategyProvider already registered");
   }
 
   if (CONTRACTS_VERIFY == "true") {
