@@ -179,6 +179,7 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function setEmergencyShutdown(bool _active) external override onlyGovernance {
+        vaultConfiguration = vaultConfiguration & 0xFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         if (_active) {
             vaultConfiguration =
                 vaultConfiguration |
@@ -188,10 +189,6 @@ contract VaultV2 is
                 investStrategyHash = Constants.ZERO_BYTES32;
                 delete investStrategySteps;
             }
-        } else {
-            vaultConfiguration =
-                vaultConfiguration &
-                0xFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         }
         emit LogEmergencyShutdown((vaultConfiguration & (1 << 248)) != 0, msg.sender);
     }
@@ -200,10 +197,8 @@ contract VaultV2 is
      * @inheritdoc IVaultV2
      */
     function setUnpaused(bool _unpaused) external override onlyGovernance {
+        vaultConfiguration = (vaultConfiguration & 0xFDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
         if (!_unpaused) {
-            vaultConfiguration =
-                vaultConfiguration &
-                0xFF7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
             if (investStrategyHash != Constants.ZERO_BYTES32) {
                 _vaultWithdrawAllFromStrategy(investStrategySteps);
                 investStrategyHash = Constants.ZERO_BYTES32;
@@ -211,8 +206,8 @@ contract VaultV2 is
             }
         } else {
             vaultConfiguration =
-                vaultConfiguration |
-                0x0080000000000000000000000000000000000000000000000000000000000000;
+                0x0200000000000000000000000000000000000000000000000000000000000000 |
+                vaultConfiguration;
         }
         emit LogUnpause((vaultConfiguration & (1 << 249)) != 0, msg.sender);
     }
@@ -723,7 +718,9 @@ contract VaultV2 is
      */
     function _setRiskProfileCode(uint256 _riskProfileCode, bool _exists) internal {
         require(_exists, Errors.RISK_PROFILE_EXISTS);
-        vaultConfiguration = (_riskProfileCode << 240) | vaultConfiguration;
+        vaultConfiguration =
+            (_riskProfileCode << 240) |
+            (vaultConfiguration & 0xFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
     }
 
     /**
