@@ -52,14 +52,15 @@ const func: DeployFunction = async ({
 
   console.log("==RiskManager implementation==");
   if (getAddress(riskManagerV2.address) != getAddress(riskManagerImplementation)) {
-    console.log("upgrading RiskManager...");
+    console.log("operator setting pending implementation...");
     const setPendingImplementationTx = await riskManagerInstance
       .connect(operatorSigner)
       .setPendingImplementation(riskManagerV2.address);
     await setPendingImplementationTx.wait();
+    console.log("governance upgrading risk manager...");
     const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxy.address);
     await becomeTx.wait();
-    console.log("Registering upgraded RiskManager ...");
+    console.log("operator registering upgraded RiskManager ...");
     const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxy.address);
     await setRiskManagerTx.wait();
   } else {

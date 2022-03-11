@@ -44,7 +44,7 @@ const func: DeployFunction = async ({
 
   console.log("==StrategyProvider registration==");
   if (getAddress(oldStrategyProvider) !== getAddress(strategyProviderV2.address)) {
-    console.log("Registering StrategyProvider");
+    console.log("operator registering StrategyProvider..");
     const setStrategyProviderTx = await registryV2Instance
       .connect(operatorSigner)
       .setStrategyProvider(strategyProviderV2.address);

@@ -50,11 +50,12 @@ const func: DeployFunction = async ({
   // upgrade registry
   const registryImplementation = await registryProxyInstance.registryImplementation();
   if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
-    console.log("upgrading Registry...");
+    console.log("operator setting pending implementation...");
     const setPendingImplementationTx = await registryProxyInstance
       .connect(operatorSigner)
       .setPendingImplementation(registryV2.address);
     await setPendingImplementationTx.wait();
+    console.log("governance upgrading Registry...");
     const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxy.address);
     await becomeTx.wait();
   }
@@ -109,7 +110,7 @@ const func: DeployFunction = async ({
   }
 
   if (onlySetTokensHash.length > 0) {
-    console.log("setting hash..", onlySetTokensHash);
+    console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     const onlyMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
@@ -120,7 +121,7 @@ const func: DeployFunction = async ({
   console.log("==Risk Profile config==");
   const growRiskProfilExists = (await registryV2Instance.getRiskProfile("1")).exists;
   if (!growRiskProfilExists) {
-    console.log("Adding grow risk profile...");
+    console.log("risk operator adding grow risk profile...");
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
       ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100]); // code,name,symbol,canBorrow,pool rating range
