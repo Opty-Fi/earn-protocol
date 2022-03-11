@@ -451,7 +451,11 @@ describe("VaultV2", () => {
     });
     it("fail rebalance() call, vault is paused", async function () {
       // (249) unpause = false = 0
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(false))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(false, this.signers.governance.address);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
       await expect(this.vaultV2.rebalance()).to.be.revertedWith("14");
       assertVaultConfiguration(
         await this.vaultV2.vaultConfiguration(),
@@ -655,7 +659,9 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "14"]);
     });
     it("vaultDepositPermitted() return false,VAULT_EMERGENCY_SHUTDOWN", async function () {
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(true, this.signers.governance.address);
       assertVaultConfiguration(
         await this.vaultV2.vaultConfiguration(),
         BigNumber.from("1"),
@@ -694,7 +700,11 @@ describe("VaultV2", () => {
       );
     });
     it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(false))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(false, this.signers.governance.address);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
       assertVaultConfiguration(
         await this.vaultV2.vaultConfiguration(),
         BigNumber.from("1"),
@@ -717,7 +727,9 @@ describe("VaultV2", () => {
         [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
         this.signers.alice.address,
       );
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(true, this.signers.governance.address);
       assertVaultConfiguration(
         await this.vaultV2.vaultConfiguration(),
         BigNumber.from("1"),
@@ -738,7 +750,11 @@ describe("VaultV2", () => {
       ).to.have.members([false, "1"]);
     });
     it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(false))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(false, this.signers.governance.address);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
       assertVaultConfiguration(
         await this.vaultV2.vaultConfiguration(),
         BigNumber.from("1"),
@@ -755,7 +771,9 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([false, "14"]);
     });
     it('vaultWithdrawPermitted() return true,""', async function () {
-      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(true, this.signers.governance.address);
       assertVaultConfiguration(
         await this.vaultV2.vaultConfiguration(),
         BigNumber.from("1"),
@@ -845,6 +863,34 @@ describe("VaultV2", () => {
       // the vault shares VT will be same as total supply is zero
       expect(await this.vaultV2.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
     });
+    it("fail userDepositVault() for non-whitelisted,EOA_NOT_WHITELISTED", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.eve.address,
+      );
+      await this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        true,
+      );
+      const _depositAmountUSDC = "1000000000";
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+      await this.usdc.connect(this.signers.eve).approve(this.vaultV2.address, _depositAmountUSDC);
+      await expect(
+        this.vaultV2.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proofs, []),
+      ).to.revertedWith("8");
+    });
     it("rebalance(), deposit asset into strategy", async function () {
       const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
@@ -901,6 +947,10 @@ describe("VaultV2", () => {
       ).members([true, ""]);
     });
     it("userWithdrawVault()", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
       const _redeemVT = await (await this.vaultV2.balanceOf(this.signers.alice.address)).div("2");
       const _userbalanceBefore = await this.usdc.balanceOf(this.signers.alice.address);
       const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
@@ -926,13 +976,99 @@ describe("VaultV2", () => {
       const _calculatedReceivableUT = _redeemVT.mul(_totalSupply).div(_allAmountInToken.add(_vaultBalanceUT));
       const _calculatedWithdrawalFee = await this.vaultV2.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
-      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT, [], []))
+      await expect(this.vaultV2.connect(this.signers.alice).userWithdrawVault(_redeemVT, _proofs, []))
         .to.emit(this.vaultV2, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
       const _userBalanceAfter = await this.usdc.balanceOf(this.signers.alice.address);
       const _actualReceivedUT = _userBalanceAfter.sub(_userbalanceBefore);
       expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
       expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
+    });
+
+    it("fail vaultDepositAllToStrategy(), VAULT_PAUSED", async function () {
+      const _balanceUTBefore = await this.usdc.balanceOf(this.vaultV2.address);
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(false))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(false, this.signers.governance.address);
+      const _balanceUTAfter = await this.usdc.balanceOf(this.vaultV2.address);
+      expect(_balanceUTAfter).to.gt(_balanceUTBefore);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        false,
+        true,
+      );
+      await expect(this.vaultV2.vaultDepositAllToStrategy()).to.revertedWith("14");
+    });
+
+    it("vaultDepositAllToStrategy() by any user", async function () {
+      await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(true))
+        .to.emit(this.vaultV2, "LogUnpause")
+        .withArgs(true, this.signers.governance.address);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        true,
+      );
+      const _balanceUTBeforeRebalance = await this.usdc.balanceOf(this.vaultV2.address);
+      await this.vaultV2.rebalance();
+      expect(await this.vaultV2.getInvestStrategySteps()).to.deep.eq([
+        Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
+      ]);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
+      const _balanceUTAfterRebalance = await this.usdc.balanceOf(this.vaultV2.address);
+      expect(_balanceUTBeforeRebalance).to.gt(_balanceUTAfterRebalance);
+      await this.usdc.connect(this.signers.eve).transfer(this.vaultV2.address, "1000000000");
+      const _balanceUTBeforeDepositToStrategy = await this.usdc.balanceOf(this.vaultV2.address);
+      await this.vaultV2.vaultDepositAllToStrategy();
+      expect(await this.vaultV2.getInvestStrategySteps()).to.deep.eq([
+        Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
+      ]);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
+      const _balanceUTAfterDepositToStrategy = await this.usdc.balanceOf(this.vaultV2.address);
+      expect(_balanceUTBeforeDepositToStrategy).to.gt(_balanceUTAfterDepositToStrategy);
+    });
+
+    it("fail vaultDepositAllToStrategy(), VAULT_EMERGENCY_SHUTDOWN", async function () {
+      const _balanceUTBefore = await this.usdc.balanceOf(this.vaultV2.address);
+      await expect(this.vaultV2.connect(this.signers.governance).setEmergencyShutdown(true))
+        .to.emit(this.vaultV2, "LogEmergencyShutdown")
+        .withArgs(true, this.signers.governance.address);
+      const _balanceUTAfter = await this.usdc.balanceOf(this.vaultV2.address);
+      expect(_balanceUTAfter).to.gt(_balanceUTBefore);
+      expect(await this.vaultV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await (await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        true,
+        true,
+        true,
+      );
+      await expect(this.vaultV2.vaultDepositAllToStrategy()).to.revertedWith("13");
     });
   });
 });
