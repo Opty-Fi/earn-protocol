@@ -438,7 +438,7 @@ contract VaultV2 is
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
         //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && _greyList(_user, _accountsProof, _codesProof)) {
+        if (_user != tx.origin && !_noGreyList(_user, _accountsProof, _codesProof)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUTWithDeductions < minimumDepositValueUT) {
@@ -482,7 +482,7 @@ contract VaultV2 is
             return (false, Errors.EOA_NOT_WHITELISTED);
         }
         //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && _greyList(_user, _accountsProof, _codesProof)) {
+        if (_user != tx.origin && !_noGreyList(_user, _accountsProof, _codesProof)) {
             return (false, Errors.CA_NOT_WHITELISTED);
         }
         // require: 0 < withdrawal amount in vault tokens < user's vault token balance
@@ -785,14 +785,14 @@ contract VaultV2 is
      * @param _account account address
      * @return false if contract account is allowed to interact, true otherwise
      */
-    function _greyList(
+    function _noGreyList(
         address _account,
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view returns (bool) {
         return
-            !_verifyWhitelistedAccount(_accountLeaf(_account), _accountsProof) &&
-            !_verifyWhitelistedCode(_codeLeaf(_getContractHash(_account)), _codesProof);
+            _verifyWhitelistedAccount(_accountLeaf(_account), _accountsProof) &&
+            _verifyWhitelistedCode(_codeLeaf(_getContractHash(_account)), _codesProof);
     }
 
     function _verifyWhitelistedAccount(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
