@@ -693,53 +693,119 @@ describe("VaultV2", () => {
         false,
       );
     });
-    //   it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
-    //     await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
-    //     expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "14"]);
-    //   });
-    //   it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
-    //     await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
-    //     expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "1"]);
-    //   });
-    //   it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {
-    //     await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
-    //     expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([false, "14"]);
-    //   });
-    //   it('vaultWithdrawPermitted() return true,""', async function () {
-    //     await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
-    //     expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([true, ""]);
-    //   });
-    //   it("calcDepositFeeUT()", async function () {
-    //     const vaultConfiguration = await this.vaultV2.vaultConfiguration();
-    //     const { depositFeePct, depositFeeFlatUT } = vaultConfiguration;
-    //     const amount = BigNumber.from("10000000");
-    //     const expectedFee = amount.mul(depositFeePct).div(10000).add(depositFeeFlatUT);
-    //     expect(await this.vaultV2.calcDepositFeeUT(amount)).to.eq(expectedFee);
-    //   });
-    //   it("calcWithdrawalFeeUT()", async function () {
-    //     const vaultConfiguration = await this.vaultV2.vaultConfiguration();
-    //     const { withdrawalFeePct, withdrawalFeeFlatUT } = vaultConfiguration;
-    //     const amount = BigNumber.from("10000000");
-    //     const expectedFee = amount.mul(withdrawalFeePct).div(10000).add(withdrawalFeeFlatUT);
-    //     expect(await this.vaultV2.calcWithdrawalFeeUT(amount)).to.eq(expectedFee);
-    //   });
-    //   it("computeInvestStrategyHash()", async function () {
-    //     expect(await this.vaultV2.computeInvestStrategyHash(testStrategy[fork][strategyKeys[0]].steps)).to.eq(
-    //       testStrategy[fork][strategyKeys[0]].hash,
-    //     );
-    //   });
-    //   it("getNextBestInvestStrategy()", async function () {
-    //     expect((await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
-    //     await this.strategyProviderV2
-    //       .connect(this.signers.strategyOperator)
-    //       .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
-    //     expect(await this.vaultV2.getNextBestInvestStrategy()).to.deep.eq([
-    //       Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
-    //     ]);
-    //   });
-    //   it("getLastStrategyStepBalanceLP() return 0", async function () {
-    //     expect(await this.vaultV2.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
-    //   });
+    it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        false,
+        false,
+      );
+      expect(
+        await this.vaultV2.connect(this.signers.alice).userWithdrawPermitted(this.signers.alice.address, 1, [], []),
+      ).to.have.members([false, "14"]);
+    });
+    it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
+      const _accountProof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVaultV2.address],
+        this.signers.alice.address,
+      );
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      expect(
+        await this.vaultV2
+          .connect(this.signers.alice)
+          .userWithdrawPermitted(this.signers.alice.address, 1, _accountProof, []),
+      ).to.have.members([false, "1"]);
+    });
+    it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        false,
+        false,
+      );
+      expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([false, "14"]);
+    });
+    it('vaultWithdrawPermitted() return true,""', async function () {
+      await this.vaultV2.connect(this.signers.governance).setUnpaused(true);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      expect(await this.vaultV2.vaultWithdrawPermitted()).to.have.members([true, ""]);
+    });
+    it("calcDepositFeeUT()", async function () {
+      const vaultConfiguration = await this.vaultV2.vaultConfiguration();
+      const amount = BigNumber.from("10000000");
+      const expectedFee = amount
+        .mul(getDepositFeePct(vaultConfiguration))
+        .div(10000)
+        .add(getDepositFeeUT(vaultConfiguration).mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.calcDepositFeeUT(amount)).to.eq(expectedFee);
+    });
+    it("calcWithdrawalFeeUT()", async function () {
+      const vaultConfiguration = await this.vaultV2.vaultConfiguration();
+      const amount = BigNumber.from("10000000");
+      const expectedFee = amount
+        .mul(getWithdrawalFeePct(vaultConfiguration))
+        .div(10000)
+        .add(getWithdrawalFeeUT(vaultConfiguration).mul(to_10powNumber_BN("6")));
+      expect(await this.vaultV2.calcWithdrawalFeeUT(amount)).to.eq(expectedFee);
+    });
+    it("computeInvestStrategyHash()", async function () {
+      expect(await this.vaultV2.computeInvestStrategyHash(testStrategy[fork][strategyKeys[0]].steps)).to.eq(
+        testStrategy[fork][strategyKeys[0]].hash,
+      );
+    });
+    it("getNextBestInvestStrategy()", async function () {
+      expect((await this.vaultV2.getInvestStrategySteps()).length).to.eq(0);
+      await this.strategyProviderV2
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
+      expect(await this.vaultV2.getNextBestInvestStrategy()).to.deep.eq([
+        Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
+      ]);
+    });
+    it("getLastStrategyStepBalanceLP() return 0", async function () {
+      expect(await this.vaultV2.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
+    });
     //   it("first userDepositVault(), mint same shares as deposit", async function () {
     // const _proofs = getAccountsMerkleProof([this.signers.alice.address, this.signers.bob.address], this.signers.alice.address)
     //     await this.vaultV2
@@ -855,10 +921,6 @@ function assertVaultConfiguration(
   expectedUnpause: boolean,
   expectedAllowWhitelistedState: boolean,
 ): void {
-  const _actualDepositFeeUT = BigInt(vaultConfigurationV2.toString()) & BigInt(65535);
-  const _actualDepositFeePct = (BigInt(vaultConfigurationV2.toString()) >> BigInt(16)) & BigInt(65535);
-  const _actualWithdrawalFeeUT = (BigInt(vaultConfigurationV2.toString()) >> BigInt(32)) & BigInt(65535);
-  const _actualWithdrawalFeePct = (BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535);
   const _actualMaxVaultValueJump = (BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535);
   const _actualVaultFeeCollectorAddress = `0x${ethers.utils
     .hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80))
@@ -870,10 +932,10 @@ function assertVaultConfiguration(
   const _actualUnpause = (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
   const _actualAllowWhitelistedState =
     (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
-  expect(BigNumber.from(_actualDepositFeeUT)).to.eq(expectedDepositFeeUT);
-  expect(BigNumber.from(_actualDepositFeePct)).to.eq(expectedDepositFeePct);
-  expect(BigNumber.from(_actualWithdrawalFeeUT)).to.eq(expectedWithdrawalFeeUT);
-  expect(BigNumber.from(_actualWithdrawalFeePct)).to.eq(expectedWithdrawalFeePct);
+  expect(getDepositFeeUT(vaultConfigurationV2)).to.eq(expectedDepositFeeUT);
+  expect(getDepositFeePct(vaultConfigurationV2)).to.eq(expectedDepositFeePct);
+  expect(getWithdrawalFeeUT(vaultConfigurationV2)).to.eq(expectedWithdrawalFeeUT);
+  expect(getWithdrawalFeePct(vaultConfigurationV2)).to.eq(expectedWithdrawalFeePct);
   expect(BigNumber.from(_actualMaxVaultValueJump)).to.eq(expectedMaxVaultValueJump);
   expect(ethers.utils.getAddress(_actualVaultFeeCollectorAddress)).to.eq(
     ethers.utils.getAddress(expectedVaultFeeCollector),
@@ -882,4 +944,20 @@ function assertVaultConfiguration(
   expect(_actualEmergencyShutdown).to.eq(expectedEmergencyShutdown);
   expect(_actualUnpause).to.eq(expectedUnpause);
   expect(_actualAllowWhitelistedState).to.eq(expectedAllowWhitelistedState);
+}
+
+function getDepositFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from(BigInt(vaultConfigurationV2.toString()) & BigInt(65535));
+}
+
+function getDepositFeePct(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(16)) & BigInt(65535));
+}
+
+function getWithdrawalFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(32)) & BigInt(65535));
+}
+
+function getWithdrawalFeePct(vaultConfigurationV2: BigNumber): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535));
 }
