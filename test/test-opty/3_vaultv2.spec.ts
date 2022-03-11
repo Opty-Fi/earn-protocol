@@ -671,25 +671,28 @@ describe("VaultV2", () => {
       );
       expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([false, "13"]);
     });
-    // it('vaultDepositPermitted() return true,""', async function () {
-    //   // (248) emergency shutdown = false = 0
-    //   // (250) allow whitelisted state = false = 0
-    //   await this.vaultV2.connect(this.signers.governance).setVaultConfiguration("3711789637698865833684517453280990326888990848817341740800286190221983745");
-    //   expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([true, ""]);
-    //   assertVaultConfiguration(
-    //     await this.vaultV2.vaultConfiguration(),
-    //     BigNumber.from("1"),
-    //     BigNumber.from("5"),
-    //     BigNumber.from("1"),
-    //     BigNumber.from("5"),
-    //     BigNumber.from("100"),
-    //     "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
-    //     BigNumber.from("1"),
-    //     false,
-    //     false,
-    //     false,
-    //   )
-    // });
+    it('vaultDepositPermitted() return true,""', async function () {
+      // (248) emergency shutdown = false = 0
+      // 249 unpause = true = 1
+      // (250) allow whitelisted state = false = 0
+      await this.vaultV2
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906570639739453258250749540332912351914733262152258629340941055050750689281");
+      expect(await this.vaultV2.vaultDepositPermitted()).to.have.members([true, ""]);
+      assertVaultConfiguration(
+        await this.vaultV2.vaultConfiguration(),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("1"),
+        BigNumber.from("5"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+    });
     //   it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
     //     await this.vaultV2.connect(this.signers.governance).setUnpaused(false);
     //     expect(await this.vaultV2.userWithdrawPermitted(this.signers.alice.address, 1)).to.have.members([false, "14"]);
