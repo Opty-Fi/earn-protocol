@@ -6,6 +6,7 @@ import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 import { StrategyStepType } from "../../helpers/type";
 import { ERC20, IAdapterFull, RegistryV2, VaultV2 } from "../../typechain";
+import { expect } from "chai";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -211,3 +212,70 @@ export const getCodesMerkleProof = (goodCodehashes: string[], codehash: string):
   const tree: MerkleTree = generateMerkleTree(goodCodehashes);
   return getProofForCode(tree, codehash);
 };
+
+export function assertVaultConfiguration(
+  vaultConfigurationV2: BigNumber | string,
+  expectedDepositFeeUT: BigNumber | string,
+  expectedDepositFeePct: BigNumber | string,
+  expectedWithdrawalFeeUT: BigNumber | string,
+  expectedWithdrawalFeePct: BigNumber | string,
+  expectedMaxVaultValueJump: BigNumber | string,
+  expectedVaultFeeCollector: string,
+  expectedRiskProfileCode: BigNumber | string,
+  expectedEmergencyShutdown: boolean,
+  expectedUnpause: boolean,
+  expectedAllowWhitelistedState: boolean,
+): void {
+  expect(getDepositFeeUT(vaultConfigurationV2)).to.eq(expectedDepositFeeUT);
+  expect(getDepositFeePct(vaultConfigurationV2)).to.eq(expectedDepositFeePct);
+  expect(getWithdrawalFeeUT(vaultConfigurationV2)).to.eq(expectedWithdrawalFeeUT);
+  expect(getWithdrawalFeePct(vaultConfigurationV2)).to.eq(expectedWithdrawalFeePct);
+  expect(getMaxVaultValueJump(vaultConfigurationV2)).to.eq(expectedMaxVaultValueJump);
+  expect(ethers.utils.getAddress(getVaultFeeCollectorAddress(vaultConfigurationV2))).to.eq(
+    ethers.utils.getAddress(expectedVaultFeeCollector),
+  );
+  expect(getRiskProfileCode(vaultConfigurationV2)).to.eq(expectedRiskProfileCode);
+  expect(getEmergencyShutdown(vaultConfigurationV2)).to.eq(expectedEmergencyShutdown);
+  expect(getUnpause(vaultConfigurationV2)).to.eq(expectedUnpause);
+  expect(getAllowWhitelistState(vaultConfigurationV2)).to.eq(expectedAllowWhitelistedState);
+}
+
+export function getDepositFeeUT(vaultConfigurationV2: BigNumber | string): BigNumber {
+  return BigNumber.from(BigInt(vaultConfigurationV2.toString()) & BigInt(65535));
+}
+
+export function getDepositFeePct(vaultConfigurationV2: BigNumber | string): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(16)) & BigInt(65535));
+}
+
+export function getWithdrawalFeeUT(vaultConfigurationV2: BigNumber | string): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(32)) & BigInt(65535));
+}
+
+export function getWithdrawalFeePct(vaultConfigurationV2: BigNumber | string): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535));
+}
+
+export function getMaxVaultValueJump(vaultConfigurationV2: BigNumber | string): BigNumber {
+  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535));
+}
+
+export function getVaultFeeCollectorAddress(vaultConfigurationV2: BigNumber | string): string {
+  return `0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80)).slice(-40)}`;
+}
+
+export function getRiskProfileCode(vaultConfigurationV2: BigNumber | string): BigNumber {
+  return BigNumber.from(`0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(240)).slice(-2)}`);
+}
+
+export function getEmergencyShutdown(vaultConfigurationV2: BigNumber | string): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(248))) != BigInt(0);
+}
+
+export function getUnpause(vaultConfigurationV2: BigNumber | string): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
+}
+
+export function getAllowWhitelistState(vaultConfigurationV2: BigNumber | string): boolean {
+  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
+}

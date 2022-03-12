@@ -26,10 +26,15 @@ import {
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import {
+  assertVaultConfiguration,
   getAccountsMerkleProof,
   getAccountsMerkleRoot,
   getCodesMerkleProof,
   getCodesMerkleRoot,
+  getDepositFeePct,
+  getDepositFeeUT,
+  getWithdrawalFeePct,
+  getWithdrawalFeeUT,
   setTokenBalanceInStorage,
 } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
@@ -1126,70 +1131,3 @@ describe("VaultV2", () => {
     });
   });
 });
-
-function assertVaultConfiguration(
-  vaultConfigurationV2: BigNumber,
-  expectedDepositFeeUT: BigNumber,
-  expectedDepositFeePct: BigNumber,
-  expectedWithdrawalFeeUT: BigNumber,
-  expectedWithdrawalFeePct: BigNumber,
-  expectedMaxVaultValueJump: BigNumber,
-  expectedVaultFeeCollector: string,
-  expectedRiskProfileCode: BigNumber,
-  expectedEmergencyShutdown: boolean,
-  expectedUnpause: boolean,
-  expectedAllowWhitelistedState: boolean,
-): void {
-  expect(getDepositFeeUT(vaultConfigurationV2)).to.eq(expectedDepositFeeUT);
-  expect(getDepositFeePct(vaultConfigurationV2)).to.eq(expectedDepositFeePct);
-  expect(getWithdrawalFeeUT(vaultConfigurationV2)).to.eq(expectedWithdrawalFeeUT);
-  expect(getWithdrawalFeePct(vaultConfigurationV2)).to.eq(expectedWithdrawalFeePct);
-  expect(getMaxVaultValueJump(vaultConfigurationV2)).to.eq(expectedMaxVaultValueJump);
-  expect(ethers.utils.getAddress(getVaultFeeCollectorAddress(vaultConfigurationV2))).to.eq(
-    ethers.utils.getAddress(expectedVaultFeeCollector),
-  );
-  expect(getRiskProfileCode(vaultConfigurationV2)).to.eq(expectedRiskProfileCode);
-  expect(getEmergencyShutdown(vaultConfigurationV2)).to.eq(expectedEmergencyShutdown);
-  expect(getUnpause(vaultConfigurationV2)).to.eq(expectedUnpause);
-  expect(getAllowWhitelistState(vaultConfigurationV2)).to.eq(expectedAllowWhitelistedState);
-}
-
-function getDepositFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
-  return BigNumber.from(BigInt(vaultConfigurationV2.toString()) & BigInt(65535));
-}
-
-function getDepositFeePct(vaultConfigurationV2: BigNumber): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(16)) & BigInt(65535));
-}
-
-function getWithdrawalFeeUT(vaultConfigurationV2: BigNumber): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(32)) & BigInt(65535));
-}
-
-function getWithdrawalFeePct(vaultConfigurationV2: BigNumber): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535));
-}
-
-function getMaxVaultValueJump(vaultConfigurationV2: BigNumber): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535));
-}
-
-function getVaultFeeCollectorAddress(vaultConfigurationV2: BigNumber): string {
-  return `0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80)).slice(-40)}`;
-}
-
-function getRiskProfileCode(vaultConfigurationV2: BigNumber): BigNumber {
-  return BigNumber.from(`0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(240)).slice(-2)}`);
-}
-
-function getEmergencyShutdown(vaultConfigurationV2: BigNumber): boolean {
-  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(248))) != BigInt(0);
-}
-
-function getUnpause(vaultConfigurationV2: BigNumber): boolean {
-  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
-}
-
-function getAllowWhitelistState(vaultConfigurationV2: BigNumber): boolean {
-  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
-}
