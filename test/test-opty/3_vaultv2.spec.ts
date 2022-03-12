@@ -990,6 +990,11 @@ describe("VaultV2", () => {
       expect(await this.vaultV2.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
     });
 
+    it("fail _beforeTokenTransfer() TRANSFER_TO_THIS_CONTRACT", async function () {
+      const _redeemVT = await this.vaultV2.balanceOf(this.signers.alice.address);
+      await expect(this.vaultV2.transfer(this.vaultV2.address, _redeemVT)).to.revertedWith("18");
+    });
+
     it("fail vaultDepositAllToStrategy(), VAULT_PAUSED", async function () {
       const _balanceUTBefore = await this.usdc.balanceOf(this.vaultV2.address);
       await expect(this.vaultV2.connect(this.signers.governance).setUnpaused(false))

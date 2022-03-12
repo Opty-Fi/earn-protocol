@@ -233,8 +233,9 @@ contract VaultV2 is
             }
             investStrategyHash = _nextBestInvestStrategyHash;
         }
-        if (investStrategyHash != Constants.ZERO_BYTES32 && balanceUT() > 0) {
-            _vaultDepositAllToStrategy(investStrategySteps);
+        uint256 _balanceUT = balanceUT();
+        if (investStrategyHash != Constants.ZERO_BYTES32 && _balanceUT > 0) {
+            _vaultDepositToStrategy(investStrategySteps, _balanceUT);
         }
     }
 
@@ -385,7 +386,7 @@ contract VaultV2 is
         (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
         require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         if (investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultDepositAllToStrategy(investStrategySteps);
+            _vaultDepositToStrategy(investStrategySteps, balanceUT());
         }
     }
 
@@ -589,19 +590,11 @@ contract VaultV2 is
     //===Internal functions===//
 
     /**
-     * @dev Internal function to deposit whole balance of underlying token to current strategy
-     * @param _investStrategySteps array of strategy step tuple
-     */
-    function _vaultDepositAllToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
-        _vaultDepositSomeToStrategy(_investStrategySteps, balanceUT());
-    }
-
-    /**
      * @dev Internal function to deposit some balance of underlying token from current strategy
      * @param _investStrategySteps array of strategy step tuple
      * @param _depositValueUT amount in underlying token
      */
-    function _vaultDepositSomeToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
+    function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
         uint256 _internalTransactionCount =

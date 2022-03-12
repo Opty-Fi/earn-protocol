@@ -2,9 +2,10 @@ import { artifacts, waffle, ethers, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
+import BN from "bignumber.js";
 import { Artifact } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
-import { Signers } from "../../helpers/utils";
+import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import {
   ERC20,
   InitializableImmutableAdminUpgradeabilityProxy,
@@ -27,12 +28,19 @@ import {
   ConvexFinanceAdapter as ConvexFinanceAdapterAddress,
 } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { assertVaultConfiguration, getLastStrategyStepBalanceLP, setTokenBalanceInStorage } from "./utils";
+import {
+  assertVaultConfiguration,
+  getAccountsMerkleProof,
+  getAccountsMerkleRoot,
+  getLastStrategyStepBalanceLP,
+  setTokenBalanceInStorage,
+} from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { StrategyStepType } from "../../helpers/type";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
+import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -431,15 +439,21 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         true,
       );
       await this.opUSDCgrowV2.connect(this.signers.financeOperator).setValueControlParams(
-        "100000000000", // 100,000 USDC userdepositcap
+        "100000000000", // 100,000 USDC user deposit cap
         "1000000000", // 1000 USDC minimum deposit
-        "1000000000000", // 1,000,000 USDC TVL
+        "10000000000000", // 10,000,000 USDC TVL
       );
       await this.opWETHgrowV2.connect(this.signers.financeOperator).setValueControlParams(
-        "100000000000000000000000", // 100,000 WETH userdepositcap
-        "1000000000000000000000", // 1000 USDC minimum deposit
-        "1000000000000000000000000", // 1,000,000 USDC TVL
+        "1000000000000000000", // 1 WETH user deposit cap
+        "250000000000000000", // 0.25 WETH minimum deposit
+        "1000000000000000000000", // 1000 WETH TVL
       );
+      const goodAddresses: string[] = [this.signers.alice.address, this.signers.bob.address];
+      const _root = getAccountsMerkleRoot(goodAddresses);
+      await this.opUSDCgrowV2.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+      await this.opWETHgrowV2.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+      this._aliceMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.alice.address);
+      this._bobMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.bob.address);
     });
 
     it("lp token balance should be as expected after rebalance of opUSDCgrowV2 to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
@@ -492,6 +506,19 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     it("underlying token balance of opUSDCgrowV2 should be expected after pausing", async function () {
       const underlyingTokenBalanceBefore = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
       await this.opUSDCgrowV2.connect(this.signers.governance).setUnpaused(false);
+      assertVaultConfiguration(
+        await this.opUSDCgrowV2.vaultConfiguration(),
+        "0",
+        "0",
+        "0",
+        "0",
+        "100",
+        "0x0000000000000000000000000000000000000000",
+        "1",
+        false,
+        false,
+        true,
+      );
       expect((await this.opUSDCgrowV2.getInvestStrategySteps()).length).to.eq(0);
       expect(await this.opUSDCgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
       const underlyingTokenBalanceAfter = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
@@ -504,6 +531,19 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     it("underlying token balance of opWETHgrowV2 should be expected after pausing", async function () {
       const underlyingTokenBalanceBefore = await this.weth.balanceOf(this.opWETHgrowV2.address);
       await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(false);
+      assertVaultConfiguration(
+        await this.opWETHgrowV2.vaultConfiguration(),
+        "0",
+        "0",
+        "0",
+        "0",
+        "100",
+        "0x0000000000000000000000000000000000000000",
+        "1",
+        false,
+        false,
+        true,
+      );
       expect((await this.opWETHgrowV2.getInvestStrategySteps()).length).to.eq(0);
       expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(ethers.constants.HashZero);
       const underlyingTokenBalanceAfter = await this.weth.balanceOf(this.opWETHgrowV2.address);
@@ -516,6 +556,19 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     it("unpause opUSDCgrowV2 and rebalance to cvxFRAX3CRV", async function () {
       const _beforeRebalance = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
       await this.opUSDCgrowV2.connect(this.signers.governance).setUnpaused(true);
+      assertVaultConfiguration(
+        await this.opUSDCgrowV2.vaultConfiguration(),
+        "0",
+        "0",
+        "0",
+        "0",
+        "100",
+        "0x0000000000000000000000000000000000000000",
+        "1",
+        false,
+        true,
+        true,
+      );
       const convexFrax =
         StrategiesByTokenByChain["mainnet"].USDC[
           "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f"
@@ -549,14 +602,178 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       expect(expectedLPTokenBalance).to.gt("0");
     });
 
-    //   it("alice deposit some to opWETHgrowV2, calls vault deposit", async function () {});
+    it("opWETHgrowV2 unpause and rebalance to weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV", async function () {
+      await this.opWETHgrowV2.connect(this.signers.governance).setUnpaused(true);
+      assertVaultConfiguration(
+        await this.opWETHgrowV2.vaultConfiguration(),
+        "0",
+        "0",
+        "0",
+        "0",
+        "100",
+        "0x0000000000000000000000000000000000000000",
+        "1",
+        false,
+        true,
+        true,
+      );
+      const _beforeRebalance = await this.weth.balanceOf(this.opWETHgrowV2.address);
+      await this.opWETHgrowV2.rebalance();
+      const _afterRebalance = await this.weth.balanceOf(this.opWETHgrowV2.address);
+      expect(_beforeRebalance).gt(_afterRebalance);
+      expect(await this.opWETHgrowV2.getInvestStrategySteps()).to.deep.eq(
+        convexSteCRVStrategySteps.map(v => Object.values(v)),
+      );
+      expect(await this.opWETHgrowV2.investStrategyHash()).to.eq(
+        generateStrategyHashV2(convexSteCRVStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash),
+      );
+    });
+
+    it("alice deposit some to opWETHgrowV2, calls vault deposit", async function () {
+      await setTokenBalanceInStorage(this.weth, this.signers.alice.address, "0.25");
+      await this.weth.connect(this.signers.alice).approve(this.opWETHgrowV2.address, "250000000000000000");
+      // const _expectedTotalSupply =
+      // const _expectedShares =
+      await this.opWETHgrowV2
+        .connect(this.signers.alice)
+        .userDepositVault("250000000000000000", this._aliceMerkleProof, []);
+      const _balanceBeforeDeposit = await this.weth.balanceOf(this.opWETHgrowV2.address);
+      await this.opWETHgrowV2.vaultDepositAllToStrategy();
+      const _balanceAfterDeposit = await this.weth.balanceOf(this.opWETHgrowV2.address);
+      expect(_balanceBeforeDeposit).gt(_balanceAfterDeposit);
+      // const _actualTotalSupply =
+      // const _actualShares =
+    });
+    it("alice withdraw some to opWETHgrowV2", async function () {
+      // const _expectedTotalSupply =
+      // const _expectedUnderlyingTokenReceived =
+      await this.opWETHgrowV2
+        .connect(this.signers.alice)
+        .userWithdrawVault(await this.opWETHgrowV2.balanceOf(this.signers.alice.address), this._aliceMerkleProof, []);
+      // const _actualTotalSupply =
+      // const _actualUnderlyingTokenReceived =
+    });
     //   it("alice withdraw some to opWETHgrowV2", async function () {});
-    //   it("alice deposit some to opUSDCgrowV2, calls vault deposit", async function () {});
-    //   it("alice withdraw some to opUSDCgrowV2", async function () {});
-    // it("minimum deposit test - opUSDCgrowV2", async function(){})
-    // it("minimum deposit test - opWETHgrowV2", async function(){})
-    // it("deposit cap test - opUSDCgrowV2", async function(){})
-    // it("deposit cap test - opWETHgrowV2", async function(){})
-    // // it("maximum deposit test - opUSDCgrowV2", async function(){})
+    it("bob deposit some to opUSDCgrowV2, calls vault deposit", async function () {
+      await setTokenBalanceInStorage(this.usdc, this.signers.bob.address, "2500");
+      await this.usdc.connect(this.signers.bob).approve(this.opUSDCgrowV2.address, "2500000000");
+      // const _expectedTotalSupply =
+      // const _expectedShares =
+      await this.opUSDCgrowV2.connect(this.signers.bob).userDepositVault("2500000000", this._bobMerkleProof, []);
+      const _balanceBeforeRebalance = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
+      await this.opUSDCgrowV2.rebalance();
+      const _balanceAfterRebalance = await this.usdc.balanceOf(this.opUSDCgrowV2.address);
+      expect(_balanceBeforeRebalance).gt(_balanceAfterRebalance);
+      // const _actualTotalSupply =
+      // const _actualShares =
+    });
+    it("bob withdraw some to opUSDCgrowV2", async function () {
+      // const _expectedTotalSupply =
+      // const _expectedUnderlyingTokenReceived =
+      await this.opUSDCgrowV2
+        .connect(this.signers.bob)
+        .userWithdrawVault(await this.opUSDCgrowV2.balanceOf(this.signers.bob.address), this._bobMerkleProof, []);
+      // const _actualTotalSupply =
+      // const _actualUnderlyingTokenReceived =
+    });
+    it("rebalance opUSDCgrowV2 to mim", async function () {
+      await this.strategyProviderV2
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, mimStrategySteps);
+      await this.opUSDCgrowV2.rebalance();
+      // assert invest strategy hash
+      expect(await this.opUSDCgrowV2.getInvestStrategySteps()).to.deep.eq(mimStrategySteps.map(v => Object.values(v)));
+      expect(await this.opUSDCgrowV2.investStrategyHash()).to.eq(
+        generateStrategyHashV2(mimStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash),
+      );
+      expect(await this.usdc.balanceOf(this.opUSDCgrowV2.address)).to.eq("0");
+      const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
+        mimStrategySteps as StrategyStepType[],
+        this.registryV2,
+        this.opUSDCgrowV2,
+        this.usdc,
+      );
+      const actualLPTokenBalance = await this.opUSDCgrowV2.getLastStrategyStepBalanceLP(mimStrategySteps);
+      expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
+    });
+    it("fail - opUSDCgrowV2.userDepositVault, MINIMUM_USER_DEPOSIT_VALUE_UT ", async function () {
+      const _minimumUserpositUT = await this.opUSDCgrowV2.minimumDepositValueUT();
+      const _depositUSDC = _minimumUserpositUT.div("2");
+      await setTokenBalanceInStorage(
+        this.usdc,
+        this.signers.alice.address,
+        _depositUSDC.div(to_10powNumber_BN("6")).toString(),
+      );
+      await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrowV2.address, _depositUSDC);
+      await expect(
+        this.opUSDCgrowV2.connect(this.signers.alice).userDepositVault(_depositUSDC, this._aliceMerkleProof, []),
+      ).to.revertedWith("10");
+    });
+    it("fail - opWETHgrowV2.userDepositVault, MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
+      const _minimumUserdepositUT = await this.opWETHgrowV2.minimumDepositValueUT();
+      const _depositWETH = _minimumUserdepositUT.div("2");
+      await setTokenBalanceInStorage(
+        this.weth,
+        this.signers.bob.address,
+        new BN(_depositWETH.toString()).div(new BN(to_10powNumber_BN("18").toString())).toString(),
+      );
+      await this.weth.connect(this.signers.bob).approve(this.opWETHgrowV2.address, _depositWETH);
+      await expect(
+        this.opWETHgrowV2.connect(this.signers.bob).userDepositVault(_depositWETH, this._bobMerkleProof, []),
+      ).to.revertedWith("10");
+    });
+    it("fail - opUSDCgrowV2.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
+      const _balanceUSDC = await this.usdc.balanceOf(this.signers.alice.address);
+      const _totalDeposits = await this.opUSDCgrowV2.totalDeposits(this.signers.alice.address);
+      const _userDepositCap = await this.opUSDCgrowV2.userDepositCapUT();
+      const _fundAmountUSDC = _userDepositCap.sub(_totalDeposits).sub(_balanceUSDC).add("1000000000");
+      await setTokenBalanceInStorage(
+        this.usdc,
+        this.signers.alice.address,
+        new BN(_fundAmountUSDC.toString()).div(new BN(to_10powNumber_BN("6").toString())).toString(),
+      );
+      const _depositUSDC = await this.usdc.balanceOf(this.signers.alice.address);
+      await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrowV2.address, _depositUSDC);
+      await expect(
+        this.opUSDCgrowV2.connect(this.signers.alice).userDepositVault(_depositUSDC, this._aliceMerkleProof, []),
+      ).to.revertedWith("12");
+    });
+    it("fail - opWETHgrowV2.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
+      const _balanceWETH = await this.weth.balanceOf(this.signers.bob.address);
+      const _totalDeposits = await this.opWETHgrowV2.totalDeposits(this.signers.bob.address);
+      const _userDepositCap = await this.opWETHgrowV2.userDepositCapUT();
+      const _fundAmountWETH = _userDepositCap.add("10000000000000");
+      await setTokenBalanceInStorage(
+        this.weth,
+        this.signers.bob.address,
+        new BN(_fundAmountWETH.toString()).div(new BN(to_10powNumber_BN("18").toString())).toString(),
+      );
+      const _depositWETH = await this.weth.balanceOf(this.signers.bob.address);
+      await this.weth.connect(this.signers.bob).approve(this.opWETHgrowV2.address, _depositWETH);
+      await expect(
+        this.opWETHgrowV2.connect(this.signers.bob).userDepositVault(_depositWETH, this._bobMerkleProof, []),
+      ).to.revertedWith("12");
+    });
+    it("fail - opWETHgrowV2.userDepositVault, TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
+      await this.opWETHgrowV2.connect(this.signers.financeOperator).setValueControlParams(
+        "100000000000000000000000", // 1 WETH user deposit cap
+        "250000000000000000", // 0.25 WETH minimum deposit
+        "0", // 0 WETH TVL
+      );
+      const _depositWETH = await this.weth.balanceOf(this.signers.bob.address);
+      await expect(
+        this.opWETHgrowV2.connect(this.signers.bob).userDepositVault(_depositWETH, this._bobMerkleProof, []),
+      ).to.revertedWith("11");
+    });
+    it("fail - opUSDCgrowV2.userDepositVault, TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
+      await this.opUSDCgrowV2.connect(this.signers.financeOperator).setValueControlParams(
+        "100000000000", // 100,000 USDC user deposit cap
+        "1000000000", // 1000 USDC minimum deposit
+        "0", // 0 USDC TVL
+      );
+      await expect(
+        this.opUSDCgrowV2.connect(this.signers.alice).userDepositVault("2500000000", this._aliceMerkleProof, []),
+      ).to.revertedWith("11");
+    });
   });
 });
