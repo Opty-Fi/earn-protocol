@@ -21,7 +21,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @dev Contains the functionality for getting the codes to deposit/withdraw tokens,
  * from the adapters and pass it onto vault contract
  */
-library StrategyBuilder {
+library StrategyManager {
     function getDepositInternalTransactionCount(
         DataTypes.StrategyStep[] memory _strategySteps,
         address _registryContract
@@ -40,7 +40,7 @@ library StrategyBuilder {
 
     function getOraValueUT(
         DataTypes.StrategyStep[] memory _strategySteps,
-        address registryContract,
+        address _registryContract,
         address payable _vault,
         address _underlyingToken
     ) internal view returns (uint256 _amountUT) {
@@ -49,7 +49,8 @@ library StrategyBuilder {
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             uint256 _iterator = _nStrategySteps - 1 - _i;
             address _liquidityPool = _strategySteps[_iterator].pool;
-            IAdapterFull _adapter = IAdapterFull(IRegistry(registryContract).getLiquidityPoolToAdapter(_liquidityPool));
+            IAdapterFull _adapter =
+                IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
             address _inputToken = _underlyingToken;
             if (_iterator != 0) {
                 _inputToken = _strategySteps[_iterator - 1].outputToken;
@@ -69,14 +70,15 @@ library StrategyBuilder {
 
     function getOraSomeValueLP(
         DataTypes.StrategyStep[] memory _strategySteps,
-        address registryContract,
+        address _registryContract,
         address _underlyingToken,
         uint256 _wantAmountUT
     ) internal view returns (uint256 _amountLP) {
         uint256 _nStrategySteps = _strategySteps.length;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             address _liquidityPool = _strategySteps[_i].pool;
-            IAdapterFull _adapter = IAdapterFull(IRegistry(registryContract).getLiquidityPoolToAdapter(_liquidityPool));
+            IAdapterFull _adapter =
+                IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
             address _inputToken = _underlyingToken;
             if (_i != 0) {
                 _inputToken = _strategySteps[_i - 1].outputToken;

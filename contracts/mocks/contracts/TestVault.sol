@@ -8,13 +8,13 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 // interfaces
-import { IVaultV2 } from "../../interfaces/opty/IVaultV2.sol";
+import { IVault } from "../../interfaces/opty/IVault.sol";
 
-contract TestVaultV2 {
+contract TestVault {
     using SafeMath for uint256;
 
     function deposit(
-        IVaultV2 _vault,
+        IVault _vault,
         ERC20 _token,
         uint256 _amountUT,
         bytes32[] calldata _accountsProof,
@@ -26,7 +26,7 @@ contract TestVaultV2 {
     }
 
     function withdraw(
-        IVaultV2 _vault,
+        IVault _vault,
         uint256 _amountVT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
@@ -43,7 +43,7 @@ contract TestVaultV2 {
     }
 
     function testUserDepositPermitted(
-        IVaultV2 _vault,
+        IVault _vault,
         uint256 _valueUT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof

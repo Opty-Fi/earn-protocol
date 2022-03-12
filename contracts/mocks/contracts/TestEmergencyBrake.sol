@@ -15,54 +15,74 @@ contract TestEmergencyBrake {
         tokenAddr = _erc20;
     }
 
-    function runDepositRebalance(uint256 amount) external {
-        tokenAddr.approve(address(vaultAddr), amount);
-        vaultAddr.userDepositRebalance(amount);
+    function runUserDepositVault(
+        uint256 _userDepositUT,
+        bytes32[] calldata _accountProofs,
+        bytes32[] calldata _codeProofs
+    ) external {
+        tokenAddr.approve(address(vaultAddr), _userDepositUT);
+        vaultAddr.userDepositVault(_userDepositUT, _accountProofs, _codeProofs);
     }
 
-    function runWithdrawAllRebalance() external {
-        vaultAddr.userWithdrawAllRebalance();
+    function runUserWithdrawVault(
+        uint256 _userWithdrawVT,
+        bytes32[] calldata _accountProofs,
+        bytes32[] calldata _codeProofs
+    ) external {
+        vaultAddr.userWithdrawVault(_userWithdrawVT, _accountProofs, _codeProofs);
     }
 
-    function runTwoTxnDepositRebalance(uint256 minAmount, uint256 maxAmount) external {
-        tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
-        vaultAddr.userDepositRebalance(maxAmount);
-        vaultAddr.userDepositRebalance(minAmount);
+    function runTwoTxnUserDepositVault(
+        uint256 _minAmountUT,
+        uint256 _maxAmountUT,
+        bytes32[] calldata _accountProofs,
+        bytes32[] calldata _codeProofs
+    ) external {
+        tokenAddr.approve(address(vaultAddr), (_minAmountUT + _maxAmountUT));
+        vaultAddr.userDepositVault(_maxAmountUT, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(_minAmountUT, _accountProofs, _codeProofs);
     }
 
-    function runTwoTxnWithdrawRebalance(uint256 minAmount, uint256 maxAmount) external {
-        tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
-        tokenAddr.transfer(address(vaultAddr), maxAmount);
-        vaultAddr.userWithdrawRebalance(maxAmount);
-        tokenAddr.transfer(address(vaultAddr), minAmount);
-        vaultAddr.userWithdrawRebalance(minAmount);
+    function runTwoTxnUserWithdrawVault(
+        uint256 _minAmount,
+        uint256 _maxAmount,
+        bytes32[] calldata _accountProofs,
+        bytes32[] calldata _codeProofs
+    ) external {
+        tokenAddr.approve(address(vaultAddr), (_minAmount + _maxAmount));
+        tokenAddr.transfer(address(vaultAddr), _maxAmount);
+        vaultAddr.userWithdrawVault(_maxAmount, _accountProofs, _codeProofs);
+        tokenAddr.transfer(address(vaultAddr), _minAmount);
+        vaultAddr.userWithdrawVault(_minAmount, _accountProofs, _codeProofs);
     }
 
-    function runTwoTxnWithdrawRebalanceNoDeposit(uint256 minAmount, uint256 maxAmount) external {
-        tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
-        tokenAddr.transfer(address(vaultAddr), maxAmount);
-        vaultAddr.userWithdrawRebalance(maxAmount);
-        tokenAddr.transfer(address(vaultAddr), minAmount);
-        vaultAddr.userWithdrawRebalance(minAmount);
+    function runTwoTxnUserWithdrawVaultNoDeposit(
+        uint256 _minAmountVT,
+        uint256 _maxAmountVT,
+        bytes32[] calldata _accountProofs,
+        bytes32[] calldata _codeProofs
+    ) external {
+        tokenAddr.approve(address(vaultAddr), (_minAmountVT + _maxAmountVT));
+        tokenAddr.transfer(address(vaultAddr), _maxAmountVT);
+        vaultAddr.userWithdrawVault(_maxAmountVT, _accountProofs, _codeProofs);
+        tokenAddr.transfer(address(vaultAddr), _minAmountVT);
+        vaultAddr.userWithdrawVault(_minAmountVT, _accountProofs, _codeProofs);
     }
 
-    function runTwoTxnRebalance(uint256 minAmount, uint256 maxAmount) external {
-        tokenAddr.approve(address(vaultAddr), (minAmount + maxAmount));
-        tokenAddr.transfer(address(vaultAddr), maxAmount);
-        vaultAddr.rebalance();
-        tokenAddr.transfer(address(vaultAddr), minAmount);
-        vaultAddr.rebalance();
-    }
-
-    function runTwoTxnWithdrawAndDepositRebalance(uint256 minAmount, uint256 maxAmount) external {
-        tokenAddr.approve(address(vaultAddr), (maxAmount));
-        vaultAddr.userDepositRebalance(maxAmount);
-        tokenAddr.transfer(address(vaultAddr), minAmount);
-        vaultAddr.userWithdrawRebalance(minAmount);
+    function runTwoTxnWithdrawAndDepositRebalance(
+        uint256 _minAmount,
+        uint256 _maxAmount,
+        bytes32[] calldata _accountProofs,
+        bytes32[] calldata _codeProofs
+    ) external {
+        tokenAddr.approve(address(vaultAddr), _maxAmount);
+        vaultAddr.userDepositVault(_maxAmount, _accountProofs, _codeProofs);
+        tokenAddr.transfer(address(vaultAddr), _minAmount);
+        vaultAddr.userWithdrawVault(_minAmount, _accountProofs, _codeProofs);
     }
 
     function getBalance() external view returns (uint256) {
-        uint256 balance = vaultAddr.balance();
+        uint256 balance = vaultAddr.balanceUT();
         return balance;
     }
 }

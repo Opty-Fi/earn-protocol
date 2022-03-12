@@ -40,7 +40,6 @@ import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { StrategyStepType } from "../../helpers/type";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
-import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -52,7 +51,6 @@ const OPWETHGROW_VAULT_ADDRESS = opWETHgrow.Vault;
 const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 const RISK_MANAGER_PROXY = RiskManagerProxyAddress;
 const STRATEGY_PROVIDER_ADDRESS = StrategyProviderAddress;
-const CONVEX_FINANCE_ADAPTER = ConvexFinanceAdapterAddress;
 
 // ================================================================
 const mim =
@@ -294,6 +292,7 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
   // (254) - 0
   // (255) - 0
   // 0x0401000000000000000000000000000000000000000000640000000000000000
+  // 1811018241397843937822879938261491478723170994297509433919320763695890432000
   it("setVaultConfiguration() for opUSDCgrow V2", async function () {
     await this.opUSDCgrowV2
       .connect(this.signers.governance)

@@ -4,146 +4,64 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 import { MultiCall } from "../../utils/MultiCall.sol";
-import { IStrategyManager } from "../../interfaces/opty/IStrategyManager.sol";
+import { StrategyManager } from "../../protocol/lib/StrategyManager.sol";
 import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 
 contract TestStrategyManager is MultiCall {
-    function testPoolDepositAllCode(
-        address _strategyManager,
+    using StrategyManager for DataTypes.StrategyStep[];
+
+    function testGetDepositInternalTransactionCount(
+        DataTypes.StrategyStep[] calldata _strategySteps,
+        address _registryContract,
+        uint256 _expectedValue
+    ) external view returns (bool) {
+        return _expectedValue == _strategySteps.getDepositInternalTransactionCount(_registryContract);
+    }
+
+    function testOraValueUT(
+        DataTypes.StrategyStep[] calldata _strategySteps,
+        address _registryContract,
+        address payable _vault,
         address _underlyingToken,
-        bytes32 _investStrategyhash,
-        uint256 _stepIndex,
-        uint256 _stepCount
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getPoolDepositAllCodes(
-                payable(address(this)),
-                _underlyingToken,
-                _investStrategyhash,
-                _stepIndex,
-                _stepCount
-            ),
-            "depositAll"
-        );
+        uint256 _expectedAmountUT
+    ) external view returns (bool) {
+        return _expectedAmountUT == _strategySteps.getOraValueUT(_registryContract, _vault, _underlyingToken);
     }
 
-    function testPoolWithdrawAllCodes(
-        address _strategyManager,
+    function testOraSomeValueLP(
+        DataTypes.StrategyStep[] calldata _strategySteps,
+        address _registryContract,
         address _underlyingToken,
-        bytes32 _investStrategyhash,
-        uint256 _stepIndex,
-        uint256 _stepCount
+        uint256 _wantAmountUT,
+        uint256 _expectedAmountLP
+    ) external view returns (bool) {
+        return
+            _expectedAmountLP == _strategySteps.getOraSomeValueLP(_registryContract, _underlyingToken, _wantAmountUT);
+    }
+
+    function testGetPoolDepositCodes(
+        DataTypes.StrategyStep[] calldata _strategySteps,
+        DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
     ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getPoolWithdrawAllCodes(
-                payable(address(this)),
-                _underlyingToken,
-                _investStrategyhash,
-                _stepIndex,
-                _stepCount
-            ),
-            "withdrawAll"
-        );
+        executeCodes(_strategySteps.getPoolDepositCodes(_strategyConfigurationParams), "!deposit");
     }
 
-    function testPoolClaimAllRewardCodes(address _strategyManager, bytes32 _investStrategyhash) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getPoolClaimAllRewardCodes(payable(address(this)), _investStrategyhash),
-            "claimAllReward"
-        );
+    function testGetPoolWithdrawCodes(
+        DataTypes.StrategyStep[] calldata _strategySteps,
+        DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
+    ) external {
+        executeCodes(_strategySteps.getPoolWithdrawCodes(_strategyConfigurationParams), "!withdraw");
     }
 
-    function testPoolHarvestAllRewardCodes(
-        address _strategyManager,
+    function testGetLastStrategyStepBalanceLP(
+        DataTypes.StrategyStep[] memory _strategySteps,
+        address _registryContract,
+        address payable _vault,
         address _underlyingToken,
-        bytes32 _investStrategyhash
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getPoolHarvestAllRewardCodes(
-                payable(address(this)),
-                _underlyingToken,
-                _investStrategyhash
-            ),
-            "harvestAll"
-        );
-    }
-
-    function testPoolHarvestSomeRewardCodes(
-        address _strategyManager,
-        address _underlyingToken,
-        bytes32 _investStrategyhash,
-        DataTypes.VaultRewardStrategy memory _vaultRewardStrategy
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getPoolHarvestSomeRewardCodes(
-                payable(address(this)),
-                _underlyingToken,
-                _investStrategyhash,
-                _vaultRewardStrategy
-            ),
-            "harvestSome"
-        );
-    }
-
-    function testAddLiquidityCodes(
-        address _strategyManager,
-        address _underlyingToken,
-        bytes32 _investStrategyhash
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getAddLiquidityCodes(
-                payable(address(this)),
-                _underlyingToken,
-                _investStrategyhash
-            ),
-            "addLiquidity"
-        );
-    }
-
-    function testSplitPaymentCode(
-        address _strategyManager,
-        address _underlyingToken,
-        address _account,
-        uint256 _redeemAmountInToken,
-        DataTypes.TreasuryShare[] memory _treasuryShares
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getSplitPaymentCode(
-                _treasuryShares,
-                _account,
-                _underlyingToken,
-                _redeemAmountInToken
-            ),
-            "splitPayment"
-        );
-    }
-
-    function testUpdateUserRewardsCodes(
-        address _strategyManager,
-        address _vault,
-        address _from
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getUpdateUserRewardsCodes(_vault, _from),
-            "updateUserRewardsCodes"
-        );
-    }
-
-    function testUpdateUserStateInVaultCodes(
-        address _strategyManager,
-        address _vault,
-        address _from
-    ) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getUpdateUserStateInVaultCodes(_vault, _from),
-            "updateUserStateInVaultCodes"
-        );
-    }
-
-    function testUpdateRewardVaultRateAndIndexCodes(address _strategyManager, address _vault) external {
-        executeCodes(
-            IStrategyManager(_strategyManager).getUpdateRewardVaultRateAndIndexCodes(_vault),
-            "updateRewardVaultRateAndIndexCodes"
-        );
+        uint256 _expectedBalanceLP
+    ) external view returns (bool) {
+        return
+            _expectedBalanceLP ==
+            _strategySteps.getLastStrategyStepBalanceLP(_registryContract, _vault, _underlyingToken);
     }
 }

@@ -6,8 +6,7 @@ pragma experimental ABIEncoderV2;
 import { VaultStorage } from "../../protocol/tokenization/VaultStorage.sol";
 import { Modifiers } from "../../protocol/earn-protocol-configuration/contracts/Modifiers.sol";
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
-import { Deployer } from "../../dependencies/chi/ChiDeployer.sol";
-import { TestStorageV2 } from "../../protocol/earn-protocol-configuration/contracts/mocks/contracts/TestStorageV2.sol";
+import { TestStorage } from "../../protocol/earn-protocol-configuration/contracts/mocks/contracts/TestStorage.sol";
 import { IncentivisedERC20 } from "../../protocol/tokenization/IncentivisedERC20.sol";
 import { IRegistry } from "../../protocol/earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -18,8 +17,7 @@ contract TestVaultNewImplementation is
     Modifiers,
     ReentrancyGuard,
     VaultStorage,
-    Deployer,
-    TestStorageV2
+    TestStorage
 {
     /**
      * @dev The version of the Vault business logic

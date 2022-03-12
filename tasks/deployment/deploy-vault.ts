@@ -1,7 +1,6 @@
 import { task, types } from "hardhat/config";
 import { deployVaultWithHash } from "../../helpers/contracts-deployments";
 import { getTokenInforWithAddress, unpauseVault } from "../../helpers/contracts-actions";
-import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
@@ -12,8 +11,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
   .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("unpause", "unpause vault", false, types.boolean)
-  .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ token, riskprofilecode, registry, insertindb, unpause }, hre) => {
+  .setAction(async ({ token, riskprofilecode, registry, unpause }, hre) => {
     const [owner, admin] = await hre.ethers.getSigners();
 
     if (token === "") {
@@ -57,12 +55,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
         console.log(`Unpaused Vault.`);
       }
       console.log("----------------");
-      if (insertindb) {
-        const err = await insertContractIntoDB(`${symbol}-${riskprofilecode}`, vault["vaultProxy"].contract.address);
-        if (err !== "") {
-          console.log(err);
-        }
-      }
     } catch (error) {
       console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME} : `, error);
       throw error;
