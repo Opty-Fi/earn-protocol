@@ -1,9 +1,8 @@
-import { artifacts, waffle, ethers, network, deployments } from "hardhat";
+import { ethers, network, deployments } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
-import { deployContract, solidity } from "ethereum-waffle";
+import { solidity } from "ethereum-waffle";
 import BN from "bignumber.js";
-import { Artifact } from "hardhat/types";
 import { getAddress } from "ethers/lib/utils";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import {
@@ -87,10 +86,8 @@ const cvxFRAX3CRVStrategyStepsContract = cvxFRAX3CRV.map(strategy => ({
   outputToken: strategy.outputToken,
   isBorrow: false,
 }));
-describe("VaultV2 Ethereum on-chain upgrade", () => {
+describe("Vault Ethereum on-chain upgrade", () => {
   before(async function () {
-    this.vaultV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.VAULT);
-    this.registryV2Artifact = <Artifact>await artifacts.readArtifact(ESSENTIAL_CONTRACTS.REGISTRY);
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
@@ -140,9 +137,7 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
     this.opUSDCgrowDepositQueue = await this.opUSDCgrowOld.depositQueue();
     this.opUSDCgrowPricePerShareWrite = await this.opUSDCgrowOld.pricePerShareWrite();
 
-    // TODO create migration for vault
     const opUSDCgrowAdminAddress = await this.opUSDCgrowProxy.admin();
-    const opUSDCgrowAdminSigner = await ethers.getSigner(opUSDCgrowAdminAddress);
     await network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [opUSDCgrowAdminAddress],
@@ -153,41 +148,22 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPWETHGROW_VAULT_PROXY_ADDRESS)
     );
     this.opWETHgrowOld = await ethers.getContractAt(oldAbis.oldVault, OPWETHGROW_VAULT_PROXY_ADDRESS);
-    // await this.opWETHgrow.rebalance();
     this.opWETHgrowGasOwedToOperator = await this.opWETHgrowOld.gasOwedToOperator();
     this.opWETHgrowDepositQueue = await this.opWETHgrowOld.depositQueue();
     this.opWETHgrowPricePerShareWrite = await this.opWETHgrowOld.pricePerShareWrite();
 
-    // TODO create migration for vault
     const opWETHgrowAdminAddress = await this.opWETHgrowProxy.admin();
-    const opWETHgrowAdminSigner = await ethers.getSigner(opWETHgrowAdminAddress);
     await network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [opWETHgrowAdminAddress],
     });
     // // ====================================================
-    this.opUSDCgrow = <Vault>(
-      await deployContract(this.signers.deployer, this.vaultV2Artifact, [
-        REGISTRY_PROXY_ADDRESS,
-        "USD Coin",
-        "USDC",
-        "Growth",
-        "grow",
-      ])
-    );
-    await this.opUSDCgrowProxy.connect(opUSDCgrowAdminSigner).upgradeTo(this.opUSDCgrow.address);
+    await deployments.fixture("DeployopUSDCgrow");
+    await deployments.fixture("UpgradeopUSDCgrow");
     this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCgrowProxy.address);
     // ====================================================
-    this.opWETHgrow = <Vault>(
-      await waffle.deployContract(this.signers.deployer, this.vaultV2Artifact, [
-        REGISTRY_PROXY_ADDRESS,
-        "Wrapped Ether",
-        "WETH",
-        "Growth",
-        "grow",
-      ])
-    );
-    await this.opWETHgrowProxy.connect(opWETHgrowAdminSigner).upgradeTo(this.opWETHgrow.address);
+    await deployments.fixture("DeployopWETHgrow");
+    await deployments.fixture("UpgradeopWETHgrow");
     this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opWETHgrowProxy.address);
     // =======================================================
     await deployments.fixture("Registry");
@@ -321,7 +297,8 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
       this.signers.riskOperator = await ethers.getSigner(this.signers.admin.address);
       await deployments.fixture("ApproveAndMapLiquidityPoolToAdapter");
 
-      await this.opUSDCgrow.connect(this.signers.governance).setUnpaused(true);
+      await deployments.fixture("ConfigopUSDCgrow");
+      await deployments.fixture("ConfigopWETHgrow");
       assertVaultConfiguration(
         await this.opUSDCgrow.vaultConfiguration(),
         "0",
@@ -335,7 +312,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         true,
         true,
       );
-      await this.opWETHgrow.connect(this.signers.governance).setUnpaused(true);
       assertVaultConfiguration(
         await this.opWETHgrow.vaultConfiguration(),
         "0",
@@ -348,16 +324,6 @@ describe("VaultV2 Ethereum on-chain upgrade", () => {
         false,
         true,
         true,
-      );
-      await this.opUSDCgrow.connect(this.signers.financeOperator).setValueControlParams(
-        "100000000000", // 100,000 USDC user deposit cap
-        "1000000000", // 1000 USDC minimum deposit
-        "10000000000000", // 10,000,000 USDC TVL
-      );
-      await this.opWETHgrow.connect(this.signers.financeOperator).setValueControlParams(
-        "1000000000000000000", // 1 WETH user deposit cap
-        "250000000000000000", // 0.25 WETH minimum deposit
-        "1000000000000000000000", // 1000 WETH TVL
       );
       const goodAddresses: string[] = [this.signers.alice.address, this.signers.bob.address];
       const _root = getAccountsMerkleRoot(goodAddresses);

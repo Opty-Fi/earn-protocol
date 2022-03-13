@@ -23,8 +23,7 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       console.log("rebalancing USDC...");
       console.log("\n");
       const tx = await opUSDCgrowInstance.rebalance();
-      const x = await tx.wait();
-      // console.log(x);
+      await tx.wait();
       console.log("usdcCurrentStrategyHash ", await opUSDCgrowInstance.investStrategyHash());
     } else {
       console.log("USDC vault current strategy is HashZero..");
