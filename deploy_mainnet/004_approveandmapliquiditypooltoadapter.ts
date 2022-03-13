@@ -104,3 +104,4 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 };
 export default func;
 func.tags = ["ApproveAndMapLiquidityPoolToAdapter"];
+func.dependencies = ["CurveSwapPoolAdapter", "LidoAdapter", "CurveMetapoolSwapAdapter"];

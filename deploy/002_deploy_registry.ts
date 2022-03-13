@@ -4,11 +4,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { RegistryProxy, Registry } from "../typechain";
+import { RegistryProxy } from "../typechain";
 import { getAddress } from "ethers/lib/utils";
+import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
-const FORK = process.env.FORK;
+const FORK = process.env.FORK || "";
 
 const func: DeployFunction = async ({
   deployments,
@@ -19,7 +20,7 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY);
-  const chainId = await getChainId();
+  let chainId = await getChainId();
   const networkName = hre.network.name;
   const result = await deploy("Registry", {
     from: deployer,
@@ -41,6 +42,9 @@ const func: DeployFunction = async ({
   } else {
     registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   }
+  chainId =
+    ["31337", "1337"].includes(chainId) && FORK != "" ? NETWORKS_CHAIN_ID[FORK as eEVMNetwork].toString() : chainId;
+  console.log("chainid ", chainId);
   let registryProxyInstance = <RegistryProxy>(
     await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxyAddress)
   );

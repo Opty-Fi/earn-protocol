@@ -24,7 +24,7 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       console.log("\n");
       const tx = await opWETHgrowInstance.rebalance();
       const x = await tx.wait();
-      console.log(x);
+      // console.log(x);
       console.log("wethCurrentStrategyHash ", await opWETHgrowInstance.investStrategyHash());
     } else {
       console.log("WETH vault current strategy is HashZero..");

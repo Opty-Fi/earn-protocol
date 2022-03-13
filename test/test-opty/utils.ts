@@ -5,7 +5,7 @@ import hre, { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, RegistryV2, VaultV2 } from "../../typechain";
+import { ERC20, IAdapterFull, Registry, Vault } from "../../typechain";
 import { expect } from "chai";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
@@ -77,7 +77,7 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
 
 export async function getDepositInternalTransactionCount(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
+  registryContract: Registry,
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
   const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
@@ -92,8 +92,8 @@ export async function getDepositInternalTransactionCount(
 
 export async function getOraValueUT(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
-  vault: VaultV2,
+  registryContract: Registry,
+  vault: Vault,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   let outputTokenAmount = BigNumber.from("0");
@@ -125,8 +125,8 @@ export async function getOraValueUT(
 
 export async function getLastStrategyStepBalanceLP(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
-  vault: VaultV2,
+  registryContract: Registry,
+  vault: Vault,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
@@ -142,7 +142,7 @@ export async function getLastStrategyStepBalanceLP(
 
 export async function getOraSomeValueLP(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
+  registryContract: Registry,
   underlyingToken: ERC20,
   wantAmount: BigNumber,
 ): Promise<BigNumberish> {

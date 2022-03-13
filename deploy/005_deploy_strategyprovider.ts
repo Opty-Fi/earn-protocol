@@ -7,6 +7,7 @@ import { Registry } from "../typechain";
 import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
+const FORK = process.env.FORK;
 
 const func: DeployFunction = async ({
   deployments,
@@ -17,9 +18,15 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER);
-  const registryProxy = await deployments.get("RegistryProxy");
   const chainId = await getChainId();
   const networkName = hre.network.name;
+
+  let registryProxyAddress: string = "";
+  if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
+    registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  } else {
+    registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  }
 
   const result = await deploy("StrategyProvider", {
     from: deployer,
@@ -28,12 +35,12 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxy.address],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: false,
   });
 
-  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
+  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryV2Instance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
 
@@ -60,7 +67,7 @@ const func: DeployFunction = async ({
         await hre.tenderly.verify({
           name: "StrategyProvider",
           address: strategyProviderV2.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
           contract: "contracts/protocol/earn-protocol-configuration/contracts/StrategyProvider.sol:StrategyProvider",
         });
       } else if (!["31337"].includes(chainId)) {
@@ -69,7 +76,7 @@ const func: DeployFunction = async ({
         await hre.run("verify:verify", {
           name: "StrategyProvider",
           address: strategyProviderV2.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
           contract: "contracts/protocol/earn-protocol-configuration/contracts/StrategyProvider.sol:StrategyProvider",
         });
       }
