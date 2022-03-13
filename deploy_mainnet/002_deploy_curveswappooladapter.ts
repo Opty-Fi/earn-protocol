@@ -3,17 +3,15 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { waitforme } from "../helpers/utils";
-import { RegistryV2 } from "../typechain";
+import { Registry } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
 const func: DeployFunction = async ({ deployments, getChainId, ethers }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const artifact = await deployments.getArtifact("CurveSwapPoolAdapter");
-  const registryProxy = await deployments.get("RegistryProxy");
-  const registryV2Instance = <RegistryV2>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address)
-  );
+  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryV2Instance.getOperator();
   const chainId = await getChainId();
   const networkName = hre.network.name;
@@ -25,7 +23,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxy.address],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -37,7 +35,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
         await hre.tenderly.verify({
           name: "CurveSwapPoolAdapter",
           address: curveSwapPoolAdapter.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -45,7 +43,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
         await hre.run("verify:verify", {
           name: "CurveSwapPoolAdapter",
           address: curveSwapPoolAdapter.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

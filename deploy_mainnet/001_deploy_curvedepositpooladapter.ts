@@ -9,11 +9,11 @@ const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 const func: DeployFunction = async ({ deployments, getChainId, ethers }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const artifact = await deployments.getArtifact("CurveDepositPoolAdapter");
-  const registryProxy = await deployments.get("RegistryProxy");
+  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
   const chainId = await getChainId();
   const networkName = hre.network.name;
 
-  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address);
+  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryV2Instance.operator();
 
   const result = await deploy("CurveDepositPoolAdapter", {
@@ -23,7 +23,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxy.address],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -35,7 +35,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
         await hre.tenderly.verify({
           name: "CurveDepositPoolAdapter",
           address: curveDepositPoolAdapter.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -43,7 +43,7 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
         await hre.run("verify:verify", {
           name: "CurveDepositPoolAdapter",
           address: curveDepositPoolAdapter.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

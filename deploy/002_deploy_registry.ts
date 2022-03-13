@@ -4,10 +4,11 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { RegistryProxy, RegistryV2 } from "../typechain";
+import { RegistryProxy, Registry } from "../typechain";
 import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
+const FORK = process.env.FORK;
 
 const func: DeployFunction = async ({
   deployments,
@@ -17,10 +18,10 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY_V2);
+  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY);
   const chainId = await getChainId();
   const networkName = hre.network.name;
-  const result = await deploy("RegistryV2", {
+  const result = await deploy("Registry", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -32,11 +33,16 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
   });
 
-  const registryV2 = await deployments.get("RegistryV2");
-  let registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryV2.address);
-  const registryProxy = await deployments.get("RegistryProxy");
+  const registryV2 = await deployments.get("Registry");
+  let registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryV2.address);
+  let registryProxyAddress: string = "";
+  if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
+    registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  } else {
+    registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  }
   let registryProxyInstance = <RegistryProxy>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxy.address)
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxyAddress)
   );
   const operatorAddress = await registryProxyInstance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
@@ -45,22 +51,30 @@ const func: DeployFunction = async ({
   const riskOperatorAddress = await registryProxyInstance.riskOperator();
   const riskOperatorSigner = await ethers.getSigner(riskOperatorAddress);
   registryProxyInstance = <RegistryProxy>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxy.address)
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxyAddress)
   );
   // upgrade registry
   const registryImplementation = await registryProxyInstance.registryImplementation();
+  console.log("Registry implementation Before ", registryImplementation);
+  console.log("registryV2.address ", registryV2.address);
+  console.log("\n");
   if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
+    console.log("\n");
     console.log("operator setting pending implementation...");
+    console.log("\n");
     const setPendingImplementationTx = await registryProxyInstance
       .connect(operatorSigner)
       .setPendingImplementation(registryV2.address);
     await setPendingImplementationTx.wait();
     console.log("governance upgrading Registry...");
-    const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxy.address);
+    console.log("\n");
+    const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress);
     await becomeTx.wait();
+    console.log("Registry implementation after ", await registryProxyInstance.registryImplementation());
+    console.log("\n");
   }
 
-  registryV2Instance = <RegistryV2>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address);
+  registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
 
   // approve tokens and map to tokens hash
   const onlySetTokensHash = [];
@@ -70,6 +84,7 @@ const func: DeployFunction = async ({
 
   if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
     console.log("only set USDC hash");
+    console.log("\n");
     onlySetTokensHash.push([
       MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
       [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
@@ -78,6 +93,7 @@ const func: DeployFunction = async ({
 
   if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
     console.log("approve USDC and set hash");
+    console.log("\n");
     approveTokenAndMapHash.push([
       MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
       [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
@@ -87,6 +103,7 @@ const func: DeployFunction = async ({
 
   if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
     console.log("only set WETH hash");
+    console.log("\n");
     onlySetTokensHash.push([
       MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
       [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
@@ -95,6 +112,7 @@ const func: DeployFunction = async ({
 
   if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
     console.log("approve WETH and set hash");
+    console.log("\n");
     approveTokenAndMapHash.push([
       MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
       [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
@@ -103,6 +121,7 @@ const func: DeployFunction = async ({
 
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
+    console.log("\n");
     const approveTokenAndMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
@@ -111,6 +130,7 @@ const func: DeployFunction = async ({
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
+    console.log("\n");
     const onlyMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
@@ -119,25 +139,28 @@ const func: DeployFunction = async ({
 
   // add risk profile
   console.log("==Risk Profile config==");
+  console.log("\n");
   const growRiskProfilExists = (await registryV2Instance.getRiskProfile("1")).exists;
   if (!growRiskProfilExists) {
     console.log("risk operator adding grow risk profile...");
+    console.log("\n");
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
       ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100]); // code,name,symbol,canBorrow,pool rating range
     await addRiskProfileTx.wait();
   } else {
     console.log("Already configured risk profile");
+    console.log("\n");
   }
 
   if (CONTRACTS_VERIFY === "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
         await hre.tenderly.verify({
-          name: "RegistryV2",
+          name: "Registry",
           address: registryV2.address,
           constructorArguments: [],
-          contract: "contracts/protocol/earn-protocol-configuration/contracts/RegistryV2.sol:RegistryV2",
+          contract: "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -146,11 +169,11 @@ const func: DeployFunction = async ({
           name: "RegistryProxy",
           address: registryV2.address,
           constructorArguments: [],
-          contract: "contracts/protocol/earn-protocol-configuration/contracts/RegistryV2.sol:RegistryV2",
+          contract: "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["RegistryV2"];
+func.tags = ["Registry"];

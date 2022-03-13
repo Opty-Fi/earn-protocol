@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { RegistryV2 } from "../typechain";
+import { Registry } from "../typechain";
 import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -16,12 +16,12 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER_V2);
+  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER);
   const registryProxy = await deployments.get("RegistryProxy");
   const chainId = await getChainId();
   const networkName = hre.network.name;
 
-  const result = await deploy("StrategyProviderV2", {
+  const result = await deploy("StrategyProvider", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -30,19 +30,18 @@ const func: DeployFunction = async ({
     },
     args: [registryProxy.address],
     log: true,
-    skipIfAlreadyDeployed: true,
+    skipIfAlreadyDeployed: false,
   });
 
-  const registryV2Instance = <RegistryV2>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryProxy.address)
-  );
+  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
   const operatorAddress = await registryV2Instance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
 
-  const oldStrategyProvider = await registryV2Instance.getStrategyOperator();
-  const strategyProviderV2 = await deployments.get("StrategyProviderV2");
+  const oldStrategyProvider = await registryV2Instance.getStrategyProvider();
+  const strategyProviderV2 = await deployments.get("StrategyProvider");
 
   console.log("==StrategyProvider registration==");
+  console.log("\n");
   if (getAddress(oldStrategyProvider) !== getAddress(strategyProviderV2.address)) {
     console.log("operator registering StrategyProvider..");
     const setStrategyProviderTx = await registryV2Instance
@@ -51,32 +50,31 @@ const func: DeployFunction = async ({
     await setStrategyProviderTx.wait();
   } else {
     console.log("StrategyProvider already registered");
+    console.log("\n");
   }
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const strategyProviderV2 = await deployments.get("StrategyProviderV2");
+      const strategyProviderV2 = await deployments.get("StrategyProvider");
       if (networkName === "tenderly") {
         await hre.tenderly.verify({
-          name: "StrategyProviderV2",
+          name: "StrategyProvider",
           address: strategyProviderV2.address,
           constructorArguments: [registryProxy.address],
-          contract:
-            "contracts/protocol/earn-protocol-configuration/contracts/StrategyProviderV2.sol:StrategyProviderV2",
+          contract: "contracts/protocol/earn-protocol-configuration/contracts/StrategyProvider.sol:StrategyProvider",
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await hre.run("verify:verify", {
-          name: "StrategyProviderV2",
+          name: "StrategyProvider",
           address: strategyProviderV2.address,
           constructorArguments: [registryProxy.address],
-          contract:
-            "contracts/protocol/earn-protocol-configuration/contracts/StrategyProviderV2.sol:StrategyProviderV2",
+          contract: "contracts/protocol/earn-protocol-configuration/contracts/StrategyProvider.sol:StrategyProvider",
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["StrategyProviderV2"];
+func.tags = ["StrategyProvider"];

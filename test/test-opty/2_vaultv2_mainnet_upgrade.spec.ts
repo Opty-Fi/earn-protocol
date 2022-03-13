@@ -11,13 +11,9 @@ import {
   InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
   RegistryProxy,
-  RegistryV2,
   RiskManagerProxy,
-  RiskManagerV2,
   StrategyProvider,
-  StrategyProviderV2,
   Vault,
-  VaultV2,
 } from "../../typechain";
 import {
   opUSDCgrow,

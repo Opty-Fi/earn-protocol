@@ -9,7 +9,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("CurveMetapoolSwapAdapter");
-  const registryProxy = await deployments.get("RegistryProxy");
+  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
 
   const chainId = await getChainId();
   const networkName = hre.network.name;
@@ -21,7 +21,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxy.address],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -33,7 +33,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
         await hre.tenderly.verify({
           name: "CurveMetapoolSwapAdapter",
           address: curveMetaPoolSwapAdapter.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -41,7 +41,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
         await hre.run("verify:verify", {
           name: "CurveMetaPoolSwapAdapter",
           address: curveMetaPoolSwapAdapter.address,
-          constructorArguments: [registryProxy.address],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

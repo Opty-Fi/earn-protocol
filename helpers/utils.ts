@@ -9,7 +9,6 @@ import {
   AaveV1ETHGateway,
   AaveV2Adapter,
   AdminUpgradeabilityProxy,
-  APROracle,
   CompoundAdapter,
   CompoundETHGateway,
   CurveDepositPoolAdapter,
@@ -88,10 +87,8 @@ declare module "mocha" {
     opWETHgrowProxy: InitializableImmutableAdminUpgradeabilityProxy;
     vaultArtifact: Artifact;
     vaultProxyV2: AdminUpgradeabilityProxy;
-    testVaultV2Artifact: Artifact;
-    testVaultV2: TestVault;
-    opUSDCgrowV2: Vault;
-    opWETHgrowV2: Vault;
+    testVaultArtifact: Artifact;
+    testVault: TestVault;
     erc20: ERC20;
     usdc: ERC20;
     weth: ERC20;
