@@ -1,12 +1,9 @@
 // !! Important !!
-// Please do not keep this file under helpers/utils as it is import hre from hardhat
+// Please do not keep this file under helpers/utils as it imports hre from hardhat
 import { BigNumber, BigNumberish } from "ethers";
 import hre, { ethers } from "hardhat";
-import { MerkleTree } from "merkletreejs";
-import keccak256 from "keccak256";
 import { StrategyStepType } from "../../helpers/type";
 import { ERC20, IAdapterFull, Registry, Vault } from "../../typechain";
-import { expect } from "chai";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -165,117 +162,4 @@ export async function getOraSomeValueLP(
     index++;
   }
   return amountLP;
-}
-
-function hashToken(account: string) {
-  return Buffer.from(ethers.utils.solidityKeccak256(["address"], [account]).slice(2), "hex");
-}
-
-function hashCodehash(hash: string) {
-  return Buffer.from(ethers.utils.solidityKeccak256(["bytes32"], [hash]).slice(2), "hex");
-}
-
-export function generateMerkleTree(addresses: string[]): MerkleTree {
-  const leaves = addresses.map((addr: string) => hashToken(addr));
-  return new MerkleTree(leaves, keccak256, { sortPairs: true });
-}
-
-export function generateMerkleTreeForCodehash(hashes: string[]): MerkleTree {
-  const leaves = hashes.map((hash: string) => hashCodehash(hash));
-  return new MerkleTree(leaves, keccak256, { sortPairs: true });
-}
-
-export const getProof = (tree: MerkleTree, address: string): string[] => {
-  return tree.getHexProof(hashToken(address));
-};
-
-export const getProofForCode = (tree: MerkleTree, codeHash: string): string[] => {
-  return tree.getHexProof(hashCodehash(codeHash));
-};
-
-export const getAccountsMerkleRoot = (goodAddresses: string[]): string => {
-  const tree: MerkleTree = generateMerkleTree(goodAddresses);
-  return tree.getHexRoot();
-};
-
-export const getAccountsMerkleProof = (goodAddresses: string[], address: string): string[] => {
-  const tree: MerkleTree = generateMerkleTree(goodAddresses);
-  return getProof(tree, address);
-};
-
-export const getCodesMerkleRoot = (goodCodehashes: string[]): string => {
-  const tree: MerkleTree = generateMerkleTreeForCodehash(goodCodehashes);
-  return tree.getHexRoot();
-};
-
-export const getCodesMerkleProof = (goodCodehashes: string[], codehash: string): string[] => {
-  const tree: MerkleTree = generateMerkleTree(goodCodehashes);
-  return getProofForCode(tree, codehash);
-};
-
-export function assertVaultConfiguration(
-  vaultConfigurationV2: BigNumber | string,
-  expectedDepositFeeUT: BigNumber | string,
-  expectedDepositFeePct: BigNumber | string,
-  expectedWithdrawalFeeUT: BigNumber | string,
-  expectedWithdrawalFeePct: BigNumber | string,
-  expectedMaxVaultValueJump: BigNumber | string,
-  expectedVaultFeeCollector: string,
-  expectedRiskProfileCode: BigNumber | string,
-  expectedEmergencyShutdown: boolean,
-  expectedUnpause: boolean,
-  expectedAllowWhitelistedState: boolean,
-): void {
-  expect(getDepositFeeUT(vaultConfigurationV2)).to.eq(expectedDepositFeeUT);
-  expect(getDepositFeePct(vaultConfigurationV2)).to.eq(expectedDepositFeePct);
-  expect(getWithdrawalFeeUT(vaultConfigurationV2)).to.eq(expectedWithdrawalFeeUT);
-  expect(getWithdrawalFeePct(vaultConfigurationV2)).to.eq(expectedWithdrawalFeePct);
-  expect(getMaxVaultValueJump(vaultConfigurationV2)).to.eq(expectedMaxVaultValueJump);
-  expect(ethers.utils.getAddress(getVaultFeeCollectorAddress(vaultConfigurationV2))).to.eq(
-    ethers.utils.getAddress(expectedVaultFeeCollector),
-  );
-  expect(getRiskProfileCode(vaultConfigurationV2)).to.eq(expectedRiskProfileCode);
-  expect(getEmergencyShutdown(vaultConfigurationV2)).to.eq(expectedEmergencyShutdown);
-  expect(getUnpause(vaultConfigurationV2)).to.eq(expectedUnpause);
-  expect(getAllowWhitelistState(vaultConfigurationV2)).to.eq(expectedAllowWhitelistedState);
-}
-
-export function getDepositFeeUT(vaultConfigurationV2: BigNumber | string): BigNumber {
-  return BigNumber.from(BigInt(vaultConfigurationV2.toString()) & BigInt(65535));
-}
-
-export function getDepositFeePct(vaultConfigurationV2: BigNumber | string): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(16)) & BigInt(65535));
-}
-
-export function getWithdrawalFeeUT(vaultConfigurationV2: BigNumber | string): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(32)) & BigInt(65535));
-}
-
-export function getWithdrawalFeePct(vaultConfigurationV2: BigNumber | string): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(48)) & BigInt(65535));
-}
-
-export function getMaxVaultValueJump(vaultConfigurationV2: BigNumber | string): BigNumber {
-  return BigNumber.from((BigInt(vaultConfigurationV2.toString()) >> BigInt(64)) & BigInt(65535));
-}
-
-export function getVaultFeeCollectorAddress(vaultConfigurationV2: BigNumber | string): string {
-  return `0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(80)).slice(-40)}`;
-}
-
-export function getRiskProfileCode(vaultConfigurationV2: BigNumber | string): BigNumber {
-  return BigNumber.from(`0x${ethers.utils.hexlify(BigInt(vaultConfigurationV2.toString()) >> BigInt(240)).slice(-2)}`);
-}
-
-export function getEmergencyShutdown(vaultConfigurationV2: BigNumber | string): boolean {
-  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(248))) != BigInt(0);
-}
-
-export function getUnpause(vaultConfigurationV2: BigNumber | string): boolean {
-  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(249))) != BigInt(0);
-}
-
-export function getAllowWhitelistState(vaultConfigurationV2: BigNumber | string): boolean {
-  return (BigInt(vaultConfigurationV2.toString()) & (BigInt(1) << BigInt(250))) != BigInt(0);
 }

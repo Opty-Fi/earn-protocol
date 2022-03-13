@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import BN from "bignumber.js";
 import { getAddress } from "ethers/lib/utils";
-import { Signers, to_10powNumber_BN } from "../../helpers/utils";
+import { assertVaultConfiguration, Signers, to_10powNumber_BN } from "../../helpers/utils";
 import {
   ERC20,
   InitializableImmutableAdminUpgradeabilityProxy,
@@ -15,13 +15,7 @@ import {
 } from "../../typechain";
 import { opUSDCgrow, opWETHgrow, RegistryProxy as RegistryProxyAddress } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import {
-  assertVaultConfiguration,
-  getAccountsMerkleProof,
-  getAccountsMerkleRoot,
-  getLastStrategyStepBalanceLP,
-  setTokenBalanceInStorage,
-} from "./utils";
+import { getLastStrategyStepBalanceLP, setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
@@ -161,10 +155,16 @@ describe("Vault Ethereum on-chain upgrade", () => {
     await deployments.fixture("DeployopUSDCgrow");
     await deployments.fixture("UpgradeopUSDCgrow");
     this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCgrowProxy.address);
+    expect(await this.opUSDCgrow.name()).to.eq("op USD Coin Growth");
+    expect(await this.opUSDCgrow.symbol()).to.eq("opUSDCgrow");
+    expect(await this.opUSDCgrow.decimals()).to.eq(6);
     // ====================================================
     await deployments.fixture("DeployopWETHgrow");
     await deployments.fixture("UpgradeopWETHgrow");
     this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opWETHgrowProxy.address);
+    expect(await this.opWETHgrow.name()).to.eq("op Wrapped Ether Growth");
+    expect(await this.opWETHgrow.symbol()).to.eq("opWETHgrow");
+    expect(await this.opWETHgrow.decimals()).to.eq(18);
     // =======================================================
     await deployments.fixture("Registry");
     await deployments.fixture("RiskManager");
@@ -312,6 +312,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
         true,
         true,
       );
+      expect(await this.opUSDCgrow.userDepositCapUT()).to.eq("100000000000");
+      expect(await this.opUSDCgrow.minimumDepositValueUT()).to.eq("1000000000");
+      expect(await this.opUSDCgrow.totalValueLockedLimitUT()).to.eq("10000000000000");
       assertVaultConfiguration(
         await this.opWETHgrow.vaultConfiguration(),
         "0",
@@ -325,12 +328,54 @@ describe("Vault Ethereum on-chain upgrade", () => {
         true,
         true,
       );
-      const goodAddresses: string[] = [this.signers.alice.address, this.signers.bob.address];
-      const _root = getAccountsMerkleRoot(goodAddresses);
-      await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
-      await this.opWETHgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
-      this._aliceMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.alice.address);
-      this._bobMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.bob.address);
+      expect(await this.opWETHgrow.userDepositCapUT()).to.eq("5000000000000000000");
+      expect(await this.opWETHgrow.minimumDepositValueUT()).to.eq("250000000000000000");
+      expect(await this.opWETHgrow.totalValueLockedLimitUT()).to.eq("5000000000000000000000");
+      // const goodAddresses: string[] = [this.signers.alice.address, this.signers.bob.address];
+      // const _root = getAccountsMerkleRoot(goodAddresses);
+      // await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+      // await this.opWETHgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+      // this._aliceMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.alice.address);
+      // this._bobMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.bob.address);
+      await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: ["0x46bB1A2549F36423227158c7AC7aE6BeaE1bFfb4"],
+      });
+      await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: ["0x64Ed3553EB09AdE4Ddbd010F2ec5576Ac3d5CED7"],
+      });
+      this.signers.alice = await ethers.getSigner("0x46bB1A2549F36423227158c7AC7aE6BeaE1bFfb4");
+      this.signers.bob = await ethers.getSigner("0x64Ed3553EB09AdE4Ddbd010F2ec5576Ac3d5CED7");
+      await this.signers.admin.sendTransaction({
+        to: this.signers.alice.address,
+        value: ethers.utils.parseEther("100"),
+      });
+      await this.signers.admin.sendTransaction({ to: this.signers.bob.address, value: ethers.utils.parseEther("100") });
+      this._aliceMerkleProof = [
+        "0xa6dbedb2f3b19deb69641088e4887ef7450cd51ad6b3a1fd536b2ada6f5b4af6",
+        "0xa00292acdaaa579733e7c6ee9c3decae0119af01f3d8c85914963c483c90822f",
+        "0x34e15e679e9f745ce592b6b4d6c9ed816305c27bc27096c097a2d18940fbb3a5",
+        "0x2e606144ed526ba457ee8c00abff95ade16d48693a1b10e7eadf24c3133f8aaa",
+        "0xd26266e87147476474d1448d8ec57b00830a72a6d2c32738c58eb64d866f8af3",
+        "0x18ad4449dbea1254aa03b50783f10bd75f388172fc6a0b8e1668f401aa9be667",
+        "0x8cb1cca1947a3b8d0781e3eeffff3bd7a6c04c479d36729b4f4fd0256c1676fa",
+        "0xfbcd91ee20e3296ddfefc6a0ccbd55572fa04eef664ffaf7a8ebadb5464fb8bc",
+        "0x52d024af79b0c1fec8bc809126def5a2fdf04c4bfc4d12d096f0e0609d0d23d2",
+        "0xfc4530f66ccf89c672f81c2f0440b2355eb88d51565dc7f90141596e391ace6a",
+      ];
+      this._bobMerkleProof = [
+        "0x430a51443e1ccd53de5b75ac2c465fef84ce352550c4d0040f15a3cc6118dd05",
+        "0x1811644fa6fa0dd1f4b0ec5767bf0638ee92a6978f11e1578e47bee406f52bc5",
+        "0xabf82a22f132c59b881754b021128ec49064e417bf01c584ea081c4085418905",
+        "0xe86263b49d75c566a1bcb59192a7a122c33b68305ca0415770e5ea3c521ea837",
+        "0x587dd9e2664b0e2cd77fe90e41b137cd63ac875df7029d1ba4c6a2a83414fea2",
+        "0x1d3cab42850715c241202c57052d0123cc022b8a214aaca8c23979fdb47b0c5a",
+        "0x8cb1cca1947a3b8d0781e3eeffff3bd7a6c04c479d36729b4f4fd0256c1676fa",
+        "0xfbcd91ee20e3296ddfefc6a0ccbd55572fa04eef664ffaf7a8ebadb5464fb8bc",
+        "0x52d024af79b0c1fec8bc809126def5a2fdf04c4bfc4d12d096f0e0609d0d23d2",
+        "0xfc4530f66ccf89c672f81c2f0440b2355eb88d51565dc7f90141596e391ace6a",
+      ];
     });
 
     it("lp token balance should be as expected after rebalance of opUSDCgrow to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {

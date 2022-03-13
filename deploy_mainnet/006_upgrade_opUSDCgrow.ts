@@ -1,3 +1,4 @@
+import { getAddress } from "ethers/lib/utils";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -12,9 +13,18 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const proxyAdminAddress = await opUSDCgrowProxyInstance.admin();
   const proxyAdminSigner = await ethers.getSigner(proxyAdminAddress);
 
-  console.log("Admin upgrading opUSDCgrow..");
+  const implementationAddress = await opUSDCgrowProxyInstance.implementation();
+
+  console.log("opUSDCgrow upgrade");
   console.log("\n");
-  await opUSDCgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opUSDCgrowAddress);
+  if (getAddress(implementationAddress) != getAddress(opUSDCgrowAddress)) {
+    console.log("Admin upgrading opUSDCgrow..");
+    console.log("\n");
+    await opUSDCgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opUSDCgrowAddress);
+  } else {
+    console.log("opUSDCgrow is upto date..");
+    console.log("\n");
+  }
 };
 export default func;
 func.tags = ["UpgradeopUSDCgrow"];
