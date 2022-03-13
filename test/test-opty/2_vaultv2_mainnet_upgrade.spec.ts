@@ -15,13 +15,20 @@ import {
 } from "../../typechain";
 import { opUSDCgrow, opWETHgrow, RegistryProxy as RegistryProxyAddress } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { getLastStrategyStepBalanceLP, setTokenBalanceInStorage } from "./utils";
+import {
+  getLastStrategyStepBalanceLP,
+  getOraSomeValueLP,
+  getOraSomeValueUT,
+  getOraValueUT,
+  setTokenBalanceInStorage,
+} from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { StrategyStepType } from "../../helpers/type";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { oldAbis } from "../../helpers/data/oldAbis";
+import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -331,12 +338,6 @@ describe("Vault Ethereum on-chain upgrade", () => {
       expect(await this.opWETHgrow.userDepositCapUT()).to.eq("5000000000000000000");
       expect(await this.opWETHgrow.minimumDepositValueUT()).to.eq("250000000000000000");
       expect(await this.opWETHgrow.totalValueLockedLimitUT()).to.eq("5000000000000000000000");
-      // const goodAddresses: string[] = [this.signers.alice.address, this.signers.bob.address];
-      // const _root = getAccountsMerkleRoot(goodAddresses);
-      // await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
-      // await this.opWETHgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
-      // this._aliceMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.alice.address);
-      // this._bobMerkleProof = getAccountsMerkleProof(goodAddresses, this.signers.bob.address);
       await network.provider.request({
         method: "hardhat_impersonateAccount",
         params: ["0x46bB1A2549F36423227158c7AC7aE6BeaE1bFfb4"],
@@ -552,50 +553,98 @@ describe("Vault Ethereum on-chain upgrade", () => {
     });
 
     it("alice deposit some to opWETHgrow, calls vault deposit", async function () {
-      await setTokenBalanceInStorage(this.weth, this.signers.alice.address, "0.25");
-      await this.weth.connect(this.signers.alice).approve(this.opWETHgrow.address, "250000000000000000");
-      // const _expectedTotalSupply =
-      // const _expectedShares =
-      await this.opWETHgrow
-        .connect(this.signers.alice)
-        .userDepositVault("250000000000000000", this._aliceMerkleProof, []);
+      const _userDepositWETH = BigNumber.from("250000000000000000");
+      await setTokenBalanceInStorage(
+        this.weth,
+        this.signers.alice.address,
+        new BN(_userDepositWETH.toString()).div(new BN(to_10powNumber_BN("18").toString())).toString(),
+      );
+      await this.weth.connect(this.signers.alice).approve(this.opWETHgrow.address, _userDepositWETH);
+      const _balanceInopWETHgrowUT = await this.weth.balanceOf(this.opWETHgrow.address);
+      const _oraStratValueUT = await getOraValueUT(
+        convexSteCRVStrategySteps as StrategyStepType[],
+        this.registry,
+        this.opWETHgrow,
+        this.weth,
+      );
+      const totalSupply = await this.opWETHgrow.totalSupply();
+      const _expectedShares = _userDepositWETH.mul(totalSupply).div(_balanceInopWETHgrowUT.add(_oraStratValueUT));
+      const _expectedTotalSupply = totalSupply.add(_expectedShares);
+      const _userBalanceBeforeVT = await this.opWETHgrow.balanceOf(this.signers.alice.address);
+      await this.opWETHgrow.connect(this.signers.alice).userDepositVault(_userDepositWETH, this._aliceMerkleProof, []);
       const _balanceBeforeDeposit = await this.weth.balanceOf(this.opWETHgrow.address);
       await this.opWETHgrow.vaultDepositAllToStrategy();
       const _balanceAfterDeposit = await this.weth.balanceOf(this.opWETHgrow.address);
+      const _userBalanceAfterVT = await this.opWETHgrow.balanceOf(this.signers.alice.address);
       expect(_balanceBeforeDeposit).gt(_balanceAfterDeposit);
-      // const _actualTotalSupply =
-      // const _actualShares =
+      const _actualShares = _userBalanceAfterVT.sub(_userBalanceBeforeVT);
+      expect(_actualShares).to.eq(_expectedShares);
+      expect(await this.opWETHgrow.totalSupply()).to.eq(_expectedTotalSupply);
     });
     it("alice withdraw some to opWETHgrow", async function () {
-      // const _expectedTotalSupply =
-      // const _expectedUnderlyingTokenReceived =
-      await this.opWETHgrow
-        .connect(this.signers.alice)
-        .userWithdrawVault(await this.opWETHgrow.balanceOf(this.signers.alice.address), this._aliceMerkleProof, []);
-      // const _actualTotalSupply =
-      // const _actualUnderlyingTokenReceived =
+      const _userWithdrawVT = (await this.opWETHgrow.balanceOf(this.signers.alice.address)).div(2);
+      const _totalSupply = await this.opWETHgrow.totalSupply();
+      const _expectedTotalSupply = _totalSupply.sub(_userWithdrawVT);
+      const _balanceInopWETHgrowUT = await this.weth.balanceOf(this.opWETHgrow.address);
+      const _oraStratValueUT = await getOraValueUT(
+        convexSteCRVStrategySteps as StrategyStepType[],
+        this.registry,
+        this.opWETHgrow,
+        this.weth,
+      );
+      const expectedUT = _userWithdrawVT.mul(_balanceInopWETHgrowUT.add(_oraStratValueUT)).div(_totalSupply);
+      const _balanceBefore = await this.weth.balanceOf(this.signers.alice.address);
+      await this.opWETHgrow.connect(this.signers.alice).userWithdrawVault(_userWithdrawVT, this._aliceMerkleProof, []);
+      const _balanceAfter = await this.weth.balanceOf(this.signers.alice.address);
+      expect(_balanceAfter.sub(_balanceBefore)).gte(expectedUT.sub(expectedUT.mul(7).div(100)));
+      expect(await this.opWETHgrow.totalSupply()).to.eq(_expectedTotalSupply);
     });
     it("bob deposit some to opUSDCgrow, calls vault deposit", async function () {
-      await setTokenBalanceInStorage(this.usdc, this.signers.bob.address, "2500");
-      await this.usdc.connect(this.signers.bob).approve(this.opUSDCgrow.address, "2500000000");
-      // const _expectedTotalSupply =
-      // const _expectedShares =
-      await this.opUSDCgrow.connect(this.signers.bob).userDepositVault("2500000000", this._bobMerkleProof, []);
-      const _balanceBeforeRebalance = await this.usdc.balanceOf(this.opUSDCgrow.address);
-      await this.opUSDCgrow.rebalance();
-      const _balanceAfterRebalance = await this.usdc.balanceOf(this.opUSDCgrow.address);
-      expect(_balanceBeforeRebalance).gt(_balanceAfterRebalance);
-      // const _actualTotalSupply =
-      // const _actualShares =
+      const _userDepositUSDC = BigNumber.from("2500000000");
+      await setTokenBalanceInStorage(
+        this.usdc,
+        this.signers.bob.address,
+        new BN(_userDepositUSDC.toString()).div(new BN(to_10powNumber_BN("6").toString())).toString(),
+      );
+      await this.usdc.connect(this.signers.bob).approve(this.opUSDCgrow.address, _userDepositUSDC);
+      const _balanceInopUSDCgrowUT = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      const _oraStratValueUT = await getOraValueUT(
+        cvxFRAX3CRVStrategySteps as StrategyStepType[],
+        this.registry,
+        this.opUSDCgrow,
+        this.usdc,
+      );
+      const totalSupply = await this.opUSDCgrow.totalSupply();
+      const _expectedShares = _userDepositUSDC.mul(totalSupply).div(_balanceInopUSDCgrowUT.add(_oraStratValueUT));
+      const _expectedTotalSupply = totalSupply.add(_expectedShares);
+      const _userBalanceBeforeVT = await this.opUSDCgrow.balanceOf(this.signers.bob.address);
+      await this.opUSDCgrow.connect(this.signers.bob).userDepositVault(_userDepositUSDC, this._bobMerkleProof, []);
+      const _balanceBeforeDeposit = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      await this.opUSDCgrow.vaultDepositAllToStrategy();
+      const _balanceAfterDeposit = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      const _userBalanceAfterVT = await this.opUSDCgrow.balanceOf(this.signers.bob.address);
+      expect(_balanceBeforeDeposit).gt(_balanceAfterDeposit);
+      const _actualShares = _userBalanceAfterVT.sub(_userBalanceBeforeVT);
+      expect(_actualShares).to.eq(_expectedShares);
+      expect(await this.opUSDCgrow.totalSupply()).to.eq(_expectedTotalSupply);
     });
     it("bob withdraw some to opUSDCgrow", async function () {
-      // const _expectedTotalSupply =
-      // const _expectedUnderlyingTokenReceived =
-      await this.opUSDCgrow
-        .connect(this.signers.bob)
-        .userWithdrawVault(await this.opUSDCgrow.balanceOf(this.signers.bob.address), this._bobMerkleProof, []);
-      // const _actualTotalSupply =
-      // const _actualUnderlyingTokenReceived =
+      const _userWithdrawVT = (await this.opUSDCgrow.balanceOf(this.signers.bob.address)).div(2);
+      const _totalSupply = await this.opUSDCgrow.totalSupply();
+      const _expectedTotalSupply = _totalSupply.sub(_userWithdrawVT);
+      const _balanceInopWETHgrowUT = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      const _oraStratValueUT = await getOraValueUT(
+        cvxFRAX3CRVStrategySteps as StrategyStepType[],
+        this.registry,
+        this.opUSDCgrow,
+        this.usdc,
+      );
+      const expectedUT = _userWithdrawVT.mul(_balanceInopWETHgrowUT.add(_oraStratValueUT)).div(_totalSupply);
+      const _balanceBefore = await this.usdc.balanceOf(this.signers.bob.address);
+      await this.opUSDCgrow.connect(this.signers.bob).userWithdrawVault(_userWithdrawVT, this._bobMerkleProof, []);
+      const _balanceAfter = await this.usdc.balanceOf(this.signers.bob.address);
+      expect(_balanceAfter.sub(_balanceBefore)).to.gte(expectedUT.sub(expectedUT.mul(3).div(1000)));
+      expect(await this.opUSDCgrow.totalSupply()).to.eq(_expectedTotalSupply);
     });
     it("rebalance opUSDCgrow to mim", async function () {
       await this.strategyProvider
@@ -660,8 +709,6 @@ describe("Vault Ethereum on-chain upgrade", () => {
       ).to.revertedWith("12");
     });
     it("fail - opWETHgrow.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
-      const _balanceWETH = await this.weth.balanceOf(this.signers.bob.address);
-      const _totalDeposits = await this.opWETHgrow.totalDeposits(this.signers.bob.address);
       const _userDepositCap = await this.opWETHgrow.userDepositCapUT();
       const _fundAmountWETH = _userDepositCap.add("10000000000000");
       await setTokenBalanceInStorage(

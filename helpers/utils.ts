@@ -20,7 +20,6 @@ import {
   ERC20,
   HarvestCodeProvider,
   InitializableImmutableAdminUpgradeabilityProxy,
-  InvestStrategyRegistry,
   Registry,
   RegistryProxy,
   RiskManager,
@@ -79,7 +78,6 @@ declare module "mocha" {
     curveDepositPoolAdapter: CurveDepositPoolAdapter;
     curveSwapPoolAdapter: CurveSwapPoolAdapter;
     curveSwapEthGateway: CurveSwapETHGateway;
-    investStrategyRegistry: InvestStrategyRegistry;
     strategyProvider: StrategyProvider;
     riskManagerProxy: RiskManagerProxy;
     riskManager: RiskManager;

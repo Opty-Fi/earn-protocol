@@ -96,7 +96,8 @@ export async function getOraValueUT(
   let outputTokenAmount = BigNumber.from("0");
   let amountUT = BigNumber.from("0");
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
-  investStrategySteps.forEach(async (_: StrategyStepType, index: number, investStrategySteps: StrategyStepType[]) => {
+  let index = 0;
+  for (const _ of investStrategySteps) {
     const iterator = strategyStepCount.sub("1").sub(index);
     const poolAddress = investStrategySteps[iterator.toNumber()].pool;
     const adapterInstance = <IAdapterFull>(
@@ -115,8 +116,36 @@ export async function getOraValueUT(
     } else {
       amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
     }
+    index++;
     outputTokenAmount = amountUT;
-  });
+  }
+  return amountUT;
+}
+
+export async function getOraSomeValueUT(
+  investStrategySteps: StrategyStepType[],
+  registryContract: Registry,
+  underlyingToken: ERC20,
+  lpTokenAmount: BigNumberish,
+): Promise<BigNumberish> {
+  let outputTokenAmount = lpTokenAmount;
+  let amountUT = BigNumber.from("0");
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  let index = 0;
+  for (const _ of investStrategySteps) {
+    const iterator = strategyStepCount.sub("1").sub(index);
+    const poolAddress = investStrategySteps[iterator.toNumber()].pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputTokenAddress = underlyingToken.address;
+    if (!iterator.eq("0")) {
+      inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
+    }
+    amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
+    index++;
+    outputTokenAmount = amountUT;
+  }
   return amountUT;
 }
 

@@ -285,26 +285,6 @@ contract Vault is
         }
     }
 
-    function _checkUserDeposit(
-        address _user,
-        bool _addUserDepositUT,
-        uint256 _userDepositUTWithDeductions,
-        uint256 _deductions,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
-    ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(
-                _user,
-                _addUserDepositUT,
-                _userDepositUTWithDeductions,
-                _deductions,
-                _accountsProof,
-                _codesProof
-            );
-        require(_userDepositPermitted, _userDepositPermittedReason);
-    }
-
     /**
      * @inheritdoc IVault
      */
@@ -323,7 +303,7 @@ contract Vault is
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
-        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(totalSupply()).div(_oraVaultAndStratValueUT());
+        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(_oraVaultAndStratValueUT()).div(totalSupply());
         _burn(msg.sender, _userWithdrawVT);
 
         uint256 _vaultValuePreStratWithdrawUT = balanceUT();
@@ -351,13 +331,9 @@ contract Vault is
             uint256 _vaultValuePostStratWithdrawUT = balanceUT();
             uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT); // 440
 
-            uint256 _slippage;
-            if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
-                _slippage = _expectedStratWithdrawUT.sub(_receivedStratWithdrawUT);
-            }
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
-            if (_receivedStratWithdrawUT < _oraUserWithdrawUT) {
-                _oraUserWithdrawUT = _oraUserWithdrawUT - _slippage;
+            if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
+                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(_expectedStratWithdrawUT.sub(_receivedStratWithdrawUT));
             }
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
@@ -366,17 +342,6 @@ contract Vault is
             IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
         }
         IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
-    }
-
-    function _checkUserWithdraw(
-        address _user,
-        uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
-    ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
-            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
-        require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
     /**
@@ -796,6 +761,56 @@ contract Vault is
         return MerkleProof.verify(_proof, whitelistedCodesRoot, _leaf);
     }
 
+    /**
+     * @dev internal function to check whether a user can deposit or not
+     * @param _user address of the depositor
+     * @param _addUserDepositUT whether to add _userDepositUT while
+     *         checking for TVL limit reached.
+     * @param _userDepositUTWithDeductions actual deposit amount after deducting
+     *        third party transfer fees and deposit fees if any
+     * @param _deductions amount in underlying token to not consider in as a part of
+     *       user deposit amount
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
+     */
+    function _checkUserDeposit(
+        address _user,
+        bool _addUserDepositUT,
+        uint256 _userDepositUTWithDeductions,
+        uint256 _deductions,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) internal view {
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
+            userDepositPermitted(
+                _user,
+                _addUserDepositUT,
+                _userDepositUTWithDeductions,
+                _deductions,
+                _accountsProof,
+                _codesProof
+            );
+        require(_userDepositPermitted, _userDepositPermittedReason);
+    }
+
+    /**
+     * @dev internal function to decide whether user can withdraw or not
+     * @param _user account address of the user
+     * @param _userWithdrawVT amount of vault tokens to burn
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
+     */
+    function _checkUserWithdraw(
+        address _user,
+        uint256 _userWithdrawVT,
+        bytes32[] memory _accountsProof,
+        bytes32[] memory _codesProof
+    ) internal view {
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
+            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
+        require(_userWithdrawPermitted, _userWithdrawPermittedReason);
+    }
+
     //===Internal pure functions===//
 
     /**
@@ -815,10 +830,20 @@ contract Vault is
         return _a > _b ? _a.sub(_b) : _b.sub(_a);
     }
 
+    /**
+     * @dev internal helper function to return a merkle tree leaf hash for account
+     * @param _account account address
+     * @return account leaf hash
+     */
     function _accountLeaf(address _account) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account));
     }
 
+    /**
+     * @dev internal helper function to return a merkle tree leaf hash for codes
+     * @param _hash codehash
+     * @return code leaf hash
+     */
     function _codeLeaf(bytes32 _hash) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(_hash));
     }

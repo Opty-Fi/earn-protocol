@@ -975,7 +975,7 @@ describe("Vault", () => {
       }
       const _vaultBalanceUT = await this.usdc.balanceOf(this.vault.address);
       const _totalSupply = await this.vault.totalSupply();
-      const _calculatedReceivableUT = _redeemVT.mul(_totalSupply).div(_allAmountInToken.add(_vaultBalanceUT));
+      const _calculatedReceivableUT = _redeemVT.mul(_allAmountInToken.add(_vaultBalanceUT)).div(_totalSupply);
       const _calculatedWithdrawalFee = await this.vault.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
       await expect(this.vault.connect(this.signers.alice).userWithdrawVault(_redeemVT, _proofs, []))

@@ -201,7 +201,7 @@ interface IVault {
      *         to allow user deposits
      * @param _user address of the depositor
      * @param _addUserDepositUT whether to add _userDepositUT while
-     *         checking for TVL
+     *         checking for TVL limit reached.
      * @param _userDepositUTWithDeductions actual deposit amount after deducting
      *        third party transfer fees and deposit fees if any
      * @param _deductions amount in underlying token to not consider in as a part of

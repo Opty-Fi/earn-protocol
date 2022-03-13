@@ -123,7 +123,8 @@ jobs:
           yarn typechain && yarn optyfi-sdk:mainnet
       - name: Test
         run: |
-          yarn test-fast
+          yarn test-fast:mainnet
+          yarn test-fast:vaultv2-upgrade-test:mainnet
       - name: Add public IP to AWS security group
         uses: sohelamin/aws-security-group-add-ip-action@master
         with:
