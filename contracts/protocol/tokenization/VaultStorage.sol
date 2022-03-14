@@ -39,19 +39,29 @@ contract VaultStorage {
     bytes32 public investStrategyHash;
 
     /**
-     * @dev Operational cost for rebalance owed by the vault to operator
+     * @dev Maximum amount in underlying token allowed to be deposited by user
      */
-    uint256 public gasOwedToOperator;
+    uint256 public userDepositCapUT;
 
     /**
-     * @dev Total amount of unprocessed deposit till next rebalance
+     * @dev Minimum deposit value in underlying token required
      */
-    uint256 public depositQueue;
+    uint256 public minimumDepositValueUT;
 
     /**
-     * @dev The standard deviation allowed for vault value
+     * @notice Fee and vaultvalue jump config params of the vault
+     * @dev bit 0-15 deposit fee in underlying token without decimals
+     *      bit 16-31 deposit fee in basis points
+     *      bit 32-47 withdrawal fee in underlying token without decimals
+     *      bit 48-63 withdrawal fee in basis points
+     *      bit 64-79 max vault value jump allowed in basis points (standard deviation allowed for vault value)
+     *      bit 80-239 vault fee collection address
+     *      bit 240-247 risk profile code
+     *      bit 248 emergency shutdown flag
+     *      bit 249 pause flag (deposit/withdraw is pause when bit is unset, unpause otherwise)
+     *      bit 250 white list state flag
      */
-    uint256 public maxVaultValueJump; // basis points
+    uint256 public vaultConfiguration;
 
     /**
      * @dev store the underlying token contract address (for example DAI)
@@ -59,21 +69,33 @@ contract VaultStorage {
     address public underlyingToken;
 
     /**
-     * @dev The risk profile code of the vault
+     * @notice accounts allowed to interact with vault if whitelisted
+     * @dev merkle root hash of whitelisted accounts
      */
-    uint256 public riskProfileCode;
+    bytes32 public whitelistedAccountsRoot;
 
     /**
-     * @dev The pricePerShare of the vault
+     * @dev Maximum TVL in underlying token allowed for the vault
      */
-    uint256 public pricePerShareWrite;
+    uint256 public totalValueLockedLimitUT;
+}
+
+contract VaultStorageV2 is VaultStorage {
+    /**
+     * @notice smart contracts allowed to interact with vault if whitelisted
+     * @dev merkle root hash of the whitelisted smart contract codes
+     */
+    bytes32 public whitelistedCodesRoot;
 
     /**
-     * @notice Log an event when user calls user deposit underlying asset without rebalance
-     * @dev the shares are not minted until next rebalance
-     * @param sender the account address of the user
-     * @param index the position of user in the queue
-     * @param amount the amount of underlying asset deposit
+     * @notice underlying tokens's hash
+     * @dev keccak256 hash of the underlying tokens and chain id
      */
-    event DepositQueue(address indexed sender, uint256 indexed index, uint256 indexed amount);
+    bytes32 public underlyingTokensHash;
+
+    /**@notice current strategy metadata*/
+    DataTypes.StrategyStep[] public investStrategySteps;
+
+    /**@dev cache strategy metadata*/
+    DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
 }

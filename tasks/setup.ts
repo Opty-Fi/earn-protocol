@@ -2,19 +2,17 @@ import { task, types } from "hardhat/config";
 
 import { CONTRACTS } from "../helpers/type";
 import { deployEssentialContracts, deployAdapters } from "../helpers/contracts-deployments";
-import { insertContractIntoDB } from "../helpers/db";
 import { TESTING_CONTRACTS } from "../helpers/constants/test-contracts-name";
 import { deployContract } from "../helpers/helpers";
 import TASKS from "./task-names";
 
 task(TASKS.SETUP.NAME, TASKS.SETUP.DESCRIPTION)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", false, types.boolean)
-  .addParam("insertindb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ deployedonce, insertindb }, hre) => {
     console.log(`\tDeploying Infrastructure contracts ...`);
     const [owner] = await hre.ethers.getSigners();
     let essentialContracts: CONTRACTS;
-    const { APPROVE_TOKEN, APPROVE_TOKENS, MAP_LIQUIDITYPOOLS_TO_ADAPTER, SET_STRATEGIES } = TASKS.ACTION_TASKS;
+    const { APPROVE_TOKEN, APPROVE_TOKENS, MAP_LIQUIDITYPOOLS_TO_ADAPTER } = TASKS.ACTION_TASKS;
     const { DEPLOY_VAULT, DEPLOY_VAULTS } = TASKS.DEPLOYMENT_TASKS;
     try {
       essentialContracts = await deployEssentialContracts(hre, owner, deployedonce);
@@ -25,15 +23,6 @@ task(TASKS.SETUP.NAME, TASKS.SETUP.DESCRIPTION)
             essentialContracts[essentialContractNames[i]].address
           }`,
         );
-        if (insertindb) {
-          const err = await insertContractIntoDB(
-            essentialContractNames[i],
-            essentialContracts[essentialContractNames[i]].address,
-          );
-          if (err !== "") {
-            console.log(err);
-          }
-        }
       }
       console.log("********************");
     } catch (error) {
@@ -52,15 +41,6 @@ task(TASKS.SETUP.NAME, TASKS.SETUP.DESCRIPTION)
       console.log(
         `${adapterContractNames[i].toUpperCase()} address : ${adaptersContracts[adapterContractNames[i]].address}`,
       );
-      if (insertindb) {
-        const err = await insertContractIntoDB(
-          adapterContractNames[i],
-          adaptersContracts[adapterContractNames[i]].address,
-        );
-        if (err !== "") {
-          console.log(err);
-        }
-      }
     }
     console.log("********************");
     console.log(`\tApproving Tokens...`);
@@ -78,12 +58,6 @@ task(TASKS.SETUP.NAME, TASKS.SETUP.DESCRIPTION)
         registry: essentialContracts["registry"].address,
       });
     }
-
-    console.log("********************");
-    console.log(`\t Setting strategies ...`);
-    await hre.run(SET_STRATEGIES.NAME, {
-      investstrategyregistry: essentialContracts["investStrategyRegistry"].address,
-    });
 
     console.log("********************");
     console.log(`\tDeploying Core Vault contracts ...`);

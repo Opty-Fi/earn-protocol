@@ -1,6 +1,5 @@
 import { task, types } from "hardhat/config";
 import { deployRiskManager } from "../../helpers/contracts-deployments";
-import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress, executeFunc } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import TASKS from "../task-names";
@@ -9,7 +8,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.NAME, TASKS.DEPLOYMENT_TASKS.DEP
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
   .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ deployedonce, insertindb, registry }, hre) => {
+  .setAction(async ({ deployedonce, registry }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -28,12 +27,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.NAME, TASKS.DEPLOYMENT_TASKS.DEP
       const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
       await executeFunc(registryContract, owner, "setRiskManager(address)", [riskManagerContract.address]);
       console.log("Registered RiskManager.");
-      if (insertindb) {
-        const err = await insertContractIntoDB(`riskManager`, riskManagerContract.address);
-        if (err !== "") {
-          throw err;
-        }
-      }
     } catch (error) {
       console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.NAME}: `, error);
       throw error;

@@ -21,7 +21,6 @@ Options :
   --registry      required  <address> the address of registry
   --name          required  <string>  the name of adapter
   --deployedonce  optional  <bool>    allow checking whether contracts were deployed previously (default: true)
-  --insertindb    optional  <bool>    insert the deployed contract addresses in DB  (default: false)
   --network       optional  <string>  name of the network provider (default: hardhat)
 ```
 
@@ -43,7 +42,6 @@ Usage: deploy all available adapter contracts
 
 --registry     required  <address> the address of registry
 --deployedonce optional  <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional  <bool>    insert the deployed contract addresses in DB (default: false)
 --network      optional  <string>  name of the network provider (default: hardhat)
 ```
 
@@ -65,7 +63,6 @@ Usage : deploy HarvestCodeProvider contract
 Options:
 --registry     required <address> the address of registry
 --deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database (default: false)
 --network      optional  <string> name of the network provider (default: hardhat)
 ```
 
@@ -79,28 +76,6 @@ Options:
   --network localhost
 ```
 
-### deploy-opty
-
-```
-Usage: deploy OPTY and OPTYDistributor contracts
-
-Options :
---registry     required <address> the address of registry
---deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database (default: false)
---network      optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-opty \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --deployedonce false \
-  --network hardhat
-```
-
 ### deploy-registry
 
 ```
@@ -108,7 +83,6 @@ Usage: deploy Registry contract
 
 Options:
 --deployedonce optional <bool>   allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>   allow inserting to database(default: false)
 --network      optional <string> name of the network provider (default: hardhat)
 ```
 
@@ -118,27 +92,6 @@ Options:
   yarn hardhat deploy-registry \
   --deployedonce false \
   --network localhost
-```
-
-### deploy-invest-strategy-registry
-
-```
-Usage: deploy InvestStrategyRegistry contract
-
-Options:
---registry     required <address> the address of registry
---deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database
---network      optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-invest-strategy-registry \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --deployedonce false \
-  --network hardhat
 ```
 
 ### deploy-risk-manager
@@ -162,28 +115,6 @@ Options:
   --network localhost
 ```
 
-### deploy-strategy-manager
-
-```
-Usage: deploy StrategyManager contract
-
-Options:
-
-Options:
---registry     required <address> the address of registry
---deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database
---network      optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-strategy-manager \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-```
-
 ### deploy-strategy-provider
 
 ```
@@ -204,26 +135,6 @@ Options:
   --registry 0x0000000000000000000000000000000000000000
 ```
 
-### deploy-apr-oracle
-
-```
-Usage: deploy AprOracle contract
-
-Options:
---registry     required <address> the address of registry
---deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database
---network      optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-apr-oracle \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000
-```
-
 ### deploy-odefi-vault-booster
 
 ```
@@ -233,7 +144,6 @@ Options:
 --registry     required <address> the address of registry
 --odefi        required <address> the address of odefi
 --deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database
 --network      optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -246,74 +156,6 @@ Options:
   --odefi 0x0000000000000000000000000000000000000000
 ```
 
-### deploy-opty-distributor
-
-```
-Usage: deploy OptyDistributor contract
-
-Options:
---registry     required <address> the address of registry
---opty         required <address> the address of opty
---deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database
---network      optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-opty-distributor \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --opty 0x0000000000000000000000000000000000000000
-```
-
-### deploy-opty-staking-rate-balancer
-
-```
-Usage: deploy OptyStakingRateBalancer contract
-
-Options:
---registry     required <address> the address of registry
---deployedonce optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>    allow inserting to database
---network      optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-opty-staking-rate-balancer \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000
-```
-
-### deploy-opty-staking-vaults
-
-```
-Usage: deploy OptyStakingVault contracts
-
-Options:
---registry                  required <address> the address of registry
---opty                      required <address> the address of opty
---optydistributor           required <address> the address of opty distributor
---optystakingratebalancer   required <address> the address of opty staking rate balancer
---deployedonce              optional <bool>    allow checking whether contracts were deployed previously (default: true)
---insertindb                optional <bool>    allow inserting to database
---network                   optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-staking-vautls \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --opty 0x0000000000000000000000000000000000000000 \
-  --optydistributor 0x0000000000000000000000000000000000000000 \
-  --optystakingratebalancer 0x0000000000000000000000000000000000000000
-```
-
 ### deploy-vault
 
 ```
@@ -323,7 +165,6 @@ Options:
 --registry     required <address> the address of registry
 --token        required <address> the address of underlying token
 --riskprofilecode       required <number>  the code of Vault's risk profile
---insertindb   optional <bool>    allow inserting to database
 --network      optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -344,7 +185,6 @@ Usage: deploy all designated Vault contract
 
 Options:
 --registry     required <address> the address of registry
---insertindb   optional <bool>    allow inserting to database
 --network      optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -367,7 +207,6 @@ Options:
 --total        optional <number> the totalSupply of token (default: 0)
 --decimal      required <number> the decimal of token(defaukt: 18)
 --deployedonce optional <bool>   allow checking whether contracts were deployed previously (default: true)
---insertindb   optional <bool>   allow inserting to database
 --network      optional <string> name of the network provider (default: hardhat)
 
 ```
@@ -386,26 +225,6 @@ Options:
 ## Action Tasks
 
 To execute functions in a OptyFi's contract.
-
-### set-strategies
-
-```
-Usage: set all current available strategies with file or default.
-
-Options:
---investstrategyregistry required <address> the address of investStrategyRegistry
---fromfile         required <string>  path to strategies json file
---network          optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat set-strategies \
-  --network localhost \
-  --investstrategyregistry 0x0000000000000000000000000000000000000000 \
-  --fromfile /path/to/file.json
-```
 
 ### add-risk-profile
 
@@ -493,48 +312,6 @@ Options:
   --token 0x0000000000000000000000000000000000000000
 ```
 
-### get-strategy
-
-```
-Usage: get a specific strategy
-
-Options:
---strategyhash     required <string>  the keccak256 hash of strategy
---investstrategyregistry required <address> the address of investStrategyRegistry
---token            required <address> the address of token
---network          optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat get-strategy \
-  --network localhost \
-  --strategyhash 0x0000000000000000000000000000000000000000 \
-  --investstrategyregistry 0x0000000000000000000000000000000000000000 \
-  --token 0x0000000000000000000000000000000000000000
-```
-
-### get-all-strategies
-
-```
-Usage: get all strategies for a specific token
-
-Options:
---investstrategyregistry required <address> the address of investStrategyRegistry
---token            required <address> the address of token
---network          optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat get-all-strategies \
-  --network localhost \
-  --investstrategyregistry 0x0000000000000000000000000000000000000000 \
-  --token 0x0000000000000000000000000000000000000000
-```
-
 ### get-best-strategy
 
 ```
@@ -583,26 +360,6 @@ Options:
   --strategyhash 0x0000000000000000000000000000000000000000 \
   --token 0x0000000000000000000000000000000000000000 \
   --isdefault true
-```
-
-### set-invest-strategy-registry
-
-```
-Usage: set vault invest strategy registry in registry contract
-
-Options:
---registry         required <address> the address of registry
---investstrategyregistry required <address> the address of investStrategyRegistry
---network          optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat set-invest-strategy-registry \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --investstrategyregistry 0x0000000000000000000000000000000000000000
 ```
 
 ### unpause-vault

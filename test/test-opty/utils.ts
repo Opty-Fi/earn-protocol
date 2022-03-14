@@ -1,11 +1,9 @@
 // !! Important !!
-// Please do not keep this file under helpers/utils as it is import hre from hardhat
+// Please do not keep this file under helpers/utils as it imports hre from hardhat
 import { BigNumber, BigNumberish } from "ethers";
 import hre, { ethers } from "hardhat";
-import { MerkleTree } from "merkletreejs";
-import keccak256 from "keccak256";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, RegistryV2, VaultV2 } from "../../typechain";
+import { ERC20, IAdapterFull, Registry, Vault } from "../../typechain";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -76,7 +74,7 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
 
 export async function getDepositInternalTransactionCount(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
+  registryContract: Registry,
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
   const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
@@ -91,14 +89,15 @@ export async function getDepositInternalTransactionCount(
 
 export async function getOraValueUT(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
-  vault: VaultV2,
+  registryContract: Registry,
+  vault: Vault,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   let outputTokenAmount = BigNumber.from("0");
   let amountUT = BigNumber.from("0");
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
-  investStrategySteps.forEach(async (_: StrategyStepType, index: number, investStrategySteps: StrategyStepType[]) => {
+  let index = 0;
+  for (const _ of investStrategySteps) {
     const iterator = strategyStepCount.sub("1").sub(index);
     const poolAddress = investStrategySteps[iterator.toNumber()].pool;
     const adapterInstance = <IAdapterFull>(
@@ -117,15 +116,43 @@ export async function getOraValueUT(
     } else {
       amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
     }
+    index++;
     outputTokenAmount = amountUT;
-  });
+  }
+  return amountUT;
+}
+
+export async function getOraSomeValueUT(
+  investStrategySteps: StrategyStepType[],
+  registryContract: Registry,
+  underlyingToken: ERC20,
+  lpTokenAmount: BigNumberish,
+): Promise<BigNumberish> {
+  let outputTokenAmount = lpTokenAmount;
+  let amountUT = BigNumber.from("0");
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  let index = 0;
+  for (const _ of investStrategySteps) {
+    const iterator = strategyStepCount.sub("1").sub(index);
+    const poolAddress = investStrategySteps[iterator.toNumber()].pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputTokenAddress = underlyingToken.address;
+    if (!iterator.eq("0")) {
+      inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
+    }
+    amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
+    index++;
+    outputTokenAmount = amountUT;
+  }
   return amountUT;
 }
 
 export async function getLastStrategyStepBalanceLP(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
-  vault: VaultV2,
+  registryContract: Registry,
+  vault: Vault,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
@@ -141,7 +168,7 @@ export async function getLastStrategyStepBalanceLP(
 
 export async function getOraSomeValueLP(
   investStrategySteps: StrategyStepType[],
-  registryContract: RegistryV2,
+  registryContract: Registry,
   underlyingToken: ERC20,
   wantAmount: BigNumber,
 ): Promise<BigNumberish> {
@@ -165,49 +192,3 @@ export async function getOraSomeValueLP(
   }
   return amountLP;
 }
-
-function hashToken(account: string) {
-  return Buffer.from(ethers.utils.solidityKeccak256(["address"], [account]).slice(2), "hex");
-}
-
-function hashCodehash(hash: string) {
-  return Buffer.from(ethers.utils.solidityKeccak256(["bytes32"], [hash]).slice(2), "hex");
-}
-
-export function generateMerkleTree(addresses: string[]): MerkleTree {
-  const leaves = addresses.map((addr: string) => hashToken(addr));
-  return new MerkleTree(leaves, keccak256, { sortPairs: true });
-}
-
-export function generateMerkleTreeForCodehash(hashes: string[]): MerkleTree {
-  const leaves = hashes.map((hash: string) => hashCodehash(hash));
-  return new MerkleTree(leaves, keccak256, { sortPairs: true });
-}
-
-export const getProof = (tree: MerkleTree, address: string): string[] => {
-  return tree.getHexProof(hashToken(address));
-};
-
-export const getProofForCode = (tree: MerkleTree, codeHash: string): string[] => {
-  return tree.getHexProof(hashCodehash(codeHash));
-};
-
-export const getAccountsMerkleRoot = (goodAddresses: string[]): string => {
-  const tree: MerkleTree = generateMerkleTree(goodAddresses);
-  return tree.getHexRoot();
-};
-
-export const getAccountsMerkleProof = (goodAddresses: string[], address: string): string[] => {
-  const tree: MerkleTree = generateMerkleTree(goodAddresses);
-  return getProof(tree, address);
-};
-
-export const getCodesMerkleRoot = (goodCodehashes: string[]): string => {
-  const tree: MerkleTree = generateMerkleTreeForCodehash(goodCodehashes);
-  return tree.getHexRoot();
-};
-
-export const getCodesMerkleProof = (goodCodehashes: string[], codehash: string): string[] => {
-  const tree: MerkleTree = generateMerkleTree(goodCodehashes);
-  return getProofForCode(tree, codehash);
-};
