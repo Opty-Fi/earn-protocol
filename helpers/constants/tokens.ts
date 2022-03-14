@@ -133,6 +133,14 @@ const polygonTokens = {
   },
 };
 
+const kovanTokens = {
+  USDC: {
+    address: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+    pair: false,
+    hash: generateTokenHashV2(["0xe22da380ee6b445bb8273c81944adeb6e8450422"], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]),
+  },
+};
+
 export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
   [eEVMNetwork.mainnet]: ethereumTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: ethereumTokens,
@@ -140,4 +148,7 @@ export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
   [eEVMNetwork.polygon]: polygonTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: polygonTokens,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]]: polygonTokens,
+  [eEVMNetwork.kovan]: kovanTokens,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanTokens,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanTokens,
 };

@@ -2,6 +2,7 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { getUnpause } from "../helpers/utils";
 
 const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
@@ -11,7 +12,28 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
 
   const opWETHgrowInstance = await ethers.getContractAt("Vault", opWETHgrowProxyAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
+  const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
+
+  console.log("Operator setting UnderlyingTokenAndTokensHash...");
+  console.log("\n");
+
+  const tokensHash = await opWETHgrowInstance.underlyingTokensHash();
+
+  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash) {
+    console.log("setting tokenshash..");
+    console.log("\n");
+    await opWETHgrowInstance
+      .connect(operatorSigner)
+      .setUnderlyingTokenAndTokensHash(
+        MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.address,
+        MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash,
+      );
+  } else {
+    console.log("Tokenshash is upto date");
+    console.log("\n");
+  }
+
   console.log("Finance operator setting opWETHgrow config...");
   console.log("\n");
   const actualUserDepositCapUT = await opWETHgrowInstance.userDepositCapUT();

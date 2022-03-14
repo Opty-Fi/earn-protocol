@@ -11,26 +11,29 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
   const chainId = await getChainId();
   const networkName = hre.network.name;
 
-  if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
-    const opUSDCgrowProxyAddress = "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88";
-    const oldopUSDCgrowImplementation = "0xfad37e3197e6331647030954512964cd2e55acaf";
-    const opUSDCgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCgrowProxyAddress);
-    const actualopUSDCgrowImplementation = await opUSDCgrowProxyInstance.implementation();
-    if (getAddress(oldopUSDCgrowImplementation) == getAddress(actualopUSDCgrowImplementation)) {
+  if (chainId == "42" || FORK == "kovan" || networkName == "kovan") {
+    const opAVUSDCintProxyAddress = "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d";
+    const oldopAVUSDCintImplementation = "0xea873417E24012A662801bEBbdc2DAC34A31bc94";
+    const opAVUSDCintProxyInstance = await ethers.getContractAt(
+      ESSENTIAL_CONTRACTS.VAULT_PROXY,
+      opAVUSDCintProxyAddress,
+    );
+    const actualopAVUSDCintImplementation = await opAVUSDCintProxyInstance.implementation();
+    if (getAddress(oldopAVUSDCintImplementation) == getAddress(actualopAVUSDCintImplementation)) {
       console.log("\n");
       console.log("USDC vault...");
       console.log("\n");
-      const opUSDCgrowInstance = await ethers.getContractAt(oldAbis.oldVault, opUSDCgrowProxyAddress);
+      const opAVUSDCintInstance = await ethers.getContractAt(oldAbis.oldVault, opAVUSDCintProxyAddress);
 
-      const usdcCurrentStrategyHash = await opUSDCgrowInstance.investStrategyHash();
+      const usdcCurrentStrategyHash = await opAVUSDCintInstance.investStrategyHash();
       console.log("USDC current strategy ", usdcCurrentStrategyHash);
       console.log("\n");
       if (usdcCurrentStrategyHash != ethers.constants.HashZero) {
         console.log("rebalancing USDC...");
         console.log("\n");
-        const tx = await opUSDCgrowInstance.rebalance();
+        const tx = await opAVUSDCintInstance.rebalance();
         await tx.wait();
-        console.log("usdcCurrentStrategyHash ", await opUSDCgrowInstance.investStrategyHash());
+        console.log("usdcCurrentStrategyHash ", await opAVUSDCintInstance.investStrategyHash());
       } else {
         console.log("USDC vault current strategy is HashZero..");
         console.log("\n");
@@ -40,9 +43,9 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       console.log("\n");
     }
   } else {
-    console.log("Network is not mainnet, hence skipping USDC rebalance");
+    console.log("Network is not kovan, hence skipping USDC rebalance");
     console.log("\n");
   }
 };
 export default func;
-func.tags = ["USDCRebalance"];
+func.tags = ["kovanUSDCRebalance"];

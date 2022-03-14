@@ -10,12 +10,12 @@ const FORK = process.env.FORK;
 const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnvironment) => {
   const chainId = await getChainId();
   const networkName = hre.network.name;
-  const opWETHgrowProxyAddress = "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8";
-  const oldopWETHgrowImplementation = "0x72ce52a66713257b9805ffa0a0b14162d4b95b69";
-  const opWETHgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opWETHgrowProxyAddress);
-  const actualopWETHgrowImplementation = await opWETHgrowProxyInstance.implementation();
 
   if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
+    const opWETHgrowProxyAddress = "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8";
+    const oldopWETHgrowImplementation = "0x72ce52a66713257b9805ffa0a0b14162d4b95b69";
+    const opWETHgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opWETHgrowProxyAddress);
+    const actualopWETHgrowImplementation = await opWETHgrowProxyInstance.implementation();
     if (getAddress(oldopWETHgrowImplementation) == getAddress(actualopWETHgrowImplementation)) {
       console.log("\n");
       console.log("WETH vault..");

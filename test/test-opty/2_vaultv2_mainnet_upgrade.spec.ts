@@ -15,13 +15,7 @@ import {
 } from "../../typechain";
 import { opUSDCgrow, opWETHgrow, RegistryProxy as RegistryProxyAddress } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import {
-  getLastStrategyStepBalanceLP,
-  getOraSomeValueLP,
-  getOraSomeValueUT,
-  getOraValueUT,
-  setTokenBalanceInStorage,
-} from "./utils";
+import { getLastStrategyStepBalanceLP, getOraValueUT, setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
@@ -291,12 +285,6 @@ describe("Vault Ethereum on-chain upgrade", () => {
       this.weth = <ERC20>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.address)
       );
-      await this.opUSDCgrow
-        .connect(this.signers.operator)
-        .setUnderlyingTokenAndTokensHash(this.usdc.address, MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash);
-      await this.opWETHgrow
-        .connect(this.signers.operator)
-        .setUnderlyingTokenAndTokensHash(this.weth.address, MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash);
 
       await this.registry.connect(this.signers.governance).setOperator(this.signers.admin.address);
       await this.registry.connect(this.signers.governance).setRiskOperator(this.signers.admin.address);
@@ -305,7 +293,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await deployments.fixture("ApproveAndMapLiquidityPoolToAdapter");
 
       await deployments.fixture("ConfigopUSDCgrow");
-      await deployments.fixture("ConfigopWETHgrow");
+      expect(await this.opUSDCgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash);
       assertVaultConfiguration(
         await this.opUSDCgrow.vaultConfiguration(),
         "0",
@@ -322,6 +310,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       expect(await this.opUSDCgrow.userDepositCapUT()).to.eq("100000000000");
       expect(await this.opUSDCgrow.minimumDepositValueUT()).to.eq("1000000000");
       expect(await this.opUSDCgrow.totalValueLockedLimitUT()).to.eq("10000000000000");
+
+      await deployments.fixture("ConfigopWETHgrow");
+      expect(await this.opWETHgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash);
       assertVaultConfiguration(
         await this.opWETHgrow.vaultConfiguration(),
         "0",

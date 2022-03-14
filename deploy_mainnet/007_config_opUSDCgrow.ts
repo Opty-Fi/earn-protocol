@@ -2,6 +2,7 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { getUnpause } from "../helpers/utils";
 
 const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
@@ -11,7 +12,28 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
 
   const opUSDCgrowInstance = await ethers.getContractAt("Vault", opUSDCgrowProxyAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
+  const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
+
+  console.log("Operator setting UnderlyingTokenAndTokensHash...");
+  console.log("\n");
+
+  const tokensHash = await opUSDCgrowInstance.underlyingTokensHash();
+
+  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash) {
+    console.log("setting tokenshash..");
+    console.log("\n");
+    await opUSDCgrowInstance
+      .connect(operatorSigner)
+      .setUnderlyingTokenAndTokensHash(
+        MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.address,
+        MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash,
+      );
+  } else {
+    console.log("Tokenshash is upto date");
+    console.log("\n");
+  }
+
   console.log("Finance operator setting opUSDCgrow config...");
   console.log("\n");
 
