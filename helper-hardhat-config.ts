@@ -13,6 +13,7 @@ export enum eEVMNetwork {
   avalanche = "avalanche",
   ganache = "ganache",
   dashboard = "dashboard",
+  tenderly = "tenderly",
 }
 
 export type iEVMParamsPerNetwork<T> = {
@@ -28,6 +29,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.staging]: 1337,
   [eEVMNetwork.ganache]: 1337,
   [eEVMNetwork.dashboard]: 1,
+  [eEVMNetwork.tenderly]: 1,
 };
 
 export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
@@ -39,6 +41,7 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.staging]: "0x539",
   [eEVMNetwork.ganache]: "0x539",
   [eEVMNetwork.dashboard]: "0x1",
+  [eEVMNetwork.tenderly]: "0x1",
 };
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
@@ -50,6 +53,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.avalanche]: process.env.AVALANCHE_NODE_URL ? process.env.AVALANCHE_NODE_URL : "",
   [eEVMNetwork.ganache]: "http://localhost:8545",
   [eEVMNetwork.dashboard]: "http://localhost:24012/rpc",
+  [eEVMNetwork.tenderly]: process.env.TENDERLY_FORK_URL ? process.env.TENDERLY_FORK_URL : "",
 };
 
 export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
@@ -61,6 +65,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.avalanche]: 65 * GWEI,
   [eEVMNetwork.ganache]: "auto",
   [eEVMNetwork.dashboard]: "auto",
+  [eEVMNetwork.tenderly]: 65 * GWEI,
 };
 
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
@@ -72,6 +77,7 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.staging]: undefined,
   [eEVMNetwork.ganache]: undefined,
   [eEVMNetwork.dashboard]: undefined,
+  [eEVMNetwork.tenderly]: undefined,
 };
 
 export const buildForkConfig = (

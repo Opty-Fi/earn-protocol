@@ -57,7 +57,7 @@ const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networ
   gasMultiplier: DEFAULT_GAS_MUL,
   gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
-  deploy: [`deploy`, `deploy_${networkName}`],
+  deploy: [`deploy`, `deploy_${networkName == "tenderly" ? "mainnet" : networkName}`],
 });
 
 const config: HardhatUserConfig = {
@@ -141,6 +141,12 @@ const config: HardhatUserConfig = {
       eEVMNetwork.kovan,
       NETWORKS_CHAIN_ID[eEVMNetwork.kovan],
     ),
+    tenderly: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.tenderly],
+      eEVMNetwork.tenderly,
+      NETWORKS_CHAIN_ID[eEVMNetwork.tenderly],
+    ),
+
     hardhat: {
       hardfork: "london",
       initialBaseFeePerGas: 1_00_000_000,
