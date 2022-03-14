@@ -893,6 +893,34 @@ describe("Vault", () => {
         this.vault.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proofs, []),
       ).to.revertedWith("8");
     });
+    it("fail userDepositVault() good user alice calls on bob's proof,EOA_NOT_WHITELISTED", async function () {
+      const _bobProofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
+        this.signers.bob.address,
+      );
+      await this.vault
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+      assertVaultConfiguration(
+        await this.vault.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        true,
+      );
+      const _depositAmountUSDC = "1000000000";
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
+      await this.usdc.connect(this.signers.alice).approve(this.vault.address, _depositAmountUSDC);
+      await expect(
+        this.vault.connect(this.signers.alice).userDepositVault(_depositAmountUSDC, _bobProofs, []),
+      ).to.revertedWith("8");
+    });
     it("rebalance(), deposit asset into strategy", async function () {
       const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
