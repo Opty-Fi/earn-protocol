@@ -293,6 +293,10 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await deployments.fixture("ApproveAndMapLiquidityPoolToAdapter");
 
       await deployments.fixture("ConfigopUSDCgrow");
+      // await deployments.fixture("SetBestStrategyopUSDCgrow");
+      // expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
+      //   cvxFRAX3CRVStrategySteps.map(v => Object.values(v)),
+      // );
       expect(await this.opUSDCgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash);
       assertVaultConfiguration(
         await this.opUSDCgrow.vaultConfiguration(),
@@ -312,6 +316,10 @@ describe("Vault Ethereum on-chain upgrade", () => {
       expect(await this.opUSDCgrow.totalValueLockedLimitUT()).to.eq("10000000000000");
 
       await deployments.fixture("ConfigopWETHgrow");
+      // await deployments.fixture("SetBestStrategyopWETHgrow");
+      // expect(await this.opWETHgrow.getNextBestInvestStrategy()).to.deep.eq(
+      //   convexSteCRVStrategySteps.map(v => Object.values(v)),
+      // );
       expect(await this.opWETHgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash);
       assertVaultConfiguration(
         await this.opWETHgrow.vaultConfiguration(),
@@ -371,9 +379,19 @@ describe("Vault Ethereum on-chain upgrade", () => {
     });
 
     it("lp token balance should be as expected after rebalance of opUSDCgrow to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
+      // console.log("before ", await this.opUSDCgrow.getNextBestInvestStrategy())
+
+      // expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
+      //   cvxFRAX3CRVStrategySteps.map(v => Object.values(v)),
+      // );
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash, mimStrategySteps);
+      console.log(
+        "xoxoxox ",
+        await this.strategyProvider.getRpToTokenToBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash),
+      );
+      expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(mimStrategySteps.map(v => Object.values(v)));
       await this.opUSDCgrow.rebalance();
       // assert invest strategy hash
       expect(await this.opUSDCgrow.getInvestStrategySteps()).to.deep.eq(mimStrategySteps.map(v => Object.values(v)));

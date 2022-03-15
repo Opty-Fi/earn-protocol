@@ -15,6 +15,19 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
 
+  console.log("vaultConfiguration for opWETHgrow");
+  console.log("\n");
+  const expectedConfig = BigNumber.from("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+  const _vaultConfiguration = await opWETHgrowInstance.vaultConfiguration();
+  if (expectedConfig.eq(_vaultConfiguration)) {
+    console.log("vaultConfiguration is as expected");
+    console.log("\n");
+  } else {
+    console.log("Governance setting vault configuration for opWETHgrow..");
+    console.log("\n");
+    await opWETHgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+  }
+
   console.log("Operator setting UnderlyingTokenAndTokensHash...");
   console.log("\n");
 
