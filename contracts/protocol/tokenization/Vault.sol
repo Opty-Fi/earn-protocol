@@ -247,6 +247,10 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
+        {
+            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
+            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        }
         _emergencyBrake(_oraStratValueUT());
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
@@ -261,10 +265,6 @@ contract Vault is
         // remove deposit fees (if any) but only if deposit is accepted
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
-        {
-            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
-        }
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
         _checkUserDeposit(msg.sender, false, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
         // add net deposit amount to user's total deposit
@@ -293,13 +293,12 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
-        _emergencyBrake(_oraStratValueUT());
         {
             (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
             require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
         }
+        _emergencyBrake(_oraStratValueUT());
         _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
-
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price

@@ -88,5 +88,5 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
   }
 };
 export default func;
-func.tags = ["ConfigopAVUSDCint"];
-func.dependencies = ["DeployopAVUSDCint", "UpgradeopAVUSDCint"];
+func.tags = ["KovanConfigopAVUSDCint"];
+func.dependencies = ["KovanDeployopAVUSDCint", "KovanUpgradeopAVUSDCint"];

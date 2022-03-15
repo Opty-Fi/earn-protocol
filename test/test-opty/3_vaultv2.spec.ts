@@ -4,6 +4,7 @@ import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { Artifact } from "hardhat/types";
 import { BigNumber, ContractReceipt, Event } from "ethers";
+import BN from "bignumber.js";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -41,6 +42,7 @@ import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../../helper-hardhat-config";
+import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 
@@ -1158,6 +1160,103 @@ describe("Vault", () => {
       await expect(this.vault.connect(this.signers.alice).userWithdrawVault(_redeemVT, _proof, []))
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
+    });
+
+    it("userDepositVault, deposit fees", async function () {
+      // lift emergency shutdown
+      await expect(this.vault.connect(this.signers.governance).setEmergencyShutdown(false))
+        .to.emit(this.vault, "LogEmergencyShutdown")
+        .withArgs(false, this.signers.governance.address);
+      // set 5% deposit fee, 10 UT flat fee, set vaultFeeCollector address = 0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5
+      // 0x060119cDeDF678aBE15a921a2AB26C9Bc8867fc35cE500640000000001f4000A
+      // 2715822034072518811744046181093660912122076772552892442457464397795247259658
+      await this.vault
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2715822034072518811744046181093660912122076772552892442457464397795247259658");
+      assertVaultConfiguration(
+        await this.vault.vaultConfiguration(),
+        BigNumber.from("10"),
+        BigNumber.from("500"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        true,
+      );
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
+        this.signers.eve.address,
+      );
+      const _depositAmountUSDC = BigNumber.from("1100000000");
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+      await this.usdc.connect(this.signers.eve).approve(this.vault.address, _depositAmountUSDC);
+      const _expectedDepositFee = new BN(new BN(_depositAmountUSDC.toString()).multipliedBy("0.05")).plus(
+        new BN("10000000"),
+      );
+      await expect(this.vault.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []))
+        .to.emit(this.usdc, "Transfer")
+        .withArgs(
+          getAddress(this.vault.address),
+          getAddress("0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5"),
+          BigNumber.from(_expectedDepositFee.toString()),
+        );
+      // TODO assert shares
+    });
+
+    it("fail userDepositVault, deposit fees, MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
+        this.signers.eve.address,
+      );
+      const _depositAmountUSDC = BigNumber.from("1000000000");
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+      await this.usdc.connect(this.signers.eve).approve(this.vault.address, _depositAmountUSDC);
+      await expect(
+        this.vault.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []),
+      ).to.revertedWith("10");
+    });
+
+    it("userDepositVault, withdrawal fees", async function () {
+      // set 5% withdrawal fee, 10 UT flat fee
+      // 0x060119cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5006401f4000A01f4000A
+      // 2715822034072518811744046181093660912122076772552892442457605135326552260618
+      await this.vault
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2715822034072518811744046181093660912122076772552892442457605135326552260618");
+      assertVaultConfiguration(
+        await this.vault.vaultConfiguration(),
+        BigNumber.from("10"),
+        BigNumber.from("500"),
+        BigNumber.from("10"),
+        BigNumber.from("500"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        true,
+      );
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
+        this.signers.eve.address,
+      );
+      const _withdrawAmountVT = await (await this.vault.balanceOf(this.signers.eve.address)).div("2");
+      const _expectedUT = (await this.usdc.balanceOf(this.vault.address))
+        .mul(_withdrawAmountVT)
+        .div(await this.vault.totalSupply());
+      const _expectedWithdrawalFee = new BN(new BN(_expectedUT.toString()).multipliedBy("0.05")).plus(
+        new BN("10000000"),
+      );
+      await expect(this.vault.connect(this.signers.eve).userWithdrawVault(_withdrawAmountVT, _proof, []))
+        .to.emit(this.usdc, "Transfer")
+        .withArgs(
+          getAddress(this.vault.address),
+          getAddress("0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5"),
+          BigNumber.from(Math.floor(_expectedWithdrawalFee.toNumber())),
+        );
     });
   });
 });
