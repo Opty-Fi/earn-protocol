@@ -1196,6 +1196,12 @@ describe("Vault", () => {
       const _expectedDepositFee = new BN(new BN(_depositAmountUSDC.toString()).multipliedBy("0.05")).plus(
         new BN("10000000"),
       );
+      const _expectedShares = BigNumber.from(
+        _depositAmountUSDC.sub(BigNumber.from(Math.floor(_expectedDepositFee.toNumber()))),
+      )
+        .mul(await this.vault.totalSupply())
+        .div(await this.usdc.balanceOf(this.vault.address));
+      const _balanceBeforeVT = await this.vault.balanceOf(this.signers.eve.address);
       await expect(this.vault.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []))
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1203,7 +1209,8 @@ describe("Vault", () => {
           getAddress("0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5"),
           BigNumber.from(_expectedDepositFee.toString()),
         );
-      // TODO assert shares
+      const _balanceAfterVT = await this.vault.balanceOf(this.signers.eve.address);
+      expect(_balanceAfterVT.sub(_balanceBeforeVT)).to.eq(_expectedShares);
     });
 
     it("fail userDepositVault, deposit fees, MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
@@ -1250,6 +1257,7 @@ describe("Vault", () => {
       const _expectedWithdrawalFee = new BN(new BN(_expectedUT.toString()).multipliedBy("0.05")).plus(
         new BN("10000000"),
       );
+      const _balanceBeforeUT = await this.usdc.balanceOf(this.signers.eve.address);
       await expect(this.vault.connect(this.signers.eve).userWithdrawVault(_withdrawAmountVT, _proof, []))
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1257,6 +1265,9 @@ describe("Vault", () => {
           getAddress("0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5"),
           BigNumber.from(Math.floor(_expectedWithdrawalFee.toNumber())),
         );
+      const _balanceAfterUT = await this.usdc.balanceOf(this.signers.eve.address);
+      const _actualReceivedUT = _balanceAfterUT.sub(_balanceBeforeUT);
+      expect(_actualReceivedUT).to.eq(_expectedUT.sub(BigNumber.from(Math.floor(_expectedWithdrawalFee.toNumber()))));
     });
   });
 });
