@@ -75,7 +75,6 @@ contract Vault is
     /**
      * @dev Initialize the vault
      * @param _registry the address of registry for helping get the protocol configuration
-     * @param _underlyingToken The address of underlying asset of this vault
      * @param _underlyingTokensHash The keccak256 hash of the tokens and chain id
      * @param _name The name of the underlying asset
      * @param _symbol The symbol of the underlying  asset
@@ -83,7 +82,6 @@ contract Vault is
      */
     function initialize(
         address _registry,
-        address _underlyingToken,
         bytes32 _underlyingTokensHash,
         string memory _name,
         string memory _symbol,
@@ -94,11 +92,10 @@ contract Vault is
         registryContract = IRegistry(_registry);
         DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
         _setRiskProfileCode(_riskProfileCode, _riskProfile.exists);
-        _setUnderlyingToken(_underlyingToken); //  underlying token contract address (for example DAI)
         _setUnderlyingTokensHash(_underlyingTokensHash);
         _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile.name)));
         _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
-        _setDecimals(IncentivisedERC20(_underlyingToken).decimals());
+        _setDecimals(IncentivisedERC20(underlyingToken).decimals());
     }
 
     /**
@@ -111,12 +108,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash)
-        external
-        override
-        onlyOperator
-    {
-        _setUnderlyingToken(_underlyingToken);
+    function setUnderlyingTokensHash(bytes32 _underlyingTokensHash) external override onlyOperator {
         _setUnderlyingTokensHash(_underlyingTokensHash);
     }
 
@@ -681,25 +673,15 @@ contract Vault is
     }
 
     /**
-     * @dev Internal function to save underlying token address
-     * @param _underlyingToken underlying token contract address
-     */
-    function _setUnderlyingToken(address _underlyingToken) internal {
-        require(registryContract.isApprovedToken(_underlyingToken), Errors.TOKEN_NOT_APPROVED);
-        underlyingToken = _underlyingToken;
-    }
-
-    /**
      * @dev Internal function to save underlying tokens hash
      * @param _underlyingTokensHash keccak256 hash of underlying token address and chain id
      */
     function _setUnderlyingTokensHash(bytes32 _underlyingTokensHash) internal {
-        require(
-            registryContract.getTokensHashByIndex(registryContract.getTokensHashIndexByHash(_underlyingTokensHash)) ==
-                _underlyingTokensHash,
-            Errors.UNDERLYING_TOKENS_HASH_EXISTS
-        );
+        address[] memory _tokens = registryContract.getTokensHashToTokenList(_underlyingTokensHash);
+        require(_tokens.length == 1, Errors.UNDERLYING_TOKENS_HASH_EXISTS);
+        require(registryContract.isApprovedToken(_tokens[0]), Errors.UNDERLYING_TOKEN_APPROVED);
         underlyingTokensHash = _underlyingTokensHash;
+        underlyingToken = _tokens[0];
     }
 
     //===Internal view functions===//

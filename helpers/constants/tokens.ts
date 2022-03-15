@@ -126,10 +126,15 @@ const polygonTokens = {
     pair: false,
     hash: generateTokenHashV2([PolygonLegos.tokens.DAI], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
   },
-  ["WMATIC" || "WETH"]: {
+  WMATIC: {
     address: PolygonLegos.tokens.WMATIC,
     pair: false,
     hash: generateTokenHashV2([PolygonLegos.tokens.WMATIC], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
+  },
+  WETH: {
+    address: PolygonLegos.tokens.WETH,
+    pair: false,
+    hash: generateTokenHashV2([PolygonLegos.tokens.WETH], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
   },
 };
 

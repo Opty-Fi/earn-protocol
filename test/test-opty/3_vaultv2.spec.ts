@@ -206,7 +206,6 @@ describe("Vault", () => {
         ]);
       await this.vault.initialize(
         this.registry.address,
-        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
         "USD Coin",
         "USDC",
@@ -522,31 +521,22 @@ describe("Vault", () => {
       await expect(this.vault.connect(this.signers.operator).setRiskProfileCode(3)).to.be.revertedWith("5");
     });
 
-    it("fail setUnderlyingTokenAndTokensHash() call by non operator", async function () {
-      await expect(
-        this.vault.setUnderlyingTokenAndTokensHash(
-          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-          ethers.constants.HashZero,
-        ),
-      ).to.be.revertedWith("caller is not the operator");
+    it("fail setUnderlyingTokensHash() call by non operator", async function () {
+      await expect(this.vault.setUnderlyingTokensHash(ethers.constants.HashZero)).to.be.revertedWith(
+        "caller is not the operator",
+      );
     });
-    it("fail setUnderlyingTokenAndTokensHash(), registry not approved", async function () {
+    it("fail setUnderlyingTokensHash(), registry not approved", async function () {
       await expect(
         this.vault
           .connect(this.signers.operator)
-          .setUnderlyingTokenAndTokensHash(
-            MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          .setUnderlyingTokensHash(
             getSoliditySHA3Hash(["address", "uint256"], [MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address, "a"]),
           ),
       ).to.be.revertedWith("17");
     });
-    it("setUnderlyingTokenAndTokensHash() call by operator", async function () {
-      await this.vault
-        .connect(this.signers.operator)
-        .setUnderlyingTokenAndTokensHash(
-          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
-        );
+    it("setUnderlyingTokensHash() call by operator", async function () {
+      await this.vault.connect(this.signers.operator).setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
       expect(await this.vault.underlyingToken()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address);
       expect(await this.vault.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
     });
