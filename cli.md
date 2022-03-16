@@ -391,6 +391,7 @@ Options:
 --vault         required <address> the address of vault
 --user          required <address> account address of the user
 --action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE"
+--merkle-proof  required <string>  merkle proofs in stringified form
 --useall        optional <bool>    use whole balance (default: false)
 --amount        optional <number>  amount of token (default: 0)
 --network       optional <string>  name of the network provider (default: hardhat)

@@ -9,7 +9,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_A
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("name", "the name of adapter", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .setAction(async ({ registry, name, deployedonce, insertindb }, hre) => {
+  .setAction(async ({ registry, name, deployedonce }, hre) => {
     if (name === "") {
       throw new Error("name cannot be empty");
     }
