@@ -11,6 +11,10 @@ specification_docs/
 deployments/
 contracts/protocol/team-defi-adapters
 contracts/protocol/earn-protocol-configuration
-
+contracts/protocol/defi-adapters
+contracts/protocol/curve-metapool-deposit-adapter
+contracts/protocol/curve-metapool-gauge-adapter
+contracts/protocol/curve-metapool-swap-adapter
+contracts/protocol/curve-polygon-adapter
 # files
 .solcover.js

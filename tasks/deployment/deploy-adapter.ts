@@ -1,7 +1,6 @@
 import { task, types } from "hardhat/config";
 import { Contract } from "ethers";
 import { deployAdapter } from "../../helpers/contracts-deployments";
-import { insertContractIntoDB } from "../../helpers/db";
 import { isAddress } from "../../helpers/helpers";
 import { ADAPTERS } from "../../helpers/constants/adapters";
 import TASKS from "../task-names";
@@ -10,7 +9,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_A
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("name", "the name of adapter", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .addParam("insertindb", "insert the deployed contract addresses in DB", false, types.boolean)
   .setAction(async ({ registry, name, deployedonce, insertindb }, hre) => {
     if (name === "") {
       throw new Error("name cannot be empty");
@@ -33,12 +31,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_A
       const adaptersContract: Contract = await deployAdapter(hre, owner, name, registry, deployedonce);
       console.log("Finished deploying adapter");
       console.log(`${name} address : ${adaptersContract.address}`);
-      if (insertindb) {
-        const err = await insertContractIntoDB(name, adaptersContract.address);
-        if (err !== "") {
-          throw err;
-        }
-      }
     } catch (error) {
       console.error(`${TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME}: `, error);
       throw new Error();

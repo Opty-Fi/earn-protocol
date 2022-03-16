@@ -7,8 +7,7 @@ import TASKS from "../task-names";
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("unpause", "unpause vault", false, types.boolean)
-  .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ registry, insertindb, unpause }, hre) => {
+  .setAction(async ({ registry, unpause }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -26,7 +25,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULTS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VA
             riskprofilecode: riskProfile.code,
             registry: registry,
             unpause: unpause,
-            insertindb: insertindb,
           });
         }
       }

@@ -9,3 +9,4 @@ contracts/mocks/
 contracts/protocol/team-defi-adapters
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/defi-adapters
+contracts/protocol/*-adapter

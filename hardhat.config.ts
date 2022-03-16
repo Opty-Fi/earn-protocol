@@ -1,22 +1,24 @@
-import { HardhatUserConfig } from "hardhat/types";
+import { HardhatUserConfig, NetworkUserConfig } from "hardhat/types";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 import path from "path";
 import fs from "fs";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-etherscan";
-import "@typechain/hardhat";
 import "solidity-coverage";
-import "hardhat-docgen";
 import "hardhat-deploy";
+import "hardhat-gas-reporter";
+import "hardhat-docgen";
+import "@typechain/hardhat";
+import "@tenderly/hardhat-tenderly";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,
-  eEthereumNetwork,
-  CURRENT_BLOCK_NUMBER,
+  eEVMNetwork,
+  buildForkConfig,
+  NETWORKS_CHAIN_ID,
+  buildDeployConfig,
 } from "./helper-hardhat-config";
 
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
@@ -24,6 +26,8 @@ const DEFAULT_BLOCK_GAS_LIMIT = 0x1fffffffffffff;
 const DEFAULT_GAS_MUL = 5;
 const HARDFORK = "london";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
+const FORK = process.env.FORK || "";
+const FORK_BLOCK_NUMBER = process.env.FORK_BLOCK_NUMBER ? parseInt(process.env.FORK_BLOCK_NUMBER) : 0;
 
 if (!SKIP_LOAD) {
   ["", "deployment", "actions"].forEach(folder => {
@@ -38,16 +42,6 @@ if (!SKIP_LOAD) {
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
-const chainIds = {
-  ganache: 1337,
-  goerli: 5,
-  hardhat: 31337,
-  kovan: 42,
-  mainnet: 1,
-  rinkeby: 4,
-  ropsten: 3,
-};
-
 // Ensure that we have all the environment variables we need.
 let mnemonic: string;
 if (!process.env.MNEMONIC) {
@@ -56,30 +50,23 @@ if (!process.env.MNEMONIC) {
   mnemonic = process.env.MNEMONIC as string;
 }
 
-let chainstackMainnetUrl: string;
-if (!process.env.MAINNET_NODE_URL) {
-  throw new Error("Please set your MAINNET_NODE_URL in a .env file");
-} else {
-  chainstackMainnetUrl = process.env.MAINNET_NODE_URL as string;
-}
-
-const getCommonNetworkConfig = (networkName: eEthereumNetwork, networkId: number) => ({
-  url: NETWORKS_RPC_URL[networkName],
+const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networkId: number): NetworkUserConfig => ({
+  url: rpcUrl,
   hardfork: HARDFORK,
   blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
   gasMultiplier: DEFAULT_GAS_MUL,
-  gasPrice: NETWORKS_DEFAULT_GAS[networkName],
+  gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
-  accounts: {
-    mnemonic,
-    path: MNEMONIC_PATH,
-    initialIndex: 0,
-    count: 20,
-  },
+  deploy: [`deploy`, `deploy_${networkName == "tenderly" ? "mainnet" : networkName}`],
 });
 
-const buidlerConfig: HardhatUserConfig = {
+const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
+  namedAccounts: {
+    deployer: 0,
+    admin: 1,
+    operator: 2,
+  },
   solidity: {
     compilers: [
       {
@@ -117,24 +104,56 @@ const buidlerConfig: HardhatUserConfig = {
     ],
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: process.env.ETHERSCAN_API_KEY as string,
+      ropsten: process.env.ETHERSCAN_API_KEY as string,
+      bsc: process.env.BSCSCAN_API_KEY as string,
+      polygon: process.env.POLYGONSCAN_API_KEY as string,
+      avalanche: process.env.SNOWTRACE_API_KEY as string,
+    },
   },
   networks: {
-    staging: getCommonNetworkConfig(eEthereumNetwork.staging, chainIds.ganache),
-    localhost: {
-      url: NETWORKS_RPC_URL[eEthereumNetwork.hardhat],
-      chainId: chainIds.ganache,
+    mainnet: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.mainnet],
+      eEVMNetwork.mainnet,
+      NETWORKS_CHAIN_ID[eEVMNetwork.mainnet],
+    ),
+    dashboard: {
+      url: NETWORKS_RPC_URL[eEVMNetwork.dashboard],
+      deploy: [`deploy`, `deploy_mainnet`],
     },
-    kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, chainIds.kovan),
+    polygon: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.polygon],
+      eEVMNetwork.polygon,
+      NETWORKS_CHAIN_ID[eEVMNetwork.polygon],
+    ),
+    staging: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.staging],
+      eEVMNetwork.staging,
+      NETWORKS_CHAIN_ID[eEVMNetwork.ganache],
+    ),
+    localhost: {
+      url: NETWORKS_RPC_URL[eEVMNetwork.hardhat],
+      chainId: NETWORKS_CHAIN_ID[eEVMNetwork.ganache],
+    },
+    kovan: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.kovan],
+      eEVMNetwork.kovan,
+      NETWORKS_CHAIN_ID[eEVMNetwork.kovan],
+    ),
+    tenderly: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.tenderly],
+      eEVMNetwork.tenderly,
+      NETWORKS_CHAIN_ID[eEVMNetwork.tenderly],
+    ),
+
     hardhat: {
+      hardfork: "london",
       initialBaseFeePerGas: 1_00_000_000,
       gasPrice: "auto",
-      forking: {
-        blockNumber: CURRENT_BLOCK_NUMBER,
-        url: chainstackMainnetUrl,
-      },
+      forking: buildForkConfig(FORK as eEVMNetwork, FORK_BLOCK_NUMBER),
       allowUnlimitedContractSize: true,
-      chainId: chainIds.ganache,
+      chainId: NETWORKS_CHAIN_ID[FORK as eEVMNetwork],
       accounts: {
         mnemonic,
         path: MNEMONIC_PATH,
@@ -142,6 +161,7 @@ const buidlerConfig: HardhatUserConfig = {
         count: 20,
         accountsBalance: "1000000000000000000000000000",
       },
+      deploy: buildDeployConfig(FORK as eEVMNetwork),
     },
   },
   paths: {
@@ -170,6 +190,11 @@ const buidlerConfig: HardhatUserConfig = {
     outDir: "typechain",
     target: "ethers-v5",
   },
+  tenderly: {
+    username: process.env.TENDERLY_USERNAME as string,
+    project: process.env.TENDERLY_PROJECT as string,
+    forkNetwork: "1", //Network id of the network we want to fork
+  },
 };
 
-export default buidlerConfig;
+export default config;

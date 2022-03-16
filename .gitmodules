@@ -7,3 +7,9 @@
 [submodule "contracts/protocol/defi-adapters"]
 	path = contracts/protocol/defi-adapters
 	url = https://github.com/Opty-Fi/defi-adapters.git
+[submodule "contracts/protocol/curve-metapool-swap-adapter"]
+	path = contracts/protocol/curve-metapool-swap-adapter
+	url = git@github.com:Opty-Fi/curve-metapool-swap-adapter.git
+[submodule "contracts/protocol/curve-metapool-gauge-adapter"]
+	path = contracts/protocol/curve-metapool-gauge-adapter
+	url = git@github.com:Opty-Fi/curve-metapool-gauge-adapter.git

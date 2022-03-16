@@ -12,8 +12,6 @@ export const TESTING_CONTRACTS: DATA_OBJECT = {
     "contracts/protocol/earn-protocol-configuration/contracts/mocks/contracts/TestRegistryNewImplementation.sol:TestRegistryNewImplementation",
   TEST_RISK_MANAGER_NEW_IMPLEMENTATION:
     "contracts/protocol/earn-protocol-configuration/contracts/mocks/contracts/TestRiskManagerNewImplementation.sol:TestRiskManagerNewImplementation",
-  TEST_OPTY_STAKING_RATE_BALANCER_NEW_IMPLEMENTATION: "TestOptyStakingRateBalancerNewImplementation",
   TEST_VAULT_NEW_IMPLEMENTATION: "TestVaultNewImplementation",
   TEST_STRATEGY_MANAGER: "TestStrategyManager",
-  TEST_STAKING_RATE_BALANCER: "TestOPTYStakingRateBalancer",
 };

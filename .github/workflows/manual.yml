@@ -118,12 +118,13 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
-      - name: Optyfi-SDK
+      - name: Optyfi-SDK Mainnet
         run: |
-          yarn typechain && yarn optyfi-sdk
+          yarn typechain && yarn optyfi-sdk:mainnet
       - name: Test
         run: |
-          yarn test-fast
+          yarn test-fast:mainnet
+          yarn test-fast:vaultv2-upgrade-test:mainnet
       - name: Add public IP to AWS security group
         uses: sohelamin/aws-security-group-add-ip-action@master
         with:
