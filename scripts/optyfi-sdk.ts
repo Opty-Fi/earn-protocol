@@ -1,12 +1,12 @@
 import data from "../optyfi-sdk/config";
 import { NETWORKS, NETWORKS_ID } from "../helpers/constants/network";
 import { createDir, createFile, getMoralisConfig } from "../helpers/utils";
-import { DEFI_POOL_DATA, STRATEGIES, STRATEGY_DATA } from "../helpers/type";
-import { ETH } from "../helpers/constants/utils";
-import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { DEFI_POOL_DATA /*STRATEGIES, STRATEGY_DATA*/ } from "../helpers/type";
+// import { ETH } from "../helpers/constants/utils";
+// import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
-import { TypedTokens } from "../helpers/data";
-import hre from "hardhat";
+// import { TypedTokens } from "../helpers/data";
+// import hre from "hardhat";
 
 import { bold } from "./common";
 import axios, { Method } from "axios";
