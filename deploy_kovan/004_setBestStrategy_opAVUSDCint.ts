@@ -54,4 +54,4 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
 };
 export default func;
 func.tags = ["KovanSetBestStrategyopAVUSDCint"];
-func.dependencies = ["KovanDeployopAVUSDCint", "KovanUpgradeopAVUSDCint", "KovanConfigopAVUSDCint"];
+func.dependencies = ["StrategyProvider"];

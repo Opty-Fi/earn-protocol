@@ -28,7 +28,7 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
     await opAVUSDCintInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
   }
 
-  console.log("Operator setting UnderlyingTokenAndTokensHash...");
+  console.log("Operator setting UnderlyingTokensHash...");
   console.log("\n");
 
   const tokensHash = await opAVUSDCintInstance.underlyingTokensHash();
@@ -38,10 +38,7 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
     console.log("\n");
     await opAVUSDCintInstance
       .connect(operatorSigner)
-      .setUnderlyingTokenAndTokensHash(
-        MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.address,
-        MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.hash,
-      );
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.hash);
   } else {
     console.log("Tokenshash is upto date");
     console.log("\n");

@@ -184,3 +184,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["Registry"];
+func.dependencies = ["RegistryProxy"];
