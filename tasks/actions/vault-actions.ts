@@ -6,16 +6,16 @@ import TASKS from "../task-names";
 import { getAddress } from "@ethersproject/address";
 import { TypedTokens } from "../../helpers/data";
 import { Vault } from "../../typechain";
-import proofs from "../../scripts/merkleproofs.json";
 import { getAllowWhitelistState } from "../../helpers/utils";
 
 task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
   .addParam("action", "deposit, withdraw or rebalance", "DEPOSIT" || "WITHDRAW" || "REBALANCE", types.string)
   .addParam("user", "account address of the user", "", types.string)
+  .addParam("merkleProof", "user merkle proof", "", types.string)
   .addOptionalParam("useall", "use whole balance", false, types.boolean)
   .addOptionalParam("amount", "amount of token", 0, types.int)
-  .setAction(async ({ vault, action, user, amount, useall }, hre) => {
+  .setAction(async ({ vault, action, user, amount, useall, merkleProof }, hre) => {
     const ACTIONS = ["DEPOSIT", "WITHDRAW", "REBALANCE"];
     if (vault === "") {
       throw new Error("vault cannot be empty");
@@ -89,11 +89,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
               const depositTx = await vaultContract
                 .connect(userSigner)
-                .userDepositVault(
-                  checkedAmount,
-                  proofs.filter(x => getAddress(x.account) == getAddress(userSigner.address))[0].proofs,
-                  [],
-                );
+                .userDepositVault(checkedAmount, JSON.parse(merkleProof), []);
               await depositTx.wait(1);
             } else {
               const depositTx = await vaultContract.connect(userSigner).userDepositVault(checkedAmount, [], []);
@@ -141,11 +137,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
               const withdrawTx = await vaultContract
                 .connect(userSigner)
-                .userWithdrawVault(
-                  checkedAmount,
-                  proofs.filter(x => getAddress(x.account) == getAddress(userSigner.address))[0].proofs,
-                  [],
-                );
+                .userWithdrawVault(checkedAmount, JSON.parse(merkleProof), []);
               await withdrawTx.wait(1);
             } else {
               const withdrawTx = await vaultContract.connect(userSigner).userWithdrawVault(checkedAmount, [], []);
