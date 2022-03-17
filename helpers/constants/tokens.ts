@@ -132,9 +132,9 @@ const polygonTokens = {
     hash: generateTokenHashV2([PolygonLegos.tokens.WMATIC], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
   },
   WETH: {
-    address: PolygonLegos.tokens.WMATIC,
+    address: PolygonLegos.tokens.WETH,
     pair: false,
-    hash: generateTokenHashV2([PolygonLegos.tokens.WMATIC], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
+    hash: generateTokenHashV2([PolygonLegos.tokens.WETH], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]),
   },
 };
 

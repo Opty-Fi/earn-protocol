@@ -299,4 +299,36 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
   },
   [eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: {},
   [eEVMNetwork.avalanche || NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: {},
+  [eEVMNetwork.kovan || NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: {
+    USDC: {
+      "usdc-DEPOSIT-AaveV1-aUSDC": {
+        strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
+        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+        strategy: [
+          {
+            contract: "0x506B0B2CF20FAA8f38a4E2B524EE43e1f4458Cc5",
+            outputToken: "0x02F626c6ccb6D2ebC071c068DC1f02Bf5693416a",
+            isBorrow: false,
+            outputTokenSymbol: "aUSDC",
+            adapterName: "AaveV1Adapter",
+            protocol: "Aave",
+          },
+        ],
+      },
+      "usdc-DEPOSIT-AaveV2-aUSDC": {
+        strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
+        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+        strategy: [
+          {
+            contract: "0x1E40B561EC587036f9789aF83236f057D1ed2A90",
+            outputToken: "0xe12AFeC5aa12Cf614678f9bFeeB98cA9Bb95b5B0",
+            isBorrow: false,
+            outputTokenSymbol: "aUSDC",
+            adapterName: "AaveV2Adapter",
+            protocol: "Aave",
+          },
+        ],
+      },
+    },
+  },
 };

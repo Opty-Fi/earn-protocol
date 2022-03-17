@@ -22,10 +22,9 @@ interface IVault {
     /**
      * @notice Assign the address of the underlying asset and its keccak256 hash
      * @dev the underlying asset should be approved by the governance
-     * @param _underlyingToken the address of the underlying asset
      * @param _underlyingTokensHash keccak256 hash of underlying token address and chain id
      */
-    function setUnderlyingTokenAndTokensHash(address _underlyingToken, bytes32 _underlyingTokensHash) external;
+    function setUnderlyingTokensHash(bytes32 _underlyingTokensHash) external;
 
     /**
      * @notice Single function to configure the vault's value control params

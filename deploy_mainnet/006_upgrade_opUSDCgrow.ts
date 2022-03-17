@@ -28,4 +28,4 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 };
 export default func;
 func.tags = ["UpgradeopUSDCgrow"];
-func.dependencies = ["DeployopUSDCgrow"];
+func.dependencies = ["opUSDCgrow"];
