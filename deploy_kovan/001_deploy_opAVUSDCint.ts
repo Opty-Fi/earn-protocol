@@ -48,4 +48,4 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
   }
 };
 export default func;
-func.tags = ["KovanDeployopAVUSDCint"];
+func.tags = ["opAVUSDCint"];

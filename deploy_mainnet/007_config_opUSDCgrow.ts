@@ -3,9 +3,10 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { getUnpause } from "../helpers/utils";
+import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
+import { getRiskProfileCode, getUnpause } from "../helpers/utils";
 
-const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
   const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const opUSDCgrowProxyAddress = "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88";
@@ -15,7 +16,33 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
 
-  console.log("Operator setting UnderlyingTokenAndTokensHash...");
+  console.log("set risk profile code for opUSDCgrow");
+  console.log("\n");
+  const expectedRiskProfileCode = BigNumber.from("1");
+  const _vaultConfiguration_ = await opUSDCgrowInstance.vaultConfiguration();
+  if (expectedRiskProfileCode.eq(getRiskProfileCode(_vaultConfiguration_))) {
+    console.log("risk profile code  is as expected");
+    console.log("\n");
+  } else {
+    console.log("Governance setting risk profile code for opUSDCgrow..");
+    console.log("\n");
+    await opUSDCgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode);
+  }
+
+  console.log("vaultConfiguration for opUSDCgrow");
+  console.log("\n");
+  const expectedConfig = BigNumber.from("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+  const _vaultConfiguration = await opUSDCgrowInstance.vaultConfiguration();
+  if (expectedConfig.eq(_vaultConfiguration)) {
+    console.log("vaultConfiguration is as expected");
+    console.log("\n");
+  } else {
+    console.log("Governance setting vault configuration for opUSDCgrow..");
+    console.log("\n");
+    await opUSDCgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+  }
+
+  console.log("Operator setting UnderlyingTokensHash...");
   console.log("\n");
 
   const tokensHash = await opUSDCgrowInstance.underlyingTokensHash();
@@ -25,10 +52,7 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
     console.log("\n");
     await opUSDCgrowInstance
       .connect(operatorSigner)
-      .setUnderlyingTokenAndTokensHash(
-        MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.address,
-        MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash,
-      );
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash);
   } else {
     console.log("Tokenshash is upto date");
     console.log("\n");
@@ -88,7 +112,52 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
     console.log("whitelisted accounts root for opUSDCgrow is as expected");
     console.log("\n");
   }
+
+  const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
+  const strategyProviderInstance = await ethers.getContractAt(
+    ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
+    strategyProviderAddress,
+  );
+  const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
+
+  console.log("Operator setting best strategy for opUSDCgrow...");
+  console.log("\n");
+
+  const currentBestStrategySteps = await strategyProviderInstance.getRpToTokenToBestStrategy(
+    "1",
+    MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash,
+  );
+  const currentBestStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
+  const expectedStrategySteps =
+    StrategiesByTokenByChain["mainnet"].USDC[
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f"
+    ].strategy;
+  const expectedStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(
+    expectedStrategySteps.map(x => ({
+      pool: x.contract,
+      outputToken: x.outputToken,
+      isBorrow: x.isBorrow,
+    })),
+  );
+
+  if (currentBestStrategyHash !== expectedStrategyHash) {
+    console.log("Strategy operator setting best strategy..");
+    console.log("\n");
+    await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
+      "1",
+      MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash,
+      expectedStrategySteps.map(x => ({
+        pool: x.contract,
+        outputToken: x.outputToken,
+        isBorrow: x.isBorrow,
+      })),
+    );
+  } else {
+    console.log("best strategy is upto date.");
+    console.log("\n");
+  }
+  console.log("Next Best Strategy ", await opUSDCgrowInstance.getNextBestInvestStrategy());
 };
 export default func;
 func.tags = ["ConfigopUSDCgrow"];
-func.dependencies = ["DeployopUSDCgrow", "UpgradeopUSDCgrow"];
+func.dependencies = ["StrategyProvider"];

@@ -6,7 +6,7 @@ import TASKS from "../task-names";
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .setAction(async ({ registry, deployedonce, insertindb }, hre) => {
+  .setAction(async ({ registry, deployedonce }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }

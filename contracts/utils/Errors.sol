@@ -21,4 +21,5 @@ library Errors {
     string public constant EMERGENCY_BRAKE = "16";
     string public constant UNDERLYING_TOKENS_HASH_EXISTS = "17";
     string public constant TRANSFER_TO_THIS_CONTRACT = "18";
+    string public constant UNDERLYING_TOKEN_APPROVED = "19";
 }

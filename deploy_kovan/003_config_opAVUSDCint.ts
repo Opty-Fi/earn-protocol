@@ -15,7 +15,20 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
 
-  console.log("Operator setting UnderlyingTokenAndTokensHash...");
+  console.log("vaultConfiguration for opAVUSDCint");
+  console.log("\n");
+  const expectedConfig = BigNumber.from("2717410785629155098899111556142608677342670233394701959435704744959004377088");
+  const _vaultConfiguration = await opAVUSDCintInstance.vaultConfiguration();
+  if (expectedConfig.eq(_vaultConfiguration)) {
+    console.log("vaultConfiguration is as expected");
+    console.log("\n");
+  } else {
+    console.log("Governance setting vault configuration for opAVUSDCint..");
+    console.log("\n");
+    await opAVUSDCintInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+  }
+
+  console.log("Operator setting UnderlyingTokensHash...");
   console.log("\n");
 
   const tokensHash = await opAVUSDCintInstance.underlyingTokensHash();
@@ -25,10 +38,7 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
     console.log("\n");
     await opAVUSDCintInstance
       .connect(operatorSigner)
-      .setUnderlyingTokenAndTokensHash(
-        MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.address,
-        MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.hash,
-      );
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.hash);
   } else {
     console.log("Tokenshash is upto date");
     console.log("\n");
@@ -88,5 +98,5 @@ const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
   }
 };
 export default func;
-func.tags = ["ConfigopAVUSDCint"];
-func.dependencies = ["DeployopAVUSDCint", "UpgradeopAVUSDCint"];
+func.tags = ["KovanConfigopAVUSDCint"];
+func.dependencies = ["KovanDeployopAVUSDCint", "KovanUpgradeopAVUSDCint"];
