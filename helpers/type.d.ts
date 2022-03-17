@@ -67,7 +67,7 @@ export type DEFI_POOL_DATA = {
     pool: string;
     lpToken: string;
     tokens: string[];
-    rewardTokens: string[];
+    rewardTokens?: string[];
     stakingVault?: string;
     pid?: string;
     deprecated?: boolean;

@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const underlyingTokenName = await tokenContract.name();
   const underlyingTokenSymbol = await tokenContract.symbol();
   const vaultAddress = (
-    await deploy("VaultWMATICV2", {
+    await deploy("opWMATICgrow", {
       from: await owner.getAddress(),
       args: [
         registryAddress,
@@ -27,12 +27,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         RISK_PROFILES[riskProfileCode].symbol,
       ],
       log: true,
-      contract: ESSENTIAL_CONTRACTS.VAULT_V2,
+      contract: ESSENTIAL_CONTRACTS.VAULT,
     })
   ).address;
 
   const vaultProxyAddress = (
-    await deploy("VaultWMATICProxyV2", {
+    await deploy("opWMATICgrowProxy", {
       from: await owner.getAddress(),
       args: [vaultAddress, await admin.getAddress(), "0x"],
       log: true,
@@ -40,11 +40,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     })
   ).address;
 
-  const vault = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_V2, vaultProxyAddress, owner);
+  const vault = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vaultProxyAddress, owner);
 
-  await executeFunc(vault, owner, "initialize(address,address,bytes32,string,string,uint256)", [
+  await executeFunc(vault, owner, "initialize(address,bytes32,string,string,uint256)", [
     registryAddress,
-    underlyingToken,
     generateTokenHashV2([underlyingToken], NETWORKS_CHAIN_ID_HEX.polygon.toString()),
     underlyingTokenName,
     underlyingTokenSymbol,
@@ -53,4 +52,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["VaultWMATICV2"];
+func.tags = ["opWMATICgrow"];

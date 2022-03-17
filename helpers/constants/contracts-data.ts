@@ -10,8 +10,8 @@ export const RISK_PROFILES: RISK_PROFILE_DATA = [
   },
   {
     code: 1,
-    name: "Basic",
-    symbol: "bas",
+    name: "Growth",
+    symbol: "grow",
     canBorrow: false,
     poolRating: [0, 10],
   },

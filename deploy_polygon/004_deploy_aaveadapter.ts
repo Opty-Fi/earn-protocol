@@ -11,7 +11,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const [owner] = await hre.ethers.getSigners();
   const { deploy } = deployments;
   const registryAddress = (await deployments.get("RegistryProxy")).address;
-  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_V2, registryAddress);
+  const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryAddress);
   const adapter = (
     await deploy(AAVE_ADAPTER_NAME, {
       from: await owner.getAddress(),

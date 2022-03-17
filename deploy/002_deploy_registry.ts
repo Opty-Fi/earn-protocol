@@ -126,6 +126,29 @@ const func: DeployFunction = async ({
       ]);
     }
   }
+
+  if (chainId == "137") {
+    const wmaticApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.address);
+
+    if (wmaticApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash)) {
+      console.log("only set WMATIC hash");
+      console.log("\n");
+      onlySetTokensHash.push([
+        MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash,
+        [MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.address],
+      ]);
+    }
+
+    if (!wmaticApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash)) {
+      console.log("approve WMATIC and set hash");
+      console.log("\n");
+      approveTokenAndMapHash.push([
+        MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash,
+        [MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.address],
+      ]);
+    }
+  }
+
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
