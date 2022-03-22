@@ -130,7 +130,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const currentBestStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
   const expectedStrategySteps =
     StrategiesByTokenByChain["mainnet"].USDC[
-      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f"
+      "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"
     ].strategy;
   const expectedStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({

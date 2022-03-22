@@ -1,7 +1,6 @@
 import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { ethers } from "ethers";
 import TASKS from "../task-names";
 import { getAddress } from "@ethersproject/address";
 import { TypedTokens } from "../../helpers/data";
@@ -23,14 +22,6 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
 
     if (!isAddress(vault)) {
       throw new Error("vault address is invalid");
-    }
-
-    if (user === "") {
-      throw new Error("user cannot be empty");
-    }
-
-    if (!isAddress(user)) {
-      throw new Error("user address is invalid");
     }
 
     if (!ACTIONS.includes(action.toUpperCase())) {
@@ -57,8 +48,8 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
           let underlyingTokenBalance = await tokenContract.balanceOf(user);
           underlyingTokenBalance = await tokenContract.balanceOf(user);
           console.log(
-            `Underlying token : ${ethers.utils.formatUnits(
-              ethers.BigNumber.from(underlyingTokenBalance),
+            `Underlying token : ${hre.ethers.utils.formatUnits(
+              hre.ethers.BigNumber.from(underlyingTokenBalance),
               tokenDecimals,
             )} ${tokenSymbol}`,
           );
@@ -68,7 +59,10 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
           try {
             const allowance = await tokenContract.allowance(user, vault);
             console.log(
-              `Allowance : ${ethers.utils.formatUnits(ethers.BigNumber.from(allowance), tokenDecimals)} ${tokenSymbol}`,
+              `Allowance : ${hre.ethers.utils.formatUnits(
+                hre.ethers.BigNumber.from(allowance),
+                tokenDecimals,
+              )} ${tokenSymbol}`,
             );
             if (allowance.lt(checkedAmount)) {
               console.log("Approving...");
@@ -76,8 +70,8 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               await approveTx.wait(1);
               const allowanceAfter = await tokenContract.allowance(user, vault);
               console.log(
-                `AllowanceAfter : ${ethers.utils.formatUnits(
-                  ethers.BigNumber.from(allowanceAfter),
+                `AllowanceAfter : ${hre.ethers.utils.formatUnits(
+                  hre.ethers.BigNumber.from(allowanceAfter),
                   tokenDecimals,
                 )} ${tokenSymbol}`,
               );
@@ -86,6 +80,15 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             let strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
             console.log(`depositing ${checkedAmount.toString()}..`);
+            console.log("Block before : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply before : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share before : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
               const depositTx = await vaultContract
                 .connect(userSigner)
@@ -95,19 +98,28 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               const depositTx = await vaultContract.connect(userSigner).userDepositVault(checkedAmount, [], []);
               await depositTx.wait(1);
             }
+            console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply after : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share after : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
             const vaultShareBalance = await vaultContract.balanceOf(user);
             strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
             console.log(
-              `Vault Shares : ${ethers.utils.formatUnits(
-                ethers.BigNumber.from(vaultShareBalance),
+              `Vault Shares : ${hre.ethers.utils.formatUnits(
+                hre.ethers.BigNumber.from(vaultShareBalance),
                 vaultShareDecimals,
               )} ${vaultShareSymbol}`,
             );
             const underlyingTokenBalance = await tokenContract.balanceOf(user);
             console.log(
-              `Underlying token : ${ethers.utils.formatUnits(
-                ethers.BigNumber.from(underlyingTokenBalance),
+              `Underlying token : ${hre.ethers.utils.formatUnits(
+                hre.ethers.BigNumber.from(underlyingTokenBalance),
                 tokenDecimals,
               )} ${tokenSymbol}`,
             );
@@ -127,13 +139,21 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             console.log(`Invest strategy : ${strategyHash}`);
             const underlyingTokenBalanceBefore = await tokenContract.balanceOf(user);
             console.log(
-              `Underlying token balance before : ${ethers.utils.formatUnits(
-                ethers.BigNumber.from(underlyingTokenBalanceBefore),
+              `Underlying token balance before : ${hre.ethers.utils.formatUnits(
+                hre.ethers.BigNumber.from(underlyingTokenBalanceBefore),
                 tokenDecimals,
               )} ${tokenSymbol}`,
             );
             console.log(`withdrawing ${checkedAmount.toString()} with rebalance..`);
-
+            console.log("Block before : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply before : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share before : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
               const withdrawTx = await vaultContract
                 .connect(userSigner)
@@ -143,20 +163,28 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               const withdrawTx = await vaultContract.connect(userSigner).userWithdrawVault(checkedAmount, [], []);
               await withdrawTx.wait(1);
             }
-
+            console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply after : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share after : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
             const vaultShareBalance = await vaultContract.balanceOf(user);
             strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
             console.log(
-              `Vault Shares : ${ethers.utils.formatUnits(
-                ethers.BigNumber.from(vaultShareBalance),
+              `Vault Shares : ${hre.ethers.utils.formatUnits(
+                hre.ethers.BigNumber.from(vaultShareBalance),
                 vaultShareDecimals,
               )} ${vaultShareSymbol}`,
             );
             const underlyingTokenBalance = await tokenContract.balanceOf(user);
             console.log(
-              `Underlying token : ${ethers.utils.formatUnits(
-                ethers.BigNumber.from(underlyingTokenBalance),
+              `Underlying token : ${hre.ethers.utils.formatUnits(
+                hre.ethers.BigNumber.from(underlyingTokenBalance),
                 tokenDecimals,
               )} ${tokenSymbol}`,
             );
@@ -171,7 +199,25 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             let strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
             console.log("Rebalancing..");
+            console.log("Block before : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply before : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share before : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
             await vaultContract.connect(userSigner).rebalance();
+            console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply after : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share after : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
             strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
             console.log("Rebalance successfully");

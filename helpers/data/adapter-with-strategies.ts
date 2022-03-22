@@ -281,7 +281,7 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
             isBorrow: false,
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
-            outputTokenSymbol: "usdc3Crv",
+            outputTokenSymbol: "usdn3Crv",
           },
           {
             contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
