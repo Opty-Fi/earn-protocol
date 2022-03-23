@@ -20,7 +20,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (getAddress(implementationAddress) != getAddress(opUSDCgrowAddress)) {
     console.log("Admin upgrading opUSDCgrow..");
     console.log("\n");
-    await opUSDCgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opUSDCgrowAddress);
+    const tx1 = await opUSDCgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opUSDCgrowAddress);
+    await tx1.wait(1);
   } else {
     console.log("opUSDCgrow is upto date..");
     console.log("\n");

@@ -20,7 +20,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (getAddress(implementationAddress) != getAddress(opWETHgrowAddress)) {
     console.log("Admin upgrading opWETHgrow..");
     console.log("\n");
-    await opWETHgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opWETHgrowAddress);
+    const tx = await opWETHgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opWETHgrowAddress);
+    await tx.wait(1);
   } else {
     console.log("opWETHgrow is upto date..");
     console.log("\n");

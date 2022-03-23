@@ -58,6 +58,7 @@ const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networ
   gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
   deploy: [`deploy`, `deploy_${networkName == "tenderly" ? "mainnet" : networkName}`],
+  timeout: 100000,
 });
 
 const config: HardhatUserConfig = {
