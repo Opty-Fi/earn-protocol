@@ -44,7 +44,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
 
       switch (action.toUpperCase()) {
         case "DEPOSIT": {
-          let checkedAmount = amount;
+          let checkedAmount = hre.ethers.BigNumber.from(amount.toString());
           let underlyingTokenBalance = await tokenContract.balanceOf(user);
           underlyingTokenBalance = await tokenContract.balanceOf(user);
           console.log(
@@ -66,7 +66,9 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             );
             if (allowance.lt(checkedAmount)) {
               console.log("Approving...");
-              const approveTx = await tokenContract.connect(userSigner).approve(vault, checkedAmount.sub(allowance));
+              const approveTx = await tokenContract
+                .connect(userSigner)
+                .approve(vault, hre.ethers.BigNumber.from(checkedAmount).sub(allowance));
               await approveTx.wait(1);
               const allowanceAfter = await tokenContract.allowance(user, vault);
               console.log(
@@ -130,7 +132,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
           break;
         }
         case "WITHDRAW": {
-          let checkedAmount = amount;
+          let checkedAmount = hre.ethers.BigNumber.from(amount.toString());
           if (useall) {
             checkedAmount = await vaultContract.balanceOf(user);
           }

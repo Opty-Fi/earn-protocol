@@ -23,7 +23,8 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       console.log("\n");
       console.log("USDC vault...");
       console.log("\n");
-      const opAVUSDCintInstance = await ethers.getContractAt(oldAbis.oldVault, opAVUSDCintProxyAddress);
+      const signers = await ethers.getSigners();
+      const opAVUSDCintInstance = await ethers.getContractAt(oldAbis.oldVault, opAVUSDCintProxyAddress, signers[0]);
 
       const usdcCurrentStrategyHash = await opAVUSDCintInstance.investStrategyHash();
       console.log("USDC current strategy ", usdcCurrentStrategyHash);

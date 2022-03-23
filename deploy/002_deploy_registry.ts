@@ -64,13 +64,19 @@ const func: DeployFunction = async ({
   console.log("registryV2.address ", registryV2.address);
   console.log("\n");
   if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
-    console.log("\n");
-    console.log("operator setting pending implementation...");
-    console.log("\n");
-    const setPendingImplementationTx = await registryProxyInstance
-      .connect(operatorSigner)
-      .setPendingImplementation(registryV2.address);
-    await setPendingImplementationTx.wait();
+    const pendingImplementation = await registryProxyInstance.pendingRegistryImplementation();
+    if (getAddress(pendingImplementation) != getAddress(registryV2.address)) {
+      console.log("\n");
+      console.log("operator setting pending implementation...");
+      console.log("\n");
+      const setPendingImplementationTx = await registryProxyInstance
+        .connect(operatorSigner)
+        .setPendingImplementation(registryV2.address);
+      await setPendingImplementationTx.wait();
+    } else {
+      console.log("Pending implementation is already set");
+      console.log("\n");
+    }
     console.log("governance upgrading Registry...");
     console.log("\n");
     const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress);

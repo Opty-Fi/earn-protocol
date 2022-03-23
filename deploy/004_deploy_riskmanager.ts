@@ -67,20 +67,32 @@ const func: DeployFunction = async ({
   console.log("==RiskManager implementation==");
   console.log("\n");
   if (getAddress(riskManagerV2.address) != getAddress(riskManagerImplementation)) {
-    console.log("operator setting pending implementation...");
-    console.log("\n");
-    const setPendingImplementationTx = await riskManagerInstance
-      .connect(operatorSigner)
-      .setPendingImplementation(riskManagerV2.address);
-    await setPendingImplementationTx.wait();
+    const pendingImplementation = await riskManagerInstance.pendingRiskManagerImplementation();
+    if (getAddress(pendingImplementation) != getAddress(riskManagerV2Instance.address)) {
+      console.log("operator setting pending implementation...");
+      console.log("\n");
+      const setPendingImplementationTx = await riskManagerInstance
+        .connect(operatorSigner)
+        .setPendingImplementation(riskManagerV2.address);
+      await setPendingImplementationTx.wait();
+    } else {
+      console.log("Pending implementation for risk manager is already set.");
+      console.log("\n");
+    }
     console.log("governance upgrading risk manager...");
     console.log("\n");
     const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxyAddress);
     await becomeTx.wait();
-    console.log("operator registering upgraded RiskManager ...");
-    console.log("\n");
-    const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxyAddress);
-    await setRiskManagerTx.wait();
+    const riskManagerRegisteredInRegistry = await registryV2Instance.riskManager();
+    if (getAddress(riskManagerRegisteredInRegistry) != getAddress(riskManagerInstance.address)) {
+      console.log("operator registering upgraded RiskManager ...");
+      console.log("\n");
+      const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxyAddress);
+      await setRiskManagerTx.wait();
+    } else {
+      console.log("Risk manager is already registered.");
+      console.log("\n");
+    }
   } else {
     console.log("RiskManager is already upgraded");
     console.log("\n");
