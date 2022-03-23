@@ -81,9 +81,10 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       if (usdcBestStrategyHash != ethers.constants.HashZero) {
         console.log("StrategyOperator setting HashZero as best strategy for USDC...");
         console.log("\n");
-        await strategyProviderInstance
+        const tx1 = await strategyProviderInstance
           .connect(signerStrategyOperator)
           .setBestStrategy(opUSDCgrowRiskProfileCode, oldUSDCTokensHash, ethers.constants.HashZero);
+        await tx1.wait(1);
         console.log(
           "usdcBestStrategyHash ",
           await strategyProviderInstance.rpToTokenToBestStrategy(opUSDCgrowRiskProfileCode, oldUSDCTokensHash),
@@ -96,9 +97,10 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       if (wethBestStrategyHash != ethers.constants.HashZero) {
         console.log("StrategyOperator setting HashZero as best strategy for WETH...");
         console.log("\n");
-        await strategyProviderInstance
+        const tx2 = await strategyProviderInstance
           .connect(signerStrategyOperator)
           .setBestStrategy(opWETHgrowRiskProfileCode, oldWETHTokensHash, ethers.constants.HashZero);
+        await tx2.wait(1);
         console.log(
           "wethBestStrategyHash ",
           await strategyProviderInstance.rpToTokenToBestStrategy(opWETHgrowRiskProfileCode, oldWETHTokensHash),
@@ -114,9 +116,10 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       if (usdcDefaultStrategyHash != ethers.constants.HashZero) {
         console.log("StrategyOperator setting HashZero as best default strategy for USDC...");
         console.log("\n");
-        await strategyProviderInstance
+        const tx3 = await strategyProviderInstance
           .connect(signerStrategyOperator)
           .setBestDefaultStrategy(opUSDCgrowRiskProfileCode, oldUSDCTokensHash, ethers.constants.HashZero);
+        await tx3.wait(1);
         console.log(
           "usdcDefaultStrategyHash ",
           await strategyProviderInstance.rpToTokenToDefaultStrategy(opUSDCgrowRiskProfileCode, oldUSDCTokensHash),
@@ -129,9 +132,10 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       if (wethDefaultStrategyHash != ethers.constants.HashZero) {
         console.log("StrategyOperator setting HashZero as best default strategy for WETH...");
         console.log("\n");
-        await strategyProviderInstance
+        const tx4 = await strategyProviderInstance
           .connect(signerStrategyOperator)
           .setBestDefaultStrategy(opWETHgrowRiskProfileCode, oldWETHTokensHash, ethers.constants.HashZero);
+        await tx4.wait(1);
         console.log(
           "wethDefaultStrategyHash ",
           await strategyProviderInstance.rpToTokenToDefaultStrategy(opWETHgrowRiskProfileCode, oldWETHTokensHash),

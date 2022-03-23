@@ -120,7 +120,7 @@ const config: HardhatUserConfig = {
     ),
     dashboard: {
       url: NETWORKS_RPC_URL[eEVMNetwork.dashboard],
-      deploy: [`deploy`, `deploy_kovan`],
+      deploy: [`deploy`, `deploy_mainnet`],
     },
     polygon: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.polygon],

@@ -72,7 +72,7 @@ const func: DeployFunction = async ({
       const setPendingImplementationTx = await registryProxyInstance
         .connect(operatorSigner)
         .setPendingImplementation(registryV2.address);
-      await setPendingImplementationTx.wait();
+      await setPendingImplementationTx.wait(1);
     } else {
       console.log("Pending implementation is already set");
       console.log("\n");
@@ -80,7 +80,7 @@ const func: DeployFunction = async ({
     console.log("governance upgrading Registry...");
     console.log("\n");
     const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress);
-    await becomeTx.wait();
+    await becomeTx.wait(1);
     console.log("Registry implementation after ", await registryProxyInstance.registryImplementation());
     console.log("\n");
   }

@@ -56,7 +56,7 @@ const func: DeployFunction = async ({
     const setStrategyProviderTx = await registryV2Instance
       .connect(operatorSigner)
       .setStrategyProvider(strategyProviderV2.address);
-    await setStrategyProviderTx.wait();
+    await setStrategyProviderTx.wait(1);
   } else {
     console.log("StrategyProvider already registered");
     console.log("\n");

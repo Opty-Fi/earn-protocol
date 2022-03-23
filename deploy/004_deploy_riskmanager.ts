@@ -74,7 +74,7 @@ const func: DeployFunction = async ({
       const setPendingImplementationTx = await riskManagerInstance
         .connect(operatorSigner)
         .setPendingImplementation(riskManagerV2.address);
-      await setPendingImplementationTx.wait();
+      await setPendingImplementationTx.wait(1);
     } else {
       console.log("Pending implementation for risk manager is already set.");
       console.log("\n");
@@ -82,7 +82,7 @@ const func: DeployFunction = async ({
     console.log("governance upgrading risk manager...");
     console.log("\n");
     const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxyAddress);
-    await becomeTx.wait();
+    await becomeTx.wait(1);
     const riskManagerRegisteredInRegistry = await registryV2Instance.riskManager();
     if (getAddress(riskManagerRegisteredInRegistry) != getAddress(riskManagerInstance.address)) {
       console.log("operator registering upgraded RiskManager ...");
