@@ -51,4 +51,4 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
 };
 export default func;
 func.tags = ["RiskManagerProxy"];
-func.dependencies = ["RegistryProxy"];
+func.dependencies = ["Registry"];

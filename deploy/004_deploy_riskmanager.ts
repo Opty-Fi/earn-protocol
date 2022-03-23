@@ -110,4 +110,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["RiskManager"];
-func.dependencies = ["RegistryProxy"];
+func.dependencies = ["RiskManagerProxy"];
