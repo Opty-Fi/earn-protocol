@@ -64,17 +64,23 @@ const func: DeployFunction = async ({
   console.log("registryV2.address ", registryV2.address);
   console.log("\n");
   if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
-    console.log("\n");
-    console.log("operator setting pending implementation...");
-    console.log("\n");
-    const setPendingImplementationTx = await registryProxyInstance
-      .connect(operatorSigner)
-      .setPendingImplementation(registryV2.address);
-    await setPendingImplementationTx.wait();
+    const pendingImplementation = await registryProxyInstance.pendingRegistryImplementation();
+    if (getAddress(pendingImplementation) != getAddress(registryV2.address)) {
+      console.log("\n");
+      console.log("operator setting pending implementation...");
+      console.log("\n");
+      const setPendingImplementationTx = await registryProxyInstance
+        .connect(operatorSigner)
+        .setPendingImplementation(registryV2.address);
+      await setPendingImplementationTx.wait(1);
+    } else {
+      console.log("Pending implementation is already set");
+      console.log("\n");
+    }
     console.log("governance upgrading Registry...");
     console.log("\n");
     const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress);
-    await becomeTx.wait();
+    await becomeTx.wait(1);
     console.log("Registry implementation after ", await registryProxyInstance.registryImplementation());
     console.log("\n");
   }
@@ -105,7 +111,7 @@ const func: DeployFunction = async ({
     ]);
   }
 
-  if (chainId != "42") {
+  if (!["42", "80001", "137"].includes(chainId)) {
     const wethApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
 
     if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
@@ -127,35 +133,13 @@ const func: DeployFunction = async ({
     }
   }
 
-  if (chainId == "137") {
-    const wmaticApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.address);
-
-    if (wmaticApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash)) {
-      console.log("only set WMATIC hash");
-      console.log("\n");
-      onlySetTokensHash.push([
-        MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash,
-        [MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.address],
-      ]);
-    }
-
-    if (!wmaticApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash)) {
-      console.log("approve WMATIC and set hash");
-      console.log("\n");
-      approveTokenAndMapHash.push([
-        MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.hash,
-        [MULTI_CHAIN_VAULT_TOKENS[chainId].WMATIC.address],
-      ]);
-    }
-  }
-
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
     const approveTokenAndMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
-    await approveTokenAndMapToTokensHashTx.wait();
+    await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
@@ -164,7 +148,7 @@ const func: DeployFunction = async ({
     const onlyMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
-    await onlyMapToTokensHashTx.wait();
+    await onlyMapToTokensHashTx.wait(1);
   }
 
   // add risk profile
@@ -177,7 +161,7 @@ const func: DeployFunction = async ({
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
       ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100]); // code,name,symbol,canBorrow,pool rating range
-    await addRiskProfileTx.wait();
+    await addRiskProfileTx.wait(1);
   } else {
     console.log("Already configured risk profile");
     console.log("\n");

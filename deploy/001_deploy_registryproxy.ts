@@ -6,7 +6,12 @@ import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-na
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
-const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({
+  deployments,
+  getNamedAccounts,
+  getChainId,
+  tenderly,
+}: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY_PROXY);
@@ -29,7 +34,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
     if (result.newlyDeployed) {
       const registryProxy = await deployments.get("RegistryProxy");
       if (networkName === "tenderly") {
-        await hre.tenderly.verify({
+        await tenderly.verify({
           name: "RegistryProxy",
           address: registryProxy.address,
           constructorArguments: [],
