@@ -42,5 +42,10 @@ export default {
     },
     ADD_RISK_PROFILE: { NAME: "add-risk-profile", DESCRIPTION: "Add a new risk profile" },
     GET_STRATEGY: { NAME: "get-strategy", DESCRIPTION: "Get the details of a specific strategy" },
+    GET_PRICE_PER_FULL_SHARE: {
+      NAME: "get-price-per-full-share",
+      DESCRIPTION: "Get price per full share of the vault",
+    },
+    GET_TOTAL_SUPPLY: { NAME: "get-total-supply", DESCRIPTION: "Get total supply of the vault" },
   },
 };

@@ -551,3 +551,43 @@ yarn hardhat get-action \
 --functionabi 'balanceOf(address)' \
 --params 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1
 ```
+
+### get-price-per-full-share
+
+```
+Usage: get price per full share of the vault
+
+Options:
+--vault            required <address> the address of vault
+--block-number              <number>  block number
+--network          optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+  yarn hardhat get-price-per-full-share \
+  --network localhost \
+  --vault 0x0000000000000000000000000000000000000000 \
+  --block-number 1234567
+```
+
+### get-total-supply
+
+```
+Usage: get total supply of the vault
+
+Options:
+--vault            required <address> the address of vault
+--block-number              <number>  block number
+--network          optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+  yarn hardhat get-price-per-full-share \
+  --network localhost \
+  --vault 0x0000000000000000000000000000000000000000 \
+  --block-number 1234567
+```
