@@ -39,7 +39,7 @@ const func: DeployFunction = async ({
     },
     args: [registryProxyAddress],
     log: true,
-    skipIfAlreadyDeployed: false,
+    skipIfAlreadyDeployed: true,
   });
 
   const riskManagerV2 = await deployments.get("RiskManager");
