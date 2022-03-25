@@ -51,10 +51,8 @@ jobs:
         run: |
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
-      - name: Google Chat Notification
-        uses: Co-qn/google-chat-notification@releases/v1
-        if: always()
-        with:
-          name: Lint-Compile-Test
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
-          status: ${{ job.status }}
+      - name: Send GitHub Action trigger data to Slack workflow
+        id: slack
+        uses: slackapi/slack-github-action@v1.18.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
