@@ -1,8 +1,8 @@
-import { getAddress } from "ethers/lib/utils";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
+  const { getAddress } = ethers.utils;
   const opWETHgrowProxyAddress = "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8";
   const opWETHgrowAddress = await (await deployments.get("opWETHgrow")).address;
 

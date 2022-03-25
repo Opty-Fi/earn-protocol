@@ -1,5 +1,3 @@
-import { getAddress } from "ethers/lib/utils";
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -7,9 +5,10 @@ import { oldAbis } from "../helpers/data/oldAbis";
 
 const FORK = process.env.FORK;
 
-const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({ ethers, getChainId, network }: HardhatRuntimeEnvironment) => {
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
+  const { getAddress } = ethers.utils;
 
   if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
     const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";

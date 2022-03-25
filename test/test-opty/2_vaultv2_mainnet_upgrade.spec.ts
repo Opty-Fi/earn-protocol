@@ -90,11 +90,11 @@ const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
   outputToken: strategy.outputToken,
   isBorrow: false,
 }));
-const cvxusdn3CrvStrategyStepsContract = cvxusdn3Crv.map(strategy => ({
-  contract: strategy.contract,
-  outputToken: strategy.outputToken,
-  isBorrow: false,
-}));
+// const cvxusdn3CrvStrategyStepsContract = cvxusdn3Crv.map(strategy => ({
+//   contract: strategy.contract,
+//   outputToken: strategy.outputToken,
+//   isBorrow: false,
+// }));
 describe("Vault Ethereum on-chain upgrade", () => {
   before(async function () {
     this.signers = {} as Signers;

@@ -1,4 +1,4 @@
-name: Earn protocol Install, lint, test and deploy pipeline
+name: Earn protocol Install, lint and test pipeline
 
 on:
   push:
@@ -117,24 +117,4 @@ jobs:
         run: |
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
-      - name: Add public IP to AWS security group
-        uses: sohelamin/aws-security-group-add-ip-action@master
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'us-east-1'
-          aws-security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
-          port: '8545'
-          to-port: ''
-          protocol: 'tcp'
-          description: 'GitHub Action'
-      - name: Deploy
-        run: |
-          yarn setup:staging
-      - name: Google Chat Notification
-        uses: Co-qn/google-chat-notification@releases/v1
-        if: always()
-        with:
-          name: Test & Deploy
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
-          status: ${{ job.status }}
+
