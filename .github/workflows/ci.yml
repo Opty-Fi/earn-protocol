@@ -6,79 +6,7 @@ on:
       - master
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
-    
-    env:
-      MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
-      COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
-      MNEMONIC: ${{ secrets.MNEMONIC}}
-      STRATEGY_DIVISOR: 2
-
-    steps:
-      - name: Checkout Use Node.js ${{ matrix.node-version}}
-        uses: actions/checkout@v2
-      - name: Cache node modules
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: '**/node_modules'
-          key: npm-v2-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: npm-v2-
-      - name: Install
-        run: |
-          yarn install --frozen-lockfile
-      - name: Lint
-        run: |
-          yarn lint
-      - name: Google Chat Notification
-        uses: Co-qn/google-chat-notification@releases/v1
-        if: always()
-        with:
-          name: Lint
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
-          status: ${{ job.status }}
-  compile:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
-    
-    env:
-      MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
-      COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
-      MNEMONIC: ${{ secrets.MNEMONIC}}
-
-    steps:
-      - name: Checkout Use Node.js ${{ matrix.node-version}}
-        uses: actions/checkout@v2
-        with:
-         token: ${{secrets.PAT}}
-         submodules: recursive
-      - name: Cache node modules
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: '**/node_modules'
-          key: npm-v2-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: npm-v2-
-      - name: Install
-        run: |
-          yarn install --frozen-lockfile
-      - name: Compile
-        run: |
-          yarn compile
-      - name: Google Chat Notification
-        uses: Co-qn/google-chat-notification@releases/v1
-        if: always()
-        with:
-          name: Compile
-          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
-          status: ${{ job.status }}
-  test-deploy:
+  lint-compile-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -97,9 +25,6 @@ jobs:
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
         uses: actions/checkout@v2
-        with:
-         token: ${{secrets.PAT}}
-         submodules: recursive
       - name: Cache node modules
         uses: actions/cache@v2
         id: cache
@@ -110,6 +35,12 @@ jobs:
       - name: Install
         run: |
           yarn install --frozen-lockfile
+      - name: Lint
+        run: |
+          yarn lint
+      - name: Compile
+        run: |
+          yarn compile
       - name: Optyfi-SDK Mainnet
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
@@ -117,4 +48,10 @@ jobs:
         run: |
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
-
+      - name: Google Chat Notification
+        uses: Co-qn/google-chat-notification@releases/v1
+        if: always()
+        with:
+          name: Lint-Compile-Test
+          url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          status: ${{ job.status }}
