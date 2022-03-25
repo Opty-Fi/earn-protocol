@@ -1,4 +1,3 @@
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -6,13 +5,20 @@ import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-na
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
-const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({
+  deployments,
+  getNamedAccounts,
+  getChainId,
+  network,
+  tenderly,
+  run,
+}: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY);
   const registryProxy = await deployments.get("RegistryProxy");
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
 
   const result = await deploy("RiskManagerProxy", {
     from: deployer,
@@ -30,7 +36,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
     if (result.newlyDeployed) {
       const riskManagerProxy = await deployments.get("RiskManagerProxy");
       if (networkName === "tenderly") {
-        await hre.tenderly.verify({
+        await tenderly.verify({
           name: "RiskManagerProxy",
           address: riskManagerProxy.address,
           constructorArguments: [registryProxy.address],
@@ -39,7 +45,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
-        await hre.run("verify:verify", {
+        await run("verify:verify", {
           name: "RiskManagerProxy",
           address: riskManagerProxy.address,
           constructorArguments: [registryProxy.address],

@@ -1,10 +1,8 @@
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { Registry, RiskManagerProxy } from "../typechain";
-import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 const FORK = process.env.FORK;
@@ -14,12 +12,16 @@ const func: DeployFunction = async ({
   getNamedAccounts,
   getChainId,
   ethers,
+  network,
+  tenderly,
+  run,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER);
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
+  const { getAddress } = ethers.utils;
 
   let registryProxyAddress: string = "";
   if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
@@ -39,7 +41,7 @@ const func: DeployFunction = async ({
     },
     args: [registryProxyAddress],
     log: true,
-    skipIfAlreadyDeployed: false,
+    skipIfAlreadyDeployed: true,
   });
 
   const riskManagerV2 = await deployments.get("RiskManager");
@@ -67,20 +69,32 @@ const func: DeployFunction = async ({
   console.log("==RiskManager implementation==");
   console.log("\n");
   if (getAddress(riskManagerV2.address) != getAddress(riskManagerImplementation)) {
-    console.log("operator setting pending implementation...");
-    console.log("\n");
-    const setPendingImplementationTx = await riskManagerInstance
-      .connect(operatorSigner)
-      .setPendingImplementation(riskManagerV2.address);
-    await setPendingImplementationTx.wait(1);
+    const pendingImplementation = await riskManagerInstance.pendingRiskManagerImplementation();
+    if (getAddress(pendingImplementation) != getAddress(riskManagerV2Instance.address)) {
+      console.log("operator setting pending implementation...");
+      console.log("\n");
+      const setPendingImplementationTx = await riskManagerInstance
+        .connect(operatorSigner)
+        .setPendingImplementation(riskManagerV2.address);
+      await setPendingImplementationTx.wait(1);
+    } else {
+      console.log("Pending implementation for risk manager is already set.");
+      console.log("\n");
+    }
     console.log("governance upgrading risk manager...");
     console.log("\n");
     const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxyAddress);
     await becomeTx.wait(1);
-    console.log("operator registering upgraded RiskManager ...");
-    console.log("\n");
-    const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxyAddress);
-    await setRiskManagerTx.wait(1);
+    const riskManagerRegisteredInRegistry = await registryV2Instance.riskManager();
+    if (getAddress(riskManagerRegisteredInRegistry) != getAddress(riskManagerInstance.address)) {
+      console.log("operator registering upgraded RiskManager ...");
+      console.log("\n");
+      const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxyAddress);
+      await setRiskManagerTx.wait();
+    } else {
+      console.log("Risk manager is already registered.");
+      console.log("\n");
+    }
   } else {
     console.log("RiskManager is already upgraded");
     console.log("\n");
@@ -89,7 +103,7 @@ const func: DeployFunction = async ({
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
-        await hre.tenderly.verify({
+        await tenderly.verify({
           name: "RiskManager",
           address: riskManagerV2.address,
           constructorArguments: [registryProxyAddress],
@@ -98,7 +112,7 @@ const func: DeployFunction = async ({
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
-        await hre.run("verify:verify", {
+        await run("verify:verify", {
           name: "RiskManager",
           address: riskManagerV2.address,
           constructorArguments: [registryProxyAddress],

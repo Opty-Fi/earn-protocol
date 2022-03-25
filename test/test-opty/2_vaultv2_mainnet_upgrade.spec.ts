@@ -81,6 +81,20 @@ const cvxFRAX3CRVStrategyStepsContract = cvxFRAX3CRV.map(strategy => ({
   outputToken: strategy.outputToken,
   isBorrow: false,
 }));
+const cvxusdn3Crv =
+  StrategiesByTokenByChain["mainnet"].USDC[
+    "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"
+  ].strategy;
+const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
+  pool: strategy.contract,
+  outputToken: strategy.outputToken,
+  isBorrow: false,
+}));
+// const cvxusdn3CrvStrategyStepsContract = cvxusdn3Crv.map(strategy => ({
+//   contract: strategy.contract,
+//   outputToken: strategy.outputToken,
+//   isBorrow: false,
+// }));
 describe("Vault Ethereum on-chain upgrade", () => {
   before(async function () {
     this.signers = {} as Signers;
@@ -277,7 +291,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     expect(await (await this.opWETHgrow.getInvestStrategySteps()).length).to.eq(0);
   });
 
-  describe("test frax and steth strategy", async function () {
+  describe("test frax, usdn3Crv and steth strategy", async function () {
     before(async function () {
       this.usdc = <ERC20>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.address)
@@ -294,7 +308,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
 
       await deployments.fixture("ConfigopWETHgrow");
       expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
-        cvxFRAX3CRVStrategySteps.map(v => Object.values(v)),
+        cvxusdn3CrvStrategySteps.map(v => Object.values(v)),
       );
       expect(await this.opUSDCgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS["mainnet"].USDC.hash);
       assertVaultConfiguration(
@@ -383,7 +397,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
 
     it("lp token balance should be as expected after rebalance of opUSDCgrow to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
       expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
-        cvxFRAX3CRVStrategySteps.map(v => Object.values(v)),
+        cvxusdn3CrvStrategySteps.map(v => Object.values(v)),
       );
       await this.strategyProvider
         .connect(this.signers.strategyOperator)

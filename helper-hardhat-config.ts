@@ -62,7 +62,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
 
 export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.kovan]: 65 * GWEI,
-  [eEVMNetwork.mainnet]: 65 * GWEI,
+  [eEVMNetwork.mainnet]: "auto",
   [eEVMNetwork.hardhat]: "auto",
   [eEVMNetwork.staging]: "auto",
   [eEVMNetwork.polygon]: 65 * GWEI,

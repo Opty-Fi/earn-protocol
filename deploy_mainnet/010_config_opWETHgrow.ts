@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -7,6 +6,7 @@ import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategie
 import { getRiskProfileCode, getUnpause } from "../helpers/utils";
 
 const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
+  const { BigNumber } = ethers;
   const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const opWETHgrowProxyAddress = "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8";
@@ -26,7 +26,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Governance setting risk profile code for opWETHgrow..");
     console.log("\n");
-    await opWETHgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode);
+    const txn = await opWETHgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode);
+    await txn.wait(1);
   }
 
   console.log("vaultConfiguration for opWETHgrow");
@@ -39,7 +40,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Governance setting vault configuration for opWETHgrow..");
     console.log("\n");
-    await opWETHgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+    const tx1 = await opWETHgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+    await tx1.wait(1);
   }
 
   console.log("Operator setting UnderlyingTokensHash...");
@@ -50,9 +52,10 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (tokensHash != MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash) {
     console.log("setting tokenshash..");
     console.log("\n");
-    await opWETHgrowInstance
+    const tx2 = await opWETHgrowInstance
       .connect(operatorSigner)
       .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash);
+    await tx2.wait(1);
   } else {
     console.log("Tokenshash is upto date");
     console.log("\n");
@@ -80,9 +83,10 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWETHgrow...");
     console.log("\n");
-    await opWETHgrowInstance
+    const tx3 = await opWETHgrowInstance
       .connect(financeOperatorSigner)
       .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT);
+    await tx3.wait(1);
   }
 
   console.log("unpause opWETHgrow");
@@ -93,7 +97,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (!unpause) {
     console.log("Governance unpausing opWETHgrow vault...");
     console.log("\n");
-    await opWETHgrowInstance.connect(governanceSigner).setUnpaused(true);
+    const tx4 = await opWETHgrowInstance.connect(governanceSigner).setUnpaused(true);
+    await tx4.wait();
   } else {
     console.log("opWETHgrow is already unpaused...");
     console.log("\n");
@@ -105,7 +110,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (actualAccountsRoot != expectedAccountsRoot) {
     console.log("Governance setting whitelisted account root opWETHgrow vault...");
     console.log("\n");
-    await opWETHgrowInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot);
+    const tx5 = await opWETHgrowInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot);
+    await tx5.wait(1);
   } else {
     console.log("whitelisted accounts root for opWETHgrow is as expected");
     console.log("\n");
@@ -141,7 +147,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (currentBestStrategyHash !== expectedStrategyHash) {
     console.log("Strategy operator setting best strategy..");
     console.log("\n");
-    await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
+    const tx6 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
       "1",
       MULTI_CHAIN_VAULT_TOKENS["mainnet"].WETH.hash,
       expectedStrategySteps.map(x => ({
@@ -150,6 +156,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
         isBorrow: x.isBorrow,
       })),
     );
+    await tx6.wait(1);
   } else {
     console.log("best strategy is upto date.");
     console.log("\n");

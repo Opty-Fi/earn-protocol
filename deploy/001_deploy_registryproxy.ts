@@ -1,4 +1,3 @@
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -10,13 +9,15 @@ const func: DeployFunction = async ({
   deployments,
   getNamedAccounts,
   getChainId,
+  network,
   tenderly,
+  run,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY_PROXY);
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
 
   const result = await deploy("RegistryProxy", {
     from: deployer,
@@ -43,7 +44,7 @@ const func: DeployFunction = async ({
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
-        await hre.run("verify:verify", {
+        await run("verify:verify", {
           name: "RegistryProxy",
           address: registryProxy.address,
           constructorArguments: [],
