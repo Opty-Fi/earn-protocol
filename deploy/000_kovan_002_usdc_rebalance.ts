@@ -1,5 +1,3 @@
-import { getAddress } from "ethers/lib/utils";
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -7,9 +5,10 @@ import { oldAbis } from "../helpers/data/oldAbis";
 
 const FORK = process.env.FORK;
 
-const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({ ethers, getChainId, network }: HardhatRuntimeEnvironment) => {
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
+  const { getAddress } = ethers.utils;
 
   if (chainId == "42" || FORK == "kovan" || networkName == "kovan") {
     const opAVUSDCintProxyAddress = "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d";
@@ -23,7 +22,8 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
       console.log("\n");
       console.log("USDC vault...");
       console.log("\n");
-      const opAVUSDCintInstance = await ethers.getContractAt(oldAbis.oldVault, opAVUSDCintProxyAddress);
+      const signers = await ethers.getSigners();
+      const opAVUSDCintInstance = await ethers.getContractAt(oldAbis.oldVault, opAVUSDCintProxyAddress, signers[0]);
 
       const usdcCurrentStrategyHash = await opAVUSDCintInstance.investStrategyHash();
       console.log("USDC current strategy ", usdcCurrentStrategyHash);

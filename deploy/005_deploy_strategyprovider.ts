@@ -1,10 +1,8 @@
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { Registry } from "../typechain";
-import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 const FORK = process.env.FORK;
@@ -14,12 +12,16 @@ const func: DeployFunction = async ({
   getNamedAccounts,
   getChainId,
   ethers,
+  network,
+  tenderly,
+  run,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER);
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
+  const { getAddress } = ethers.utils;
 
   let registryProxyAddress: string = "";
   if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
@@ -39,7 +41,7 @@ const func: DeployFunction = async ({
     },
     args: [registryProxyAddress],
     log: true,
-    skipIfAlreadyDeployed: false,
+    skipIfAlreadyDeployed: true,
   });
 
   const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -56,7 +58,7 @@ const func: DeployFunction = async ({
     const setStrategyProviderTx = await registryV2Instance
       .connect(operatorSigner)
       .setStrategyProvider(strategyProviderV2.address);
-    await setStrategyProviderTx.wait();
+    await setStrategyProviderTx.wait(1);
   } else {
     console.log("StrategyProvider already registered");
     console.log("\n");
@@ -66,7 +68,7 @@ const func: DeployFunction = async ({
     if (result.newlyDeployed) {
       const strategyProviderV2 = await deployments.get("StrategyProvider");
       if (networkName === "tenderly") {
-        await hre.tenderly.verify({
+        await tenderly.verify({
           name: "StrategyProvider",
           address: strategyProviderV2.address,
           constructorArguments: [registryProxyAddress],
@@ -75,7 +77,7 @@ const func: DeployFunction = async ({
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
-        await hre.run("verify:verify", {
+        await run("verify:verify", {
           name: "StrategyProvider",
           address: strategyProviderV2.address,
           constructorArguments: [registryProxyAddress],

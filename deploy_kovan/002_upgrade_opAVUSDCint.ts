@@ -1,10 +1,10 @@
-import { getAddress } from "ethers/lib/utils";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
   const opAVUSDCintProxyAddress = "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d";
   const opAVUSDCintAddress = await (await deployments.get("opAVUSDCint")).address;
+  const { getAddress } = ethers.utils;
 
   const opAVUSDCintProxyInstance = await ethers.getContractAt(
     "InitializableImmutableAdminUpgradeabilityProxy",

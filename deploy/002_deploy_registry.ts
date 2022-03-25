@@ -1,11 +1,9 @@
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { RegistryProxy } from "../typechain";
-import { getAddress } from "ethers/lib/utils";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -16,12 +14,16 @@ const func: DeployFunction = async ({
   getNamedAccounts,
   getChainId,
   ethers,
+  network,
+  tenderly,
+  run,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
+  const { getAddress } = ethers.utils;
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY);
   let chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
   const result = await deploy("Registry", {
     from: deployer,
     contract: {
@@ -64,17 +66,23 @@ const func: DeployFunction = async ({
   console.log("registryV2.address ", registryV2.address);
   console.log("\n");
   if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
-    console.log("\n");
-    console.log("operator setting pending implementation...");
-    console.log("\n");
-    const setPendingImplementationTx = await registryProxyInstance
-      .connect(operatorSigner)
-      .setPendingImplementation(registryV2.address);
-    await setPendingImplementationTx.wait();
+    const pendingImplementation = await registryProxyInstance.pendingRegistryImplementation();
+    if (getAddress(pendingImplementation) != getAddress(registryV2.address)) {
+      console.log("\n");
+      console.log("operator setting pending implementation...");
+      console.log("\n");
+      const setPendingImplementationTx = await registryProxyInstance
+        .connect(operatorSigner)
+        .setPendingImplementation(registryV2.address);
+      await setPendingImplementationTx.wait(1);
+    } else {
+      console.log("Pending implementation is already set");
+      console.log("\n");
+    }
     console.log("governance upgrading Registry...");
     console.log("\n");
     const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress);
-    await becomeTx.wait();
+    await becomeTx.wait(1);
     console.log("Registry implementation after ", await registryProxyInstance.registryImplementation());
     console.log("\n");
   }
@@ -163,7 +171,7 @@ const func: DeployFunction = async ({
   if (CONTRACTS_VERIFY === "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
-        await hre.tenderly.verify({
+        await tenderly.verify({
           name: "Registry",
           address: registryV2.address,
           constructorArguments: [],
@@ -172,7 +180,7 @@ const func: DeployFunction = async ({
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
-        await hre.run("verify:verify", {
+        await run("verify:verify", {
           name: "RegistryProxy",
           address: registryV2.address,
           constructorArguments: [],

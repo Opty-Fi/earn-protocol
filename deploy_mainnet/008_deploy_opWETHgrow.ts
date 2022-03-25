@@ -1,18 +1,24 @@
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
-const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({
+  deployments,
+  getNamedAccounts,
+  getChainId,
+  network,
+  tenderly,
+  run,
+}: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("Vault");
   const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
 
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
 
   const result = await deploy("opWETHgrow", {
     from: deployer,
@@ -30,7 +36,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
     if (result.newlyDeployed) {
       const vault = await deployments.get("opWETHgrow");
       if (networkName === "tenderly") {
-        await hre.tenderly.verify({
+        await tenderly.verify({
           name: "opWETHgrow",
           address: vault.address,
           constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
@@ -38,7 +44,7 @@ const func: DeployFunction = async ({ deployments, getNamedAccounts, getChainId 
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
-        await hre.run("verify:verify", {
+        await run("verify:verify", {
           name: "opWETHgrow",
           address: vault.address,
           constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],

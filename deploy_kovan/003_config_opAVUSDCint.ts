@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -6,6 +5,7 @@ import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { getUnpause } from "../helpers/utils";
 
 const func: DeployFunction = async ({ ethers }: HardhatRuntimeEnvironment) => {
+  const { BigNumber } = ethers;
   const registryProxyAddress = "0xf710F75418353B36F2624784c290B80e7a5C892A";
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const opAVUSDCintProxyAddress = "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d";

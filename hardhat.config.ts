@@ -27,6 +27,7 @@ const DEFAULT_GAS_MUL = 5;
 const HARDFORK = "london";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const FORK = process.env.FORK || "";
+const NETWORK_NAME = process.env.NETWORK_NAME || "";
 const FORK_BLOCK_NUMBER = process.env.FORK_BLOCK_NUMBER ? parseInt(process.env.FORK_BLOCK_NUMBER) : 0;
 
 if (!SKIP_LOAD) {
@@ -57,7 +58,8 @@ const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networ
   gasMultiplier: DEFAULT_GAS_MUL,
   gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
-  deploy: [`deploy`, `deploy_${networkName == "tenderly" ? "mainnet" : networkName}`],
+  deploy: [`deploy`, `deploy_${NETWORK_NAME}`],
+  timeout: 100000,
 });
 
 const config: HardhatUserConfig = {
@@ -152,8 +154,8 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 1_00_000_000,
       gasPrice: "auto",
       forking: buildForkConfig(FORK as eEVMNetwork, FORK_BLOCK_NUMBER),
-      allowUnlimitedContractSize: true,
-      chainId: NETWORKS_CHAIN_ID[FORK as eEVMNetwork],
+      allowUnlimitedContractSize: false,
+      chainId: NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
       accounts: {
         mnemonic,
         path: MNEMONIC_PATH,

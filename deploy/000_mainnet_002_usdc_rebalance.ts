@@ -1,5 +1,3 @@
-import { getAddress } from "ethers/lib/utils";
-import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -7,9 +5,10 @@ import { oldAbis } from "../helpers/data/oldAbis";
 
 const FORK = process.env.FORK;
 
-const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({ ethers, getChainId, network }: HardhatRuntimeEnvironment) => {
   const chainId = await getChainId();
-  const networkName = hre.network.name;
+  const networkName = network.name;
+  const { getAddress } = ethers.utils;
 
   if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
     const opUSDCgrowProxyAddress = "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88";
@@ -29,7 +28,7 @@ const func: DeployFunction = async ({ ethers, getChainId }: HardhatRuntimeEnviro
         console.log("rebalancing USDC...");
         console.log("\n");
         const tx = await opUSDCgrowInstance.rebalance();
-        await tx.wait();
+        await tx.wait(1);
         console.log("usdcCurrentStrategyHash ", await opUSDCgrowInstance.investStrategyHash());
       } else {
         console.log("USDC vault current strategy is HashZero..");
