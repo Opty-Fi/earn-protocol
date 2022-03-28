@@ -13,3 +13,12 @@
 [submodule "contracts/protocol/curve-metapool-gauge-adapter"]
 	path = contracts/protocol/curve-metapool-gauge-adapter
 	url = git@github.com:Opty-Fi/curve-metapool-gauge-adapter.git
+[submodule "contracts/protocol/curve-polygon-adapter"]
+	path = contracts/protocol/curve-polygon-adapter
+	url = git@github.com:Opty-Fi/curve-polygon-adapter.git
+[submodule "contracts/protocol/aave-polygon-adapter"]
+	path = contracts/protocol/aave-polygon-adapter
+	url = git@github.com:Opty-Fi/aave-polygon-adapter.git
+[submodule "contracts/protocol/sushi-farm-polygon"]
+	path = contracts/protocol/sushi-farm-polygon
+	url = git@github.com:Opty-Fi/sushiswap-farm-polygon.git
