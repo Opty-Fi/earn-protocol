@@ -14,7 +14,12 @@
 contracts/protocol/team-defi-adapters
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/defi-adapters
-contracts/protocol/*-adapter
+contracts/protocol/curve-metapool-deposit-adapter
+contracts/protocol/curve-metapool-gauge-adapter
+contracts/protocol/curve-metapool-swap-adapter
+contracts/protocol/curve-polygon-adapter
+contracts/protocol/aave-polygon-adapter
+contracts/protocol/sushiswap-farm-polygon
 
 # files
 *.env
