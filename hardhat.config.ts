@@ -151,7 +151,7 @@ const config: HardhatUserConfig = {
     tenderly: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.tenderly],
       eEVMNetwork.tenderly,
-      NETWORKS_CHAIN_ID[eEVMNetwork.tenderly],
+      NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
     ),
 
     hardhat: {

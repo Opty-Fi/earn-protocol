@@ -19,6 +19,6 @@
 [submodule "contracts/protocol/aave-polygon-adapter"]
 	path = contracts/protocol/aave-polygon-adapter
 	url = git@github.com:Opty-Fi/aave-polygon-adapter.git
-[submodule "contracts/protocol/sushi-farm-polygon"]
-	path = contracts/protocol/sushi-farm-polygon
+[submodule "contracts/protocol/sushiswap-farm-polygon"]
+	path = contracts/protocol/sushiswap-farm-polygon
 	url = git@github.com:Opty-Fi/sushiswap-farm-polygon.git
