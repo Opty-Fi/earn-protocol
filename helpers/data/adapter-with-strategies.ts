@@ -16,7 +16,7 @@ import {
   SUSHISWAP_ADAPTER_NAME,
   CONVEX_ADAPTER_NAME,
 } from "../constants/adapters";
-import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../../helper-hardhat-config";
+import { eEVMNetwork, NETWORKS_CHAIN_ID, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 
 export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   [CONVEX_ADAPTER_NAME]: [
@@ -198,197 +198,227 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   ],
 };
 
+const mainnetStrategiesByToken = {
+  USDC: {
+    "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
+      strategyName:
+        "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          isBorrow: false,
+          outputTokenSymbol: "3Crv",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+          outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+          isBorrow: false,
+          outputTokenSymbol: "FRAX3CRV-f",
+          adapterName: "CurveMetapoolSwapAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+          outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+          isBorrow: false,
+          outputTokenSymbol: "cvxFRAX3CRV-f",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
+      strategyName:
+        "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          isBorrow: false,
+          outputTokenSymbol: "3Crv",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+          outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+          isBorrow: false,
+          outputTokenSymbol: "MIM-3LP3CRV-f",
+          adapterName: "CurveMetapoolSwapAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+          outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+          isBorrow: false,
+          outputTokenSymbol: "cvxMIM-3LP3CRV-f",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+    },
+    "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv": {
+      strategyName: "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          isBorrow: false,
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+          outputTokenSymbol: "3Crv",
+        },
+        {
+          contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+          outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+          isBorrow: false,
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+          outputTokenSymbol: "usdn3Crv",
+        },
+        {
+          contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+          outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+          isBorrow: false,
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+          outputTokenSymbol: "cvxusdn3CRV",
+        },
+      ],
+    },
+    "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_UST-3Crv-DEPOSIT-Convex_CurveUst-3Crv": {
+      strategyName: "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_UST-3Crv-DEPOSIT-Convex_CurveUst-3Crv",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          isBorrow: false,
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+          outputTokenSymbol: "3Crv",
+        },
+        {
+          contract: "0x890f4e345B1dAED0367A877a1612f86A1f86985f",
+          outputToken: "0x94e131324b6054c0D789b190b2dAC504e4361b53",
+          isBorrow: false,
+          adapterName: "CurveSwapPool",
+          protocol: "Curve",
+          outputTokenSymbol: "ust3Crv",
+        },
+        {
+          contract: "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89",
+          outputToken: "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89",
+          isBorrow: false,
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+          outputTokenSymbol: "cvxust3CRV",
+        },
+      ],
+    },
+  },
+  WETH: {
+    "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
+      strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
+      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      strategy: [
+        {
+          contract: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+          outputToken: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+          isBorrow: false,
+          outputTokenSymbol: "stETH",
+          adapterName: "LidoAdapter",
+          protocol: "Lido",
+        },
+        {
+          contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
+          outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
+          isBorrow: false,
+          outputTokenSymbol: "steCRV",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+          outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+          isBorrow: false,
+          outputTokenSymbol: "cvxsteCRV",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+    },
+  },
+};
+
+const kovanStrategiesByToken = {
+  USDC: {
+    "usdc-DEPOSIT-AaveV1-aUSDC": {
+      strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
+      token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+      strategy: [
+        {
+          contract: "0x506B0B2CF20FAA8f38a4E2B524EE43e1f4458Cc5",
+          outputToken: "0x02F626c6ccb6D2ebC071c068DC1f02Bf5693416a",
+          isBorrow: false,
+          outputTokenSymbol: "aUSDC",
+          adapterName: "AaveV1Adapter",
+          protocol: "Aave",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-AaveV2-aUSDC": {
+      strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
+      token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+      strategy: [
+        {
+          contract: "0x1E40B561EC587036f9789aF83236f057D1ed2A90",
+          outputToken: "0xe12AFeC5aa12Cf614678f9bFeeB98cA9Bb95b5B0",
+          isBorrow: false,
+          outputTokenSymbol: "aUSDC",
+          adapterName: "AaveV2Adapter",
+          protocol: "Aave",
+        },
+      ],
+    },
+  },
+};
+
+const polygonStrategiesbyToken = {
+  USDC: {
+    // USDC -> curve/aave3crv -> Beefy
+    // USDC -> sushi/usdc-usdt -> Beefy
+    // USDC -> sushi/usdc-dai -> Beefy
+    // USDC -> aave
+  },
+  WMATIC: {
+    // WMATIC -> aave
+  },
+};
+
+const mumbaiStrategiesbyToken = {
+  USDC: {
+    // USDC -> aave
+  },
+};
+
 export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
-  [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
-    USDC: {
-      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
-        strategyName:
-          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
-            outputTokenSymbol: "3Crv",
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
-            outputTokenSymbol: "FRAX3CRV-f",
-            adapterName: "CurveMetapoolSwapAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isBorrow: false,
-            outputTokenSymbol: "cvxFRAX3CRV-f",
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-          },
-        ],
-      },
-      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
-        strategyName:
-          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
-            outputTokenSymbol: "3Crv",
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-            outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-            isBorrow: false,
-            outputTokenSymbol: "MIM-3LP3CRV-f",
-            adapterName: "CurveMetapoolSwapAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-            outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-            isBorrow: false,
-            outputTokenSymbol: "cvxMIM-3LP3CRV-f",
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-          },
-        ],
-      },
-      "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv": {
-        strategyName: "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-            outputTokenSymbol: "3Crv",
-          },
-          {
-            contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
-            outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
-            isBorrow: false,
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-            outputTokenSymbol: "usdn3Crv",
-          },
-          {
-            contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
-            outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
-            isBorrow: false,
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-            outputTokenSymbol: "cvxusdn3CRV",
-          },
-        ],
-      },
-      "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_UST-3Crv-DEPOSIT-Convex_CurveUst-3Crv": {
-        strategyName: "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_UST-3Crv-DEPOSIT-Convex_CurveUst-3Crv",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-            outputTokenSymbol: "3Crv",
-          },
-          {
-            contract: "0x890f4e345B1dAED0367A877a1612f86A1f86985f",
-            outputToken: "0x94e131324b6054c0D789b190b2dAC504e4361b53",
-            isBorrow: false,
-            adapterName: "CurveSwapPool",
-            protocol: "Curve",
-            outputTokenSymbol: "ust3Crv",
-          },
-          {
-            contract: "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89",
-            outputToken: "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89",
-            isBorrow: false,
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-            outputTokenSymbol: "cvxust3CRV",
-          },
-        ],
-      },
-    },
-    WETH: {
-      "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
-        strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
-        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-        strategy: [
-          {
-            contract: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
-            outputToken: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
-            isBorrow: false,
-            outputTokenSymbol: "stETH",
-            adapterName: "LidoAdapter",
-            protocol: "Lido",
-          },
-          {
-            contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-            outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
-            isBorrow: false,
-            outputTokenSymbol: "steCRV",
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
-            outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
-            isBorrow: false,
-            outputTokenSymbol: "cvxsteCRV",
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-          },
-        ],
-      },
-    },
-  },
-  [eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: {},
-  [eEVMNetwork.avalanche || NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: {},
-  [eEVMNetwork.kovan || NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: {
-    USDC: {
-      "usdc-DEPOSIT-AaveV1-aUSDC": {
-        strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
-        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-        strategy: [
-          {
-            contract: "0x506B0B2CF20FAA8f38a4E2B524EE43e1f4458Cc5",
-            outputToken: "0x02F626c6ccb6D2ebC071c068DC1f02Bf5693416a",
-            isBorrow: false,
-            outputTokenSymbol: "aUSDC",
-            adapterName: "AaveV1Adapter",
-            protocol: "Aave",
-          },
-        ],
-      },
-      "usdc-DEPOSIT-AaveV2-aUSDC": {
-        strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
-        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-        strategy: [
-          {
-            contract: "0x1E40B561EC587036f9789aF83236f057D1ed2A90",
-            outputToken: "0xe12AFeC5aa12Cf614678f9bFeeB98cA9Bb95b5B0",
-            isBorrow: false,
-            outputTokenSymbol: "aUSDC",
-            adapterName: "AaveV2Adapter",
-            protocol: "Aave",
-          },
-        ],
-      },
-    },
-  },
+  [eEVMNetwork.mainnet]: mainnetStrategiesByToken,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: mainnetStrategiesByToken,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]]: mainnetStrategiesByToken,
+  [eEVMNetwork.kovan]: kovanStrategiesByToken,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanStrategiesByToken,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanStrategiesByToken,
+  [eEVMNetwork.polygon]: polygonStrategiesbyToken,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: polygonStrategiesbyToken,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]]: polygonStrategiesbyToken,
+  [eEVMNetwork.mumbai]: mumbaiStrategiesbyToken,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]]: mumbaiStrategiesbyToken,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mumbai]]: mumbaiStrategiesbyToken,
 };
