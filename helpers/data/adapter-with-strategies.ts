@@ -392,19 +392,139 @@ const kovanStrategiesByToken = {
 
 const polygonStrategiesbyToken = {
   USDC: {
-    // USDC -> curve/aave3crv -> Beefy
-    // USDC -> sushi/usdc-usdt -> Beefy
-    // USDC -> sushi/usdc-dai -> Beefy
-    // USDC -> aave
+    "usdc-DEPOSIT-CurveStableSwap-am3CRV": {
+      strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV",
+      token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      strategy: [
+        {
+          contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
+          outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
+          isBorrow: false,
+          outputTokenSymbol: "am3CRV",
+          adapterName: "CurveStableSwapAdapter",
+          protocol: "Curve",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-Aave-amUSDC": {
+      strategyName: "usdc-DEPOSIT-Aave-amUSDC",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      strategy: [
+        {
+          contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
+          outputToken: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F",
+          isBorrow: false,
+          outputTokenSymbol: "amUSDC",
+          adapterName: "AaveAdapter",
+          protocol: "Aave",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
+      strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
+      token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      strategy: [
+        {
+          contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
+          outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
+          isBorrow: false,
+          outputTokenSymbol: "am3CRV",
+          adapterName: "CurveStableSwapAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
+          outputToken: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
+          isBorrow: false,
+          outputTokenSymbol: "mooCurveAm3CRV",
+          adapterName: "BeefyFinanceAdapter",
+          protocol: "Beefy",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-Sushiswap-USDC-USDT-SLP-DEPOSIT-Beefy-mooSushiUSDC-USDT": {
+      strategyName: "usdc-DEPOSIT-USDCUSDTSLP-DEPOSIT-Beefy-mooSushiUSDC-USDT",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      strategy: [
+        {
+          contract: "0x4b1f1e2435a9c96f7330faea190ef6a7c8d70001",
+          outputToken: "0x4b1f1e2435a9c96f7330faea190ef6a7c8d70001",
+          isBorrow: false,
+          outputTokenSymbol: "USDC-USDT-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
+          outputToken: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
+          isBorrow: false,
+          outputTokenSymbol: "mooSushiUSDC-USDT",
+          adapterName: "BeefyFinanceAdapter",
+          protocol: "Beefy",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI": {
+      strategyName: "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      strategy: [
+        {
+          contract: "0xcd578f016888b57f1b1e3f887f392f0159e26747",
+          outputToken: "0xcd578f016888b57f1b1e3f887f392f0159e26747",
+          isBorrow: false,
+          outputTokenSymbol: "USDC-DAI-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
+          outputToken: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
+          isBorrow: false,
+          outputTokenSymbol: "mooSushiUSDC-DAI",
+          adapterName: "BeefyFinanceAdapter",
+          protocol: "Beefy",
+        },
+      ],
+    },
+    "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT": {},
+    "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI": {},
+    "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooQuickUSDC-MAI": {},
+    "usdc-DEPOSIT-Apeswap-USDC-DAI-ALP-Beefy-mooApeUSDC-DAI": {},
   },
   WMATIC: {
-    // WMATIC -> aave
+    "wmatic-DEPOSIT-Aave-amWMATIC": {
+      strategyName: "wmatic-DEPOSIT-Aave-amWMATIC",
+      token: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      strategy: [
+        {
+          contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
+          outputToken: "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4",
+          isBorrow: false,
+          outputTokenSymbol: "amWMATIC",
+          adapterName: "AaveAdapter",
+          protocol: "Aave",
+        },
+      ],
+    },
   },
 };
 
 const mumbaiStrategiesbyToken = {
   USDC: {
-    // USDC -> aave
+    "usdc-DEPOSIT-Aave-amUSDC": {
+      strategyName: "",
+      token: "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e",
+      strategy: [
+        {
+          contract: "0xE6ef11C967898F9525D550014FDEdCFAB63536B5",
+          outputToken: "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9",
+          isBorrow: false,
+          outputTokenSymbol: "amUSDC",
+          adapterName: "AaveAdapter",
+          protocol: "Aave",
+        },
+      ],
+    },
   },
 };
 
