@@ -1,12 +1,13 @@
-import chai from "chai";
-import { deployments, ethers } from "hardhat";
+import chai, { expect } from "chai";
+import { deployments, ethers, network } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import { Signers } from "../../helpers/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
-import { eEVMNetwork } from "../../helper-hardhat-config";
-
-import { RegistryV2, RiskManagerV2, StrategyProviderV2 } from "../../typechain";
+import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
+import { Registry, RiskManager, StrategyProvider, Vault } from "../../typechain";
+import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 
 chai.use(solidity);
 
@@ -28,27 +29,81 @@ describe("VaultV2", () => {
     this.signers.strategyOperator = signers[7];
     const registryProxy = await deployments.get("RegistryProxy");
     const riskManagerProxy = await deployments.get("RiskManagerProxy");
-    const strategyProviderV2 = await deployments.get("StrategyProviderV2");
-    this.registryV2 = <RegistryV2>await ethers.getContractAt("RegistryV2", registryProxy.address);
-    this.riskManagerV2 = <RiskManagerV2>await ethers.getContractAt("RiskManagerV2", riskManagerProxy.address);
-    this.strategyProviderV2 = <StrategyProviderV2>(
-      await ethers.getContractAt("StrategyProviderV2", strategyProviderV2.address)
+    const strategyProvider = await deployments.get("StrategyProvider");
+    const opUSDCGrow = await deployments.get("opUSDCgrow");
+    const opWMATICGrow = await deployments.get("opWMATICgrow");
+    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
+    this.riskManager = <RiskManager>(
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerProxy.address)
     );
+    this.strategyProvider = <StrategyProvider>(
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyProvider.address)
+    );
+    this.vaults = {};
+    this.vaults["USDC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCGrow.address);
+    if (fork === eEVMNetwork.polygon) {
+      this.vaults["WMATIC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWMATICGrow.address);
+    }
+    const governanceAddress = await this.registry.getGovernance();
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [governanceAddress],
+    });
+    const governance = await ethers.getSigner(governanceAddress);
+    const expectedConfig = ethers.BigNumber.from(
+      "2715643938564376714569528258641865758826842749497826340477583138757711757312",
+    );
+    const _vaultUSDCConfiguration = await this.vaults["USDC"].vaultConfiguration();
+    if (expectedConfig.eq(_vaultUSDCConfiguration)) {
+      console.log("vaultConfiguration is as expected");
+      console.log("\n");
+    } else {
+      console.log("Governance setting vault configuration for opUSDCgrow..");
+      console.log("\n");
+      const tx2 = await this.vaults["USDC"].connect(governance).setVaultConfiguration(expectedConfig);
+      await tx2.wait(1);
+    }
+    const _vaultWMATICConfiguration = await this.vaults["WMATIC"].vaultConfiguration();
+    if (expectedConfig.eq(_vaultWMATICConfiguration)) {
+      console.log("vaultConfiguration is as expected");
+      console.log("\n");
+    } else {
+      console.log("Governance setting vault configuration for opUSDCgrow..");
+      console.log("\n");
+      const tx2 = await this.vaults["WMATIC"].connect(governance).setVaultConfiguration(expectedConfig);
+      await tx2.wait(1);
+    }
   });
-  describe.only("VaultV2 strategies", () => {
-    // before(async function () {
-    //   console.log("rmv2 ", this.riskManagerV2.address);
-    // });
-    // for (let i = 0; i < 1; i++) {
-    //   it(`strategy${i}`, async function () {
-    //     console.log("fn1");
-    //   });
-    // }
+  describe("VaultV2 strategies", () => {
     for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
       for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
+        const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
+        const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
+        const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
+        before(async function () {
+          const approveLqPoolList = [];
+          for (let i = 0; i < strategyDetail.strategy.length; i++) {
+            const pool = strategyDetail.strategy[i];
+            if (pool.adapterName) {
+              approveLqPoolList.push([pool.contract, (await deployments.get(pool.adapterName)).address]);
+            }
+          }
+          if (approveLqPoolList.length > 0) {
+            await (this.registry as any)["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLqPoolList);
+          }
+          await (this.strategyProvider as any).setBestStrategy(
+            1,
+            tokenHash,
+            strategyDetail.strategy.map(item => [item.contract, item.outputToken, item.isBorrow]),
+          );
+        });
         describe(`${strategy}`, () => {
-          it("should deposit withdraw", async function () {
-            console.log("-");
+          it("should receive new strategy after rebalancing", async function () {
+            await this.vaults[token].rebalance();
+            expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
+              strategyDetail.strategy.map(item => [item.contract, item.outputToken, item.isBorrow]),
+            );
+            expect(await this.vaults[token].investStrategyHash()).to.eq(strategyHash);
           });
         });
       }

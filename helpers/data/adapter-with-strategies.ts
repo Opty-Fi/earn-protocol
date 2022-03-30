@@ -395,10 +395,38 @@ const polygonStrategiesbyToken = {
     // USDC -> curve/aave3crv -> Beefy
     // USDC -> sushi/usdc-usdt -> Beefy
     // USDC -> sushi/usdc-dai -> Beefy
-    // USDC -> aave
+    // USDC -> aave,
+
+    "usdc-DEPOSIT-Aave-aUSDC": {
+      strategyName: "usdc-DEPOSIT-Aave-aUSDC",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      strategy: [
+        {
+          contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
+          outputToken: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F",
+          isBorrow: false,
+          outputTokenSymbol: "aUSDC",
+          adapterName: "AaveAdapter",
+          protocol: "Aave",
+        },
+      ],
+    },
   },
   WMATIC: {
     // WMATIC -> aave
+    "wmatic-DEPOSIT-Aave-awmatic": {
+      strategyName: "wmatic-DEPOSIT-Aave-awmatic",
+      token: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      strategy: [
+        {
+          contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
+          outputToken: "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4",
+          isBorrow: false,
+          adapterName: "AaveAdapter",
+          protocol: "Aave",
+        },
+      ],
+    },
   },
 };
 
