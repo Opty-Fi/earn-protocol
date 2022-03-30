@@ -15,14 +15,14 @@ const func: DeployFunction = async ({
   run,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
-  const artifact = await deployments.getArtifact("SushiswapFarmAdapter");
+  const artifact = await deployments.getArtifact("SushiswapPoolAdapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryV2Instance.getOperator();
   const chainId = await getChainId();
   const networkName = network.name;
 
-  const result = await deploy("SushiswapFarmAdapter", {
+  const result = await deploy("SushiswapPoolAdapter", {
     from: operatorAddress,
     contract: {
       abi: artifact.abi,
@@ -36,19 +36,19 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const sushiswapFarmAdapter = await deployments.get("SushiswapFarmAdapter");
+      const sushiswapPoolAdapter = await deployments.get("SushiswapPoolAdapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "SushiswapFarmAdapter",
-          address: sushiswapFarmAdapter.address,
+          name: "sushiswapPoolAdapter",
+          address: sushiswapPoolAdapter.address,
           constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "SushiswapFarmAdapter",
-          address: sushiswapFarmAdapter.address,
+          name: "SushiswapPoolAdapter",
+          address: sushiswapPoolAdapter.address,
           constructorArguments: [registryProxyAddress],
         });
       }
@@ -56,5 +56,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["PolygonSushiswapFarmAdapter"];
+func.tags = ["PolygonSushiswapPoolAdapter"];
 func.dependencies = ["Registry"];
