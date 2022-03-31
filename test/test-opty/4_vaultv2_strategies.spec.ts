@@ -8,7 +8,8 @@ import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config"
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { Registry, RiskManager, StrategyProvider, Vault, ERC20, IAdapterFull } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
-import { setTokenBalanceInStorage } from "./utils";
+import { StrategyStepType } from "../../helpers/type";
+import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import BN from "bignumber.js";
 import { BigNumber } from "ethers";
 
@@ -154,6 +155,12 @@ describe("VaultV2", () => {
         const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
         const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
         const lastPool = strategyDetail.strategy[strategyDetail.strategy.length - 1].contract;
+        const steps = strategyDetail.strategy.map(item => ({
+          pool: item.contract,
+          outputToken: item.outputToken,
+          isBorrow: item.isBorrow,
+        }));
+
         describe(`${strategy}`, () => {
           before(async function () {
             const approveLqPoolList = [];
@@ -171,7 +178,7 @@ describe("VaultV2", () => {
             await (this.strategyProvider as any).setBestStrategy(
               1,
               tokenHash,
-              strategyDetail.strategy.map(item => [item.contract, item.outputToken, item.isBorrow]),
+              steps.map(item => Object.values(item)),
             );
             this.token = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, strategyDetail.token);
             this.adapter = <IAdapterFull>(
@@ -184,7 +191,7 @@ describe("VaultV2", () => {
           it("should receive new strategy after rebalancing", async function () {
             await this.vaults[token].rebalance();
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
-              strategyDetail.strategy.map(item => [item.contract, item.outputToken, item.isBorrow]),
+              steps.map(item => Object.values(item)),
             );
             expect(await this.vaults[token].investStrategyHash()).to.eq(strategyHash);
           });
@@ -201,17 +208,19 @@ describe("VaultV2", () => {
             expect(userBalanceBefore).gt(userBalanceAfter);
 
             const vaultBalanceBefore = await this.vaults[token].balanceUT();
-            const poolBalanceBefore = await this.adapter.getLiquidityPoolTokenBalance(
-              this.vaults[token].address,
-              this.token.address,
-              strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
+            const poolBalanceBefore = await getLastStrategyStepBalanceLP(
+              steps as StrategyStepType[],
+              this.registry,
+              this.vaults[token],
+              this.token,
             );
             await this.vaults[token].connect(this.signers.financeOperator).vaultDepositAllToStrategy();
             const vaultBalanceAfter = await this.vaults[token].balanceUT();
-            const poolBalanceAfter = await this.adapter.getLiquidityPoolTokenBalance(
-              this.vaults[token].address,
-              this.token.address,
-              lastPool,
+            const poolBalanceAfter = await getLastStrategyStepBalanceLP(
+              steps as StrategyStepType[],
+              this.registry,
+              this.vaults[token],
+              this.token,
             );
             expect(vaultBalanceBefore).gt(vaultBalanceAfter);
             expect(poolBalanceBefore).lt(poolBalanceAfter);
@@ -219,17 +228,19 @@ describe("VaultV2", () => {
           it(`alice withdraw. Should withdraw from strategy successfully`, async function () {
             const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
             const userBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
-            const poolBalanceBefore = await this.adapter.getLiquidityPoolTokenBalance(
-              this.vaults[token].address,
-              this.token.address,
-              strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
+            const poolBalanceBefore = await getLastStrategyStepBalanceLP(
+              steps as StrategyStepType[],
+              this.registry,
+              this.vaults[token],
+              this.token,
             );
             await this.vaults[token].connect(this.signers.alice).userWithdrawVault(_userDepositInDecimals, [], []);
             const userBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
-            const poolBalanceAfter = await this.adapter.getLiquidityPoolTokenBalance(
-              this.vaults[token].address,
-              this.token.address,
-              strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
+            const poolBalanceAfter = await getLastStrategyStepBalanceLP(
+              steps as StrategyStepType[],
+              this.registry,
+              this.vaults[token],
+              this.token,
             );
             expect(userBalanceBefore).lt(userBalanceAfter);
             expect(poolBalanceBefore).gt(poolBalanceAfter);
