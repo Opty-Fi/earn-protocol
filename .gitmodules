@@ -22,6 +22,6 @@
 [submodule "contracts/protocol/adapters/polygon/sushiswap_pools_adapter"]
 	path = contracts/protocol/adapters/polygon/sushiswap_pools_adapter
 	url = git@github.com:Opty-Fi/sushiswap_pools_adapter.git
-[submodule "contracts/protocol/adapters/polygon/quickswap-pool-adapter"]
-	path = contracts/protocol/adapters/polygon/quickswap-pool-adapter
+[submodule "contracts/protocol/adapters/polygon/quickswap-pool-polygon"]
+	path = contracts/protocol/adapters/polygon/quickswap-pool-polygon
 	url = git@github.com:Opty-Fi/quickswap-pool-polygon.git
