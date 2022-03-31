@@ -16,3 +16,4 @@ contracts/protocol/curve-polygon-adapter
 contracts/protocol/aave-polygon-adapter
 contracts/protocol/sushiswap-farm-polygon
 contracts/protocol/sushiswap_pools_adapter
+contracts/protocol/quickswap-pool-polygon
