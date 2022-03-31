@@ -17,6 +17,6 @@ contracts/protocol/curve-metapool-gauge-adapter
 contracts/protocol/curve-metapool-swap-adapter
 contracts/protocol/curve-polygon-adapter
 contracts/protocol/aave-polygon-adapter
-contracts/protocol/sushiswap-farm-polygon
+contracts/protocol/sushiswap_pools_adapter
 # files
 .solcover.js
