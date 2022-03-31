@@ -226,7 +226,7 @@ describe("VaultV2", () => {
             expect(poolBalanceBefore).lt(poolBalanceAfter);
           });
           it(`alice withdraw. Should withdraw from strategy successfully`, async function () {
-            const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
+            const userWithdrawBalance = await this.vaults[token].balanceOf(this.signers.alice.address);
             const userBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
             const poolBalanceBefore = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
@@ -234,7 +234,7 @@ describe("VaultV2", () => {
               this.vaults[token],
               this.token,
             );
-            await this.vaults[token].connect(this.signers.alice).userWithdrawVault(_userDepositInDecimals, [], []);
+            await this.vaults[token].connect(this.signers.alice).userWithdrawVault(userWithdrawBalance, [], []);
             const userBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
             const poolBalanceAfter = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
