@@ -568,7 +568,7 @@ const polygonStrategiesbyToken = {
           contract: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
           outputToken: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
           isBorrow: false,
-          outputTokenSymbol: "USDC-MAI-QLP",
+          outputTokenSymbol: "USDC-DAI-ALP",
           adapterName: "ApeSwapPoolAdapter",
           protocol: "Apeswap",
         },
