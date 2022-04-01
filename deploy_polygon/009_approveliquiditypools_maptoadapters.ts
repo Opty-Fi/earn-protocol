@@ -100,10 +100,9 @@ export default func;
 func.tags = ["PolygonApproveAndMapLiquidityPoolToAdapter"];
 func.dependencies = [
   "PolygonCurveStableSwapAdapter",
-  "PolygonCurveMetapoolFactoryAdapter",
   "PolygonCurveGaugeAdapter",
   "PolygonBeefyFinanceAdapter",
   "PolygonAaveAdapter",
   "PolygonSushiswapPoolAdapter",
-  "",
+  // "PolygonApeswapPoolAdapter",
 ];
