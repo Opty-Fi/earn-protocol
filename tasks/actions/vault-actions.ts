@@ -210,7 +210,8 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               "Price per full share before : ",
               hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
             );
-            await vaultContract.connect(userSigner).rebalance();
+            const tx3 = await vaultContract.connect(userSigner).rebalance();
+            await tx3.wait(1);
             console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
             console.log(
               "total supply after : ",
