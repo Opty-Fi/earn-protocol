@@ -8,12 +8,11 @@ async function main() {
   const sushiswapRouterAddress = ethers.utils.getAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F");
   const CVX = ethers.utils.getAddress("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B");
   const CRV = ethers.utils.getAddress("0xD533a949740bb3306d119CC777fa900bA034cd52");
-  const SNX = ethers.utils.getAddress("0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F");
-  const USDC = ethers.utils.getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
+  const LDO = ethers.utils.getAddress("0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32");
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
-  const opUSDCgrowProxyAddress = ethers.utils.getAddress("0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88");
+  const opWETHgrowProxyAddress = ethers.utils.getAddress("0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
-  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCgrowProxyAddress);
+  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWETHgrowProxyAddress);
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const uniswapRouterInstance = <IUniswapV2Router02>(
     await ethers.getContractAt("IUniswapV2Router02", uniswapV2Router02Address)
@@ -23,8 +22,8 @@ async function main() {
   );
   const cvxInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, CVX);
   const crvInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, CRV);
-  const snxInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, SNX);
-  const usdcInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, USDC);
+  const ldoInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, LDO);
+  const wethInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, WETH);
   const governanceSigner = await ethers.getSigner(await registryInstance.governance());
   const abi = [
     "function approve(address spender, uint256 amount)",
@@ -34,20 +33,16 @@ async function main() {
   const iface = new ethers.utils.Interface(abi);
   const codes = [];
 
-  const cvxBalance = await cvxInstance.balanceOf(opUSDCgrowProxyAddress);
-  const crvBalance = await crvInstance.balanceOf(opUSDCgrowProxyAddress);
-  const snxBalance = await snxInstance.balanceOf(opUSDCgrowProxyAddress);
+  const cvxBalance = await cvxInstance.balanceOf(opWETHgrowProxyAddress);
+  const crvBalance = await crvInstance.balanceOf(opWETHgrowProxyAddress);
+  const ldoBalance = await ldoInstance.balanceOf(opWETHgrowProxyAddress);
 
-  const [_u0crv, _1crvU, crvToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
-  // const [_s0crv, _1crvS, crvToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
-  const [_u0snx, _1snxU, snxToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(snxBalance, [SNX, WETH, USDC]);
-  // const [_s0snx, _1snxS, snxToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(snxBalance, [SNX, WETH, USDC]);
-  // const [_u0cvx, _u1cvx, cvxToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH, USDC]);
-  const [_s0cvx, _s1cvx, cvxToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(cvxBalance, [
-    CVX,
-    WETH,
-    USDC,
-  ]);
+  // const [_u0cvx, cvxToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH]);
+  const [_s0cvx, cvxToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH]);
+  const [_u0crv, crvToWETHExpectedU] = await uniswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH]);
+  // const [_s0crv, crvToWETHExpectedS] = await sushiswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH]);
+  // const [_u0snx, ldoToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(ldoBalance, [LDO, WETH]);
+  const [_s0snx, ldoToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(ldoBalance, [LDO, WETH]);
 
   const timestamp = await (await ethers.provider.getBlock("latest")).timestamp;
 
@@ -67,8 +62,8 @@ async function main() {
         iface.encodeFunctionData("swapExactTokensForTokens", [
           cvxBalance,
           cvxToUsdcExpectedS,
-          [CVX, WETH, USDC],
-          opUSDCgrowProxyAddress,
+          [CVX, WETH],
+          opWETHgrowProxyAddress,
           timestamp + 10000,
         ]),
       ],
@@ -89,19 +84,19 @@ async function main() {
         uniswapV2Router02Address,
         iface.encodeFunctionData("swapExactTokensForTokens", [
           crvBalance,
-          crvToUsdcExpectedU,
-          [CRV, WETH, USDC],
-          opUSDCgrowProxyAddress,
+          crvToWETHExpectedU,
+          [CRV, WETH],
+          opWETHgrowProxyAddress,
           timestamp + 10000,
         ]),
       ],
     ),
   );
-  // approve SNX to be spend by uniswap
+  // approve LDO to be spend by sushiswap
   codes.push(
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
-      [SNX, iface.encodeFunctionData("approve", [uniswapV2Router02Address, snxBalance])],
+      [LDO, iface.encodeFunctionData("approve", [sushiswapRouterAddress, ldoBalance])],
     ),
   );
   // swap on uniswap
@@ -109,12 +104,12 @@ async function main() {
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
       [
-        uniswapV2Router02Address,
+        sushiswapRouterAddress,
         iface.encodeFunctionData("swapExactTokensForTokens", [
-          snxBalance,
-          snxToUsdcExpectedU.mul(9970).div(10000),
-          [SNX, WETH, USDC],
-          opUSDCgrowProxyAddress,
+          ldoBalance,
+          ldoToUsdcExpectedS,
+          [LDO, WETH],
+          opWETHgrowProxyAddress,
           timestamp + 10000,
         ]),
       ],
@@ -124,18 +119,18 @@ async function main() {
   codes.push(
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
-      [opUSDCgrowProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
+      [opWETHgrowProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
     ),
   );
-  const USDCBalanceBefore = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
-  console.log("USDC balance before ", USDCBalanceBefore.toString());
+  const wethBalanceBefore = await wethInstance.balanceOf(opWETHgrowProxyAddress);
+  console.log("WETH balance before ", wethBalanceBefore.toString());
   const tx = await vaultInstance
     .connect(governanceSigner)
     .adminCall(codes, { maxFeePerGas: BigNumber.from("60318936159") });
   const rcpt = await tx.wait(1);
   console.log(await rcpt.events);
-  const USDCBalanceAfter = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
-  console.log("USDC balance after ", USDCBalanceAfter.toString());
+  const WETHBalanceAfter = await wethInstance.balanceOf(opWETHgrowProxyAddress);
+  console.log("WETH balance after ", WETHBalanceAfter.toString());
 }
 
 main().then(console.log).catch(console.error);
