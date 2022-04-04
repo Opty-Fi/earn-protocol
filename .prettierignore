@@ -21,6 +21,7 @@ contracts/protocol/adapters/polygon/curve-polygon-adapter
 contracts/protocol/adapters/polygon/aave-polygon-adapter
 contracts/protocol/adapters/polygon/sushiswap_pools_adapter
 contracts/protocol/adapters/polygon/quickswap-pool-polygon
+contracts/protocol/adapters/polygon/apeswap-pool-polygon
 
 # files
 *.env
