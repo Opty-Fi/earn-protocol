@@ -66,10 +66,10 @@ async function main() {
         sushiswapRouterAddress,
         iface.encodeFunctionData("swapExactTokensForTokens", [
           cvxBalance,
-          cvxToUsdcExpectedS,
+          cvxToUsdcExpectedS.mul(9500).div(10000),
           [CVX, WETH, USDC],
           opUSDCgrowProxyAddress,
-          timestamp + 10000,
+          timestamp * 2,
         ]),
       ],
     ),
@@ -89,10 +89,10 @@ async function main() {
         uniswapV2Router02Address,
         iface.encodeFunctionData("swapExactTokensForTokens", [
           crvBalance,
-          crvToUsdcExpectedU,
+          crvToUsdcExpectedU.mul(9500).div(10000),
           [CRV, WETH, USDC],
           opUSDCgrowProxyAddress,
-          timestamp + 10000,
+          timestamp * 2,
         ]),
       ],
     ),
@@ -112,10 +112,10 @@ async function main() {
         uniswapV2Router02Address,
         iface.encodeFunctionData("swapExactTokensForTokens", [
           snxBalance,
-          snxToUsdcExpectedU.mul(9970).div(10000),
+          snxToUsdcExpectedU.mul(9500).div(10000),
           [SNX, WETH, USDC],
           opUSDCgrowProxyAddress,
-          timestamp + 10000,
+          timestamp * 2,
         ]),
       ],
     ),
@@ -129,9 +129,7 @@ async function main() {
   );
   const USDCBalanceBefore = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
   console.log("USDC balance before ", USDCBalanceBefore.toString());
-  const tx = await vaultInstance
-    .connect(governanceSigner)
-    .adminCall(codes, { maxFeePerGas: BigNumber.from("60318936159") });
+  const tx = await vaultInstance.connect(governanceSigner).adminCall(codes);
   const rcpt = await tx.wait(1);
   console.log(await rcpt.events);
   const USDCBalanceAfter = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
