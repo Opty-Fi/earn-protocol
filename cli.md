@@ -342,12 +342,12 @@ Options:
 Usage: set best strategy or default best strategy
 
 Options:
---token            required <address> the address of token
---riskprofilecode           required <number>  the code of risk profile
---strategyhash     required <string>  the keccak256 hash of strategy
---strategyprovider required <address> the address of strategyProvider
---isdefault        required <bool>    whether set best default strategy or not
---network          optional <string>  name of the network provider (default: hardhat)
+--token              required <address> the address of token
+--risk-profile-code  required <number>  the code of risk profile
+--strategy-name      required <string>  the name of strategy
+--strategy-provider  required <address> the address of strategyProvider
+--is-default         required <bool>    whether set best default strategy or not
+--network            optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -356,10 +356,10 @@ Options:
   yarn hardhat set-best-strategy \
   --network localhost \
   --riskprofilecode 1 \
-  --strategyprovider 0x0000000000000000000000000000000000000000 \
-  --strategyhash 0x0000000000000000000000000000000000000000 \
+  --strategy-provider 0x0000000000000000000000000000000000000000 \
+  --strategy-name "wmatic-DEPOSIT-Aave-amWMATIC" \
   --token 0x0000000000000000000000000000000000000000 \
-  --isdefault true
+  --is-default true
 ```
 
 ### unpause-vault
