@@ -12,7 +12,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const aaveAdapter = await deployments.get("AaveAdapter");
   const sushiswapPoolAdapter = await deployments.get("SushiswapPoolAdapter");
   const quickSwapPoolAdapter = await deployments.get("QuickSwapPoolAdapter");
-  // const apeSwapPoolAdapter = await deployments.get("ApeSwapPoolAdapter")
+  const apeSwapPoolAdapter = await deployments.get("ApeSwapPoolAdapter");
 
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
@@ -36,7 +36,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x2cF7252e74036d1Da831d11089D326296e64a728": { rate: 80, adapter: quickSwapPoolAdapter.address }, // pool for USDC-USDT-QLP
     "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd": { rate: 80, adapter: quickSwapPoolAdapter.address }, // pool for USDC-DAI-QLP
     "0x160532D2536175d65C03B97b0630A9802c274daD": { rate: 80, adapter: quickSwapPoolAdapter.address }, // pool for USDC-MAI-QLP
-    // "0x5b13B583D4317aB15186Ed660A1E4C65C10da659":{rate:80, adapter: apeSwapAdapter.address}, // pool for USDC-DAI-ALP
+    "0x5b13B583D4317aB15186Ed660A1E4C65C10da659": { rate: 80, adapter: apeSwapPoolAdapter.address }, // pool for USDC-DAI-ALP
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -104,5 +104,5 @@ func.dependencies = [
   "PolygonBeefyFinanceAdapter",
   "PolygonAaveAdapter",
   "PolygonSushiswapPoolAdapter",
-  // "PolygonApeswapPoolAdapter",
+  "PolygonApeSwapPoolAdapter",
 ];
