@@ -62,6 +62,24 @@ describe("VaultV2", () => {
       params: [financeOperatorAddress],
     });
     const financeOperator = await ethers.getSigner(financeOperatorAddress);
+
+    // (0-15) Deposit fee UT = 0 UT = 0000
+    // (16-31) Deposit fee % = 0% = 0000
+    // (32-47) Withdrawal fee UT = 0 UT = 0000
+    // (48-63) Withdrawal fee % = 0% = 0000
+    // (64-79) Max vault value jump % = 1% = 0064
+    // (80-239) vault fee address = 0000000000000000000000000000000000000000
+    // (240-247) risk profile code = 1 = 01
+    // (248) emergency shutdown = false = 0
+    // (249) unpause = true = 1
+    // (250) allow whitelisted state = false = 0
+    // (251) - 0
+    // (252) - 0
+    // (253) - 0
+    // (254) - 0
+    // (255) - 0
+    // 0x0201000000000000000000000000000000000000000000640000000000000000
+    // 906392544231311161076231617881117198619499239097192527361058388634069106688
     const expectedConfig = ethers.BigNumber.from(
       "906392544231311161076231617881117198619499239097192527361058388634069106688",
     );
@@ -163,18 +181,6 @@ describe("VaultV2", () => {
 
         describe(`${strategy}`, () => {
           before(async function () {
-            const approveLqPoolList = [];
-            for (let i = 0; i < strategyDetail.strategy.length; i++) {
-              const pool = strategyDetail.strategy[i];
-              if (pool.adapterName) {
-                approveLqPoolList.push([pool.contract, (await deployments.get(pool.adapterName)).address]);
-              }
-            }
-            if (approveLqPoolList.length > 0) {
-              await (this.registry as any)["approveLiquidityPoolAndMapToAdapter((address,address)[])"](
-                approveLqPoolList,
-              );
-            }
             await (this.strategyProvider as any).setBestStrategy(
               1,
               tokenHash,
@@ -195,18 +201,28 @@ describe("VaultV2", () => {
             );
             expect(await this.vaults[token].investStrategyHash()).to.eq(strategyHash);
           });
-          it(`alice deposit.Afterwards, should deposit to strategy successfully`, async function () {
+          it(`alice and bob should deposit into Vault successfully`, async function () {
             const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
             const _userDeposit = new BN(_userDepositInDecimals.toString())
               .div(new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()))
               .toString();
             await setTokenBalanceInStorage(this.token, this.signers.alice.address, _userDeposit);
-            await this.token.connect(this.signers.alice).approve(this.vaults[token].address, _userDepositInDecimals);
-            const userBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
-            await this.vaults[token].connect(this.signers.alice).userDepositVault(_userDepositInDecimals, [], []);
-            const userBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
-            expect(userBalanceBefore).gt(userBalanceAfter);
+            await setTokenBalanceInStorage(this.token, this.signers.bob.address, _userDeposit);
 
+            await this.token.connect(this.signers.alice).approve(this.vaults[token].address, _userDepositInDecimals);
+            await this.token.connect(this.signers.bob).approve(this.vaults[token].address, _userDepositInDecimals);
+
+            const aliceBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
+            await this.vaults[token].connect(this.signers.alice).userDepositVault(_userDepositInDecimals, [], []);
+            const aliceBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
+            expect(aliceBalanceBefore).gt(aliceBalanceAfter);
+
+            const bobBalanceBefore = await this.token.balanceOf(this.signers.bob.address);
+            await this.vaults[token].connect(this.signers.bob).userDepositVault(_userDepositInDecimals, [], []);
+            const bobBalanceAfter = await this.token.balanceOf(this.signers.bob.address);
+            expect(bobBalanceBefore).gt(bobBalanceAfter);
+          });
+          it(`vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
             const vaultBalanceBefore = await this.vaults[token].balanceUT();
             const poolBalanceBefore = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
@@ -225,25 +241,28 @@ describe("VaultV2", () => {
             expect(vaultBalanceBefore).gt(vaultBalanceAfter);
             expect(poolBalanceBefore).lt(poolBalanceAfter);
           });
-          it(`alice withdraw. Should withdraw from strategy successfully`, async function () {
-            const userWithdrawBalance = await this.vaults[token].balanceOf(this.signers.alice.address);
-            const userBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
-            const poolBalanceBefore = await getLastStrategyStepBalanceLP(
-              steps as StrategyStepType[],
-              this.registry,
-              this.vaults[token],
-              this.token,
-            );
-            await this.vaults[token].connect(this.signers.alice).userWithdrawVault(userWithdrawBalance, [], []);
-            const userBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
-            const poolBalanceAfter = await getLastStrategyStepBalanceLP(
-              steps as StrategyStepType[],
-              this.registry,
-              this.vaults[token],
-              this.token,
-            );
-            expect(userBalanceBefore).lt(userBalanceAfter);
-            expect(poolBalanceBefore).gt(poolBalanceAfter);
+          it(`alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
+            const signers = [this.signers.alice, this.signers.bob];
+            for (let i = 0; i < signers.length; i++) {
+              const userWithdrawBalance = await this.vaults[token].balanceOf(signers[i].address);
+              const userBalanceBefore = await this.token.balanceOf(signers[i].address);
+              const poolBalanceBefore = await getLastStrategyStepBalanceLP(
+                steps as StrategyStepType[],
+                this.registry,
+                this.vaults[token],
+                this.token,
+              );
+              await this.vaults[token].connect(signers[i]).userWithdrawVault(userWithdrawBalance, [], []);
+              const userBalanceAfter = await this.token.balanceOf(signers[i].address);
+              const poolBalanceAfter = await getLastStrategyStepBalanceLP(
+                steps as StrategyStepType[],
+                this.registry,
+                this.vaults[token],
+                this.token,
+              );
+              expect(userBalanceBefore).lt(userBalanceAfter);
+              expect(poolBalanceBefore).gt(poolBalanceAfter);
+            }
           });
         });
       }
