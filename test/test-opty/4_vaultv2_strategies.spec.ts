@@ -49,7 +49,6 @@ describe("VaultV2", () => {
       this.vaults["WMATIC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWMATICGrow.address);
     }
 
-    //TODO Remove if config opVaultGrow development script is done.
     const governanceAddress = await this.registry.getGovernance();
     await network.provider.request({
       method: "hardhat_impersonateAccount",
