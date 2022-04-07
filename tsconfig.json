@@ -25,11 +25,11 @@
     "typechain/**/*.d.ts",
     "typechain/**/*.ts",
     "optyfi-sdk/**/*.ts",
-    "deploy/*.ts",
-    "deploy_mainnet/*.ts",
-    "deploy_kovan/*.ts",
-    "deploy_polygon/*.ts",
-    "deploy_mumbai/*.ts",
-    "scripts/*.ts"
+    "deploy_kovan/**/*.ts",
+    "deploy_mainnet/**/*.ts",
+    "deploy_mumbai/**/*.ts",
+    "deploy_polygon/**/*.ts",
+    "scripts/**/*.ts",
+    "deploy/**/*.ts"
   ]
 }
