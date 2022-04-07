@@ -455,8 +455,8 @@ const polygonStrategiesbyToken = {
       token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       strategy: [
         {
-          contract: "0x4b1f1e2435a9c96f7330faea190ef6a7c8d70001",
-          outputToken: "0x4b1f1e2435a9c96f7330faea190ef6a7c8d70001",
+          contract: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
+          outputToken: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
           isBorrow: false,
           outputTokenSymbol: "USDC-USDT-SLP",
           adapterName: "SushiswapPoolAdapter",
@@ -477,8 +477,8 @@ const polygonStrategiesbyToken = {
       token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       strategy: [
         {
-          contract: "0xcd578f016888b57f1b1e3f887f392f0159e26747",
-          outputToken: "0xcd578f016888b57f1b1e3f887f392f0159e26747",
+          contract: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
+          outputToken: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
           isBorrow: false,
           outputTokenSymbol: "USDC-DAI-SLP",
           adapterName: "SushiswapPoolAdapter",
