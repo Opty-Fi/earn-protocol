@@ -390,7 +390,7 @@ Usage: perform actions in the vault contract
 Options:
 --vault         required <address> the address of vault
 --user          required <address> account address of the user
---action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE"
+--action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE" || "VAULT-DEPOSIT-ALL-TO-STRATEGY"
 --merkle-proof  required <string>  merkle proofs in stringified form
 --useall        optional <bool>    use whole balance (default: false)
 --amount        optional <number>  amount of token (default: 0)
