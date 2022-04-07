@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { ERC20, IUniswapV2Router02, Registry, Vault } from "../../typechain";
