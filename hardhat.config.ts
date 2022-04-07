@@ -60,6 +60,7 @@ const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networ
   chainId: networkId,
   deploy: [`deploy`, `deploy_${NETWORK_NAME}`],
   timeout: 100000,
+  accounts: process.env.PK?.split(","),
 });
 
 const config: HardhatUserConfig = {
