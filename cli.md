@@ -390,7 +390,7 @@ Usage: perform actions in the vault contract
 Options:
 --vault         required <address> the address of vault
 --user          required <address> account address of the user
---action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE"
+--action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE" || "VAULT-DEPOSIT-ALL-TO-STRATEGY"
 --merkle-proof  required <string>  merkle proofs in stringified form
 --useall        optional <bool>    use whole balance (default: false)
 --amount        optional <number>  amount of token (default: 0)
@@ -532,8 +532,8 @@ Usage: execute a get action in smart contract
 Options:
 --name        required <address> the name of contract
 --address     required <address> the address of smart contract
---functionabi required <string> a get function abi
---params      optional <array> the required params of the function (default: "")
+--functionabi required <string>  a get function abi
+--params      optional <array>   the required params of the function (default: "")
 --network     optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -559,7 +559,7 @@ Usage: get price per full share of the vault
 
 Options:
 --vault            required <address> the address of vault
---block-number              <number>  block number
+--block-number     optional <number>  block number (default: current block number)
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -579,7 +579,7 @@ Usage: get total supply of the vault
 
 Options:
 --vault            required <address> the address of vault
---block-number              <number>  block number
+--block-number     optional <number>  block number (default: current block number)
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -590,4 +590,162 @@ Options:
   --network localhost \
   --vault 0x0000000000000000000000000000000000000000 \
   --block-number 1234567
+```
+
+### change-vault-proxy-v2-admin
+
+```
+Usage: change vault proxy admin
+
+Options:
+--vault     required <address> the address of vault
+--new-admin required <number>  the address of new admin
+--network   optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+  yarn hardhat change-vault-proxy-v2-admin \
+  --network localhost \
+  --vault 0x0000000000000000000000000000000000000000 \
+  --new-admin 0x0000000000000000000000000000000000000000
+```
+
+### set-pending-governance
+
+```
+Usage: set pending governance
+
+Options:
+--registry               required <address> the address of registry
+--new-pending-governance required <number>  the address of pending governance
+--network                optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+  yarn hardhat set-pending-governance \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+  --new-pending-governance 0x0000000000000000000000000000000000000000
+```
+
+### accept-pending-governance
+
+```
+Usage: accept pending governance
+
+Options:
+--registry required <address> the address of registry
+--network  optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+  yarn hardhat accept-pending-governance \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+```
+
+### transfer-operation-ownership
+
+```
+Usage: transfer all operator roles to same address
+
+Options:
+--registry     required <address> the address of registry
+--new-operator required <address> the address of new operator
+--network      optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat transfer-operation-ownership \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+  --new-operator 0x0000000000000000000000000000000000000000 \
+```
+
+### transfer-operator
+
+```
+Usage: transfer operator
+
+Options:
+--registry     required <address> the address of registry
+--new-operator required <address> the address of new finance operator
+--network      optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat transfer-operator \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+  --new-operator 0x0000000000000000000000000000000000000000 \
+```
+
+### transfer-finance-operator
+
+```
+Usage: transfer finance operator
+
+Options:
+--registry             required <address> the address of registry
+--new-finance-operator required <address> the address of new finance operator
+--network              optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat transfer-finance-operator \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+  --new-finance-operator 0x0000000000000000000000000000000000000000 \
+```
+
+### transfer-risk-operator
+
+```
+Usage: transfer risk operator
+
+Options:
+--registry          required <address> the address of registry
+--new-risk-operator required <address> the address of new risk operator
+--network           optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat transfer-risk-operator \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+  --new-risk-operator 0x0000000000000000000000000000000000000000 \
+```
+
+### transfer-strategy-operator
+
+```
+Usage: transfer strategy operator
+
+Options:
+--registry              required <address> the address of registry
+--new-strategy-operator required <address> the address of new strategy operator
+--network               optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat transfer-strategy-operator \
+  --network localhost \
+  --registry 0x0000000000000000000000000000000000000000 \
+  --new-strategy-operator 0x0000000000000000000000000000000000000000 \
 ```
