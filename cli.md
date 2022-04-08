@@ -532,8 +532,8 @@ Usage: execute a get action in smart contract
 Options:
 --name        required <address> the name of contract
 --address     required <address> the address of smart contract
---functionabi required <string> a get function abi
---params      optional <array> the required params of the function (default: "")
+--functionabi required <string>  a get function abi
+--params      optional <array>   the required params of the function (default: "")
 --network     optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -559,7 +559,7 @@ Usage: get price per full share of the vault
 
 Options:
 --vault            required <address> the address of vault
---block-number              <number>  block number
+--block-number     optional <number>  block number (default: current block number)
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -579,7 +579,7 @@ Usage: get total supply of the vault
 
 Options:
 --vault            required <address> the address of vault
---block-number              <number>  block number
+--block-number     optional <number>  block number (default: current block number)
 --network          optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -598,9 +598,9 @@ Options:
 Usage: change vault proxy admin
 
 Options:
---vault       required <address> the address of vault
---new-admin   required <number>  the address of new admin
---network     optional <string>  name of the network provider (default: hardhat)
+--vault     required <address> the address of vault
+--new-admin required <number>  the address of new admin
+--network   optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -618,9 +618,9 @@ Options:
 Usage: set pending governance
 
 Options:
---registry                 required <address> the address of registry
---new-pending-governance   required <number>  the address of pending governance
---network                  optional <string>  name of the network provider (default: hardhat)
+--registry               required <address> the address of registry
+--new-pending-governance required <number>  the address of pending governance
+--network                optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -638,8 +638,8 @@ Options:
 Usage: accept pending governance
 
 Options:
---registry                 required <address> the address of registry
---network                  optional <string>  name of the network provider (default: hardhat)
+--registry required <address> the address of registry
+--network  optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -656,9 +656,9 @@ Options:
 Usage: transfer all operator roles to same address
 
 Options:
---registry       required <address> the address of registry
---new-operator   required <address> the address of new operator
---network        optional <string>  name of the network provider (default: hardhat)
+--registry     required <address> the address of registry
+--new-operator required <address> the address of new operator
+--network      optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -676,9 +676,9 @@ yarn hardhat transfer-operation-ownership \
 Usage: transfer operator
 
 Options:
---registry       required <address> the address of registry
---new-operator   required <address> the address of new finance operator
---network        optional <string>  name of the network provider (default: hardhat)
+--registry     required <address> the address of registry
+--new-operator required <address> the address of new finance operator
+--network      optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -696,9 +696,9 @@ yarn hardhat transfer-operator \
 Usage: transfer finance operator
 
 Options:
---registry               required <address> the address of registry
---new-finance-operator   required <address> the address of new finance operator
---network                optional <string>  name of the network provider (default: hardhat)
+--registry             required <address> the address of registry
+--new-finance-operator required <address> the address of new finance operator
+--network              optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -716,9 +716,9 @@ yarn hardhat transfer-finance-operator \
 Usage: transfer risk operator
 
 Options:
---registry            required <address> the address of registry
---new-risk-operator   required <address> the address of new risk operator
---network             optional <string>  name of the network provider (default: hardhat)
+--registry          required <address> the address of registry
+--new-risk-operator required <address> the address of new risk operator
+--network           optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -736,9 +736,9 @@ yarn hardhat transfer-risk-operator \
 Usage: transfer strategy operator
 
 Options:
---registry                required <address> the address of registry
---new-strategy-operator   required <address> the address of new strategy operator
---network                 optional <string>  name of the network provider (default: hardhat)
+--registry              required <address> the address of registry
+--new-strategy-operator required <address> the address of new strategy operator
+--network               optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
