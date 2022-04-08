@@ -47,5 +47,16 @@ export default {
       DESCRIPTION: "Get price per full share of the vault",
     },
     GET_TOTAL_SUPPLY: { NAME: "get-total-supply", DESCRIPTION: "Get total supply of the vault" },
+    TRANSFER_OPERATOR: { NAME: "transfer-operator", DESCRIPTION: "Transfer operator" },
+    TRANSFER_FINANCE_OPERATOR: { NAME: "transfer-finance-operator", DESCRIPTION: "Transfer finance operator" },
+    TRANSFER_RISK_OPERATOR: { NAME: "transfer-risk-operator", DESCRIPTION: "Transfer risk operator" },
+    TRANSFER_STRATEGY_OPERATOR: { NAME: "transfer-strategy-operator", DESCRIPTION: "Transfer strategy operator" },
+    TRANSFER_OPERATION_OWNERSHIP: {
+      NAME: "transfer-operation-ownership",
+      DESCRIPTION: "Transfer financeOperator, riskOperator, strategyOperator anf operator one by one",
+    },
+    SET_PENDING_GOVERNANCE: { NAME: "set-pending-governance", DESCRIPTION: "set pending governance" },
+    ACCEPT_GOVERNANCE: { NAME: "accept-governance", DESCRIPTION: "accept governance" },
+    CHANGE_VAULT_PROXY_V2_ADMIN: { NAME: "change-vault-proxy-v2-admin", DESCRIPTION: "change vault proxy v2 admin" },
   },
 };
