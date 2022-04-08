@@ -28,7 +28,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   // 0x0201000000000000000000000000000000000000000000640000000000000000
   // const expectedConfig = BigNumber.from("906392544231311161076231617881117198619499239097192527361058388634069106688");
   const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
-  const expectedMinimumDepositValueUT = BigNumber.from("1000000000"); // 1000 USDC
+  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDC
   const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
   const expectedAccountsRoot = "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694";
   const expectedRiskProfileCode = BigNumber.from("1");

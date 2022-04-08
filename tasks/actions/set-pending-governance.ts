@@ -24,10 +24,8 @@ task(TASKS.ACTION_TASKS.SET_PENDING_GOVERNANCE.NAME, TASKS.ACTION_TASKS.SET_PEND
       const currentPendingGovernance = await registryProxyInstance.pendingGovernance();
       console.log("current pending governance ", currentPendingGovernance);
       if (getAddress(newPendingGovernance) != getAddress(currentPendingGovernance)) {
-        const currentPendingGovernanceSigner = await hre.ethers.getSigner(currentPendingGovernance);
-        const tx = await registryProxyInstance
-          .connect(currentPendingGovernanceSigner)
-          .setPendingGovernance(newPendingGovernance);
+        const operatorSigner = await hre.ethers.getSigner(await registryProxyInstance.operator());
+        const tx = await registryProxyInstance.connect(operatorSigner).setPendingGovernance(newPendingGovernance);
         await tx.wait(1);
         const actualNewPendingGovernance = await registryProxyInstance.pendingGovernance();
         console.log("The new pending governance is ", actualNewPendingGovernance);
