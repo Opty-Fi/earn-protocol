@@ -9,13 +9,18 @@ import { getAllowWhitelistState } from "../../helpers/utils";
 
 task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
-  .addParam("action", "deposit, withdraw or rebalance", "DEPOSIT" || "WITHDRAW" || "REBALANCE", types.string)
+  .addParam(
+    "action",
+    "deposit, withdraw or rebalance",
+    "DEPOSIT" || "WITHDRAW" || "REBALANCE" || "VAULT-DEPOSIT-ALL-TO-STRATEGY",
+    types.string,
+  )
   .addParam("user", "account address of the user", "", types.string)
   .addParam("merkleProof", "user merkle proof", "", types.string)
   .addOptionalParam("useall", "use whole balance", false, types.boolean)
   .addOptionalParam("amount", "amount of token", 0, types.int)
   .setAction(async ({ vault, action, user, amount, useall, merkleProof }, hre) => {
-    const ACTIONS = ["DEPOSIT", "WITHDRAW", "REBALANCE"];
+    const ACTIONS = ["DEPOSIT", "WITHDRAW", "REBALANCE", "VAULT-DEPOSIT-ALL-TO-STRATEGY"];
     if (vault === "") {
       throw new Error("vault cannot be empty");
     }
@@ -210,7 +215,8 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               "Price per full share before : ",
               hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
             );
-            await vaultContract.connect(userSigner).rebalance();
+            const tx3 = await vaultContract.connect(userSigner).rebalance();
+            await tx3.wait(1);
             console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
             console.log(
               "total supply after : ",
@@ -225,6 +231,39 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             console.log("Rebalance successfully");
           } catch (error) {
             throw new Error(`#rebalance : ${error}`);
+          }
+          break;
+        }
+        case "VAULT-DEPOSIT-ALL-TO-STRATEGY": {
+          try {
+            let strategyHash = await vaultContract.investStrategyHash();
+            console.log(`Invest strategy : ${strategyHash}`);
+            console.log("Depositing all to strategy..");
+            console.log("Block before : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply before : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share before : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
+            const tx3 = await vaultContract.connect(userSigner).vaultDepositAllToStrategy();
+            await tx3.wait(1);
+            console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
+            console.log(
+              "total supply after : ",
+              hre.ethers.utils.formatUnits(await vaultContract.totalSupply(), tokenDecimals),
+            );
+            console.log(
+              "Price per full share after : ",
+              hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
+            );
+            strategyHash = await vaultContract.investStrategyHash();
+            console.log(`Invest strategy : ${strategyHash}`);
+            console.log("vaultDepositAllToStrategy successfully");
+          } catch (error) {
+            throw new Error(`#vaultDepositAllToStrategy : ${error}`);
           }
           break;
         }

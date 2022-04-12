@@ -21,7 +21,7 @@ task(TASKS.ACTION_TASKS.GET_PRICE_PER_FULL_SHARE.NAME, TASKS.ACTION_TASKS.GET_PR
       if (_blockNumber == undefined) {
         _blockNumber = await hre.ethers.provider.getBlockNumber();
       }
-      const vaultInstance = <Vault>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.Vault, vault);
+      const vaultInstance = <Vault>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
       const pricePerFullShare = await vaultInstance.getPricePerFullShare({ blockTag: _blockNumber });
       console.log(`PricePerFullShare @${_blockNumber} is ${hre.ethers.utils.formatEther(pricePerFullShare)}`);
     } catch (error: any) {

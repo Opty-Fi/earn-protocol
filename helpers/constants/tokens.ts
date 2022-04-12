@@ -146,6 +146,17 @@ const kovanTokens = {
   },
 };
 
+const mumbaiTokens = {
+  USDC: {
+    address: "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mumbai],
+    ),
+  },
+};
+
 export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
   [eEVMNetwork.mainnet]: ethereumTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: ethereumTokens,
@@ -153,6 +164,9 @@ export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
   [eEVMNetwork.polygon]: polygonTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: polygonTokens,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]]: polygonTokens,
+  [eEVMNetwork.mumbai]: mumbaiTokens,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]]: mumbaiTokens,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mumbai]]: mumbaiTokens,
   [eEVMNetwork.kovan]: kovanTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanTokens,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanTokens,

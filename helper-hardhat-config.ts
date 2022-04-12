@@ -12,6 +12,7 @@ export enum eEVMNetwork {
   polygon = "polygon",
   avalanche = "avalanche",
   ganache = "ganache",
+  mumbai = "mumbai",
   dashboard = "dashboard",
   tenderly = "tenderly",
 }
@@ -28,6 +29,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.avalanche]: 43114,
   [eEVMNetwork.staging]: 1337,
   [eEVMNetwork.ganache]: 1337,
+  [eEVMNetwork.mumbai]: 80001,
   [eEVMNetwork.dashboard]: 1,
   [eEVMNetwork.tenderly]: 1,
 };
@@ -40,6 +42,7 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.avalanche]: "0xa86a",
   [eEVMNetwork.staging]: "0x539",
   [eEVMNetwork.ganache]: "0x539",
+  [eEVMNetwork.mumbai]: "0x13881",
   [eEVMNetwork.dashboard]: "0x1",
   [eEVMNetwork.tenderly]: "0x1",
 };
@@ -51,6 +54,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.hardhat]: "http://localhost:8545",
   [eEVMNetwork.polygon]: process.env.POLYGON_NODE_URL ? process.env.POLYGON_NODE_URL : "",
   [eEVMNetwork.avalanche]: process.env.AVALANCHE_NODE_URL ? process.env.AVALANCHE_NODE_URL : "",
+  [eEVMNetwork.mumbai]: process.env.MUMBAI_NODE_URL ? process.env.MUMBAI_NODE_URL : "",
   [eEVMNetwork.ganache]: "http://localhost:8545",
   [eEVMNetwork.dashboard]: "http://localhost:24012/rpc",
   [eEVMNetwork.tenderly]: process.env.TENDERLY_FORK_URL ? process.env.TENDERLY_FORK_URL : "",
@@ -61,8 +65,9 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.mainnet]: "auto",
   [eEVMNetwork.hardhat]: "auto",
   [eEVMNetwork.staging]: "auto",
-  [eEVMNetwork.polygon]: 65 * GWEI,
+  [eEVMNetwork.polygon]: 50 * GWEI,
   [eEVMNetwork.avalanche]: 65 * GWEI,
+  [eEVMNetwork.mumbai]: 30 * GWEI,
   [eEVMNetwork.ganache]: "auto",
   [eEVMNetwork.dashboard]: "auto",
   [eEVMNetwork.tenderly]: 65 * GWEI,
@@ -76,6 +81,7 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.avalanche]: 11215586,
   [eEVMNetwork.staging]: undefined,
   [eEVMNetwork.ganache]: undefined,
+  [eEVMNetwork.mumbai]: 25291667,
   [eEVMNetwork.dashboard]: undefined,
   [eEVMNetwork.tenderly]: undefined,
 };

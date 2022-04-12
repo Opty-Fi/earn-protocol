@@ -11,10 +11,8 @@
 **/node_modules
 **/typechain
 **/specification_docs
-contracts/protocol/team-defi-adapters
 contracts/protocol/earn-protocol-configuration
-contracts/protocol/defi-adapters
-contracts/protocol/*-adapter
+contracts/protocol/adapters
 
 # files
 *.env

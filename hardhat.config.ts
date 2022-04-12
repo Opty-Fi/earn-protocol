@@ -60,6 +60,7 @@ const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networ
   chainId: networkId,
   deploy: [`deploy`, `deploy_${NETWORK_NAME}`],
   timeout: 100000,
+  accounts: process.env.PK?.split(","),
 });
 
 const config: HardhatUserConfig = {
@@ -129,6 +130,11 @@ const config: HardhatUserConfig = {
       eEVMNetwork.polygon,
       NETWORKS_CHAIN_ID[eEVMNetwork.polygon],
     ),
+    mumbai: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.mumbai],
+      eEVMNetwork.mumbai,
+      NETWORKS_CHAIN_ID[eEVMNetwork.mumbai],
+    ),
     staging: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.staging],
       eEVMNetwork.staging,
@@ -146,7 +152,7 @@ const config: HardhatUserConfig = {
     tenderly: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.tenderly],
       eEVMNetwork.tenderly,
-      NETWORKS_CHAIN_ID[eEVMNetwork.tenderly],
+      NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
     ),
 
     hardhat: {

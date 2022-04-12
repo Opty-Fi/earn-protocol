@@ -13,4 +13,5 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   RISK_MANAGER_PROXY: "contracts/protocol/earn-protocol-configuration/contracts/RiskManagerProxy.sol:RiskManagerProxy",
   ODEFI_VAULT_BOOSTER: "ODEFIVaultBooster",
   ERC20: "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol:ERC20",
+  ADAPTER: "IAdapterFull",
 };

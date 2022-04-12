@@ -1,15 +1,30 @@
-[submodule "contracts/protocol/team-defi-adapters"]
-	path = contracts/protocol/team-defi-adapters
-	url = git@github.com:Opty-Fi/team-defi-adapters.git
 [submodule "contracts/protocol/earn-protocol-configuration"]
 	path = contracts/protocol/earn-protocol-configuration
 	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
-[submodule "contracts/protocol/defi-adapters"]
-	path = contracts/protocol/defi-adapters
-	url = https://github.com/Opty-Fi/defi-adapters.git
-[submodule "contracts/protocol/curve-metapool-swap-adapter"]
-	path = contracts/protocol/curve-metapool-swap-adapter
+[submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
+	path = contracts/protocol/adapters/ethereum/team-defi-adapters
+	url = git@github.com:Opty-Fi/team-defi-adapters.git
+[submodule "contracts/protocol/adapters/defi-adapters"]
+	path = contracts/protocol/adapters/defi-adapters
+	url = git@github.com:Opty-Fi/defi-adapters.git
+[submodule "contracts/protocol/adapters/ethereum/curve-metapool-swap-adapter"]
+	path = contracts/protocol/adapters/ethereum/curve-metapool-swap-adapter
 	url = git@github.com:Opty-Fi/curve-metapool-swap-adapter.git
-[submodule "contracts/protocol/curve-metapool-gauge-adapter"]
-	path = contracts/protocol/curve-metapool-gauge-adapter
+[submodule "contracts/protocol/adapters/ethereum/curve-metapool-gauge-adapter"]
+	path = contracts/protocol/adapters/ethereum/curve-metapool-gauge-adapter
 	url = git@github.com:Opty-Fi/curve-metapool-gauge-adapter.git
+[submodule "contracts/protocol/adapters/polygon/curve-polygon-adapter"]
+	path = contracts/protocol/adapters/polygon/curve-polygon-adapter
+	url = git@github.com:Opty-Fi/curve-polygon-adapter.git
+[submodule "contracts/protocol/adapters/polygon/aave-polygon-adapter"]
+	path = contracts/protocol/adapters/polygon/aave-polygon-adapter
+	url = git@github.com:Opty-Fi/aave-polygon-adapter.git
+[submodule "contracts/protocol/adapters/polygon/sushiswap_pools_adapter"]
+	path = contracts/protocol/adapters/polygon/sushiswap_pools_adapter
+	url = git@github.com:Opty-Fi/sushiswap_pools_adapter.git
+[submodule "contracts/protocol/adapters/polygon/quickswap-pool-polygon"]
+	path = contracts/protocol/adapters/polygon/quickswap-pool-polygon
+	url = git@github.com:Opty-Fi/quickswap-pool-polygon.git
+[submodule "contracts/protocol/adapters/polygon/apeswap-pool-polygon"]
+	path = contracts/protocol/adapters/polygon/apeswap-pool-polygon
+	url = git@github.com:Opty-Fi/apeswap-pool-polygon.git
