@@ -1,5 +1,5 @@
 import fs from "fs";
-import { getAccountsMerkleProof, getAccountsMerkleRoot } from "../helpers/utils";
+import { getAccountsMerkleProof, getAccountsMerkleRoot } from "../../helpers/utils";
 import goodAddresses from "./goodAddresses.json";
 
 async function main() {

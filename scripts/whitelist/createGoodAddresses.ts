@@ -1,9 +1,11 @@
+import { getAddress } from "ethers/lib/utils";
 import fs from "fs";
 import { ethers } from "hardhat";
 import ADDRESSES from "./allAddresses.json";
 
 async function main() {
-  const uniqueAddresses = [...new Set(ADDRESSES)];
+  const checksummedAddresses = ADDRESSES.map(x => getAddress(x));
+  const uniqueAddresses = [...new Set(checksummedAddresses)];
   console.log("Number of Addresses :", uniqueAddresses.length);
   const CA: string[] = [];
   const inValidAddresses: string[] = [];
@@ -23,9 +25,9 @@ async function main() {
       }
     }
   }
-  fs.writeFileSync("invalid-addresses.json", JSON.stringify([...new Set(inValidAddresses)]));
-  fs.writeFileSync("contract-addresses.json", JSON.stringify([...new Set(CA)]));
-  fs.writeFileSync("goodAddresses.json", JSON.stringify([...new Set(todoWhitelists)]));
+  fs.writeFileSync("./invalid-addresses.json", JSON.stringify([...new Set(inValidAddresses)]));
+  fs.writeFileSync("./contract-addresses.json", JSON.stringify([...new Set(CA)]));
+  fs.writeFileSync("./goodAddresses.json", JSON.stringify([...new Set(todoWhitelists)]));
   return { CA, inValidAddresses };
 }
 
