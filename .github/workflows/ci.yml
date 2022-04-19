@@ -51,6 +51,7 @@ jobs:
         run: |
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
+          yarn test-fast:vaultv2-strategy:polygon
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.18.0
