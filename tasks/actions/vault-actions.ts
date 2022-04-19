@@ -162,12 +162,20 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
             );
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
+              const gasLimit = await vaultContract
+                .connect(userSigner)
+                .estimateGas.userWithdrawVault(checkedAmount, JSON.parse(merkleProof), []);
               const withdrawTx = await vaultContract
                 .connect(userSigner)
-                .userWithdrawVault(checkedAmount, JSON.parse(merkleProof), []);
+                .userWithdrawVault(checkedAmount, JSON.parse(merkleProof), [], { gasLimit: gasLimit.add("1000000") });
               await withdrawTx.wait(1);
             } else {
-              const withdrawTx = await vaultContract.connect(userSigner).userWithdrawVault(checkedAmount, [], []);
+              const gasLimit = await vaultContract
+                .connect(userSigner)
+                .estimateGas.userWithdrawVault(checkedAmount, [], []);
+              const withdrawTx = await vaultContract
+                .connect(userSigner)
+                .userWithdrawVault(checkedAmount, [], [], { gasLimit: gasLimit.add("1000000") });
               await withdrawTx.wait(1);
             }
             console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
@@ -215,7 +223,8 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               "Price per full share before : ",
               hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
             );
-            const tx3 = await vaultContract.connect(userSigner).rebalance();
+            const gasLimit = await vaultContract.connect(userSigner).estimateGas.rebalance();
+            const tx3 = await vaultContract.connect(userSigner).rebalance({ gasLimit: gasLimit.add("1000000") });
             await tx3.wait(1);
             console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
             console.log(
@@ -248,7 +257,10 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               "Price per full share before : ",
               hre.ethers.utils.formatEther(await vaultContract.getPricePerFullShare()),
             );
-            const tx3 = await vaultContract.connect(userSigner).vaultDepositAllToStrategy();
+            const gasLimit = await vaultContract.connect(userSigner).estimateGas.vaultDepositAllToStrategy();
+            const tx3 = await vaultContract
+              .connect(userSigner)
+              .vaultDepositAllToStrategy({ gasLimit: gasLimit.add("1000000") });
             await tx3.wait(1);
             console.log("Block after : ", await hre.ethers.provider.getBlockNumber());
             console.log(
