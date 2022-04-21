@@ -1,10 +1,37 @@
 import { parseUnits } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { decodeLogs, addABI } from "abi-decoder";
+import Convex from "@optyfi/defi-legos/ethereum/convex";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { ERC20, ERC20__factory, IUniswapV2Router02, Registry, Vault } from "../../typechain";
+import { ERC20, IConvexStake, IUniswapV2Router02, Registry, Vault } from "../../typechain";
+import { BigNumber } from "ethers";
 
-addABI(ERC20__factory.abi);
+function getCVXUnclaimed(
+  _amount: BigNumber,
+  _totalSupply: BigNumber,
+  _reductionPerCliff: BigNumber,
+  _totalCliffs: BigNumber,
+  _maxSupply: BigNumber,
+): BigNumber {
+  //use current supply to gauge cliff
+  //this will cause a bit of overflow into the next cliff range
+  //but should be within reasonable levels.
+  //requires a max supply check though
+  const cliff = _totalSupply.div(_reductionPerCliff);
+  //mint if below total cliffs
+  if (cliff.lt(_totalCliffs)) {
+    //for reduction% take inverse of current cliff
+    const reduction = _totalCliffs.sub(cliff);
+    //reduce
+    _amount = _amount.mul(reduction).div(_totalCliffs);
+
+    //supply cap check
+    const amtTillMax = _maxSupply.sub(_totalSupply);
+    if (_amount.gt(amtTillMax)) {
+      _amount = amtTillMax;
+    }
+  }
+  return _amount;
+}
 
 async function main() {
   const uniswapV2Router02Address = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
@@ -27,7 +54,14 @@ async function main() {
   const crvInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, CRV);
   const usdcInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, USDC);
   const governanceSigner = await ethers.getSigner(await registryInstance.governance());
+  const cvxMIM3lp3GaugeInstance = <IConvexStake>(
+    await ethers.getContractAt(Convex.ConvexStake.abi, Convex.pools.mim.stakingPool)
+  );
+
+  console.log(await cvxMIM3lp3GaugeInstance.earned(opUSDCgrowProxyAddress));
+
   const abi = [
+    "function getReward()",
     "function approve(address spender, uint256 amount)",
     "function swapExactTokensForTokens(uint amountIn,uint amountOutMin,address[] calldata path,address to,uint deadline)",
     "function vaultDepositAllToStrategy()",
@@ -37,23 +71,42 @@ async function main() {
 
   const cvxBalance = await cvxInstance.balanceOf(opUSDCgrowProxyAddress);
   const crvBalance = await crvInstance.balanceOf(opUSDCgrowProxyAddress);
+  const crvUnclaimed = await cvxMIM3lp3GaugeInstance.earned(opUSDCgrowProxyAddress);
+  const cvxUnclaimed = getCVXUnclaimed(
+    crvUnclaimed,
+    await cvxInstance.totalSupply(),
+    BigNumber.from("100000000000000000000000"),
+    BigNumber.from("1000"),
+    BigNumber.from("100000000000000000000000000"),
+  );
 
-  const [_u0crv, _1crvU, crvToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
-  // const [_s0crv, _1crvS, crvToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
-  // const [_u0cvx, _u1cvx, cvxToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH, USDC]);
-  const [_s0cvx, _s1cvx, cvxToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(cvxBalance, [
-    CVX,
+  const [_u0crv, _1crvU, crvToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(crvBalance.add(crvUnclaimed), [
+    CRV,
     WETH,
     USDC,
   ]);
+  // const [_s0crv, _1crvS, crvToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
+  // const [_u0cvx, _u1cvx, cvxToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH, USDC]);
+  const [_s0cvx, _s1cvx, cvxToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(
+    cvxBalance.add(cvxUnclaimed),
+    [CVX, WETH, USDC],
+  );
 
   const timestamp = await (await ethers.provider.getBlock("latest")).timestamp;
+
+  // claim $CRV and $CVX from cvxmim3crv
+  codes.push(
+    ethers.utils.defaultAbiCoder.encode(
+      ["address", "bytes"],
+      [Convex.pools.mim.stakingPool, iface.encodeFunctionData("getReward()", [])],
+    ),
+  );
 
   // approve CVX to be spend by sushiswap
   codes.push(
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
-      [CVX, iface.encodeFunctionData("approve", [sushiswapRouterAddress, cvxBalance])],
+      [CVX, iface.encodeFunctionData("approve", [sushiswapRouterAddress, cvxBalance.add(cvxUnclaimed)])],
     ),
   );
   // swap on sushiswap
@@ -63,7 +116,7 @@ async function main() {
       [
         sushiswapRouterAddress,
         iface.encodeFunctionData("swapExactTokensForTokens", [
-          cvxBalance,
+          cvxBalance.add(cvxUnclaimed),
           cvxToUsdcExpectedS.mul(9500).div(10000),
           [CVX, WETH, USDC],
           opUSDCgrowProxyAddress,
@@ -76,7 +129,7 @@ async function main() {
   codes.push(
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
-      [CRV, iface.encodeFunctionData("approve", [uniswapV2Router02Address, crvBalance])],
+      [CRV, iface.encodeFunctionData("approve", [uniswapV2Router02Address, crvBalance.add(crvUnclaimed)])],
     ),
   );
   // swap on uniswap
@@ -86,7 +139,7 @@ async function main() {
       [
         uniswapV2Router02Address,
         iface.encodeFunctionData("swapExactTokensForTokens", [
-          crvBalance,
+          crvBalance.add(crvUnclaimed),
           crvToUsdcExpectedU.mul(9500).div(10000),
           [CRV, WETH, USDC],
           opUSDCgrowProxyAddress,
@@ -102,14 +155,14 @@ async function main() {
       [opUSDCgrowProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
     ),
   );
+
   const USDCBalanceBefore = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
   console.log("USDC balance before ", USDCBalanceBefore.toString());
   const tx = await vaultInstance.connect(governanceSigner).adminCall(codes, {
     maxFeePerGas: parseUnits("65", "9"),
     maxPriorityFeePerGas: parseUnits("2", "9"),
   });
-  const rcpt = await tx.wait(1);
-  console.log(JSON.stringify(decodeLogs(rcpt.logs)));
+  await tx.wait(1);
   const USDCBalanceAfter = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
   console.log("USDC balance after ", USDCBalanceAfter.toString());
 }
