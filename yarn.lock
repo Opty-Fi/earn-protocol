@@ -2641,6 +2641,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"abi-decoder@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "abi-decoder@npm:2.4.0"
+  dependencies:
+    web3-eth-abi: ^1.2.1
+    web3-utils: ^1.2.1
+  checksum: 4c417e8ecf0b39bbcf0d6f9925593fbdae1b3fe8fc28b36148db89a8135a5475a620ce31297ca9dc64c72ff34c066a4c00065f73f5b1b050e4eac0c625fe2f92
+  languageName: node
+  linkType: hard
+
 "abort-controller@npm:^3.0.0":
   version: 3.0.0
   resolution: "abort-controller@npm:3.0.0"
@@ -6326,6 +6336,7 @@ __metadata:
     "@typescript-eslint/parser": ^4.32.0
     "@uniswap/v2-core": ^1.0.1
     "@uniswap/v2-periphery": ^1.1.0-beta.0
+    abi-decoder: ^2.4.0
     bignumber.js: ^9.0.2
     chai: ^4.3.4
     commitizen: ^4.2.4
@@ -17539,6 +17550,16 @@ typescript@^4.4.3:
   languageName: node
   linkType: hard
 
+"web3-eth-abi@npm:^1.2.1":
+  version: 1.7.3
+  resolution: "web3-eth-abi@npm:1.7.3"
+  dependencies:
+    "@ethersproject/abi": 5.0.7
+    web3-utils: 1.7.3
+  checksum: 878ace128ce24f8deca93e4656950b4e582a2dd2aac8d2d718ddf611429266a4b6e25b0afe5000a19ef3876cc786fa165c9be7752d60f49dd4659462a0bd2e79
+  languageName: node
+  linkType: hard
+
 "web3-eth-accounts@npm:1.2.11":
   version: 1.2.11
   resolution: "web3-eth-accounts@npm:1.2.11"
@@ -17898,6 +17919,21 @@ typescript@^4.4.3:
     randombytes: ^2.1.0
     utf8: 3.0.0
   checksum: 18398478065c8517568fedd68be977ee59d0d39a16c1e0a7746243cf22ff20333b3eaeb644cd6784a629cc7b5c50c3f76ebe8416b36801c052bef36f5ae1d76c
+  languageName: node
+  linkType: hard
+
+"web3-utils@npm:1.7.3, web3-utils@npm:^1.2.1":
+  version: 1.7.3
+  resolution: "web3-utils@npm:1.7.3"
+  dependencies:
+    bn.js: ^4.11.9
+    ethereum-bloom-filters: ^1.0.6
+    ethereumjs-util: ^7.1.0
+    ethjs-unit: 0.1.6
+    number-to-bn: 1.7.0
+    randombytes: ^2.1.0
+    utf8: 3.0.0
+  checksum: 96fd1d7310f4674ddccbd1f2f8e1ff1817b8869a67a1562ef3ce1130ae50dfec8e64fc4ce9f80855d87fa63fb6dd71b4561e5e1925be5b26f3787b0d4e5f89e7
   languageName: node
   linkType: hard
 
