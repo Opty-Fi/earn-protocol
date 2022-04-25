@@ -14,7 +14,7 @@
   "vaults": {
     "opUSDCgrow_proxy": "0x7FeA9Dc468855B999389E396BdB1e3EbF6d19E83",
     "merkle_root_service": "https://lo8az9edjd.execute-api.us-east-1.amazonaws.com/yield/proof/0x89/0x7FeA9Dc468855B999389E396BdB1e3EbF6d19E83/:user_address",
-    "root_hash": "0x5497616cb86ca51b3788923a239cb626f3593a6395e3c66fe24b452204fbf875",
+    "root_hash": "0x491367e7fa1e37685359a9f230f877839e3dc232cd807c6475515386200a90f1",
     "addresses": [
       "0x1E8EbB135482F873AdE1EeD1eF8699fC3652CEA4",
       "0x0d236A7E38EB459da563068a07EF33171a0ae677",
