@@ -1552,12 +1552,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@optyfi/defi-legos@npm:v0.1.0-rc.32":
-  version: 0.1.0-rc.32
-  resolution: "@optyfi/defi-legos@npm:0.1.0-rc.32"
+"@optyfi/defi-legos@npm:v0.1.0-rc.35":
+  version: 0.1.0-rc.35
+  resolution: "@optyfi/defi-legos@npm:0.1.0-rc.35"
   dependencies:
     "@openzeppelin/contracts": v3.4.0
-  checksum: b95d28aa77484ae1868f5e2f4a2fe7b9672daff445054bf1600a89cf096bb920a333fc219371b366c564576454613dbc8f679fa8dc628f1983ddb2490f0464ee
+  checksum: b8aae2719977d07a2c169956e65176a30663ed8d74c5100e182fceff860050252c9b0bebb80f4ee0e8e7e71911a2cf36b7c3ec33ceb904be0e96bc87924bae3e
   languageName: node
   linkType: hard
 
@@ -6313,7 +6313,7 @@ __metadata:
     "@nomiclabs/hardhat-waffle": ^2.0.1
     "@openzeppelin/contracts": 3.4.0
     "@openzeppelin/contracts-0.8.x": "npm:@openzeppelin/contracts@4.4.1"
-    "@optyfi/defi-legos": v0.1.0-rc.32
+    "@optyfi/defi-legos": v0.1.0-rc.35
     "@tenderly/hardhat-tenderly": 1.1.0-beta.6
     "@typechain/ethers-v5": ^7.1.2
     "@typechain/hardhat": ^2.3.0
