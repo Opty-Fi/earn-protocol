@@ -35,7 +35,6 @@ describe("VaultV2", () => {
     const riskManagerProxy = await deployments.get("RiskManagerProxy");
     const strategyProvider = await deployments.get("StrategyProvider");
     const opUSDCGrow = await deployments.get("opUSDCgrow");
-    const opWMATICGrow = await deployments.get("opWMATICgrow");
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
     this.riskManager = <RiskManager>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerProxy.address)
@@ -46,7 +45,16 @@ describe("VaultV2", () => {
     this.vaults = {};
     this.vaults["USDC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCGrow.address);
     if (fork === eEVMNetwork.polygon) {
+      const opWMATICGrow = await deployments.get("opWMATICgrow");
       this.vaults["WMATIC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWMATICGrow.address);
+    }
+
+    if (fork === eEVMNetwork.avalanche) {
+      const opWAVAXgrow = await deployments.get("opWAVAXgrow");
+      this.vaults["WAVAX"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWAVAXgrow.address);
+
+      const opUSDCegrow = await deployments.get("opUSDCegrow");
+      this.vaults["USDCe"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCegrow.address);
     }
 
     const governanceAddress = await this.registry.getGovernance();
@@ -61,7 +69,7 @@ describe("VaultV2", () => {
       params: [financeOperatorAddress],
     });
     const financeOperator = await ethers.getSigner(financeOperatorAddress);
-
+    const USDCTokens = fork === eEVMNetwork.avalanche ? ["USDC", "USDCe"] : ["USDC"];
     // (0-15) Deposit fee UT = 0 UT = 0000
     // (16-31) Deposit fee % = 0% = 0000
     // (32-47) Withdrawal fee UT = 0 UT = 0000
@@ -82,61 +90,66 @@ describe("VaultV2", () => {
     const expectedConfig = ethers.BigNumber.from(
       "906392544231311161076231617881117198619499239097192527361058388634069106688",
     );
-    const _vaultUSDCConfiguration = await this.vaults["USDC"].vaultConfiguration();
-    if (expectedConfig.eq(_vaultUSDCConfiguration)) {
-      console.log("vaultConfiguration is as expected");
-      console.log("\n");
-    } else {
-      console.log("Governance setting vault configuration for opUSDCgrow..");
-      console.log("\n");
-      const tx2 = await this.vaults["USDC"].connect(governance).setVaultConfiguration(expectedConfig);
-      await tx2.wait(1);
-    }
-
-    const actualUSDCUserDepositCapUT = await this.vaults["USDC"].userDepositCapUT();
-    const actualUSDCMinimumDepositValueUT = await this.vaults["USDC"].minimumDepositValueUT();
-    const actualUSDCTotalValueLockedLimitUT = await this.vaults["USDC"].totalValueLockedLimitUT();
-
-    const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
-    const expectedMinimumDepositValueUT = BigNumber.from("1000000000"); // 1000 USDC
-    const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
-
-    console.log("opUSDCgrow.setValueControlParams()");
-    console.log("\n");
-    if (
-      expectedUserDepositCapUT.eq(actualUSDCUserDepositCapUT) &&
-      expectedMinimumDepositValueUT.eq(actualUSDCMinimumDepositValueUT) &&
-      expectedTotalValueLockedLimitUT.eq(actualUSDCTotalValueLockedLimitUT)
-    ) {
-      console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCgrow");
-      console.log("\n");
-    } else {
-      console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCgrow...");
-      console.log("\n");
-      const tx4 = await this.vaults["USDC"]
-        .connect(financeOperator)
-        .setValueControlParams(
-          expectedUserDepositCapUT,
-          expectedMinimumDepositValueUT,
-          expectedTotalValueLockedLimitUT,
-        );
-      await tx4.wait(1);
-    }
-    if (this.vaults["WMATIC"]) {
-      const _vaultWMATICConfiguration = await this.vaults["WMATIC"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultWMATICConfiguration)) {
+    for (let i = 0; i < USDCTokens.length; i++) {
+      const usdc = USDCTokens[i];
+      const _vaultUSDCConfiguration = await this.vaults[usdc].vaultConfiguration();
+      if (expectedConfig.eq(_vaultUSDCConfiguration)) {
         console.log("vaultConfiguration is as expected");
         console.log("\n");
       } else {
         console.log("Governance setting vault configuration for opUSDCgrow..");
         console.log("\n");
-        const tx2 = await this.vaults["WMATIC"].connect(governance).setVaultConfiguration(expectedConfig);
+        const tx2 = await this.vaults[usdc].connect(governance).setVaultConfiguration(expectedConfig);
         await tx2.wait(1);
       }
 
-      const actualUserDepositCapUT = await this.vaults["WMATIC"].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults["WMATIC"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults["WMATIC"].totalValueLockedLimitUT();
+      const actualUSDCUserDepositCapUT = await this.vaults[usdc].userDepositCapUT();
+      const actualUSDCMinimumDepositValueUT = await this.vaults[usdc].minimumDepositValueUT();
+      const actualUSDCTotalValueLockedLimitUT = await this.vaults[usdc].totalValueLockedLimitUT();
+
+      const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
+      const expectedMinimumDepositValueUT = BigNumber.from("1000000000"); // 1000 USDC
+      const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
+
+      console.log("opUSDCgrow.setValueControlParams()");
+      console.log("\n");
+      if (
+        expectedUserDepositCapUT.eq(actualUSDCUserDepositCapUT) &&
+        expectedMinimumDepositValueUT.eq(actualUSDCMinimumDepositValueUT) &&
+        expectedTotalValueLockedLimitUT.eq(actualUSDCTotalValueLockedLimitUT)
+      ) {
+        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCgrow");
+        console.log("\n");
+      } else {
+        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCgrow...");
+        console.log("\n");
+        const tx4 = await this.vaults[usdc]
+          .connect(financeOperator)
+          .setValueControlParams(
+            expectedUserDepositCapUT,
+            expectedMinimumDepositValueUT,
+            expectedTotalValueLockedLimitUT,
+          );
+        await tx4.wait(1);
+      }
+    }
+
+    const wToken = fork === eEVMNetwork.avalanche ? "WAVAX" : "WMATIC";
+    if (this.vaults[wToken]) {
+      const _vaultWTokenConfiguration = await this.vaults[wToken].vaultConfiguration();
+      if (expectedConfig.eq(_vaultWTokenConfiguration)) {
+        console.log("vaultConfiguration is as expected");
+        console.log("\n");
+      } else {
+        console.log("Governance setting vault configuration for opUSDCgrow..");
+        console.log("\n");
+        const tx2 = await this.vaults[wToken].connect(governance).setVaultConfiguration(expectedConfig);
+        await tx2.wait(1);
+      }
+
+      const actualUserDepositCapUT = await this.vaults[wToken].userDepositCapUT();
+      const actualMinimumDepositValueUT = await this.vaults[wToken].minimumDepositValueUT();
+      const actualTotalValueLockedLimitUT = await this.vaults[wToken].totalValueLockedLimitUT();
 
       const expectedUserDepositCapUT = BigNumber.from("5000000000000000000"); // 5 WETH user deposit cap
       const expectedMinimumDepositValueUT = BigNumber.from("250000000000000000"); // 0.25 WETH minimum deposit
@@ -154,7 +167,7 @@ describe("VaultV2", () => {
       } else {
         console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWETHgrow...");
         console.log("\n");
-        const tx3 = await this.vaults["WMATIC"]
+        const tx3 = await this.vaults[wToken]
           .connect(financeOperator)
           .setValueControlParams(
             expectedUserDepositCapUT,
