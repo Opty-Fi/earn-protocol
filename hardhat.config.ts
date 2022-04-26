@@ -130,6 +130,11 @@ const config: HardhatUserConfig = {
       eEVMNetwork.polygon,
       NETWORKS_CHAIN_ID[eEVMNetwork.polygon],
     ),
+    avalanche: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.avalanche],
+      eEVMNetwork.avalanche,
+      NETWORKS_CHAIN_ID[eEVMNetwork.avalanche],
+    ),
     mumbai: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.mumbai],
       eEVMNetwork.mumbai,
@@ -154,7 +159,6 @@ const config: HardhatUserConfig = {
       eEVMNetwork.tenderly,
       NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
     ),
-
     hardhat: {
       hardfork: "london",
       initialBaseFeePerGas: 1_00_000_000,

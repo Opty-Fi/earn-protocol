@@ -93,7 +93,7 @@ const func: DeployFunction = async ({
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
   const tokenHashes: string[] = await registryV2Instance.getTokenHashes();
-  if (!["80001", "137"].includes(chainId)) {
+  if (!["80001", "137", "43114"].includes(chainId)) {
     const usdcApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address);
 
     if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
@@ -115,7 +115,7 @@ const func: DeployFunction = async ({
     }
   }
 
-  if (!["42", "80001", "137"].includes(chainId)) {
+  if (!["42", "80001", "137", "43114"].includes(chainId)) {
     const wethApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
 
     if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
