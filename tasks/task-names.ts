@@ -35,6 +35,7 @@ export default {
       DESCRIPTION: "Map a list of liquidity pools with a specific adapter",
     },
     SET_BEST_STRATEGY: { NAME: "set-best-strategy", DESCRIPTION: "Set the best strategy for a specific token" },
+    PRINT_STRATEGY_HASH: { NAME: "print-strategy-hash", DESCRIPTION: "Print the strategy" },
     UNPAUSE_VAULT: { NAME: "unpause-vault", DESCRIPTION: "Set pause state for a specific vault" },
     VAULT_ACTIONS: {
       NAME: "vault-actions",
