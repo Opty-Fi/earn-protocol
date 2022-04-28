@@ -166,7 +166,7 @@ const avalancheTokens = {
       NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
     ),
   },
-  "USDC.e": {
+  USDCe: {
     address: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
     pair: false,
     hash: generateTokenHashV2(

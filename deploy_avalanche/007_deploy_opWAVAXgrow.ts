@@ -29,7 +29,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Wrapped Avax", "WAVAX", "Growth", "grow"],
+    args: [registryProxyAddress, "Wrapped AVAX", "WAVAX", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -43,7 +43,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WAVAX.hash, "Wrapped Avax", "WAVAX", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WAVAX.hash, "Wrapped AVAX", "WAVAX", "1"],
         },
       },
     },
@@ -56,7 +56,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opWAVAXgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Avax", "WAVAX", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Wrapped AVAX", "WAVAX", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -64,7 +64,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opWAVAXgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Avax", "WAVAX", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Wrapped AVAX", "WAVAX", "Growth", "grow"],
         });
       }
     }

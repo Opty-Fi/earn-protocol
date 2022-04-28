@@ -43,7 +43,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USDC Coin (PoS)", "USDC", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USDC Coin", "USDC", "1"],
         },
       },
     },
@@ -56,7 +56,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opUSDCgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin (PoS)", "USDC", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -64,7 +64,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opUSDCgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin (PoS)", "USDC", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
         });
       }
     }

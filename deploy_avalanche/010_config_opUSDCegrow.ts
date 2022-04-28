@@ -4,6 +4,7 @@ import { eEVMNetwork } from "../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { getRiskProfileCode, getUnpause } from "../helpers/utils";
+import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
 
 const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
   const { BigNumber } = ethers;
@@ -25,8 +26,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   // no whitelist state
   // 0x0201000000000000000000000000000000000000000000640000000000000000
   // const expectedConfig = BigNumber.from("906392544231311161076231617881117198619499239097192527361058388634069106688");
-  const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
-  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDC
+  const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDCe
+  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDCe
   const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
   const expectedAccountsRoot = "0x5497616cb86ca51b3788923a239cb626f3593a6395e3c66fe24b452204fbf875";
   const expectedRiskProfileCode = BigNumber.from("1");
@@ -34,6 +35,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const opUSDCegrowAddress = await (await deployments.get("opUSDCegrow")).address; // fetches proxy address
+  const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
   const opUSDCegrowInstance = await ethers.getContractAt("Vault", opUSDCegrowAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
@@ -72,12 +74,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
 
   const tokensHash = await opUSDCegrowInstance.underlyingTokensHash();
 
-  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName]["USDC.e"].hash) {
+  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName].USDCe.hash) {
     console.log("setting tokenshash..");
     console.log("\n");
     const tx3 = await opUSDCegrowInstance
       .connect(operatorSigner)
-      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName]["USDC.e"].hash);
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].USDCe.hash);
     await tx3.wait(1);
   } else {
     console.log("Tokenshash is upto date");
@@ -137,7 +139,47 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("\n");
   }
 
-  //TODO set strategy
+  const strategyProviderInstance = await ethers.getContractAt(
+    ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
+    strategyProviderAddress,
+  );
+  const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
+  const strategyName = "usdce-DEPOSIT-AaveV2-avUSDC";
+  console.log("Operator setting best strategy for opUSDCgrow...");
+  console.log("\n");
+
+  const currentBestStrategySteps = await strategyProviderInstance.getRpToTokenToBestStrategy(
+    expectedRiskProfileCode,
+    MULTI_CHAIN_VAULT_TOKENS[networkName].USDCe.hash,
+  );
+  const currentBestStrategyHash = await opUSDCegrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName].USDCe[strategyName].strategy;
+  const expectedStrategyHash = await opUSDCegrowInstance.computeInvestStrategyHash(
+    expectedStrategySteps.map(x => ({
+      pool: x.contract,
+      outputToken: x.outputToken,
+      isBorrow: x.isBorrow,
+    })),
+  );
+
+  if (currentBestStrategyHash !== expectedStrategyHash) {
+    console.log("Strategy operator setting best strategy..");
+    console.log("\n");
+    const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
+      expectedRiskProfileCode,
+      MULTI_CHAIN_VAULT_TOKENS[networkName].USDCe.hash,
+      expectedStrategySteps.map(x => ({
+        pool: x.contract,
+        outputToken: x.outputToken,
+        isBorrow: x.isBorrow,
+      })),
+    );
+    await tx7.wait(1);
+  } else {
+    console.log("best strategy is upto date.");
+    console.log("\n");
+  }
+  console.log("Next Best Strategy ", await opUSDCegrowInstance.getNextBestInvestStrategy());
 };
 export default func;
 func.tags = ["AvalancheConfigopUSDCegrow"];

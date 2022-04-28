@@ -4,6 +4,7 @@ import { eEVMNetwork } from "../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { getRiskProfileCode, getUnpause } from "../helpers/utils";
+import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
 
 const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
   const { BigNumber } = ethers;
@@ -34,6 +35,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const opUSDCgrowAddress = await (await deployments.get("opUSDCgrow")).address; // fetches proxy address
+  const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
   const opUSDCgrowInstance = await ethers.getContractAt("Vault", opUSDCgrowAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
@@ -137,7 +139,47 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("\n");
   }
 
-  //TODO set strategy
+  const strategyProviderInstance = await ethers.getContractAt(
+    ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
+    strategyProviderAddress,
+  );
+  const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
+  const strategyName = "usdc-DEPOSIT-AaveV3-aAvaUSDC";
+  console.log("Operator setting best strategy for opUSDCgrow...");
+  console.log("\n");
+
+  const currentBestStrategySteps = await strategyProviderInstance.getRpToTokenToBestStrategy(
+    expectedRiskProfileCode,
+    MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
+  );
+  const currentBestStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName].USDC[strategyName].strategy;
+  const expectedStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(
+    expectedStrategySteps.map(x => ({
+      pool: x.contract,
+      outputToken: x.outputToken,
+      isBorrow: x.isBorrow,
+    })),
+  );
+
+  if (currentBestStrategyHash !== expectedStrategyHash) {
+    console.log("Strategy operator setting best strategy..");
+    console.log("\n");
+    const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
+      expectedRiskProfileCode,
+      MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
+      expectedStrategySteps.map(x => ({
+        pool: x.contract,
+        outputToken: x.outputToken,
+        isBorrow: x.isBorrow,
+      })),
+    );
+    await tx7.wait(1);
+  } else {
+    console.log("best strategy is upto date.");
+    console.log("\n");
+  }
+  console.log("Next Best Strategy ", await opUSDCgrowInstance.getNextBestInvestStrategy());
 };
 export default func;
 func.tags = ["AvalancheConfigopUSDCgrow"];

@@ -34,6 +34,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const opWAVAXgrowAddress = await (await deployments.get("opWAVAXgrow")).address; // fetches proxy address
+  const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
   const opWAVAXgrowInstance = await ethers.getContractAt("Vault", opWAVAXgrowAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
@@ -136,6 +137,48 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("whitelisted accounts root for opWAVAXgrow is as expected");
     console.log("\n");
   }
+
+  const strategyProviderInstance = await ethers.getContractAt(
+    ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
+    strategyProviderAddress,
+  );
+  const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
+  const strategyName = "wavax-DEPOSIT-AaveV3-aAvaWAVAX";
+  console.log("Operator setting best strategy for opWAVAXgrow...");
+  console.log("\n");
+
+  const currentBestStrategySteps = await strategyProviderInstance.getRpToTokenToBestStrategy(
+    expectedRiskProfileCode,
+    MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash,
+  );
+  const currentBestStrategyHash = await opWAVAXgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName].WAVAX[strategyName].strategy;
+  const expectedStrategyHash = await opWAVAXgrowInstance.computeInvestStrategyHash(
+    expectedStrategySteps.map(x => ({
+      pool: x.contract,
+      outputToken: x.outputToken,
+      isBorrow: x.isBorrow,
+    })),
+  );
+
+  if (currentBestStrategyHash !== expectedStrategyHash) {
+    console.log("Strategy operator setting best strategy..");
+    console.log("\n");
+    const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
+      expectedRiskProfileCode,
+      MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash,
+      expectedStrategySteps.map(x => ({
+        pool: x.contract,
+        outputToken: x.outputToken,
+        isBorrow: x.isBorrow,
+      })),
+    );
+    await tx7.wait(1);
+  } else {
+    console.log("best strategy is upto date.");
+    console.log("\n");
+  }
+  console.log("Next Best Strategy ", await opWAVAXgrowInstance.getNextBestInvestStrategy());
 };
 export default func;
 func.tags = ["AvalancheConfigopWAVAXgrow"];
