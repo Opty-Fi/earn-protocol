@@ -30,7 +30,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
   const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDC
   const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
-  const expectedAccountsRoot = "0x491367e7fa1e37685359a9f230f877839e3dc232cd807c6475515386200a90f1";
+  const expectedAccountsRoot = "0x1b7d2a91e105e54278ecf7ec70f694b2a6d231b9619bfbcddf03665b6e01eb11";
   const expectedRiskProfileCode = BigNumber.from("1");
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
