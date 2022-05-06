@@ -106,7 +106,7 @@
     "test-fast:vaultv2-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/2_vaultv2_mainnet_upgrade.spec.ts",
     "test-fast:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/3_vaultv2.spec.ts",
     "test-fast:vaultv2-strategy:polygon": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=polygon NETWORK_NAME=polygon hardhat --max-memory 4096 test test/test-opty/4_vaultv2_strategies.spec.ts",
-    "test-fast:vaultv2-strategy:avalanche": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=avalanche NETWORK_NAME=avalanche hardhat --max-memory 4096 test test/test-opty/4_vaultv2_strategies.spec.ts",
+    "test-fast:vaultv2-strategy:avalanche": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=avalanche NETWORK_NAME=avalanche FORK_BLOCK_NUMBER=13936470 hardhat --max-memory 4096 test test/test-opty/4_vaultv2_strategies.spec.ts",
     "test-fast": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "watch:test": "hardhat --max-memory 4096 watch test",
     "coverage": "cross-env CODE_COVERAGE=true hardhat --max-memory 4096 coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/test-opty/*.spec.ts\"",
