@@ -15,6 +15,7 @@ jobs:
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       POLYGON_NODE_URL: ${{ secrets.POLYGON_NODE_URL}}
+      AVALANCHE_NODE_URL: ${{ secrets.AVALANCHE_NODE_URL}}
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       REPORT_GAS: true
       MNEMONIC: ${{ secrets.MNEMONIC}}
@@ -53,6 +54,7 @@ jobs:
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
           yarn test-fast:vaultv2-strategy:polygon
+          yarn test-fast:vaultv2-strategy:avalanche
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.18.0
