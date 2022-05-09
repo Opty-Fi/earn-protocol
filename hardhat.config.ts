@@ -123,7 +123,7 @@ const config: HardhatUserConfig = {
     ),
     dashboard: {
       url: NETWORKS_RPC_URL[eEVMNetwork.dashboard],
-      deploy: [`deploy`, `deploy_mainnet`],
+      deploy: [`deploy`, `deploy_${NETWORK_NAME}`],
     },
     polygon: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.polygon],
