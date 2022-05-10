@@ -113,6 +113,11 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["MKR"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  NEWO: {
+    address: TypedTokens["NEWO"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["NEWO"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {

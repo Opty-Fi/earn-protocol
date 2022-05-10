@@ -355,6 +355,44 @@ const mainnetStrategiesByToken = {
       ],
     },
   },
+  NEWO: {
+    "newo-DEPOSIT-NewOrder-stkNEWO": {
+      strategyName: "newo-DEPOSIT-NewOrder-stkNEWO",
+      token: "0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96",
+      strategy: [
+        {
+          contract: "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB",
+          outputToken: "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB",
+          isBorrow: false,
+          outputTokenSymbol: "stkNEWO",
+          adapterName: "NewoStakingAdapter",
+          protocol: "NewOrder",
+        },
+      ],
+    },
+    "newo-DEPOSIT-SushiswapPool-NEWO-USDC-SLP-DEPOSIT-NewOrder-newoSushiNEWO-USDC": {
+      strategyName: "newo-DEPOSIT-SushiswapPool-NEWO-USDC-SLP-DEPOSIT-NewOrder-newoSushiNEWO-USDC",
+      token: "0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96",
+      strategy: [
+        {
+          contract: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
+          outputToken: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
+          isBorrow: false,
+          outputTokenSymbol: "NEWO-USDC-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a",
+          outputToken: "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a",
+          isBorrow: false,
+          outputTokenSymbol: "newoSushiNEWO-USDC",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+      ],
+    },
+  },
 };
 
 const kovanStrategiesByToken = {

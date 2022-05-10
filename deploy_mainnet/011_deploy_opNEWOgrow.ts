@@ -1,6 +1,9 @@
+import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
+import RegistryProxy from "../deployments/mainnet/RegistryProxy.json";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -13,11 +16,60 @@ const func: DeployFunction = async ({
   run,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = "0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3";
-
+  const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
+  const artifact = await deployments.getArtifact("Vault");
+  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
+  const registryProxyAddress = RegistryProxy.address;
+  const registryInstance = await hre.ethers.getContractAt(
+    "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
+    registryProxyAddress,
+  );
+  const operatorAddress = await registryInstance.getOperator();
+  const operator = await hre.ethers.getSigner(operatorAddress);
+  await hre.network.provider.request({
+    method: "hardhat_impersonateAccount",
+    params: [operatorAddress],
+  });
+  const onlySetTokensHash = [];
+  const approveTokenAndMapHash = [];
+  const newoApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address);
+  const tokenHashes: string[] = await registryInstance.getTokenHashes();
+  if (newoApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash)) {
+    console.log("only set NEWO hash");
+    console.log("\n");
+    onlySetTokensHash.push([
+      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
+    ]);
+  }
+  if (!newoApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash)) {
+    console.log("approve NEWO and set hash");
+    console.log("\n");
+    approveTokenAndMapHash.push([
+      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
+    ]);
+  }
+
+  if (approveTokenAndMapHash.length > 0) {
+    console.log("approve token and map hash");
+    console.log("\n");
+    const approveTokenAndMapToTokensHashTx = await registryInstance
+      .connect(operator)
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
+    await approveTokenAndMapToTokensHashTx.wait(1);
+  }
+
+  if (onlySetTokensHash.length > 0) {
+    console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
+    console.log("\n");
+    const onlyMapToTokensHashTx = await registryInstance
+      .connect(operator)
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
+    await onlyMapToTokensHashTx.wait(1);
+  }
+
   const networkName = network.name;
 
   const result = await deploy("opNEWOgrow", {
@@ -30,6 +82,21 @@ const func: DeployFunction = async ({
     args: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
+    proxy: {
+      owner: admin,
+      upgradeIndex: 0,
+      proxyContract: {
+        abi: artifactVaultProxyV2.abi,
+        bytecode: artifactVaultProxyV2.bytecode,
+        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
+      },
+      execute: {
+        init: {
+          methodName: "initialize",
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo", "NEWO", "1"],
+        },
+      },
+    },
   });
 
   if (CONTRACTS_VERIFY == "true") {

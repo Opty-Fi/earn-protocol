@@ -4,6 +4,7 @@ import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
+const IS_NEWO = process.env.IS_NEWO;
 
 const func: DeployFunction = async ({
   deployments,
@@ -13,46 +14,51 @@ const func: DeployFunction = async ({
   tenderly,
   run,
 }: HardhatRuntimeEnvironment) => {
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY);
-  const registryProxy = await deployments.get("RegistryProxy");
-  const chainId = await getChainId();
-  const networkName = network.name;
+  if (!IS_NEWO) {
+    const { deploy } = deployments;
+    const { deployer } = await getNamedAccounts();
+    const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY);
+    const registryProxy = await deployments.get("RegistryProxy");
+    const chainId = await getChainId();
+    const networkName = network.name;
 
-  const result = await deploy("RiskManagerProxy", {
-    from: deployer,
-    contract: {
-      abi: artifact.abi,
-      bytecode: artifact.bytecode,
-      deployedBytecode: artifact.deployedBytecode,
-    },
-    args: [registryProxy.address],
-    log: true,
-    skipIfAlreadyDeployed: true,
-  });
+    const result = await deploy("RiskManagerProxy", {
+      from: deployer,
+      contract: {
+        abi: artifact.abi,
+        bytecode: artifact.bytecode,
+        deployedBytecode: artifact.deployedBytecode,
+      },
+      args: [registryProxy.address],
+      log: true,
+      skipIfAlreadyDeployed: true,
+    });
 
-  if (CONTRACTS_VERIFY == "true") {
-    if (result.newlyDeployed) {
-      const riskManagerProxy = await deployments.get("RiskManagerProxy");
-      if (networkName === "tenderly") {
-        await tenderly.verify({
-          name: "RiskManagerProxy",
-          address: riskManagerProxy.address,
-          constructorArguments: [registryProxy.address],
-          contract: "contracts/protocol/earn-protocol-configuration/contracts/RiskManagerProxy.sol:RiskManagerProxy",
-        });
-      } else if (!["31337"].includes(chainId)) {
-        await waitforme(20000);
+    if (CONTRACTS_VERIFY == "true") {
+      if (result.newlyDeployed) {
+        const riskManagerProxy = await deployments.get("RiskManagerProxy");
+        if (networkName === "tenderly") {
+          await tenderly.verify({
+            name: "RiskManagerProxy",
+            address: riskManagerProxy.address,
+            constructorArguments: [registryProxy.address],
+            contract: "contracts/protocol/earn-protocol-configuration/contracts/RiskManagerProxy.sol:RiskManagerProxy",
+          });
+        } else if (!["31337"].includes(chainId)) {
+          await waitforme(20000);
 
-        await run("verify:verify", {
-          name: "RiskManagerProxy",
-          address: riskManagerProxy.address,
-          constructorArguments: [registryProxy.address],
-          contract: "contracts/protocol/earn-protocol-configuration/contracts/RiskManagerProxy.sol:RiskManagerProxy",
-        });
+          await run("verify:verify", {
+            name: "RiskManagerProxy",
+            address: riskManagerProxy.address,
+            constructorArguments: [registryProxy.address],
+            contract: "contracts/protocol/earn-protocol-configuration/contracts/RiskManagerProxy.sol:RiskManagerProxy",
+          });
+        }
       }
     }
+  } else {
+    console.log("Testing NEWO vault only, hence skipping deploying risk manager proxy");
+    console.log("\n");
   }
 };
 export default func;
