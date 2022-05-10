@@ -65,7 +65,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.mainnet]: "auto",
   [eEVMNetwork.hardhat]: "auto",
   [eEVMNetwork.staging]: "auto",
-  [eEVMNetwork.polygon]: 37 * GWEI,
+  [eEVMNetwork.polygon]: 50 * GWEI,
   [eEVMNetwork.avalanche]: 65 * GWEI,
   [eEVMNetwork.mumbai]: 30 * GWEI,
   [eEVMNetwork.ganache]: "auto",
