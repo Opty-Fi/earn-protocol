@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import RegistryProxy from "../deployments/mainnet/RegistryProxy.json";
+import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -21,16 +22,10 @@ const func: DeployFunction = async ({
   const artifact = await deployments.getArtifact("Vault");
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = RegistryProxy.address;
-  const registryInstance = await hre.ethers.getContractAt(
-    "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
-    registryProxyAddress,
-  );
+  const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
-  await hre.network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [operatorAddress],
-  });
+
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
   const newoApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address);
@@ -51,7 +46,6 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
     ]);
   }
-
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
@@ -98,7 +92,6 @@ const func: DeployFunction = async ({
       },
     },
   });
-
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       const vault = await deployments.get("opNEWOgrow");

@@ -16,6 +16,7 @@ import RegistryProxyDeployment from "../../deployments/mainnet/RegistryProxy.jso
 import RiskManagerProxyDeployment from "../../deployments/mainnet/RiskManagerProxy.json";
 import StrategyProviderDeployment from "../../deployments/mainnet/StrategyProvider.json";
 import opUSDCProxyDeployment from "../../deployments/mainnet/opUSDCgrowProxy.json";
+import RegistryProxy from "../../deployments/mainnet/RegistryProxy.json";
 
 chai.use(solidity);
 
@@ -24,6 +25,16 @@ const isNewo = process.env.IS_NEWO as eEVMNetwork;
 
 describe("VaultV2", () => {
   before(async function () {
+    const registryProxyAddress = RegistryProxy.address;
+    const registryInstance = await ethers.getContractAt(
+      "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
+      registryProxyAddress,
+    );
+    const operatorAddress = await registryInstance.getOperator();
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [operatorAddress],
+    });
     if (!isNewo) {
       await deployments.fixture();
     } else {
@@ -40,7 +51,7 @@ describe("VaultV2", () => {
     this.signers.financeOperator = signers[5];
     this.signers.governance = signers[9];
     this.signers.strategyOperator = signers[7];
-    const opNEWOGrow = await deployments.get("opNEWOGrow");
+    const opNEWOGrow = await deployments.get("opNEWOgrow");
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, RegistryProxyDeployment.address);
     this.riskManager = <RiskManager>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, RiskManagerProxyDeployment.address)
