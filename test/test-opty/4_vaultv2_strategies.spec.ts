@@ -38,7 +38,12 @@ describe("VaultV2", () => {
     if (!isNewo) {
       await deployments.fixture();
     } else {
-      await deployments.fixture("opNEWOgrow");
+      await deployments.fixture([
+        "opNEWOgrow",
+        "NewoStakingAdapter",
+        "SushiswapPoolAdapter",
+        "NewoApproveAndMapLiquidityPoolToAdapter",
+      ]);
     }
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
@@ -51,7 +56,8 @@ describe("VaultV2", () => {
     this.signers.financeOperator = signers[5];
     this.signers.governance = signers[9];
     this.signers.strategyOperator = signers[7];
-    const opNEWOGrow = await deployments.get("opNEWOgrow");
+    const opNEWOgrow = await deployments.get("opNEWOgrow");
+    console.log("Vault address: ", opNEWOgrow.address);
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, RegistryProxyDeployment.address);
     this.riskManager = <RiskManager>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, RiskManagerProxyDeployment.address)
@@ -61,7 +67,7 @@ describe("VaultV2", () => {
     );
     this.vaults = {};
     this.vaults["USDC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCProxyDeployment.address);
-    this.vaults["NEWO"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOGrow.address);
+    this.vaults["NEWO"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOgrow.address);
     if (fork === eEVMNetwork.polygon) {
       const opWMATICGrow = await deployments.get("opWMATICgrow");
       this.vaults["WMATIC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWMATICGrow.address);
@@ -241,11 +247,18 @@ describe("VaultV2", () => {
 
         describe(`${strategy}`, () => {
           before(async function () {
-            await (this.strategyProvider as any).setBestStrategy(
+            const strategyOperatorAddress = await this.registry.getStrategyOperator();
+            await network.provider.request({
+              method: "hardhat_impersonateAccount",
+              params: [strategyOperatorAddress],
+            });
+            const strategyOperator = await ethers.getSigner(strategyOperatorAddress);
+            await (this.strategyProvider as any).connect(strategyOperator).setBestStrategy(
               1,
               tokenHash,
               steps.map(item => Object.values(item)),
             );
+            console.log("Best strategy: ", await this.riskManager.getBestStrategy(1, tokenHash));
             this.token = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, strategyDetail.token);
             this.adapter = <IAdapterFull>(
               await ethers.getContractAt(
