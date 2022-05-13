@@ -57,7 +57,6 @@ describe("VaultV2", () => {
     this.signers.governance = signers[9];
     this.signers.strategyOperator = signers[7];
     const opNEWOgrow = await deployments.get("opNEWOgrow");
-    console.log("Vault address: ", opNEWOgrow.address);
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, RegistryProxyDeployment.address);
     this.riskManager = <RiskManager>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, RiskManagerProxyDeployment.address)
@@ -258,7 +257,6 @@ describe("VaultV2", () => {
               tokenHash,
               steps.map(item => Object.values(item)),
             );
-            console.log("Best strategy: ", await this.riskManager.getBestStrategy(1, tokenHash));
             this.token = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, strategyDetail.token);
             this.adapter = <IAdapterFull>(
               await ethers.getContractAt(
@@ -268,6 +266,7 @@ describe("VaultV2", () => {
             );
           });
           it("should receive new strategy after rebalancing", async function () {
+            await setTokenBalanceInStorage(this.token, this.vaults[token].address, "10");
             await this.vaults[token].rebalance();
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),
@@ -281,13 +280,17 @@ describe("VaultV2", () => {
               .toString();
             await setTokenBalanceInStorage(this.token, this.signers.alice.address, _userDeposit);
             await setTokenBalanceInStorage(this.token, this.signers.bob.address, _userDeposit);
+            console.log("User deposit in decimals: ", _userDepositInDecimals.toString());
 
             await this.token.connect(this.signers.alice).approve(this.vaults[token].address, _userDepositInDecimals);
             await this.token.connect(this.signers.bob).approve(this.vaults[token].address, _userDepositInDecimals);
 
+            console.log("investStrategyHash: ", await this.vaults[token].investStrategyHash());
             const aliceBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
+            console.log("Before: ", aliceBalanceBefore.toString());
             await this.vaults[token].connect(this.signers.alice).userDepositVault(_userDepositInDecimals, [], []);
             const aliceBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
+            console.log("After: ", aliceBalanceAfter.toString());
             expect(aliceBalanceBefore).gt(aliceBalanceAfter);
 
             const bobBalanceBefore = await this.token.balanceOf(this.signers.bob.address);

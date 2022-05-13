@@ -31,3 +31,6 @@
 [submodule "contracts/protocol/adapters/ethereum/newo-staking-adapter"]
 	path = contracts/protocol/adapters/ethereum/newo-staking-adapter
 	url = git@github.com:Opty-Fi/newo-staking-adapter
+[submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter"]
+	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter
+	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
