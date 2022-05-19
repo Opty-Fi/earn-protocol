@@ -44,4 +44,4 @@ jobs:
           sudo tar -xf /tmp/echidna-test.tar.gz -C /usr/bin
           sudo chmod +x /usr/bin/echidna-test
       - name: Run ${{ matrix.testName }}
-        run: echidna-test contracts/test/ExampleEchidnaTest.sol --contract ${{ matrix.testName }}
+        run: echidna-test test/ExampleEchidnaTest.sol --contract ${{ matrix.testName }}
