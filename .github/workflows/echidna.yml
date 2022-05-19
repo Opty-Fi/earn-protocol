@@ -72,5 +72,6 @@ jobs:
       - name: Run echidna
         uses: crytic/echidna-action@v2
         with:
+          solc-version: 0.8.0
           files: contracts/test
           contract: CounterEchidnaTest
