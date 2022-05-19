@@ -620,6 +620,71 @@ const mumbaiStrategiesbyToken = {
   },
 };
 
+const avalancheStrategiesbyToken = {
+  USDC: {
+    "usdc-DEPOSIT-AaveV3-aAvaUSDC": {
+      strategyName: "",
+      token: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+      strategy: [
+        {
+          contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
+          outputToken: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+          isBorrow: false,
+          outputTokenSymbol: "aAvaUSDC",
+          adapterName: "AaveV3AvalancheAdapter",
+          protocol: "AaveV3",
+        },
+      ],
+    },
+  },
+  WAVAX: {
+    "wavax-DEPOSIT-AaveV2-avWAVAX": {
+      strategyName: "",
+      token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      strategy: [
+        {
+          contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
+          outputToken: "0xDFE521292EcE2A4f44242efBcD66Bc594CA9714B",
+          isBorrow: false,
+          outputTokenSymbol: "avWAVAX",
+          adapterName: "AaveV2AvalancheAdapter",
+          protocol: "AaveV2",
+        },
+      ],
+    },
+    "wavax-DEPOSIT-AaveV3-aAvaWAVAX": {
+      strategyName: "",
+      token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      strategy: [
+        {
+          contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
+          outputToken: "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97",
+          isBorrow: false,
+          outputTokenSymbol: "aAvaWAVAX",
+          adapterName: "AaveV3AvalancheAdapter",
+          protocol: "AaveV3",
+        },
+      ],
+    },
+  },
+  USDCe: {
+    "usdce-DEPOSIT-AaveV2-avUSDC": {
+      strategyName: "",
+      token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
+      strategy: [
+        {
+          contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
+          outputToken: "0x46A51127C3ce23fb7AB1DE06226147F446e4a857",
+          isBorrow: false,
+          outputTokenSymbol: "avUSDC",
+          adapterName: "AaveV2AvalancheAdapter",
+          protocol: "AaveV2",
+        },
+      ],
+    },
+  },
+};
+
 export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
   [eEVMNetwork.mainnet]: mainnetStrategiesByToken,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: mainnetStrategiesByToken,
@@ -633,4 +698,7 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
   [eEVMNetwork.mumbai]: mumbaiStrategiesbyToken,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]]: mumbaiStrategiesbyToken,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mumbai]]: mumbaiStrategiesbyToken,
+  [eEVMNetwork.avalanche]: avalancheStrategiesbyToken,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: avalancheStrategiesbyToken,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche]]: avalancheStrategiesbyToken,
 };
