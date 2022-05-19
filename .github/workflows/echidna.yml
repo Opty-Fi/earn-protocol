@@ -3,7 +3,7 @@ name: Fuzz Testing
 on:
   push:
     branches:
-      - echidna
+      - master
 
 jobs:
   echidna:
@@ -36,7 +36,7 @@ jobs:
       - name: Optyfi-SDK Mainnet
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
-          
+
       - name: Install pip3
         run: |
           python -m pip install --upgrade pip
