@@ -200,6 +200,20 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
 
 const mainnetStrategiesByToken = {
   USDC: {
+    "usdc-DEPOSIT-AaveV2-aUSDC": {
+      strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          outputToken: "0xBcca60bB61934080951369a648Fb03DF4F96263C",
+          isBorrow: false,
+          outputTokenSymbol: "aUSDC",
+          adapterName: "AaveV2Adapter",
+          protocol: "AaveV2",
+        },
+      ],
+    },
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
       strategyName:
         "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
@@ -351,6 +365,20 @@ const mainnetStrategiesByToken = {
           outputTokenSymbol: "cvxsteCRV",
           adapterName: "ConvexFinanceAdapter",
           protocol: "Convex",
+        },
+      ],
+    },
+    "weth-DEPOSIT-AaveV2-aWETH": {
+      strategyName: "weth-DEPOSIT-AaveV2-aWETH",
+      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      strategy: [
+        {
+          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          outputToken: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+          isBorrow: false,
+          outputTokenSymbol: "aWETH",
+          adapterName: "AaveV2Adapter",
+          protocol: "AaveV2",
         },
       ],
     },
