@@ -15,9 +15,30 @@ jobs:
       matrix:
         testName:
           - CounterEchidnaTest
+    env:
+      MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
+      POLYGON_NODE_URL: ${{ secrets.POLYGON_NODE_URL}}
+      COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
+      REPORT_GAS: true
+      MNEMONIC: ${{ secrets.MNEMONIC}}
+      STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
+      STRATEGY_DIVISOR: 2
+      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
+      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Use Node.js ${{ matrix.node-version}}
+        uses: actions/checkout@v2
+        with:
+         token: ${{secrets.PAT}}
+         submodules: recursive
+         
+      - name: Cache node modules
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: '**/node_modules'
+          key: npm-v2-${{ hashFiles('**/yarn.lock') }}
 
       - name: Set up node
         uses: actions/setup-node@v1
