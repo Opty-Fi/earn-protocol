@@ -3,14 +3,16 @@ name: Earn protocol Install, lint, analyze and test pipeline
 on:
   push:
     branches:
-      - master
+      - echidna
 
 jobs:
   lint-compile-analyze-test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node-version: [14.x]
+        testName: -AdapterInvestmentLimitEchidnaTest
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
@@ -68,5 +70,28 @@ jobs:
                  "title": "Lint, Compile and Test",
                  "status": "${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                 }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Echidna
+
+      - uses: actions/checkout@v2
+
+      - name: Set up node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install pip3
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install echidna
+        run: |
+          sudo wget -O /tmp/echidna-test.tar.gz https://github.com/crytic/echidna/releases/download/v1.6.0/echidna-test-v1.6.0-Ubuntu-18.04.tar.gz
+          sudo tar -xf /tmp/echidna-test.tar.gz -C /usr/bin
+          sudo chmod +x /usr/bin/echidna-test
+      - name: Run ${{ matrix.testName }}
+        run: echidna-test . --contract ${{ matrix.testName }} --config echidna.config.yml
