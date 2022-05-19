@@ -8,3 +8,4 @@ contracts/dependencies/
 contracts/mocks/
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/adapters
+contracts/test
