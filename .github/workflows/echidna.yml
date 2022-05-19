@@ -73,6 +73,6 @@ jobs:
       - name: Run ${{ matrix.testName }}
         uses: crytic/echidna-action@v2
         with:
-          solc-version: ^0.8.0
+          solc-version: 0.8.11
           files: contracts/test
           contract: ${{ matrix.testName }}
