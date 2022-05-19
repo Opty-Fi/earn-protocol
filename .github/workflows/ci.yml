@@ -3,7 +3,7 @@ name: Earn protocol Install, lint, analyze and test pipeline
 on:
   push:
     branches:
-      - echidna
+      - master
 
 jobs:
   lint-compile-analyze-test:
