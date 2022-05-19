@@ -15,6 +15,7 @@ jobs:
       matrix:
         testName:
           - CounterEchidnaTest
+          - AddEchidnaTest
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       POLYGON_NODE_URL: ${{ secrets.POLYGON_NODE_URL}}
@@ -69,9 +70,9 @@ jobs:
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
 
-      - name: Run echidna
+      - name: Run ${{ matrix.testName }}
         uses: crytic/echidna-action@v2
         with:
-          solc-version: 0.8.0
+          solc-version: ^0.8.0
           files: contracts/test
-          contract: CounterEchidnaTest
+          contract: ${{ matrix.testName }}
