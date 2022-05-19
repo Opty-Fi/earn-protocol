@@ -31,6 +31,7 @@ jobs:
         with:
          token: ${{secrets.PAT}}
          submodules: recursive
+      
       - name: Cache node modules
         uses: actions/cache@v2
         id: cache
@@ -38,29 +39,36 @@ jobs:
           path: '**/node_modules'
           key: npm-v2-${{ hashFiles('**/yarn.lock') }}
           restore-keys: npm-v2-
+      
       - name: Install
         run: |
           yarn install --frozen-lockfile
+      
       - name: Lint
         run: |
           yarn lint
+      
       - name: Compile
         run: |
           yarn compile
+      
       - name: Optyfi-SDK Mainnet
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
+      
       - name: Run Slither
         uses: crytic/slither-action@v0.1.0
         continue-on-error: true
         id: slither
         with:
           node-version: 14
+      
       - name: Test
         run: |
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
           yarn test-fast:vaultv2-strategy:polygon
+      
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.18.0
@@ -70,9 +78,9 @@ jobs:
                  "title": "Lint, Compile and Test",
                  "status": "${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                 }
-      - name: Echidna
 
-      - uses: actions/checkout@v2
+      - name: Echidna
+        uses: actions/checkout@v2
 
       - name: Set up node
         uses: actions/setup-node@v1
@@ -93,5 +101,6 @@ jobs:
           sudo wget -O /tmp/echidna-test.tar.gz https://github.com/crytic/echidna/releases/download/v1.6.0/echidna-test-v1.6.0-Ubuntu-18.04.tar.gz
           sudo tar -xf /tmp/echidna-test.tar.gz -C /usr/bin
           sudo chmod +x /usr/bin/echidna-test
+      
       - name: Run ${{ matrix.testName }}
         run: echidna-test . --contract ${{ matrix.testName }} --config echidna.config.yml
