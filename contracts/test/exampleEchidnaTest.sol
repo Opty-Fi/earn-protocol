@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.12;
+pragma solidity ^0.8.0;
 
 // contract Counter {
 //   uint public count;
@@ -13,8 +13,8 @@ pragma solidity 0.8.12;
 //   }
 // }
 
-contract TestCounter  {
-  function echidna_test_pass() public pure returns (bool) {
-    return true;
-  }
+contract TestCounter {
+    function echidna_test_pass() public pure returns (bool) {
+        return true;
+    }
 }
