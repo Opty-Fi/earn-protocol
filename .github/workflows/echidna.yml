@@ -15,7 +15,7 @@ jobs:
       matrix:
         testName:
           - CounterEchidnaTest
-          - AddEchidnaTest
+          - AddContEchidnaTest
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
       POLYGON_NODE_URL: ${{ secrets.POLYGON_NODE_URL}}
