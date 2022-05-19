@@ -12,7 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [14.x]
-        testName: -exampleEchidnaTest
+        testName: 
+          - exampleEchidnaTest
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
