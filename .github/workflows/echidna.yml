@@ -3,7 +3,7 @@ name: Fuzz Testing
 on:
   push:
     branches:
-      - echidna
+      - master
   pull_request:
 
 jobs:

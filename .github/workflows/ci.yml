@@ -3,7 +3,7 @@ name: Earn protocol Install, lint, analyze and test pipeline
 on:
   push:
     branches:
-      - master
+      - echidna
 
 jobs:
   lint-compile-analyze-test:
@@ -11,6 +11,8 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
+        testName:
+          - CounterEchidnaTest
     
     env:
       MAINNET_NODE_URL: ${{ secrets.MAINNET_NODE_URL}}
@@ -54,6 +56,12 @@ jobs:
         id: slither
         with:
           node-version: 14
+      - name: Run ${{ matrix.testName }}
+        uses: crytic/echidna-action@v2
+        with:
+          solc-version: 0.8.11
+          files: contracts/test
+          contract: ${{ matrix.testName }}
       - name: Test
         run: |
           yarn test-fast:mainnet
