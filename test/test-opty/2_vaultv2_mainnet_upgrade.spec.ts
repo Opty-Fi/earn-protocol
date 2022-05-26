@@ -97,6 +97,17 @@ const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
 // }));
 describe("Vault Ethereum on-chain upgrade", () => {
   before(async function () {
+    await network.provider.request({
+      method: "hardhat_reset",
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: process.env.MAINNET_NODE_URL,
+            blockNumber: 14389356,
+          },
+        },
+      ],
+    });
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];

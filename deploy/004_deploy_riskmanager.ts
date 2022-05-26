@@ -5,7 +5,6 @@ import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-na
 import { Registry, RiskManagerProxy } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
-const FORK = process.env.FORK;
 
 const func: DeployFunction = async ({
   deployments,
@@ -23,14 +22,7 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const { getAddress } = ethers.utils;
 
-  let registryProxyAddress: string = "";
-  if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
-    registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
-  } else if (chainId == "42" || FORK == "kovan" || networkName == "kovan") {
-    registryProxyAddress = "0xf710F75418353B36F2624784c290B80e7a5C892A";
-  } else {
-    registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-  }
+  const registryProxyAddress: string = await (await deployments.get("RegistryProxy")).address;
 
   const result = await deploy("RiskManager", {
     from: deployer,
@@ -46,14 +38,7 @@ const func: DeployFunction = async ({
 
   const riskManagerV2 = await deployments.get("RiskManager");
   const riskManagerV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerV2.address);
-  let riskManagerProxyAddress: string = "";
-  if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
-    riskManagerProxyAddress = "0x4379031f3191d89693bc8b6dac4d3d06466ea952";
-  } else if (chainId == "42" || FORK == "kovan" || networkName == "kovan") {
-    riskManagerProxyAddress = "0xe61ec00d34a93330775e8a8af0b16b03799b377d";
-  } else {
-    riskManagerProxyAddress = await (await deployments.get("RiskManagerProxy")).address;
-  }
+  const riskManagerProxyAddress: string = await (await deployments.get("RiskManagerProxy")).address;
   const riskManagerInstance = <RiskManagerProxy>(
     await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, riskManagerProxyAddress)
   );

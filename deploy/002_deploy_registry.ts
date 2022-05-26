@@ -38,14 +38,7 @@ const func: DeployFunction = async ({
 
   const registryV2 = await deployments.get("Registry");
   let registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryV2.address);
-  let registryProxyAddress: string = "";
-  if (chainId == "1" || FORK == "mainnet" || networkName == "mainnet") {
-    registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
-  } else if (chainId == "42" || FORK == "kovan" || networkName == "kovan") {
-    registryProxyAddress = "0xf710F75418353B36F2624784c290B80e7a5C892A";
-  } else {
-    registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-  }
+  const registryProxyAddress: string = await (await deployments.get("RegistryProxy")).address;
   chainId =
     ["31337", "1337"].includes(chainId) && FORK != "" ? NETWORKS_CHAIN_ID[FORK as eEVMNetwork].toString() : chainId;
   let registryProxyInstance = <RegistryProxy>(
