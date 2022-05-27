@@ -118,6 +118,11 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["NEWO"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  AAVE: {
+    address: TypedTokens["AAVE"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["AAVE"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {

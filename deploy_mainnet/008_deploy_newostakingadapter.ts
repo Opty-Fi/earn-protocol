@@ -14,44 +14,45 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  const artifact = await deployments.getArtifact("NewoStakingAdapter");
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
 
-  const result = await deploy("opUSDCgrow", {
+  const result = await deploy("NewoStakingAdapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
   });
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSDCgrow");
+      const newoStakingAdapter = await deployments.get("NewoStakingAdapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSDCgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+          name: "NewoStakingAdapter",
+          address: newoStakingAdapter.address,
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSDCgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+          name: "NewoStakingAdapter",
+          address: newoStakingAdapter.address,
+          constructorArguments: [registryProxyAddress],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opUSDCgrow"];
+func.tags = ["NewoStakingAdapter"];
+func.dependencies = ["RegistryProxy"];

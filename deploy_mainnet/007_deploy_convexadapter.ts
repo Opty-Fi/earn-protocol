@@ -14,13 +14,13 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("NewoStakingAdapter");
-  const registryProxyAddress = "0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3";
+  const artifact = await deployments.getArtifact("ConvexFinanceAdapter");
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
 
-  const result = await deploy("NewoStakingAdapter", {
+  const result = await deploy("ConvexFinanceAdapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -34,19 +34,19 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const newoStakingAdapter = await deployments.get("NewoStakingAdapter");
+      const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "NewoStakingAdapter",
-          address: newoStakingAdapter.address,
+          name: "ConvexFinanceAdapter",
+          address: convexFinanceAdapter.address,
           constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "NewoStakingAdapter",
-          address: newoStakingAdapter.address,
+          name: "ConvexFinanceAdapter",
+          address: convexFinanceAdapter.address,
           constructorArguments: [registryProxyAddress],
         });
       }
@@ -54,4 +54,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["NewoStakingAdapter"];
+func.tags = ["ConvexFinanceAdapter"];
+func.dependencies = ["RegistryProxy"];

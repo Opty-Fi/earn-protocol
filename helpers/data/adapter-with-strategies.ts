@@ -393,6 +393,22 @@ const mainnetStrategiesByToken = {
       ],
     },
   },
+  AAVE: {
+    "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP": {
+      strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP",
+      token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      strategy: [
+        {
+          contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          isBorrow: false,
+          outputTokenSymbol: "AAVE-WETH-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+      ],
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -432,7 +448,7 @@ const polygonStrategiesbyToken = {
   USDC: {
     "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-CurveGauge-am3CRV-gauge": {
       strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV",
-      token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       strategy: [
         {
           contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
@@ -468,7 +484,7 @@ const polygonStrategiesbyToken = {
     },
     "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
       strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
-      token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       strategy: [
         {
           contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",

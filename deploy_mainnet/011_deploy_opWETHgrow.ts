@@ -21,29 +21,29 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
-  const registryProxyAddress = RegistryProxy.address;
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const newoApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address);
+  const wethApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (newoApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash)) {
-    console.log("only set NEWO hash");
+  if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+    console.log("only set WETH hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
-  if (!newoApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash)) {
-    console.log("approve NEWO and set hash");
+  if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+    console.log("approve WETH and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -66,14 +66,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
 
-  const result = await deploy("opNEWOgrow", {
+  const result = await deploy("opWETHgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
+    args: [registryProxyAddress, "USD Coin", "WETH", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -87,31 +87,32 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo", "NEWO", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, "USD Coin", "WETH", "1"],
         },
       },
     },
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opNEWOgrow");
+      const vault = await deployments.get("opWETHgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opNEWOgrow",
+          name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "USD Coin", "WETH", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opNEWOgrow",
+          name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "USD Coin", "WETH", "Growth", "grow"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opNEWOgrow"];
+func.tags = ["opWETHgrow"];
+func.dependencies = ["RegistryProxy"];
