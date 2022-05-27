@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
   const { getAddress } = ethers.utils;
-  const opWETHgrowProxyAddress = "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8";
+  const opWETHgrowProxyAddress = await (await deployments.get("opWETHgrowProxy")).address;
   const opWETHgrowAddress = await (await deployments.get("opWETHgrow")).address;
 
   const opWETHgrowProxyInstance = await ethers.getContractAt(

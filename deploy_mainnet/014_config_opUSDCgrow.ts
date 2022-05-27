@@ -7,9 +7,9 @@ import { getRiskProfileCode, getUnpause } from "../helpers/utils";
 
 const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
   const { BigNumber } = ethers;
-  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const opUSDCgrowProxyAddress = "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88";
+  const opUSDCgrowProxyAddress = await (await deployments.get("opUSDCgrowProxy")).address;
 
   const opUSDCgrowInstance = await ethers.getContractAt("Vault", opUSDCgrowProxyAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());

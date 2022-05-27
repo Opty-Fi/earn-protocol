@@ -15,8 +15,7 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
-
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const chainId = await getChainId();
   const networkName = network.name;
 
