@@ -72,7 +72,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
+    args: [registryProxyAddress, "Newo Order", "NEWO", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -86,7 +86,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo", "NEWO", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo Order", "NEWO", "1"],
         },
       },
     },
@@ -98,7 +98,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opNEWOgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -106,7 +106,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opNEWOgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo", "NEWO", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Growth", "grow"],
         });
       }
     }

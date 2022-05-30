@@ -72,7 +72,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Aave", "AAVE", "Growth", "grow"],
+    args: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -86,7 +86,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave", "AAVE", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "1"],
         },
       },
     },
@@ -98,7 +98,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opAAVEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave", "AAVE", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -106,7 +106,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opAAVEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave", "AAVE", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
         });
       }
     }

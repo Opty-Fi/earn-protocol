@@ -72,7 +72,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin", "WETH", "Growth", "grow"],
+    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -86,7 +86,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, "USD Coin", "WETH", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, "Wrapped Ether", "WETH", "1"],
         },
       },
     },
@@ -98,7 +98,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "WETH", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -106,7 +106,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "WETH", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
         });
       }
     }
