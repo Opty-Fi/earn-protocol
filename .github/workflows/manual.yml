@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       git-ref:
-        description: Git Ref (Required)    
+        description: Git Ref (Required)
         required: true
 
 
 jobs:
-  lint:
+  lint-compile-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
