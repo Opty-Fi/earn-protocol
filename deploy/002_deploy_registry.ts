@@ -8,7 +8,6 @@ import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 const FORK = process.env.FORK || "";
-const IS_NEWO = process.env.IS_NEWO;
 
 const func: DeployFunction = async ({
   deployments,
