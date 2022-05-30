@@ -3,14 +3,13 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { eEVMNetwork } from "../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
 import { getRiskProfileCode, getUnpause } from "../helpers/utils";
+import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
 
 const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
   const { BigNumber } = ethers;
 
-  const networkName = eEVMNetwork.polygon;
-  const strategyName = "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV";
+  const networkName = eEVMNetwork.avalanche;
   // bit 0-15 deposit fee in underlying token without decimals 0000 (no fee)
   // bit 16-31 deposit fee in basis points 0000 (0% or 0 basis points)
   // bit 32-47 withdrawal fee in underlying token without decimals 0000 (no fee)
@@ -30,7 +29,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
   const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDC
   const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
-  const expectedAccountsRoot = "0x5a67b2194048bd003f63682aaff156c5dd229e09b006150e3dad0736b75dbffc";
+  const expectedAccountsRoot = "0x5497616cb86ca51b3788923a239cb626f3593a6395e3c66fe24b452204fbf875";
   const expectedRiskProfileCode = BigNumber.from("1");
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
@@ -145,7 +144,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     strategyProviderAddress,
   );
   const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
-
+  const strategyName = "usdc-DEPOSIT-AaveV3-aAvaUSDC";
   console.log("Operator setting best strategy for opUSDCgrow...");
   console.log("\n");
 
@@ -183,5 +182,5 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   console.log("Next Best Strategy ", await opUSDCgrowInstance.getNextBestInvestStrategy());
 };
 export default func;
-func.tags = ["PolygonConfigopUSDCgrow"];
-func.dependencies = ["PolygonopUSDCgrow", "PolygonApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];
+func.tags = ["AvalancheConfigopUSDCgrow"];
+func.dependencies = ["AvalancheopUSDCgrow", "AvalancheApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];

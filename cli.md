@@ -749,3 +749,23 @@ yarn hardhat transfer-strategy-operator \
   --registry 0x0000000000000000000000000000000000000000 \
   --new-strategy-operator 0x0000000000000000000000000000000000000000 \
 ```
+
+### set-whitelisted-accounts-root
+
+```
+Usage: whitelisted accounts merkle root hash
+
+Options:
+--vault                 required <address> the address of vault
+--merkle-root-hash      required <string>  the merkle root hash
+--network               optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat set-whitelisted-accounts-root \
+  --network localhost \
+  --vault 0x0000000000000000000000000000000000000000 \
+  --merkle-root-hash 0x1212121212121212121212121212121212121212121212121212121212121212 \
+```

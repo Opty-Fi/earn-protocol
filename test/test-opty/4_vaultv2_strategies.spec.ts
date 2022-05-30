@@ -1,17 +1,16 @@
 import chai, { expect } from "chai";
-import { deployments, ethers, network } from "hardhat";
+import { deployments, ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
+import BN from "bignumber.js";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
-import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
+import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { Registry, RiskManager, StrategyProvider, Vault, ERC20, IAdapterFull } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
-import BN from "bignumber.js";
-import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -21,16 +20,6 @@ describe("VaultV2", () => {
   before(async function () {
     await deployments.fixture();
     const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-    const registryInstance = await ethers.getContractAt(
-      "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
-      registryProxyAddress,
-    );
-    const operatorAddress = await registryInstance.getOperator();
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [operatorAddress],
-    });
-
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
@@ -42,387 +31,43 @@ describe("VaultV2", () => {
     this.signers.financeOperator = signers[5];
     this.signers.governance = signers[9];
     this.signers.strategyOperator = signers[7];
-    const opUSDCgrow = await deployments.get("opUSDCgrow");
-    const opWETHgrow = await deployments.get("opWETHgrow");
-    const opNEWOgrow = await deployments.get("opNEWOgrow");
-    const opAAVEgrow = await deployments.get("opAAVEgrow");
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+    const registryProxy = await deployments.get("RegistryProxy");
+    const riskManagerProxy = await deployments.get("RiskManagerProxy");
+    const strategyProvider = await deployments.get("StrategyProvider");
+    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
     this.riskManager = <RiskManager>(
-      await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, (await deployments.get("RiskManagerProxy")).address)
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerProxy.address)
     );
     this.strategyProvider = <StrategyProvider>(
-      await ethers.getContractAt(
-        ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
-        (
-          await deployments.get("StrategyProvider")
-        ).address,
-      )
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyProvider.address)
     );
     this.vaults = {};
-    this.vaults["USDC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCgrow.address);
-    this.vaults["WETH"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWETHgrow.address);
-    this.vaults["NEWO"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOgrow.address);
-    this.vaults["AAVE"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opAAVEgrow.address);
-    if (fork === eEVMNetwork.polygon) {
-      const opWMATICGrow = await deployments.get("opWMATICgrow");
-      this.vaults["WMATIC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWMATICGrow.address);
-    }
-
     const governanceAddress = await this.registry.getGovernance();
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [governanceAddress],
-    });
     const governance = await ethers.getSigner(governanceAddress);
     const financeOperatorAddress = await this.registry.getFinanceOperator();
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [financeOperatorAddress],
-    });
     const financeOperator = await ethers.getSigner(financeOperatorAddress);
-
-    // (0-15) Deposit fee UT = 0 UT = 0000
-    // (16-31) Deposit fee % = 0% = 0000
-    // (32-47) Withdrawal fee UT = 0 UT = 0000
-    // (48-63) Withdrawal fee % = 0% = 0000
-    // (64-79) Max vault value jump % = 1% = 0064
-    // (80-239) vault fee address = 0000000000000000000000000000000000000000
-    // (240-247) risk profile code = 1 = 01
-    // (248) emergency shutdown = false = 0
-    // (249) unpause = true = 1
-    // (250) allow whitelisted state = false = 0
-    // (251) - 0
-    // (252) - 0
-    // (253) - 0
-    // (254) - 0
-    // (255) - 0
-    // 0x0201000000000000000000000000000000000000000000640000000000000000
-    // 906392544231311161076231617881117198619499239097192527361058388634069106688
-    const expectedConfig = ethers.BigNumber.from(
-      "906392544231311161076231617881117198619499239097192527361058388634069106688",
-    );
-    if (this.vaults["WMATIC"]) {
-      const _vaultWMATICConfiguration = await this.vaults["WMATIC"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultWMATICConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opWMATICgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["WMATIC"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUT = await this.vaults["WMATIC"].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults["WMATIC"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults["WMATIC"].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("5000000000000000000"); // 5 WMATIC user deposit cap
-      const expectedMinimumDepositValueUT = BigNumber.from("250000000000000000"); // 0.25 WMATIC minimum deposit
-      const expectedTotalValueLockedLimitUT = BigNumber.from("5000000000000000000000"); // 5000 WMATIC TVL limit
-
-      console.log("opWMATICgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
-      ) {
-        console.log(
-          "userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opWMATICgrow",
+    for (const token of Object.keys(MultiChainVaults[fork])) {
+      this.vaults[token] = <Vault>(
+        await ethers.getContractAt(
+          ESSENTIAL_CONTRACTS.VAULT,
+          await (
+            await deployments.get(MultiChainVaults[fork][token][0].name)
+          ).address,
+        )
+      );
+      let tx = await this.vaults[token]
+        .connect(governance)
+        .setVaultConfiguration(MultiChainVaults[fork][token][0].vaultConfig);
+      await tx.wait(1);
+      tx = await this.vaults[token]
+        .connect(financeOperator)
+        .setValueControlParams(
+          MultiChainVaults[fork][token][0].userDepositCapUT,
+          MultiChainVaults[fork][token][0].minimumDepositValueUT,
+          MultiChainVaults[fork][token][0].totalValueLockedLimitUT,
         );
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWMATICgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["WMATIC"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-    }
-    if (this.vaults["USDC"]) {
-      const _vaultUSDCConfiguration = await this.vaults["USDC"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultUSDCConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opUSDCgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["USDC"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUT = await this.vaults["USDC"].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults["USDC"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults["USDC"].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC user deposit cap
-      const expectedMinimumDepositValueUT = BigNumber.from("1000000000"); // 1000 USDC minimum deposit
-      const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000 USDC TVL limit
-
-      console.log("opUSDCgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["USDC"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-
-      const _vaultAAVEConfiguration = await this.vaults["AAVE"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultAAVEConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opAAVEgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["AAVE"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUTaave = await this.vaults["AAVE"].userDepositCapUT();
-      const actualMinimumDepositValueUTaave = await this.vaults["AAVE"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUTaave = await this.vaults["AAVE"].totalValueLockedLimitUT();
-
-      console.log("opAAVEgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUTaave) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUTaave) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUTaave)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opAAVEgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opAAVEgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["AAVE"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-    }
-    if (this.vaults["WETH"]) {
-      const _vaultWETHConfiguration = await this.vaults["WETH"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultWETHConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opWETHgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["WETH"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUT = await this.vaults["WETH"].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults["WETH"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults["WETH"].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("5000000000000000000"); // 5 WETH user deposit cap
-      const expectedMinimumDepositValueUT = BigNumber.from("250000000000000000"); // 0.25 WETH minimum deposit
-      const expectedTotalValueLockedLimitUT = BigNumber.from("5000000000000000000000"); // 5000 WETH TVL limit
-
-      console.log("opWETHgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opWETHgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWETHgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["WETH"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-
-      const _vaultAAVEConfiguration = await this.vaults["AAVE"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultAAVEConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opAAVEgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["AAVE"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUTaave = await this.vaults["AAVE"].userDepositCapUT();
-      const actualMinimumDepositValueUTaave = await this.vaults["AAVE"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUTaave = await this.vaults["AAVE"].totalValueLockedLimitUT();
-
-      console.log("opAAVEgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUTaave) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUTaave) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUTaave)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opAAVEgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opAAVEgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["AAVE"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-    }
-    if (this.vaults["NEWO"]) {
-      const _vaultNEWOConfiguration = await this.vaults["NEWO"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultNEWOConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opNEWOgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["NEWO"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUT = await this.vaults["NEWO"].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults["NEWO"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults["NEWO"].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("5000000000000000000"); // 5 NEWO user deposit cap
-      const expectedMinimumDepositValueUT = BigNumber.from("250000000000000000"); // 0.25 NEWO minimum deposit
-      const expectedTotalValueLockedLimitUT = BigNumber.from("5000000000000000000000"); // 5000 NEWO TVL limit
-
-      console.log("opNEWOgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opNEWOgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opNEWOgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["NEWO"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-
-      const _vaultAAVEConfiguration = await this.vaults["AAVE"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultAAVEConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opAAVEgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["AAVE"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUTaave = await this.vaults["AAVE"].userDepositCapUT();
-      const actualMinimumDepositValueUTaave = await this.vaults["AAVE"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUTaave = await this.vaults["AAVE"].totalValueLockedLimitUT();
-
-      console.log("opAAVEgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUTaave) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUTaave) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUTaave)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opAAVEgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opAAVEgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["AAVE"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
-    }
-    if (this.vaults["AAVE"]) {
-      const _vaultAAVEConfiguration = await this.vaults["AAVE"].vaultConfiguration();
-      if (expectedConfig.eq(_vaultAAVEConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opAAVEgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults["AAVE"].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUT = await this.vaults["AAVE"].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults["AAVE"].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults["AAVE"].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("5000000000000000000"); // 5 AAVE user deposit cap
-      const expectedMinimumDepositValueUT = BigNumber.from("250000000000000000"); // 0.25 AAVE minimum deposit
-      const expectedTotalValueLockedLimitUT = BigNumber.from("5000000000000000000000"); // 5000 AAVE TVL limit
-
-      console.log("opAAVEgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opAAVEgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opAAVEgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults["AAVE"]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
+      await tx.wait(1);
     }
   });
   describe("VaultV2 strategies", () => {
