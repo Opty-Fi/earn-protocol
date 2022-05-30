@@ -31,9 +31,9 @@
 [submodule "contracts/protocol/adapters/ethereum/newo-staking-adapter"]
 	path = contracts/protocol/adapters/ethereum/newo-staking-adapter
 	url = git@github.com:Opty-Fi/newo-staking-adapter
-[submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter"]
-	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter
-	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
 [submodule "contracts/protocol/adapters/avalanche/aave-avalanche-adapter"]
 	path = contracts/protocol/adapters/avalanche/aave-avalanche-adapter
 	url = git@github.com:Opty-Fi/aave-avalanche-adapter.git
+[submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
+	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
+	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
