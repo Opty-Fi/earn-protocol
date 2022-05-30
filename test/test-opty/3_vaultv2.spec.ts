@@ -199,6 +199,12 @@ describe("Vault", () => {
         ])
       );
       this.vault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.vaultProxyV2.address);
+      console.log(
+        "Tokens Hash to tokens: ",
+        await this.registry.tokensHashToTokens(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash),
+      );
+      // const isUsdcHashSet: boolean = (await this.registry.tokensHashToTokens(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash)) == [MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address]
+      // if()
       await this.registry
         .connect(this.signers.operator)
         ["setTokensHashToTokens(bytes32,address[])"](MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, [
