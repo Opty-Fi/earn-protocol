@@ -34,6 +34,7 @@
 [submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter"]
 	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter
 	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
+	branch = feat/minimum-withdrawal
 [submodule "contracts/protocol/adapters/avalanche/aave-avalanche-adapter"]
 	path = contracts/protocol/adapters/avalanche/aave-avalanche-adapter
 	url = git@github.com:Opty-Fi/aave-avalanche-adapter.git
