@@ -63,5 +63,9 @@ export default {
       NAME: "set-whitelisted-accounts-root",
       DESCRIPTION: "whitelisted accounts merkle root hash",
     },
+    APPROVE_TOKEN_AND_MAP_TO_TOKENSHASH: {
+      NAME: "approve-token-and-map-to-tokenshash",
+      DESCRIPTION: "approve token and map token to tokenshash",
+    },
   },
 };

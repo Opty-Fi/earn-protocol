@@ -47,6 +47,16 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.tenderly]: "0x1",
 };
 
+export const NETWORKS_CHAIN_ID_TO_HEX: { [key: string]: string } = {
+  "42": "0x2a",
+  "1": "0x1",
+  "31337": "0x7a69",
+  "137": "0x89",
+  "43114": "0xa86a",
+  "1337": "0x539",
+  "80001": "0x13881",
+};
+
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.kovan]: process.env.KOVAN_NODE_URL ? process.env.KOVAN_NODE_URL : "",
   [eEVMNetwork.mainnet]: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",

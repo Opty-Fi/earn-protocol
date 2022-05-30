@@ -48,18 +48,20 @@ const func: DeployFunction = async ({
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
-    const approveTokenAndMapToTokensHashTx = await registryInstance
-      .connect(operator)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
+    const approveTokenAndMapToTokensHashTx = await registryInstance[
+      // .connect(operator)
+      "approveTokenAndMapToTokensHash((bytes32,address[])[])"
+    ](approveTokenAndMapHash);
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
-    const onlyMapToTokensHashTx = await registryInstance
-      .connect(operator)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
+    const onlyMapToTokensHashTx = await registryInstance[
+      // .connect(operator)
+      "setTokensHashToTokens((bytes32,address[])[])"
+    ](onlySetTokensHash);
     await onlyMapToTokensHashTx.wait(1);
   }
 
@@ -78,11 +80,12 @@ const func: DeployFunction = async ({
     proxy: {
       owner: admin,
       upgradeIndex: 0,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      proxyContract: "AdminUpgradeabilityProxy",
+      //  {
+      //   abi: artifactVaultProxyV2.abi,
+      //   bytecode: artifactVaultProxyV2.bytecode,
+      //   deployedBytecode: artifactVaultProxyV2.deployedBytecode,
+      // },
       execute: {
         init: {
           methodName: "initialize",
