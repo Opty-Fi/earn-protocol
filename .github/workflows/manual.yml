@@ -55,7 +55,6 @@ jobs:
           yarn typechain && yarn optyfi-sdk:mainnet
       - name: Test
         run: |
-          yarn optyfi-sdk:mainnet
           yarn test-fast:mainnet
           # yarn test-fast:vaultv2-upgrade-test:mainnet
           yarn test-fast:vaultv2-strategy:mainnet
