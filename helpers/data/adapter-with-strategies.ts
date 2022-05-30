@@ -306,36 +306,6 @@ const mainnetStrategiesByToken = {
         },
       ],
     },
-    "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_UST-3Crv-DEPOSIT-Convex_CurveUst-3Crv": {
-      strategyName: "USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_UST-3Crv-DEPOSIT-Convex_CurveUst-3Crv",
-      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      strategy: [
-        {
-          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-          isBorrow: false,
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-          outputTokenSymbol: "3Crv",
-        },
-        {
-          contract: "0x890f4e345B1dAED0367A877a1612f86A1f86985f",
-          outputToken: "0x94e131324b6054c0D789b190b2dAC504e4361b53",
-          isBorrow: false,
-          adapterName: "CurveSwapPool",
-          protocol: "Curve",
-          outputTokenSymbol: "ust3Crv",
-        },
-        {
-          contract: "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89",
-          outputToken: "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89",
-          isBorrow: false,
-          adapterName: "ConvexFinanceAdapter",
-          protocol: "Convex",
-          outputTokenSymbol: "cvxust3CRV",
-        },
-      ],
-    },
   },
   WETH: {
     "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
