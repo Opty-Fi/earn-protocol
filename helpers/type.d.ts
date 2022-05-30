@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { BigNumberish, Contract } from "ethers";
 import { MockContract } from "@defi-wonderland/smock";
 
 export type ESSENTIAL_CONTRACTS = {
@@ -175,4 +175,20 @@ export type StrategyStepType = [string, string, boolean] & {
   pool: string;
   outputToken: string;
   isBorrow: boolean;
+};
+
+export type VaultDetailType = {
+  name: string;
+  vaultConfig: BigNumberish;
+  userDepositCapUT: BigNumberish;
+  minimumDepositValueUT: BigNumberish;
+  totalValueLockedLimitUT: BigNumberish;
+};
+
+export type VaultType = {
+  [name: string]: VaultDetailType[];
+};
+
+export type MultiChainVaultsType = {
+  [key: string]: VaultType;
 };
