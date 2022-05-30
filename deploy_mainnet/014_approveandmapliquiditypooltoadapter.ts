@@ -51,6 +51,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a": { rate: 80, adapter: newoStakingAdapter.address }, // newoSushiNEWO-USDC
     "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513": { rate: 80, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-NEWO-USDC
     "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 80, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
+    "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c": { rate: 80, adapter: compoundAdapter.address }, // cAAVE
   };
 
   const onlyMapPoolsToAdapters = [];
