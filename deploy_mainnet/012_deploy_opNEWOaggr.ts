@@ -19,7 +19,6 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
@@ -48,48 +47,41 @@ const func: DeployFunction = async ({
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
-    const approveTokenAndMapToTokensHashTx = await registryInstance[
-      // .connect(operator)
-      "approveTokenAndMapToTokensHash((bytes32,address[])[])"
-    ](approveTokenAndMapHash);
+    const approveTokenAndMapToTokensHashTx = await registryInstance
+      .connect(operator)
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
-    const onlyMapToTokensHashTx = await registryInstance[
-      // .connect(operator)
-      "setTokensHashToTokens((bytes32,address[])[])"
-    ](onlySetTokensHash);
+    const onlyMapToTokensHashTx = await registryInstance
+      .connect(operator)
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
     await onlyMapToTokensHashTx.wait(1);
   }
 
   const networkName = network.name;
 
-  const result = await deploy("opNEWOgrow", {
+  const result = await deploy("opNEWOaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Newo Order", "NEWO", "Growth", "grow"],
+    args: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      //  {
-      //   abi: artifactVaultProxyV2.abi,
-      //   bytecode: artifactVaultProxyV2.bytecode,
-      //   deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      // },
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo Order", "NEWO", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo Order", "NEWO", "2"],
         },
       },
     },
@@ -99,22 +91,22 @@ const func: DeployFunction = async ({
       const vault = await deployments.get("opNEWOgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opNEWOgrow",
+          name: "opNEWOaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opNEWOgrow",
+          name: "opNEWOaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opNEWOgrow"];
+func.tags = ["opNEWOaggr"];
 func.dependencies = ["RegistryProxy"];
