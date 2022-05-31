@@ -67,5 +67,17 @@ export default {
       NAME: "approve-token-and-map-to-tokenshash",
       DESCRIPTION: "approve token and map token to tokenshash",
     },
+    SET_VAULT_CONFIGURATION: {
+      NAME: "set-vault-configuration",
+      DESCRIPTION: "set vault configuration",
+    },
+    SET_VALUE_CONTROL_PARAMS: {
+      NAME: "set-value-control-params",
+      DESCRIPTION: "Set value control params",
+    },
+    SET_BEST_STRATEGY_MULTI_SIG: {
+      NAME: "set-best-strategy-multi-sig",
+      DESCRIPTION: "Set the best strategy for a specific token via multisig",
+    },
   },
 };
