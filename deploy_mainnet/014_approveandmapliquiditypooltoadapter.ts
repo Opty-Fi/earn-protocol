@@ -47,11 +47,11 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x42d7025938bEc20B69cBae5A77421082407f053A": { rate: 80, adapter: curveSwapPoolAdapter.address },
     "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524": { rate: 80, adapter: convexFinanceAdapter.address }, // cvxusdc3CRV
     "0x67c4f788FEB82FAb27E3007daa3d7b90959D5b89": { rate: 80, adapter: convexFinanceAdapter.address }, // cvxust3CRV
-    "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB": { rate: 80, adapter: newoStakingAdapter.address }, // stkNEWO
-    "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a": { rate: 80, adapter: newoStakingAdapter.address }, // newoSushiNEWO-USDC
-    "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513": { rate: 80, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-NEWO-USDC
-    "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 80, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
-    "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c": { rate: 80, adapter: compoundAdapter.address }, // cAAVE
+    "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB": { rate: 50, adapter: newoStakingAdapter.address }, // stkNEWO
+    "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a": { rate: 50, adapter: newoStakingAdapter.address }, // newoSushiNEWO-USDC
+    "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-NEWO-USDC
+    "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
+    "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c": { rate: 50, adapter: compoundAdapter.address }, // cAAVE
   };
 
   const onlyMapPoolsToAdapters = [];
