@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -32,6 +33,8 @@ const func: DeployFunction = async ({
     args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {

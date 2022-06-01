@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -23,7 +24,7 @@ const func: DeployFunction = async ({
   const { getAddress } = ethers.utils;
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-
+  let feeData = await ethers.provider.getFeeData();
   const result = await deploy("StrategyProvider", {
     from: deployer,
     contract: {
@@ -34,6 +35,8 @@ const func: DeployFunction = async ({
     args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -47,9 +50,14 @@ const func: DeployFunction = async ({
   console.log("\n");
   if (getAddress(oldStrategyProvider) !== getAddress(strategyProviderV2.address)) {
     console.log("operator registering StrategyProvider..");
+    feeData = await ethers.provider.getFeeData();
     const setStrategyProviderTx = await registryV2Instance
       .connect(operatorSigner)
-      .setStrategyProvider(strategyProviderV2.address);
+      .setStrategyProvider(strategyProviderV2.address, {
+        type: 1,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await setStrategyProviderTx.wait(1);
   } else {
     console.log("StrategyProvider already registered");

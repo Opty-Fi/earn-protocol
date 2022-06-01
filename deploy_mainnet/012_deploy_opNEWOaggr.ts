@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -14,6 +15,7 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
@@ -47,22 +49,34 @@ const func: DeployFunction = async ({
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
+        type: 1,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
+        type: 1,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await onlyMapToTokensHashTx.wait(1);
   }
 
   const networkName = network.name;
+
+  const feeData = await hre.ethers.provider.getFeeData();
 
   const result = await deploy("opNEWOaggr", {
     from: deployer,
@@ -85,10 +99,12 @@ const func: DeployFunction = async ({
         },
       },
     },
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opNEWOgrow");
+      const vault = await deployments.get("opNEWOaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
           name: "opNEWOaggr",
@@ -109,4 +125,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["opNEWOaggr"];
-func.dependencies = ["RegistryProxy"];
+func.dependencies = ["Registry"];

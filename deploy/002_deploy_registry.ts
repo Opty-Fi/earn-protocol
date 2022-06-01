@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -24,6 +25,7 @@ const func: DeployFunction = async ({
   const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.REGISTRY);
   let chainId = await getChainId();
   const networkName = network.name;
+  let feeData = await ethers.provider.getFeeData();
   const result = await deploy("Registry", {
     from: deployer,
     contract: {
@@ -34,6 +36,8 @@ const func: DeployFunction = async ({
     args: [],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   const registryV2 = await deployments.get("Registry");
@@ -64,9 +68,14 @@ const func: DeployFunction = async ({
       console.log("\n");
       console.log("operator setting pending implementation...");
       console.log("\n");
+      feeData = await ethers.provider.getFeeData();
       const setPendingImplementationTx = await registryProxyInstance
         .connect(operatorSigner)
-        .setPendingImplementation(registryV2.address);
+        .setPendingImplementation(registryV2.address, {
+          type: 1,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
       await setPendingImplementationTx.wait(1);
     } else {
       console.log("Pending implementation is already set");
@@ -74,7 +83,12 @@ const func: DeployFunction = async ({
     }
     console.log("governance upgrading Registry...");
     console.log("\n");
-    const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress);
+    feeData = await ethers.provider.getFeeData();
+    const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress, {
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      type: 1,
+    });
     await becomeTx.wait(1);
     console.log("Registry implementation after ", await registryProxyInstance.registryImplementation());
     console.log("\n");
@@ -133,18 +147,28 @@ const func: DeployFunction = async ({
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
+    feeData = await ethers.provider.getFeeData();
     const approveTokenAndMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
+        type: 1,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
+    feeData = await ethers.provider.getFeeData();
     const onlyMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
+        type: 1,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await onlyMapToTokensHashTx.wait(1);
   }
 
@@ -155,9 +179,14 @@ const func: DeployFunction = async ({
   if (!growRiskProfilExists) {
     console.log("risk operator adding grow risk profile...");
     console.log("\n");
+    feeData = await ethers.provider.getFeeData();
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100]); // code,name,symbol,canBorrow,pool rating range
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100], {
+        type: 1,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      }); // code,name,symbol,canBorrow,pool rating range
     await addRiskProfileTx.wait(1);
   } else {
     console.log("Already configured risk profile");

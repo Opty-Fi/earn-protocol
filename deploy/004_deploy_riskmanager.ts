@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -23,7 +24,7 @@ const func: DeployFunction = async ({
   const { getAddress } = ethers.utils;
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-
+  let feeData = await ethers.provider.getFeeData();
   const result = await deploy("RiskManager", {
     from: deployer,
     contract: {
@@ -34,6 +35,8 @@ const func: DeployFunction = async ({
     args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   const riskManagerV2 = await deployments.get("RiskManager");
@@ -58,9 +61,14 @@ const func: DeployFunction = async ({
     if (getAddress(pendingImplementation) != getAddress(riskManagerV2Instance.address)) {
       console.log("operator setting pending implementation...");
       console.log("\n");
+      feeData = await ethers.provider.getFeeData();
       const setPendingImplementationTx = await riskManagerInstance
         .connect(operatorSigner)
-        .setPendingImplementation(riskManagerV2.address);
+        .setPendingImplementation(riskManagerV2.address, {
+          type: 1,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
       await setPendingImplementationTx.wait(1);
     } else {
       console.log("Pending implementation for risk manager is already set.");
@@ -68,13 +76,25 @@ const func: DeployFunction = async ({
     }
     console.log("governance upgrading risk manager...");
     console.log("\n");
-    const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxyAddress);
+    feeData = await ethers.provider.getFeeData();
+    const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxyAddress, {
+      type: 1,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await becomeTx.wait(1);
     const riskManagerRegisteredInRegistry = await registryV2Instance.riskManager();
     if (getAddress(riskManagerRegisteredInRegistry) != getAddress(riskManagerInstance.address)) {
       console.log("operator registering upgraded RiskManager ...");
       console.log("\n");
-      const setRiskManagerTx = await registryV2Instance.connect(operatorSigner).setRiskManager(riskManagerProxyAddress);
+      feeData = await ethers.provider.getFeeData();
+      const setRiskManagerTx = await registryV2Instance
+        .connect(operatorSigner)
+        .setRiskManager(riskManagerProxyAddress, {
+          type: 1,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
       await setRiskManagerTx.wait();
     } else {
       console.log("Risk manager is already registered.");

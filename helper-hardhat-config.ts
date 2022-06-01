@@ -6,6 +6,7 @@ const GWEI = 1000 * 1000 * 1000;
 
 export enum eEVMNetwork {
   kovan = "kovan",
+  ropsten = "ropsten",
   mainnet = "mainnet",
   hardhat = "hardhat",
   staging = "staging",
@@ -23,6 +24,7 @@ export type iEVMParamsPerNetwork<T> = {
 
 export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.kovan]: 42,
+  [eEVMNetwork.ropsten]: 3,
   [eEVMNetwork.mainnet]: 1,
   [eEVMNetwork.hardhat]: 31337,
   [eEVMNetwork.polygon]: 137,
@@ -36,6 +38,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
 
 export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.kovan]: "0x2a",
+  [eEVMNetwork.ropsten]: "0x3",
   [eEVMNetwork.mainnet]: "0x1",
   [eEVMNetwork.hardhat]: "0x7a69",
   [eEVMNetwork.polygon]: "0x89",
@@ -49,6 +52,7 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
 
 export const NETWORKS_CHAIN_ID_TO_HEX: { [key: string]: string } = {
   "42": "0x2a",
+  "3": "0x3",
   "1": "0x1",
   "31337": "0x7a69",
   "137": "0x89",
@@ -59,6 +63,7 @@ export const NETWORKS_CHAIN_ID_TO_HEX: { [key: string]: string } = {
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.kovan]: process.env.KOVAN_NODE_URL ? process.env.KOVAN_NODE_URL : "",
+  [eEVMNetwork.ropsten]: process.env.ROPSTEN_NODE_URL ? process.env.ROPSTEN_NODE_URL : "",
   [eEVMNetwork.mainnet]: process.env.MAINNET_NODE_URL ? process.env.MAINNET_NODE_URL : "",
   [eEVMNetwork.staging]: process.env.STAGING_NETWORK_URL ? process.env.STAGING_NETWORK_URL : "",
   [eEVMNetwork.hardhat]: "http://localhost:8545",
@@ -72,6 +77,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
 
 export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.kovan]: 65 * GWEI,
+  [eEVMNetwork.ropsten]: 65 * GWEI,
   [eEVMNetwork.mainnet]: "auto",
   [eEVMNetwork.hardhat]: "auto",
   [eEVMNetwork.staging]: "auto",
@@ -86,6 +92,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.mainnet]: 14761331,
   [eEVMNetwork.kovan]: 29962003,
+  [eEVMNetwork.ropsten]: undefined,
   [eEVMNetwork.hardhat]: undefined,
   [eEVMNetwork.polygon]: 25200204,
   [eEVMNetwork.avalanche]: 11215586,
