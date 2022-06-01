@@ -6,6 +6,7 @@ import { getAddress } from "@ethersproject/address";
 import { TypedTokens } from "../../helpers/data";
 import { Vault } from "../../typechain";
 import { getAllowWhitelistState } from "../../helpers/utils";
+import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
@@ -18,7 +19,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
   .addParam("user", "account address of the user", "", types.string)
   .addParam("merkleProof", "user merkle proof", "", types.string)
   .addOptionalParam("useall", "use whole balance", false, types.boolean)
-  .addOptionalParam("amount", "amount of token", 0, types.int)
+  .addOptionalParam("amount", "amount of token", "0", types.string)
   .setAction(async ({ vault, action, user, amount, useall, merkleProof }, hre) => {
     const ACTIONS = ["DEPOSIT", "WITHDRAW", "REBALANCE", "VAULT-DEPOSIT-ALL-TO-STRATEGY"];
     if (vault === "") {
@@ -33,7 +34,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
       throw new Error("action is invalid");
     }
 
-    if (!useall && amount <= 0 && action.toUpperCase() != "REBALANCE") {
+    if (!useall && !BigNumber.from(amount).gt("0") && action.toUpperCase() != "REBALANCE") {
       throw new Error("amount is not set");
     }
 
