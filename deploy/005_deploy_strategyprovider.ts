@@ -54,7 +54,7 @@ const func: DeployFunction = async ({
     const setStrategyProviderTx = await registryV2Instance
       .connect(operatorSigner)
       .setStrategyProvider(strategyProviderV2.address, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });

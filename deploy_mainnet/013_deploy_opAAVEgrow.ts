@@ -53,7 +53,7 @@ const func: DeployFunction = async ({
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });
@@ -67,7 +67,7 @@ const func: DeployFunction = async ({
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });

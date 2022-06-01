@@ -72,7 +72,7 @@ const func: DeployFunction = async ({
       const setPendingImplementationTx = await registryProxyInstance
         .connect(operatorSigner)
         .setPendingImplementation(registryV2.address, {
-          type: 1,
+          type: 2,
           maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
           maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
         });
@@ -87,7 +87,7 @@ const func: DeployFunction = async ({
     const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress, {
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      type: 1,
+      type: 2,
     });
     await becomeTx.wait(1);
     console.log("Registry implementation after ", await registryProxyInstance.registryImplementation());
@@ -151,7 +151,7 @@ const func: DeployFunction = async ({
     const approveTokenAndMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });
@@ -165,7 +165,7 @@ const func: DeployFunction = async ({
     const onlyMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });
@@ -183,7 +183,7 @@ const func: DeployFunction = async ({
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
       ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100], {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       }); // code,name,symbol,canBorrow,pool rating range

@@ -65,7 +65,7 @@ const func: DeployFunction = async ({
       const setPendingImplementationTx = await riskManagerInstance
         .connect(operatorSigner)
         .setPendingImplementation(riskManagerV2.address, {
-          type: 1,
+          type: 2,
           maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
           maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
         });
@@ -78,7 +78,7 @@ const func: DeployFunction = async ({
     console.log("\n");
     feeData = await ethers.provider.getFeeData();
     const becomeTx = await riskManagerV2Instance.connect(governanceSigner).become(riskManagerProxyAddress, {
-      type: 1,
+      type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
     });
@@ -91,7 +91,7 @@ const func: DeployFunction = async ({
       const setRiskManagerTx = await registryV2Instance
         .connect(operatorSigner)
         .setRiskManager(riskManagerProxyAddress, {
-          type: 1,
+          type: 2,
           maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
           maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
         });

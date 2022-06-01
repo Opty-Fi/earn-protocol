@@ -51,7 +51,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Governance setting risk profile code for opWMATICgrow..");
     console.log("\n");
-    const tx1 = await opWMATICgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode);
+    const feeData = await ethers.provider.getFeeData();
+    const tx1 = await opWMATICgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx1.wait(1);
   }
 
@@ -65,7 +70,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Governance setting vault configuration for opWMATICgrow..");
     console.log("\n");
-    const tx2 = await opWMATICgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+    const feeData = await ethers.provider.getFeeData();
+    const tx2 = await opWMATICgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx2.wait(1);
   }
 
@@ -77,9 +87,14 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName].WMATIC.hash) {
     console.log("setting tokenshash..");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const tx3 = await opWMATICgrowInstance
       .connect(operatorSigner)
-      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].WMATIC.hash);
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].WMATIC.hash, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await tx3.wait(1);
   } else {
     console.log("Tokenshash is upto date");
@@ -105,9 +120,14 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWMATICgrow...");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const tx4 = await opWMATICgrowInstance
       .connect(financeOperatorSigner)
-      .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT);
+      .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await tx4.wait(1);
   }
 
@@ -119,7 +139,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (!unpause) {
     console.log("Governance unpausing opWMATICgrow vault...");
     console.log("\n");
-    const tx5 = await opWMATICgrowInstance.connect(governanceSigner).setUnpaused(true);
+    const feeData = await ethers.provider.getFeeData();
+    const tx5 = await opWMATICgrowInstance.connect(governanceSigner).setUnpaused(true, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx5.wait(1);
   } else {
     console.log("opWMATICgrow is already unpaused...");
@@ -132,7 +157,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (actualAccountsRoot != expectedAccountsRoot) {
     console.log("Governance setting whitelisted account root opWMATICgrow vault...");
     console.log("\n");
-    const tx6 = await opWMATICgrowInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot);
+    const feeData = await ethers.provider.getFeeData();
+    const tx6 = await opWMATICgrowInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx6.wait(1);
   } else {
     console.log("whitelisted accounts root for opWMATICgrow is as expected");
@@ -165,6 +195,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (currentBestStrategyHash !== expectedStrategyHash) {
     console.log("Strategy operator setting best strategy..");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
       expectedRiskProfileCode,
       MULTI_CHAIN_VAULT_TOKENS[networkName].WMATIC.hash,
@@ -173,6 +204,11 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
         outputToken: x.outputToken,
         isBorrow: x.isBorrow,
       })),
+      {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      },
     );
     await tx7.wait(1);
   } else {
