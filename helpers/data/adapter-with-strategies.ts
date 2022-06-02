@@ -377,7 +377,7 @@ const mainnetStrategiesByToken = {
           outputToken: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
           isBorrow: false,
           outputTokenSymbol: "NEWO-USDC-SLP",
-          adapterName: "SushiswapPoolAdapter",
+          adapterName: "SushiswapPoolAdapterEthereum",
           protocol: "Sushiswap",
         },
         {
@@ -391,36 +391,44 @@ const mainnetStrategiesByToken = {
       ],
     },
   },
-  // AAVE: {
-  //   "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP": {
-  //     strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP",
-  //     token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
-  //     strategy: [
-  //       {
-  //         contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
-  //         outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "AAVE-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapter",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //   },
-  //   "aave-DEPOSIT-Compound-cAAVE": {
-  //     strategyName: "aave-DEPOSIT-Compound-cAAVE",
-  //     token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
-  //     strategy: [
-  //       {
-  //         contract: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
-  //         outputToken: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cAAVE",
-  //         adapterName: "CompoundAdapter",
-  //         protocol: "Compound",
-  //       },
-  //     ],
-  //   },
-  // },
+  AAVE: {
+    "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP": {
+      strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP",
+      token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      strategy: [
+        {
+          contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          isBorrow: false,
+          outputTokenSymbol: "AAVE-WETH-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+      ],
+    },
+    "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP-DEPOSIT": {
+      strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP",
+      token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      strategy: [
+        {
+          contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          isBorrow: false,
+          outputTokenSymbol: "AAVE-WETH-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+          outputToken: "0x0000000000000000000000000000000000000000",
+          isBorrow: false,
+          outputTokenSymbol: "",
+          adapterName: "SushiswapAdapter",
+          protocol: "Sushiswap",
+        },
+      ],
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -818,15 +826,15 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
     },
   ],
-  // AAVE: [
-  //   {
-  //     name: "opAAVEaggr",
-  //     vaultConfig,
-  //     userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("5000000000000000000000"), // 5000 AAVE minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 AAVE TVL limit
-  //   },
-  // ],
+  AAVE: [
+    {
+      name: "opAAVEgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
+    },
+  ],
 };
 
 const kovanVaults: VaultType = {

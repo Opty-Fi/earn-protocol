@@ -26,6 +26,8 @@ import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
  * @author opty.fi
@@ -226,7 +228,9 @@ contract Vault is
             investStrategyHash = _nextBestInvestStrategyHash;
         }
         uint256 _balanceUT = balanceUT();
+        console.log("Balance after withdrawing: ", _balanceUT);
         if (investStrategyHash != Constants.ZERO_BYTES32 && _balanceUT > 0) {
+            console.log("Depositing all...");
             _vaultDepositToStrategy(investStrategySteps, _balanceUT);
         }
     }
@@ -246,8 +250,10 @@ contract Vault is
         _emergencyBrake(_oraStratValueUT());
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
+        console.log("_oraVaultAndStratValuePreDepositUT: ", _oraVaultAndStratValuePreDepositUT);
         // check vault balance (in UT) before user token transfer
         uint256 _vaultValuePreDepositUT = balanceUT();
+        console.log("_vaultValuePreDepositUT: ", _vaultValuePreDepositUT);
         // receive user deposit
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
         // check balance after user token transfer
@@ -261,6 +267,7 @@ contract Vault is
         _checkUserDeposit(msg.sender, false, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
         // add net deposit amount to user's total deposit
         totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
+        console.log("totalDeposits[msg.sender]: ", totalDeposits[msg.sender]);
         // transfer deposit fee to vaultFeeCollector
         if (_depositFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _depositFeeUT);
@@ -271,8 +278,13 @@ contract Vault is
         // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
         //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
+            console.log("_netUserDepositUT: ", _netUserDepositUT);
             _mint(msg.sender, _netUserDepositUT);
         } else {
+            console.log(
+                "(_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT): ",
+                (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT)
+            );
             _mint(msg.sender, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
         }
     }
@@ -556,6 +568,7 @@ contract Vault is
         uint256 _internalTransactionCount =
             _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
+            console.log("Step: ", _i);
             executeCodes(
                 (
                     _investStrategySteps.getPoolDepositCodes(

@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -16,6 +15,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const aaveV2Adapter = await deployments.get("AaveV2Adapter");
   const compoundAdapter = await deployments.get("CompoundAdapter");
   const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
+  const sushiswapMasterChefAdapter = await deployments.get("SushiswapAdapter");
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();
@@ -52,7 +52,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a": { rate: 50, adapter: newoStakingAdapter.address }, // newoSushiNEWO-USDC
     "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-NEWO-USDC
     "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
-    "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c": { rate: 50, adapter: compoundAdapter.address }, // cAAVE
+    "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd": { rate: 80, adapter: sushiswapMasterChefAdapter.address }, // Sushiswap's MasterChef
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -80,14 +80,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       `operator approving and mapping ${approveLiquidityPoolAndMap.length} pools ...`,
       approveLiquidityPoolAndMap,
     );
-    const feeData = await ethers.provider.getFeeData();
     const approveLiquidityPoolAndMapAdapterTx = await registryV2Instance
       .connect(operatorSigner)
-      ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap);
     await approveLiquidityPoolAndMapAdapterTx.wait();
   } else {
     console.log("Already approved liquidity pool and map to adapter");
@@ -97,14 +92,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (onlyMapPoolsToAdapters.length > 0) {
     // only map pool to adapter
     console.log(`operator only mapping ${onlyMapPoolsToAdapters.length} pools ...`, onlyMapPoolsToAdapters);
-    const feeData = await ethers.provider.getFeeData();
     const mapToAdapterTx = await registryV2Instance
       .connect(operatorSigner)
-      ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters);
     await mapToAdapterTx.wait();
   } else {
     console.log("Already mapped to adapter");
@@ -114,14 +104,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (ratePools.length > 0) {
     // rate pools
     console.log(`risk operator rating ${ratePools.length} pools ...`, ratePools);
-    const feeData = await ethers.provider.getFeeData();
     const rateAdapterTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["rateLiquidityPool((address,uint8)[])"](ratePools, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["rateLiquidityPool((address,uint8)[])"](ratePools);
     await rateAdapterTx.wait();
   } else {
     console.log("Already rate liquidity pool");
@@ -130,10 +115,11 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 export default func;
 func.tags = ["ApproveAndMapLiquidityPoolToAdapter"];
 func.dependencies = [
-  "Registry",
+  "RegistryProxy",
   "CurveSwapPoolAdapter",
   "LidoAdapter",
   "CurveMetapoolSwapAdapter",
+  "SushiswapAdapter",
   "SushiswapPoolAdapterEthereum",
   "NewoStakingAdapter",
   "AaveV1Adapter",

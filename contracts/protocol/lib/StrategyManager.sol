@@ -14,6 +14,8 @@ import {
 } from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title StrategyBuilder Library
  * @author Opty.fi

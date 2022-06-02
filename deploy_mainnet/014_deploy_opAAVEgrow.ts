@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -15,12 +14,12 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
-  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
+  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
@@ -49,65 +48,57 @@ const func: DeployFunction = async ({
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
-    const feeData = await ethers.provider.getFeeData();
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
-    const feeData = await ethers.provider.getFeeData();
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
     await onlyMapToTokensHashTx.wait(1);
   }
 
   const networkName = network.name;
-  const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAAVEaggr", {
+
+  const result = await deploy("opAAVEgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
-      proxyContract: "AdminUpgradeabilityProxy",
+      proxyContract: {
+        abi: artifactVaultProxyV2.abi,
+        bytecode: artifactVaultProxyV2.bytecode,
+        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
+      },
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "1"],
         },
       },
     },
-    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAAVEaggr");
+      const vault = await deployments.get("opAAVEgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAAVEaggr",
+          name: "opAAVEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -115,7 +106,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opAAVEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
         });
       }
     }
@@ -123,4 +114,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["opAAVEgrow"];
-func.dependencies = ["Registry"];
+func.dependencies = ["RegistryProxy"];

@@ -11,6 +11,7 @@ import { Registry, RiskManager, StrategyProvider, Vault, ERC20, IAdapterFull } f
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
+import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -98,6 +99,11 @@ describe("VaultV2", () => {
           });
           it("should receive new strategy after rebalancing", async function () {
             await setTokenBalanceInStorage(this.token, this.vaults[token].address, "10");
+            const LPinstance = await ethers.getContractAt(
+              ESSENTIAL_CONTRACTS.ERC20,
+              strategyDetail.strategy[0].outputToken,
+            );
+            console.log("LP balance: ", (await LPinstance.balanceOf(this.vaults[token].address)).toString());
             await this.vaults[token].rebalance();
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),
@@ -116,39 +122,76 @@ describe("VaultV2", () => {
             await this.token.connect(this.signers.bob).approve(this.vaults[token].address, _userDepositInDecimals);
 
             const aliceBalanceBefore = await this.token.balanceOf(this.signers.alice.address);
+            console.log("Alice balance UT before: ", aliceBalanceBefore.toString());
+            console.log(
+              "Alice balance vault tokens before: ",
+              (await this.vaults[token].balanceOf(this.signers.alice.address)).toString(),
+            );
             await this.vaults[token].connect(this.signers.alice).userDepositVault(_userDepositInDecimals, [], []);
             const aliceBalanceAfter = await this.token.balanceOf(this.signers.alice.address);
+            console.log("Alice balance UT after: ", aliceBalanceAfter.toString());
+            console.log(
+              "Alice balance vault tokens after: ",
+              (await this.vaults[token].balanceOf(this.signers.alice.address)).toString(),
+            );
             expect(aliceBalanceBefore).gt(aliceBalanceAfter);
 
             const bobBalanceBefore = await this.token.balanceOf(this.signers.bob.address);
+            console.log(
+              "Bob balance vault tokens before: ",
+              (await this.vaults[token].balanceOf(this.signers.bob.address)).toString(),
+            );
             await this.vaults[token].connect(this.signers.bob).userDepositVault(_userDepositInDecimals, [], []);
+            console.log(
+              "Bob balance vault tokens after: ",
+              (await this.vaults[token].balanceOf(this.signers.bob.address)).toString(),
+            );
             const bobBalanceAfter = await this.token.balanceOf(this.signers.bob.address);
+            console.log("Bob balance UT before: ", bobBalanceBefore.toString());
+            console.log("Bob balance UT after: ", bobBalanceAfter.toString());
             expect(bobBalanceBefore).gt(bobBalanceAfter);
           });
           it(`vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
             const vaultBalanceBefore = await this.vaults[token].balanceUT();
+            console.log("vaultBalanceBefore: ", vaultBalanceBefore.toString());
             const poolBalanceBefore = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
               this.registry,
               this.vaults[token],
               this.token,
             );
+            const totalSupplyBefore = await this.vaults[token].totalSupply();
+            const balanceInUnderlyingTokenBefore = (await this.vaults[token].getPricePerFullShare())
+              .mul(totalSupplyBefore)
+              .div(BigNumber.from(10).pow(18));
+            console.log("balanceInUnderlyingTokenBefore: ", balanceInUnderlyingTokenBefore.toString());
             await this.vaults[token].connect(this.signers.financeOperator).vaultDepositAllToStrategy();
+            const totalSupplyAfter = await this.vaults[token].totalSupply();
+            const balanceInUnderlyingTokenAfter = (await this.vaults[token].getPricePerFullShare())
+              .mul(totalSupplyAfter)
+              .div(BigNumber.from(10).pow(18));
+            console.log("balanceInUnderlyingTokenAfter: ", balanceInUnderlyingTokenAfter.toString());
             const vaultBalanceAfter = await this.vaults[token].balanceUT();
+            console.log("vaultBalanceAfter: ", vaultBalanceAfter.toString());
             const poolBalanceAfter = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
               this.registry,
               this.vaults[token],
               this.token,
             );
+            console.log("poolBalanceAfter: ", poolBalanceAfter.toString());
             expect(vaultBalanceBefore).gt(vaultBalanceAfter);
             expect(poolBalanceBefore).lt(poolBalanceAfter);
           });
           it(`alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
+            console.log("totalSupply before: ", (await this.vaults[token].totalSupply()).toString());
             const signers = [this.signers.alice, this.signers.bob];
             for (let i = 0; i < signers.length; i++) {
               const userWithdrawBalance = await this.vaults[token].balanceOf(signers[i].address);
               const userBalanceBefore = await this.token.balanceOf(signers[i].address);
+              console.log("UT balance before: ", userBalanceBefore.toString());
+              console.log("vault tokens balance before: ", userWithdrawBalance.toString());
+              console.log("underlying tokens balance before: ", userBalanceBefore.toString());
               const poolBalanceBefore = await getLastStrategyStepBalanceLP(
                 steps as StrategyStepType[],
                 this.registry,
@@ -156,16 +199,24 @@ describe("VaultV2", () => {
                 this.token,
               );
               await this.vaults[token].connect(signers[i]).userWithdrawVault(userWithdrawBalance, [], []);
+              console.log(
+                "vault tokens balance after: ",
+                (await this.vaults[token].balanceOf(signers[i].address)).toString(),
+              );
               const userBalanceAfter = await this.token.balanceOf(signers[i].address);
+              console.log("UT balance after: ", userBalanceAfter.toString());
               const poolBalanceAfter = await getLastStrategyStepBalanceLP(
                 steps as StrategyStepType[],
                 this.registry,
                 this.vaults[token],
                 this.token,
               );
+              console.log("totalSupply: ", (await this.vaults[token].totalSupply()).toString());
+              console.log("last step balance: ", poolBalanceAfter.toString());
               expect(userBalanceBefore).lt(userBalanceAfter);
               expect(poolBalanceBefore).gt(poolBalanceAfter);
             }
+            console.log("vault balance UT: ", (await this.vaults[token].balanceUT()).toString());
           });
         });
       }
