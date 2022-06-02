@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -11,47 +12,51 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  const artifact = await deployments.getArtifact("ConvexFinanceAdapter");
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
-
-  const result = await deploy("opWETHgrow", {
+  const feeData = await ethers.provider.getFeeData();
+  const result = await deploy("ConvexFinanceAdapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opWETHgrow");
+      const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opWETHgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+          name: "ConvexFinanceAdapter",
+          address: convexFinanceAdapter.address,
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opWETHgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+          name: "ConvexFinanceAdapter",
+          address: convexFinanceAdapter.address,
+          constructorArguments: [registryProxyAddress],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opWETHgrow"];
+func.tags = ["ConvexFinanceAdapter"];
+func.dependencies = ["Registry"];

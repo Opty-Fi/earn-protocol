@@ -52,7 +52,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Governance setting risk profile code for opUSDCgrow..");
     console.log("\n");
-    const tx1 = await opUSDCgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode);
+    const feeData = await ethers.provider.getFeeData();
+    const tx1 = await opUSDCgrowInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx1.wait(1);
   }
 
@@ -66,7 +71,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Governance setting vault configuration for opUSDCgrow..");
     console.log("\n");
-    const tx2 = await opUSDCgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig);
+    const feeData = await ethers.provider.getFeeData();
+    const tx2 = await opUSDCgrowInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx2.wait(1);
   }
 
@@ -78,9 +88,14 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash) {
     console.log("setting tokenshash..");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const tx3 = await opUSDCgrowInstance
       .connect(operatorSigner)
-      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash);
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await tx3.wait(1);
   } else {
     console.log("Tokenshash is upto date");
@@ -106,9 +121,14 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   } else {
     console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCgrow...");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const tx4 = await opUSDCgrowInstance
       .connect(financeOperatorSigner)
-      .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT);
+      .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await tx4.wait(1);
   }
 
@@ -120,7 +140,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (!unpause) {
     console.log("Governance unpausing opUSDCgrow vault...");
     console.log("\n");
-    const tx5 = await opUSDCgrowInstance.connect(governanceSigner).setUnpaused(true);
+    const feeData = await ethers.provider.getFeeData();
+    const tx5 = await opUSDCgrowInstance.connect(governanceSigner).setUnpaused(true, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx5.wait(1);
   } else {
     console.log("opUSDCgrow is already unpaused...");
@@ -133,7 +158,12 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (actualAccountsRoot != expectedAccountsRoot) {
     console.log("Governance setting whitelisted account root opUSDCgrow vault...");
     console.log("\n");
-    const tx6 = await opUSDCgrowInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot);
+    const feeData = await ethers.provider.getFeeData();
+    const tx6 = await opUSDCgrowInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot, {
+      type: 2,
+      maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+    });
     await tx6.wait(1);
   } else {
     console.log("whitelisted accounts root for opUSDCgrow is as expected");
@@ -166,6 +196,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   if (currentBestStrategyHash !== expectedStrategyHash) {
     console.log("Strategy operator setting best strategy..");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
       expectedRiskProfileCode,
       MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
@@ -174,6 +205,11 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
         outputToken: x.outputToken,
         isBorrow: x.isBorrow,
       })),
+      {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      },
     );
     await tx7.wait(1);
   } else {

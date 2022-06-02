@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -45,9 +46,14 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       `operator approving and mapping ${approveLiquidityPoolAndMap.length} pools ...`,
       approveLiquidityPoolAndMap,
     );
+    const feeData = await ethers.provider.getFeeData();
     const approveLiquidityPoolAndMapAdapterTx = await registryV2Instance
       .connect(operatorSigner)
-      ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap);
+      ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await approveLiquidityPoolAndMapAdapterTx.wait();
   } else {
     console.log("Already approved liquidity pool and map to adapter");
@@ -57,9 +63,14 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (onlyMapPoolsToAdapters.length > 0) {
     // only map pool to adapter
     console.log(`operator only mapping ${onlyMapPoolsToAdapters.length} pools ...`, onlyMapPoolsToAdapters);
+    const feeData = await ethers.provider.getFeeData();
     const mapToAdapterTx = await registryV2Instance
       .connect(operatorSigner)
-      ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters);
+      ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await mapToAdapterTx.wait();
   } else {
     console.log("Already mapped to adapter");
@@ -69,9 +80,14 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (ratePools.length > 0) {
     // rate pools
     console.log(`risk operator rating ${ratePools.length} pools ...`, ratePools);
+    const feeData = await ethers.provider.getFeeData();
     const rateAdapterTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["rateLiquidityPool((address,uint8)[])"](ratePools);
+      ["rateLiquidityPool((address,uint8)[])"](ratePools, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await rateAdapterTx.wait();
   } else {
     console.log("Already rate liquidity pool");

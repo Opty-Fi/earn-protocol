@@ -232,12 +232,11 @@ To execute functions in a OptyFi's contract.
 Usage: add risk profile in Registry contract
 
 Options:
---registry      required <address> the address of registry
---riskprofilecode          required <number>  the code of risk profile
---canborrow     required <boolean> whether risk profile can borrow or not
---lowestrating  required <number>     the lowest rating
---highestrating required <number>     the highest rating
---network       optional <string>  name of the network provider (default: hardhat)
+--riskprofilecode required <number>   the code of risk profile
+--canborrow       required <boolean>  whether risk profile can borrow or not
+--lowestrating    required <number>   the lowest rating
+--highestrating   required <number>   the highest rating
+--network         optional <string>   name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -245,7 +244,6 @@ Options:
 ```
   yarn hardhat add-risk-profile \
   --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
   --riskprofilecode 1 \
   --canborrow true \
   --lowestrating 0 \
@@ -768,4 +766,22 @@ yarn hardhat set-whitelisted-accounts-root \
   --network localhost \
   --vault 0x0000000000000000000000000000000000000000 \
   --merkle-root-hash 0x1212121212121212121212121212121212121212121212121212121212121212 \
+```
+
+### approve-token-and-map-to-tokenshash
+
+```
+Usage: approve token and map token to tokenshash
+
+Options:
+--token                 required <string>  the address of token
+--network               optional <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat approve-token-and-map-to-tokenshash \
+  --network localhost \
+  --token 0x0000000000000000000000000000000000000000 \
 ```

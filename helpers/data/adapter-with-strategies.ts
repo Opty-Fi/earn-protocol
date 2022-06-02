@@ -2,8 +2,8 @@
 // import { default as SlpStrategies } from "optyfi-sdk/ethereum/strategies/slp.json";
 // import { default as UsdcStrategies } from "optyfi-sdk/ethereum/strategies/usdc.json";
 // import { default as WethStrategies } from "optyfi-sdk/ethereum/strategies/weth.json";
-
-import { ADAPTER_WITH_STRATEGIES_DATA, StrategiesByTokenByChainType } from "../type";
+import { ethers, BigNumber } from "ethers";
+import { ADAPTER_WITH_STRATEGIES_DATA, MultiChainVaultsType, StrategiesByTokenByChainType, VaultType } from "../type";
 import {
   AAVE_V1_ADAPTER_NAME,
   AAVE_V2_ADAPTER_NAME,
@@ -353,6 +353,74 @@ const mainnetStrategiesByToken = {
       ],
     },
   },
+  NEWO: {
+    "newo-DEPOSIT-NewOrder-stkNEWO": {
+      strategyName: "newo-DEPOSIT-NewOrder-stkNEWO",
+      token: "0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96",
+      strategy: [
+        {
+          contract: "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB",
+          outputToken: "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB",
+          isBorrow: false,
+          outputTokenSymbol: "stkNEWO",
+          adapterName: "NewoStakingAdapter",
+          protocol: "NewOrder",
+        },
+      ],
+    },
+    "newo-DEPOSIT-SushiswapPool-NEWO-USDC-SLP-DEPOSIT-NewOrder-newoSushiNEWO-USDC": {
+      strategyName: "newo-DEPOSIT-SushiswapPool-NEWO-USDC-SLP-DEPOSIT-NewOrder-newoSushiNEWO-USDC",
+      token: "0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96",
+      strategy: [
+        {
+          contract: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
+          outputToken: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
+          isBorrow: false,
+          outputTokenSymbol: "NEWO-USDC-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a",
+          outputToken: "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a",
+          isBorrow: false,
+          outputTokenSymbol: "newoSushiNEWO-USDC",
+          adapterName: "NewoStakingAdapter",
+          protocol: "NewOrder",
+        },
+      ],
+    },
+  },
+  AAVE: {
+    "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP": {
+      strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP",
+      token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      strategy: [
+        {
+          contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
+          isBorrow: false,
+          outputTokenSymbol: "AAVE-WETH-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+      ],
+    },
+    "aave-DEPOSIT-Compound-cAAVE": {
+      strategyName: "aave-DEPOSIT-Compound-cAAVE",
+      token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      strategy: [
+        {
+          contract: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
+          outputToken: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
+          isBorrow: false,
+          outputTokenSymbol: "cAAVE",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -392,7 +460,7 @@ const polygonStrategiesbyToken = {
   USDC: {
     "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-CurveGauge-am3CRV-gauge": {
       strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV",
-      token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       strategy: [
         {
           contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
@@ -428,7 +496,7 @@ const polygonStrategiesbyToken = {
     },
     "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
       strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
-      token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       strategy: [
         {
           contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
@@ -699,4 +767,157 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
   [eEVMNetwork.avalanche]: avalancheStrategiesbyToken,
   [NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: avalancheStrategiesbyToken,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche]]: avalancheStrategiesbyToken,
+};
+
+// (0-15) Deposit fee UT = 0 UT = 0000
+// (16-31) Deposit fee % = 0% = 0000
+// (32-47) Withdrawal fee UT = 0 UT = 0000
+// (48-63) Withdrawal fee % = 0% = 0000
+// (64-79) Max vault value jump % = 1% = 0064
+// (80-239) vault fee address = 0000000000000000000000000000000000000000
+// (240-247) risk profile code = 1 = 01
+// (248) emergency shutdown = false = 0
+// (249) unpause = true = 1
+// (250) allow whitelisted state = false = 0
+// (251) - 0
+// (252) - 0
+// (253) - 0
+// (254) - 0
+// (255) - 0
+// 0x0201000000000000000000000000000000000000000000640000000000000000
+// 906392544231311161076231617881117198619499239097192527361058388634069106688
+const vaultConfig = ethers.BigNumber.from(
+  "906392544231311161076231617881117198619499239097192527361058388634069106688",
+);
+
+const mainnetVaults: VaultType = {
+  USDC: [
+    {
+      name: "opUSDCgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+  ],
+  WETH: [
+    {
+      name: "opWETHgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WETH user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WETH minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
+    },
+  ],
+  NEWO: [
+    {
+      name: "opNEWOgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 NEWO wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000000"), // 10,000 NEWO minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
+    },
+  ],
+  AAVE: [
+    {
+      name: "opAAVEgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("5000000000000000000000"), // 5000 AAVE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 AAVE TVL limit
+    },
+  ],
+};
+
+const kovanVaults: VaultType = {
+  USDC: [
+    {
+      name: "opAVUSDCint",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
+      minimumDepositValueUT: BigNumber.from("0"),
+      totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
+    },
+  ],
+};
+
+const polygonVaults: VaultType = {
+  USDC: [
+    {
+      name: "opUSDCgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+  ],
+  WMATIC: [
+    {
+      name: "opWMATICgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WMATIC user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WMATIC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WMATIC TVL limit
+    },
+  ],
+};
+
+const mumbaiVaults: VaultType = {
+  USDC: [
+    {
+      name: "opUSDCgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
+      minimumDepositValueUT: BigNumber.from("0"),
+      totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
+    },
+  ],
+};
+
+const avalancheVaults: VaultType = {
+  USDC: [
+    {
+      name: "opUSDCgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+  ],
+  USDCe: [
+    {
+      name: "opUSDCegrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDCe TVL limit
+    },
+  ],
+  WAVAX: [
+    {
+      name: "opWAVAXgrow",
+      vaultConfig,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WAVAX user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WAVAX minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WAVAX TVL limit
+    },
+  ],
+};
+
+export const MultiChainVaults: MultiChainVaultsType = {
+  [eEVMNetwork.mainnet]: mainnetVaults,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: mainnetVaults,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]]: mainnetVaults,
+  [eEVMNetwork.kovan]: kovanVaults,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanVaults,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanVaults,
+  [eEVMNetwork.polygon]: polygonVaults,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: polygonVaults,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]]: polygonVaults,
+  [eEVMNetwork.mumbai]: mumbaiVaults,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]]: mumbaiVaults,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mumbai]]: mumbaiVaults,
+  [eEVMNetwork.avalanche]: avalancheVaults,
+  [NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: avalancheVaults,
+  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche]]: avalancheVaults,
 };

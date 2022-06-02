@@ -1,17 +1,16 @@
 import chai, { expect } from "chai";
-import { deployments, ethers, network } from "hardhat";
+import { deployments, ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
+import BN from "bignumber.js";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
-import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
+import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { Registry, RiskManager, StrategyProvider, Vault, ERC20, IAdapterFull } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
-import BN from "bignumber.js";
-import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -20,6 +19,7 @@ const fork = process.env.FORK as eEVMNetwork;
 describe("VaultV2", () => {
   before(async function () {
     await deployments.fixture();
+    const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
@@ -31,10 +31,10 @@ describe("VaultV2", () => {
     this.signers.financeOperator = signers[5];
     this.signers.governance = signers[9];
     this.signers.strategyOperator = signers[7];
+    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
     const registryProxy = await deployments.get("RegistryProxy");
     const riskManagerProxy = await deployments.get("RiskManagerProxy");
     const strategyProvider = await deployments.get("StrategyProvider");
-    const opUSDCGrow = await deployments.get("opUSDCgrow");
     this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
     this.riskManager = <RiskManager>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerProxy.address)
@@ -43,139 +43,31 @@ describe("VaultV2", () => {
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyProvider.address)
     );
     this.vaults = {};
-    this.vaults["USDC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCGrow.address);
-    if (fork === eEVMNetwork.polygon) {
-      const opWMATICGrow = await deployments.get("opWMATICgrow");
-      this.vaults["WMATIC"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWMATICGrow.address);
-    }
-
-    if (fork === eEVMNetwork.avalanche) {
-      const opWAVAXgrow = await deployments.get("opWAVAXgrow");
-      this.vaults["WAVAX"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWAVAXgrow.address);
-
-      const opUSDCegrow = await deployments.get("opUSDCegrow");
-      this.vaults["USDCe"] = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCegrow.address);
-    }
-
     const governanceAddress = await this.registry.getGovernance();
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [governanceAddress],
-    });
     const governance = await ethers.getSigner(governanceAddress);
     const financeOperatorAddress = await this.registry.getFinanceOperator();
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [financeOperatorAddress],
-    });
     const financeOperator = await ethers.getSigner(financeOperatorAddress);
-    const USDCTokens = fork === eEVMNetwork.avalanche ? ["USDC", "USDCe"] : ["USDC"];
-    // (0-15) Deposit fee UT = 0 UT = 0000
-    // (16-31) Deposit fee % = 0% = 0000
-    // (32-47) Withdrawal fee UT = 0 UT = 0000
-    // (48-63) Withdrawal fee % = 0% = 0000
-    // (64-79) Max vault value jump % = 1% = 0064
-    // (80-239) vault fee address = 0000000000000000000000000000000000000000
-    // (240-247) risk profile code = 1 = 01
-    // (248) emergency shutdown = false = 0
-    // (249) unpause = true = 1
-    // (250) allow whitelisted state = false = 0
-    // (251) - 0
-    // (252) - 0
-    // (253) - 0
-    // (254) - 0
-    // (255) - 0
-    // 0x0201000000000000000000000000000000000000000000640000000000000000
-    // 906392544231311161076231617881117198619499239097192527361058388634069106688
-    const expectedConfig = ethers.BigNumber.from(
-      "906392544231311161076231617881117198619499239097192527361058388634069106688",
-    );
-    for (let i = 0; i < USDCTokens.length; i++) {
-      const usdc = USDCTokens[i];
-      const _vaultUSDCConfiguration = await this.vaults[usdc].vaultConfiguration();
-      if (expectedConfig.eq(_vaultUSDCConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opUSDCgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults[usdc].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUSDCUserDepositCapUT = await this.vaults[usdc].userDepositCapUT();
-      const actualUSDCMinimumDepositValueUT = await this.vaults[usdc].minimumDepositValueUT();
-      const actualUSDCTotalValueLockedLimitUT = await this.vaults[usdc].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
-      const expectedMinimumDepositValueUT = BigNumber.from("1000000000"); // 1000 USDC
-      const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
-
-      console.log("opUSDCgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUSDCUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualUSDCMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualUSDCTotalValueLockedLimitUT)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCgrow...");
-        console.log("\n");
-        const tx4 = await this.vaults[usdc]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx4.wait(1);
-      }
-    }
-
-    const wToken = fork === eEVMNetwork.avalanche ? "WAVAX" : "WMATIC";
-    if (this.vaults[wToken]) {
-      const _vaultWTokenConfiguration = await this.vaults[wToken].vaultConfiguration();
-      if (expectedConfig.eq(_vaultWTokenConfiguration)) {
-        console.log("vaultConfiguration is as expected");
-        console.log("\n");
-      } else {
-        console.log("Governance setting vault configuration for opUSDCgrow..");
-        console.log("\n");
-        const tx2 = await this.vaults[wToken].connect(governance).setVaultConfiguration(expectedConfig);
-        await tx2.wait(1);
-      }
-
-      const actualUserDepositCapUT = await this.vaults[wToken].userDepositCapUT();
-      const actualMinimumDepositValueUT = await this.vaults[wToken].minimumDepositValueUT();
-      const actualTotalValueLockedLimitUT = await this.vaults[wToken].totalValueLockedLimitUT();
-
-      const expectedUserDepositCapUT = BigNumber.from("5000000000000000000"); // 5 WETH user deposit cap
-      const expectedMinimumDepositValueUT = BigNumber.from("250000000000000000"); // 0.25 WETH minimum deposit
-      const expectedTotalValueLockedLimitUT = BigNumber.from("5000000000000000000000"); // 5000 WETH TVL limit
-
-      console.log("opWETHgrow.setValueControlParams()");
-      console.log("\n");
-      if (
-        expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
-        expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
-        expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
-      ) {
-        console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opWETHgrow");
-        console.log("\n");
-      } else {
-        console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWETHgrow...");
-        console.log("\n");
-        const tx3 = await this.vaults[wToken]
-          .connect(financeOperator)
-          .setValueControlParams(
-            expectedUserDepositCapUT,
-            expectedMinimumDepositValueUT,
-            expectedTotalValueLockedLimitUT,
-          );
-        await tx3.wait(1);
-      }
+    for (const token of Object.keys(MultiChainVaults[fork])) {
+      this.vaults[token] = <Vault>(
+        await ethers.getContractAt(
+          ESSENTIAL_CONTRACTS.VAULT,
+          await (
+            await deployments.get(MultiChainVaults[fork][token][0].name)
+          ).address,
+        )
+      );
+      let tx = await this.vaults[token]
+        .connect(governance)
+        .setVaultConfiguration(MultiChainVaults[fork][token][0].vaultConfig);
+      await tx.wait(1);
+      tx = await this.vaults[token]
+        .connect(financeOperator)
+        .setValueControlParams(
+          MultiChainVaults[fork][token][0].userDepositCapUT,
+          MultiChainVaults[fork][token][0].minimumDepositValueUT,
+          MultiChainVaults[fork][token][0].totalValueLockedLimitUT,
+        );
+      await tx.wait(1);
     }
   });
   describe("VaultV2 strategies", () => {
@@ -193,7 +85,9 @@ describe("VaultV2", () => {
 
         describe(`${strategy}`, () => {
           before(async function () {
-            await (this.strategyProvider as any).setBestStrategy(
+            const strategyOperatorAddress = await this.registry.getStrategyOperator();
+            const strategyOperator = await ethers.getSigner(strategyOperatorAddress);
+            await (this.strategyProvider as any).connect(strategyOperator).setBestStrategy(
               1,
               tokenHash,
               steps.map(item => Object.values(item)),
@@ -207,6 +101,7 @@ describe("VaultV2", () => {
             );
           });
           it("should receive new strategy after rebalancing", async function () {
+            await setTokenBalanceInStorage(this.token, this.vaults[token].address, "10");
             await this.vaults[token].rebalance();
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),

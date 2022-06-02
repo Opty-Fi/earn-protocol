@@ -1,29 +1,18 @@
 import { task, types } from "hardhat/config";
-import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { addRiskProfile } from "../../helpers/contracts-actions";
 import TASKS from "../task-names";
+import { Registry } from "../../typechain";
 
 task(TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME, TASKS.ACTION_TASKS.ADD_RISK_PROFILE.DESCRIPTION)
-  .addParam("registry", "the address of registry", "", types.string)
   .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
   .addParam("name", "the name of risk profile", "", types.string)
   .addParam("symbol", "the symbol of risk profile", "", types.string)
   .addParam("canborrow", "whether risk profile can borrow or not", false, types.boolean)
   .addParam("lowestrating", "the lowest rating", 0, types.int)
   .addParam("highestrating", "the highest rating", 0, types.int)
-  .setAction(async ({ riskprofilecode, name, symbol, canborrow, lowestrating, highestrating, registry }, hre) => {
-    const [owner] = await hre.ethers.getSigners();
-
-    if (registry === "") {
-      throw new Error("registry cannot be empty");
-    }
-
-    if (!isAddress(registry)) {
-      throw new Error("registry address is invalid");
-    }
-
+  .setAction(async ({ riskprofilecode, name, symbol, canborrow, lowestrating, highestrating }, hre) => {
     if (name === "") {
       throw new Error("name cannot be empty");
     }
@@ -41,8 +30,16 @@ task(TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME, TASKS.ACTION_TASKS.ADD_RISK_PROFI
     }
 
     try {
-      const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
-      await addRiskProfile(registryContract, owner, riskprofilecode, name, symbol, canborrow, [
+      const registryInstance = <Registry>(
+        await hre.ethers.getContractAt(
+          ESSENTIAL_CONTRACTS.REGISTRY,
+          await (
+            await hre.deployments.get("RegistryProxy")
+          ).address,
+        )
+      );
+      const riskOperator = await hre.ethers.getSigner(await registryInstance.getRiskOperator());
+      await addRiskProfile(registryInstance, riskOperator, riskprofilecode, name, symbol, canborrow, [
         lowestrating,
         highestrating,
       ]);

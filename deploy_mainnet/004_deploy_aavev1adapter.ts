@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -11,47 +12,51 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  const artifact = await deployments.getArtifact("AaveV1Adapter");
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
-
-  const result = await deploy("opUSDCgrow", {
+  const feeData = await ethers.provider.getFeeData();
+  const result = await deploy("AaveV1Adapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSDCgrow");
+      const aavev1Adapter = await deployments.get("AaveV1Adapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSDCgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+          name: "AaveV1Adapter",
+          address: aavev1Adapter.address,
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSDCgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+          name: "AaveV1Adapter",
+          address: aavev1Adapter.address,
+          constructorArguments: [registryProxyAddress],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opUSDCgrow"];
+func.tags = ["AaveV1Adapter"];
+func.dependencies = ["Registry"];

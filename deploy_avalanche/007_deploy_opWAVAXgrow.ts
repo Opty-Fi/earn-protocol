@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
@@ -12,6 +13,7 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
@@ -21,7 +23,7 @@ const func: DeployFunction = async ({
 
   const chainId = await getChainId();
   const networkName = network.name;
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("opWAVAXgrow", {
     from: deployer,
     contract: {
@@ -47,6 +49,8 @@ const func: DeployFunction = async ({
         },
       },
     },
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {

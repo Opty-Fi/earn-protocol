@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -11,15 +12,16 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("CurveMetapoolSwapAdapter");
-  const registryProxyAddress = "0x99fa011e33a8c6196869dec7bc407e896ba67fe3";
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("CurveMetapoolSwapAdapter", {
     from: deployer,
     contract: {
@@ -30,6 +32,8 @@ const func: DeployFunction = async ({
     args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {
@@ -55,3 +59,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["CurveMetapoolSwapAdapter"];
+func.dependencies = ["Registry"];

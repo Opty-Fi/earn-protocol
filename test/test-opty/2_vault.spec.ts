@@ -35,7 +35,7 @@ import {
   opWETHgrow,
   RegistryProxy as RegistryProxyAddress,
   RiskManagerProxy as RiskManagerProxyAddress,
-} from "../../_deployments/mainnet.json";
+} from "./_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
@@ -199,11 +199,15 @@ describe("Vault", () => {
         ])
       );
       this.vault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.vaultProxyV2.address);
-      await this.registry
-        .connect(this.signers.operator)
-        ["setTokensHashToTokens(bytes32,address[])"](MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, [
-          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-        ]);
+      const index = await this.registry.tokensHashToTokens(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
+      const isUsdcHashSet = (await this.registry.tokensHashIndexes(index)) == MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash;
+      if (!isUsdcHashSet) {
+        await this.registry
+          .connect(this.signers.operator)
+          ["setTokensHashToTokens(bytes32,address[])"](MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, [
+            MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
+          ]);
+      }
       await this.vault.initialize(
         this.registry.address,
         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,

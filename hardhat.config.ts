@@ -154,6 +154,11 @@ const config: HardhatUserConfig = {
       eEVMNetwork.kovan,
       NETWORKS_CHAIN_ID[eEVMNetwork.kovan],
     ),
+    ropsten: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.ropsten],
+      eEVMNetwork.ropsten,
+      NETWORKS_CHAIN_ID[eEVMNetwork.ropsten],
+    ),
     tenderly: getCommonNetworkConfig(
       NETWORKS_RPC_URL[eEVMNetwork.tenderly],
       eEVMNetwork.tenderly,
