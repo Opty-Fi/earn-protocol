@@ -76,14 +76,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAAVEgrow", {
+  const result = await deploy("opAAVEaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
+    args: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -93,7 +93,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "2"],
         },
       },
     },
@@ -102,12 +102,12 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAAVEgrow");
+      const vault = await deployments.get("opAAVEaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAAVEgrow",
+          name: "opAAVEaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -115,7 +115,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opAAVEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
         });
       }
     }

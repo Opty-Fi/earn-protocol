@@ -1,4 +1,4 @@
-[![Manual Earn protocol piepline](https://github.com/Opty-Fi/earn-protocol/actions/workflows/manual.yml/badge.svg)](https://github.com/Opty-Fi/earn-protocol/actions/workflows/manual.yml)
+[![Earn protocol Install, lint and test pipeline](https://github.com/Opty-Fi/earn-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/Opty-Fi/earn-protocol/actions/workflows/ci.yml)
 
 # Earn protocol
 

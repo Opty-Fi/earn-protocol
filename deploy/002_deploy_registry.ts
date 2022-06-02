@@ -172,8 +172,8 @@ const func: DeployFunction = async ({
     await onlyMapToTokensHashTx.wait(1);
   }
 
-  // add risk profile
-  console.log("==Risk Profile config==");
+  // add risk profile Grow
+  console.log("==Risk Profile config : Grow==");
   console.log("\n");
   const growRiskProfilExists = (await registryV2Instance.getRiskProfile("1")).exists;
   if (!growRiskProfilExists) {
@@ -183,6 +183,27 @@ const func: DeployFunction = async ({
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
       ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Growth", "grow", false, [0, 100], {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      }); // code,name,symbol,canBorrow,pool rating range
+    await addRiskProfileTx.wait(1);
+  } else {
+    console.log("Already configured risk profile");
+    console.log("\n");
+  }
+
+  // add risk profile Aggressive
+  console.log("==Risk Profile config : Aggressive==");
+  console.log("\n");
+  const aggressiveRiskProfilExists = (await registryV2Instance.getRiskProfile("2")).exists;
+  if (!aggressiveRiskProfilExists) {
+    console.log("risk operator adding aggressive risk profile...");
+    console.log("\n");
+    feeData = await ethers.provider.getFeeData();
+    const addRiskProfileTx = await registryV2Instance
+      .connect(riskOperatorSigner)
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggressive", "aggr", false, [50, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),

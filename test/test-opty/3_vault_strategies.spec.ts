@@ -87,11 +87,7 @@ describe("VaultV2", () => {
           before(async function () {
             const strategyOperatorAddress = await this.registry.getStrategyOperator();
             const strategyOperator = await ethers.getSigner(strategyOperatorAddress);
-            await (this.strategyProvider as any).connect(strategyOperator).setBestStrategy(
-              1,
-              tokenHash,
-              steps.map(item => Object.values(item)),
-            );
+            await this.strategyProvider.connect(strategyOperator).setBestStrategy(1, tokenHash, steps);
             this.token = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, strategyDetail.token);
             this.adapter = <IAdapterFull>(
               await ethers.getContractAt(
