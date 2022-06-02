@@ -1,9 +1,9 @@
+import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
-import { BigNumber } from "ethers";
 
 const FORK = process.env.FORK || "";
 

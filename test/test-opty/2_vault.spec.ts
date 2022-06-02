@@ -35,7 +35,7 @@ import {
   opWETHgrow,
   RegistryProxy as RegistryProxyAddress,
   RiskManagerProxy as RiskManagerProxyAddress,
-} from "../../_deployments/mainnet.json";
+} from "./_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
