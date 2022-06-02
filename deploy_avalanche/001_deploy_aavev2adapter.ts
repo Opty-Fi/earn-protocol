@@ -22,7 +22,7 @@ const func: DeployFunction = async ({
   const operatorAddress = await registryV2Instance.getOperator();
   const chainId = await getChainId();
   const networkName = network.name;
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("AaveV2AvalancheAdapter", {
     from: operatorAddress,
     contract: {

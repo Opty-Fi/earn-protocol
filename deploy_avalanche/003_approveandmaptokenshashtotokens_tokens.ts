@@ -3,6 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
+import { BigNumber } from "ethers";
 
 const FORK = process.env.FORK || "";
 
@@ -49,18 +50,28 @@ const func: DeployFunction = async ({ deployments, getChainId, ethers }: Hardhat
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const approveTokenAndMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const onlyMapToTokensHashTx = await registryV2Instance
       .connect(operatorSigner)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await onlyMapToTokensHashTx.wait(1);
   }
 };
