@@ -1,4 +1,5 @@
 [![Manual Earn protocol piepline](https://github.com/Opty-Fi/earn-protocol/actions/workflows/manual.yml/badge.svg)](https://github.com/Opty-Fi/earn-protocol/actions/workflows/manual.yml)
+
 # Earn protocol
 
 Core smart contract of OptyFi's Earn protocol
