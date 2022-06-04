@@ -84,7 +84,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     const approveLiquidityPoolAndMapAdapterTx = await registryV2Instance
       .connect(operatorSigner)
       ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });
@@ -101,7 +101,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     const mapToAdapterTx = await registryV2Instance
       .connect(operatorSigner)
       ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });
@@ -118,7 +118,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     const rateAdapterTx = await registryV2Instance
       .connect(riskOperatorSigner)
       ["rateLiquidityPool((address,uint8)[])"](ratePools, {
-        type: 1,
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       });
