@@ -14,8 +14,6 @@ import {
 } from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title StrategyBuilder Library
  * @author Opty.fi
@@ -173,8 +171,13 @@ library StrategyManager {
         address payable _vault,
         address _underlyingToken
     ) internal view returns (uint256) {
+        uint256 _strategyStepsLen = _strategySteps.length;
         address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
         IAdapterFull _adapter = IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
+        if (_strategyStepsLen > 1) {
+            // underlying token for last step is previous step's output token
+            _underlyingToken = _strategySteps[_strategyStepsLen - 2].outputToken;
+        }
         return
             _adapter.canStake(_liquidityPool)
                 ? _adapter.getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool)
