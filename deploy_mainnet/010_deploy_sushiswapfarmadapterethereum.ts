@@ -64,4 +64,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["SushiswapMasterChefV1Adapter"];
-func.dependencies = ["RegistryProxy"];
+func.dependencies = ["Registry"];

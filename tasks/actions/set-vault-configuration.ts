@@ -1,35 +1,30 @@
 import { task, types } from "hardhat/config";
-import { isAddress } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import TASKS from "../task-names";
-import { Registry, Vault } from "../../typechain";
+import { Registry, Vault, Vault__factory } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 task(TASKS.ACTION_TASKS.SET_VAULT_CONFIGURATION.NAME, TASKS.ACTION_TASKS.SET_VAULT_CONFIGURATION.DESCRIPTION)
-  .addParam("vault", "vault address", "", types.string)
+  .addParam("vaultSymbol", "vault symbol", "", types.string)
   .addParam("vaultConfiguration", "vault configuration", "", types.string)
-  .setAction(async ({ vault, vaultConfiguration }, hre) => {
-    if (vault === "") {
-      throw new Error("vault cannot be empty");
-    }
-    if (!isAddress(vault)) {
-      throw new Error("vault address is invalid");
-    }
+  .setAction(async ({ vaultSymbol, vaultConfiguration }, { deployments, ethers }) => {
     try {
-      const vaultInstance = <Vault>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
+      const vaultInstance = <Vault>(
+        await ethers.getContractAt(Vault__factory.abi, await (await deployments.get(vaultSymbol)).address)
+      );
       const actualVaultConfiguration = await vaultInstance.vaultConfiguration();
       if (BigNumber.from(actualVaultConfiguration).eq(BigNumber.from(vaultConfiguration))) {
         console.log("Vault configuration is as expected");
       } else {
         const registryInstance = <Registry>(
-          await hre.ethers.getContractAt(
+          await ethers.getContractAt(
             ESSENTIAL_CONTRACTS.REGISTRY,
             await (
-              await hre.deployments.get("RegistryProxy")
+              await deployments.get("RegistryProxy")
             ).address,
           )
         );
-        const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+        const governanceSigner = await ethers.getSigner(await registryInstance.getGovernance());
         const tx = await vaultInstance.connect(governanceSigner).setVaultConfiguration(vaultConfiguration);
         await tx.wait(1);
       }
@@ -57,3 +52,6 @@ task(TASKS.ACTION_TASKS.SET_VAULT_CONFIGURATION.NAME, TASKS.ACTION_TASKS.SET_VAU
 // (255) - 0
 // 0x06026bd60f089B6E8BA75c409a54CDea34AA511277f600320000000000000000
 // 2718155043500073612906634403139041842518004532954031278126931986324444413952
+
+// AAVE
+// 0x0202000000000000000000000000000000000000000000640000000000000000

@@ -50,6 +50,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Convex",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [CURVE_SWAP_POOL_ADAPTER_NAME]: [
@@ -66,6 +67,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Curve",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [CURVE_DEPOSIT_POOL_ADAPTER_NAME]: [
@@ -82,6 +84,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Curve",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [COMPOUND_ADAPTER_NAME]: [
@@ -98,6 +101,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Compound",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [AAVE_V1_ADAPTER_NAME]: [
@@ -114,6 +118,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "AaveV1",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [AAVE_V2_ADAPTER_NAME]: [
@@ -130,6 +135,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "AaveV2",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [DFORCE_ADAPTER_NAME]: [
@@ -146,6 +152,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "DForce",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [FULCRUM_ADAPTER_NAME]: [
@@ -162,6 +169,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Fulcrum",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [HARVEST_V1_ADAPTER_NAME]: [
@@ -178,6 +186,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Harvest",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
   [SUSHISWAP_ADAPTER_NAME]: [
@@ -194,6 +203,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
           protocol: "Sushiswap",
         },
       ],
+      riskProfileCode: 1,
     },
   ],
 };
@@ -413,6 +423,7 @@ const mainnetStrategiesByToken = {
           protocol: "Sushiswap",
         },
       ],
+      riskProfileCode: 2,
     },
     "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP": {
       strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP",
@@ -427,6 +438,7 @@ const mainnetStrategiesByToken = {
           protocol: "Sushiswap",
         },
       ],
+      riskProfileCode: 2,
     },
   },
 };
@@ -446,6 +458,7 @@ const kovanStrategiesByToken = {
           protocol: "Aave",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-AaveV2-aUSDC": {
       strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
@@ -460,6 +473,7 @@ const kovanStrategiesByToken = {
           protocol: "Aave",
         },
       ],
+      riskProfileCode: 1,
     },
   },
 };
@@ -487,6 +501,7 @@ const polygonStrategiesbyToken = {
           protocol: "Curve",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Aave-amUSDC": {
       strategyName: "usdc-DEPOSIT-Aave-amUSDC",
@@ -501,6 +516,7 @@ const polygonStrategiesbyToken = {
           protocol: "Aave",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
       strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
@@ -523,6 +539,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Sushiswap-USDC-USDT-SLP-DEPOSIT-Beefy-mooSushiUSDC-USDT": {
       strategyName: "usdc-DEPOSIT-USDCUSDTSLP-DEPOSIT-Beefy-mooSushiUSDC-USDT",
@@ -545,6 +562,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI": {
       strategyName: "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI",
@@ -567,6 +585,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT": {
       strategyName: "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT",
@@ -589,6 +608,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI": {
       strategyName: "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI",
@@ -611,6 +631,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooMaiUSDC-miMATIC": {
       strategyName: "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooQuickUSDC-MAI",
@@ -633,6 +654,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
     "usdc-DEPOSIT-Apeswap-USDC-DAI-ALP-Beefy-mooApeUSDC-DAI": {
       strategyName: "usdc-DEPOSIT-Apeswap-USDC-MAI-QLP-Beefy-mooApeUSDC-MAI",
@@ -655,6 +677,7 @@ const polygonStrategiesbyToken = {
           protocol: "Beefy",
         },
       ],
+      riskProfileCode: 1,
     },
   },
   WMATIC: {
@@ -671,6 +694,7 @@ const polygonStrategiesbyToken = {
           protocol: "Aave",
         },
       ],
+      riskProfileCode: 1,
     },
   },
 };
@@ -690,6 +714,7 @@ const mumbaiStrategiesbyToken = {
           protocol: "Aave",
         },
       ],
+      riskProfileCode: 1,
     },
   },
 };
@@ -709,6 +734,7 @@ const avalancheStrategiesbyToken = {
           protocol: "AaveV3",
         },
       ],
+      riskProfileCode: 1,
     },
   },
   WAVAX: {
@@ -725,6 +751,7 @@ const avalancheStrategiesbyToken = {
           protocol: "AaveV2",
         },
       ],
+      riskProfileCode: 1,
     },
     "wavax-DEPOSIT-AaveV3-aAvaWAVAX": {
       strategyName: "",
@@ -739,6 +766,7 @@ const avalancheStrategiesbyToken = {
           protocol: "AaveV3",
         },
       ],
+      riskProfileCode: 1,
     },
   },
   USDCe: {
@@ -755,6 +783,7 @@ const avalancheStrategiesbyToken = {
           protocol: "AaveV2",
         },
       ],
+      riskProfileCode: 1,
     },
   },
 };
