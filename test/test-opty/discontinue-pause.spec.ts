@@ -59,7 +59,9 @@ describe(scenario.title, () => {
       let underlyingTokenSymbol: string;
       const vaults = scenario.vaults[i];
       const profile = vaults.riskProfileCode;
-      const adapterNames = Object.keys(TypedAdapterStrategies).filter(adapter => adapter !== "SushiswapAdapter");
+      const adapterNames = Object.keys(TypedAdapterStrategies).filter(
+        adapter => adapter !== "SushiswapMasterChefV1Adapter",
+      );
 
       for (let i = 0; i < adapterNames.length; i++) {
         const adapterName = adapterNames[i];

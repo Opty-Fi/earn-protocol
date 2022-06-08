@@ -15,13 +15,13 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("SushiswapAdapter");
+  const artifact = await deployments.getArtifact("SushiswapMasterChefV1Adapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
 
-  const result = await deploy("SushiswapAdapter", {
+  const result = await deploy("SushiswapMasterChefV1Adapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -33,21 +33,20 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
   });
 
-  const sushiswapFarmAdapterEthereum = await deployments.get("SushiswapAdapter");
+  const sushiswapFarmAdapterEthereum = await deployments.get("SushiswapMasterChefV1Adapter");
   const sushiswapFarmAdapterEthereumInstance = await ethers.getContractAt(
     artifact.abi,
     sushiswapFarmAdapterEthereum.address,
   );
-  await sushiswapFarmAdapterEthereumInstance.setUnderlyingTokenToMasterChefToPid(
+  await sushiswapFarmAdapterEthereumInstance.setUnderlyingTokenToPid(
     "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
-    "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
     "37",
   );
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "SushiswapAdapter",
+          name: "SushiswapMasterChefV1Adapter",
           address: sushiswapFarmAdapterEthereum.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -55,7 +54,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "SushiswapAdapter",
+          name: "SushiswapMasterChefV1Adapter",
           address: sushiswapFarmAdapterEthereum.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -64,5 +63,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["SushiswapAdapter"];
+func.tags = ["SushiswapMasterChefV1Adapter"];
 func.dependencies = ["RegistryProxy"];
