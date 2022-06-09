@@ -31,7 +31,6 @@ import {
   Vault,
   Vault__factory,
   TestVault,
-  TestVault__factory,
 } from "../../typechain";
 import { setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
