@@ -179,17 +179,6 @@ export async function getLastStrategyStepBalanceLP(
   if (await adapterInstance.canStake(lastStepPool)) {
     return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
   }
-  if (investStrategySteps.length > 1) {
-    console.log(
-      "investStrategySteps[investStrategySteps.length - 2].outputToken ",
-      investStrategySteps[investStrategySteps.length - 2].outputToken,
-    );
-    return await adapterInstance.getLiquidityPoolTokenBalance(
-      vault.address,
-      investStrategySteps[investStrategySteps.length - 2].outputToken,
-      lastStepPool,
-    );
-  }
   return await adapterInstance.getLiquidityPoolTokenBalance(vault.address, underlyingToken.address, lastStepPool);
 }
 
