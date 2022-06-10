@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - slither-ci
 
 jobs:
   lint-compile-test:
