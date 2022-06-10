@@ -72,7 +72,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Aave Token", "AAVE", "Aggresive", "aggr"],
+    args: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -98,7 +98,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opAAVEaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggresive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -106,7 +106,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opAAVEaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggresive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
         });
       }
     }
