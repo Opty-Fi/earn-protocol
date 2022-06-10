@@ -23965,8 +23965,8 @@
       ]
     },
     "opNEWOaggr": {
-      "opNEWOaggr_proxy": "0x081a71C6fD95acBC5e04c2E409878De09DbdEb37",
-      "merkle_root_service": "",
+      "opNEWOaggr_proxy": "0xF10aF2cf774B40bd4411fDF91d7C22003B46a130",
+      "merkle_root_service": "https://lo8az9edjd.execute-api.us-east-1.amazonaws.com/yield/proof/0x1/0xF10aF2cf774B40bd4411fDF91d7C22003B46a130/:user_address",
       "root_hash": "0x800adf36e93f6ae878edc063a6053734453e35bbb5b9279c4cde50f5d3379c0f",
       "addresses": [
         "0xDd704A44866AE9C387CfC687fa642a222b84f0D3",
