@@ -831,15 +831,36 @@ export const StrategiesByTokenByChain: StrategiesByTokenByChainType = {
 // (255) - 0
 // 0x0201000000000000000000000000000000000000000000640000000000000000
 // 906392544231311161076231617881117198619499239097192527361058388634069106688
-const vaultConfig = ethers.BigNumber.from(
+const vaultConfigRP1 = ethers.BigNumber.from(
   "906392544231311161076231617881117198619499239097192527361058388634069106688",
+);
+
+// (0-15) Deposit fee UT = 0 UT = 0000
+// (16-31) Deposit fee % = 0% = 0000
+// (32-47) Withdrawal fee UT = 0 UT = 0000
+// (48-63) Withdrawal fee % = 0% = 0000
+// (64-79) Max vault value jump % = 1% = 0064
+// (80-239) vault fee address = 0000000000000000000000000000000000000000
+// (240-247) risk profile code = 2 = 02
+// (248) emergency shutdown = false = 0
+// (249) unpause = true = 1
+// (250) allow whitelisted state = false = 0
+// (251) - 0
+// (252) - 0
+// (253) - 0
+// (254) - 0
+// (255) - 0
+// 0x0202000000000000000000000000000000000000000000640000000000000000
+// 908159391296089545405814915381860117135326722994068146319179994835361726464
+const vaultConfigRP2 = ethers.BigNumber.from(
+  "908159391296089545405814915381860117135326722994068146319179994835361726464",
 );
 
 const mainnetVaults: VaultType = {
   // USDC: [
   //   {
   //     name: "opUSDCgrow",
-  //     vaultConfig,
+  //     vaultConfig:vaultConfigRP1,
   //     userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
   //     minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
   //     totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
@@ -848,7 +869,7 @@ const mainnetVaults: VaultType = {
   // WETH: [
   //   {
   //     name: "opWETHgrow",
-  //     vaultConfig,
+  //     vaultConfig:vaultConfigRP1,
   //     userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WETH user deposit cap
   //     minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WETH minimum deposit
   //     totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
@@ -857,7 +878,7 @@ const mainnetVaults: VaultType = {
   // NEWO: [
   //   {
   //     name: "opNEWOaggr",
-  //     vaultConfig,
+  //     vaultConfig:vaultConfigRP2,
   //     userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 NEWO wei user deposit cap
   //     minimumDepositValueUT: BigNumber.from("10000000000000000000000"), // 10,000 NEWO minimum deposit
   //     totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
@@ -866,7 +887,7 @@ const mainnetVaults: VaultType = {
   AAVE: [
     {
       name: "opAAVEaggr",
-      vaultConfig,
+      vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
@@ -878,7 +899,7 @@ const kovanVaults: VaultType = {
   USDC: [
     {
       name: "opAVUSDCint",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
       minimumDepositValueUT: BigNumber.from("0"),
       totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
@@ -890,7 +911,7 @@ const polygonVaults: VaultType = {
   USDC: [
     {
       name: "opUSDCgrow",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
@@ -899,7 +920,7 @@ const polygonVaults: VaultType = {
   WMATIC: [
     {
       name: "opWMATICgrow",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WMATIC user deposit cap
       minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WMATIC minimum deposit
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WMATIC TVL limit
@@ -911,7 +932,7 @@ const mumbaiVaults: VaultType = {
   USDC: [
     {
       name: "opUSDCgrow",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
       minimumDepositValueUT: BigNumber.from("0"),
       totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
@@ -923,7 +944,7 @@ const avalancheVaults: VaultType = {
   USDC: [
     {
       name: "opUSDCgrow",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
@@ -932,7 +953,7 @@ const avalancheVaults: VaultType = {
   USDCe: [
     {
       name: "opUSDCegrow",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDCe TVL limit
@@ -941,7 +962,7 @@ const avalancheVaults: VaultType = {
   WAVAX: [
     {
       name: "opWAVAXgrow",
-      vaultConfig,
+      vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WAVAX user deposit cap
       minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WAVAX minimum deposit
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WAVAX TVL limit

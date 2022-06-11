@@ -6,11 +6,24 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { Registry, RiskManager, StrategyProvider, Vault, ERC20, IAdapterFull } from "../../typechain";
+import {
+  Registry,
+  RiskManager,
+  StrategyProvider,
+  Vault,
+  ERC20,
+  IAdapterFull,
+  RiskManager__factory,
+  Registry__factory,
+  StrategyProvider__factory,
+  Vault__factory,
+  IAdapterFull__factory,
+  ERC20__factory,
+} from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
+import { TypedTokens } from "../../helpers/data";
 
 chai.use(solidity);
 
@@ -29,28 +42,26 @@ describe("VaultV2", () => {
     this.signers.eve = signers[10];
     this.signers.operator = signers[8];
     this.signers.financeOperator = signers[5];
-    this.signers.governance = signers[9];
     this.signers.strategyOperator = signers[7];
-    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+    this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
     const registryProxy = await deployments.get("RegistryProxy");
     const riskManagerProxy = await deployments.get("RiskManagerProxy");
     const strategyProvider = await deployments.get("StrategyProvider");
-    this.registry = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxy.address);
-    this.riskManager = <RiskManager>(
-      await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerProxy.address)
-    );
+    this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxy.address);
+    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, riskManagerProxy.address);
     this.strategyProvider = <StrategyProvider>(
-      await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyProvider.address)
+      await ethers.getContractAt(StrategyProvider__factory.abi, strategyProvider.address)
     );
     this.vaults = {};
     const governanceAddress = await this.registry.getGovernance();
+    this.signers.governance = await ethers.getSigner(governanceAddress);
     const governance = await ethers.getSigner(governanceAddress);
     const financeOperatorAddress = await this.registry.getFinanceOperator();
     const financeOperator = await ethers.getSigner(financeOperatorAddress);
     for (const token of Object.keys(MultiChainVaults[fork])) {
       this.vaults[token] = <Vault>(
         await ethers.getContractAt(
-          ESSENTIAL_CONTRACTS.VAULT,
+          Vault__factory.abi,
           await (
             await deployments.get(MultiChainVaults[fork][token][0].name)
           ).address,
@@ -68,6 +79,14 @@ describe("VaultV2", () => {
           MultiChainVaults[fork][token][0].totalValueLockedLimitUT,
         );
       await tx.wait(1);
+      this.token = <ERC20>await ethers.getContractAt(ERC20__factory.abi, TypedTokens[token]);
+      await setTokenBalanceInStorage(this.token, this.vaults[token].address, "10");
+      const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
+      const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
+        new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()),
+      );
+      await setTokenBalanceInStorage(this.token, this.signers.alice.address, _userDeposit.multipliedBy("3").toString());
+      await setTokenBalanceInStorage(this.token, this.signers.bob.address, _userDeposit.multipliedBy("3").toString());
     }
   });
   describe("VaultV2 strategies", () => {
@@ -87,21 +106,17 @@ describe("VaultV2", () => {
           before(async function () {
             const strategyOperatorAddress = await this.registry.getStrategyOperator();
             const strategyOperator = await ethers.getSigner(strategyOperatorAddress);
-            await this.strategyProvider.connect(strategyOperator).setBestStrategy(1, tokenHash, steps);
-            this.token = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, strategyDetail.token);
+            await this.strategyProvider
+              .connect(strategyOperator)
+              .setBestStrategy(strategyDetail.riskProfileCode, tokenHash, steps);
             this.adapter = <IAdapterFull>(
               await ethers.getContractAt(
-                ESSENTIAL_CONTRACTS.ADAPTER,
+                IAdapterFull__factory.abi,
                 await this.registry.getLiquidityPoolToAdapter(lastPool),
               )
             );
           });
           it("should receive new strategy after rebalancing", async function () {
-            await setTokenBalanceInStorage(this.token, this.vaults[token].address, "10");
-            const LPinstance = await ethers.getContractAt(
-              ESSENTIAL_CONTRACTS.ERC20,
-              strategyDetail.strategy[0].outputToken,
-            );
             await this.vaults[token].rebalance();
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),
@@ -110,12 +125,6 @@ describe("VaultV2", () => {
           });
           it(`alice and bob should deposit into Vault successfully`, async function () {
             const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
-            const _userDeposit = new BN(_userDepositInDecimals.toString())
-              .div(new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()))
-              .toString();
-            await setTokenBalanceInStorage(this.token, this.signers.alice.address, _userDeposit);
-            await setTokenBalanceInStorage(this.token, this.signers.bob.address, _userDeposit);
-
             await this.token.connect(this.signers.alice).approve(this.vaults[token].address, _userDepositInDecimals);
             await this.token.connect(this.signers.bob).approve(this.vaults[token].address, _userDepositInDecimals);
 
@@ -161,7 +170,7 @@ describe("VaultV2", () => {
                 this.vaults[token],
                 this.token,
               );
-              await this.vaults[token].connect(signers[i]).userWithdrawVault(userWithdrawBalance, [], []);
+              await this.vaults[token].connect(signers[i]).userWithdrawVault(userWithdrawBalance.mul(3).div(3), [], []);
               const userBalanceAfter = await this.token.balanceOf(signers[i].address);
               const poolBalanceAfter = await getLastStrategyStepBalanceLP(
                 steps as StrategyStepType[],
