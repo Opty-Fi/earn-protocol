@@ -96,6 +96,7 @@ declare module "mocha" {
     usdc: ERC20;
     weth: ERC20;
     vaults: { [key: string]: Vault };
+    tokens: { [key: string]: ERC20 };
   }
 }
 

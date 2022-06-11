@@ -26,8 +26,6 @@ import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
  * @author opty.fi
@@ -557,7 +555,6 @@ contract Vault is
     {
         uint256 _internalTransactionCount =
             _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
-        console.log("_investStrategySteps.pool ", _investStrategySteps[_investStrategySteps.length - 1].pool);
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
