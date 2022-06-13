@@ -114,4 +114,4 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["opAAVEaggr"];
-func.dependencies = ["RegistryProxy"];
+func.dependencies = ["Registry"];

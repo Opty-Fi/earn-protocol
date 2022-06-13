@@ -169,7 +169,7 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 1_00_000_000,
       gasPrice: "auto",
       forking: buildForkConfig(FORK as eEVMNetwork, FORK_BLOCK_NUMBER),
-      allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: false,
       chainId: NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
       accounts: {
         mnemonic,
