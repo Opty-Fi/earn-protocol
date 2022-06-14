@@ -1,4 +1,3 @@
-import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -34,14 +33,7 @@ const func: DeployFunction = async ({
   });
 
   const sushiswapFarmAdapterEthereum = await deployments.get("SushiswapMasterChefV1Adapter");
-  const sushiswapFarmAdapterEthereumInstance = await ethers.getContractAt(
-    artifact.abi,
-    sushiswapFarmAdapterEthereum.address,
-  );
-  await sushiswapFarmAdapterEthereumInstance.setUnderlyingTokenToPid(
-    "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
-    "37",
-  );
+
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
