@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { BigNumber } from "ethers";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -14,6 +15,7 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
@@ -48,23 +50,33 @@ const func: DeployFunction = async ({
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
+    const feeData = await ethers.provider.getFeeData();
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
     await onlyMapToTokensHashTx.wait(1);
   }
 
   const networkName = network.name;
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("opAAVEaggr", {
     from: deployer,
     contract: {
@@ -90,6 +102,8 @@ const func: DeployFunction = async ({
         },
       },
     },
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
