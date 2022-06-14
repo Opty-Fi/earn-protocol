@@ -219,7 +219,11 @@ const func: DeployFunction = async ({
     console.log("\n");
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggresive", "aggr", false, [50, 100]); // code,name,symbol,canBorrow,pool rating range
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggresive", "aggr", false, [50, 100], {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      }); // code,name,symbol,canBorrow,pool rating range
     await addRiskProfileTx.wait(1);
   } else {
     console.log("Already configured risk profile");
