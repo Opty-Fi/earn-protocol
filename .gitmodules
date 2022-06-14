@@ -4,7 +4,6 @@
 [submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
 	path = contracts/protocol/adapters/ethereum/team-defi-adapters
 	url = git@github.com:Opty-Fi/team-defi-adapters.git
-	branch = sushiswap-farm-update
 [submodule "contracts/protocol/adapters/defi-adapters"]
 	path = contracts/protocol/adapters/defi-adapters
 	url = git@github.com:Opty-Fi/defi-adapters.git
