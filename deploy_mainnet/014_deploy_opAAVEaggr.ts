@@ -21,7 +21,6 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
@@ -90,11 +89,7 @@ const func: DeployFunction = async ({
     proxy: {
       owner: admin,
       upgradeIndex: 0,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      proxyContract: "AdminUpgradeabilityProxy",
       execute: {
         init: {
           methodName: "initialize",
