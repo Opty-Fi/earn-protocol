@@ -1,10 +1,10 @@
-import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { BigNumber } from "ethers";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -78,9 +78,7 @@ const func: DeployFunction = async ({
   }
 
   const networkName = network.name;
-
-  const feeData = await hre.ethers.provider.getFeeData();
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("opNEWOaggr", {
     from: deployer,
     contract: {

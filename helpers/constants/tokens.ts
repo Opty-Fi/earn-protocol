@@ -30,7 +30,7 @@ export const REWARD_TOKENS: REWARD_TOKEN_DATA_OBJECT = {
     tokenAddress: TypedTokens["CREAM"],
     distributionActive: false,
   },
-  SushiswapAdapter: {
+  SushiswapMasterChefV1Adapter: {
     tokenName: "SUSHI",
     tokenAddress: TypedTokens["SUSHI"],
     distributionActive: true,

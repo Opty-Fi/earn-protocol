@@ -366,9 +366,9 @@ Options:
 Usage: unpause the vault
 
 Options:
---registry required <address> the address of registry
---vault    required <address> the address of vault
---network  optional <string>  name of the network provider (default: hardhat)
+--vault-symbol  required <address> the vault symbol
+--state         required <address> the vault unpause state
+--network       optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -376,8 +376,8 @@ Options:
 ```
   yarn hardhat unpause-vault \
   --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --vault 0x0000000000000000000000000000000000000000
+  --vault-symbol opUSDCgrow
+  --state true
 ```
 
 ### vault-actions
@@ -386,7 +386,7 @@ Options:
 Usage: perform actions in the vault contract
 
 Options:
---vault         required <address> the address of vault
+--vault-symbol  required <address> the vault symbol
 --user          required <address> account address of the user
 --action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE" || "VAULT-DEPOSIT-ALL-TO-STRATEGY"
 --merkle-proof  required <string>  merkle proofs in stringified form
@@ -400,7 +400,7 @@ Options:
 ```
   yarn hardhat vault-actions \
   --network localhost \
-  --vault 0x0000000000000000000000000000000000000000 \
+  --vault-symbol opUSDCgrow \
   --user 0x0000000000000000000000000000000000000000 \
   --action deposit \
   --useall false \
@@ -784,4 +784,23 @@ Options:
 yarn hardhat approve-token-and-map-to-tokenshash \
   --network localhost \
   --token 0x0000000000000000000000000000000000000000 \
+```
+
+### set-vault-configuration
+
+```
+Usage: set vault configuration
+
+Options:
+--vault-symbol        required <string> the vault symbol
+--vault-configuration required <string> the vault symbol
+```
+
+- Example:
+
+```
+yarn hardhat set-vault-configuration \
+  --network localhost \
+  --vault-symbol opUSDCgrow \
+  --vault-configuration 2718155043500073612906634403139041842518004532954031278126931986324444413952
 ```

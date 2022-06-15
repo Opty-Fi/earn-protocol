@@ -92,8 +92,11 @@ declare module "mocha" {
     testVaultArtifact: Artifact;
     testVault: TestVault;
     erc20: ERC20;
+    token: ERC20;
     usdc: ERC20;
     weth: ERC20;
+    vaults: { [key: string]: Vault };
+    tokens: { [key: string]: ERC20 };
   }
 }
 

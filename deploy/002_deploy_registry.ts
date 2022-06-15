@@ -213,6 +213,22 @@ const func: DeployFunction = async ({
     console.log("Already configured risk profile");
     console.log("\n");
   }
+  const aggrRiskProfilExists = (await registryV2Instance.getRiskProfile("2")).exists;
+  if (!aggrRiskProfilExists) {
+    console.log("risk operator adding aggresive risk profile...");
+    console.log("\n");
+    const addRiskProfileTx = await registryV2Instance
+      .connect(riskOperatorSigner)
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggresive", "aggr", false, [50, 100], {
+        type: 2,
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      }); // code,name,symbol,canBorrow,pool rating range
+    await addRiskProfileTx.wait(1);
+  } else {
+    console.log("Already configured risk profile");
+    console.log("\n");
+  }
 
   if (CONTRACTS_VERIFY === "true") {
     if (result.newlyDeployed) {

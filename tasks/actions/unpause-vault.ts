@@ -1,34 +1,21 @@
 import { task, types } from "hardhat/config";
-import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { unpauseVault } from "../../helpers/contracts-actions";
+import { Registry, Registry__factory, Vault, Vault__factory } from "../../typechain";
 import TASKS from "../task-names";
 
 task(TASKS.ACTION_TASKS.UNPAUSE_VAULT.NAME, TASKS.ACTION_TASKS.UNPAUSE_VAULT.DESCRIPTION)
-  .addParam("registry", "the address of registry", "", types.string)
-  .addParam("vault", "the address of vault", "", types.string)
-  .setAction(async ({ registry, vault }, hre) => {
-    const [owner] = await hre.ethers.getSigners();
-
-    if (registry === "") {
-      throw new Error("registry cannot be empty");
-    }
-
-    if (!isAddress(registry)) {
-      throw new Error("registry address is invalid");
-    }
-
-    if (vault === "") {
-      throw new Error("registry cannot be empty");
-    }
-
-    if (!isAddress(vault)) {
-      throw new Error("registry address is invalid");
-    }
-
+  .addParam("vaultSymbol", "the vault symbol", "", types.string)
+  .addParam("state", "true or false", "", types.boolean)
+  .setAction(async ({ vaultSymbol, state }, { deployments, ethers }) => {
     try {
-      const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
-      await unpauseVault(owner, registryContract, vault, true);
+      const vaultAddress = await (await deployments.get(vaultSymbol)).address;
+      const vaultInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, vaultAddress);
+      const registryContract = <Registry>(
+        await ethers.getContractAt(Registry__factory.abi, await vaultInstance.registryContract())
+      );
+      const governanceSigner = await ethers.getSigner(await registryContract.getGovernance());
+      const tx = await vaultInstance.connect(governanceSigner).setUnpaused(state);
+      await tx.wait(1);
       console.log("Finished unpausing Vault");
     } catch (error) {
       console.error(`${TASKS.ACTION_TASKS.UNPAUSE_VAULT.NAME}: `, error);
