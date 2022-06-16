@@ -36,6 +36,7 @@ export default {
     },
     SET_BEST_STRATEGY: { NAME: "set-best-strategy", DESCRIPTION: "Set the best strategy for a specific token" },
     PRINT_STRATEGY_HASH: { NAME: "print-strategy-hash", DESCRIPTION: "Print the strategy" },
+    PRINT_TOKENS_HASH: { NAME: "print-tokens-hash", DESCRIPTION: "Print tokens hash" },
     UNPAUSE_VAULT: { NAME: "unpause-vault", DESCRIPTION: "Set pause state for a specific vault" },
     VAULT_ACTIONS: {
       NAME: "vault-actions",
