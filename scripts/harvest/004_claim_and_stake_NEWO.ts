@@ -10,9 +10,7 @@ async function main() {
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const governanceSigner = await ethers.getSigner(await registryInstance.governance());
-  const vaultInstance = <Vault>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOaggrProxyAddress, governanceSigner)
-  );
+  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOaggrProxyAddress);
   const newoLPStakingInstance = <INewoStaking>await ethers.getContractAt("INewoStaking", newoLPStaking);
   const newoInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, NEWO);
 
@@ -40,16 +38,17 @@ async function main() {
     ),
   );
   const NEWOBalanceBefore = await newoInstance.balanceOf(vaultInstance.address);
-  const ppsBefore = await vaultInstance.getPricePerFullShare({ blockTag: 14882825 });
+  // const ppsBefore = await vaultInstance.getPricePerFullShare({ blockTag: 14882825 });
   console.log("NEWO balance before ", NEWOBalanceBefore.toString());
-  console.log("PPS @14882825 ", formatUnits(ppsBefore));
-  await network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [governanceSigner.address],
-  });
-  const tx = await vaultInstance.adminCall(codes, {
-    from: governanceSigner.address,
-  });
+  // console.log("PPS @14882825 ", formatUnits(ppsBefore));
+  // await network.provider.request({
+  //   method: "hardhat_impersonateAccount",
+  //   params: [governanceSigner.address],
+  // });
+  const tx = await vaultInstance.connect(governanceSigner).adminCall(codes);
+  //, {
+  //  from: governanceSigner.address,
+  // });
   const r = await tx.wait(1);
   console.log(r);
   const NEWOBalanceAfter = await newoInstance.balanceOf(vaultInstance.address);
