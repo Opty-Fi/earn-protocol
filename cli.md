@@ -843,3 +843,25 @@ yarn hardhat change-vault--proxy-v2-admin
   --vault-symbol opAAVEaggr \
   --new-admin 0x0000000000000000000000000000000000000000
 ```
+
+### set-best-strategy-rebalance-multisig
+
+```
+Usage: set best strategy and rebalance using multisig
+
+Options:
+--token-symbol  required <string> symbol of the vault
+--strategy-name required <string> name of strategy
+--vault-symbol  required <string> symbol of vault
+--network       optional <string> name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat set-best-strategy-rebalance-multisig
+  --network localhost \
+  --vault-symbol opAAVEaggr \
+  --token-symbol AAVE
+  --strategy-name aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP
+```
