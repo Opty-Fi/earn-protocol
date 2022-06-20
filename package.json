@@ -1,10 +1,10 @@
 {
-  "name": "TODO",
+  "name": "Stop-Loss",
   "version": "0.0.0",
   "private": true,
-  "author": "TODO",
-  "license": "TODO",
-  "description": "TODO",
+  "author": "OptyFi",
+  "license": "MIT",
+  "description": "Limit order functionality contract suite",
   "keywords": [
     "hardhat",
     "waffle",
