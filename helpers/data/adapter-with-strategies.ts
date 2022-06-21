@@ -449,6 +449,46 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
+  MANA: {
+    "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP": {
+      strategyName: "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP",
+      token: "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942",
+      strategy: [
+        {
+          contract: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
+          outputToken: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
+          isBorrow: false,
+          outputTokenSymbol: "MANA-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
+      strategyName: "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef",
+      token: "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942",
+      strategy: [
+        {
+          contract: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
+          outputToken: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
+          isBorrow: false,
+          outputTokenSymbol: "MANA-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+          outputToken: "0x0000000000000000000000000000000000000000",
+          isBorrow: false,
+          outputTokenSymbol: "",
+          adapterName: "SushiswapMasterChefV1Adapter",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -891,6 +931,15 @@ const mainnetVaults: VaultType = {
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
+    },
+  ],
+  MANA: [
+    {
+      name: "opMANAaggr",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 MANA wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 MANA minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 MANA TVL limit
     },
   ],
 };
