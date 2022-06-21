@@ -449,6 +449,46 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
+  SUSHI: {
+    "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP": {
+      strategyName: "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP",
+      token: "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
+      strategy: [
+        {
+          contract: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
+          outputToken: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
+          isBorrow: false,
+          outputTokenSymbol: "SUSHI-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
+      strategyName: "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP-DEPOSIT-SushiswapMasterChef",
+      token: "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
+      strategy: [
+        {
+          contract: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
+          outputToken: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
+          isBorrow: false,
+          outputTokenSymbol: "SUSHI-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+          outputToken: "0x0000000000000000000000000000000000000000",
+          isBorrow: false,
+          outputTokenSymbol: "",
+          adapterName: "SushiswapMasterChefV1Adapter",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -891,6 +931,15 @@ const mainnetVaults: VaultType = {
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
+    },
+  ],
+  SUSHI: [
+    {
+      name: "opSUSHIaggr",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 SUSHI wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 SUSHI minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 SUSHI TVL limit
     },
   ],
 };
