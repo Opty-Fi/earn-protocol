@@ -44,19 +44,18 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _l.userVaultOrderActive[_user][_vault] = false;
     }
 
-    function _spotPriceMet(uint256 _spotPrice, DataTypes.Order memory _order)
-        internal
-        pure
-        returns (bool)
-    {
+    function _spotPriceMet(
+        uint256 _currentSpotPrice,
+        DataTypes.Order memory _order
+    ) internal pure returns (bool) {
         if (_order.side == DataTypes.Side.LOSS) {
-            if (_spotPrice <= _order.priceTarget) {
+            if (_currentSpotPrice <= _order.priceTarget) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            if (_spotPrice >= _order.priceTarget) {
+            if (_currentSpotPrice >= _order.priceTarget) {
                 return true;
             } else {
                 return false;
@@ -126,17 +125,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         view
         returns (uint256 spotPrice)
     {
-        (
-            ,
-            /*uint80 roundID*/
-            int256 price,
-            ,
-            ,
-
-        ) = /*uint startedAt*/
-            /*uint timeStamp*/
-            /*uint80 answeredInRound*/
-            _order.priceFeed.latestRoundData();
+        (, int256 price, , , ) = _order.priceFeed.latestRoundData();
         spotPrice = uint256(price);
     }
 }
