@@ -449,6 +449,46 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
+  APE: {
+    "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP": {
+      strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP",
+      token: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
+      strategy: [
+        {
+          contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          isBorrow: false,
+          outputTokenSymbol: "APE-USDT-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChefV2": {
+      strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChefV2",
+      token: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
+      strategy: [
+        {
+          contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          isBorrow: false,
+          outputTokenSymbol: "APE-USDT-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
+          outputToken: "0x0000000000000000000000000000000000000000",
+          isBorrow: false,
+          outputTokenSymbol: "",
+          adapterName: "SushiswapMasterChefV2AdapterEthereum",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -891,6 +931,15 @@ const mainnetVaults: VaultType = {
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
+    },
+  ],
+  APE: [
+    {
+      name: "opAPEaggr",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 APE wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 APE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 APE TVL limit
     },
   ],
 };

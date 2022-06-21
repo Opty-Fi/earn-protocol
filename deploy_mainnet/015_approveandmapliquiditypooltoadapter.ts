@@ -17,6 +17,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const compoundAdapter = await deployments.get("CompoundAdapter");
   const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
   const sushiswapMasterChefV1Adapter = await deployments.get("SushiswapMasterChefV1Adapter");
+  const sushiswapMasterChefV2AdapterEthereum = await deployments.get("SushiswapMasterChefV2AdapterEthereum");
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();
@@ -53,7 +54,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a": { rate: 50, adapter: newoStakingAdapter.address }, // newoSushiNEWO-USDC
     "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-NEWO-USDC
     "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
-    "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd": { rate: 50, adapter: sushiswapMasterChefV1Adapter.address }, // Sushiswap's MasterChef
+    "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd": { rate: 50, adapter: sushiswapMasterChefV1Adapter.address }, // Sushiswap's MasterChef V1
+    "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-APE-USDT
+    "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d": { rate: 50, adapter: sushiswapMasterChefV2AdapterEthereum.address }, // Sushiswap's MasterChef V2
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -136,6 +139,7 @@ func.dependencies = [
   "LidoAdapter",
   "CurveMetapoolSwapAdapter",
   "SushiswapMasterChefV1Adapter",
+  "SushiswapMasterChefV2AdapterEthereum",
   "SushiswapPoolAdapterEthereum",
   "NewoStakingAdapter",
   "AaveV1Adapter",

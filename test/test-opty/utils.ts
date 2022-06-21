@@ -72,11 +72,15 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
             .padStart(64, "0"),
       );
     } else {
+      let slot = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
+      );
+      if (slot.startsWith("0x0")) {
+        slot = slot.replace("0x0", "0x");
+      }
       return setStorageAt(
         token.address,
-        ethers.utils
-          .keccak256(ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]))
-          .replace("0x0", "0x"),
+        slot.replace("0x0", "0x"),
         "0x" +
           ethers.utils
             .parseUnits(amount, await token.decimals())
