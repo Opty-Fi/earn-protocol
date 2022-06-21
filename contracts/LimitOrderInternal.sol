@@ -48,18 +48,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _l.userVaultOrderActive[_user][_vault] = false;
     }
 
-    function _spotPriceMet(
-        uint256 _currentSpotPrice,
-        DataTypes.Order memory _order
-    ) internal pure returns (bool) {
+    function _spotPriceMet(uint256 _spotPrice, DataTypes.Order memory _order)
+        internal
+        pure
+        returns (bool)
+    {
         if (_order.side == DataTypes.Side.LOSS) {
-            if (_currentSpotPrice <= _order.priceTarget) {
+            if (_spotPrice <= _order.priceTarget) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            if (_currentSpotPrice >= _order.priceTarget) {
+            if (_spotPrice >= _order.priceTarget) {
                 return true;
             } else {
                 return false;
@@ -104,7 +105,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             'user does not have an active order'
         );
         require(_order.endTime > block.timestamp, 'order expired');
-        _spotPriceMet(_spotPrice(_order), _order);
+        _spotPriceMet(_fetchSpotPrice(_order), _order);
     }
 
     /**
@@ -124,7 +125,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
   * 
   */
 
-    function _spotPrice(DataTypes.Order memory _order)
+    function _fetchSpotPrice(DataTypes.Order memory _order)
         internal
         view
         returns (uint256 spotPrice)
