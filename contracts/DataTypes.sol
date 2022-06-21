@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+
 /**
  * @title DataTypes for Limit Orders
  * @author OptyFi
@@ -23,6 +25,7 @@ library DataTypes {
         uint256 endTime;
         address maker;
         address vault;
+        AggregatorV3Interface priceFeed;
         Side side;
     }
 
