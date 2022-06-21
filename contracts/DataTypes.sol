@@ -14,6 +14,8 @@ library DataTypes {
      * @param liquidationShare the proportion of the investment to be liquidated
      * @param startTime the starting timestamp of the order
      * @param endTime the ending timestamp of the order
+     * @param lowerBound the lower bound in basis points of the limit order's targetPrice
+     * @param upperBound the upper bound in basis points of the limit order's targetPrice
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param side the side of the limit order
@@ -23,6 +25,8 @@ library DataTypes {
         uint256 liquidationShare;
         uint256 startTime;
         uint256 endTime;
+        uint256 lowerBound;
+        uint256 upperBound;
         address maker;
         address vault;
         AggregatorV3Interface priceFeed;

@@ -17,7 +17,7 @@ import { TokenTransferProxy } from './TokenTransferProxy.sol';
 contract LimitOrderInternal is ILimitOrderInternal {
     using LimitOrderStorage for LimitOrderStorage.Layout;
 
-    uint256 public constant FEE_BASIS = 1 ether;
+    uint256 public constant BASIS = 1 ether;
     uint256 public immutable LIMIT_ORDER_FEE;
     TokenTransferProxy public immutable TRANSFER_PROXY;
 
@@ -35,7 +35,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     ) internal view {
         require(
             _l.userVaultOrderActive[_user][_vault] == false,
-            'user already has active limit order'
+            'user already has an active limit order'
         );
         require(_startTime < _endTime, 'end time < start time');
     }
@@ -48,24 +48,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _l.userVaultOrderActive[_user][_vault] = false;
     }
 
-    function _spotPriceMet(uint256 _spotPrice, DataTypes.Order memory _order)
-        internal
-        pure
-        returns (bool)
-    {
-        if (_order.side == DataTypes.Side.LOSS) {
-            if (_spotPrice <= _order.priceTarget) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            if (_spotPrice >= _order.priceTarget) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+    function _isSpotPriceBound(
+        uint256 _spotPrice,
+        DataTypes.Order memory _order
+    ) internal pure {
+        uint256 target = _order.priceTarget;
+        uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
+        uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
+        require(
+            lowerBound <= _spotPrice && _spotPrice <= upperBound,
+            'spotPrice not bound'
+        );
     }
 
     function _createOrder(
@@ -75,6 +68,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _priceTarget,
         uint256 _liquidationShare,
         uint256 _endTime,
+        uint256 _lowerBound,
+        uint256 _upperBound,
         DataTypes.Side _side
     ) internal returns (DataTypes.Order memory order) {
         uint256 startTime = block.timestamp;
@@ -85,6 +80,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.liquidationShare = _liquidationShare;
         order.startTime = startTime;
         order.endTime = _endTime;
+        order.lowerBound = _lowerBound;
+        order.upperBound = _upperBound;
         order.vault = _vault;
         order.maker = msg.sender;
         order.priceFeed = _priceFeed;
@@ -105,7 +102,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             'user does not have an active order'
         );
         require(_order.endTime > block.timestamp, 'order expired');
-        _spotPriceMet(_fetchSpotPrice(_order), _order);
+        _isSpotPriceBound(_fetchSpotPrice(_order), _order);
     }
 
     /**
