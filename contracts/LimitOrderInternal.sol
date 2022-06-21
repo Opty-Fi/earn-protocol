@@ -6,6 +6,8 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
 
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -65,6 +67,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _createOrder(
         LimitOrderStorage.Layout storage _l,
         address _vault,
+        AggregatorV3Interface _priceFeed,
         uint256 _priceTarget,
         uint256 _liquidationShare,
         uint256 _endTime,
@@ -80,6 +83,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.endTime = _endTime;
         order.vault = _vault;
         order.maker = msg.sender;
+        order.priceFeed = _priceFeed;
         order.side = _side;
 
         _l.userVaultOrder[msg.sender][_vault] = order;
@@ -97,7 +101,42 @@ contract LimitOrderInternal is ILimitOrderInternal {
             'user does not have an active order'
         );
         require(_order.endTime > block.timestamp, 'order expired');
-        uint256 spotPrice = IVault(_order.vault).getPricePerFullShare();
-        _spotPriceMet(spotPrice, _order);
+        _spotPriceMet(_spotPrice(_order), _order);
+    }
+
+    /**
+  * TODO: executeOrder
+  * 1. Check that order criteria are fulfilled:
+    - order is active
+    - price target is met
+     - fetch spotPrice ==> getPricePerFullShare() from Vault/Adapter * oracle USD price
+     - check spotPrice vs targetPrice
+  * 2. Liquidate a liquidationShare of user tokens
+     - send tokens to uniswapv2/sushiswap lp to extract usdc => what if tokens do not have usdc or dai or stablecoin pool?
+     - receive returned tokens extract fee
+     - deposit tokens to op-vault
+     - send shares to user
+ * 3. Set all params of the order appropriately
+ * token transfer proxy contract, this will be the one which will handle all token transfers
+  * 
+  */
+
+    function _spotPrice(DataTypes.Order memory _order)
+        internal
+        view
+        returns (uint256 spotPrice)
+    {
+        (
+            ,
+            /*uint80 roundID*/
+            int256 price,
+            ,
+            ,
+
+        ) = /*uint startedAt*/
+            /*uint timeStamp*/
+            /*uint80 answeredInRound*/
+            _order.priceFeed.latestRoundData();
+        spotPrice = uint256(price);
     }
 }
