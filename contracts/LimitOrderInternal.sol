@@ -8,6 +8,8 @@ import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
+import { TokenTransferProxy } from './TokenTransferProxy.sol';
+
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -17,9 +19,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
     uint256 public constant FEE_BASIS = 1 ether;
     uint256 public immutable LIMIT_ORDER_FEE;
+    TokenTransferProxy public immutable TRANSFER_PROXY;
 
     constructor(uint256 _limitOrderFee) {
         LIMIT_ORDER_FEE = _limitOrderFee;
+        TRANSFER_PROXY = new TokenTransferProxy();
     }
 
     function _permitOrderCreation(
