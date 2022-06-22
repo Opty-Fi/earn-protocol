@@ -33,6 +33,10 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
  */
 
 // TODO : To optimal rebalance, construct a soldiity library
+// TODO : During vault deposit to strategy,
+//        deposit the delta of actual allocation and target allocation per strategy
+// TODO : During vault withdraw from strategy,
+//        withdraw from strategy as per threshold.
 
 contract Vault is
     VersionedInitializable,
