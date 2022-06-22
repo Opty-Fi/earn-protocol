@@ -25,7 +25,7 @@ abstract contract MultiCall {
     function _getRevertMsg(bytes memory _returnData, string memory _errorMsg) internal pure returns (string memory) {
         // If the _res length is less than 68, then the transaction failed silently (without a revert message)
         if (_returnData.length < 68) return _errorMsg;
-
+        // https://github.com/Uniswap/v3-periphery/blob/v1.0.0/contracts/base/Multicall.sol
         assembly {
             // Slice the sighash.
             _returnData := add(_returnData, 0x04)
