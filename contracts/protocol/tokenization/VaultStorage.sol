@@ -12,6 +12,14 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  * @dev The storage contract for opty.fi's interest bearing vault token
  */
 
+// TODO : Transfer multistrategy DataType to DataTypes.sol
+struct MultiStrategy {
+    uint256 numOfStrategies;
+    mapping(uint256 => uint256) targetAllocation;
+    mapping(uint256 => DataTypes.StrategyStep[]) investStrategySteps;
+    mapping(uint256 => bytes32) strategyHashes;
+}
+
 contract VaultStorage {
     /**
      * @dev A list to maintain sequence of unprocessed deposits
@@ -98,4 +106,8 @@ contract VaultStorageV2 is VaultStorage {
 
     /**@dev cache strategy metadata*/
     DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
+}
+
+contract VaultStorageV3 is VaultStorageV2 {
+    MultiStrategy public multiStrategy;
 }

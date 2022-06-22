@@ -9,7 +9,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
 import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
-import { VaultStorageV2 } from "./VaultStorage.sol";
+import { VaultStorageV3 } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // libraries
@@ -32,6 +32,8 @@ import { IRiskManager } from "../earn-protocol-configuration/contracts/interface
  * @notice Implementation of the risk specific interest bearing vault
  */
 
+// TODO : To optimal rebalance, construct a soldiity library
+
 contract Vault is
     VersionedInitializable,
     IVault,
@@ -39,7 +41,7 @@ contract Vault is
     MultiCall,
     Modifiers,
     ReentrancyGuard,
-    VaultStorageV2
+    VaultStorageV3
 {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -553,24 +555,31 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount =
-            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
-        for (uint256 _i; _i < _internalTransactionCount; _i++) {
-            executeCodes(
-                (
-                    _investStrategySteps.getPoolDepositCodes(
-                        DataTypes.StrategyConfigurationParams({
-                            registryContract: address(registryContract),
-                            vault: payable(address(this)),
-                            underlyingToken: underlyingToken,
-                            initialStepInputAmount: _depositValueUT,
-                            internalTransactionIndex: _i,
-                            internalTransactionCount: _internalTransactionCount
-                        })
-                    )
-                ),
-                Errors.VAULT_DEPOSIT
+        uint256 _internalTransactionCount;
+        uint256 _count = multiStrategy.numOfStrategies;
+        uint256 _partAmountUT;
+        for (uint256 _j; _j < _count; _j++) {
+            _internalTransactionCount = multiStrategy.investStrategySteps[_j].getDepositInternalTransactionCount(
+                address(registryContract)
             );
+            _partAmountUT = _depositValueUT.mul(multiStrategy.targetAllocation[_j]).div(10000);
+            for (uint256 _i; _i < _internalTransactionCount; _i++) {
+                executeCodes(
+                    (
+                        multiStrategy.investStrategySteps[_j].getPoolDepositCodes(
+                            DataTypes.StrategyConfigurationParams({
+                                registryContract: address(registryContract),
+                                vault: payable(address(this)),
+                                underlyingToken: underlyingToken,
+                                initialStepInputAmount: _partAmountUT,
+                                internalTransactionIndex: _i,
+                                internalTransactionCount: _internalTransactionCount
+                            })
+                        )
+                    ),
+                    Errors.VAULT_DEPOSIT
+                );
+            }
         }
     }
 
@@ -701,10 +710,20 @@ contract Vault is
      */
     function _oraStratValueUT() internal view returns (uint256) {
         // totaldebt
-        return
-            investStrategyHash != Constants.ZERO_BYTES32
-                ? investStrategySteps.getOraValueUT(address(registryContract), payable(address(this)), underlyingToken)
-                : 0;
+        uint256 _count = multiStrategy.numOfStrategies;
+        uint256 _value;
+        for (uint256 _i; _i < _count; _i++) {
+            _value = multiStrategy.strategyHashes[_i] != Constants.ZERO_BYTES32
+                ? _value.add(
+                    multiStrategy.investStrategySteps[_i].getOraValueUT(
+                        address(registryContract),
+                        payable(address(this)),
+                        underlyingToken
+                    )
+                )
+                : _value;
+        }
+        return _value;
     }
 
     /**
