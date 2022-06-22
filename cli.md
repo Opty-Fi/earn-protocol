@@ -794,6 +794,7 @@ Usage: set vault configuration
 Options:
 --vault-symbol        required <string> the vault symbol
 --vault-configuration required <string> the vault symbol
+--network             optional <string> name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -803,4 +804,64 @@ yarn hardhat set-vault-configuration \
   --network localhost \
   --vault-symbol opUSDCgrow \
   --vault-configuration 2718155043500073612906634403139041842518004532954031278126931986324444413952
+```
+
+### change-polygon-opusdcgrow-proxy-v2-admin
+
+```
+Usage: change polygon opUSDCgrow vault proxy v2 admin
+
+Options:
+--new-admin required <string> address of the new admin
+--network       optional  <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat change-polygon-opusdcgrow-proxy-v2-admin
+  --network localhost \
+  --new-admin 0x0000000000000000000000000000000000000000
+```
+
+### change-vault-proxy-v2-admin
+
+```
+Usage: change vault proxy v2 admin
+
+Options:
+--vault-symbol required <string> symbol of the vault
+--new-admin    required <string> new admin address
+--network      optional <string> name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat change-vault--proxy-v2-admin
+  --network localhost \
+  --vault-symbol opAAVEaggr \
+  --new-admin 0x0000000000000000000000000000000000000000
+```
+
+### set-best-strategy-rebalance-multisig
+
+```
+Usage: set best strategy and rebalance using multisig
+
+Options:
+--token-symbol  required <string> symbol of the vault
+--strategy-name required <string> name of strategy
+--vault-symbol  required <string> symbol of vault
+--network       optional <string> name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat set-best-strategy-rebalance-multisig
+  --network localhost \
+  --vault-symbol opAAVEaggr \
+  --token-symbol AAVE
+  --strategy-name aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP
 ```
