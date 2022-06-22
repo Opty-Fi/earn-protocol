@@ -9,7 +9,7 @@ export const DFORCE_ADAPTER_NAME: string = "DForceAdapter";
 export const FULCRUM_ADAPTER_NAME: string = "FulcrumAdapter";
 export const HARVEST_V1_ADAPTER_NAME: string = "HarvestV1Adapter";
 export const YVAULT_ADAPTER_NAME: string = "YVaultAdapter";
-export const SUSHISWAP_ADAPTER_NAME: string = "SushiswapAdapter";
+export const SUSHISWAP_ADAPTER_NAME: string = "SushiswapMasterChefV1Adapter";
 export const CONVEX_ADAPTER_NAME: string = "ConvexFinanceAdapter";
 
 export const ADAPTERS = [

@@ -30,6 +30,9 @@ async function main() {
 
         for (let i = 0; i < networkData.protocols.length; i++) {
           const protocol = networkData.protocols[i];
+          if (protocol == "SushiswapMasterChefV1") {
+            continue;
+          }
           console.log(`Fetching all defi pools for ${bold(protocol)} protocol from Moralis...`);
           const response = await axios(
             getMoralisConfig("get" as Method, "getDefiPools", {

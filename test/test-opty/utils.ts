@@ -61,9 +61,9 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
     if (balancesSlot.isVyper) {
       return setStorageAt(
         token.address,
-        ethers.utils.keccak256(
-          ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]),
-        ),
+        ethers.utils
+          .keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]))
+          .replace("0x0", "0x"),
         "0x" +
           ethers.utils
             .parseUnits(amount, await token.decimals())
@@ -74,9 +74,9 @@ export async function setTokenBalanceInStorage(token: ERC20, account: string, am
     } else {
       return setStorageAt(
         token.address,
-        ethers.utils.keccak256(
-          ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
-        ),
+        ethers.utils
+          .keccak256(ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]))
+          .replace("0x0", "0x"),
         "0x" +
           ethers.utils
             .parseUnits(amount, await token.decimals())
@@ -178,6 +178,13 @@ export async function getLastStrategyStepBalanceLP(
   );
   if (await adapterInstance.canStake(lastStepPool)) {
     return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
+  }
+  if (investStrategySteps.length > 1) {
+    return await adapterInstance.getLiquidityPoolTokenBalance(
+      vault.address,
+      investStrategySteps[investStrategySteps.length - 2].outputToken,
+      lastStepPool,
+    );
   }
   return await adapterInstance.getLiquidityPoolTokenBalance(vault.address, underlyingToken.address, lastStepPool);
 }

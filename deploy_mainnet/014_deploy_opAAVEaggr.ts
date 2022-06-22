@@ -1,10 +1,10 @@
-import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { BigNumber } from "ethers";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const usdcApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address);
+  const aaveApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
-    console.log("only set USDC hash");
+  if (aaveApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash)) {
+    console.log("only set AAVE hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.address],
     ]);
   }
-  if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
-    console.log("approve USDC and set hash");
+  if (!aaveApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash)) {
+    console.log("approve AAVE and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -76,14 +76,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opUSDCgrow", {
+  const result = await deploy("opAAVEaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+    args: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -93,7 +93,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USD Coin", "USDC", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "2"],
         },
       },
     },
@@ -102,25 +102,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSDCgrow");
+      const vault = await deployments.get("opAAVEaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSDCgrow",
+          name: "opAAVEaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSDCgrow",
+          name: "opAAVEaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opUSDCgrow"];
+func.tags = ["opAAVEaggr"];
 func.dependencies = ["Registry"];

@@ -47,6 +47,7 @@ export type STRATEGY = {
   strategyName: string;
   token: string;
   strategy: STRATEGY_DATA[];
+  riskProfileCode: number;
 };
 
 export type STRATEGIES = {

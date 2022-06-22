@@ -92,7 +92,7 @@ const cvxFRAX3CRVStrategyStepsContract = cvxFRAX3CRV.map(strategy => ({
   isBorrow: false,
 }));
 const cvxusdn3Crv =
-  StrategiesByTokenByChain[fork].USDC["USDC-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"]
+  StrategiesByTokenByChain[fork].USDC["usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"]
     .strategy;
 const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
   pool: strategy.contract,
