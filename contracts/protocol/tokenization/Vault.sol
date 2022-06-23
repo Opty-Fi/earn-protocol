@@ -18,6 +18,7 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
+import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 
 // interfaces
@@ -45,6 +46,7 @@ contract Vault is
     using SafeERC20 for IERC20;
     using Address for address;
     using StrategyManager for DataTypes.StrategyStep[];
+    using ClaimAndHarvest for address;
 
     /**
      * @dev The version of the Vault business logic
@@ -360,7 +362,7 @@ contract Vault is
     function claimRewardToken(address _liquidityPool) external override onlyOperator {
         uint256 _rewardTokenAmount = balanceRewardToken(_liquidityPool);
         executeCodes(
-            (investStrategySteps.getClaimRewardTokenCode(address(registryContract), payable(address(this)))),
+            _liquidityPool.getClaimRewardTokenCode(address(registryContract), payable(address(this))),
             Errors.CLAIM_REWARD
         );
 
@@ -374,17 +376,17 @@ contract Vault is
         uint256 _underlyingTokenOldBalance = balanceUT();
         executeCodes(
             (
-                investStrategySteps.getStrategyHarvestAllCodes(
+                _liquidityPool.getStrategyHarvestSomeCodes(
                     address(registryContract),
                     payable(address(this)),
-                    underlyingToken
+                    underlyingToken,
+                    _rewardTokenAmount
                 )
             ),
             Errors.HARVEST_SOME
         );
-        uint256 _underlyingTokenHarvested = balanceUT() - _underlyingTokenOldBalance;
 
-        emit Harvested(_liquidityPool, _rewardTokenAmount, _underlyingTokenHarvested);
+        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     /**
@@ -395,7 +397,7 @@ contract Vault is
         uint256 _underlyingTokenOldBalance = balanceUT();
         executeCodes(
             (
-                investStrategySteps.getStrategyHarvestAllCodes(
+                _liquidityPool.getStrategyHarvestAllCodes(
                     address(registryContract),
                     payable(address(this)),
                     underlyingToken
@@ -403,9 +405,8 @@ contract Vault is
             ),
             Errors.HARVEST_ALL
         );
-        uint256 _underlyingTokenHarvested = balanceUT() - _underlyingTokenOldBalance;
 
-        emit Harvested(_liquidityPool, _rewardTokenAmount, _underlyingTokenHarvested);
+        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     //===Public view functions===//
