@@ -49,6 +49,7 @@ contract Vault is
     using Address for address;
     using ClaimAndHarvest for address;
     using StrategyManager for DataTypes.StrategyStep[];
+    using ClaimAndHarvest for address;
 
     /**
      * @dev The version of the Vault business logic
