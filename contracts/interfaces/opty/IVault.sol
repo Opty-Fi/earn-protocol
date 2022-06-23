@@ -160,10 +160,36 @@ interface IVault {
     function adminCall(bytes[] memory _codes) external;
 
     /**
+     * @notice function to claim the whole balance of reward tokens
+     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     */
+    function claimRewardToken(address _liquidityPool) external;
+
+    /**
+     * @notice function to claim _rewardTokenAmount of reward tokens and swap for the vault's underlying tokens
+     * @param _rewardTokenAmount amount of reward token to claim
+     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     */
+    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external;
+
+    /**
+     * @notice function to claim the whole balance of reward tokens and swap for the vault's underlying tokens
+     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     */
+    function harvestAll(address _liquidityPool) external;
+
+    /**
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
     function balanceUT() external view returns (uint256);
+
+    /**
+     * @notice Retrieve reward token balance for a given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address
+     * @return The balance of reward token for a given liquidity pool
+     */
+    function balanceRewardToken(address _liquidityPool) external view returns (uint256);
 
     /**
      * @dev A helper function to validate the vault value will not surpass max or min vault value
@@ -320,4 +346,19 @@ interface IVault {
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
+
+    /**
+     * @notice Emitted when harvestAll or harvestSome are called
+     * @param liquidityPool Liquidity pool's contract address from where to claim reward tokens
+     * @param rewardTokenAmount Amount of reward token claimed
+     * @param underlyingTokenAmount Amount of vault's underlying token harvested
+     */
+    event Harvested(address liquidityPool, uint256 rewardTokenAmount, uint256 underlyingTokenAmount);
+
+    /**
+     * @notice Emitted when claimRewardToken is called
+     * @param liquidityPool Liquidity pool's contract address from where to claim reward tokens
+     * @param rewardTokenAmount Amount of reward token claimed
+     */
+    event RewardTokenClaimed(address liquidityPool, uint256 rewardTokenAmount);
 }
