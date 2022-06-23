@@ -78,6 +78,15 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
     }
 
+    function _applyLiquidationFee(uint256 _amount)
+        internal
+        view
+        returns (uint256 finalAmount, uint256 fee)
+    {
+        fee = (_amount * LIMIT_ORDER_FEE) / BASIS;
+        finalAmount = (_amount - fee);
+    }
+
     function _createOrder(
         LimitOrderStorage.Layout storage _l,
         address _vault,
@@ -146,5 +155,77 @@ contract LimitOrderInternal is ILimitOrderInternal {
     {
         (, int256 price, , , ) = _order.priceFeed.latestRoundData();
         spotPrice = uint256(price);
+    }
+
+    function _liquidationAmount(uint256 _total, uint256 _liquidationShare)
+        internal
+        pure
+        returns (uint256 liquidationAmount)
+    {
+        liquidationAmount = (_total * _liquidationShare) / BASIS;
+    }
+
+    function _execute(
+        LimitOrderStorage.Layout storage _l,
+        DataTypes.Order memory _order,
+        bytes32[] calldata _accountsProof,
+        uint256 _outputTokenAmountMin,
+        address _target,
+        bytes calldata _data
+    ) internal {
+        //check order execution critera
+        _canExecute(_l, _order);
+        address vault = _order.vault;
+        address underlyingToken = IVault(vault).underlyingToken();
+
+        //calculate liquidation amount
+        uint256 liquidationAmount = _liquidationAmount(
+            IERC20(vault).balanceOf(_order.maker),
+            _order.liquidationShare
+        );
+
+        //transfer vault shares from user
+        TRANSFER_PROXY.transferFrom(
+            vault,
+            _order.maker,
+            address(this),
+            liquidationAmount
+        );
+
+        //withdraw vault shares for underlying
+        IVault(_order.vault).userWithdrawVault(
+            liquidationAmount,
+            _accountsProof,
+            EMPTYPROOF
+        );
+
+        //swap underlying for USDC
+        uint256 swapOutput = SWAPPER.swap(
+            underlyingToken,
+            IERC20(underlyingToken).balanceOf(address(this)),
+            USDC,
+            _outputTokenAmountMin,
+            _target,
+            address(this),
+            _data
+        );
+
+        //calculate fee and transfer to treasury
+        (
+            uint256 finalUSDCAmount,
+            uint256 liquidationFee
+        ) = _applyLiquidationFee(swapOutput);
+        IERC20(USDC).transfer(TREASURY, liquidationFee);
+
+        //deposit remaining tokens to OptyFi USDC vault and send shares to user
+        IVault(OPUSDC_VAULT).userDepositVault(
+            finalUSDCAmount,
+            EMPTYPROOF,
+            PROOF
+        );
+        IERC20(OPUSDC_VAULT).transfer(
+            _order.maker,
+            IERC20(OPUSDC_VAULT).balanceOf(address(this))
+        );
     }
 }
