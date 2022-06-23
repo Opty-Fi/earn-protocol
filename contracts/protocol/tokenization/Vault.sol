@@ -25,6 +25,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
+import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapter.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -353,6 +354,60 @@ contract Vault is
         executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
+    /**
+     * @inheritdoc IVault
+     */
+    function claimRewardToken(address _liquidityPool) external override onlyOperator {
+        uint256 _rewardTokenAmount = balanceRewardToken(_liquidityPool);
+        executeCodes(
+            (investStrategySteps.getClaimRewardTokenCode(address(registryContract), payable(address(this)))),
+            Errors.CLAIM_REWARD
+        );
+
+        emit RewardTokenClaimed(_liquidityPool, _rewardTokenAmount);
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyOperator {
+        uint256 _underlyingTokenOldBalance = balanceUT();
+        executeCodes(
+            (
+                investStrategySteps.getStrategyHarvestAllCodes(
+                    address(registryContract),
+                    payable(address(this)),
+                    underlyingToken
+                )
+            ),
+            Errors.HARVEST_SOME
+        );
+        uint256 _underlyingTokenHarvested = balanceUT() - _underlyingTokenOldBalance;
+
+        emit Harvested(_liquidityPool, _rewardTokenAmount, _underlyingTokenHarvested);
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function harvestAll(address _liquidityPool) external override onlyOperator {
+        uint256 _rewardTokenAmount = balanceRewardToken(_liquidityPool);
+        uint256 _underlyingTokenOldBalance = balanceUT();
+        executeCodes(
+            (
+                investStrategySteps.getStrategyHarvestAllCodes(
+                    address(registryContract),
+                    payable(address(this)),
+                    underlyingToken
+                )
+            ),
+            Errors.HARVEST_ALL
+        );
+        uint256 _underlyingTokenHarvested = balanceUT() - _underlyingTokenOldBalance;
+
+        emit Harvested(_liquidityPool, _rewardTokenAmount, _underlyingTokenHarvested);
+    }
+
     //===Public view functions===//
 
     /**
@@ -360,6 +415,14 @@ contract Vault is
      */
     function balanceUT() public view override returns (uint256) {
         return IERC20(underlyingToken).balanceOf(address(this));
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function balanceRewardToken(address _liquidityPool) public view override returns (uint256) {
+        IAdapter _adapter = IAdapter(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+        return IERC20(_adapter.getRewardToken(_liquidityPool)).balanceOf(address(this));
     }
 
     /**
