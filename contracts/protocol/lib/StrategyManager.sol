@@ -8,7 +8,6 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 
 // interfaces
 import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
-import { IAdapterHarvestReward } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterHarvestReward.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -180,49 +179,5 @@ library StrategyManager {
             _adapter.canStake(_liquidityPool)
                 ? _adapter.getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool)
                 : _adapter.getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
-    }
-
-    function getStrategyHarvestSomeCodes(
-        DataTypes.StrategyStep[] memory _strategySteps,
-        address _registryContract,
-        address payable _vault,
-        address _underlyingToken,
-        uint256 _rewardTokenAmount
-    ) internal view returns (bytes[] memory _codes) {
-        uint256 _strategyStepsLen = _strategySteps.length;
-        address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
-        IAdapterHarvestReward _adapter =
-            IAdapterHarvestReward(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
-        if (_strategyStepsLen > 1) {
-            _underlyingToken = _strategySteps[_strategyStepsLen - 2].outputToken;
-        }
-        _codes = _adapter.getHarvestSomeCodes(_vault, _underlyingToken, _liquidityPool, _rewardTokenAmount);
-    }
-
-    function getStrategyHarvestAllCodes(
-        DataTypes.StrategyStep[] memory _strategySteps,
-        address _registryContract,
-        address payable _vault,
-        address _underlyingToken
-    ) internal view returns (bytes[] memory _codes) {
-        uint256 _strategyStepsLen = _strategySteps.length;
-        address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
-        IAdapterHarvestReward _adapter =
-            IAdapterHarvestReward(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
-        if (_strategyStepsLen > 1) {
-            _underlyingToken = _strategySteps[_strategyStepsLen - 2].outputToken;
-        }
-        _codes = _adapter.getHarvestAllCodes(_vault, _underlyingToken, _liquidityPool);
-    }
-
-    function getClaimRewardTokenCode(
-        DataTypes.StrategyStep[] memory _strategySteps,
-        address _registryContract,
-        address payable _vault
-    ) internal view returns (bytes[] memory _codes) {
-        address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
-        IAdapterHarvestReward _adapter =
-            IAdapterHarvestReward(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
-        _codes = _adapter.getClaimRewardTokenCode(_vault, _liquidityPool);
     }
 }
