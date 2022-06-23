@@ -28,6 +28,7 @@ import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
+import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapter.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
