@@ -5,10 +5,11 @@ import { IVault } from './earn/IVault.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
+import { TokenTransferProxy } from './TokenTransferProxy.sol';
+import { ArbitrarySwapper } from './ArbitrarySwapper.sol';
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
-
-import { TokenTransferProxy } from './TokenTransferProxy.sol';
+import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 
 /**
  * @title Contract for writing limit orders
@@ -19,11 +20,27 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
     uint256 public constant BASIS = 1 ether;
     uint256 public immutable LIMIT_ORDER_FEE;
+    address public immutable USDC;
+    address public immutable OPUSDC_VAULT;
+    address public immutable TREASURY;
+    bytes32[] private PROOF;
+    bytes32[] private EMPTYPROOF = [bytes32('0x')];
     TokenTransferProxy public immutable TRANSFER_PROXY;
+    ArbitrarySwapper public immutable SWAPPER;
 
-    constructor(uint256 _limitOrderFee) {
+    constructor(
+        uint256 _limitOrderFee,
+        address _arbitrarySwapper,
+        address _usdc,
+        address _opUSDCVault,
+        address _treasury
+    ) {
         LIMIT_ORDER_FEE = _limitOrderFee;
         TRANSFER_PROXY = new TokenTransferProxy();
+        SWAPPER = ArbitrarySwapper(_arbitrarySwapper);
+        USDC = _usdc;
+        OPUSDC_VAULT = _opUSDCVault;
+        TREASURY = _treasury;
     }
 
     function _permitOrderCreation(
