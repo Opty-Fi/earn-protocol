@@ -11,7 +11,7 @@ library DataTypes {
     /**
      * @notice encapsulate a limit order
      * @param priceTarget the price target at which the limit order can execute
-     * @param liquidationShare the proportion of the investment to be liquidated
+     * @param liquidationShare the proportion of the investment to be liquidated in basis points
      * @param startTime the starting timestamp of the order
      * @param endTime the ending timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's targetPrice

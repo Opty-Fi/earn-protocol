@@ -52,4 +52,10 @@ interface IVault {
      * @return The underlying token worth a vault share is
      */
     function getPricePerFullShare() external view returns (uint256);
+
+    /**
+     * @notice return the underlying token contract address of the OptyFi Vault (for example DAI)
+     * @return underlying token address
+     */
+    function underlyingToken() external view returns (address);
 }
