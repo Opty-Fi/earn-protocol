@@ -18,7 +18,6 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
-import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 
 // interfaces
@@ -27,6 +26,7 @@ import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapter.sol";
+import { IAdapterHarvestReward } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterHarvestReward.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -46,7 +46,6 @@ contract Vault is
     using SafeERC20 for IERC20;
     using Address for address;
     using StrategyManager for DataTypes.StrategyStep[];
-    using ClaimAndHarvest for address;
 
     /**
      * @dev The version of the Vault business logic
@@ -361,10 +360,9 @@ contract Vault is
      */
     function claimRewardToken(address _liquidityPool) external override onlyOperator {
         uint256 _rewardTokenAmount = balanceRewardToken(_liquidityPool);
-        executeCodes(
-            _liquidityPool.getClaimRewardTokenCode(address(registryContract), payable(address(this))),
-            Errors.CLAIM_REWARD
-        );
+        IAdapterHarvestReward _adapter =
+            IAdapterHarvestReward(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+        executeCodes(_adapter.getClaimRewardTokenCode(payable(address(this)), _liquidityPool), Errors.CLAIM_REWARD);
 
         emit RewardTokenClaimed(_liquidityPool, _rewardTokenAmount);
     }
@@ -374,15 +372,10 @@ contract Vault is
      */
     function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
+        IAdapterHarvestReward _adapter =
+            IAdapterHarvestReward(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
         executeCodes(
-            (
-                _liquidityPool.getStrategyHarvestSomeCodes(
-                    address(registryContract),
-                    payable(address(this)),
-                    underlyingToken,
-                    _rewardTokenAmount
-                )
-            ),
+            _adapter.getHarvestSomeCodes(payable(address(this)), underlyingToken, _liquidityPool, _rewardTokenAmount),
             Errors.HARVEST_SOME
         );
 
@@ -395,14 +388,10 @@ contract Vault is
     function harvestAll(address _liquidityPool) external override onlyOperator {
         uint256 _rewardTokenAmount = balanceRewardToken(_liquidityPool);
         uint256 _underlyingTokenOldBalance = balanceUT();
+        IAdapterHarvestReward _adapter =
+            IAdapterHarvestReward(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
         executeCodes(
-            (
-                _liquidityPool.getStrategyHarvestAllCodes(
-                    address(registryContract),
-                    payable(address(this)),
-                    underlyingToken
-                )
-            ),
+            _adapter.getHarvestAllCodes(payable(address(this)), underlyingToken, _liquidityPool),
             Errors.HARVEST_ALL
         );
 
