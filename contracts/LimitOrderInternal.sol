@@ -56,48 +56,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
         }
     }
 
-    function _permitOrderCreation(
-        LimitOrderStorage.Layout storage _l,
-        address _user,
-        address _vault,
-        uint256 _startTime,
-        uint256 _endTime
-    ) internal view {
-        require(
-            _l.userVaultOrderActive[_user][_vault] == false,
-            'user already has an active limit order'
-        );
-        require(_startTime < _endTime, 'end time < start time');
-    }
-
     function _cancelOrder(
         LimitOrderStorage.Layout storage _l,
         address _user,
         address _vault
     ) internal {
         _l.userVaultOrderActive[_user][_vault] = false;
-    }
-
-    function _isSpotPriceBound(
-        uint256 _spotPrice,
-        DataTypes.Order memory _order
-    ) internal pure {
-        uint256 target = _order.priceTarget;
-        uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
-        uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
-        require(
-            lowerBound <= _spotPrice && _spotPrice <= upperBound,
-            'spotPrice not bound'
-        );
-    }
-
-    function _applyLiquidationFee(uint256 _amount, uint256 _vaultFee)
-        internal
-        pure
-        returns (uint256 finalAmount, uint256 fee)
-    {
-        fee = (_amount * _vaultFee) / BASIS;
-        finalAmount = (_amount - fee);
     }
 
     function _createOrder(
@@ -131,35 +95,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _l.userVaultOrderActive[msg.sender][_vault] = true;
 
         emit LimitOrderCreated(order);
-    }
-
-    function _canExecute(
-        LimitOrderStorage.Layout storage _l,
-        DataTypes.Order memory _order
-    ) internal view {
-        require(
-            _l.userVaultOrderActive[_order.maker][_order.vault] == true,
-            'user does not have an active order'
-        );
-        require(_order.endTime > block.timestamp, 'order expired');
-        _isSpotPriceBound(_fetchSpotPrice(_order), _order);
-    }
-
-    function _fetchSpotPrice(DataTypes.Order memory _order)
-        internal
-        view
-        returns (uint256 spotPrice)
-    {
-        (, int256 price, , , ) = _order.priceFeed.latestRoundData();
-        spotPrice = uint256(price);
-    }
-
-    function _liquidationAmount(uint256 _total, uint256 _liquidationShare)
-        internal
-        pure
-        returns (uint256 liquidationAmount)
-    {
-        liquidationAmount = (_total * _liquidationShare) / BASIS;
     }
 
     function _execute(
@@ -232,5 +167,70 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _vault
     ) internal {
         _l.vaultFee[_vault] = _fee;
+    }
+
+    function _canExecute(
+        LimitOrderStorage.Layout storage _l,
+        DataTypes.Order memory _order
+    ) internal view {
+        require(
+            _l.userVaultOrderActive[_order.maker][_order.vault] == true,
+            'user does not have an active order'
+        );
+        require(_order.endTime > block.timestamp, 'order expired');
+        _isSpotPriceBound(_fetchSpotPrice(_order), _order);
+    }
+
+    function _fetchSpotPrice(DataTypes.Order memory _order)
+        internal
+        view
+        returns (uint256 spotPrice)
+    {
+        (, int256 price, , , ) = _order.priceFeed.latestRoundData();
+        spotPrice = uint256(price);
+    }
+
+    function _permitOrderCreation(
+        LimitOrderStorage.Layout storage _l,
+        address _user,
+        address _vault,
+        uint256 _startTime,
+        uint256 _endTime
+    ) internal view {
+        require(
+            _l.userVaultOrderActive[_user][_vault] == false,
+            'user already has an active limit order'
+        );
+        require(_startTime < _endTime, 'end time < start time');
+    }
+
+    function _isSpotPriceBound(
+        uint256 _spotPrice,
+        DataTypes.Order memory _order
+    ) internal pure {
+        uint256 target = _order.priceTarget;
+        uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
+        uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
+        require(
+            lowerBound <= _spotPrice && _spotPrice <= upperBound,
+            'spotPrice not bound'
+        );
+    }
+
+    function _liquidationAmount(uint256 _total, uint256 _liquidationShare)
+        internal
+        pure
+        returns (uint256 liquidationAmount)
+    {
+        liquidationAmount = (_total * _liquidationShare) / BASIS;
+    }
+
+    function _applyLiquidationFee(uint256 _amount, uint256 _vaultFee)
+        internal
+        pure
+        returns (uint256 finalAmount, uint256 fee)
+    {
+        fee = (_amount * _vaultFee) / BASIS;
+        finalAmount = (_amount - fee);
     }
 }
