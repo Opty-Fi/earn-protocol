@@ -33,14 +33,30 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _arbitrarySwapper,
         address _usdc,
         address _opUSDCVault,
-        address _treasury
+        address _treasury,
+        address[] memory _tokens,
+        address[] memory _priceFeeds
     ) {
+        uint256 priceFeedsLength = _priceFeeds.length;
+
+        require(
+            priceFeedsLength == _tokens.length,
+            'priceFeeds and tokens lengths are different'
+        );
+
         LIMIT_ORDER_FEE = _limitOrderFee;
         TRANSFER_PROXY = new TokenTransferProxy();
         SWAPPER = ArbitrarySwapper(_arbitrarySwapper);
         USDC = _usdc;
         OPUSDC_VAULT = _opUSDCVault;
         TREASURY = _treasury;
+
+        for (uint256 i; i < priceFeedsLength; ) {
+            LimitOrderStorage.layout().tokenToPriceFeed[
+                _tokens[i]
+            ] = _priceFeeds[i];
+            ++i;
+        }
     }
 
     function _permitOrderCreation(
@@ -90,7 +106,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _createOrder(
         LimitOrderStorage.Layout storage _l,
         address _vault,
-        AggregatorV3Interface _priceFeed,
         uint256 _priceTarget,
         uint256 _liquidationShare,
         uint256 _endTime,
@@ -110,7 +125,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.upperBound = _upperBound;
         order.vault = _vault;
         order.maker = msg.sender;
-        order.priceFeed = _priceFeed;
+        order.priceFeed = AggregatorV3Interface(
+            _l.tokenToPriceFeed[IVault(_vault).underlyingToken()]
+        );
         order.side = _side;
 
         _l.userVaultOrder[msg.sender][_vault] = order;
