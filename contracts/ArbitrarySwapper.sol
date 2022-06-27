@@ -38,3 +38,17 @@ contract ArbitrarySwapper is IArbitrarySwapper {
         );
     }
 }
+
+/**
+mapping(address=>bool) private whitelistedExchanges;
+constructor(address[] memory _exchanges) {
+    uint256 exchangesLength = _exchanges.length;
+    for(uint256 i; i < exchangesLength) {
+        whitelistedExchanges[_exchanges[i]] = true;
+        ++i;
+    }
+}
+function _whitelisted(address _target) internal view {
+    require(whitelistedExchanges[_target], "target is not whitelisted);
+}
+ */

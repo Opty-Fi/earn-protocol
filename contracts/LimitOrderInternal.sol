@@ -131,23 +131,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _isSpotPriceBound(_fetchSpotPrice(_order), _order);
     }
 
-    /**
-  * TODO: executeOrder
-  * 1. Check that order criteria are fulfilled:
-    - order is active
-    - price target is met
-     - fetch spotPrice ==> getPricePerFullShare() from Vault/Adapter * oracle USD price
-     - check spotPrice vs targetPrice
-  * 2. Liquidate a liquidationShare of user tokens
-     - send tokens to uniswapv2/sushiswap lp to extract usdc => what if tokens do not have usdc or dai or stablecoin pool?
-     - receive returned tokens extract fee
-     - deposit tokens to op-vault
-     - send shares to user
- * 3. Set all params of the order appropriately
- * token transfer proxy contract, this will be the one which will handle all token transfers
-  * 
-  */
-
     function _fetchSpotPrice(DataTypes.Order memory _order)
         internal
         view
