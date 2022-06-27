@@ -15,12 +15,14 @@ library LimitOrderStorage {
      * @notice information container on user limit orders
      * @param userVaultOrder user => vault => Order
      * @param userVaultOrderActive user => vault => bool
-     * @param tokenToPriceFeed token address => oracle address
+     * @param tokenPriceFeed token address => oracle address
+     * @param vaultFee vault address => fee
      */
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
         mapping(address => mapping(address => bool)) userVaultOrderActive;
-        mapping(address => address) tokenToPriceFeed;
+        mapping(address => address) tokenPriceFeed;
+        mapping(address => uint256) vaultFee;
     }
 
     /**

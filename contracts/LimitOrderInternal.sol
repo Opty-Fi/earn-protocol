@@ -19,7 +19,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     using LimitOrderStorage for LimitOrderStorage.Layout;
 
     uint256 public constant BASIS = 1 ether;
-    uint256 public immutable LIMIT_ORDER_FEE;
     address public immutable USDC;
     address public immutable OPUSDC_VAULT;
     address public immutable TREASURY;
@@ -29,7 +28,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     ArbitrarySwapper public immutable SWAPPER;
 
     constructor(
-        uint256 _limitOrderFee,
         address _arbitrarySwapper,
         address _usdc,
         address _opUSDCVault,
@@ -41,10 +39,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         require(
             priceFeedsLength == _tokens.length,
-            'priceFeeds and tokens lengths are different'
+            'priceFeeds and token lengths mismatch'
         );
 
-        LIMIT_ORDER_FEE = _limitOrderFee;
         TRANSFER_PROXY = new TokenTransferProxy();
         SWAPPER = ArbitrarySwapper(_arbitrarySwapper);
         USDC = _usdc;
@@ -52,9 +49,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         TREASURY = _treasury;
 
         for (uint256 i; i < priceFeedsLength; ) {
-            LimitOrderStorage.layout().tokenToPriceFeed[
-                _tokens[i]
-            ] = _priceFeeds[i];
+            LimitOrderStorage.layout().tokenPriceFeed[_tokens[i]] = _priceFeeds[
+                i
+            ];
             ++i;
         }
     }
@@ -94,12 +91,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
     }
 
-    function _applyLiquidationFee(uint256 _amount)
+    function _applyLiquidationFee(uint256 _amount, uint256 _vaultFee)
         internal
-        view
+        pure
         returns (uint256 finalAmount, uint256 fee)
     {
-        fee = (_amount * LIMIT_ORDER_FEE) / BASIS;
+        fee = (_amount * _vaultFee) / BASIS;
         finalAmount = (_amount - fee);
     }
 
@@ -126,7 +123,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.vault = _vault;
         order.maker = msg.sender;
         order.priceFeed = AggregatorV3Interface(
-            _l.tokenToPriceFeed[IVault(_vault).underlyingToken()]
+            _l.tokenPriceFeed[IVault(_vault).underlyingToken()]
         );
         order.side = _side;
 
@@ -214,7 +211,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         (
             uint256 finalUSDCAmount,
             uint256 liquidationFee
-        ) = _applyLiquidationFee(swapOutput);
+        ) = _applyLiquidationFee(swapOutput, _l.vaultFee[vault]);
         IERC20(USDC).transfer(TREASURY, liquidationFee);
 
         //deposit remaining tokens to OptyFi USDC vault and send shares to user
@@ -227,5 +224,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _order.maker,
             IERC20(OPUSDC_VAULT).balanceOf(address(this))
         );
+    }
+
+    function _setVaultLiquidationFee(
+        LimitOrderStorage.Layout storage _l,
+        uint256 _fee,
+        address _vault
+    ) internal {
+        _l.vaultFee[_vault] = _fee;
     }
 }
