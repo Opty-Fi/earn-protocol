@@ -61,6 +61,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _user,
         address _vault
     ) internal {
+        DataTypes.Order memory order = _l.userVaultOrder[_user][_vault];
+        require(order.maker != address(0), 'Order non-existent');
+        require(msg.sender == order.maker, 'Only callable by order maker');
         _l.userVaultOrderActive[_user][_vault] = false;
     }
 
