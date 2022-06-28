@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 import { OwnableInternal } from '@solidstate/contracts/access/OwnableInternal.sol';
 import { OwnableStorage } from '@solidstate/contracts/access/OwnableInternal.sol';
