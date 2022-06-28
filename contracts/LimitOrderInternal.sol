@@ -63,7 +63,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _maker,
         address _vault
     ) internal {
-        DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
+        DataTypes.Order memory order = _userVaultOrder(_l, _maker, _vault);
         require(order.maker != address(0), 'Order non-existent');
         require(msg.sender == order.maker, 'Only callable by order maker');
         _l.userVaultOrderActive[_maker][_vault] = false;
@@ -133,6 +133,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _canExecute(_l, _order);
         address vault = _order.vault;
         address underlyingToken = IVault(vault).underlyingToken();
+        address maker = _order.maker;
 
         //calculate liquidation amount
         uint256 liquidationAmount = _liquidationAmount(
@@ -143,7 +144,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //transfer vault shares from user
         TRANSFER_PROXY.transferFrom(
             vault,
-            _order.maker,
+            maker,
             address(this),
             liquidationAmount
         );
@@ -170,17 +171,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
         (
             uint256 finalUSDCAmount,
             uint256 liquidationFee
-        ) = _applyLiquidationFee(swapOutput, _l.vaultFee[vault]);
-        IERC20(USDC).transfer(_l.treasury, liquidationFee);
+        ) = _applyLiquidationFee(swapOutput, _vaultFee(_l, vault));
+        IERC20(USDC).transfer(_treasury(_l), liquidationFee);
 
-        //deposit remaining tokens to OptyFi USDC vault and send shares to user
+        //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
         IVault(OPUSDC_VAULT).userDepositVault(
             finalUSDCAmount,
             _l.emptyProof,
             _l.proof
         );
         IERC20(OPUSDC_VAULT).transfer(
-            _order.maker,
+            maker,
             IERC20(OPUSDC_VAULT).balanceOf(address(this))
         );
     }
