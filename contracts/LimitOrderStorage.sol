@@ -17,16 +17,23 @@ library LimitOrderStorage {
      * @param userVaultOrderActive user => vault => bool
      * @param tokenPriceFeed token address => oracle address
      * @param vaultFee vault address => fee
+     * @param emptyProof an empty merkle proof (required for OptyFi Vault withdraw/deposit)
+     * @param proof merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
+     * @param treasury the treasury to send liquidation fees to
      */
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
         mapping(address => mapping(address => bool)) userVaultOrderActive;
         mapping(address => address) tokenPriceFeed;
         mapping(address => uint256) vaultFee;
+        bytes32[] emptyProof;
+        bytes32[] proof;
+        address treasury;
     }
 
     /**
      * @notice return the layout struct stored at STORAGE_SLOT
+     * @return l the layout struct
      */
     function layout() internal pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;

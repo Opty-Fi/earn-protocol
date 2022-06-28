@@ -21,9 +21,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     uint256 public constant BASIS = 1 ether;
     address public immutable USDC;
     address public immutable OPUSDC_VAULT;
-    address public immutable TREASURY;
-    bytes32[] private PROOF;
-    bytes32[] private EMPTYPROOF = [bytes32('0x')];
     TokenTransferProxy public immutable TRANSFER_PROXY;
     ArbitrarySwapper public immutable SWAPPER;
 
@@ -35,6 +32,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address[] memory _tokens,
         address[] memory _priceFeeds
     ) {
+        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
         uint256 priceFeedsLength = _priceFeeds.length;
 
         require(
@@ -46,27 +44,43 @@ contract LimitOrderInternal is ILimitOrderInternal {
         SWAPPER = ArbitrarySwapper(_arbitrarySwapper);
         USDC = _usdc;
         OPUSDC_VAULT = _opUSDCVault;
-        TREASURY = _treasury;
+        l.treasury = _treasury;
 
         for (uint256 i; i < priceFeedsLength; ) {
-            LimitOrderStorage.layout().tokenPriceFeed[_tokens[i]] = _priceFeeds[
-                i
-            ];
+            l.tokenPriceFeed[_tokens[i]] = _priceFeeds[i];
             ++i;
         }
     }
 
+    /**
+     * @notice cancels an active order
+     * @param _l the layout of the limit order contract
+     * @param _maker the address of the order maker
+     * @param _vault the address of the vault the order pertains to
+     */
     function _cancelOrder(
         LimitOrderStorage.Layout storage _l,
-        address _user,
+        address _maker,
         address _vault
     ) internal {
-        DataTypes.Order memory order = _l.userVaultOrder[_user][_vault];
+        DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
         require(order.maker != address(0), 'Order non-existent');
         require(msg.sender == order.maker, 'Only callable by order maker');
-        _l.userVaultOrderActive[_user][_vault] = false;
+        _l.userVaultOrderActive[_maker][_vault] = false;
     }
 
+    /**
+     * @notice creates a limit order
+     * @param _l the layout of the limit order contract
+     * @param _vault the vault the order pertains to
+     * @param _priceTarget the priceTarget at which the order may be executed
+     * @param _liquidationShare the % in basis points of the users vault shares to liquidate
+     * @param _endTime the expiration time of the limit order
+     * @param _lowerBound the percentage lower bound of the priceTarget in Basis Points
+     * @param _upperBound the percentage upper bound of the priceTarget in Basis Points
+     * @param _side the side of the order (PROFIT|LOSS)
+     * @return order the created limit order
+     */
     function _createOrder(
         LimitOrderStorage.Layout storage _l,
         address _vault,
@@ -100,11 +114,18 @@ contract LimitOrderInternal is ILimitOrderInternal {
         emit LimitOrderCreated(order);
     }
 
+    /**
+     * @notice executes a limit order
+     * @param _l the layout of the limit order contract
+     * @param _order the limit order to execute
+     * @param _usdcAmountMin the minimum amount of USDC to be received from the swap
+     * @param _target the DEX contract address to perform the swap
+     * @param _data the calldata required for the swap
+     */
     function _execute(
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order,
-        bytes32[] calldata _accountsProof,
-        uint256 _outputTokenAmountMin,
+        uint256 _usdcAmountMin,
         address _target,
         bytes calldata _data
     ) internal {
@@ -130,8 +151,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //withdraw vault shares for underlying
         IVault(_order.vault).userWithdrawVault(
             liquidationAmount,
-            _accountsProof,
-            EMPTYPROOF
+            _l.emptyProof,
+            _l.proof
         );
 
         //swap underlying for USDC
@@ -139,7 +160,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             underlyingToken,
             IERC20(underlyingToken).balanceOf(address(this)),
             USDC,
-            _outputTokenAmountMin,
+            _usdcAmountMin,
             _target,
             address(this),
             _data
@@ -150,13 +171,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
             uint256 finalUSDCAmount,
             uint256 liquidationFee
         ) = _applyLiquidationFee(swapOutput, _l.vaultFee[vault]);
-        IERC20(USDC).transfer(TREASURY, liquidationFee);
+        IERC20(USDC).transfer(_l.treasury, liquidationFee);
 
         //deposit remaining tokens to OptyFi USDC vault and send shares to user
         IVault(OPUSDC_VAULT).userDepositVault(
             finalUSDCAmount,
-            EMPTYPROOF,
-            PROOF
+            _l.emptyProof,
+            _l.proof
         );
         IERC20(OPUSDC_VAULT).transfer(
             _order.maker,
@@ -164,6 +185,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
     }
 
+    /**
+     * @notice sets the liquidation fee for a target vault
+     * @param _l the layout of the limit order contract
+     * @param _fee the fee in basis point
+     * @param _vault the target vault
+     */
     function _setVaultLiquidationFee(
         LimitOrderStorage.Layout storage _l,
         uint256 _fee,
@@ -172,6 +199,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _l.vaultFee[_vault] = _fee;
     }
 
+    /**
+     * @notice checks whether a limit order may be executed
+     * @param _l the layout of the limit order contract
+     * @param _order the order to check
+     */
     function _canExecute(
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order
@@ -184,6 +216,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _isSpotPriceBound(_fetchSpotPrice(_order), _order);
     }
 
+    /**
+     * @notice returns spotPrice of underlying vault token
+     * @param _order the order containing the underlying vault token to fetch the spot price for
+     * @return spotPrice the spotPrice of the underlying vault token
+     */
     function _fetchSpotPrice(DataTypes.Order memory _order)
         internal
         view
@@ -193,6 +230,14 @@ contract LimitOrderInternal is ILimitOrderInternal {
         spotPrice = uint256(price);
     }
 
+    /**
+     * @notice checks whether a limit order may be created or not
+     * @param _l the layout of the limit order contract
+     * @param _user the address of the user making the limit order
+     * @param _vault the vault the limit order pertains to
+     * @param _startTime the start time of the limit order
+     * @param _endTime the end time of the limit order
+     */
     function _permitOrderCreation(
         LimitOrderStorage.Layout storage _l,
         address _user,
@@ -207,6 +252,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         require(_startTime < _endTime, 'end time < start time');
     }
 
+    /**
+     * @notice checks whether spotPrice is within an absolute bound of the target price of a limit order
+     * @param _spotPrice the spotPrice of the underlying token of the limit order
+     * @param _order the limit order containig the target price to check the spot price against
+     */
     function _isSpotPriceBound(
         uint256 _spotPrice,
         DataTypes.Order memory _order
@@ -220,6 +270,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
     }
 
+    /**
+     * @notice returns the total liquidation amount
+     * @param _total the total amount to calculate the liquidation amount from
+     * @param _liquidationShare the liquidation percentage in basis points
+     * @return liquidationAmount the total amount of vault shares to be liquidated
+     */
     function _liquidationAmount(uint256 _total, uint256 _liquidationShare)
         internal
         pure
@@ -228,6 +284,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
         liquidationAmount = (_total * _liquidationShare) / BASIS;
     }
 
+    /**
+     * @notice applies the liquidation fee on an amount
+     * @param _amount the total amount to apply the fee on
+     * @param _vaultFee the fee in basis points pertaining to the particular vault
+     * @return finalAmount the left over amount after applying the fee
+     * @return fee the total fee
+     */
     function _applyLiquidationFee(uint256 _amount, uint256 _vaultFee)
         internal
         pure
