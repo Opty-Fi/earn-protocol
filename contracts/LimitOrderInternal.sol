@@ -200,6 +200,30 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice sets the merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @param _l the layout of the limit order contract
+     * @param _proof the merkle proof
+     */
+    function _setProof(
+        LimitOrderStorage.Layout storage _l,
+        bytes32[] memory _proof
+    ) internal {
+        _l.proof = _proof;
+    }
+
+    /**
+     * @notice sets the address of the treasury to send limit order fees to
+     * @param _l the layout of the limit order contract
+     * @param _treasury the address of the treasury
+     */
+    function _setTreasury(
+        LimitOrderStorage.Layout storage _l,
+        address _treasury
+    ) internal {
+        _l.treasury = _treasury;
+    }
+
+    /**
      * @notice checks whether a limit order may be executed
      * @param _l the layout of the limit order contract
      * @param _order the order to check
