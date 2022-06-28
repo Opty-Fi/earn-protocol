@@ -133,7 +133,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _canExecute(_l, _order);
         address vault = _order.vault;
         address underlyingToken = IVault(vault).underlyingToken();
-        address maker = _order.maker;
 
         //calculate liquidation amount
         uint256 liquidationAmount = _liquidationAmount(
@@ -144,7 +143,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //transfer vault shares from user
         TRANSFER_PROXY.transferFrom(
             vault,
-            maker,
+            _order.maker,
             address(this),
             liquidationAmount
         );
@@ -181,7 +180,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.proof
         );
         IERC20(OPUSDC_VAULT).transfer(
-            maker,
+            _order.maker,
             IERC20(OPUSDC_VAULT).balanceOf(address(this))
         );
     }
@@ -238,6 +237,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
             'user does not have an active order'
         );
         require(_order.endTime > block.timestamp, 'order expired');
+        require(
+            _l.userVaultOrder[_order.maker][_order.vault].startTime ==
+                _order.startTime,
+            'order for exececution is not the current order'
+        ); //may be superflous
         _isSpotPriceBound(_fetchSpotPrice(_order), _order);
     }
 
