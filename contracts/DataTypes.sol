@@ -12,7 +12,7 @@ library DataTypes {
      * @notice encapsulate a limit order
      * @param priceTarget the price target at which the limit order can execute
      * @param liquidationShare the proportion of the investment to be liquidated in basis points
-     * @param startTime the starting timestamp of the order
+     * @param id limit order id
      * @param endTime the ending timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's targetPrice
      * @param upperBound the upper bound in basis points of the limit order's targetPrice
@@ -23,7 +23,7 @@ library DataTypes {
     struct Order {
         uint256 priceTarget;
         uint256 liquidationShare;
-        uint256 startTime;
+        uint256 id;
         uint256 endTime;
         uint256 lowerBound;
         uint256 upperBound;

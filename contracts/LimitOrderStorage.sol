@@ -19,6 +19,7 @@ library LimitOrderStorage {
      * @param vaultFee vault address => fee
      * @param emptyProof an empty merkle proof (required for OptyFi Vault withdraw/deposit)
      * @param proof merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
+     * @param id unique counter for limit orders
      * @param treasury the treasury to send liquidation fees to
      */
     struct Layout {
@@ -28,6 +29,7 @@ library LimitOrderStorage {
         mapping(address => uint256) vaultFee;
         bytes32[] emptyProof;
         bytes32[] proof;
+        uint256 id;
         address treasury;
     }
 
