@@ -313,6 +313,16 @@ interface IVault {
     function getInvestStrategySteps() external view returns (DataTypes.StrategyStep[] memory);
 
     /**
+     * @dev function to compute the keccak256 hash of the strategy steps
+     * @param _investStrategySteps metadata for invest strategy
+     * @return keccak256 hash of the invest strategy and underlying tokens hash
+     */
+    function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
+        external
+        view
+        returns (bytes32);
+
+    /**
      * @dev Emitted when emergency shutdown over vault is changed
      * @param emergencyShutdown true mean vault is in emergency shutdown mode
      * @param caller address of user who has called the respective function to trigger this event
