@@ -5,6 +5,12 @@ import { IArbitrarySwapper } from './IArbitrarySwapper.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 
+/**
+ * @title ArbitrarySwapper contract to allow for arbitrary swap calls to DEXs
+ * @author OptyFi
+ * @dev Do not approve this contract for token transfers directly as it may incur a loss on swap.
+ * Instead approve TokenTransferProxy as a spender.
+ */
 contract ArbitrarySwapper is IArbitrarySwapper {
     using SafeERC20 for IERC20;
 
