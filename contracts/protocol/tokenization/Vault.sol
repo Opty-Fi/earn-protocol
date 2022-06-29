@@ -571,9 +571,7 @@ contract Vault is
     }
 
     /**
-     * @dev function to compute the keccak256 hash of the strategy steps
-     * @param _investStrategySteps metadata for invest strategy
-     * @return keccak256 hash of the invest strategy and underlying tokens hash
+     * @inheritdoc IVault
      */
     function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
         public
