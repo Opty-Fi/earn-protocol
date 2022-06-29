@@ -91,13 +91,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _upperBound,
         DataTypes.Side _side
     ) internal returns (DataTypes.Order memory order) {
-        uint256 startTime = block.timestamp;
-
-        _permitOrderCreation(_l, msg.sender, _vault, startTime, _endTime);
+        _permitOrderCreation(_l, msg.sender, _vault, _endTime);
 
         order.priceTarget = _priceTarget;
         order.liquidationShare = _liquidationShare;
-        order.startTime = startTime;
+        order.id = _l.id;
         order.endTime = _endTime;
         order.lowerBound = _lowerBound;
         order.upperBound = _upperBound;
@@ -110,6 +108,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         _l.userVaultOrder[msg.sender][_vault] = order;
         _l.userVaultOrderActive[msg.sender][_vault] = true;
+        ++_l.id;
 
         emit LimitOrderCreated(order);
     }
@@ -236,7 +235,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrderActive[_order.maker][_order.vault] == true,
             'user does not have an active order'
         );
-        require(_order.endTime > block.timestamp, 'order expired');
+        require(_order.endTime >= block.timestamp, 'order expired');
+        require(
+            _l.userVaultOrder[_order.maker][_order.vault].id == _order.id,
+            'order to execute is not current order'
+        );
         _isSpotPriceBound(_fetchSpotPrice(_order), _order);
     }
 
@@ -259,21 +262,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l the layout of the limit order contract
      * @param _user the address of the user making the limit order
      * @param _vault the vault the limit order pertains to
-     * @param _startTime the start time of the limit order
      * @param _endTime the end time of the limit order
      */
     function _permitOrderCreation(
         LimitOrderStorage.Layout storage _l,
         address _user,
         address _vault,
-        uint256 _startTime,
         uint256 _endTime
     ) internal view {
         require(
             _l.userVaultOrderActive[_user][_vault] == false,
             'user already has an active limit order'
         );
-        require(_startTime < _endTime, 'end time < start time');
+        require(block.timestamp < _endTime, 'end time in past');
     }
 
     /**
