@@ -576,6 +576,7 @@ contract Vault is
     function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
         public
         view
+        override
         returns (bytes32)
     {
         if (_investStrategySteps.length > 0) {
