@@ -44,20 +44,19 @@ library DataTypes {
     }
 
     /**
-     * @param fromToken
-     * @param toToken
-     * @param fromAmount
-     * @param toAmount
-     * @param expectedAmount
-     * @param callees
-     * @param exchangeData
-     * @param startIndexes
-     * @param values
-     * @param beneficiary
-     * @param permit
-     * @param deadline
+     * @param fromToken address of token to swap from
+     * @param toToken address of token to swap to
+     * @param fromAmount amount of fromToken to swap
+     * @param toAmount amount of toToken to receive
+     * @param expectedAmount expected amount of toToken
+     * @param callees array of addresses to call (DEX addresses)
+     * @param exchangeData calldata to execute on callees
+     * @param startIndexes the index of the beginning of each call in exchangeData
+     * @param values array of encoded values for each call in exchangeData
+     * @param beneficiary the address of the recipient of the swapped returns
+     * @param permit ERC2612 permit
+     * @param deadline timestamp until which swap may be fulfilled
      */
-
     struct SwapData {
         address fromToken;
         address toToken;
