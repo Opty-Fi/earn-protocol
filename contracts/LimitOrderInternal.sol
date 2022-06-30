@@ -128,7 +128,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _canSwap(_swapData);
 
         address vault = _order.vault;
-        address underlyingToken = IVault(vault).underlyingToken();
 
         //calculate liquidation amount
         uint256 liquidationAmount = _liquidationAmount(
