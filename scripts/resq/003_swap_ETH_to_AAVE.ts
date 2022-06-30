@@ -1,14 +1,5 @@
 import { ethers } from "hardhat";
-import {
-  ERC20,
-  ERC20__factory,
-  IUniswapV2Factory,
-  IUniswapV2Factory__factory,
-  Registry,
-  Registry__factory,
-  Vault,
-  Vault__factory,
-} from "../../typechain";
+import { ERC20, ERC20__factory, Registry, Registry__factory, Vault, Vault__factory } from "../../typechain";
 
 async function main() {
   const AAVE = ethers.utils.getAddress("0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9");
@@ -18,9 +9,6 @@ async function main() {
   const opAAVEaggr = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
 
   const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-  const sushiswapRouterInstance = <IUniswapV2Factory>(
-    await ethers.getContractAt(IUniswapV2Factory__factory.abi, sushiswapRouter)
-  );
   const opAAVEaggrInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEaggr);
   const aaveInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AAVE);
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, WETH);
