@@ -6,15 +6,13 @@ import {
   ERC20__factory,
   IUniswapV2Pair,
   IUniswapV2Pair__factory,
-  IUniswapV2Router02,
-  IUniswapV2Router02__factory,
   Registry,
   Registry__factory,
   Vault,
   Vault__factory,
 } from "../../typechain";
 
-async function main(aggregatorV3InterfaceABI: any[]) {
+async function main() {
   const aaveWethSlp = ethers.utils.getAddress("0xD75EA151a61d06868E31F8988D28DFE5E9df57B4");
   const AAVE = ethers.utils.getAddress("0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9");
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
@@ -24,9 +22,6 @@ async function main(aggregatorV3InterfaceABI: any[]) {
 
   const aaveWethSlpInstance = <IUniswapV2Pair>await ethers.getContractAt(IUniswapV2Pair__factory.abi, aaveWethSlp);
   const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-  const sushiswapRouterInstance = <IUniswapV2Router02>(
-    await ethers.getContractAt(IUniswapV2Router02__factory.abi, sushiswapRouter)
-  );
   const opAAVEaggrInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEaggr);
   const aaveInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AAVE);
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, WETH);
@@ -49,9 +44,6 @@ async function main(aggregatorV3InterfaceABI: any[]) {
     ),
   );
 
-  const aave_eth_feed = ethers.utils.getAddress("0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012");
-  const priceFeed = await ethers.getContractAt(aggregatorV3InterfaceABI, aave_eth_feed);
-  const wethPerAave = priceFeed.answer;
   const reserves = await aaveWethSlpInstance.getReserves();
   let totalSupply = await aaveWethSlpInstance.totalSupply();
   const klast = await aaveWethSlpInstance.kLast();
@@ -104,54 +96,4 @@ async function main(aggregatorV3InterfaceABI: any[]) {
   console.log("WETH balance after : ", ethers.utils.formatEther(weth_balance_after));
 }
 
-const aggregatorV3InterfaceABI = [
-  {
-    inputs: [],
-    name: "decimals",
-    outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "description",
-    outputs: [{ internalType: "string", name: "", type: "string" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint80", name: "_roundId", type: "uint80" }],
-    name: "getRoundData",
-    outputs: [
-      { internalType: "uint80", name: "roundId", type: "uint80" },
-      { internalType: "int256", name: "answer", type: "int256" },
-      { internalType: "uint256", name: "startedAt", type: "uint256" },
-      { internalType: "uint256", name: "updatedAt", type: "uint256" },
-      { internalType: "uint80", name: "answeredInRound", type: "uint80" },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "latestRoundData",
-    outputs: [
-      { internalType: "uint80", name: "roundId", type: "uint80" },
-      { internalType: "int256", name: "answer", type: "int256" },
-      { internalType: "uint256", name: "startedAt", type: "uint256" },
-      { internalType: "uint256", name: "updatedAt", type: "uint256" },
-      { internalType: "uint80", name: "answeredInRound", type: "uint80" },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "version",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-];
-
-main(aggregatorV3InterfaceABI).then(console.log).catch(console.error);
+main().then(console.log).catch(console.error);
