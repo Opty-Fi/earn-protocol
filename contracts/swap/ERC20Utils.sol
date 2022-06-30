@@ -2,7 +2,7 @@
 
 /*solhint-disable avoid-low-level-calls */
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { IERC2612 } from '@solidstate/contracts/token/ERC20/permit/IERC2612.sol';
