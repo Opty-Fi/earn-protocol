@@ -27,7 +27,7 @@ library DataTypes {
         uint256 endTime;
         uint256 lowerBound;
         uint256 upperBound;
-        address maker;
+        address payable maker;
         address vault;
         AggregatorV3Interface priceFeed;
         Side side;
@@ -41,5 +41,34 @@ library DataTypes {
     enum Side {
         PROFIT,
         LOSS
+    }
+
+    /**
+     * @param fromToken
+     * @param toToken
+     * @param fromAmount
+     * @param toAmount
+     * @param expectedAmount
+     * @param callees
+     * @param exchangeData
+     * @param startIndexes
+     * @param values
+     * @param beneficiary
+     * @param permit
+     * @param deadline
+     */
+
+    struct SwapData {
+        address fromToken;
+        address toToken;
+        uint256 fromAmount;
+        uint256 toAmount;
+        uint256 expectedAmount;
+        address[] callees;
+        bytes exchangeData;
+        uint256[] startIndexes;
+        uint256[] values;
+        bytes permit;
+        uint256 deadline;
     }
 }

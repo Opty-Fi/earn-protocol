@@ -6,7 +6,7 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
 import { TokenTransferProxy } from './TokenTransferProxy.sol';
-import { ArbitrarySwapper } from './ArbitrarySwapper.sol';
+import { ERC20Utils } from './ERC20Utils.sol';
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
@@ -22,10 +22,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
     address public immutable USDC;
     address public immutable OPUSDC_VAULT;
     TokenTransferProxy public immutable TRANSFER_PROXY;
-    ArbitrarySwapper public immutable SWAPPER;
 
     constructor(
-        address _arbitrarySwapper,
         address _usdc,
         address _opUSDCVault,
         address _treasury,
@@ -41,7 +39,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
 
         TRANSFER_PROXY = new TokenTransferProxy();
-        SWAPPER = ArbitrarySwapper(_arbitrarySwapper);
         USDC = _usdc;
         OPUSDC_VAULT = _opUSDCVault;
         l.treasury = _treasury;
@@ -100,7 +97,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.lowerBound = _lowerBound;
         order.upperBound = _upperBound;
         order.vault = _vault;
-        order.maker = msg.sender;
+        order.maker = payable(msg.sender);
         order.priceFeed = AggregatorV3Interface(
             _l.tokenPriceFeed[IVault(_vault).underlyingToken()]
         );
@@ -117,19 +114,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @notice executes a limit order
      * @param _l the layout of the limit order contract
      * @param _order the limit order to execute
-     * @param _usdcAmountMin the minimum amount of USDC to be received from the swap
-     * @param _target the DEX contract address to perform the swap
-     * @param _data the calldata required for the swap
+     * @param _swapData token swap data
      */
     function _execute(
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order,
-        uint256 _usdcAmountMin,
-        address _target,
-        bytes calldata _data
+        DataTypes.SwapData memory _swapData
     ) internal {
         //check order execution critera
         _canExecute(_l, _order);
+
+        //check swap execution criteria
+        _canSwap(_swapData);
+
         address vault = _order.vault;
         address underlyingToken = IVault(vault).underlyingToken();
 
@@ -155,15 +152,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
 
         //swap underlying for USDC
-        uint256 swapOutput = SWAPPER.swap(
-            underlyingToken,
-            IERC20(underlyingToken).balanceOf(address(this)),
-            USDC,
-            _usdcAmountMin,
-            _target,
-            address(this),
-            _data
-        );
+        uint256 swapOutput = _doSimpleSwap(_swapData);
+
+        retrieveTokens(_swapData.fromToken, _order.maker);
 
         //calculate fee and transfer to treasury
         (
@@ -222,6 +213,74 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _l.treasury = _treasury;
     }
 
+    function _doSimpleSwap(DataTypes.SwapData memory _swapData)
+        internal
+        returns (uint256 receivedAmount)
+    {
+        require(
+            msg.value ==
+                (
+                    _swapData.fromToken == ERC20Utils.ethAddress()
+                        ? _swapData.fromAmount
+                        : 0
+                ),
+            'incorrect msg.value'
+        );
+        require(_swapData.toAmount > 0, 'toAmount is too low');
+        require(
+            _swapData.callees.length + 1 == _swapData.startIndexes.length,
+            'Start indexes must be 1 greater then number of callees'
+        );
+
+        //If source token is not ETH than transfer required amount of tokens
+        //from sender to this contract
+        transferTokensFromProxy(
+            _swapData.fromToken,
+            _swapData.fromAmount,
+            _swapData.permit
+        );
+        bytes memory _exchangeData = _swapData.exchangeData;
+        for (uint256 i = 0; i < _swapData.callees.length; i++) {
+            require(
+                _swapData.callees[i] != address(TRANSFER_PROXY),
+                'Can not call TokenTransferProxy Contract'
+            );
+
+            {
+                uint256 dataOffset = _swapData.startIndexes[i];
+                bytes32 selector;
+                assembly {
+                    selector := mload(add(_exchangeData, add(dataOffset, 32)))
+                }
+                require(
+                    bytes4(selector) != IERC20.transferFrom.selector,
+                    'transferFrom not allowed for externalCall'
+                );
+            }
+
+            bool result = externalCall(
+                _swapData.callees[i], //destination
+                _swapData.values[i], //value to send
+                _swapData.startIndexes[i], // start index of call data
+                _swapData.startIndexes[i + 1] - (_swapData.startIndexes[i]), // length of calldata
+                _swapData.exchangeData // total calldata
+            );
+            require(result, 'External call failed');
+        }
+
+        receivedAmount = ERC20Utils.tokenBalance(
+            _swapData.toToken,
+            address(this)
+        );
+
+        require(
+            receivedAmount >= _swapData.toAmount,
+            'Received amount of tokens are less then expected'
+        );
+
+        return receivedAmount;
+    }
+
     /**
      * @notice checks whether a limit order may be executed
      * @param _l the layout of the limit order contract
@@ -241,6 +300,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
             'order to execute is not current order'
         );
         _isSpotPriceBound(_fetchSpotPrice(_order), _order);
+    }
+
+    function _canSwap(DataTypes.SwapData memory _swapData) internal view {
+        require(_swapData.deadline >= block.timestamp, 'Deadline breached');
     }
 
     /**
@@ -323,5 +386,58 @@ contract LimitOrderInternal is ILimitOrderInternal {
     {
         fee = (_amount * _vaultFee) / BASIS;
         finalAmount = (_amount - fee);
+    }
+
+    /**
+     * @dev Source take from GNOSIS MultiSigWallet
+     * @dev https://github.com/gnosis/MultiSigWallet/blob/master/contracts/MultiSigWallet.sol
+     */
+    function externalCall(
+        address destination,
+        uint256 value,
+        uint256 dataOffset,
+        uint256 dataLength,
+        bytes memory data
+    ) private returns (bool) {
+        bool result = false;
+
+        assembly {
+            let x := mload(0x40) // "Allocate" memory for output
+            // (0x40 is where "free memory" pointer is stored by convention)
+
+            let d := add(data, 32) // First 32 bytes are the padded length of data, so exclude that
+            result := call(
+                gas(),
+                destination,
+                value,
+                add(d, dataOffset),
+                dataLength, // Size of the input (in bytes) - this is what fixes the padding problem
+                x,
+                0 // Output is ignored, therefore the output size is zero
+            )
+        }
+        return result;
+    }
+
+    function transferTokensFromProxy(
+        address token,
+        uint256 amount,
+        bytes memory permit
+    ) private {
+        if (token != ERC20Utils.ethAddress()) {
+            ERC20Utils.permit(token, permit);
+
+            TRANSFER_PROXY.transferFrom(
+                token,
+                msg.sender,
+                address(this),
+                amount
+            );
+        }
+    }
+
+    function retrieveTokens(address token, address payable _receiver) private {
+        uint256 balance = ERC20Utils.tokenBalance(token, address(this));
+        ERC20Utils.transferTokens(token, _receiver, balance);
     }
 }
