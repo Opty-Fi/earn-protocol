@@ -20,6 +20,7 @@ library LimitOrderStorage {
      * @param proof merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
      * @param id unique id for limit orders
      * @param treasury the treasury to send liquidation fees to
+     * @param swapDiamond the address of the OptyFi swapDiamond
      */
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
@@ -30,6 +31,7 @@ library LimitOrderStorage {
         bytes32[] proof;
         uint256 id;
         address treasury;
+        address swapDiamond;
     }
 
     /**

@@ -4,12 +4,15 @@ pragma solidity ^0.8.15;
 import { IVault } from '../earn/IVault.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
+import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
 import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
 import { ERC20Utils } from '../utils/ERC20Utils.sol';
+import { ISwap } from '../swap/ISwap.sol';
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
+import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 
 /**
  * @title Contract for writing limit orders
@@ -17,6 +20,7 @@ import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
  */
 contract LimitOrderInternal is ILimitOrderInternal {
     using LimitOrderStorage for LimitOrderStorage.Layout;
+    using SafeERC20 for IERC20;
 
     uint256 public constant BASIS = 1 ether;
     address public immutable USDC;
@@ -119,7 +123,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _execute(
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order,
-        DataTypes.SwapData memory _swapData
+        SwapDataTypes.SwapData memory _swapData
     ) internal {
         //check order execution critera
         _canExecute(_l, _order);
@@ -147,13 +151,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.proof
         );
 
-        //swap underlying for USDC
-        uint256 swapOutput = _doSimpleSwap(_swapData);
-
-        IERC20(_swapData.fromToken).safeTransfer(
-            _order.maker,
-            IERC20(_swapData.fromToken).balanceOf(address(this))
+        //perform swap for USDC via swapDiamond
+        (uint256 swapOutput, uint256 leftOver) = ISwap(_l.swapDiamond).swap(
+            _swapData
         );
+
+        IERC20(_swapData.fromToken).safeTransfer(_order.maker, leftOver);
 
         //calculate fee and transfer to treasury
         (
