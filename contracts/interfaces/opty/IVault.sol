@@ -185,11 +185,18 @@ interface IVault {
     function balanceUT() external view returns (uint256);
 
     /**
-     * @notice Retrieve reward token balance for a given liquidity pool
-     * @param _liquidityPool Liquidity pool's contract address
-     * @return The balance of reward token for a given liquidity pool
+     * @notice Retrieve reward token claimed balance
+     * @param _rewardToken Reward token contract address
+     * @return The vault's balance of reward token
      */
-    function balanceRewardToken(address _liquidityPool) external view returns (uint256);
+    function balanceClaimedRewardToken(address _rewardToken) external view returns (uint256);
+
+    /**
+     * @notice Retrieve reward token unclaimed balance for a given liquidity pool
+     * @param _liquidityPool Liquidity pool's contract address
+     * @return The unclaimed balance of reward token for a given liquidity pool
+     */
+    function balanceUnclaimedRewardToken(address _liquidityPool) external view returns (uint256);
 
     /**
      * @dev A helper function to validate the vault value will not surpass max or min vault value

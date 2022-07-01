@@ -12,7 +12,7 @@ import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/o
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title StrategyBuilder Library
+ * @title StrategyManager Library
  * @author Opty.fi
  * @notice Central processing unit of the earn protocol
  * @dev Contains the functionality for getting the codes to deposit/withdraw tokens,
