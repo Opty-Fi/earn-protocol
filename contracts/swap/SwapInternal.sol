@@ -67,8 +67,6 @@ abstract contract SwapInternal {
             receivedAmount >= _swapData.toAmount,
             'Received amount of tokens are less then expected'
         );
-
-        return receivedAmount;
     }
 
     /**
@@ -103,7 +101,7 @@ abstract contract SwapInternal {
         uint256 _dataOffset,
         uint256 _dataLength,
         bytes memory _data
-    ) private returns (bool) {
+    ) internal returns (bool) {
         bool result = false;
 
         assembly {
@@ -134,7 +132,7 @@ abstract contract SwapInternal {
         address _token,
         uint256 _amount,
         bytes memory _permit
-    ) private {
+    ) internal {
         if (_token != ERC20Utils.ethAddress()) {
             ERC20Utils.permit(_token, _permit);
 
@@ -147,11 +145,13 @@ abstract contract SwapInternal {
      * @notice retrieves leftover tokens after swap
      * @param _token address of token to retrieve
      * @param _receiver address of receiver of tokens
+     * @return balance the balance of _token to send to _receiver
      */
     function _retrieveTokens(address _token, address payable _receiver)
-        private
+        internal
+        returns (uint256 balance)
     {
-        uint256 balance = ERC20Utils.tokenBalance(_token, address(this));
+        balance = ERC20Utils.tokenBalance(_token, address(this));
         ERC20Utils.transferTokens(_token, _receiver, balance);
     }
 }
