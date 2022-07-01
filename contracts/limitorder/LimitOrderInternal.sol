@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
-import { IVault } from './earn/IVault.sol';
+import { IVault } from '../earn/IVault.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
-import { TokenTransferProxy } from './TokenTransferProxy.sol';
-import { ERC20Utils } from './ERC20Utils.sol';
+import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
+import { ERC20Utils } from '../utils/ERC20Utils.sol';
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
@@ -124,9 +124,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //check order execution critera
         _canExecute(_l, _order);
 
-        //check swap execution criteria
-        _canSwap(_swapData);
-
         address vault = _order.vault;
 
         //calculate liquidation amount
@@ -153,7 +150,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //swap underlying for USDC
         uint256 swapOutput = _doSimpleSwap(_swapData);
 
-        _retrieveTokens(_swapData.fromToken, _order.maker);
+        IERC20(_swapData.fromToken).safeTransfer(
+            _order.maker,
+            IERC20(_swapData.fromToken).balanceOf(address(this))
+        );
 
         //calculate fee and transfer to treasury
         (
@@ -213,81 +213,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice executes a sequence of swaps via DEXs
-     * @param _swapData the data for the swaps
-     * @return receivedAmount the final amount of the toToken received
-     */
-    function _doSimpleSwap(DataTypes.SwapData memory _swapData)
-        internal
-        returns (uint256 receivedAmount)
-    {
-        require(
-            msg.value ==
-                (
-                    _swapData.fromToken == ERC20Utils.ethAddress()
-                        ? _swapData.fromAmount
-                        : 0
-                ),
-            'incorrect msg.value'
-        );
-        require(_swapData.toAmount > 0, 'toAmount is too low');
-        require(
-            _swapData.callees.length + 1 == _swapData.startIndexes.length,
-            'Start indexes must be 1 greater then number of callees'
-        );
-
-        //If source token is not ETH than transfer required amount of tokens
-        //from sender to this contract
-        _transferTokensFromProxy(
-            _swapData.fromToken,
-            _swapData.fromAmount,
-            _swapData.permit
-        );
-
-        bytes memory _exchangeData = _swapData.exchangeData;
-
-        for (uint256 i = 0; i < _swapData.callees.length; i++) {
-            require(
-                _swapData.callees[i] != address(TRANSFER_PROXY),
-                'Can not call TokenTransferProxy Contract'
-            );
-
-            {
-                uint256 dataOffset = _swapData.startIndexes[i];
-                bytes32 selector;
-                assembly {
-                    selector := mload(add(_exchangeData, add(dataOffset, 32)))
-                }
-                require(
-                    bytes4(selector) != IERC20.transferFrom.selector,
-                    'transferFrom not allowed for externalCall'
-                );
-            }
-
-            bool result = _externalCall(
-                _swapData.callees[i], //destination
-                _swapData.values[i], //value to send
-                _swapData.startIndexes[i], // start index of call data
-                _swapData.startIndexes[i + 1] - (_swapData.startIndexes[i]), // length of calldata
-                _swapData.exchangeData // total calldata
-            );
-            require(result, 'External call failed');
-        }
-
-        receivedAmount = ERC20Utils.tokenBalance(
-            _swapData.toToken,
-            address(this)
-        );
-
-        require(
-            receivedAmount >= _swapData.toAmount,
-            'Received amount of tokens are less then expected'
-        );
-
-        return receivedAmount;
-    }
-
-    /**
      * @notice checks whether a limit order may be executed
      * @param _l the layout of the limit order contract
      * @param _order the order to check
@@ -306,14 +231,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
             'order to execute is not current order'
         );
         _isSpotPriceBound(_fetchSpotPrice(_order), _order);
-    }
-
-    /**
-     * @notice checks whether swap may be executed
-     * @param _swapData the parameters for the swap
-     */
-    function _canSwap(DataTypes.SwapData memory _swapData) internal view {
-        require(_swapData.deadline >= block.timestamp, 'Deadline breached');
     }
 
     /**
@@ -396,71 +313,5 @@ contract LimitOrderInternal is ILimitOrderInternal {
     {
         fee = (_amount * _vaultFee) / BASIS;
         finalAmount = (_amount - fee);
-    }
-
-    /**
-     * @dev Source take from GNOSIS MultiSigWallet
-     * @dev https://github.com/gnosis/MultiSigWallet/blob/master/contracts/MultiSigWallet.sol
-     */
-    function _externalCall(
-        address _destination,
-        uint256 _value,
-        uint256 _dataOffset,
-        uint256 _dataLength,
-        bytes memory _data
-    ) private returns (bool) {
-        bool result = false;
-
-        assembly {
-            let x := mload(0x40) // "Allocate" memory for output
-            // (0x40 is where "free memory" pointer is stored by convention)
-
-            let d := add(_data, 32) // First 32 bytes are the padded length of data, so exclude that
-            result := call(
-                gas(),
-                _destination,
-                _value,
-                add(d, _dataOffset),
-                _dataLength, // Size of the input (in bytes) - this is what fixes the padding problem
-                x,
-                0 // Output is ignored, therefore the output size is zero
-            )
-        }
-        return result;
-    }
-
-    /**
-     * @notice performs a call to transfer tokens to this contract from msg.sender via TOKENTRANSFERPROXY
-     * @param _token address to transfer
-     * @param _amount of token to transfer
-     * @param _permit ERC2612 permit
-     */
-    function _transferTokensFromProxy(
-        address _token,
-        uint256 _amount,
-        bytes memory _permit
-    ) private {
-        if (_token != ERC20Utils.ethAddress()) {
-            ERC20Utils.permit(_token, _permit);
-
-            TRANSFER_PROXY.transferFrom(
-                _token,
-                msg.sender,
-                address(this),
-                _amount
-            );
-        }
-    }
-
-    /**
-     * @notice retrieves leftover tokens after swap
-     * @param _token address of token to retrieve
-     * @param _receiver address of receiver of tokens
-     */
-    function _retrieveTokens(address _token, address payable _receiver)
-        private
-    {
-        uint256 balance = ERC20Utils.tokenBalance(_token, address(this));
-        ERC20Utils.transferTokens(_token, _receiver, balance);
     }
 }
