@@ -2,11 +2,26 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
+import { ISwap } from './ISwap.sol';
 import { SwapInternal } from './SwapInternal.sol';
 
-abstract contract Swap is SwapInternal {
-    function swap(DataTypes.SwapData memory _swapData) external {
+/**
+ * @title Swap facet for OptyFiSwap
+ * @author OptyFi
+ */
+abstract contract Swap is SwapInternal, ISwap {
+    /**
+     * @inheritdoc ISwap
+     */
+    function swap(DataTypes.SwapData memory _swapData)
+        external
+        returns (uint256 receivedAmount, uint256 returnedBalance)
+    {
         _canSwap(_swapData);
-        _doSimpleSwap(_swapData);
+        receivedAmount = _doSimpleSwap(_swapData);
+        returnedBalance = _retrieveTokens(
+            _swapData.fromToken,
+            payable(msg.sender)
+        );
     }
 }
