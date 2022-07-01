@@ -18,6 +18,7 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
+import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 
 // interfaces
@@ -27,8 +28,6 @@ import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
-import { IAdapter } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapter.sol";
-import { IAdapterHarvestReward } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterHarvestReward.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -321,8 +320,7 @@ contract Vault is
      */
     function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyStrategyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
-        IAdapterHarvestReward _adapter =
-            IAdapterHarvestReward(registryContract.getLiquidityPoolToAdapter(_liquidityPool));
+
         executeCodes(
             _liquidityPool.getStrategyHarvestSomeCodes(
                 address(registryContract),
