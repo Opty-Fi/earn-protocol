@@ -14,24 +14,24 @@ library LimitOrderStorage {
      * @notice information container on user limit orders
      * @param userVaultOrder user => vault => Order
      * @param userVaultOrderActive user => vault => bool
-     * @param tokenPriceFeed token address => oracle address
      * @param vaultFee vault address => fee
      * @param emptyProof an empty merkle proof (required for OptyFi Vault withdraw/deposit)
      * @param proof merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
      * @param id unique id for limit orders
      * @param treasury the treasury to send liquidation fees to
      * @param swapDiamond the address of the OptyFi swapDiamond
+     * @param oracle the addres of the OptyFi Oracle
      */
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
         mapping(address => mapping(address => bool)) userVaultOrderActive;
-        mapping(address => address) tokenPriceFeed;
         mapping(address => uint256) vaultFee;
         bytes32[] emptyProof;
         bytes32[] proof;
         uint256 id;
         address treasury;
         address swapDiamond;
+        address oracle;
     }
 
     /**

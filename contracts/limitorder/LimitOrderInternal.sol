@@ -10,7 +10,7 @@ import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
 import { ERC20Utils } from '../utils/ERC20Utils.sol';
 import { ISwap } from '../swap/ISwap.sol';
 
-import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import { IOptyFiOracle } from './IOptyFiOracle.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 
@@ -23,6 +23,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
     using SafeERC20 for IERC20;
 
     uint256 public constant BASIS = 1 ether;
+    address public constant USD =
+        address(0x0000000000000000000000000000000000000348);
     address public immutable USDC;
     address public immutable OPUSDC_VAULT;
     TokenTransferProxy public immutable TRANSFER_PROXY;
@@ -31,26 +33,15 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _usdc,
         address _opUSDCVault,
         address _treasury,
-        address[] memory _tokens,
-        address[] memory _priceFeeds
+        address _optyFiOracle
     ) {
         LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
-        uint256 priceFeedsLength = _priceFeeds.length;
-
-        require(
-            priceFeedsLength == _tokens.length,
-            'priceFeeds and token lengths mismatch'
-        );
 
         TRANSFER_PROXY = new TokenTransferProxy();
         USDC = _usdc;
         OPUSDC_VAULT = _opUSDCVault;
         l.treasury = _treasury;
-
-        for (uint256 i; i < priceFeedsLength; ) {
-            l.tokenPriceFeed[_tokens[i]] = _priceFeeds[i];
-            ++i;
-        }
+        l.oracle = _optyFiOracle;
     }
 
     /**
@@ -102,9 +93,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.upperBound = _upperBound;
         order.vault = _vault;
         order.maker = payable(msg.sender);
-        order.priceFeed = AggregatorV3Interface(
-            _l.tokenPriceFeed[IVault(_vault).underlyingToken()]
-        );
         order.side = _side;
 
         _l.userVaultOrder[msg.sender][_vault] = order;
@@ -233,7 +221,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrder[_order.maker][_order.vault].id == _order.id,
             'order to execute is not current order'
         );
-        _isSpotPriceBound(_fetchSpotPrice(_order), _order);
+        _isSpotPriceBound(_fetchSpotPrice(_l, _order), _order);
     }
 
     /**
@@ -241,13 +229,14 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _order the order containing the underlying vault token to fetch the spot price for
      * @return spotPrice the spotPrice of the underlying vault token
      */
-    function _fetchSpotPrice(DataTypes.Order memory _order)
-        internal
-        view
-        returns (uint256 spotPrice)
-    {
-        (, int256 price, , , ) = _order.priceFeed.latestRoundData();
-        spotPrice = uint256(price);
+    function _fetchSpotPrice(
+        LimitOrderStorage.Layout storage _l,
+        DataTypes.Order memory _order
+    ) internal view returns (uint256 spotPrice) {
+        spotPrice = IOptyFiOracle(_l.oracle).getTokenPrice(
+            IVault(_order.vault).underlyingToken(),
+            USD
+        );
     }
 
     /**
