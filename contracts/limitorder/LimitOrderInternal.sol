@@ -6,7 +6,7 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
-import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
+import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
 import { ERC20Utils } from '../utils/ERC20Utils.sol';
 import { ISwap } from '../swap/ISwap.sol';
 
@@ -18,31 +18,17 @@ import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
  * @title Contract for writing limit orders
  * @author OptyFi
  */
-contract LimitOrderInternal is ILimitOrderInternal {
+abstract contract LimitOrderInternal is ILimitOrderInternal {
     using LimitOrderStorage for LimitOrderStorage.Layout;
     using SafeERC20 for IERC20;
 
     uint256 public constant BASIS = 1 ether;
     address public constant USD =
         address(0x0000000000000000000000000000000000000348);
-    address public immutable USDC;
-    address public immutable OPUSDC_VAULT;
-    TokenTransferProxy public immutable TRANSFER_PROXY;
-
-    constructor(
-        address _usdc,
-        address _opUSDCVault,
-        address _treasury,
-        address _optyFiOracle
-    ) {
-        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
-
-        TRANSFER_PROXY = new TokenTransferProxy();
-        USDC = _usdc;
-        OPUSDC_VAULT = _opUSDCVault;
-        l.treasury = _treasury;
-        l.oracle = _optyFiOracle;
-    }
+    address public constant USDC =
+        address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    address public constant OPUSDC_VAULT =
+        address(0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88);
 
     /**
      * @notice cancels an active order
@@ -125,7 +111,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
 
         //transfer vault shares from user
-        TRANSFER_PROXY.transferFrom(
+        ITokenTransferProxy(_l.transferProxy).transferFrom(
             vault,
             _order.maker,
             address(this),
