@@ -22,7 +22,8 @@ library Errors {
     string public constant UNDERLYING_TOKENS_HASH_EXISTS = "17";
     string public constant TRANSFER_TO_THIS_CONTRACT = "18";
     string public constant UNDERLYING_TOKEN_APPROVED = "19";
-    string public constant CLAIM_REWARD = "20";
-    string public constant HARVEST_SOME = "21";
-    string public constant HARVEST_ALL = "22";
+    string public constant CLAIM_REWARD_FAILED = "20";
+    string public constant HARVEST_SOME_FAILED = "21";
+    string public constant HARVEST_ALL_FAILED = "22";
+    string public constant NOTHING_TO_CLAIM = "23";
 }
