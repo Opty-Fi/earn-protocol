@@ -194,9 +194,9 @@ interface IVault {
     /**
      * @notice Retrieve the vault's balance of the reward token of a given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address
-     * @return The vault's balance of claimed reward tokens of a given liquidity pool.
+     * @return The unclaimed vault's balance of claimed reward tokens of a given liquidity pool.
      */
-    function balanceClaimedRewardToken(address _liquidityPool) external view returns (uint256);
+    function balanceUnclaimedClaimedRewardToken(address _liquidityPool) external view returns (uint256);
 
     /**
      * @notice Retrieve reward token unclaimed balance for a given liquidity pool
