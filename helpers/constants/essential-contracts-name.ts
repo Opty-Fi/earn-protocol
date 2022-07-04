@@ -14,4 +14,6 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   ODEFI_VAULT_BOOSTER: "ODEFIVaultBooster",
   ERC20: "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol:ERC20",
   ADAPTER: "IAdapterFull",
+  STRATEGY_MANAGER: "StrategyManager",
+  CLAIM_AND_HARVEST: "ClaimAndHarvest",
 };
