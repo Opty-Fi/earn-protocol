@@ -320,7 +320,6 @@ contract Vault is
      */
     function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyStrategyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
-
         executeCodes(
             _liquidityPool.getStrategyHarvestSomeCodes(
                 address(registryContract),
@@ -332,6 +331,20 @@ contract Vault is
         );
 
         emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
+    }
+
+    function getHarvestCodeProvider() public view returns (address) {
+        return registryContract.getHarvestCodeProvider();
+    }
+
+    function temp(address _liquidityPool, uint256 _rewardTokenAmount) public view returns (bytes[] memory) {
+        return
+            _liquidityPool.getStrategyHarvestSomeCodes(
+                address(registryContract),
+                payable(address(this)),
+                underlyingToken,
+                _rewardTokenAmount
+            );
     }
 
     /**
