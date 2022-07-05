@@ -192,7 +192,8 @@ interface IVault {
     function balanceClaimedRewardToken(address _rewardToken) external view returns (uint256);
 
     /**
-     * @notice Retrieve reward token unclaimed balance for a given liquidity pool
+     * @notice Retrieve reward token unclaimed balance for a given liquidity pool.
+     *         Some protocols might not have a view function to return the unclaimed reward tokens
      * @param _liquidityPool Liquidity pool's contract address
      * @return The unclaimed balance of reward token for a given liquidity pool
      */
