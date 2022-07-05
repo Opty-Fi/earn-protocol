@@ -41,7 +41,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         address _maker,
         address _vault
     ) internal {
-        DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
+        DataTypes.Order memory order = _userVaultOrder(_l, _maker, _vault);
         require(order.maker != address(0), 'Order non-existent');
         require(msg.sender == order.maker, 'Only callable by order maker');
         _l.userVaultOrderActive[_maker][_vault] = false;
@@ -136,10 +136,10 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         (
             uint256 finalUSDCAmount,
             uint256 liquidationFee
-        ) = _applyLiquidationFee(swapOutput, _l.vaultFee[vault]);
-        IERC20(USDC).transfer(_l.treasury, liquidationFee);
+        ) = _applyLiquidationFee(swapOutput, _vaultFee(_l, vault));
+        IERC20(USDC).transfer(_treasury(_l), liquidationFee);
 
-        //deposit remaining tokens to OptyFi USDC vault and send shares to user
+        //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
         IVault(OPUSDC_VAULT).userDepositVault(
             finalUSDCAmount,
             _l.emptyProof,
@@ -243,6 +243,63 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             'user already has an active limit order'
         );
         require(block.timestamp < _endTime, 'end time in past');
+    }
+
+    /**
+     * @notice returns a users active limit order for a target vault
+     * @param _l the layout of the limit order contract
+     * @param _user address of user
+     * @param _vault address of vault
+     * @return order the active limit order
+     */
+    function _userVaultOrder(
+        LimitOrderStorage.Layout storage _l,
+        address _user,
+        address _vault
+    ) internal view returns (DataTypes.Order memory order) {
+        order = _l.userVaultOrder[_user][_vault];
+    }
+
+    /**
+     * @notice returns a boolean indicating whether a user has an active limit order on a vault
+     * @param _l the layout of the limit order contract
+     * @param _user address of user
+     * @param _vault address of vault
+     * @return hasActiveOrder boolean indicating whether user has an active order
+     */
+    function _userVaultOrderActive(
+        LimitOrderStorage.Layout storage _l,
+        address _user,
+        address _vault
+    ) internal view returns (bool hasActiveOrder) {
+        hasActiveOrder = _l.userVaultOrderActive[_user][_vault];
+    }
+
+    /**
+     * @notice returns the liquidation fee for a given vault
+     * @param _l the layout of the limit order contract
+     * @param _vault address of the vault
+     * @return fee in basis points
+     */
+    function _vaultFee(LimitOrderStorage.Layout storage _l, address _vault)
+        internal
+        view
+        returns (uint256 fee)
+    {
+        fee = _l.vaultFee[_vault];
+    }
+
+    /**
+     * @notice returns address of the treasury
+     * @param _l the layout of the limit order contract
+     * @return treasury address
+     */
+    function _treasury(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address treasury)
+    {
+        treasury = _l.treasury;
     }
 
     /**
