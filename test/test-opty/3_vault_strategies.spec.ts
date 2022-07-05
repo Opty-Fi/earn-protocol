@@ -24,6 +24,7 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -32,7 +33,7 @@ const fork = process.env.FORK as eEVMNetwork;
 describe("VaultV2", () => {
   before(async function () {
     await deployments.fixture();
-    const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+    const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
@@ -63,7 +64,7 @@ describe("VaultV2", () => {
       this.vaults[token] = <Vault>(
         await ethers.getContractAt(
           Vault__factory.abi,
-          await (
+          (
             await deployments.get(MultiChainVaults[fork][token][0].name)
           ).address,
         )
@@ -165,6 +166,7 @@ describe("VaultV2", () => {
             expect(poolBalanceBefore).lt(poolBalanceAfter);
           });
           it(`alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
+            const lastPool = strategyDetail.strategy[strategyDetail.strategy.length - 1].contract;
             const signers = [this.signers.alice, this.signers.bob];
             for (let i = 0; i < signers.length; i++) {
               const userWithdrawBalance = await this.vaults[token].balanceOf(signers[i].address);
