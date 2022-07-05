@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
@@ -27,9 +27,8 @@ library DataTypes {
         uint256 endTime;
         uint256 lowerBound;
         uint256 upperBound;
-        address maker;
+        address payable maker;
         address vault;
-        AggregatorV3Interface priceFeed;
         Side side;
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 import { IArbitrarySwapper } from './IArbitrarySwapper.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
@@ -44,17 +44,3 @@ contract ArbitrarySwapper is IArbitrarySwapper {
         );
     }
 }
-
-/**
-mapping(address=>bool) private whitelistedExchanges;
-constructor(address[] memory _exchanges) {
-    uint256 exchangesLength = _exchanges.length;
-    for(uint256 i; i < exchangesLength) {
-        whitelistedExchanges[_exchanges[i]] = true;
-        ++i;
-    }
-}
-function _whitelisted(address _target) internal view {
-    require(whitelistedExchanges[_target], "target is not whitelisted);
-}
- */
