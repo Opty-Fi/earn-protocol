@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
-
 /**
  * @title DataTypes for Limit Orders
  * @author OptyFi
@@ -12,7 +10,7 @@ library DataTypes {
      * @notice encapsulate a limit order
      * @param priceTarget the price target at which the limit order can execute
      * @param liquidationShare the proportion of the investment to be liquidated in basis points
-     * @param id limit order id
+     * @param id unique identifier for limit order
      * @param endTime the ending timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's targetPrice
      * @param upperBound the upper bound in basis points of the limit order's targetPrice
@@ -27,9 +25,8 @@ library DataTypes {
         uint256 endTime;
         uint256 lowerBound;
         uint256 upperBound;
-        address maker;
+        address payable maker;
         address vault;
-        AggregatorV3Interface priceFeed;
         Side side;
     }
 

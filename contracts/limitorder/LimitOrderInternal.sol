@@ -1,56 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { IVault } from './earn/IVault.sol';
+import { IVault } from '../earn/IVault.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
+import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
-import { TokenTransferProxy } from './TokenTransferProxy.sol';
-import { ArbitrarySwapper } from './ArbitrarySwapper.sol';
+import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
+import { ERC20Utils } from '../utils/ERC20Utils.sol';
+import { ISwap } from '../swap/ISwap.sol';
 
-import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import { IOptyFiOracle } from './IOptyFiOracle.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
+import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
  */
-contract LimitOrderInternal is ILimitOrderInternal {
+abstract contract LimitOrderInternal is ILimitOrderInternal {
     using LimitOrderStorage for LimitOrderStorage.Layout;
+    using SafeERC20 for IERC20;
 
-    uint256 internal constant BASIS = 1 ether;
-    address internal immutable USDC;
-    address internal immutable OPUSDC_VAULT;
-    TokenTransferProxy public immutable TRANSFER_PROXY;
-    ArbitrarySwapper public immutable SWAPPER;
-
-    constructor(
-        address _arbitrarySwapper,
-        address _usdc,
-        address _opUSDCVault,
-        address _treasury,
-        address[] memory _tokens,
-        address[] memory _priceFeeds
-    ) {
-        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
-        uint256 priceFeedsLength = _priceFeeds.length;
-
-        require(
-            priceFeedsLength == _tokens.length,
-            'priceFeeds and token lengths mismatch'
-        );
-
-        TRANSFER_PROXY = new TokenTransferProxy();
-        SWAPPER = ArbitrarySwapper(_arbitrarySwapper);
-        USDC = _usdc;
-        OPUSDC_VAULT = _opUSDCVault;
-        l.treasury = _treasury;
-
-        for (uint256 i; i < priceFeedsLength; ) {
-            l.tokenPriceFeed[_tokens[i]] = _priceFeeds[i];
-            ++i;
-        }
-    }
+    uint256 public constant BASIS = 1 ether;
+    address public constant USD =
+        address(0x0000000000000000000000000000000000000348);
+    address public constant USDC =
+        address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    address public constant OPUSDC_VAULT =
+        address(0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88);
 
     /**
      * @notice cancels an active order
@@ -95,15 +73,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         order.priceTarget = _priceTarget;
         order.liquidationShare = _liquidationShare;
+        order.id = _l.id;
         order.endTime = _endTime;
         order.lowerBound = _lowerBound;
         order.upperBound = _upperBound;
         order.vault = _vault;
-        order.id = _l.id;
-        order.maker = msg.sender;
-        order.priceFeed = AggregatorV3Interface(
-            _l.tokenPriceFeed[IVault(_vault).underlyingToken()]
-        );
+        order.maker = payable(msg.sender);
         order.side = _side;
 
         _l.userVaultOrder[msg.sender][_vault] = order;
@@ -117,21 +92,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @notice executes a limit order
      * @param _l the layout of the limit order contract
      * @param _order the limit order to execute
-     * @param _usdcAmountMin the minimum amount of USDC to be received from the swap
-     * @param _target the DEX contract address to perform the swap
-     * @param _data the calldata required for the swap
+     * @param _swapData token swap data
      */
     function _execute(
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order,
-        uint256 _usdcAmountMin,
-        address _target,
-        bytes calldata _data
+        SwapDataTypes.SwapData memory _swapData
     ) internal {
         //check order execution critera
         _canExecute(_l, _order);
+
         address vault = _order.vault;
-        address underlyingToken = IVault(vault).underlyingToken();
 
         //calculate liquidation amount
         uint256 liquidationAmount = _liquidationAmount(
@@ -140,7 +111,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
 
         //transfer vault shares from user
-        TRANSFER_PROXY.transferFrom(
+        ITokenTransferProxy(_l.transferProxy).transferFrom(
             vault,
             _order.maker,
             address(this),
@@ -154,16 +125,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.proof
         );
 
-        //swap underlying for USDC
-        uint256 swapOutput = SWAPPER.swap(
-            underlyingToken,
-            IERC20(underlyingToken).balanceOf(address(this)),
-            USDC,
-            _usdcAmountMin,
-            _target,
-            address(this),
-            _data
+        //perform swap for USDC via swapDiamond
+        (uint256 swapOutput, uint256 leftOver) = ISwap(_l.swapDiamond).swap(
+            _swapData
         );
+
+        IERC20(_swapData.fromToken).safeTransfer(_order.maker, leftOver);
 
         //calculate fee and transfer to treasury
         (
@@ -235,12 +202,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrderActive[_order.maker][_order.vault] == true,
             'user does not have an active order'
         );
-        require(_order.endTime > block.timestamp, 'order expired');
+        require(_order.endTime >= block.timestamp, 'order expired');
         require(
             _l.userVaultOrder[_order.maker][_order.vault].id == _order.id,
-            'order for exececution is not the current order'
-        ); //may be superflous
-        _isSpotPriceBound(_fetchSpotPrice(_order), _order);
+            'order to execute is not current order'
+        );
+        _isSpotPriceBound(_fetchSpotPrice(_l, _order), _order);
     }
 
     /**
@@ -248,13 +215,14 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _order the order containing the underlying vault token to fetch the spot price for
      * @return spotPrice the spotPrice of the underlying vault token
      */
-    function _fetchSpotPrice(DataTypes.Order memory _order)
-        internal
-        view
-        returns (uint256 spotPrice)
-    {
-        (, int256 price, , , ) = _order.priceFeed.latestRoundData();
-        spotPrice = uint256(price);
+    function _fetchSpotPrice(
+        LimitOrderStorage.Layout storage _l,
+        DataTypes.Order memory _order
+    ) internal view returns (uint256 spotPrice) {
+        spotPrice = IOptyFiOracle(_l.oracle).getTokenPrice(
+            IVault(_order.vault).underlyingToken(),
+            USD
+        );
     }
 
     /**
@@ -274,77 +242,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrderActive[_user][_vault] == false,
             'user already has an active limit order'
         );
-        require(_endTime > block.timestamp, 'end time in past');
-    }
-
-    /**
-     * @notice returns a users active limit order for a target vault
-     * @param _l the layout of the limit order contract
-     * @param _user address of user
-     * @param _vault address of vault
-     * @return order the active limit order
-     */
-    function _userVaultOrder(
-        LimitOrderStorage.Layout storage _l,
-        address _user,
-        address _vault
-    ) internal view returns (DataTypes.Order memory order) {
-        order = _l.userVaultOrder[_user][_vault];
-    }
-
-    /**
-     * @notice returns a boolean indicating whether a user has an active limit order on a vault
-     * @param _l the layout of the limit order contract
-     * @param _user address of user
-     * @param _vault address of vault
-     * @return hasActiveOrder boolean indicating whether user has an active order
-     */
-    function _userVaultOrderActive(
-        LimitOrderStorage.Layout storage _l,
-        address _user,
-        address _vault
-    ) internal view returns (bool hasActiveOrder) {
-        hasActiveOrder = _l.userVaultOrderActive[_user][_vault];
-    }
-
-    /**
-     * @notice returns the liquidation fee for a given vault
-     * @param _l the layout of the limit order contract
-     * @param _vault address of the vault
-     * @return fee in basis points
-     */
-    function _vaultFee(LimitOrderStorage.Layout storage _l, address _vault)
-        internal
-        view
-        returns (uint256 fee)
-    {
-        fee = _l.vaultFee[_vault];
-    }
-
-    /**
-     * @notice returns address of the treasury
-     * @param _l the layout of the limit order contract
-     * @return treasury address
-     */
-    function _treasury(LimitOrderStorage.Layout storage _l)
-        internal
-        view
-        returns (address treasury)
-    {
-        treasury = _l.treasury;
-    }
-
-    /**
-     * @notice returns price feed for a given token
-     * @param _l the layout of the limit order contract
-     * @param _token address for the token
-     * @return priceFeed address
-     */
-    function _tokenPriceFeed(
-        LimitOrderStorage.Layout storage _l,
-        address _token
-    ) internal view returns (address priceFeed) {
-        priceFeed = _l.tokenPriceFeed[_token];
+        require(block.timestamp < _endTime, 'end time in past');
     }
 
     /**

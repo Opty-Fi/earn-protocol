@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { OwnableInternal } from '@solidstate/contracts/access/OwnableInternal.sol';
-import { OwnableStorage } from '@solidstate/contracts/access/OwnableInternal.sol';
+import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
+import { OwnableStorage } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 import { AddressUtils } from '@solidstate/contracts/utils/AddressUtils.sol';
