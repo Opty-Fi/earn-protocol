@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import { ILimitOrderSettings } from './ILimitOrderSettings.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
-import { OwnableInternal } from '@solidstate/contracts/access/OwnableInternal.sol';
+import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
 
 contract LimitOrderSettings is
     LimitOrderInternal,

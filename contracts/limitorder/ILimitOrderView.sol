@@ -38,14 +38,4 @@ interface ILimitOrderView {
      * @return treasury address
      */
     function treasury() external view returns (address treasury);
-
-    /**
-     * @notice returns price feed for a given token
-     * @param _token address for the token
-     * @return priceFeed address
-     */
-    function tokenPriceFeed(address _token)
-        external
-        view
-        returns (address priceFeed);
 }

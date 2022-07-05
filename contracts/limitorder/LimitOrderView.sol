@@ -64,15 +64,4 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     function treasury() external view returns (address treasury) {
         treasury = _treasury(LimitOrderStorage.layout());
     }
-
-    /**
-     * @inheritdoc ILimitOrderView
-     */
-    function tokenPriceFeed(address _token)
-        external
-        view
-        returns (address priceFeed)
-    {
-        priceFeed = _tokenPriceFeed(LimitOrderStorage.layout(), _token);
-    }
 }
