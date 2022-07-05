@@ -246,6 +246,63 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice returns a users active limit order for a target vault
+     * @param _l the layout of the limit order contract
+     * @param _user address of user
+     * @param _vault address of vault
+     * @return order the active limit order
+     */
+    function _userVaultOrder(
+        LimitOrderStorage.Layout storage _l,
+        address _user,
+        address _vault
+    ) internal view returns (DataTypes.Order memory order) {
+        order = _l.userVaultOrder[_user][_vault];
+    }
+
+    /**
+     * @notice returns a boolean indicating whether a user has an active limit order on a vault
+     * @param _l the layout of the limit order contract
+     * @param _user address of user
+     * @param _vault address of vault
+     * @return hasActiveOrder boolean indicating whether user has an active order
+     */
+    function _userVaultOrderActive(
+        LimitOrderStorage.Layout storage _l,
+        address _user,
+        address _vault
+    ) internal view returns (bool hasActiveOrder) {
+        hasActiveOrder = _l.userVaultOrderActive[_user][_vault];
+    }
+
+    /**
+     * @notice returns the liquidation fee for a given vault
+     * @param _l the layout of the limit order contract
+     * @param _vault address of the vault
+     * @return fee in basis points
+     */
+    function _vaultFee(LimitOrderStorage.Layout storage _l, address _vault)
+        internal
+        view
+        returns (uint256 fee)
+    {
+        fee = _l.vaultFee[_vault];
+    }
+
+    /**
+     * @notice returns address of the treasury
+     * @param _l the layout of the limit order contract
+     * @return treasury address
+     */
+    function _treasury(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address treasury)
+    {
+        treasury = _l.treasury;
+    }
+
+    /**
      * @notice checks whether spotPrice is within an absolute bound of the target price of a limit order
      * @param _spotPrice the spotPrice of the underlying token of the limit order
      * @param _order the limit order containig the target price to check the spot price against
