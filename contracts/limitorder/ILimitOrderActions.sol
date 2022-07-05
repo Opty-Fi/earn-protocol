@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
+import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 
 interface ILimitOrderActions {
     /**
@@ -34,14 +35,10 @@ interface ILimitOrderActions {
     /**
      * @notice executes a limit order
      * @param _order the limit order to execute
-     * @param _usdcAmountMin the minimum amount of USDC to be received from the swap
-     * @param _target the DEX contract address to perform the swap
-     * @param _data the calldata required for the swap
+     * @param _swapData token swap data
      */
     function execute(
         DataTypes.Order memory _order,
-        uint256 _usdcAmountMin,
-        address _target,
-        bytes calldata _data
+        SwapDataTypes.SwapData memory _swapData
     ) external;
 }

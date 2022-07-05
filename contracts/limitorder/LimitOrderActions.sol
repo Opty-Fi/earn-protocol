@@ -2,29 +2,12 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
+import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderActions } from './ILimitOrderActions.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
-contract LimitOrderActioms is LimitOrderInternal, ILimitOrderActions {
-    constructor(
-        address _arbitrarySwapper,
-        address _usdc,
-        address _opUSDCVault,
-        address _treasury,
-        address[] memory _tokens,
-        address[] memory _priceFeeds
-    )
-        LimitOrderInternal(
-            _arbitrarySwapper,
-            _usdc,
-            _opUSDCVault,
-            _treasury,
-            _tokens,
-            _priceFeeds
-        )
-    {}
-
+abstract contract LimitOrderActioms is LimitOrderInternal, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
@@ -61,16 +44,8 @@ contract LimitOrderActioms is LimitOrderInternal, ILimitOrderActions {
      */
     function execute(
         DataTypes.Order memory _order,
-        uint256 _usdcAmountMin,
-        address _target,
-        bytes calldata _data
+        SwapDataTypes.SwapData memory _swapData
     ) external {
-        _execute(
-            LimitOrderStorage.layout(),
-            _order,
-            _usdcAmountMin,
-            _target,
-            _data
-        );
+        _execute(LimitOrderStorage.layout(), _order, _swapData);
     }
 }

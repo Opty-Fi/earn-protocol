@@ -6,29 +6,11 @@ import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
 
-contract LimitOrderSettings is
+abstract contract LimitOrderSettings is
     LimitOrderInternal,
     OwnableInternal,
     ILimitOrderSettings
 {
-    constructor(
-        address _arbitrarySwapper,
-        address _usdc,
-        address _opUSDCVault,
-        address _treasury,
-        address[] memory _tokens,
-        address[] memory _priceFeeds
-    )
-        LimitOrderInternal(
-            _arbitrarySwapper,
-            _usdc,
-            _opUSDCVault,
-            _treasury,
-            _tokens,
-            _priceFeeds
-        )
-    {}
-
     /**
      * @inheritdoc ILimitOrderSettings
      */

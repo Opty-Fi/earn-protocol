@@ -6,25 +6,7 @@ import { ILimitOrderView } from './ILimitOrderView.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
-contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
-    constructor(
-        address _arbitrarySwapper,
-        address _usdc,
-        address _opUSDCVault,
-        address _treasury,
-        address[] memory _tokens,
-        address[] memory _priceFeeds
-    )
-        LimitOrderInternal(
-            _arbitrarySwapper,
-            _usdc,
-            _opUSDCVault,
-            _treasury,
-            _tokens,
-            _priceFeeds
-        )
-    {}
-
+abstract contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
