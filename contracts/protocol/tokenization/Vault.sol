@@ -330,7 +330,7 @@ contract Vault is
             Errors.HARVEST_SOME_FAILED
         );
 
-        emit Harvested(_liquidityPool, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     /**
@@ -348,7 +348,7 @@ contract Vault is
             Errors.HARVEST_ALL_FAILED
         );
 
-        emit Harvested(_liquidityPool, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     //===Public view functions===//
