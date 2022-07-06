@@ -387,29 +387,13 @@ contract Vault is
             Errors.HARVEST_SOME_FAILED
         );
 
-        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
-    }
-
-    function getHarvestCodeProvider() public view returns (address) {
-        return registryContract.getHarvestCodeProvider();
-    }
-
-    function temp(address _liquidityPool, uint256 _rewardTokenAmount) public view returns (bytes[] memory) {
-        return
-            _liquidityPool.getStrategyHarvestSomeCodes(
-                address(registryContract),
-                payable(address(this)),
-                underlyingToken,
-                _rewardTokenAmount
-            );
+        emit Harvested(_liquidityPool, balanceUT() - _underlyingTokenOldBalance);
     }
 
     /**
      * @inheritdoc IVault
      */
     function harvestAll(address _liquidityPool) external override onlyOperator {
-        uint256 _rewardTokenAmount = balanceUnclaimedRewardToken(_liquidityPool);
-        require(_rewardTokenAmount > 0, Errors.NOTHING_TO_CLAIM);
         uint256 _underlyingTokenOldBalance = balanceUT();
         executeCodes(
             _liquidityPool.getStrategyHarvestAllCodes(
@@ -420,7 +404,7 @@ contract Vault is
             Errors.HARVEST_ALL_FAILED
         );
 
-        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_liquidityPool, balanceUT() - _underlyingTokenOldBalance);
     }
 
     //===Public view functions===//
