@@ -359,17 +359,13 @@ contract Vault is
      * @inheritdoc IVault
      */
     function claimRewardToken(address _liquidityPool) external override onlyOperator {
-        address _rewardToken = _liquidityPool.getRewardToken(address(registryContract));
-        uint256 _balanceRTBefore;
-        if (_rewardToken != address(0)) {
-            _balanceRTBefore = balanceClaimedRewardToken(_rewardToken);
-        }
+        uint256 _balanceRTBefore = balanceClaimedRewardToken(_liquidityPool);
         executeCodes(
             _liquidityPool.getClaimRewardTokenCode(address(registryContract), payable(address(this))),
             Errors.CLAIM_REWARD_FAILED
         );
 
-        emit RewardTokenClaimed(_liquidityPool, balanceClaimedRewardToken(_rewardToken) - _balanceRTBefore);
+        emit RewardTokenClaimed(_liquidityPool, balanceClaimedRewardToken(_liquidityPool) - _balanceRTBefore);
     }
 
     /**
@@ -387,7 +383,7 @@ contract Vault is
             Errors.HARVEST_SOME_FAILED
         );
 
-        emit Harvested(_liquidityPool, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     /**
@@ -395,6 +391,7 @@ contract Vault is
      */
     function harvestAll(address _liquidityPool) external override onlyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
+        uint256 _rewardTokenAmount = balanceClaimedRewardToken(_liquidityPool);
         executeCodes(
             _liquidityPool.getStrategyHarvestAllCodes(
                 address(registryContract),
@@ -404,7 +401,7 @@ contract Vault is
             Errors.HARVEST_ALL_FAILED
         );
 
-        emit Harvested(_liquidityPool, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     //===Public view functions===//
@@ -419,8 +416,8 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function balanceClaimedRewardToken(address _rewardToken) public view override returns (uint256) {
-        return IERC20(_rewardToken).balanceOf(address(this));
+    function balanceClaimedRewardToken(address _liquidityPool) public view override returns (uint256) {
+        return _liquidityPool.getClaimedRewardTokenAmount(address(registryContract), payable(address(this)));
     }
 
     /**

@@ -25,5 +25,5 @@ library Errors {
     string public constant CLAIM_REWARD_FAILED = "20";
     string public constant HARVEST_SOME_FAILED = "21";
     string public constant HARVEST_ALL_FAILED = "22";
-    string public constant NOTHING_TO_CLAIM = "23";
+    string public constant NOTHING_TO_HARVEST = "23";
 }
