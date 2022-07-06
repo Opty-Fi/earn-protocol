@@ -2,6 +2,7 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { SushiswapMasterChefV1Adapter, SushiswapMasterChefV1Adapter__factory } from "../typechain";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
   const { getAddress } = ethers.utils;
@@ -17,6 +18,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const compoundAdapter = await deployments.get("CompoundAdapter");
   const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
   const sushiswapMasterChefV1Adapter = await deployments.get("SushiswapMasterChefV1Adapter");
+  const sushiswapMasterChefV2Adapter = await deployments.get("SushiswapMasterChefV2AdapterEthereum");
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();
@@ -55,6 +57,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
     "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd": { rate: 90, adapter: sushiswapMasterChefV1Adapter.address }, // Sushiswap's MasterChef
     "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c": { rate: 90, adapter: compoundAdapter.address }, // compound AAVE pool
+    "0x6a091a3406E0073C3CD6340122143009aDac0EDa": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-ILV-WETH
+    "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-APE-USDT
+    "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d": { rate: 90, adapter: sushiswapMasterChefV2Adapter.address }, // // Sushiswap's MasterChef V2
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -143,4 +148,5 @@ func.dependencies = [
   "AaveV2Adapter",
   "CompoundAdapter",
   "ConvexFinanceAdapter",
+  "SushiswapMasterChefV2AdapterEthereum",
 ];

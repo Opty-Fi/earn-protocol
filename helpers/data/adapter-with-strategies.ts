@@ -464,6 +464,85 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
+  // ILV:{
+  //   "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP": {
+  //     strategyName: "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP",
+  //     token: "0x767FE9EDC9E0dF98E07454847909b5E959D7ca0E",
+  //     strategy: [
+  //       {
+  //         contract: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
+  //         outputToken: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "ILV-WETH-SLP",
+  //         adapterName: "SushiswapPoolAdapter",
+  //         protocol: "Sushiswap",
+  //       },
+  //     ],
+  //     riskProfileCode: 2,
+  //   },
+  //   "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
+  //     strategyName: "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP-DEPOSIT-SushiswapMasterChef",
+  //     token: "0x767FE9EDC9E0dF98E07454847909b5E959D7ca0E",
+  //     strategy: [
+  //       {
+  //         contract: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
+  //         outputToken: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "ILV-WETH-SLP",
+  //         adapterName: "SushiswapPoolAdapterEthereum",
+  //         protocol: "Sushiswap",
+  //       },
+  //       {
+  //         contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+  //         outputToken: "0x0000000000000000000000000000000000000000",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "",
+  //         adapterName: "SushiswapMasterChefV1Adapter",
+  //         protocol: "Sushiswap",
+  //       },
+  //     ],
+  //     riskProfileCode: 2,
+  //   },
+  APE: {
+    "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP": {
+      strategyName: "ape-DEPOSIT-SushiswapPool-ILV-WETH-SLP",
+      token: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
+      strategy: [
+        {
+          contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          isBorrow: false,
+          outputTokenSymbol: "ILV-WETH-SLP",
+          adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChef": {
+      strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChef",
+      token: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
+      strategy: [
+        {
+          contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
+          isBorrow: false,
+          outputTokenSymbol: "ILV-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
+          outputToken: "0x0000000000000000000000000000000000000000",
+          isBorrow: false,
+          outputTokenSymbol: "",
+          adapterName: "SushiswapMasterChefV2AdapterEthereum",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -906,6 +985,24 @@ const mainnetVaults: VaultType = {
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
+    },
+  ],
+  ILV: [
+    {
+      name: "opILVaggr",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ILV wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ILV minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ILV TVL limit
+    },
+  ],
+  APE: [
+    {
+      name: "opAPEaggr",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 APE wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 APE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 APE TVL limit
     },
   ],
 };
