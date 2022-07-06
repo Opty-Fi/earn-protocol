@@ -368,10 +368,9 @@ interface IVault {
     /**
      * @notice Emitted when harvestAll or harvestSome are called
      * @param liquidityPool Liquidity pool's contract address from where to claim reward tokens
-     * @param rewardTokenAmount Amount of reward token claimed
      * @param underlyingTokenAmount Amount of vault's underlying token harvested
      */
-    event Harvested(address liquidityPool, uint256 rewardTokenAmount, uint256 underlyingTokenAmount);
+    event Harvested(address liquidityPool, uint256 underlyingTokenAmount);
 
     /**
      * @notice Emitted when claimRewardToken is called
