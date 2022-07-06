@@ -9,7 +9,7 @@ import { SwapInternal } from './SwapInternal.sol';
  * @title Swap facet for OptyFiSwap
  * @author OptyFi
  */
-abstract contract Swap is SwapInternal, ISwap {
+contract Swap is SwapInternal, ISwap {
     /**
      * @inheritdoc ISwap
      */

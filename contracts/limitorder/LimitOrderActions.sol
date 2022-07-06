@@ -7,7 +7,7 @@ import { ILimitOrderActions } from './ILimitOrderActions.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
-abstract contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
+contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */

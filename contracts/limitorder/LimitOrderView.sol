@@ -6,7 +6,7 @@ import { ILimitOrderView } from './ILimitOrderView.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
-abstract contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
+contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */

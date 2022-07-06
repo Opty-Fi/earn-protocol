@@ -6,7 +6,7 @@ import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
 
-abstract contract LimitOrderSettings is
+contract LimitOrderSettings is
     LimitOrderInternal,
     OwnableInternal,
     ILimitOrderSettings
