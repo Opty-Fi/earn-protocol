@@ -60,6 +60,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x6a091a3406E0073C3CD6340122143009aDac0EDa": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-ILV-WETH
     "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-APE-USDT
     "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d": { rate: 90, adapter: sushiswapMasterChefV2Adapter.address }, // // Sushiswap's MasterChef V2
+    "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-SUSHI-WETH
+    "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7": { rate: 90, adapter: compoundAdapter.address }, // compound SUSHI pool
   };
 
   const onlyMapPoolsToAdapters = [];
