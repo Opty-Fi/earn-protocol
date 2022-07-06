@@ -138,6 +138,11 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["SUSHI"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  MANA: {
+    address: TypedTokens["MANA"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["MANA"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {
