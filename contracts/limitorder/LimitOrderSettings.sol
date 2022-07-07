@@ -34,4 +34,18 @@ contract LimitOrderSettings is
     {
         _setVaultLiquidationFee(LimitOrderStorage.layout(), _fee, _vault);
     }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setSwapDiamond(address _swapDiamond) external onlyOwner {
+        _setSwapDiamond(LimitOrderStorage.layout(), _swapDiamond);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setOracle(address _oracle) external onlyOwner {
+        _setOracle(LimitOrderStorage.layout(), _oracle);
+    }
 }

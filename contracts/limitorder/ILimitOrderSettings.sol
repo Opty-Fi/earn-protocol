@@ -20,4 +20,16 @@ interface ILimitOrderSettings {
      * @param _vault the target vault
      */
     function setVaultLiquidationFee(uint256 _fee, address _vault) external;
+
+    /**
+     * @notice sets the address of the OptyFiSwapper diamond
+     * @param _swapDiamond the address of the OptyFiSwapper
+     */
+    function setSwapDiamond(address _swapDiamond) external;
+
+    /**
+     * @notice sets the address of the OptyFiOracle to read prices from
+     * @param _oracle the address of the OptyFiOracle
+     */
+    function setOracle(address _oracle) external;
 }

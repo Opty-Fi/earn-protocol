@@ -190,6 +190,29 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice sets the address of the OptyFiSwapper diamond
+     * @param _l the layout of the limit order contract
+     * @param _swapDiamond the address of the OptyFiSwapper
+     */
+    function _setSwapDiamond(
+        LimitOrderStorage.Layout storage _l,
+        address _swapDiamond
+    ) internal {
+        _l.swapDiamond = _swapDiamond;
+    }
+
+    /**
+     * @notice sets the address of the OptyFiOracle to read prices from
+     * @param _l the layout of the limit order contract
+     * @param _oracle the address of the OptyFiOracle
+     */
+    function _setOracle(LimitOrderStorage.Layout storage _l, address _oracle)
+        internal
+    {
+        _l.oracle = _oracle;
+    }
+
+    /**
      * @notice checks whether a limit order may be executed
      * @param _l the layout of the limit order contract
      * @param _order the order to check
