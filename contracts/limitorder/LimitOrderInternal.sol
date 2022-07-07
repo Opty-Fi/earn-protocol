@@ -140,15 +140,21 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         IERC20(USDC).transfer(_treasury(_l), liquidationFee);
 
         //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
-        IVault(OPUSDC_VAULT).userDepositVault(
-            finalUSDCAmount,
-            _l.emptyProof,
-            _l.proof
-        );
-        IERC20(OPUSDC_VAULT).transfer(
-            _order.maker,
-            IERC20(OPUSDC_VAULT).balanceOf(address(this))
-        );
+        //if unsuccessful transfer USDC to user directly
+        try
+            IVault(OPUSDC_VAULT).userDepositVault(
+                finalUSDCAmount,
+                _l.emptyProof,
+                _l.proof
+            )
+        {
+            IERC20(OPUSDC_VAULT).transfer(
+                _order.maker,
+                IERC20(OPUSDC_VAULT).balanceOf(address(this))
+            );
+        } catch {
+            IERC20(USDC).transfer(_order.maker, finalUSDCAmount);
+        }
     }
 
     /**
