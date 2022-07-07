@@ -38,4 +38,28 @@ interface ILimitOrderView {
      * @return treasury address
      */
     function treasury() external view returns (address treasury);
+
+    /**
+     * @notice returns LimitOrderDiamond merkle proof
+     * @return proof LimitOrder merkle proof
+     */
+    function proof() external view returns (bytes32[] memory proof);
+
+    /**
+     * @notice returns address of the OptyFiSwapper diamond
+     * @return swapDiamond address
+     */
+    function swapDiamond() external view returns (address swapDiamond);
+
+    /**
+     * @notice returns address of the OptyFi Oracle
+     * @return oracle address
+     */
+    function oracle() external view returns (address oracle);
+
+    /**
+     * @notice returns address of the TokenTransferProxy
+     * @return transferProxy address
+     */
+    function transferProxy() external view returns (address transferProxy);
 }

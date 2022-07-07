@@ -46,4 +46,32 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     function treasury() external view returns (address treasury) {
         treasury = _treasury(LimitOrderStorage.layout());
     }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function proof() external view returns (bytes32[] memory proof) {
+        proof = _proof(LimitOrderStorage.layout());
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function swapDiamond() external view returns (address swapDiamond) {
+        swapDiamond = _swapDiamond(LimitOrderStorage.layout());
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function oracle() external view returns (address oracle) {
+        oracle = _oracle(LimitOrderStorage.layout());
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function transferProxy() external view returns (address transferProxy) {
+        transferProxy = _transferProxy(LimitOrderStorage.layout());
+    }
 }

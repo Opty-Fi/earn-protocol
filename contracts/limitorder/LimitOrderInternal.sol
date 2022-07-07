@@ -303,6 +303,58 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice returns LimitOrderDiamond merkle proof
+     * @param _l the layout of the limit order contract
+     * @return proof LimitOrder merkle proof
+     */
+    function _proof(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (bytes32[] memory proof)
+    {
+        proof = _l.proof;
+    }
+
+    /**
+     * @notice returns address of the OptyFiSwapper diamond
+     * @param _l the layout of the limit order contract
+     * @return swapDiamond address
+     */
+    function _swapDiamond(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address swapDiamond)
+    {
+        swapDiamond = _l.swapDiamond;
+    }
+
+    /**
+     * @notice returns address of the OptyFi Oracle
+     * @param _l the layout of the limit order contract
+     * @return oracle address
+     */
+    function _oracle(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address oracle)
+    {
+        oracle = _l.oracle;
+    }
+
+    /**
+     * @notice returns address of the TokenTransferProxy
+     * @param _l the layout of the limit order contract
+     * @return transferProxy address
+     */
+    function _transferProxy(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address transferProxy)
+    {
+        transferProxy = _l.transferProxy;
+    }
+
+    /**
      * @notice checks whether spotPrice is within an absolute bound of the target price of a limit order
      * @param _spotPrice the spotPrice of the underlying token of the limit order
      * @param _order the limit order containig the target price to check the spot price against
