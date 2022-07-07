@@ -13,6 +13,8 @@ import {
   ISwapper,
   ILimitOrder__factory,
   ISwapper__factory,
+  OptyFiOracle,
+  OptyFiOracle__factory,
 } from '../typechain-types';
 
 describe('::LimitOrder Contracts', () => {
@@ -25,6 +27,7 @@ describe('::LimitOrder Contracts', () => {
 
   let LimitOrderDiamond: LimitOrderDiamond;
   let OptyFiSwapper: OptyFiSwapper;
+  let Oracle: OptyFiOracle;
 
   let limitOrderInstance: ILimitOrder;
   let swapperInstance: ISwapper;
@@ -34,9 +37,16 @@ describe('::LimitOrder Contracts', () => {
   before(async () => {
     [deployer, treasury] = await ethers.getSigners();
 
+    const day = ethers.BigNumber.from('86400');
+    Oracle = await new OptyFiOracle__factory(deployer).deploy(
+      ethers.utils.getAddress('0x99fa011e33a8c6196869dec7bc407e896ba67fe3'),
+      day,
+      day,
+    );
+
     LimitOrderDiamond = await new LimitOrderDiamond__factory(deployer).deploy(
       treasury.address,
-      ethers.constants.AddressZero,
+      Oracle.address,
     );
 
     const limitOrderSelectors = new Set();
