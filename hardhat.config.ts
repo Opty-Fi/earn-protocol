@@ -32,6 +32,13 @@ export default {
   },
 
   networks: {
+    hardhat: {
+      forking: {
+        url: NODE_URL_MAINNET,
+        blockNumber: 15095000,
+      },
+    },
+
     mainnet: {
       url: NODE_URL_MAINNET,
       accounts: [PKEY_MAINNET],
