@@ -16,7 +16,6 @@ library DataTypes {
      * @param upperBound the upper bound in basis points of the limit order's targetPrice
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
-     * @param side the side of the limit order
      */
     struct Order {
         uint256 priceTarget;
@@ -27,16 +26,5 @@ library DataTypes {
         uint256 upperBound;
         address payable maker;
         address vault;
-        Side side;
-    }
-
-    /**
-     * @notice captures the side of the limit order
-     * @param PROFIT inidcates the limit order must meet a minimum price target to be executed
-     * @param LOSS indicates the limit order must meet a maximum price target to be executed
-     */
-    enum Side {
-        PROFIT,
-        LOSS
     }
 }

@@ -56,7 +56,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _endTime the expiration time of the limit order
      * @param _lowerBound the percentage lower bound of the priceTarget in Basis Points
      * @param _upperBound the percentage upper bound of the priceTarget in Basis Points
-     * @param _side the side of the order (PROFIT|LOSS)
      * @return order the created limit order
      */
     function _createOrder(
@@ -66,8 +65,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _liquidationShare,
         uint256 _endTime,
         uint256 _lowerBound,
-        uint256 _upperBound,
-        DataTypes.Side _side
+        uint256 _upperBound
     ) internal returns (DataTypes.Order memory order) {
         _permitOrderCreation(_l, msg.sender, _vault, _endTime);
 
@@ -79,7 +77,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         order.upperBound = _upperBound;
         order.vault = _vault;
         order.maker = payable(msg.sender);
-        order.side = _side;
 
         _l.userVaultOrder[msg.sender][_vault] = order;
         _l.userVaultOrderActive[msg.sender][_vault] = true;

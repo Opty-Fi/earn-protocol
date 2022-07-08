@@ -19,7 +19,6 @@ interface ILimitOrderActions {
      * @param _endTime the expiration time of the limit order
      * @param _lowerBound the percentage lower bound of the priceTarget in Basis Points
      * @param _upperBound the percentage upper bound of the priceTarget in Basis Points
-     * @param _side the side of the order (PROFIT|LOSS)
      * @return order the created limit order
      */
     function createOrder(
@@ -28,8 +27,7 @@ interface ILimitOrderActions {
         uint256 _liquidationShare,
         uint256 _endTime,
         uint256 _lowerBound,
-        uint256 _upperBound,
-        DataTypes.Side _side
+        uint256 _upperBound
     ) external returns (DataTypes.Order memory order);
 
     /**

@@ -24,8 +24,7 @@ contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
         uint256 _liquidationShare,
         uint256 _endTime,
         uint256 _lowerBound,
-        uint256 _upperBound,
-        DataTypes.Side _side
+        uint256 _upperBound
     ) external returns (DataTypes.Order memory order) {
         order = _createOrder(
             LimitOrderStorage.layout(),
@@ -34,8 +33,7 @@ contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
             _liquidationShare,
             _endTime,
             _lowerBound,
-            _upperBound,
-            _side
+            _upperBound
         );
     }
 
