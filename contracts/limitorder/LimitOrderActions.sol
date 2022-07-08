@@ -18,23 +18,11 @@ contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function createOrder(
-        address _vault,
-        uint256 _priceTarget,
-        uint256 _liquidationShare,
-        uint256 _endTime,
-        uint256 _lowerBound,
-        uint256 _upperBound
-    ) external returns (DataTypes.Order memory order) {
-        order = _createOrder(
-            LimitOrderStorage.layout(),
-            _vault,
-            _priceTarget,
-            _liquidationShare,
-            _endTime,
-            _lowerBound,
-            _upperBound
-        );
+    function createOrder(DataTypes.OrderParams memory _orderParams)
+        external
+        returns (DataTypes.Order memory order)
+    {
+        order = _createOrder(LimitOrderStorage.layout(), _orderParams);
     }
 
     /**
@@ -46,5 +34,15 @@ contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
         SwapDataTypes.SwapData memory _swapData
     ) external {
         _execute(LimitOrderStorage.layout(), _maker, _vault, _swapData);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderActions
+     */
+    function modifyOrder(
+        address _vault,
+        DataTypes.OrderParams memory _orderParams
+    ) external {
+        _modifyOrder(LimitOrderStorage.layout(), _vault, _orderParams);
     }
 }

@@ -13,22 +13,12 @@ interface ILimitOrderActions {
 
     /**
      * @notice creates a limit order
-     * @param _vault the vault the order pertains to
-     * @param _priceTarget the priceTarget at which the order may be executed
-     * @param _liquidationShare the % in basis points of the users vault shares to liquidate
-     * @param _endTime the expiration time of the limit order
-     * @param _lowerBound the percentage lower bound of the priceTarget in Basis Points
-     * @param _upperBound the percentage upper bound of the priceTarget in Basis Points
+     * @param _orderParams the parameters to create the order with
      * @return order the created limit order
      */
-    function createOrder(
-        address _vault,
-        uint256 _priceTarget,
-        uint256 _liquidationShare,
-        uint256 _endTime,
-        uint256 _lowerBound,
-        uint256 _upperBound
-    ) external returns (DataTypes.Order memory order);
+    function createOrder(DataTypes.OrderParams memory _orderParams)
+        external
+        returns (DataTypes.Order memory order);
 
     /**
      * @notice executes a limit order
@@ -40,5 +30,15 @@ interface ILimitOrderActions {
         address _maker,
         address _vault,
         SwapDataTypes.SwapData memory _swapData
+    ) external;
+
+    /**
+     * @notice modifies an existing order
+     * @param _vault the address of the vault the order pertains to
+     * @param _orderParams the parameters to modify the exited order with
+     */
+    function modifyOrder(
+        address _vault,
+        DataTypes.OrderParams memory _orderParams
     ) external;
 }

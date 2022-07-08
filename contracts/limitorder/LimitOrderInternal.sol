@@ -50,37 +50,69 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice creates a limit order
      * @param _l the layout of the limit order contract
-     * @param _vault the vault the order pertains to
-     * @param _priceTarget the priceTarget at which the order may be executed
-     * @param _liquidationShare the % in basis points of the users vault shares to liquidate
-     * @param _endTime the expiration time of the limit order
-     * @param _lowerBound the percentage lower bound of the priceTarget in Basis Points
-     * @param _upperBound the percentage upper bound of the priceTarget in Basis Points
+     * @param _orderParams the parameters to create the order with
      * @return order the created limit order
      */
     function _createOrder(
         LimitOrderStorage.Layout storage _l,
-        address _vault,
-        uint256 _priceTarget,
-        uint256 _liquidationShare,
-        uint256 _endTime,
-        uint256 _lowerBound,
-        uint256 _upperBound
+        DataTypes.OrderParams memory _orderParams
     ) internal returns (DataTypes.Order memory order) {
-        _permitOrderCreation(_l, msg.sender, _vault, _endTime);
+        address vault = _orderParams.vault;
+        _permitOrderCreation(_l, msg.sender, vault, _orderParams.endTime);
 
-        order.priceTarget = _priceTarget;
-        order.liquidationShare = _liquidationShare;
-        order.endTime = _endTime;
-        order.lowerBound = _lowerBound;
-        order.upperBound = _upperBound;
-        order.vault = _vault;
+        order.priceTarget = _orderParams.priceTarget;
+        order.liquidationShare = _orderParams.liquidationShare;
+        order.endTime = _orderParams.endTime;
+        order.lowerBound = _orderParams.lowerBound;
+        order.upperBound = _orderParams.upperBound;
+        order.vault = vault;
         order.maker = payable(msg.sender);
 
-        _l.userVaultOrder[msg.sender][_vault] = order;
-        _l.userVaultOrderActive[msg.sender][_vault] = true;
+        _l.userVaultOrder[msg.sender][vault] = order;
+        _l.userVaultOrderActive[msg.sender][vault] = true;
 
         emit LimitOrderCreated(order);
+    }
+
+    /**
+     * @notice modifies an existing order
+     * @param _l the layout of the limit order contract
+     * @param _vault the address of the vault the order pertains to
+     * @param _orderParams the parameters to modify the exited order with
+     */
+    function _modifyOrder(
+        LimitOrderStorage.Layout storage _l,
+        address _vault,
+        DataTypes.OrderParams memory _orderParams
+    ) internal {
+        address sender = msg.sender;
+        require(
+            _l.userVaultOrderActive[sender][_vault] == true,
+            'user does not have an active order'
+        );
+
+        DataTypes.Order memory order = _l.userVaultOrder[sender][_vault];
+
+        if (_orderParams.vault != address(0)) {
+            order.vault = _orderParams.vault;
+        }
+        if (_orderParams.priceTarget != 0) {
+            order.priceTarget = _orderParams.priceTarget;
+        }
+        if (_orderParams.liquidationShare != 0) {
+            order.liquidationShare = _orderParams.liquidationShare;
+        }
+        if (_orderParams.endTime != 0) {
+            order.endTime = _orderParams.endTime;
+        }
+        if (_orderParams.lowerBound != 0) {
+            order.lowerBound = _orderParams.lowerBound;
+        }
+        if (_orderParams.upperBound != 0) {
+            order.upperBound = _orderParams.upperBound;
+        }
+
+        _l.userVaultOrder[sender][order.vault] = order;
     }
 
     /**
