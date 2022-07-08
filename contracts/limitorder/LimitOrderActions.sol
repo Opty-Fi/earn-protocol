@@ -41,9 +41,10 @@ contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
      * @inheritdoc ILimitOrderActions
      */
     function execute(
-        DataTypes.Order memory _order,
+        address _maker,
+        address _vault,
         SwapDataTypes.SwapData memory _swapData
     ) external {
-        _execute(LimitOrderStorage.layout(), _order, _swapData);
+        _execute(LimitOrderStorage.layout(), _maker, _vault, _swapData);
     }
 }

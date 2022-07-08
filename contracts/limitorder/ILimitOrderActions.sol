@@ -32,11 +32,13 @@ interface ILimitOrderActions {
 
     /**
      * @notice executes a limit order
-     * @param _order the limit order to execute
+     * @param _maker address of order maker
+     * @param _vault address of vault that order pertains to
      * @param _swapData token swap data
      */
     function execute(
-        DataTypes.Order memory _order,
+        address _maker,
+        address _vault,
         SwapDataTypes.SwapData memory _swapData
     ) external;
 }

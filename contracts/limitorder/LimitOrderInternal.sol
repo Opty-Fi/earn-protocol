@@ -71,7 +71,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
 
         order.priceTarget = _priceTarget;
         order.liquidationShare = _liquidationShare;
-        order.id = _l.id;
         order.endTime = _endTime;
         order.lowerBound = _lowerBound;
         order.upperBound = _upperBound;
@@ -80,7 +79,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
 
         _l.userVaultOrder[msg.sender][_vault] = order;
         _l.userVaultOrderActive[msg.sender][_vault] = true;
-        ++_l.id;
 
         emit LimitOrderCreated(order);
     }
@@ -88,35 +86,38 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice executes a limit order
      * @param _l the layout of the limit order contract
-     * @param _order the limit order to execute
+     * @param _maker address of order maker
+     * @param _vault address of vault that order pertains to
      * @param _swapData token swap data
      */
     function _execute(
         LimitOrderStorage.Layout storage _l,
-        DataTypes.Order memory _order,
+        address _maker,
+        address _vault,
         SwapDataTypes.SwapData memory _swapData
     ) internal {
+        DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
         //check order execution critera
-        _canExecute(_l, _order);
+        _canExecute(_l, order);
 
-        address vault = _order.vault;
+        address vault = order.vault;
 
         //calculate liquidation amount
         uint256 liquidationAmount = _liquidationAmount(
-            IERC20(vault).balanceOf(_order.maker),
-            _order.liquidationShare
+            IERC20(vault).balanceOf(order.maker),
+            order.liquidationShare
         );
 
         //transfer vault shares from user
         ITokenTransferProxy(_l.transferProxy).transferFrom(
             vault,
-            _order.maker,
+            order.maker,
             address(this),
             liquidationAmount
         );
 
         //withdraw vault shares for underlying
-        IVault(_order.vault).userWithdrawVault(
+        IVault(order.vault).userWithdrawVault(
             liquidationAmount,
             _l.emptyProof,
             _l.proof
@@ -127,7 +128,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             _swapData
         );
 
-        IERC20(_swapData.fromToken).safeTransfer(_order.maker, leftOver);
+        IERC20(_swapData.fromToken).safeTransfer(order.maker, leftOver);
 
         //calculate fee and transfer to treasury
         (
@@ -146,11 +147,11 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             )
         {
             IERC20(OPUSDC_VAULT).transfer(
-                _order.maker,
+                order.maker,
                 IERC20(OPUSDC_VAULT).balanceOf(address(this))
             );
         } catch {
-            IERC20(USDC).transfer(_order.maker, finalUSDCAmount);
+            IERC20(USDC).transfer(order.maker, finalUSDCAmount);
         }
     }
 
@@ -229,10 +230,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             'user does not have an active order'
         );
         require(_order.endTime >= block.timestamp, 'order expired');
-        require(
-            _l.userVaultOrder[_order.maker][_order.vault].id == _order.id,
-            'order to execute is not current order'
-        );
         _isSpotPriceBound(_fetchSpotPrice(_l, _order), _order);
     }
 
