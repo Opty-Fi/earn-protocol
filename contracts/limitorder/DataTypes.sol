@@ -15,6 +15,7 @@ library DataTypes {
      * @param upperBound the upper bound in basis points of the limit order's targetPrice
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
+     * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct Order {
         uint256 priceTarget;
@@ -24,6 +25,7 @@ library DataTypes {
         uint256 upperBound;
         address payable maker;
         address vault;
+        bool depositUSDC;
     }
 
     /**
@@ -34,6 +36,7 @@ library DataTypes {
      * @param lowerBound the lower bound in basis points of the limit order's targetPrice
      * @param upperBound the upper bound in basis points of the limit order's targetPrice
      * @param vault the vault the order pertains to
+     * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct OrderParams {
         uint256 priceTarget;
@@ -42,5 +45,6 @@ library DataTypes {
         uint256 lowerBound;
         uint256 upperBound;
         address vault;
+        bool depositUSDC;
     }
 }

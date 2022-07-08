@@ -67,6 +67,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         order.upperBound = _orderParams.upperBound;
         order.vault = vault;
         order.maker = payable(msg.sender);
+        order.depositUSDC = _orderParams.depositUSDC;
 
         _l.userVaultOrder[msg.sender][vault] = order;
         _l.userVaultOrderActive[msg.sender][vault] = true;
@@ -110,6 +111,9 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         }
         if (_orderParams.upperBound != 0) {
             order.upperBound = _orderParams.upperBound;
+        }
+        if (_orderParams.depositUSDC != order.depositUSDC) {
+            order.depositUSDC = _orderParams.depositUSDC;
         }
 
         _l.userVaultOrder[sender][order.vault] = order;
@@ -171,18 +175,22 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
 
         //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
         //if unsuccessful transfer USDC to user directly
-        try
-            IVault(OPUSDC_VAULT).userDepositVault(
-                finalUSDCAmount,
-                _l.emptyProof,
-                _l.proof
-            )
-        {
-            IERC20(OPUSDC_VAULT).transfer(
-                order.maker,
-                IERC20(OPUSDC_VAULT).balanceOf(address(this))
-            );
-        } catch {
+        if (order.depositUSDC) {
+            try
+                IVault(OPUSDC_VAULT).userDepositVault(
+                    finalUSDCAmount,
+                    _l.emptyProof,
+                    _l.proof
+                )
+            {
+                IERC20(OPUSDC_VAULT).transfer(
+                    order.maker,
+                    IERC20(OPUSDC_VAULT).balanceOf(address(this))
+                );
+            } catch {
+                IERC20(USDC).transfer(order.maker, finalUSDCAmount);
+            }
+        } else {
             IERC20(USDC).transfer(order.maker, finalUSDCAmount);
         }
     }
