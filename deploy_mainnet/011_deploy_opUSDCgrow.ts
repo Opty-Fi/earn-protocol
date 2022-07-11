@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { waitforme } from "../helpers/utils";
+import { waitforme, getCodesMerkleRoot, getAccountsMerkleRoot } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -20,7 +20,7 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
@@ -86,7 +86,19 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USD Coin", "USDC", "1"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "USD Coin",
+            "USDC",
+            "1",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
         },
       },
     },

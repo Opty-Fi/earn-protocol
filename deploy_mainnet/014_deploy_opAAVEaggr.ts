@@ -93,7 +93,19 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "2"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "Aave Token",
+            "AAVE",
+            "2",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
         },
       },
     },
