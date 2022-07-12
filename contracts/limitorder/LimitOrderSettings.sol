@@ -6,11 +6,22 @@ import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
 
+/**
+ * @title LimitOrderActions facet for LimitOrderDiamond
+ * @author OptyFi
+ * @dev contains all governance-facing actions
+ */
 contract LimitOrderSettings is
     LimitOrderInternal,
     OwnableInternal,
     ILimitOrderSettings
 {
+    constructor(
+        address _usd,
+        address _usdc,
+        address _opUSDC
+    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+
     /**
      * @inheritdoc ILimitOrderSettings
      */

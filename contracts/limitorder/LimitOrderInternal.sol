@@ -18,17 +18,24 @@ import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
  * @title Contract for writing limit orders
  * @author OptyFi
  */
-abstract contract LimitOrderInternal is ILimitOrderInternal {
+contract LimitOrderInternal is ILimitOrderInternal {
     using LimitOrderStorage for LimitOrderStorage.Layout;
     using SafeERC20 for IERC20;
 
     uint256 public constant BASIS = 1 ether;
-    address public constant USD =
-        address(0x0000000000000000000000000000000000000348);
-    address public constant USDC =
-        address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    address public constant OPUSDC_VAULT =
-        address(0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88);
+    address public immutable USD;
+    address public immutable USDC;
+    address public immutable OPUSDC_VAULT;
+
+    constructor(
+        address _usd,
+        address _usdc,
+        address _opUSDCVault
+    ) {
+        USD = _usd;
+        USDC = _usdc;
+        OPUSDC_VAULT = _opUSDCVault;
+    }
 
     /**
      * @notice cancels an active order
@@ -163,7 +170,9 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             _swapData
         );
 
-        IERC20(_swapData.fromToken).safeTransfer(order.maker, leftOver);
+        if (leftOver > 0) {
+            IERC20(_swapData.fromToken).safeTransfer(order.maker, leftOver);
+        }
 
         //calculate fee and transfer to treasury
         (

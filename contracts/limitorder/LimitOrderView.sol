@@ -6,7 +6,18 @@ import { ILimitOrderView } from './ILimitOrderView.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
+/**
+ * @title LimitOrderActions facet for LimitOrderDiamond
+ * @author OptyFi
+ * @dev contains all viewing actions
+ */
 contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
+    constructor(
+        address _usd,
+        address _usdc,
+        address _opUSDC
+    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+
     /**
      * @inheritdoc ILimitOrderView
      */

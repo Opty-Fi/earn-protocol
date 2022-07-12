@@ -7,7 +7,18 @@ import { ILimitOrderActions } from './ILimitOrderActions.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
+/**
+ * @title LimitOrderActions facet for LimitOrderDiamond
+ * @author OptyFi
+ * @dev contains all user-facing actions
+ */
 contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
+    constructor(
+        address _usd,
+        address _usdc,
+        address _opUSDC
+    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+
     /**
      * @inheritdoc ILimitOrderActions
      */
