@@ -76,18 +76,30 @@ contract Vault is
 
     /**
      * @dev Initialize the vault
-     * @param _registry the address of registry for helping get the protocol configuration
+     * @param _registry The address of registry for helping get the protocol configuration
      * @param _underlyingTokensHash The keccak256 hash of the tokens and chain id
+     * @param _whitelistedCodesRoot Whitelisted codes root hash
+     * @param _whitelistedAccountsRoot Whitelisted accounts root hash
      * @param _name The name of the underlying asset
      * @param _symbol The symbol of the underlying  asset
      * @param _riskProfileCode Risk profile code of this vault
+     * @param _vaultConfiguration Bit banging value for vault config
+     * @param _userDepositCapUT Maximum amount in underlying token allowed to be deposited by user
+     * @param _minimumDepositValueUT Minimum deposit value in underlying token required
+     * @param _totalValueLockedLimitUT Maximum TVL in underlying token allowed for the vault
      */
     function initialize(
         address _registry,
         bytes32 _underlyingTokensHash,
+        bytes32 _whitelistedCodesRoot,
+        bytes32 _whitelistedAccountsRoot,
         string memory _name,
         string memory _symbol,
-        uint256 _riskProfileCode
+        uint256 _riskProfileCode,
+        uint256 _vaultConfiguration,
+        uint256 _userDepositCapUT,
+        uint256 _minimumDepositValueUT,
+        uint256 _totalValueLockedLimitUT
     ) external virtual initializer {
         require(bytes(_name).length > 0, Errors.EMPTY_STRING);
         require(bytes(_symbol).length > 0, Errors.EMPTY_STRING);
@@ -98,6 +110,10 @@ contract Vault is
         _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile.name)));
         _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
         _setDecimals(IncentivisedERC20(underlyingToken).decimals());
+        _setWhitelistedCodesRoot(_whitelistedCodesRoot);
+        _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
+        _setVaultConfiguration(_vaultConfiguration);
+        _setValueControlParams(_userDepositCapUT, _minimumDepositValueUT, _totalValueLockedLimitUT);
     }
 
     /**
@@ -122,16 +138,14 @@ contract Vault is
         uint256 _minimumDepositValueUT,
         uint256 _totalValueLockedLimitUT
     ) external override onlyFinanceOperator {
-        _setUserDepositCapUT(_userDepositCapUT);
-        _setMinimumDepositValueUT(_minimumDepositValueUT);
-        _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
+        _setValueControlParams(_userDepositCapUT, _minimumDepositValueUT, _totalValueLockedLimitUT);
     }
 
     /**
      * @inheritdoc IVault
      */
     function setVaultConfiguration(uint256 _vaultConfiguration) external override onlyGovernance {
-        vaultConfiguration = _vaultConfiguration;
+        _setVaultConfiguration(_vaultConfiguration);
     }
 
     /**
@@ -159,14 +173,14 @@ contract Vault is
      * @inheritdoc IVault
      */
     function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external override onlyGovernance {
-        whitelistedAccountsRoot = _whitelistedAccountsRoot;
+        _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
     }
 
     /**
      * @inheritdoc IVault
      */
     function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external override onlyGovernance {
-        whitelistedCodesRoot = _whitelistedCodesRoot;
+        _setWhitelistedCodesRoot(_whitelistedCodesRoot);
     }
 
     /**
@@ -751,6 +765,48 @@ contract Vault is
         require(registryContract.isApprovedToken(_tokens[0]), Errors.UNDERLYING_TOKEN_APPROVED);
         underlyingTokensHash = _underlyingTokensHash;
         underlyingToken = _tokens[0];
+    }
+
+    /**
+     * @dev Internal function to configure the vault's fee params
+     * @param _vaultConfiguration bit banging value for vault config
+     */
+    function _setVaultConfiguration(uint256 _vaultConfiguration) internal {
+        vaultConfiguration = _vaultConfiguration;
+    }
+
+    /**
+     * @dev Internal function to control the allowance of user interaction
+     *         only when vault's whitelistedstate is enabled
+     * @param _whitelistedAccountsRoot whitelisted accounts root hash
+     */
+    function _setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) internal {
+        whitelistedAccountsRoot = _whitelistedAccountsRoot;
+    }
+
+    /**
+     * @dev Internal function to control the allowance of smart contract interaction
+     *         with vault
+     * @param _whitelistedCodesRoot whitelisted codes root hash
+     */
+    function _setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) internal {
+        whitelistedCodesRoot = _whitelistedCodesRoot;
+    }
+
+    /**
+     * @dev Internal function to configure the vault's value control params
+     * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
+     * @param _minimumDepositValueUT minimum deposit value in underlying token required
+     * @param _totalValueLockedLimitUT maximum TVL in underlying token allowed for the vault
+     */
+    function _setValueControlParams(
+        uint256 _userDepositCapUT,
+        uint256 _minimumDepositValueUT,
+        uint256 _totalValueLockedLimitUT
+    ) internal {
+        _setUserDepositCapUT(_userDepositCapUT);
+        _setMinimumDepositValueUT(_minimumDepositValueUT);
+        _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
     }
 
     //===Internal view functions===//
