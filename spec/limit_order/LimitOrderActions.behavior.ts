@@ -20,7 +20,7 @@ export function describeBehaviorOfLimitOrderActions(
   let instance: ILimitOrder;
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
   const optyFiVaultOperatorAddress =
-    '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
+    '0x6bd60f089B6E8BA75c409a54CDea34AA511277f6';
   const AaveERC20Address = '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9';
   const AaveWhaleAddress = '0x80845058350b8c3df5c3015d8a717d64b3bf9267';
 
