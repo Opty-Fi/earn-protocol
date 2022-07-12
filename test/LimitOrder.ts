@@ -33,6 +33,9 @@ describe('::LimitOrder Contracts', () => {
   let swapperInstance: ISwapper;
 
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
+  const USD = '0x0000000000000000000000000000000000000348'; //mainnet
+  const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; //mainnet
+  const opUSDC = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88'; //mainnet
 
   before(async () => {
     [deployer, treasury] = await ethers.getSigners();
@@ -52,9 +55,9 @@ describe('::LimitOrder Contracts', () => {
     const limitOrderSelectors = new Set();
 
     const limitOrderFacetCuts = [
-      await new LimitOrderActions__factory(deployer).deploy(),
-      await new LimitOrderSettings__factory(deployer).deploy(),
-      await new LimitOrderView__factory(deployer).deploy(),
+      await new LimitOrderActions__factory(deployer).deploy(USD, USDC, opUSDC),
+      await new LimitOrderSettings__factory(deployer).deploy(USD, USDC, opUSDC),
+      await new LimitOrderView__factory(deployer).deploy(USD, USDC, opUSDC),
     ].map(function (f) {
       return {
         target: f.address,

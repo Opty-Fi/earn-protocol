@@ -58,4 +58,26 @@ interface IVault {
      * @return underlying token address
      */
     function underlyingToken() external view returns (address);
+
+    /**
+     * @notice Single function to configure the vault's fee params
+     * @dev bit 0-15 deposit fee in underlying token without decimals
+     *      bit 16-31 deposit fee in basis points
+     *      bit 32-47 withdrawal fee in underlying token without decimals
+     *      bit 48-63 withdrawal fee in basis points
+     *      bit 64-79 max vault value jump allowed in basis points (standard deviation allowed for vault value)
+     *      bit 80-239 vault fee collection address
+     *      bit 240-247 risk profile code
+     *      bit 248 emergency shutdown flag
+     *      bit 249 pause flag (deposit/withdraw is pause when bit is unset, unpause otherwise)
+     *      bit 250 white list state flag
+     * @param _vaultConfiguration bit banging value for vault config
+     */
+    function setVaultConfiguration(uint256 _vaultConfiguration) external;
+
+    /**
+     * @notice returns vault configuration
+     * @return uint256 vaultConfiguration
+     */
+    function vaultConfiguration() external view returns (uint256);
 }
