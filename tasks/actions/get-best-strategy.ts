@@ -1,22 +1,17 @@
 import { task, types } from "hardhat/config";
-import { isAddress, generateTokenHash } from "../../helpers/helpers";
+import { isAddress, generateTokenHashV2 } from "../../helpers/helpers";
 import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import TASKS from "../task-names";
+import { NETWORKS_CHAIN_ID_TO_HEX } from "../../helper-hardhat-config";
+import { Registry, StrategyProvider } from "../../typechain";
 
 task(TASKS.ACTION_TASKS.GET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.GET_BEST_STRATEGY.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
   .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
-  .addParam("strategyprovider", "the address of strategyProvider", "", types.string)
   .addParam("isdefault", "get default strategy or not", false, types.boolean)
-  .setAction(async ({ token, riskprofilecode, strategyprovider, isdefault }, hre) => {
-    if (strategyprovider === "") {
-      throw new Error("strategyprovider cannot be empty");
-    }
-
-    if (!isAddress(strategyprovider)) {
-      throw new Error("strategyprovider address is invalid");
-    }
+  .setAction(async ({ token, riskprofilecode, isdefault }, hre) => {
+    const chainId = await hre.getChainId();
 
     if (token === "") {
       throw new Error("token cannot be empty");
@@ -31,15 +26,19 @@ task(TASKS.ACTION_TASKS.GET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.GET_BEST_STRA
     }
 
     try {
-      const strategyProvider = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyprovider);
-      const tokensHash = generateTokenHash([token]);
-      let strategyHash = "";
+      const strategyProviderAddress = (await hre.deployments.get("StrategyProvider")).address;
+      const strategyProvider = <StrategyProvider>(
+        await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyProviderAddress)
+      );
+      const tokensHash = generateTokenHashV2([token], NETWORKS_CHAIN_ID_TO_HEX[chainId]);
+
+      let strategyHash = [];
       if (isdefault) {
         strategyHash = await strategyProvider.getRpToTokenToDefaultStrategy(riskprofilecode, tokensHash);
       } else {
         strategyHash = await strategyProvider.getRpToTokenToBestStrategy(riskprofilecode, tokensHash);
       }
-      console.log(`StrategyHash : ${strategyHash}`);
+      console.log("StrategyHash :", strategyHash);
     } catch (error: any) {
       console.error(`${TASKS.ACTION_TASKS.GET_BEST_STRATEGY.NAME}: `, error);
       throw error;
