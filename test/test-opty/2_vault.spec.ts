@@ -32,7 +32,7 @@ import {
   Vault__factory,
   TestVault,
 } from "../../typechain";
-import { setTokenBalanceInStorage, moveAmountOfBlocks } from "./utils";
+import { setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
@@ -1157,40 +1157,6 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#balanceUnclaimedRewardToken()", function () {
-    it("balanceUnclaimedRewardToken() return 0", async function () {
-      // CompoundAdapter: Requires write call to get unclaimed COMP tokens
-      await this.vault.connect(this.signers.governance).setEmergencyShutdown(false);
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
-      await this.vault.rebalance();
-      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-      expect(await this.vault.balanceUnclaimedRewardToken(_pool)).to.eq(0);
-    });
-  });
-
-  describe("#claimRewardToken(address)", function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-
-    it("fail claimRewardToken() call by non operator", async function () {
-      await expect(this.vault.connect(this.signers.bob).claimRewardToken(_pool)).to.be.revertedWith(
-        "caller is not the operator",
-      );
-    });
-
-    it("claimRewardToken(), fails nothing to claim", async function () {
-      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
-      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
-      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
-      const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
-      const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.vault.address);
-      expect(await this.vault.claimRewardToken(_pool)).to.emit(this.vault, "RewardTokenClaimed");
-      const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.vault.address);
-      expect(_balanceRTAfter).to.gt(_balanceRTBefore);
-    });
-  });
-
   describe("#setUnderlyingTokensHash(bytes32)", function () {
     it("fail setUnderlyingTokensHash() call by non operator", async function () {
       await expect(
@@ -1257,30 +1223,75 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#harvestSome(address,uint256)", function () {
+  describe("#balanceUnclaimedRewardToken()", function () {
+    it("balanceUnclaimedRewardToken() return 0", async function () {
+      // CompoundAdapter: Requires write call to get unclaimed COMP tokens
+      await this.vault.connect(this.signers.governance).setEmergencyShutdown(false);
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
+      await this.vault.rebalance();
+      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+      expect(await this.vault.balanceUnclaimedRewardToken(_pool)).to.eq(0);
+    });
+  });
+
+  describe("#claimRewardToken(address)", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-    it("fail harvestSome() call by non operator", async function () {
-      await expect(this.vault.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1))).to.be.revertedWith(
+
+    it("fail claimRewardToken() call by non operator", async function () {
+      await expect(this.vault.connect(this.signers.bob).claimRewardToken(_pool)).to.be.revertedWith(
         "caller is not the operator",
       );
     });
 
+    it("claimRewardToken(), fails nothing to claim", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
+      const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
+      const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.vault.address);
+      expect(await this.vault.claimRewardToken(_pool)).to.emit(this.vault, "RewardTokenClaimed");
+      const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.vault.address);
+      expect(_balanceRTAfter).to.gt(_balanceRTBefore);
+    });
+  });
+
+  describe("#harvestSome(address,uint256)", function () {
+    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+
+    it("fail harvestSome() call by non strategyOperator", async function () {
+      await expect(this.vault.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000))).to.be.revertedWith(
+        "caller is not the strategyOperator",
+      );
+    });
+
     it("harvestSome()", async function () {
-      await this.vault.harvestSome(_pool, BigNumber.from(1));
+      const _balanceClaimed = await this.vault.balanceClaimedRewardToken(_pool);
+      const _balanceBeforeUT = await this.vault.balanceUT();
+      await expect(this.vault.harvestSome(_pool, BigNumber.from(_balanceClaimed.div(2)))).to.emit(
+        this.vault,
+        "Harvested",
+      );
+      const _balanceAfterUT = await this.vault.balanceUT();
+      expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });
   });
 
   describe("#harvestAll(address)", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail harvestSome() call by non operator", async function () {
+    it("fail harvestAll() call by non strategyOperator", async function () {
       await expect(this.vault.connect(this.signers.bob).harvestAll(_pool)).to.be.revertedWith(
-        "caller is not the operator",
+        "caller is not the strategyOperator",
       );
     });
 
-    it("harvestSome()", async function () {
-      await this.vault.harvestSome(_pool, BigNumber.from(1));
+    it("harvestAll()", async function () {
+      const _balanceBeforeUT = await this.vault.balanceUT();
+      await expect(this.vault.harvestAll(_pool)).to.emit(this.vault, "Harvested");
+      const _balanceAfterUT = await this.vault.balanceUT();
+      expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });
   });
 
