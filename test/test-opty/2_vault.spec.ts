@@ -1239,9 +1239,9 @@ describe("::Vault", function () {
   describe("#claimRewardToken(address)", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail claimRewardToken() call by non operator", async function () {
+    it("fail claimRewardToken() call by non strategyOperator", async function () {
       await expect(this.vault.connect(this.signers.bob).claimRewardToken(_pool)).to.be.revertedWith(
-        "caller is not the operator",
+        "caller is not the strategyOperator",
       );
     });
 
