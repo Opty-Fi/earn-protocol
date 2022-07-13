@@ -35,9 +35,9 @@ task(TASKS.ACTION_TASKS.GET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.GET_BEST_STRA
       const tokensHash = generateTokenHash([token]);
       let strategyHash = "";
       if (isdefault) {
-        strategyHash = await strategyProvider.rpToTokenToDefaultStrategy(riskprofilecode, tokensHash);
+        strategyHash = await strategyProvider.getRpToTokenToDefaultStrategy(riskprofilecode, tokensHash);
       } else {
-        strategyHash = await strategyProvider.rpToTokenToBestStrategy(riskprofilecode, tokensHash);
+        strategyHash = await strategyProvider.getRpToTokenToBestStrategy(riskprofilecode, tokensHash);
       }
       console.log(`StrategyHash : ${strategyHash}`);
     } catch (error: any) {
