@@ -1339,6 +1339,7 @@ describe("::Vault", function () {
     it("fail claimRewardToken() call by non strategyOperator", async function () {
       await expect(this.vault.connect(this.signers.bob).claimRewardToken(_pool)).to.be.revertedWith(
         "caller is not the strategyOperator",
+<<<<<<< HEAD
       );
     });
 
@@ -1360,6 +1361,8 @@ describe("::Vault", function () {
     it("fail harvestSome() call by non strategyOperator", async function () {
       await expect(this.vault.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000))).to.be.revertedWith(
         "caller is not the strategyOperator",
+=======
+>>>>>>> da2c66e2 (fix(vault): harvest and claim by strategyoperator)
       );
     });
 
