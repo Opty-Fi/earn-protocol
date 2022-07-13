@@ -372,7 +372,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function claimRewardToken(address _liquidityPool) external override onlyOperator {
+    function claimRewardToken(address _liquidityPool) external override onlyStrategyOperator {
         uint256 _balanceRTBefore = balanceClaimedRewardToken(_liquidityPool);
         executeCodes(
             _liquidityPool.getClaimRewardTokenCode(address(registryContract), payable(address(this))),
@@ -385,7 +385,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyOperator {
+    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyStrategyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
         executeCodes(
             _liquidityPool.getStrategyHarvestSomeCodes(
@@ -403,7 +403,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function harvestAll(address _liquidityPool) external override onlyOperator {
+    function harvestAll(address _liquidityPool) external override onlyStrategyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
         uint256 _rewardTokenAmount = balanceClaimedRewardToken(_liquidityPool);
         executeCodes(
