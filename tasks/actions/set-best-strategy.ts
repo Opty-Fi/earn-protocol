@@ -14,12 +14,8 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
     try {
       const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
       const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-      const strategyProviderAddress = await ethers.getContractAt(
-        StrategyProvider__factory.abi,
-        await registryInstance.getStrategyProvider(),
-      );
       const strategyProviderInstance = <StrategyProvider>(
-        await ethers.getContractAt(StrategyProvider__factory.abi, strategyProviderAddress.address)
+        await ethers.getContractAt(StrategyProvider__factory.abi, await registryInstance.getStrategyProvider())
       );
       const strategyOperatorAddress = await registryInstance.strategyOperator();
       const signer = await ethers.getSigner(strategyOperatorAddress);
