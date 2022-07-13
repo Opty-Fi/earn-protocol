@@ -5,7 +5,12 @@ import TASKS from "../task-names";
 
 task(TASKS.ACTION_TASKS.SET_MAX_DEPOSIT_MODE.NAME, TASKS.ACTION_TASKS.SET_MAX_DEPOSIT_MODE.DESCRIPTION)
   .addParam("adapter", "the address of defi adapter", "", types.string)
-  .addParam("mode", "the mode of max deposit", "", types.string)
+  .addParam(
+    "mode",
+    "the mode of max deposit: 'pct'- Percentage of pool value 'number'- Amount in underlying token",
+    "",
+    types.string,
+  )
   .setAction(async ({ adapter, mode }, hre) => {
     if (adapter === "") {
       throw new Error("adapter cannot be empty");
