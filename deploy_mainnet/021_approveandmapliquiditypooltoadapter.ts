@@ -2,7 +2,6 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { SushiswapMasterChefV1Adapter, SushiswapMasterChefV1Adapter__factory } from "../typechain";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
   const { getAddress } = ethers.utils;
@@ -19,6 +18,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
   const sushiswapMasterChefV1Adapter = await deployments.get("SushiswapMasterChefV1Adapter");
   const sushiswapMasterChefV2Adapter = await deployments.get("SushiswapMasterChefV2AdapterEthereum");
+  const sushiBarAdapter = await deployments.get("SushiBarAdapter");
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();
@@ -63,6 +63,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-SUSHI-WETH
     "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7": { rate: 90, adapter: compoundAdapter.address }, // compound SUSHI pool
     "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-MANA-WETH
+    "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272": { rate: 50, adapter: sushiBarAdapter.address }, // xSUSHI
   };
 
   const onlyMapPoolsToAdapters = [];
