@@ -1363,6 +1363,27 @@ describe("::Vault", function () {
       );
     });
 
+    it("claimRewardToken(), fails nothing to claim", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
+      const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
+      const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.vault.address);
+      expect(await this.vault.claimRewardToken(_pool)).to.emit(this.vault, "RewardTokenClaimed");
+      const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.vault.address);
+      expect(_balanceRTAfter).to.gt(_balanceRTBefore);
+    });
+  });
+
+  describe("#harvestSome(address,uint256)", function () {
+    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+
+    it("fail harvestSome() call by non strategyOperator", async function () {
+      await expect(this.vault.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000))).to.be.revertedWith(
+        "caller is not the strategyOperator",
+      );
+    });
+
     it("harvestSome()", async function () {
       const _balanceClaimed = await this.vault.balanceClaimedRewardToken(_pool);
       const _balanceBeforeUT = await this.vault.balanceUT();
