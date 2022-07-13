@@ -132,6 +132,7 @@ export async function approveAndSetTokenHashToToken(
   tokenAddress: string,
 ): Promise<void> {
   try {
+    const tokensHash = generateTokenHash([tokenAddress]);
     const isApprovedToken = await registryContract.isApprovedToken(tokenAddress);
     if (!isApprovedToken) {
       await expect(executeFunc(registryContract, owner, "approveToken(address)", [tokenAddress]))
@@ -139,7 +140,10 @@ export async function approveAndSetTokenHashToToken(
         .withArgs(getAddress(tokenAddress), true, await owner.getAddress());
     }
     if (!(await isSetTokenHash(registryContract, [tokenAddress]))) {
-      await executeFunc(registryContract, owner, "setTokensHashToTokens(address[])", [[tokenAddress]]);
+      await executeFunc(registryContract, owner, "setTokensHashToTokens(bytes32,address[])", [
+        tokensHash,
+        [tokenAddress],
+      ]);
     }
   } catch (error) {
     console.error(`contract-actions#approveAndSetTokenHashToToken : `, error);
@@ -171,12 +175,16 @@ export async function approveAndSetTokenHashToTokens(
       await executeFunc(registryContract, owner, "approveToken(address[])", [approveTokenLists]);
     }
     if (setTokenHashLists.length > 0) {
-      await executeFunc(registryContract, owner, "setTokensHashToTokens(address[][])", [
-        setTokenHashLists.map(addr => [addr]),
+      const tokensHash = generateTokenHash(setTokenHashLists);
+      await executeFunc(registryContract, owner, "setTokensHashToTokens((bytes32,address[])[])", [
+        [[tokensHash, setTokenHashLists]],
       ]);
     } else {
       if (!(await isSetTokenHash(registryContract, tokenAddresses))) {
-        await executeFunc(registryContract, owner, "setTokensHashToTokens(address[][])", [[tokenAddresses]]);
+        const tokensHash = generateTokenHash(tokenAddresses);
+        await executeFunc(registryContract, owner, "setTokensHashToTokens((bytes32,address[])[])", [
+          [[tokensHash, tokenAddresses]],
+        ]);
       }
     }
   } catch (error) {
