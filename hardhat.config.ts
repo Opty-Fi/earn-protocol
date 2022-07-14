@@ -5,6 +5,7 @@ import '@typechain/hardhat';
 import 'hardhat-docgen';
 import 'hardhat-gas-reporter';
 import 'hardhat-spdx-license-identifier';
+import 'hardhat-dependency-compiler';
 import 'solidity-coverage';
 
 import Dotenv from 'dotenv';
@@ -22,13 +23,26 @@ const {
 
 export default {
   solidity: {
-    version: '0.8.15',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    compilers: [
+      {
+        version: '0.8.15',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
-    },
+      {
+        version: '0.6.6',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
   },
 
   networks: {
@@ -53,6 +67,10 @@ export default {
   docgen: {
     clear: true,
     runOnCompile: false,
+  },
+
+  dependencyCompiler: {
+    paths: ['@uniswap/v2-periphery/contracts/UniswapV2Router02.sol'],
   },
 
   etherscan: {
