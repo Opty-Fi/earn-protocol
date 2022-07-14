@@ -225,7 +225,8 @@ describe("Vault", () => {
     const _vaultConfiguration = BigNumber.from(
       "2717588881137297196073629478594403830637904256449768059589359748078440349697",
     );
-    await this.opUSDCgrow.connect(this.signers.governance).setVaultConfiguration(_vaultConfiguration);
+    const tx = await this.opUSDCgrow.connect(this.signers.governance).setVaultConfiguration(_vaultConfiguration);
+    await tx.wait(1);
     const vaultConfiguration = await this.opUSDCgrow.vaultConfiguration();
     assertVaultConfiguration(
       vaultConfiguration,
@@ -243,9 +244,10 @@ describe("Vault", () => {
   });
   it("setVaultConfiguration() - MaxVaultValueJump call by governance", async function () {
     // (64-79) Max vault value jump % = 1% = 0064
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("2717588881137297196073629478594403830637904256449768061415587411375685959681");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("1"),
@@ -262,10 +264,10 @@ describe("Vault", () => {
   });
   it("setVaultConfiguration - AllowWhitelistedState() call by governance", async function () {
     // (250) allow whitelisted state = false = 0
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("908337486804231642580332837833655270430560746049134248299062661252043309057");
-
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("1"),
@@ -332,7 +334,8 @@ describe("Vault", () => {
   });
   it("setWhitelistedAccountsRoot() call by governance", async function () {
     const _root = getAccountsMerkleRoot([this.signers.alice.address, this.signers.bob.address]);
-    await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+    const tx = await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+    await tx.wait(1);
     expect(await this.opUSDCgrow.whitelistedAccountsRoot()).to.eq(_root);
   });
   it("fails setWhitelistedCodesRoot() call by non governance", async function () {
@@ -344,7 +347,8 @@ describe("Vault", () => {
     const code = await ethers.provider.getCode(this.opUSDCgrow.address);
     const codeHash = ethers.utils.keccak256(code);
     const _root = getCodesMerkleRoot([codeHash]);
-    await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedCodesRoot(_root);
+    const tx = await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedCodesRoot(_root);
+    await tx.wait(1);
     expect(await this.opUSDCgrow.whitelistedCodesRoot()).to.eq(_root);
   });
   it("fail setEmergencyShutdown() call by non governance", async function () {
@@ -421,8 +425,10 @@ describe("Vault", () => {
   });
   it("fail userDepositVault() call, vault is paused", async function () {
     const usdcDepositAmount = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
-    await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, usdcDepositAmount);
-    await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, usdcDepositAmount);
+    const tx1 = await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, usdcDepositAmount);
+    await tx1.wait(1);
+    const tx2 = await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, usdcDepositAmount);
+    await tx2.wait(1);
     await expect(
       this.opUSDCgrow.connect(this.signers.alice).userDepositVault(usdcDepositAmount, [], []),
     ).to.be.revertedWith("14");
@@ -452,7 +458,8 @@ describe("Vault", () => {
     );
   });
   it("setRiskProfileCode() call by governance", async function () {
-    await this.opUSDCgrow.connect(this.signers.governance).setRiskProfileCode("1");
+    const tx = await this.opUSDCgrow.connect(this.signers.governance).setRiskProfileCode("1");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("1"),
@@ -488,9 +495,10 @@ describe("Vault", () => {
     ).to.be.revertedWith("17");
   });
   it("setUnderlyingTokensHash() call by operator", async function () {
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.operator)
       .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
+    await tx.wait(1);
     expect(await this.opUSDCgrow.underlyingToken()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address);
     expect(await this.opUSDCgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
   });
@@ -513,9 +521,10 @@ describe("Vault", () => {
       this.signers.eve.address,
     );
     // (250) allow whitelisted state = true = 1
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("2263509185489252423370722020903473772070240894952733989178334617643482677249");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("1"),
@@ -592,7 +601,8 @@ describe("Vault", () => {
     const code = await ethers.provider.getCode(this.testVault.address);
     const codeHash = ethers.utils.keccak256(code);
     const _codeRoot = getCodesMerkleRoot([codeHash]);
-    await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
+    const tx = await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
+    await tx.wait(1);
     const _accountProof = getAccountsMerkleProof(
       [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
       this.testVault.address,
@@ -628,9 +638,10 @@ describe("Vault", () => {
     // (248) emergency shutdown = false = 0
     // 249 unpause = true = 1
     // (250) allow whitelisted state = false = 0
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("906570639739453258250749540332912351914733262152258629340941055050750689281");
+    await tx.wait(1);
     expect(await this.opUSDCgrow.vaultDepositPermitted()).to.have.members([true, ""]);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
@@ -761,9 +772,10 @@ describe("Vault", () => {
   });
   it("getNextBestInvestStrategy()", async function () {
     expect((await this.opUSDCgrow.getInvestStrategySteps()).length).to.eq(0);
-    await this.strategyProvider
+    const tx = await this.strategyProvider
       .connect(this.signers.strategyOperator)
       .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
+    await tx.wait(1);
     expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq([
       Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
     ]);
@@ -781,9 +793,10 @@ describe("Vault", () => {
     // (32-47) Withdrawal fee UT = 0 USDC = 0000
     // (48-63) Withdrawal fee % = 0% = 0000
     // (80-239) vault fee address = 0000000000000000000000000000000000000000
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("0"),
@@ -800,7 +813,10 @@ describe("Vault", () => {
     const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
     const _depositFee = await this.opUSDCgrow.calcDepositFeeUT(_depositAmountUSDC);
     const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
-    await this.opUSDCgrow.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
+    const tx1 = await this.opUSDCgrow
+      .connect(this.signers.financeOperator)
+      .setMinimumDepositValueUT(_depositAmountUSDC);
+    await tx1.wait(1);
     await expect(this.opUSDCgrow.connect(this.signers.alice).userDepositVault(_depositAmountUSDC, _proofs, []))
       .to.emit(this.opUSDCgrow, "Transfer")
       .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -815,9 +831,10 @@ describe("Vault", () => {
       [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
       this.signers.eve.address,
     );
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("0"),
@@ -832,8 +849,10 @@ describe("Vault", () => {
       true,
     );
     const _depositAmountUSDC = "1000000000";
-    await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
-    await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    const tx1 = await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+    await tx1.wait(1);
+    const tx2 = await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    await tx2.wait(1);
     await expect(
       this.opUSDCgrow.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proofs, []),
     ).to.revertedWith("8");
@@ -843,9 +862,10 @@ describe("Vault", () => {
       [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
       this.signers.bob.address,
     );
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("0"),
@@ -860,8 +880,10 @@ describe("Vault", () => {
       true,
     );
     const _depositAmountUSDC = "1000000000";
-    await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
-    await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    const tx1 = await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
+    await tx1.wait(1);
+    const tx2 = await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    await tx2.wait(1);
     await expect(
       this.opUSDCgrow.connect(this.signers.alice).userDepositVault(_depositAmountUSDC, _bobProofs, []),
     ).to.revertedWith("8");
@@ -871,7 +893,8 @@ describe("Vault", () => {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
     const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
     const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
-    await this.opUSDCgrow.rebalance();
+    const tx = await this.opUSDCgrow.rebalance();
+    await tx.wait(1);
     const _expectedVaultUsdcBalance = BigNumber.from("0");
     expect(await this.usdc.balanceOf(this.opUSDCgrow.address)).to.eq(_expectedVaultUsdcBalance);
     const canStake: boolean = await _adapterInstance.canStake(_pool);
@@ -1008,15 +1031,18 @@ describe("Vault", () => {
       this.testVault.address,
       this.signers.eve.address,
     ]);
-    await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
+    const tx = await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
+    await tx.wait(1);
     expect(await this.opUSDCgrow.whitelistedAccountsRoot()).to.eq(_accountRoot);
     const _proof = getAccountsMerkleProof(
       [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
       this.signers.eve.address,
     );
     const _depositAmountUSDC = "1000000000";
-    await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
-    await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    const tx1 = await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+    await tx1.wait(1);
+    const tx2 = await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    await tx2.wait(1);
     await expect(
       this.opUSDCgrow.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []),
     ).to.revertedWith("14");
@@ -1040,14 +1066,16 @@ describe("Vault", () => {
       true,
     );
     const _balanceUTBeforeRebalance = await this.usdc.balanceOf(this.opUSDCgrow.address);
-    await this.opUSDCgrow.rebalance();
+    const tx1 = await this.opUSDCgrow.rebalance();
+    await tx1.wait(1);
     expect(await this.opUSDCgrow.getInvestStrategySteps()).to.deep.eq([
       Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
     ]);
     expect(await this.opUSDCgrow.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
     const _balanceUTAfterRebalance = await this.usdc.balanceOf(this.opUSDCgrow.address);
     expect(_balanceUTBeforeRebalance).to.gt(_balanceUTAfterRebalance);
-    await this.usdc.connect(this.signers.eve).transfer(this.opUSDCgrow.address, "1000000000");
+    const tx2 = await this.usdc.connect(this.signers.eve).transfer(this.opUSDCgrow.address, "1000000000");
+    await tx2.wait(1);
     const _balanceUTBeforeDepositToStrategy = await this.usdc.balanceOf(this.opUSDCgrow.address);
     await this.opUSDCgrow.vaultDepositAllToStrategy();
     expect(await this.opUSDCgrow.getInvestStrategySteps()).to.deep.eq([
@@ -1113,9 +1141,10 @@ describe("Vault", () => {
     // set 5% deposit fee, 10 UT flat fee, set vaultFeeCollector address = 0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5
     // 0x060119cDeDF678aBE15a921a2AB26C9Bc8867fc35cE500640000000001f4000A
     // 2715822034072518811744046181093660912122076772552892442457464397795247259658
-    await this.opUSDCgrow
+    const tx1 = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("2715822034072518811744046181093660912122076772552892442457464397795247259658");
+    await tx1.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("10"),
@@ -1134,8 +1163,10 @@ describe("Vault", () => {
       this.signers.eve.address,
     );
     const _depositAmountUSDC = BigNumber.from("1100000000");
-    await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
-    await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    const tx2 = await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+    await tx2.wait(1);
+    const tx3 = await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    await tx3.wait(1);
     const _expectedDepositFee = new BN(new BN(_depositAmountUSDC.toString()).multipliedBy("0.05")).plus(
       new BN("10000000"),
     );
@@ -1162,8 +1193,10 @@ describe("Vault", () => {
       this.signers.eve.address,
     );
     const _depositAmountUSDC = BigNumber.from("1000000000");
-    await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
-    await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    const tx1 = await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+    await tx1.wait(1);
+    const tx2 = await this.usdc.connect(this.signers.eve).approve(this.opUSDCgrow.address, _depositAmountUSDC);
+    await tx2.wait(1);
     await expect(
       this.opUSDCgrow.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []),
     ).to.revertedWith("10");
@@ -1173,9 +1206,10 @@ describe("Vault", () => {
     // set 5% withdrawal fee, 10 UT flat fee
     // 0x060119cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5006401f4000A01f4000A
     // 2715822034072518811744046181093660912122076772552892442457605135326552260618
-    await this.opUSDCgrow
+    const tx = await this.opUSDCgrow
       .connect(this.signers.governance)
       .setVaultConfiguration("2715822034072518811744046181093660912122076772552892442457605135326552260618");
+    await tx.wait(1);
     assertVaultConfiguration(
       await this.opUSDCgrow.vaultConfiguration(),
       BigNumber.from("10"),

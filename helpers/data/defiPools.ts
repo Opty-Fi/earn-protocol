@@ -6,7 +6,7 @@ import { default as CurveSwapDefiPools } from "optyfi-sdk/ethereum/pools/CurveSw
 import { default as DForceDefiPools } from "optyfi-sdk/ethereum/pools/DForce.json";
 import { default as FulcrumDefiPools } from "optyfi-sdk/ethereum/pools/Fulcrum.json";
 import { default as HarvestDefiPools } from "optyfi-sdk/ethereum/pools/HarvestV1.json";
-import { default as SushiSwapDefiPools } from "optyfi-sdk/ethereum/pools/Sushiswap.json";
+// import { default as SushiSwapDefiPools } from "optyfi-sdk/ethereum/pools/Sushiswap.json";
 import { default as ConvexDefiPools } from "optyfi-sdk/ethereum/pools/Convex.json";
 
 import {
@@ -18,7 +18,7 @@ import {
   DFORCE_ADAPTER_NAME,
   FULCRUM_ADAPTER_NAME,
   HARVEST_V1_ADAPTER_NAME,
-  SUSHISWAP_ADAPTER_NAME,
+  // SUSHISWAP_ADAPTER_NAME,
   CONVEX_ADAPTER_NAME,
 } from "../constants/adapters";
 
@@ -33,6 +33,6 @@ export const TypedDefiPools: DEFI_POOLS_DATA = {
   [DFORCE_ADAPTER_NAME]: DForceDefiPools,
   [FULCRUM_ADAPTER_NAME]: FulcrumDefiPools,
   [HARVEST_V1_ADAPTER_NAME]: HarvestDefiPools,
-  [SUSHISWAP_ADAPTER_NAME]: SushiSwapDefiPools,
+  // [SUSHISWAP_ADAPTER_NAME]: SushiSwapDefiPools,
   [CONVEX_ADAPTER_NAME]: ConvexDefiPools,
 };

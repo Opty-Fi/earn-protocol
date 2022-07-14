@@ -448,6 +448,21 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
     },
+    "aave-DEPOSIT-Compound-cAAVE": {
+      strategyName: "aave-DEPOSIT-Compound-cAAVE",
+      token: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+      strategy: [
+        {
+          contract: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
+          outputToken: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
+          isBorrow: false,
+          outputTokenSymbol: "cAAVE",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+      riskProfileCode: 2,
+    },
   },
   APE: {
     "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP": {
