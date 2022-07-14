@@ -24,7 +24,7 @@ task(
       const actualAccountsRoot = await vaultInstance.whitelistedAccountsRoot();
       console.log(`existing whitelisted accounts merkle root hash : ${actualAccountsRoot}`);
       if (actualAccountsRoot != merkleRootHash) {
-        const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+        const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
         const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
         const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
         const tx6 = await vaultInstance.connect(governanceSigner).setWhitelistedAccountsRoot(merkleRootHash);
