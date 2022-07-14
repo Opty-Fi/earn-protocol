@@ -21,7 +21,7 @@ task(TASKS.ACTION_TASKS.PRINT_STRATEGY_HASH.NAME, TASKS.ACTION_TASKS.PRINT_STRAT
     }
 
     const tokenInstance = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, token);
-    const tokenSymbol = await (await tokenInstance.symbol()).toUpperCase();
+    const tokenSymbol = (await tokenInstance.symbol()).toUpperCase();
     const tokensHash = MULTI_CHAIN_VAULT_TOKENS[chainId][tokenSymbol].hash;
     console.log(
       "Strategy hash : ",
