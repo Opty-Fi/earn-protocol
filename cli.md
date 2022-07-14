@@ -413,9 +413,8 @@ Options:
 Usage: approve and map liquidity pool to adapter
 
 Options:
---registry      required <address> the address of registry
---liquiditypool required <address> the address of liquidity
---adapter       required <address> the address of defi adapter
+--liquidity-ypool required <address> the address of liquidity
+--adapter-name       required <address> the address of defi adapter
 --network       optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -424,31 +423,8 @@ Options:
 ```
 yarn hardhat map-liquiditypool-to-adapter \
 --network localhost \
---registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
---liquiditypool 0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5 \
---adapter 0xbf78A1a02e34CF7aCDB8BD9D0f225cB6AA6B85C5
-```
-
-### map-liquiditypools-to-adapter
-
-```
-Usage: approve and map liquidity pools to a specific adapter
-
-Options:
---registry      required <address> the address of registry
---adaptername   required <address> the name of adapter
---adapter       required <address> the address of defi adapter
---network       optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-yarn hardhat map-liquiditypools-to-adapter \
---network localhost \
---registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
---adaptername CompoundAdapter \
---adapter 0xbf78A1a02e34CF7aCDB8BD9D0f225cB6AA6B85C5
+--liquidity-pool 0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5 \
+--adapter-name CompoundAdapter
 ```
 
 ### set-max-deposit
@@ -794,6 +770,7 @@ Usage: set vault configuration
 Options:
 --vault-symbol        required <string> the vault symbol
 --vault-configuration required <string> the vault symbol
+--network             optional <string> name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -803,4 +780,64 @@ yarn hardhat set-vault-configuration \
   --network localhost \
   --vault-symbol opUSDCgrow \
   --vault-configuration 2718155043500073612906634403139041842518004532954031278126931986324444413952
+```
+
+### change-polygon-opusdcgrow-proxy-v2-admin
+
+```
+Usage: change polygon opUSDCgrow vault proxy v2 admin
+
+Options:
+--new-admin required <string> address of the new admin
+--network       optional  <string>  name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat change-polygon-opusdcgrow-proxy-v2-admin
+  --network localhost \
+  --new-admin 0x0000000000000000000000000000000000000000
+```
+
+### change-vault-proxy-v2-admin
+
+```
+Usage: change vault proxy v2 admin
+
+Options:
+--vault-symbol required <string> symbol of the vault
+--new-admin    required <string> new admin address
+--network      optional <string> name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat change-vault--proxy-v2-admin
+  --network localhost \
+  --vault-symbol opAAVEaggr \
+  --new-admin 0x0000000000000000000000000000000000000000
+```
+
+### set-best-strategy-rebalance-multisig
+
+```
+Usage: set best strategy and rebalance using multisig
+
+Options:
+--token-symbol  required <string> symbol of the vault
+--strategy-name required <string> name of strategy
+--vault-symbol  required <string> symbol of vault
+--network       optional <string> name of the network provider (default: hardhat)
+```
+
+- Example:
+
+```
+yarn hardhat set-best-strategy-rebalance-multisig
+  --network localhost \
+  --vault-symbol opAAVEaggr \
+  --token-symbol AAVE
+  --strategy-name aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP
 ```

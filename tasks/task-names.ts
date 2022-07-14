@@ -35,7 +35,12 @@ export default {
       DESCRIPTION: "Map a list of liquidity pools with a specific adapter",
     },
     SET_BEST_STRATEGY: { NAME: "set-best-strategy", DESCRIPTION: "Set the best strategy for a specific token" },
+    SET_BEST_STRATEGY_REBALANCE_MULTISIG: {
+      NAME: "set-best-strategy-rebalance-multisig",
+      DESCRIPTION: "set best strategy and rebalance using multisig",
+    },
     PRINT_STRATEGY_HASH: { NAME: "print-strategy-hash", DESCRIPTION: "Print the strategy" },
+    PRINT_TOKENS_HASH: { NAME: "print-tokens-hash", DESCRIPTION: "Print tokens hash" },
     UNPAUSE_VAULT: { NAME: "unpause-vault", DESCRIPTION: "Set pause state for a specific vault" },
     VAULT_ACTIONS: {
       NAME: "vault-actions",
@@ -58,6 +63,10 @@ export default {
     },
     SET_PENDING_GOVERNANCE: { NAME: "set-pending-governance", DESCRIPTION: "set pending governance" },
     ACCEPT_GOVERNANCE: { NAME: "accept-governance", DESCRIPTION: "accept governance" },
+    CHANGE_POLYGON_OPUSDCGROW_PROXY_V2_ADMIN: {
+      NAME: "change-polygon-opusdcgrow-proxy-v2-admin",
+      DESCRIPTION: "change polygon opUSDCgrow vault proxy v2 admin",
+    },
     CHANGE_VAULT_PROXY_V2_ADMIN: { NAME: "change-vault-proxy-v2-admin", DESCRIPTION: "change vault proxy v2 admin" },
     SET_WHITELISTED_ACCOUNTS_ROOT: {
       NAME: "set-whitelisted-accounts-root",
