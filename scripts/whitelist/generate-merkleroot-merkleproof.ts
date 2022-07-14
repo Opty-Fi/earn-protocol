@@ -1,4 +1,5 @@
 import fs from "fs";
+import { join } from "path";
 import { getAccountsMerkleProof, getAccountsMerkleRoot } from "../../helpers/utils";
 import goodAddresses from "./goodAddresses.json";
 
@@ -15,7 +16,7 @@ async function main() {
     });
   }
 
-  fs.writeFileSync("merkleproofs.json", JSON.stringify(merkleProofList));
+  fs.writeFileSync(join(__dirname, "merkleproofs.json"), JSON.stringify(merkleProofList));
 
   return accountsRoot;
 }
