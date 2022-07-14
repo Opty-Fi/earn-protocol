@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { BigNumber } from "ethers";
 import TASKS from "../task-names";
-import { Registry, Vault, Vault__factory } from "../../typechain";
+import { Registry, Vault } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 task(TASKS.ACTION_TASKS.SET_VAULT_CONFIGURATION.NAME, TASKS.ACTION_TASKS.SET_VAULT_CONFIGURATION.DESCRIPTION)
@@ -9,20 +9,14 @@ task(TASKS.ACTION_TASKS.SET_VAULT_CONFIGURATION.NAME, TASKS.ACTION_TASKS.SET_VAU
   .addParam("vaultConfiguration", "vault configuration", "", types.string)
   .setAction(async ({ vaultSymbol, vaultConfiguration }, { deployments, ethers }) => {
     try {
-      const vaultInstance = <Vault>(
-        await ethers.getContractAt(Vault__factory.abi, await (await deployments.get(vaultSymbol)).address)
-      );
+      const vaultAddress = (await deployments.get(`${vaultSymbol}_Proxy`)).address;
+      const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vaultAddress);
       const actualVaultConfiguration = await vaultInstance.vaultConfiguration();
       if (BigNumber.from(actualVaultConfiguration).eq(BigNumber.from(vaultConfiguration))) {
         console.log("Vault configuration is as expected");
       } else {
         const registryInstance = <Registry>(
-          await ethers.getContractAt(
-            ESSENTIAL_CONTRACTS.REGISTRY,
-            await (
-              await deployments.get("RegistryProxy")
-            ).address,
-          )
+          await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, (await deployments.get("RegistryProxy")).address)
         );
         const governanceSigner = await ethers.getSigner(await registryInstance.getGovernance());
         const tx = await vaultInstance.connect(governanceSigner).setVaultConfiguration(vaultConfiguration);
