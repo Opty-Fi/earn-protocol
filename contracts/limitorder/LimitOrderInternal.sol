@@ -8,7 +8,7 @@ import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
 import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
 import { ERC20Utils } from '../utils/ERC20Utils.sol';
-import { ISwap } from '../swap/ISwap.sol';
+import { ISwapper } from '../swap/ISwapper.sol';
 
 import { IOptyFiOracle } from './IOptyFiOracle.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
@@ -171,15 +171,21 @@ contract LimitOrderInternal is ILimitOrderInternal {
         uint256 balance = IERC20(IVault(order.vault).underlyingToken())
             .balanceOf(address(this));
         IERC20(IVault(order.vault).underlyingToken()).approve(
-            address(0xb14B07CB647e6b60C9d3a86355a575AF0F1d85A8),
+            // address(0xb14B07CB647e6b60C9d3a86355a575AF0F1d85A8)
+            ISwapper(_l.swapDiamond).tokenTransferProxy(),
             balance
         ); //must approve address of ttfp for swapDiamond
         console.log('swapBalance: ', balance);
         console.log('swapToken: ', _swapData.fromToken);
         _swapData.fromAmount = balance;
         //perform swap for USDC via swapDiamond
-        (uint256 swapOutput, uint256 leftOver) = ISwap(_l.swapDiamond).swap(
+        (uint256 swapOutput, uint256 leftOver) = ISwapper(_l.swapDiamond).swap(
             _swapData
+        );
+
+        console.log(
+            '100 usdc balance: ',
+            IERC20(USDC).balanceOf(address(this))
         );
 
         if (leftOver > 0) {
@@ -191,11 +197,25 @@ contract LimitOrderInternal is ILimitOrderInternal {
             uint256 finalUSDCAmount,
             uint256 liquidationFee
         ) = _applyLiquidationFee(swapOutput, _vaultFee(_l, vault));
+
+        console.log(
+            '200 usdc balance: ',
+            IERC20(USDC).balanceOf(address(this))
+        );
+
         IERC20(USDC).transfer(_treasury(_l), liquidationFee);
+
+        console.log('finalUSDCAmount: ', finalUSDCAmount);
+        console.log('swapOutput: ', swapOutput);
+        console.log(
+            '300 usdc balance: ',
+            IERC20(USDC).balanceOf(address(this))
+        );
 
         //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
         //if unsuccessful transfer USDC to user directly
         if (order.depositUSDC) {
+            IERC20(USDC).approve(OPUSDC_VAULT, finalUSDCAmount);
             try
                 IVault(OPUSDC_VAULT).userDepositVault(
                     finalUSDCAmount,
@@ -203,16 +223,35 @@ contract LimitOrderInternal is ILimitOrderInternal {
                     _l.proof
                 )
             {
+                console.log(
+                    '100 opusdc balance: ',
+                    IERC20(OPUSDC_VAULT).balanceOf(address(this))
+                );
                 IERC20(OPUSDC_VAULT).transfer(
                     order.maker,
                     IERC20(OPUSDC_VAULT).balanceOf(address(this))
                 );
+                console.log(
+                    '200 opusdc balance: ',
+                    IERC20(OPUSDC_VAULT).balanceOf(address(this))
+                );
             } catch {
+                console.log(
+                    '400 usdc balance: ',
+                    IERC20(USDC).balanceOf(address(this))
+                );
+                IERC20(USDC).approve(OPUSDC_VAULT, 0);
                 IERC20(USDC).transfer(order.maker, finalUSDCAmount);
             }
         } else {
+            console.log(
+                '500 usdc balance: ',
+                IERC20(USDC).balanceOf(address(this))
+            );
             IERC20(USDC).transfer(order.maker, finalUSDCAmount);
+            console.log('order maker: ', order.maker);
         }
+        console.log('..FINISH..');
     }
 
     /**

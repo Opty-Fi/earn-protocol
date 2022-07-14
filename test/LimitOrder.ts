@@ -16,6 +16,7 @@ import {
   OptyFiOracle,
   OptyFiOracle__factory,
 } from '../typechain-types';
+import { SwapView__factory } from '../typechain-types/factories/contracts/swap/SwapView__factory';
 
 describe('::LimitOrder Contracts', () => {
   const ethers = hre.ethers;
@@ -49,19 +50,18 @@ describe('::LimitOrder Contracts', () => {
 
     OptyFiSwapper = await new OptyFiSwapper__factory(deployer).deploy();
     const swapperSelectors = new Set();
-    const swapperFacetCuts = [await new Swap__factory(deployer).deploy()].map(
-      function (f) {
-        return {
-          target: f.address,
-          action: 0,
-          selectors: Object.keys(f.interface.functions)
-            .filter(
-              (fn) => !swapperSelectors.has(fn) && swapperSelectors.add(fn),
-            )
-            .map((fn) => f.interface.getSighash(fn)),
-        };
-      },
-    );
+    const swapperFacetCuts = [
+      await new Swap__factory(deployer).deploy(),
+      await new SwapView__factory(deployer).deploy(),
+    ].map(function (f) {
+      return {
+        target: f.address,
+        action: 0,
+        selectors: Object.keys(f.interface.functions)
+          .filter((fn) => !swapperSelectors.has(fn) && swapperSelectors.add(fn))
+          .map((fn) => f.interface.getSighash(fn)),
+      };
+    });
 
     await OptyFiSwapper.diamondCut(
       swapperFacetCuts,

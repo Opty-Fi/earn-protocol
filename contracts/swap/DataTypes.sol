@@ -26,6 +26,7 @@ library DataTypes {
         bytes exchangeData;
         uint256[] startIndexes;
         uint256[] values;
+        address payable beneficiary;
         bytes permit;
         uint256 deadline;
     }

@@ -80,9 +80,17 @@ abstract contract SwapInternal {
             address(this)
         );
 
+        console.log('Swap.sol USDC balance ', receivedAmount);
+
         require(
             receivedAmount >= _swapData.toAmount,
             'Received amount of tokens are less then expected'
+        );
+
+        ERC20Utils.transferTokens(
+            _swapData.toToken,
+            _swapData.beneficiary,
+            receivedAmount
         );
     }
 
@@ -178,5 +186,18 @@ abstract contract SwapInternal {
     {
         balance = ERC20Utils.tokenBalance(_token, address(this));
         ERC20Utils.transferTokens(_token, _receiver, balance);
+    }
+
+    /**
+     * @notice returns address of the TokenTransferProxy
+     * @param _l the layout of the swapper contract
+     * @return tokenTransferProxy address
+     */
+    function _tokenTransferProxy(SwapStorage.Layout storage _l)
+        internal
+        view
+        returns (address tokenTransferProxy)
+    {
+        tokenTransferProxy = _l.tokenTransferProxy;
     }
 }

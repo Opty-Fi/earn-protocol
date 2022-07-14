@@ -7,7 +7,10 @@ import {
   ISwapper,
   OptyFiOracle,
   IUniswapV2Router02,
+  IVault,
+  IVault__factory,
 } from '../../typechain-types';
+import { DataTypes } from '../../typechain-types/contracts/swap/ISwap';
 import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { convertOrderParamsToOrder } from '../../utils/converters';
@@ -19,6 +22,7 @@ import {
   getProofForCode,
   hashCodehash,
 } from '../../scripts/utils';
+import { IERC20__factory } from '../../typechain-types/factories/@openzeppelin/contracts/token/ERC20';
 
 export function describeBehaviorOfLimitOrderActions(
   deploy: () => Promise<ILimitOrder>,
@@ -50,6 +54,7 @@ export function describeBehaviorOfLimitOrderActions(
 
   //Contracts
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
+  const UsdcVaultProxy = '0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88';
   const UniswapV2Router02Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //mainnet
 
   //Params
@@ -221,6 +226,9 @@ export function describeBehaviorOfLimitOrderActions(
           'IVault',
           AaveVaultProxy,
         );
+        const UsdcVaultInstance = <IERC20>(
+          await ethers.getContractAt(IERC20__factory.abi, UsdcVaultProxy)
+        );
         const AaveERC20 = await ethers.getContractAt(
           '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
           AaveERC20Address,
@@ -378,9 +386,15 @@ export function describeBehaviorOfLimitOrderActions(
           ethers.utils.parseEther('10000'),
         ]);
 
-        const exchangeData = ethers.utils.hexConcat([approveData, uniswapData]);
+        const calls: string[] = [approveData, uniswapData];
+        const startIndexes = ['0'];
+        let exchangeData = `0x`;
+        for (const i in calls) {
+          startIndexes.push(startIndexes[i] + calls[i].substring(2).length / 2);
+          exchangeData = exchangeData.concat(calls[i].substring(2));
+        }
 
-        const orderSwapData: SwapData = {
+        const orderSwapData: DataTypes.SwapDataStruct = {
           fromToken: AaveERC20Address,
           toToken: USDC,
           fromAmount: userSharesLiquidated.mul(
@@ -389,18 +403,15 @@ export function describeBehaviorOfLimitOrderActions(
           toAmount: ethers.constants.One, //note: just for testing
           expectedAmount: ethers.constants.Zero, //TODO: verify purpose
           callees: [AaveERC20Address, UniswapV2Router02Address],
-          exchangeData: exchangeData,
-          startIndexes: [
-            BigNumber.from('0'),
-            BigNumber.from(approveData.length.toString()),
-            BigNumber.from(exchangeData.length.toString()),
-          ],
+          exchangeData,
+          startIndexes,
           values: [BigNumber.from('0'), BigNumber.from('0')],
+          beneficiary: instance.address,
           permit: '0x',
           deadline: swapDeadline,
         };
 
-        //probably in exchageData, an approval needs to be encoded, for uniswapRouter from swapDiamond
+        //probably in exchangeData, an approval needs to be encoded, for uniswapRouter from swapDiamond
 
         console.log('edl: ', exchangeData.length);
 
@@ -413,11 +424,11 @@ export function describeBehaviorOfLimitOrderActions(
         console.log('ttp: ', await instance['transferProxy()']());
         console.log('LO: ', instance.address);
 
-        await expect(
-          await instance
+        await expect(() =>
+          instance
             .connect(maker)
             .execute(maker.address, AaveVaultProxy, orderSwapData),
-        ).to.changeTokenBalance(AaveERC20Address, maker, BigNumber.from('100'));
+        ).to.changeTokenBalance(USDCERC20, maker, BigNumber.from('630050'));
       });
 
       // it('sends opUSDC shares to maker', async () => {});
