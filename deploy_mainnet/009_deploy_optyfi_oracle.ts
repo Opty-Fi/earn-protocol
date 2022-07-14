@@ -16,20 +16,20 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("SushiswapPoolAdapterEthereum");
+  const artifact = await deployments.getArtifact("OptyFiOracle");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("SushiswapPoolAdapterEthereum", {
+  const result = await deploy("OptyFiOracle", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: [registryProxyAddress, 0, 0],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -38,25 +38,25 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const sushiswapPoolAdapterEthereum = await deployments.get("SushiswapPoolAdapterEthereum");
+      const OptyFiOracle = await deployments.get("OptyFiOracle");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "SushiswapPoolAdapterEthereum",
-          address: sushiswapPoolAdapterEthereum.address,
-          constructorArguments: [registryProxyAddress],
+          name: "OptyFiOracle",
+          address: OptyFiOracle.address,
+          constructorArguments: [registryProxyAddress, 0, 0],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "SushiswapPoolAdapterEthereum",
-          address: sushiswapPoolAdapterEthereum.address,
-          constructorArguments: [registryProxyAddress],
+          name: "OptyFiOracle",
+          address: OptyFiOracle.address,
+          constructorArguments: [registryProxyAddress, 0, 0],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["SushiswapPoolAdapterEthereum"];
+func.tags = ["OptyFiOracle"];
 func.dependencies = ["Registry"];
