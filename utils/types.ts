@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers';
+import { BigNumber, BytesLike } from 'ethers';
 
 export interface Order {
   priceTarget: BigNumber;
@@ -19,4 +19,18 @@ export interface OrderParams {
   upperBound: BigNumber;
   vault: string;
   depositUSDC: boolean;
+}
+
+export interface SwapData {
+  fromToken: string;
+  toToken: string;
+  fromAmount: BigNumber;
+  toAmount: BigNumber;
+  expectedAmount: BigNumber;
+  callees: string[];
+  exchangeData: BytesLike;
+  startIndexes: BigNumber[];
+  values: BigNumber[];
+  permit: BytesLike;
+  deadline: BigNumber;
 }

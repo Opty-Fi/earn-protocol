@@ -14,6 +14,8 @@ import { IOptyFiOracle } from './IOptyFiOracle.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 
+import 'hardhat/console.sol';
+
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -153,18 +155,28 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //transfer vault shares from user
         ITokenTransferProxy(_l.transferProxy).transferFrom(
             vault,
-            order.maker,
+            _maker, //TODO: make it so that anyone can execute this function.
             address(this),
             liquidationAmount
         );
-
+        console.log('before withdraw');
         //withdraw vault shares for underlying
         IVault(order.vault).userWithdrawVault(
             liquidationAmount,
-            _l.emptyProof,
+            _l.proof, //change to proper proof
             _l.proof
         );
+        console.log('after withdraw');
 
+        uint256 balance = IERC20(IVault(order.vault).underlyingToken())
+            .balanceOf(address(this));
+        IERC20(IVault(order.vault).underlyingToken()).approve(
+            address(0xb14B07CB647e6b60C9d3a86355a575AF0F1d85A8),
+            balance
+        ); //must approve address of ttfp for swapDiamond
+        console.log('swapBalance: ', balance);
+        console.log('swapToken: ', _swapData.fromToken);
+        _swapData.fromAmount = balance;
         //perform swap for USDC via swapDiamond
         (uint256 swapOutput, uint256 leftOver) = ISwap(_l.swapDiamond).swap(
             _swapData

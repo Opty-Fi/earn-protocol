@@ -80,4 +80,21 @@ interface IVault {
      * @return uint256 vaultConfiguration
      */
     function vaultConfiguration() external view returns (uint256);
+
+    /**
+     * @notice function to control the allowance of smart contract interaction
+     *         with vault
+     * @param _whitelistedCodesRoot whitelisted codes root hash
+     */
+    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external;
+
+    function whitelistedCodesRoot() external view returns (bytes32);
+
+    /**
+     * @notice function to control the allowance of user interaction
+     *         only when vault's whitelistedstate is enabled
+     * @param _whitelistedAccountsRoot whitelisted accounts root hash
+     */
+    function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot)
+        external;
 }

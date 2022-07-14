@@ -8,6 +8,8 @@ import { ERC20Utils } from '../utils/ERC20Utils.sol';
 import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
 import { SwapStorage } from './SwapStorage.sol';
 
+import 'hardhat/console.sol';
+
 abstract contract SwapInternal {
     /**
      * @notice executes a sequence of swaps via DEXs
@@ -18,17 +20,31 @@ abstract contract SwapInternal {
         internal
         returns (uint256 receivedAmount)
     {
+        console.log('before transfer');
         //If source token is not ETH than transfer required amount of tokens
         //from sender to this contract
+        console.log('before transfer msgsender: ', msg.sender);
+        console.log('fromAmount in doSimple: ', _swapData.fromAmount);
         _transferTokensFromProxy(
             _swapData.fromToken,
             _swapData.fromAmount,
             _swapData.permit
         );
 
+        console.log('after transfer');
+
         bytes memory _exchangeData = _swapData.exchangeData;
 
         for (uint256 i = 0; i < _swapData.callees.length; i++) {
+            uint256 allowance = IERC20(_swapData.fromToken).allowance(
+                address(this),
+                address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
+            );
+            uint256 aaveBalance = IERC20(_swapData.fromToken).balanceOf(
+                address(this)
+            );
+            console.log('aave balance in doSimple: ', aaveBalance);
+            console.log('swap uni allowance: ', allowance);
             require(
                 _swapData.callees[i] !=
                     address(SwapStorage.layout().tokenTransferProxy),
@@ -48,6 +64,7 @@ abstract contract SwapInternal {
                 //add transfer check?
             }
 
+            console.log('before external call');
             bool result = _externalCall(
                 _swapData.callees[i], //destination
                 _swapData.values[i], //value to send
@@ -74,6 +91,7 @@ abstract contract SwapInternal {
      * @param _swapData the parameters for the swap
      */
     function _canSwap(DataTypes.SwapData memory _swapData) internal view {
+        //add values length check
         require(_swapData.deadline >= block.timestamp, 'Deadline breached');
         require(
             msg.value ==
@@ -103,7 +121,11 @@ abstract contract SwapInternal {
         bytes memory _data
     ) internal returns (bool) {
         bool result = false;
-
+        console.log('ec destination: ', _destination);
+        console.log('ec dataOffset: ', _dataOffset);
+        console.log('ec dataLength: ', _dataLength);
+        console.log('ec msg.sender: ', msg.sender);
+        //console.log('ec data: ', _data);
         assembly {
             let x := mload(0x40) // "Allocate" memory for output
             // (0x40 is where "free memory" pointer is stored by convention)
@@ -135,7 +157,10 @@ abstract contract SwapInternal {
     ) internal {
         if (_token != ERC20Utils.ethAddress()) {
             ERC20Utils.permit(_token, _permit);
-
+            console.log('token in swapInternal: ', _token);
+            console.log('msgsender in swapInternal: ', msg.sender);
+            console.log('tx.origin in swapInternal: ', tx.origin);
+            console.log('amount in swapInternal: ', _amount);
             ITokenTransferProxy(SwapStorage.layout().tokenTransferProxy)
                 .transferFrom(_token, msg.sender, address(this), _amount);
         }

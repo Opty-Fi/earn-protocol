@@ -47,9 +47,32 @@ describe('::LimitOrder Contracts', () => {
       day,
     );
 
+    OptyFiSwapper = await new OptyFiSwapper__factory(deployer).deploy();
+    const swapperSelectors = new Set();
+    const swapperFacetCuts = [await new Swap__factory(deployer).deploy()].map(
+      function (f) {
+        return {
+          target: f.address,
+          action: 0,
+          selectors: Object.keys(f.interface.functions)
+            .filter(
+              (fn) => !swapperSelectors.has(fn) && swapperSelectors.add(fn),
+            )
+            .map((fn) => f.interface.getSighash(fn)),
+        };
+      },
+    );
+
+    await OptyFiSwapper.diamondCut(
+      swapperFacetCuts,
+      ethers.constants.AddressZero,
+      '0x',
+    );
+
     LimitOrderDiamond = await new LimitOrderDiamond__factory(deployer).deploy(
       treasury.address,
       Oracle.address,
+      OptyFiSwapper.address,
     );
 
     const limitOrderSelectors = new Set();
@@ -70,32 +93,8 @@ describe('::LimitOrder Contracts', () => {
       };
     });
 
-    OptyFiSwapper = await new OptyFiSwapper__factory(deployer).deploy();
-
-    const swapperSelectors = new Set();
-
-    const swapperFacetCuts = [await new Swap__factory(deployer).deploy()].map(
-      function (f) {
-        return {
-          target: f.address,
-          action: 0,
-          selectors: Object.keys(f.interface.functions)
-            .filter(
-              (fn) => !swapperSelectors.has(fn) && swapperSelectors.add(fn),
-            )
-            .map((fn) => f.interface.getSighash(fn)),
-        };
-      },
-    );
-
     await LimitOrderDiamond.diamondCut(
       limitOrderFacetCuts,
-      ethers.constants.AddressZero,
-      '0x',
-    );
-
-    await OptyFiSwapper.diamondCut(
-      swapperFacetCuts,
       ethers.constants.AddressZero,
       '0x',
     );
@@ -118,7 +117,11 @@ describe('::LimitOrder Contracts', () => {
     await ethers.provider.send('evm_revert', [snapshotId]);
   });
 
-  describeBehaviorOfLimitOrder(async () => limitOrderInstance, {
-    AaveVaultAddress: AaveVaultProxy,
-  });
+  describeBehaviorOfLimitOrder(
+    async () => limitOrderInstance,
+    async () => swapperInstance,
+    {
+      AaveVaultAddress: AaveVaultProxy,
+    },
+  );
 });

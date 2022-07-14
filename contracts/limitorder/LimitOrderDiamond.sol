@@ -7,10 +7,15 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
 
 contract LimitOrderDiamond is SolidStateDiamond {
-    constructor(address _treasury, address _optyFiOracle) {
+    constructor(
+        address _treasury,
+        address _optyFiOracle,
+        address _swapDiamond
+    ) {
         LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
         l.transferProxy = address(new TokenTransferProxy());
         l.treasury = _treasury;
         l.oracle = _optyFiOracle;
+        l.swapDiamond = _swapDiamond;
     }
 }
