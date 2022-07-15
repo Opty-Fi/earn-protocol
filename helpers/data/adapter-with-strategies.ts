@@ -554,7 +554,7 @@ const mainnetStrategiesByToken = {
           outputToken: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
           isBorrow: false,
           outputTokenSymbol: "SUSHI-WETH-SLP",
-          adapterName: "SushiswapPoolAdapter",
+          adapterName: "SushiswapPoolAdapterEthereum",
           protocol: "Sushiswap",
         },
       ],
@@ -628,6 +628,7 @@ const mainnetStrategiesByToken = {
           protocol: "Sushiswap",
         },
       ],
+      riskProfileCode: 2,
     },
     "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef",
