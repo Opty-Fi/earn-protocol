@@ -22,7 +22,7 @@ import {
   getProofForCode,
   hashCodehash,
 } from '../../scripts/utils';
-import { IERC20__factory } from '../../typechain-types/factories/@openzeppelin/contracts/token/ERC20';
+import { IERC20__factory } from '../../typechain-types/factories/@solidstate/contracts/token/ERC20';
 
 export function describeBehaviorOfLimitOrderActions(
   deploy: () => Promise<ILimitOrder>,
@@ -250,7 +250,6 @@ export function describeBehaviorOfLimitOrderActions(
           ethers.utils.parseEther('10000'),
         );
 
-        console.log(await AaveERC20.balanceOf(USDCWhale.address));
         await AaveERC20.connect(USDCWhale).approve(
           UniswapV2Router02Address,
           ethers.utils.parseEther('5000'),
@@ -259,7 +258,7 @@ export function describeBehaviorOfLimitOrderActions(
           UniswapV2Router02Address,
           BigNumber.from('20000000000000'),
         ); //20million USDC since usdc has 6 decimals)
-        console.log('right after approve');
+
         await uniRouter
           .connect(USDCWhale)
           [
@@ -274,15 +273,6 @@ export function describeBehaviorOfLimitOrderActions(
             USDCWhaleAddress,
             endTime.add(BigNumber.from('10000000')),
           );
-
-        // await AaveERC20.connect(USDCWhale).approve(uniRouter.address, ethers.utils.parseEther('1.0'));
-        // await uniRouter.connect(USDCWhale).swapExactTokensForTokens(
-        //   BigNumber.from('9999999999999999'),
-        //   ethers.constants.Zero,
-        //   [AaveERC20Address, USDC],
-        //   USDCWhale.address,
-        //   endTime.add(BigNumber.from('100000000000000000000000'))
-        // );
 
         //replaced only 06 with 02 to remove the whitelisted state
         const newVaultConfig =
@@ -342,12 +332,12 @@ export function describeBehaviorOfLimitOrderActions(
           AaveVaultInstance.address,
         );
 
+        //calculate user shares
         const userShares = await opAaveToken.balanceOf(maker.address);
         const userSharesLiquidated = orderParams.liquidationShare
           .mul(userShares)
           .div(BASIS);
-        console.log('userShares: ', userShares);
-        console.log('user shares liquidated: ', userSharesLiquidated);
+
         //approve tokenTransferProxy
         await opAaveToken
           .connect(maker)
@@ -364,10 +354,14 @@ export function describeBehaviorOfLimitOrderActions(
           .mul(await AaveVaultInstance.getPricePerFullShare())
           .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
 
-        console.log('expected aave redeemed: ', expectedAaveRedeemed);
+        //calculate call datas for approve + swap
+        const aaveERC20Interface = AaveERC20.interface;
+        const approveData = aaveERC20Interface.encodeFunctionData('approve', [
+          uniRouter.address,
+          ethers.utils.parseEther('10000'),
+        ]);
 
         const swapDiamondAddress = await instance.swapDiamond();
-
         const uniswapData = uniRouter.interface.encodeFunctionData(
           'swapExactTokensForTokens',
           [
@@ -379,13 +373,7 @@ export function describeBehaviorOfLimitOrderActions(
           ],
         );
 
-        const aaveERC20Interface = AaveERC20.interface;
-        console.log('a address: ', AaveERC20.address);
-        const approveData = aaveERC20Interface.encodeFunctionData('approve', [
-          uniRouter.address,
-          ethers.utils.parseEther('10000'),
-        ]);
-
+        //construct swapData
         const calls: string[] = [approveData, uniswapData];
         const startIndexes = ['0'];
         let exchangeData = `0x`;
@@ -410,19 +398,6 @@ export function describeBehaviorOfLimitOrderActions(
           permit: '0x',
           deadline: swapDeadline,
         };
-
-        //probably in exchangeData, an approval needs to be encoded, for uniswapRouter from swapDiamond
-
-        console.log('edl: ', exchangeData.length);
-
-        // const oracle: OptyFiOracle = await ethers.getContractAt(
-        // 'OptyFiOracle',
-        // await instance.oracle(),
-        // );
-
-        console.log('swapDiamond: ', await instance.swapDiamond());
-        console.log('ttp: ', await instance['transferProxy()']());
-        console.log('LO: ', instance.address);
 
         await expect(() =>
           instance
