@@ -78,8 +78,8 @@ const func: DeployFunction = async ({
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
-      $75964efb2d189caa452506d4572908229a$: strategyManager.address,
-      $6a55e98f69f7bbe3257a64cb8e59569867$: claimAndHarvest.address,
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
     },
     proxy: {
       owner: admin,
