@@ -625,6 +625,7 @@ const mainnetStrategiesByToken = {
           isBorrow: false,
           outputTokenSymbol: "MANA-WETH-SLP",
           adapterName: "SushiswapPoolAdapter",
+          protocol: "Sushiswap",
         },
       ],
     },
