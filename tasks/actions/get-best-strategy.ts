@@ -4,7 +4,7 @@ import { RISK_PROFILES } from "../../helpers/constants/contracts-data";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import TASKS from "../task-names";
 import { NETWORKS_CHAIN_ID_TO_HEX } from "../../helper-hardhat-config";
-import { Registry, StrategyProvider } from "../../typechain";
+import { StrategyProvider } from "../../typechain";
 
 task(TASKS.ACTION_TASKS.GET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.GET_BEST_STRATEGY.DESCRIPTION)
   .addParam("token", "the address of token", "", types.string)
