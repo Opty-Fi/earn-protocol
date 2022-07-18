@@ -6,13 +6,13 @@ import TASKS from "../task-names";
 import { Registry } from "../../typechain";
 
 task(TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME, TASKS.ACTION_TASKS.ADD_RISK_PROFILE.DESCRIPTION)
-  .addParam("riskprofilecode", "the code of risk profile", 0, types.int)
+  .addParam("riskProfileCode", "the code of risk profile", 0, types.int)
   .addParam("name", "the name of risk profile", "", types.string)
   .addParam("symbol", "the symbol of risk profile", "", types.string)
-  .addParam("canborrow", "whether risk profile can borrow or not", false, types.boolean)
-  .addParam("lowestrating", "the lowest rating", 0, types.int)
-  .addParam("highestrating", "the highest rating", 0, types.int)
-  .setAction(async ({ riskprofilecode, name, symbol, canborrow, lowestrating, highestrating }, hre) => {
+  .addParam("canBorrow", "whether risk profile can borrow or not", false, types.boolean)
+  .addParam("lowestRating", "the lowest rating", 0, types.int)
+  .addParam("highestRating", "the highest rating", 0, types.int)
+  .setAction(async ({ riskProfileCode, name, symbol, canBorrow, lowestRating, highestRating }, hre) => {
     if (name === "") {
       throw new Error("name cannot be empty");
     }
@@ -21,11 +21,11 @@ task(TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME, TASKS.ACTION_TASKS.ADD_RISK_PROFI
       throw new Error("symbol cannot be empty");
     }
 
-    if (highestrating < lowestrating) {
+    if (highestRating < lowestRating) {
       throw new Error("rating range is invalid");
     }
 
-    if (RISK_PROFILES.filter(item => item.code === riskprofilecode).length === 0) {
+    if (RISK_PROFILES.filter(item => item.code === riskProfileCode).length === 0) {
       throw new Error("risk profile is not available");
     }
 
@@ -33,15 +33,15 @@ task(TASKS.ACTION_TASKS.ADD_RISK_PROFILE.NAME, TASKS.ACTION_TASKS.ADD_RISK_PROFI
       const registryInstance = <Registry>(
         await hre.ethers.getContractAt(
           ESSENTIAL_CONTRACTS.REGISTRY,
-          await (
+          (
             await hre.deployments.get("RegistryProxy")
           ).address,
         )
       );
       const riskOperator = await hre.ethers.getSigner(await registryInstance.getRiskOperator());
-      await addRiskProfile(registryInstance, riskOperator, riskprofilecode, name, symbol, canborrow, [
-        lowestrating,
-        highestrating,
+      await addRiskProfile(registryInstance, riskOperator, riskProfileCode, name, symbol, canBorrow, [
+        lowestRating,
+        highestRating,
       ]);
       console.log("Finished adding risk profile : ", name);
     } catch (error) {
