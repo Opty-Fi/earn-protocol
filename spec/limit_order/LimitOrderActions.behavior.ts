@@ -95,6 +95,7 @@ export function describeBehaviorOfLimitOrderActions(
     depositUSDC: true,
   };
 
+  const liquidationFeeBP = ethers.utils.parseEther('0.02');
   const BASIS = ethers.utils.parseEther('1.0');
 
   const aaveDepositAmount = ethers.utils.parseEther('0.1');
@@ -131,6 +132,10 @@ export function describeBehaviorOfLimitOrderActions(
   beforeEach(async () => {
     instance = await deploy();
     swapper = await deploySwapper();
+    //set vault fee to non-zero amount
+    await instance
+      .connect(owner)
+      .setVaultLiquidationFee(liquidationFeeBP, AaveVaultProxy);
   });
   describe(':LimitOrderActions', () => {
     describe('#createOrder(struct(orderParams)))', () => {
@@ -213,6 +218,7 @@ export function describeBehaviorOfLimitOrderActions(
     });
 
     describe.only('#execute(struct(Order),struct(SwapData))', () => {
+      beforeEach(async () => {});
       it('liquidates amount of maker shares specified', async () => {
         let tx = maker.sendTransaction({
           to: USDCWhaleAddress,
@@ -362,6 +368,23 @@ export function describeBehaviorOfLimitOrderActions(
         ]);
 
         const swapDiamondAddress = await instance.swapDiamond();
+
+        await AaveERC20.connect(AaveWhale).approve(
+          uniRouter.address,
+          ethers.utils.parseEther('1000000'),
+        );
+        const [aaveRedeemed, USDCAmount] = await uniRouter
+          .connect(AaveWhale)
+          .callStatic[
+            'swapExactTokensForTokens(uint256,uint256,address[],address,uint256)'
+          ](
+            expectedAaveRedeemed,
+            ethers.constants.Zero,
+            [AaveERC20Address, USDC],
+            swapDiamondAddress,
+            swapDeadline,
+          );
+
         const uniswapData = uniRouter.interface.encodeFunctionData(
           'swapExactTokensForTokens',
           [
@@ -399,12 +422,15 @@ export function describeBehaviorOfLimitOrderActions(
           deadline: swapDeadline,
         };
 
+        const fee = USDCAmount.mul(liquidationFeeBP).div(BASIS);
         await expect(() =>
           instance
             .connect(maker)
             .execute(maker.address, AaveVaultProxy, orderSwapData),
-        ).to.changeTokenBalance(USDCERC20, maker, BigNumber.from('630050'));
+        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
+
+      // it ('sends liquidation fee to treasury', async () => {});
 
       // it('sends opUSDC shares to maker', async () => {});
 
