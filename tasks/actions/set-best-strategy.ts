@@ -7,10 +7,10 @@ import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRATEGY.DESCRIPTION)
-  .addParam("tokensymbol", "the token name as adapter-with-strategies", "", types.string)
-  .addParam("strategyname", "the strategy name as adapter-with-strategies", "", types.string)
-  .addParam("isdefault", "set best default strategy", false, types.boolean)
-  .setAction(async ({ tokensymbol, strategyname, isdefault }, { ethers, deployments, getChainId }) => {
+  .addParam("tokenSymbol", "the token name as adapter-with-strategies", "", types.string)
+  .addParam("strategyName", "the strategy name as adapter-with-strategies", "", types.string)
+  .addParam("isDefault", "set best default strategy", false, types.boolean)
+  .setAction(async ({ tokenSymbol, strategyName, isDefault }, { ethers, deployments, getChainId }) => {
     const chainId = await getChainId();
     try {
       const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
@@ -20,15 +20,15 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
       );
       const strategyOperatorAddress = await registryInstance.strategyOperator();
       const signer = await ethers.getSigner(strategyOperatorAddress);
-      const tokensHash = MULTI_CHAIN_VAULT_TOKENS[chainId][tokensymbol].hash;
+      const tokensHash = MULTI_CHAIN_VAULT_TOKENS[chainId][tokenSymbol].hash;
       const strategyHash =
-        strategyname !== undefined && strategyname != ""
-          ? generateStrategyHashV2(StrategiesByTokenByChain[chainId][tokensymbol][strategyname].strategy, tokensHash)
+        strategyName !== undefined && strategyName != ""
+          ? generateStrategyHashV2(StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].strategy, tokensHash)
           : ethers.constants.HashZero;
       console.log(`Invest step strategy hash : ${strategyHash}`);
-      if (isdefault) {
+      if (isDefault) {
         const bestDefaultStrategy = await strategyProviderInstance.getRpToTokenToDefaultStrategy(
-          StrategiesByTokenByChain[chainId][tokensymbol][strategyname].riskProfileCode as number,
+          StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].riskProfileCode as number,
           tokensHash,
         );
         const bestDefaultStrategyHash =
@@ -45,10 +45,10 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
         console.log("bestDefaultStrategyHash ", bestDefaultStrategyHash);
         if (bestDefaultStrategyHash != strategyHash) {
           const tx1 = await strategyProviderInstance.connect(signer).setBestDefaultStrategy(
-            StrategiesByTokenByChain[chainId][tokensymbol][strategyname].riskProfileCode as number,
+            StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].riskProfileCode as number,
             tokensHash,
-            strategyname !== undefined && strategyname != ""
-              ? StrategiesByTokenByChain[chainId][tokensymbol][strategyname].strategy.map(x => ({
+            strategyName !== undefined && strategyName != ""
+              ? StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].strategy.map(x => ({
                   pool: x.contract,
                   outputToken: x.outputToken,
                   isBorrow: x.isBorrow,
@@ -61,7 +61,7 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
           console.log(`Best default strategy is upto date`);
         }
         const currentBestDefaultStrategy = await strategyProviderInstance.getRpToTokenToDefaultStrategy(
-          StrategiesByTokenByChain[chainId][tokensymbol][strategyname].riskProfileCode,
+          StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].riskProfileCode,
           tokensHash,
         );
         const currentBestDefaultStrategyHash =
@@ -79,7 +79,7 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
         console.log("currentBestDefaultStrategyHash ", currentBestDefaultStrategyHash);
       } else {
         const bestStrategy = await strategyProviderInstance.getRpToTokenToBestStrategy(
-          StrategiesByTokenByChain[chainId][tokensymbol][strategyname].riskProfileCode,
+          StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].riskProfileCode,
           tokensHash,
         );
         console.log("bestStrategy ", bestStrategy);
@@ -97,10 +97,10 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
         console.log("bestStrategyHash ", bestStrategyHash);
         if (bestStrategyHash != strategyHash) {
           const tx2 = await strategyProviderInstance.connect(signer).setBestStrategy(
-            StrategiesByTokenByChain[chainId][tokensymbol][strategyname].riskProfileCode,
+            StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].riskProfileCode,
             tokensHash,
-            strategyname !== undefined && strategyname != ""
-              ? StrategiesByTokenByChain[chainId][tokensymbol][strategyname].strategy.map(x => ({
+            strategyName !== undefined && strategyName != ""
+              ? StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].strategy.map(x => ({
                   pool: x.contract,
                   outputToken: x.outputToken,
                   isBorrow: x.isBorrow,
@@ -113,7 +113,7 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
           console.log(`Best strategy is upto date`);
         }
         const currentBestStrategy = await strategyProviderInstance.getRpToTokenToBestStrategy(
-          StrategiesByTokenByChain[chainId][tokensymbol][strategyname].riskProfileCode,
+          StrategiesByTokenByChain[chainId][tokenSymbol][strategyName].riskProfileCode,
           tokensHash,
         );
         const currentBestStrategyHash =
