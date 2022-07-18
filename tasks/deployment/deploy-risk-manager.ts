@@ -7,7 +7,6 @@ import TASKS from "../task-names";
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .addParam("insertInDb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ deployedOnce, registry }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
