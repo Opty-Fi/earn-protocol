@@ -11,9 +11,9 @@ task(
   TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_TO_ADAPTER.DESCRIPTION,
 )
   .addParam("adapter", "the address of defi adapter", "", types.string)
-  .addParam("adaptername", "the name of defi adapter", "", types.string)
+  .addParam("adapterName", "the name of defi adapter", "", types.string)
   .addParam("registry", "the address of registry", "", types.string)
-  .setAction(async ({ adapter, registry, adaptername }, hre) => {
+  .setAction(async ({ adapter, registry, adapterName }, hre) => {
     const [owner] = await hre.ethers.getSigners();
 
     if (registry === "") {
@@ -32,23 +32,23 @@ task(
       throw new Error("adapter address is invalid");
     }
 
-    if (adaptername === "") {
-      throw new Error("adaptername cannot be empty");
+    if (adapterName === "") {
+      throw new Error("adapterName cannot be empty");
     }
     const TypedDefiPools = (await import("../../helpers/data/defiPools")).TypedDefiPools;
 
-    if (!TypedDefiPools[adaptername]) {
+    if (!TypedDefiPools[adapterName]) {
       throw new Error("wrong adapter name");
     }
 
     try {
       const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registry);
       const liquidityPools = removeDuplicateFromStringArray(
-        Object.keys(TypedDefiPools[adaptername]).map(name => TypedDefiPools[adaptername][name].pool),
+        Object.keys(TypedDefiPools[adapterName]).map(name => TypedDefiPools[adapterName][name].pool),
       );
       const liquidityPoolsToAdapter = liquidityPools.map(lp => [lp, adapter as string]);
       await approveLiquidityPoolAndMapAdapters(owner, registryContract, liquidityPools, liquidityPoolsToAdapter);
-      console.log(`Finished mapping liquidityPools to adapter : ${adaptername}`);
+      console.log(`Finished mapping liquidityPools to adapter : ${adapterName}`);
       console.log("------------------");
     } catch (error) {
       console.error(`${TASKS.ACTION_TASKS.MAP_LIQUIDITYPOOLS_TO_ADAPTER.NAME}: `, error);

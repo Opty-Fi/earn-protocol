@@ -8,9 +8,9 @@ task(
   TASKS.DEPLOYMENT_TASKS.DEPLOY_HARVEST_CODE_PROVIDER.DESCRIPTION,
 )
   .addParam("registry", "the address of registry", "", types.string)
-  .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ deployedonce, registry }, hre) => {
+  .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
+  .addParam("insertInDb", "allow inserting to database", false, types.boolean)
+  .setAction(async ({ deployedOnce, registry }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -25,7 +25,7 @@ task(
       const harvestCodeProvider = await deployContract(
         hre,
         ESSENTIAL_CONTRACTS.HARVEST_CODE_PROVIDER,
-        deployedonce,
+        deployedOnce,
         owner,
         [registry],
       );
