@@ -39,7 +39,7 @@ describe('::LimitOrder Contracts', () => {
   const opUSDC = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88'; //mainnet
 
   before(async () => {
-    [deployer, treasury] = await ethers.getSigners();
+    [deployer, , , treasury] = await ethers.getSigners();
 
     const day = ethers.BigNumber.from('86400');
     Oracle = await new OptyFiOracle__factory(deployer).deploy(
