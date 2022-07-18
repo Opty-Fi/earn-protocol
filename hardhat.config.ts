@@ -79,6 +79,10 @@ export default {
 
   gasReporter: {
     enabled: REPORT_GAS === 'true',
+    currency: 'USD',
+    gasPrice: 30,
+    coinmarketcap: 'b9cc2ae5-b176-41e8-80b0-095ab7f45f62',
+    token: 'ETH',
   },
 
   spdxLicenseIdentifier: {

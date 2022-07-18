@@ -35,9 +35,13 @@ export function describeBehaviorOfLimitOrderActions(
   let optyFiVaultOperator: SignerWithAddress;
   let AaveWhale: SignerWithAddress;
   let USDCWhale: SignerWithAddress;
-  let AaveERC20: IERC20;
 
   let instance: ILimitOrder;
+  let AaveVaultInstance: IVault;
+  let UsdcVaultInstance: IERC20;
+  let AaveERC20: IERC20;
+  let USDCERC20: IERC20;
+  let opAaveToken: IERC20;
   let swapper: ISwapper;
   let uniRouter: IUniswapV2Router02;
 
@@ -126,6 +130,32 @@ export function describeBehaviorOfLimitOrderActions(
     uniRouter = await ethers.getContractAt(
       'IUniswapV2Router02',
       UniswapV2Router02Address,
+    );
+
+    AaveVaultInstance = await ethers.getContractAt('IVault', AaveVaultProxy);
+    UsdcVaultInstance = <IERC20>(
+      await ethers.getContractAt(
+        '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
+        UsdcVaultProxy,
+      )
+    );
+    AaveERC20 = <IERC20>(
+      await ethers.getContractAt(
+        '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
+        AaveERC20Address,
+      )
+    );
+    USDCERC20 = <IERC20>(
+      await ethers.getContractAt(
+        '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
+        USDC,
+      )
+    );
+    opAaveToken = <IERC20>(
+      await ethers.getContractAt(
+        '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
+        AaveVaultInstance.address,
+      )
     );
   });
 
@@ -217,10 +247,22 @@ export function describeBehaviorOfLimitOrderActions(
       });
     });
 
-    describe.only('#execute(struct(Order),struct(SwapData))', () => {
-      beforeEach(async () => {});
-      it('liquidates amount of maker shares specified', async () => {
-        let tx = maker.sendTransaction({
+    describe('#execute(struct(Order),struct(SwapData))', () => {
+      let snapshotId;
+      let tx;
+      let codeRoot;
+      let accountRoot;
+      let orderSwapData: DataTypes.SwapDataStruct;
+      let fee: BigNumber;
+      let aaveRedeemed: BigNumber;
+      let USDCAmount: BigNumber;
+      let instanceProof;
+
+      beforeEach(async () => {
+        snapshotId = await ethers.provider.send('evm_snapshot', []);
+
+        //provide USDC whale with ETH to make required transactions
+        tx = maker.sendTransaction({
           to: USDCWhaleAddress,
           value: ethers.utils.parseEther('1.0'),
           gasLimit: 10000000,
@@ -228,29 +270,13 @@ export function describeBehaviorOfLimitOrderActions(
 
         (await tx).wait();
 
-        const AaveVaultInstance = await ethers.getContractAt(
-          'IVault',
-          AaveVaultProxy,
-        );
-        const UsdcVaultInstance = <IERC20>(
-          await ethers.getContractAt(IERC20__factory.abi, UsdcVaultProxy)
-        );
-        const AaveERC20 = await ethers.getContractAt(
-          '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
-          AaveERC20Address,
-        );
-
-        const USDCERC20 = await ethers.getContractAt(
-          '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
-          USDC,
-        );
-
         //transfer aave tokens from whale to maker
         await AaveERC20.connect(AaveWhale).transfer(
           maker.address,
           ethers.utils.parseEther('10000'),
         );
 
+        //transfer aave tokens from whale to usdc whale for liquidity provision
         await AaveERC20.connect(AaveWhale).transfer(
           USDCWhale.address,
           ethers.utils.parseEther('10000'),
@@ -265,6 +291,7 @@ export function describeBehaviorOfLimitOrderActions(
           BigNumber.from('20000000000000'),
         ); //20million USDC since usdc has 6 decimals)
 
+        //provide liquidity to pool to ensure execute works
         await uniRouter
           .connect(USDCWhale)
           [
@@ -280,6 +307,7 @@ export function describeBehaviorOfLimitOrderActions(
             endTime.add(BigNumber.from('10000000')),
           );
 
+        //make AaveVault not whitelisted
         //replaced only 06 with 02 to remove the whitelisted state
         const newVaultConfig =
           '0x02026bd60f089B6E8BA75c409a54CDea34AA511277f600320000000000000000';
@@ -290,7 +318,7 @@ export function describeBehaviorOfLimitOrderActions(
         const codeMerkleTree = generateMerkleTreeForCodehash([
           instanceCodeHash,
         ]);
-        const instanceProof = getProofForCode(codeMerkleTree, instanceCodeHash);
+        instanceProof = getProofForCode(codeMerkleTree, instanceCodeHash);
 
         const accountMerkleTree = generateMerkleTree([instance.address]);
         //TODO: setter for empty proof of account
@@ -299,6 +327,9 @@ export function describeBehaviorOfLimitOrderActions(
           instance.address,
         );
         await instance.connect(owner).setProof(instanceProof);
+
+        codeRoot = codeMerkleTree.getHexRoot();
+        accountRoot = accountMerkleTree.getHexRoot();
 
         //transfer ether to optyfi vault operator
         tx = maker.sendTransaction({
@@ -315,11 +346,11 @@ export function describeBehaviorOfLimitOrderActions(
 
         await AaveVaultInstance.connect(
           optyFiVaultOperator,
-        ).setWhitelistedCodesRoot(codeMerkleTree.getHexRoot());
+        ).setWhitelistedCodesRoot(codeRoot);
 
         await AaveVaultInstance.connect(optyFiVaultOperator)[
           'setWhitelistedAccountsRoot(bytes32)'
-        ](accountMerkleTree.getHexRoot());
+        ](accountRoot);
 
         //approve vault to take aave from maker
         await AaveERC20.connect(maker).approve(
@@ -332,12 +363,6 @@ export function describeBehaviorOfLimitOrderActions(
           [ethers.constants.HashZero],
           [ethers.constants.HashZero],
         );
-
-        const opAaveToken = await ethers.getContractAt(
-          '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
-          AaveVaultInstance.address,
-        );
-
         //calculate user shares
         const userShares = await opAaveToken.balanceOf(maker.address);
         const userSharesLiquidated = orderParams.liquidationShare
@@ -349,13 +374,7 @@ export function describeBehaviorOfLimitOrderActions(
           .connect(maker)
           .approve(await instance['transferProxy()'](), userSharesLiquidated);
 
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-
         //no fees in opAAVEvault so should be precise
-        const swapDeadline = endTime.add(
-          BigNumber.from('1000000000000000000000000000000000000'),
-        );
         const expectedAaveRedeemed = userSharesLiquidated
           .mul(await AaveVaultInstance.getPricePerFullShare())
           .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
@@ -368,22 +387,9 @@ export function describeBehaviorOfLimitOrderActions(
         ]);
 
         const swapDiamondAddress = await instance.swapDiamond();
-
-        await AaveERC20.connect(AaveWhale).approve(
-          uniRouter.address,
-          ethers.utils.parseEther('1000000'),
+        const swapDeadline = endTime.add(
+          BigNumber.from('1000000000000000000000000000000000000'),
         );
-        const [aaveRedeemed, USDCAmount] = await uniRouter
-          .connect(AaveWhale)
-          .callStatic[
-            'swapExactTokensForTokens(uint256,uint256,address[],address,uint256)'
-          ](
-            expectedAaveRedeemed,
-            ethers.constants.Zero,
-            [AaveERC20Address, USDC],
-            swapDiamondAddress,
-            swapDeadline,
-          );
 
         const uniswapData = uniRouter.interface.encodeFunctionData(
           'swapExactTokensForTokens',
@@ -405,7 +411,7 @@ export function describeBehaviorOfLimitOrderActions(
           exchangeData = exchangeData.concat(calls[i].substring(2));
         }
 
-        const orderSwapData: DataTypes.SwapDataStruct = {
+        orderSwapData = {
           fromToken: AaveERC20Address,
           toToken: USDC,
           fromAmount: userSharesLiquidated.mul(
@@ -422,7 +428,34 @@ export function describeBehaviorOfLimitOrderActions(
           deadline: swapDeadline,
         };
 
-        const fee = USDCAmount.mul(liquidationFeeBP).div(BASIS);
+        //simulate swap call for test values
+        await AaveERC20.connect(AaveWhale).approve(
+          uniRouter.address,
+          ethers.utils.parseEther('1000000'),
+        );
+        [aaveRedeemed, USDCAmount] = await uniRouter
+          .connect(AaveWhale)
+          .callStatic[
+            'swapExactTokensForTokens(uint256,uint256,address[],address,uint256)'
+          ](
+            expectedAaveRedeemed,
+            ethers.constants.Zero,
+            [AaveERC20Address, USDC],
+            swapDiamondAddress,
+            swapDeadline,
+          );
+
+        fee = USDCAmount.mul(liquidationFeeBP).div(BASIS);
+      });
+
+      afterEach(async () => {
+        await ethers.provider.send('evm_revert', [snapshotId]);
+      });
+
+      it('returns USDC amount liquidated minus liquidation fee to maker', async () => {
+        //create order from maker
+        await instance.connect(maker).createOrder(orderParams);
+
         await expect(() =>
           instance
             .connect(maker)
@@ -430,11 +463,75 @@ export function describeBehaviorOfLimitOrderActions(
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
 
-      // it ('sends liquidation fee to treasury', async () => {});
+      it('sends liquidation fee to treasury', async () => {
+        //create order from maker
+        await instance.connect(maker).createOrder(orderParams);
 
-      // it('sends opUSDC shares to maker', async () => {});
+        const treasuryAddress = await instance.treasury();
+        const treasury = await ethers.getSigner(treasuryAddress);
+        await expect(() =>
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, orderSwapData),
+        ).to.changeTokenBalance(USDCERC20, treasury, fee);
+      });
 
-      // it('sends USDC to user if vault does not permit deposits', async () => {});
+      it('sends opUSDC shares to maker after USDC minus fee been deposited', async () => {
+        //calculate expectedOPUSDCShares to reach user after fees
+        const opUSDCVault = await ethers.getContractAt(
+          'IVault',
+          UsdcVaultProxy,
+        );
+        const opUSDCprice = await opUSDCVault.getPricePerFullShare();
+        const USDCAmountAfterFee = USDCAmount.sub(fee);
+        const expectedOPUSDCShares =
+          USDCAmountAfterFee.mul(BASIS).div(opUSDCprice);
+        //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
+        const newVaultConfig =
+          '0x0201000000000000000000000000000000000000000000640000000000000000';
+        //remove opUSDCVault whitelist
+        const tx = await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setVaultConfiguration(BigNumber.from(newVaultConfig));
+
+        await tx.wait();
+        //set code + account merkle roots and remove minimum deposit value
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedAccountsRoot(accountRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedCodesRoot(codeRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setMinimumDepositValueUT(ethers.constants.Zero);
+
+        //create order from maker
+        //set params so that received USDC after swap are deposited in opUSDC vault
+        orderParams.depositUSDC = true;
+        await instance.connect(maker).createOrder(orderParams);
+
+        await expect(() =>
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, orderSwapData),
+        ).to.changeTokenBalance(UsdcVaultInstance, maker, expectedOPUSDCShares);
+      });
+
+      it('sends USDC minus fee to maker if vault does not permit deposits', async () => {
+        //set params so that
+        orderParams.depositUSDC = true;
+
+        //create order from maker
+        await instance.connect(maker).createOrder(orderParams);
+        //since opUSDCVault is whitelisted, LimitOrder Contracts will not be able to deposit so 'catch' statement
+        //will execute, returning USDC to maker
+        await expect(() =>
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, orderSwapData),
+        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
+      });
     });
 
     describe('#modifyOrder(address,struct(OrderParams))', () => {
