@@ -23,6 +23,40 @@ export async function deployRegistry(
   return registry;
 }
 
+export async function deployStrategyManager(
+  hre: HardhatRuntimeEnvironment,
+  owner: Signer,
+  isDeployedOnce: boolean,
+): Promise<Contract> {
+  let strategyManager = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER, isDeployedOnce, owner, []);
+  strategyManager = await hre.ethers.getContractAt(
+    ESSENTIAL_CONTRACTS_DATA.STRATEGY_MANAGER,
+    strategyManager.address,
+    owner,
+  );
+  return strategyManager;
+}
+
+export async function deployClaimAndHarvest(
+  hre: HardhatRuntimeEnvironment,
+  owner: Signer,
+  isDeployedOnce: boolean,
+): Promise<Contract> {
+  let claimAndHarvest = await deployContract(
+    hre,
+    ESSENTIAL_CONTRACTS_DATA.CLAIM_AND_HARVEST,
+    isDeployedOnce,
+    owner,
+    [],
+  );
+  claimAndHarvest = await hre.ethers.getContractAt(
+    ESSENTIAL_CONTRACTS_DATA.CLAIM_AND_HARVEST,
+    claimAndHarvest.address,
+    owner,
+  );
+  return claimAndHarvest;
+}
+
 export async function deployRiskManager(
   hre: HardhatRuntimeEnvironment,
   owner: Signer,
@@ -131,7 +165,7 @@ export async function deployAdapters(
   for (const adapter of ADAPTERS) {
     try {
       data[adapter] = await deployAdapter(hre, owner, adapter, registryAddr, isDeployedOnce);
-    } catch (error: any) {
+    } catch (error) {
       console.log(adapter, error);
     }
   }
