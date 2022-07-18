@@ -1,9 +1,10 @@
 import { task, types } from "hardhat/config";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import TASKS from "../task-names";
-import { Registry, Registry__factory, StrategyProvider, StrategyProvider__factory } from "../../typechain";
+import { Registry, StrategyProvider } from "../../typechain";
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRATEGY.DESCRIPTION)
   .addParam("tokenSymbol", "the token name as adapter-with-strategies", "", types.string)
@@ -13,9 +14,9 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY.NAME, TASKS.ACTION_TASKS.SET_BEST_STRA
     const chainId = await getChainId();
     try {
       const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
-      const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
+      const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
       const strategyProviderInstance = <StrategyProvider>(
-        await ethers.getContractAt(StrategyProvider__factory.abi, await registryInstance.getStrategyProvider())
+        await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, await registryInstance.getStrategyProvider())
       );
       const strategyOperatorAddress = await registryInstance.strategyOperator();
       const signer = await ethers.getSigner(strategyOperatorAddress);
