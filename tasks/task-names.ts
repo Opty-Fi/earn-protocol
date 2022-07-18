@@ -102,6 +102,26 @@ export default {
       NAME: "set-best-strategy-rebalance-multisig",
       DESCRIPTION: "set best strategy and rebalance using multisig",
     },
+    SET_UNDERLYING_TOKENS_HASH: {
+      NAME: "set-underlying-tokens-hash",
+      DESCRIPTION: "set the address of the underlying asset and its keccak256 hash",
+    },
+    SET_RISK_PROFILE_CODE: {
+      NAME: "set-risk-profile-code",
+      DESCRIPTION: "set a risk profile code for a given vault",
+    },
+    SET_USER_DEPOSIT_CAP: {
+      NAME: "set-user-deposit-cap",
+      DESCRIPTION: "set the maximum amount a user could deposit in entire life cycle of this vault in underlying token",
+    },
+    SET_MINIMUM_DEPOSIT_VALUE: {
+      NAME: "set-minimum-deposit-value",
+      DESCRIPTION: "set the minimum amount in underlying token requiredto be deposited by the user",
+    },
+    SET_TOTAL_VALUE_LOCKED_LIMIT: {
+      NAME: "set-total-value-locked-limit",
+      DESCRIPTION: "set the total value locked limit in underlying token",
+    },
     PRINT_STRATEGY_HASH: {
       NAME: "print-strategy-hash",
       DESCRIPTION: "Print the strategy",
@@ -169,6 +189,14 @@ export default {
     SET_WHITELISTED_ACCOUNTS_ROOT: {
       NAME: "set-whitelisted-accounts-root",
       DESCRIPTION: "whitelisted accounts merkle root hash",
+    },
+    SET_WHITELISTED_CODES_ROOT: {
+      NAME: "set-whitelisted-codes-root",
+      DESCRIPTION: "whitelisted codes merkle root hash",
+    },
+    SET_EMERGENCY_SHUTDOWN: {
+      NAME: "set-emergency-shutdown",
+      DESCRIPTION: "activates or deactives vault mode where all strategies go into full withdrawal",
     },
     APPROVE_TOKEN_AND_MAP_TO_TOKENSHASH: {
       NAME: "approve-token-and-map-to-tokenshash",
