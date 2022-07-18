@@ -9,7 +9,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ERC20.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_ERC
   .addOptionalParam("total", "the totalSupply of token", "0", types.string)
   .addOptionalParam("decimal", "the decimal of token", 18, types.int)
   .addParam("deployedOnce", "allow checking whether contracts were deployed previously", false, types.boolean)
-  .addParam("insertindb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ name, symbol, total, decimal, deployedOnce }, hre) => {
     if (name === "") {
       throw new Error("name cannot be empty");

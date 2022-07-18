@@ -5,7 +5,6 @@ import TASKS from "../task-names";
 
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_INFRA.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_INFRA.DESCRIPTION)
   .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .addParam("insertInDb", "allow inserting to database", false, types.boolean)
   .setAction(async ({ deployedOnce }, hre) => {
     try {
       console.log(`\tDeploying Infrastructure contracts ...`);
