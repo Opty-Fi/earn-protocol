@@ -97,4 +97,11 @@ interface IVault {
      */
     function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot)
         external;
+
+    /**
+     * @notice function to set minimum amount in underlying token required
+     *         to be deposited by the user
+     * @param _minimumDepositValueUT Minimum deposit value in underlying token required
+     */
+    function setMinimumDepositValueUT(uint256 _minimumDepositValueUT) external;
 }
