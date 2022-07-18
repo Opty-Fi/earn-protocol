@@ -117,9 +117,10 @@ describe("VaultV2", () => {
           before(async function () {
             const strategyOperatorAddress = await this.registry.getStrategyOperator();
             const strategyOperator = await ethers.getSigner(strategyOperatorAddress);
-            await this.strategyProvider
+            const tx = await this.strategyProvider
               .connect(strategyOperator)
               .setBestStrategy(strategyDetail.riskProfileCode, tokenHash, steps);
+            await tx.wait(1);
             this.adapter = <IAdapterFull>(
               await ethers.getContractAt(
                 IAdapterFull__factory.abi,
@@ -128,7 +129,8 @@ describe("VaultV2", () => {
             );
           });
           it("should receive new strategy after rebalancing", async function () {
-            await this.vaults[token].rebalance();
+            const tx = await this.vaults[token].rebalance();
+            await tx.wait(1);
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),
             );
@@ -138,9 +140,13 @@ describe("VaultV2", () => {
             const signers = [this.signers.alice, this.signers.bob];
             const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
             for (let i = 0; i < signers.length; i++) {
-              await this.tokens[token].connect(signers[i]).approve(this.vaults[token].address, _userDepositInDecimals);
+              const tx1 = await this.tokens[token]
+                .connect(signers[i])
+                .approve(this.vaults[token].address, _userDepositInDecimals);
+              await tx1.wait(1);
               const _BalanceBefore = await this.tokens[token].balanceOf(signers[i].address);
-              await this.vaults[token].connect(signers[i]).userDepositVault(_userDepositInDecimals, [], []);
+              const tx2 = await this.vaults[token].connect(signers[i]).userDepositVault(_userDepositInDecimals, [], []);
+              await tx2.wait(1);
               const _BalanceAfter = await this.tokens[token].balanceOf(signers[i].address);
               expect(_BalanceBefore).gt(_BalanceAfter);
             }
@@ -153,7 +159,8 @@ describe("VaultV2", () => {
               this.vaults[token],
               this.tokens[token],
             );
-            await this.vaults[token].connect(this.signers.financeOperator).vaultDepositAllToStrategy();
+            const tx = await this.vaults[token].connect(this.signers.financeOperator).vaultDepositAllToStrategy();
+            await tx.wait(1);
             const vaultBalanceAfter = await this.vaults[token].balanceUT();
             const poolBalanceAfter = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
@@ -175,7 +182,10 @@ describe("VaultV2", () => {
                 this.vaults[token],
                 this.tokens[token],
               );
-              await this.vaults[token].connect(signers[i]).userWithdrawVault(userWithdrawBalance.mul(3).div(4), [], []);
+              const tx = await this.vaults[token]
+                .connect(signers[i])
+                .userWithdrawVault(userWithdrawBalance.mul(3).div(4), [], []);
+              await tx.wait();
               const userBalanceAfter = await this.tokens[token].balanceOf(signers[i].address);
               const poolBalanceAfter = await getLastStrategyStepBalanceLP(
                 steps as StrategyStepType[],

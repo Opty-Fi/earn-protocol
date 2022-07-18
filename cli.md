@@ -413,9 +413,8 @@ Options:
 Usage: approve and map liquidity pool to adapter
 
 Options:
---registry      required <address> the address of registry
---liquiditypool required <address> the address of liquidity
---adapter       required <address> the address of defi adapter
+--liquidity-ypool required <address> the address of liquidity
+--adapter-name       required <address> the address of defi adapter
 --network       optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -424,31 +423,8 @@ Options:
 ```
 yarn hardhat map-liquiditypool-to-adapter \
 --network localhost \
---registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
---liquiditypool 0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5 \
---adapter 0xbf78A1a02e34CF7aCDB8BD9D0f225cB6AA6B85C5
-```
-
-### map-liquiditypools-to-adapter
-
-```
-Usage: approve and map liquidity pools to a specific adapter
-
-Options:
---registry      required <address> the address of registry
---adaptername   required <address> the name of adapter
---adapter       required <address> the address of defi adapter
---network       optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-yarn hardhat map-liquiditypools-to-adapter \
---network localhost \
---registry 0x09557807C515d758ECc5E1D1aCE7D09aA5842F51  \
---adaptername CompoundAdapter \
---adapter 0xbf78A1a02e34CF7aCDB8BD9D0f225cB6AA6B85C5
+--liquidity-pool 0x71B9eC42bB3CB40F017D8AD8011BE8e384a95fa5 \
+--adapter-name CompoundAdapter
 ```
 
 ### set-max-deposit
