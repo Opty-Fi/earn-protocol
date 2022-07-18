@@ -19,6 +19,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const sushiswapMasterChefV1Adapter = await deployments.get("SushiswapMasterChefV1Adapter");
   const sushiswapMasterChefV2Adapter = await deployments.get("SushiswapMasterChefV2AdapterEthereum");
   const sushiBarAdapter = await deployments.get("SushiBarAdapter");
+  const sushiswapMasterChefV2AdapterEthereum = await deployments.get("SushiswapMasterChefV2AdapterEthereum");
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();
@@ -146,6 +147,7 @@ func.dependencies = [
   "LidoAdapter",
   "CurveMetapoolSwapAdapter",
   "SushiswapMasterChefV1Adapter",
+  "SushiswapMasterChefV2AdapterEthereum",
   "SushiswapPoolAdapterEthereum",
   "NewoStakingAdapter",
   "AaveV1Adapter",

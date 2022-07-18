@@ -506,15 +506,15 @@ const mainnetStrategiesByToken = {
   // }
   APE: {
     "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP": {
-      strategyName: "ape-DEPOSIT-SushiswapPool-ILV-WETH-SLP",
+      strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP",
       token: "0x4d224452801ACEd8B2F0aebE155379bb5D594381",
       strategy: [
         {
           contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
           outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
           isBorrow: false,
-          outputTokenSymbol: "ILV-WETH-SLP",
-          adapterName: "SushiswapPoolAdapter",
+          outputTokenSymbol: "APE-USDT-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
           protocol: "Sushiswap",
         },
       ],
@@ -528,7 +528,7 @@ const mainnetStrategiesByToken = {
           contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
           outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
           isBorrow: false,
-          outputTokenSymbol: "ILV-WETH-SLP",
+          outputTokenSymbol: "APE-USDT-SLP",
           adapterName: "SushiswapPoolAdapterEthereum",
           protocol: "Sushiswap",
         },
