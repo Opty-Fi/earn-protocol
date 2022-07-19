@@ -13,10 +13,16 @@ interface ILimitOrderSettings {
     function setTreasury(address _treasury) external;
 
     /**
-     * @notice sets the merkle proof required for the contract to make withdrawals/deposits from the vault
-     * @param _proof the merkle proof
+     * @notice sets the code merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @param _proof the code merkle proof
      */
-    function setProof(bytes32[] memory _proof) external;
+    function setCodeProof(bytes32[] memory _proof) external;
+
+    /**
+     * @notice sets the account merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @param _proof the account merkle proof
+     */
+    function setAccountProof(bytes32[] memory _proof) external;
 
     /**
      * @notice sets the liquidation fee for a target vault

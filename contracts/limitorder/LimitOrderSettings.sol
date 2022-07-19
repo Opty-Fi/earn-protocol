@@ -32,8 +32,15 @@ contract LimitOrderSettings is
     /**
      * @inheritdoc ILimitOrderSettings
      */
-    function setProof(bytes32[] memory _proof) external onlyOwner {
-        _setProof(LimitOrderStorage.layout(), _proof);
+    function setCodeProof(bytes32[] memory _proof) external onlyOwner {
+        _setCodeProof(LimitOrderStorage.layout(), _proof);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setAccountProof(bytes32[] memory _proof) external onlyOwner {
+        _setAccountProof(LimitOrderStorage.layout(), _proof);
     }
 
     /**
