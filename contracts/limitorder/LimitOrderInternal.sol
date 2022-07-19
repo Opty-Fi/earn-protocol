@@ -161,8 +161,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //withdraw vault shares for underlying
         IVault(order.vault).userWithdrawVault(
             liquidationAmount,
-            _l.proof, //change to proper proof
-            _l.proof
+            _l.accountProof,
+            _l.codeProof
         );
 
         uint256 balance = IERC20(IVault(order.vault).underlyingToken())
@@ -198,8 +198,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
             try
                 IVault(OPUSDC_VAULT).userDepositVault(
                     finalUSDCAmount,
-                    _l.emptyProof,
-                    _l.proof
+                    _l.accountProof,
+                    _l.codeProof
                 )
             {
                 IERC20(OPUSDC_VAULT).transfer(
@@ -229,15 +229,27 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice sets the merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @notice set code merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _l the layout of the limit order contract
      * @param _proof the merkle proof
      */
-    function _setProof(
+    function _setCodeProof(
         LimitOrderStorage.Layout storage _l,
         bytes32[] memory _proof
     ) internal {
-        _l.proof = _proof;
+        _l.codeProof = _proof;
+    }
+
+    /**
+     * @notice set account merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @param _l the layout of the limit order contract
+     * @param _proof the merkle proof
+     */
+    function _setAccountProof(
+        LimitOrderStorage.Layout storage _l,
+        bytes32[] memory _proof
+    ) internal {
+        _l.accountProof = _proof;
     }
 
     /**
@@ -386,16 +398,29 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice returns LimitOrderDiamond merkle proof
+     * @notice returns LimitOrderDiamond code merkle proof
      * @param _l the layout of the limit order contract
-     * @return proof LimitOrder merkle proof
+     * @return proof LimitOrder code merkle proof
      */
-    function _proof(LimitOrderStorage.Layout storage _l)
+    function _codeProof(LimitOrderStorage.Layout storage _l)
         internal
         view
         returns (bytes32[] memory proof)
     {
-        proof = _l.proof;
+        proof = _l.codeProof;
+    }
+
+    /**
+     * @notice returns LimitOrderDiamond account merkle proof
+     * @param _l the layout of the limit order contract
+     * @return proof LimitOrder account merkle proof
+     */
+    function _accountProof(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (bytes32[] memory proof)
+    {
+        proof = _l.accountProof;
     }
 
     /**
