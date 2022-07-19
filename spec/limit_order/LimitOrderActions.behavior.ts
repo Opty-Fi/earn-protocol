@@ -8,7 +8,6 @@ import {
   OptyFiOracle,
   IUniswapV2Router02,
   IVault,
-  IVault__factory,
 } from '../../typechain-types';
 import { DataTypes } from '../../typechain-types/contracts/swap/ISwap';
 import { BigNumber } from 'ethers';
@@ -67,7 +66,7 @@ export function describeBehaviorOfLimitOrderActions(
   const newExpiration = expiration.add(BigNumber.from('120'));
 
   const priceTarget = ethers.utils.parseEther('100'); //always high enough to execute order for testing
-  const newPriceTarget = priceTarget.add(ethers.utils.parseEther('10'));
+  const newPriceTarget = ethers.utils.parseEther('1');
 
   const orderParams: OrderParams = {
     priceTarget: priceTarget,
@@ -214,13 +213,21 @@ export function describeBehaviorOfLimitOrderActions(
 
           await expect(
             instance.connect(maker).createOrder(orderParams),
-          ).to.be.revertedWith('user already has an active limit order');
+          ).to.be.revertedWith(
+            `ActiveOrder("${maker.address}", "${orderParams.vault}")`,
+          );
         });
 
         it('expiration is before current block timestamp', async () => {
+          await hre.network.provider.send('evm_setNextBlockTimestamp', [
+            orderParams.expiration.toNumber(),
+          ]);
+
           await expect(
             instance.connect(maker).createOrder(failedOrderParams),
-          ).to.be.revertedWith('expiration in past');
+          ).to.be.revertedWith(
+            `PastExpiration(${orderParams.expiration}, ${failedOrderParams.expiration})`,
+          );
         });
       });
     });
@@ -242,7 +249,7 @@ export function describeBehaviorOfLimitOrderActions(
         it('order is non-existent', async () => {
           await expect(
             instance.connect(maker).cancelOrder(AaveVaultProxy),
-          ).to.be.revertedWith('Order non-existent');
+          ).to.be.revertedWith('OrderNonExistent()');
         });
       });
     });
@@ -547,6 +554,68 @@ export function describeBehaviorOfLimitOrderActions(
             .execute(maker.address, AaveVaultProxy, orderSwapData),
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
+
+      describe('reverts if', () => {
+        it('user does not have an active order', async () => {
+          await expect(
+            instance
+              .connect(optyFiVaultOperator)
+              .execute(
+                optyFiVaultOperator.address,
+                AaveVaultProxy,
+                orderSwapData,
+              ),
+          ).to.be.revertedWith(
+            `NoActiveOrder("${optyFiVaultOperator.address}")`,
+          );
+        });
+        it('order has expired', async () => {
+          const expiredTimestamp = orderParams.expiration.toNumber() + 10000;
+
+          await instance.connect(maker).createOrder(orderParams);
+
+          await hre.network.provider.send('evm_setNextBlockTimestamp', [
+            expiredTimestamp,
+          ]);
+
+          await expect(
+            instance
+              .connect(maker)
+              .execute(maker.address, AaveVaultProxy, orderSwapData),
+          ).to.be.revertedWith(
+            `Expired(${expiredTimestamp}, ${orderParams.expiration})`,
+          );
+        });
+        it('price is not within bounds', async () => {
+          await instance.connect(maker).createOrder(modifyOrderParams);
+
+          const lowerError = newPriceTarget
+            .mul(modifyOrderParams.lowerBound)
+            .div(BASIS);
+          const upperError = newPriceTarget
+            .mul(modifyOrderParams.upperBound)
+            .div(BASIS);
+          const lowerBound = newPriceTarget.sub(lowerError);
+          const upperBound = newPriceTarget.add(upperError);
+
+          const oracle: OptyFiOracle = await ethers.getContractAt(
+            'OptyFiOracle',
+            await instance.oracle(),
+          );
+          const price = await oracle['getTokenPrice(address,address)'](
+            AaveERC20.address,
+            USD,
+          );
+
+          await expect(
+            instance
+              .connect(maker)
+              .execute(maker.address, AaveVaultProxy, orderSwapData),
+          ).to.be.revertedWith(
+            `UnboundPrice(${price}, ${lowerBound}, ${upperBound})`,
+          );
+        });
+      });
     });
 
     describe('#modifyOrder(address,struct(OrderParams))', () => {
@@ -586,7 +655,7 @@ export function describeBehaviorOfLimitOrderActions(
             instance
               .connect(maker)
               .modifyOrder(AaveVaultProxy, modifyOrderParams),
-          ).to.be.revertedWith('user does not have an active order');
+          ).to.be.revertedWith(`NoActiveOrder("${maker.address}")`);
         });
       });
     });
