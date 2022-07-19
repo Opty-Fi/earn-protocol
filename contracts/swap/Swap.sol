@@ -15,6 +15,7 @@ contract Swap is SwapInternal, ISwap {
      */
     function swap(DataTypes.SwapData memory _swapData)
         external
+        payable
         returns (uint256 receivedAmount, uint256 returnedBalance)
     {
         _canSwap(_swapData);

@@ -29,17 +29,10 @@ abstract contract SwapInternal {
         bytes memory _exchangeData = _swapData.exchangeData;
 
         for (uint256 i = 0; i < _swapData.callees.length; i++) {
-            uint256 allowance = IERC20(_swapData.fromToken).allowance(
-                address(this),
-                address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
-            );
-            uint256 aaveBalance = IERC20(_swapData.fromToken).balanceOf(
-                address(this)
-            );
             require(
                 _swapData.callees[i] !=
                     address(SwapStorage.layout().tokenTransferProxy),
-                'Can not call TokenTransferProxy Contract'
+                'Cannot call TokenTransferProxy Contract'
             );
 
             {
@@ -87,7 +80,7 @@ abstract contract SwapInternal {
      */
     function _canSwap(DataTypes.SwapData memory _swapData) internal view {
         //add values length check
-        require(_swapData.deadline >= block.timestamp, 'Deadline breached');
+        require(_swapData.deadline >= _timestamp(), 'Deadline breached');
         require(
             msg.value ==
                 (
@@ -100,7 +93,7 @@ abstract contract SwapInternal {
         require(_swapData.toAmount > 0, 'toAmount is too low');
         require(
             _swapData.callees.length + 1 == _swapData.startIndexes.length,
-            'Start indexes must be 1 greater then number of callees'
+            'Start indexes must be 1 greater than number of callees'
         );
     }
 
@@ -177,5 +170,13 @@ abstract contract SwapInternal {
         returns (address tokenTransferProxy)
     {
         tokenTransferProxy = _l.tokenTransferProxy;
+    }
+
+    /**
+     * @notice returns the block timestamp
+     * @return uint256 current block timestamp
+     */
+    function _timestamp() internal view virtual returns (uint256) {
+        return block.timestamp;
     }
 }
