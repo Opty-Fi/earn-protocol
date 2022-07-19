@@ -15,8 +15,8 @@ library LimitOrderStorage {
      * @param userVaultOrder user => vault => Order
      * @param userVaultOrderActive user => vault => bool
      * @param vaultFee vault address => fee
-     * @param accountProof  code merkle proof for Limit Order contract (required for OptyFi Vault withdraw/deposit)
-     * @param codeProof code merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
+     * @param accountProofs mapping of OptyFi vault address => code merkle proof for Limit Order contract (required for OptyFi Vault withdraw/deposit)
+     * @param codeProofs mapping of OptyFi vault address => code merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
      * @param treasury the treasury to send liquidation fees to
      * @param swapDiamond the address of the OptyFi swapDiamond
      * @param oracle the addres of the OptyFi Oracle
@@ -26,8 +26,8 @@ library LimitOrderStorage {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
         mapping(address => mapping(address => bool)) userVaultOrderActive;
         mapping(address => uint256) vaultFee;
-        bytes32[] accountProof;
-        bytes32[] codeProof;
+        mapping(address => bytes32[]) accountProofs;
+        mapping(address => bytes32[]) codeProofs;
         address treasury;
         address swapDiamond;
         address oracle;

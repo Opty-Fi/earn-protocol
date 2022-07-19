@@ -159,15 +159,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
 
         //withdraw vault shares for underlying
-        IVault(order.vault).userWithdrawVault(
+        IVault(vault).userWithdrawVault(
             liquidationAmount,
-            _l.accountProof,
-            _l.codeProof
+            _l.accountProofs[vault],
+            _l.codeProofs[vault]
         );
 
-        uint256 balance = IERC20(IVault(order.vault).underlyingToken())
-            .balanceOf(address(this));
-        IERC20(IVault(order.vault).underlyingToken()).approve(
+        uint256 balance = IERC20(IVault(vault).underlyingToken()).balanceOf(
+            address(this)
+        );
+
+        IERC20(IVault(vault).underlyingToken()).approve(
             // address(0xb14B07CB647e6b60C9d3a86355a575AF0F1d85A8)
             ISwapper(_l.swapDiamond).tokenTransferProxy(),
             balance
@@ -198,8 +200,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
             try
                 IVault(OPUSDC_VAULT).userDepositVault(
                     finalUSDCAmount,
-                    _l.accountProof,
-                    _l.codeProof
+                    _l.accountProofs[OPUSDC_VAULT],
+                    _l.codeProofs[OPUSDC_VAULT]
                 )
             {
                 IERC20(OPUSDC_VAULT).transfer(
@@ -232,24 +234,28 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @notice set code merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _l the layout of the limit order contract
      * @param _proof the merkle proof
+     * @param _vault address of OptyFi vault to get codeProof for
      */
     function _setCodeProof(
         LimitOrderStorage.Layout storage _l,
-        bytes32[] memory _proof
+        bytes32[] memory _proof,
+        address _vault
     ) internal {
-        _l.codeProof = _proof;
+        _l.codeProofs[_vault] = _proof;
     }
 
     /**
      * @notice set account merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _l the layout of the limit order contract
      * @param _proof the merkle proof
+     * @param _vault address of OptyFi vault to set accountProof for
      */
     function _setAccountProof(
         LimitOrderStorage.Layout storage _l,
-        bytes32[] memory _proof
+        bytes32[] memory _proof,
+        address _vault
     ) internal {
-        _l.accountProof = _proof;
+        _l.accountProofs[_vault] = _proof;
     }
 
     /**
@@ -400,27 +406,29 @@ contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice returns LimitOrderDiamond code merkle proof
      * @param _l the layout of the limit order contract
-     * @return proof LimitOrder code merkle proof
+     * @param _vault address of OptyFi vault to get codeProof for
+     * @return proof LimitOrder code merkle proof for target vault
      */
-    function _codeProof(LimitOrderStorage.Layout storage _l)
+    function _codeProof(LimitOrderStorage.Layout storage _l, address _vault)
         internal
         view
         returns (bytes32[] memory proof)
     {
-        proof = _l.codeProof;
+        proof = _l.codeProofs[_vault];
     }
 
     /**
      * @notice returns LimitOrderDiamond account merkle proof
      * @param _l the layout of the limit order contract
-     * @return proof LimitOrder account merkle proof
+     * @param _vault address of OptyFi vault to get codeProof for
+     * @return proof LimitOrder account merkle proof for target vault
      */
-    function _accountProof(LimitOrderStorage.Layout storage _l)
+    function _accountProof(LimitOrderStorage.Layout storage _l, address _vault)
         internal
         view
         returns (bytes32[] memory proof)
     {
-        proof = _l.accountProof;
+        proof = _l.accountProofs[_vault];
     }
 
     /**
