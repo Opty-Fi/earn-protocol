@@ -288,20 +288,21 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrderActive[_order.maker][_order.vault] == true,
             'user does not have an active order'
         );
-        require(_order.endTime >= block.timestamp, 'order expired');
-        _isSpotPriceBound(_fetchSpotPrice(_l, _order), _order);
+        require(_order.endTime >= _timestamp(), 'order expired');
+        _isPriceBound(_price(_l, _order), _order);
     }
 
     /**
-     * @notice returns spotPrice of underlying vault token
+     * @notice returns price of underlying vault token in stablecoin
+     * @dev fetched from OptyFi oracle which uses Chainlink as a default source of truth.
      * @param _order the order containing the underlying vault token to fetch the spot price for
-     * @return spotPrice the spotPrice of the underlying vault token
+     * @return price the price of the underlying vault token in stablecoin
      */
-    function _fetchSpotPrice(
+    function _price(
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order
-    ) internal view returns (uint256 spotPrice) {
-        spotPrice = IOptyFiOracle(_l.oracle).getTokenPrice(
+    ) internal view returns (uint256 price) {
+        price = IOptyFiOracle(_l.oracle).getTokenPrice(
             IVault(_order.vault).underlyingToken(),
             USD
         );
@@ -324,7 +325,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrderActive[_user][_vault] == false,
             'user already has an active limit order'
         );
-        require(block.timestamp < _endTime, 'end time in past');
+        require(_timestamp() < _endTime, 'end time in past');
     }
 
     /**
@@ -437,20 +438,28 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice checks whether spotPrice is within an absolute bound of the target price of a limit order
-     * @param _spotPrice the spotPrice of the underlying token of the limit order
-     * @param _order the limit order containig the target price to check the spot price against
+     * @notice returns the block timestamp
+     * @return uint256 current block timestamp
      */
-    function _isSpotPriceBound(
-        uint256 _spotPrice,
-        DataTypes.Order memory _order
-    ) internal pure {
+    function _timestamp() internal view virtual returns (uint256) {
+        return block.timestamp;
+    }
+
+    /**
+     * @notice checks whether price is within an absolute bound of the target price of a limit order
+     * @param _price the latest price of the underlying token of the limit order
+     * @param _order the limit order containig the target price to check the latest price against
+     */
+    function _isPriceBound(uint256 _price, DataTypes.Order memory _order)
+        internal
+        pure
+    {
         uint256 target = _order.priceTarget;
         uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
         uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
         require(
-            lowerBound <= _spotPrice && _spotPrice <= upperBound,
-            'spotPrice not bound'
+            lowerBound <= _price && _price <= upperBound,
+            'price not bound'
         );
     }
 
