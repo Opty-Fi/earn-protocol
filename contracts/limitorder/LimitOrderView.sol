@@ -61,15 +61,23 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
-    function codeProof() external view returns (bytes32[] memory proof) {
-        proof = _codeProof(LimitOrderStorage.layout());
+    function codeProof(address _vault)
+        external
+        view
+        returns (bytes32[] memory proof)
+    {
+        proof = _codeProof(LimitOrderStorage.layout(), _vault);
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function accountProof() external view returns (bytes32[] memory proof) {
-        proof = _accountProof(LimitOrderStorage.layout());
+    function accountProof(address _vault)
+        external
+        view
+        returns (bytes32[] memory proof)
+    {
+        proof = _accountProof(LimitOrderStorage.layout(), _vault);
     }
 
     /**
