@@ -256,7 +256,8 @@ export function describeBehaviorOfLimitOrderActions(
       let fee: BigNumber;
       let aaveRedeemed: BigNumber;
       let USDCAmount: BigNumber;
-      let instanceProof;
+      let instanceCodeProof;
+      let instanceAccountProof;
 
       beforeEach(async () => {
         snapshotId = await ethers.provider.send('evm_snapshot', []);
@@ -312,21 +313,24 @@ export function describeBehaviorOfLimitOrderActions(
         const newVaultConfig =
           '0x02026bd60f089B6E8BA75c409a54CDea34AA511277f600320000000000000000';
 
+        //set proofs for instance
         const instanceCodeHash = ethers.utils.keccak256(
           await ethers.provider.getCode(instance.address),
         );
         const codeMerkleTree = generateMerkleTreeForCodehash([
           instanceCodeHash,
         ]);
-        instanceProof = getProofForCode(codeMerkleTree, instanceCodeHash);
+
+        instanceCodeProof = getProofForCode(codeMerkleTree, instanceCodeHash);
 
         const accountMerkleTree = generateMerkleTree([instance.address]);
-        //TODO: setter for empty proof of account
+
         const instanceAccountProof = getProof(
           accountMerkleTree,
           instance.address,
         );
-        await instance.connect(owner).setProof(instanceProof);
+        await instance.connect(owner).setAccountProof(instanceAccountProof);
+        await instance.connect(owner).setCodeProof(instanceCodeProof);
 
         codeRoot = codeMerkleTree.getHexRoot();
         accountRoot = accountMerkleTree.getHexRoot();
