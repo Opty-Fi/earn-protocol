@@ -2,9 +2,10 @@ import { task, types } from "hardhat/config";
 import TASKS from "../task-names";
 import { getAddress } from "@ethersproject/address";
 import { TypedTokens } from "../../helpers/data";
-import { ERC20__factory, Vault, Vault__factory } from "../../typechain";
+import { Vault } from "../../typechain";
 import { getAllowWhitelistState } from "../../helpers/utils";
 import { BigNumber } from "ethers";
+import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DESCRIPTION)
   .addParam("vaultSymbol", "the symbol of vault", "", types.string)
@@ -16,27 +17,27 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
   )
   .addParam("user", "account address of the user", "", types.string)
   .addParam("merkleProof", "user merkle proof", "", types.string)
-  .addOptionalParam("useall", "use whole balance", false, types.boolean)
+  .addOptionalParam("useAll", "use whole balance", false, types.boolean)
   .addOptionalParam("amount", "amount of token", "0", types.string)
-  .setAction(async ({ vaultSymbol, action, user, amount, useall, merkleProof }, { ethers, deployments }) => {
+  .setAction(async ({ vaultSymbol, action, user, amount, useAll, merkleProof }, { ethers, deployments }) => {
     const ACTIONS = ["DEPOSIT", "WITHDRAW", "REBALANCE", "VAULT-DEPOSIT-ALL-TO-STRATEGY"];
 
     if (!ACTIONS.includes(action.toUpperCase())) {
       throw new Error("action is invalid");
     }
 
-    if (!useall && !BigNumber.from(amount).gt("0") && action.toUpperCase() != "REBALANCE") {
+    if (!useAll && !BigNumber.from(amount).gt("0") && action.toUpperCase() != "REBALANCE") {
       throw new Error("amount is not set");
     }
 
     try {
-      const vault = await (await deployments.get(vaultSymbol)).address;
+      const vault = (await deployments.get(`${vaultSymbol}_Proxy`)).address;
       const userSigner = await ethers.getSigner(user);
-      const vaultContract = <Vault>await ethers.getContractAt(Vault__factory.abi, vault);
+      const vaultContract = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
       const vaultShareSymbol = await vaultContract.symbol();
       const vaultShareDecimals = await vaultContract.decimals();
       const tokenAddress = await vaultContract.underlyingToken();
-      const tokenContract = await ethers.getContractAt(ERC20__factory.abi, tokenAddress);
+      const tokenContract = await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, tokenAddress);
       const tokenSymbol = tokenAddress == getAddress(TypedTokens.MKR) ? "MKR" : await tokenContract.symbol();
       const tokenDecimals = await tokenContract.decimals();
 
@@ -51,7 +52,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               tokenDecimals,
             )} ${tokenSymbol}`,
           );
-          if (useall) {
+          if (useAll) {
             checkedAmount = await tokenContract.balanceOf(user);
           }
           try {
@@ -76,7 +77,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
 
             let strategyHash = await vaultContract.investStrategyHash();
             console.log(`Invest strategy : ${strategyHash}`);
-            console.log(`depositing ${checkedAmount.toString()}..`);
+            console.log(`depositing ${checkedAmount.toString()}...`);
             console.log("Block before : ", await ethers.provider.getBlockNumber());
             console.log(
               "total supply before : ",
@@ -89,7 +90,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
               const depositTx = await vaultContract
                 .connect(userSigner)
-                .userDepositVault(checkedAmount, JSON.parse(merkleProof), []);
+                .userDepositVault(checkedAmount, merkleProof.split(","), []);
               await depositTx.wait(1);
             } else {
               const depositTx = await vaultContract.connect(userSigner).userDepositVault(checkedAmount, [], []);
@@ -128,7 +129,7 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
         }
         case "WITHDRAW": {
           let checkedAmount = ethers.BigNumber.from(amount.toString());
-          if (useall) {
+          if (useAll) {
             checkedAmount = await vaultContract.balanceOf(user);
           }
           try {
@@ -154,10 +155,10 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
             if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
               const gasLimit = await vaultContract
                 .connect(userSigner)
-                .estimateGas.userWithdrawVault(checkedAmount, JSON.parse(merkleProof), []);
+                .estimateGas.userWithdrawVault(checkedAmount, merkleProof.split(","), []);
               const withdrawTx = await vaultContract
                 .connect(userSigner)
-                .userWithdrawVault(checkedAmount, JSON.parse(merkleProof), [], { gasLimit: gasLimit.add("1000000") });
+                .userWithdrawVault(checkedAmount, merkleProof.split(","), [], { gasLimit: gasLimit.add("1000000") });
               await withdrawTx.wait(1);
             } else {
               const gasLimit = await vaultContract

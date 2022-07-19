@@ -5,8 +5,8 @@ import TASKS from "../task-names";
 
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
-  .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .setAction(async ({ registry, deployedonce }, hre) => {
+  .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
+  .setAction(async ({ registry, deployedOnce }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -21,7 +21,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTERS.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_
           await hre.run(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, {
             registry: registry,
             name: adapter,
-            deployedonce: deployedonce,
+            deployedOnce: deployedOnce,
           });
           console.log("--------------------");
         } catch (error) {

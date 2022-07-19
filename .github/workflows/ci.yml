@@ -49,6 +49,12 @@ jobs:
       - name: Optyfi-SDK Mainnet
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.0
+        continue-on-error: true
+        id: slither
+        with:
+          node-version: 14
       - name: Test
         run: |
           yarn test-fast:mainnet
