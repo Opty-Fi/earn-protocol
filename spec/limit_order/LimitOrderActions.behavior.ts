@@ -62,9 +62,9 @@ export function describeBehaviorOfLimitOrderActions(
   const UniswapV2Router02Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //mainnet
 
   //Params
-  const endTimeNum = 1657190461 + 120; //unix timestamp of block 15095000 + 120s
-  const endTime = BigNumber.from(endTimeNum.toString());
-  const newEndTime = endTime.add(BigNumber.from('120'));
+  const expirationNum = 1657190461 + 120; //unix timestamp of block 15095000 + 120s
+  const expiration = BigNumber.from(expirationNum.toString());
+  const newExpiration = expiration.add(BigNumber.from('120'));
 
   const priceTarget = ethers.utils.parseEther('100'); //always high enough to execute order for testing
   const newPriceTarget = priceTarget.add(ethers.utils.parseEther('10'));
@@ -72,7 +72,7 @@ export function describeBehaviorOfLimitOrderActions(
   const orderParams: OrderParams = {
     priceTarget: priceTarget,
     liquidationShare: ethers.utils.parseEther('0.1'),
-    endTime: endTime,
+    expiration: expiration,
     upperBound: ethers.utils.parseEther('0.5'),
     lowerBound: ethers.utils.parseEther('0.5'),
     vault: AaveVaultProxy,
@@ -82,7 +82,7 @@ export function describeBehaviorOfLimitOrderActions(
   const failedOrderParams: OrderParams = {
     priceTarget: priceTarget,
     liquidationShare: ethers.utils.parseEther('0.1'),
-    endTime: endTime.sub(BigNumber.from('1000')),
+    expiration: expiration.sub(BigNumber.from('1000')),
     upperBound: ethers.utils.parseEther('0.5'),
     lowerBound: ethers.utils.parseEther('0.05'),
     vault: AaveVaultProxy,
@@ -92,7 +92,7 @@ export function describeBehaviorOfLimitOrderActions(
   const modifyOrderParams: OrderParams = {
     priceTarget: newPriceTarget,
     liquidationShare: ethers.utils.parseEther('0.05'),
-    endTime: newEndTime,
+    expiration: newExpiration,
     upperBound: ethers.utils.parseEther('0.1'),
     lowerBound: ethers.utils.parseEther('0.1'),
     vault: AaveVaultProxy,
@@ -179,7 +179,7 @@ export function describeBehaviorOfLimitOrderActions(
         const createdOrder: Order = {
           priceTarget: makerOrder.priceTarget,
           liquidationShare: makerOrder.liquidationShare,
-          endTime: makerOrder.endTime,
+          expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
           maker: makerOrder.maker,
@@ -199,7 +199,7 @@ export function describeBehaviorOfLimitOrderActions(
           .withArgs([
             order.priceTarget,
             order.liquidationShare,
-            order.endTime,
+            order.expiration,
             order.lowerBound,
             order.upperBound,
             order.maker,
@@ -217,10 +217,10 @@ export function describeBehaviorOfLimitOrderActions(
           ).to.be.revertedWith('user already has an active limit order');
         });
 
-        it('end time is before current block timestamp', async () => {
+        it('expiration is before current block timestamp', async () => {
           await expect(
             instance.connect(maker).createOrder(failedOrderParams),
-          ).to.be.revertedWith('end time in past');
+          ).to.be.revertedWith('expiration in past');
         });
       });
     });
@@ -305,7 +305,7 @@ export function describeBehaviorOfLimitOrderActions(
             ethers.constants.Zero,
             ethers.constants.Zero,
             USDCWhaleAddress,
-            endTime.add(BigNumber.from('10000000')),
+            expiration.add(BigNumber.from('10000000')),
           );
 
         //make AaveVault not whitelisted
@@ -402,7 +402,7 @@ export function describeBehaviorOfLimitOrderActions(
         ]);
 
         const swapDiamondAddress = await instance.swapDiamond();
-        const swapDeadline = endTime.add(
+        const swapDeadline = expiration.add(
           BigNumber.from('1000000000000000000000000000000000000'),
         );
 
@@ -564,7 +564,7 @@ export function describeBehaviorOfLimitOrderActions(
         const modifiedOrder: Order = {
           priceTarget: makerOrder.priceTarget,
           liquidationShare: makerOrder.liquidationShare,
-          endTime: makerOrder.endTime,
+          expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
           maker: makerOrder.maker,

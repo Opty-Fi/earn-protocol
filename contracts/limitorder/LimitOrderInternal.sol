@@ -64,11 +64,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         DataTypes.OrderParams memory _orderParams
     ) internal returns (DataTypes.Order memory order) {
         address vault = _orderParams.vault;
-        _permitOrderCreation(_l, msg.sender, vault, _orderParams.endTime);
+        _permitOrderCreation(_l, msg.sender, vault, _orderParams.expiration);
 
         order.priceTarget = _orderParams.priceTarget;
         order.liquidationShare = _orderParams.liquidationShare;
-        order.endTime = _orderParams.endTime;
+        order.expiration = _orderParams.expiration;
         order.lowerBound = _orderParams.lowerBound;
         order.upperBound = _orderParams.upperBound;
         order.vault = vault;
@@ -109,8 +109,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.liquidationShare != 0) {
             order.liquidationShare = _orderParams.liquidationShare;
         }
-        if (_orderParams.endTime != 0) {
-            order.endTime = _orderParams.endTime;
+        if (_orderParams.expiration != 0) {
+            order.expiration = _orderParams.expiration;
         }
         if (_orderParams.lowerBound != 0) {
             order.lowerBound = _orderParams.lowerBound;
@@ -306,7 +306,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.userVaultOrderActive[_order.maker][_order.vault] == true,
             'user does not have an active order'
         );
-        require(_order.endTime >= _timestamp(), 'order expired');
+        require(_order.expiration >= _timestamp(), 'order expired');
         _isPriceBound(_price(_l, _order), _order);
     }
 
@@ -331,19 +331,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l the layout of the limit order contract
      * @param _user the address of the user making the limit order
      * @param _vault the vault the limit order pertains to
-     * @param _endTime the end time of the limit order
+     * @param _expiration the expiration timestamp of the limit order
      */
     function _permitOrderCreation(
         LimitOrderStorage.Layout storage _l,
         address _user,
         address _vault,
-        uint256 _endTime
+        uint256 _expiration
     ) internal view {
         require(
             _l.userVaultOrderActive[_user][_vault] == false,
             'user already has an active limit order'
         );
-        require(_timestamp() < _endTime, 'end time in past');
+        require(_timestamp() < _expiration, 'end time in past');
     }
 
     /**
