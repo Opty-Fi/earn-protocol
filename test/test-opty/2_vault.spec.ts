@@ -1372,7 +1372,7 @@ describe("::Vault", function () {
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
       const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.vault.address);
-      expect(await this.vault.claimRewardToken(_pool)).to.emit(this.vault, "RewardTokenClaimed");
+      await expect(this.vault.claimRewardToken(_pool)).to.emit(this.vault, "RewardTokenClaimed");
       const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.vault.address);
       expect(_balanceRTAfter).to.gt(_balanceRTBefore);
     });
