@@ -20,10 +20,6 @@ export default {
       NAME: "deploy-harvest-code-provider",
       DESCRIPTION: "Deploy Harvest Code Provider",
     },
-    DEPLOY_INFRA: {
-      NAME: "deploy-infra",
-      DESCRIPTION: "Deploy infrastructure contracts",
-    },
     DEPLOY_REGISTRY: {
       NAME: "deploy-registry",
       DESCRIPTION: "Deploy Registry",
@@ -116,7 +112,7 @@ export default {
     },
     SET_MINIMUM_DEPOSIT_VALUE: {
       NAME: "set-minimum-deposit-value",
-      DESCRIPTION: "set the minimum amount in underlying token requiredto be deposited by the user",
+      DESCRIPTION: "set the minimum amount in underlying token required to be deposited by the user",
     },
     SET_TOTAL_VALUE_LOCKED_LIMIT: {
       NAME: "set-total-value-locked-limit",
@@ -124,11 +120,11 @@ export default {
     },
     PRINT_STRATEGY_HASH: {
       NAME: "print-strategy-hash",
-      DESCRIPTION: "Print the strategy",
+      DESCRIPTION: "print the strategy",
     },
     PRINT_TOKENS_HASH: {
       NAME: "print-tokens-hash",
-      DESCRIPTION: "Print tokens hash",
+      DESCRIPTION: "print tokens hash",
     },
     UNPAUSE_VAULT: {
       NAME: "unpause-vault",
@@ -183,7 +179,7 @@ export default {
       DESCRIPTION: "set pending governance",
     },
     ACCEPT_GOVERNANCE: {
-      NAME: "accept-governance",
+      NAME: "accept-pending-governance",
       DESCRIPTION: "accept governance",
     },
     SET_WHITELISTED_ACCOUNTS_ROOT: {
@@ -211,7 +207,7 @@ export default {
       DESCRIPTION: "Set value control params",
     },
     SET_BEST_STRATEGY_MULTI_SIG: {
-      NAME: "set-best-strategy-multi-sig",
+      NAME: "set-best-strategy-multisig",
       DESCRIPTION: "Set the best strategy for a specific token via multisig",
     },
   },
