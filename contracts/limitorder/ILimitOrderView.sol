@@ -3,6 +3,10 @@ pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
 
+/**
+ * @title Interface for LimitOrderView facet
+ * @author OptyFi
+ */
 interface ILimitOrderView {
     /**
      * @notice returns a users active limit order for a target vault

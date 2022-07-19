@@ -8,6 +8,10 @@ import { ERC20Utils } from '../utils/ERC20Utils.sol';
 import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
 import { SwapStorage } from './SwapStorage.sol';
 
+/**
+ * @title Contract for performing arbitrary swaps on DEXs
+ * @author OptyFi
+ */
 abstract contract SwapInternal {
     /**
      * @notice executes a sequence of swaps via DEXs

@@ -4,6 +4,10 @@ pragma solidity ^0.8.15;
 import { DataTypes } from './DataTypes.sol';
 import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 
+/**
+ * @title Interface for LimitOrderActions facet
+ * @author OptyFi
+ */
 interface ILimitOrderActions {
     /**
      * @notice cancels an active order

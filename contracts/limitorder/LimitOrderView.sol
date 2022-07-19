@@ -7,7 +7,7 @@ import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
 /**
- * @title LimitOrderActions facet for LimitOrderDiamond
+ * @title LimitOrderView facet for LimitOrderDiamond
  * @author OptyFi
  * @dev contains all viewing actions
  */

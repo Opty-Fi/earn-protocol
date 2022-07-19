@@ -3,6 +3,10 @@ pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
 
+/**
+ * @title Interface for Swap facet
+ * @author OptyFi
+ */
 interface ISwap {
     /**
      * @notice performs an arbitrary swap as dictated by _swapData

@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+/**
+ * @title Storage for OptyFiSwapper
+ * @author OptyFi
+ */
 library SwapStorage {
     bytes32 internal constant STORAGE_SLOT =
         keccak256('optyfi.contracts.storage.Swap');

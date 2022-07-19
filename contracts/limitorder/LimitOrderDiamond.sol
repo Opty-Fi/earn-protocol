@@ -6,6 +6,10 @@ import { SolidStateDiamond } from '@solidstate/contracts/proxy/diamond/SolidStat
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
 
+/**
+ * @title Diamond proxy for LimitOrder contract suite
+ * @author OptyFi
+ */
 contract LimitOrderDiamond is SolidStateDiamond {
     constructor(
         address _treasury,

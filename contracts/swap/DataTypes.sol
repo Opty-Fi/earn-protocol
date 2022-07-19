@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+/**
+ * @title Library for custom structs for OptyFiSwapper
+ * @author OptyFi
+ */
 library DataTypes {
     /**
      * @param fromToken address of token to swap from

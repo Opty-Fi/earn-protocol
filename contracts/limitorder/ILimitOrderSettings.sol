@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+/**
+ * @title Interface for LimitOrderSettings facet
+ * @author OptyFi
+ */
 interface ILimitOrderSettings {
     /**
      * @notice sets the address of the treasury to send limit order fees to

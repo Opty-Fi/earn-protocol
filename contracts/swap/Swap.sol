@@ -6,8 +6,9 @@ import { ISwap } from './ISwap.sol';
 import { SwapInternal } from './SwapInternal.sol';
 
 /**
- * @title Swap facet for OptyFiSwap
+ * @title Swap facet for OptyFiSwapper
  * @author OptyFi
+ * @dev contains swapping functions
  */
 contract Swap is SwapInternal, ISwap {
     /**
