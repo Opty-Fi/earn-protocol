@@ -67,19 +67,37 @@ export function describeBehaviorOfLimitOrderSettings(
       });
     });
 
-    describe('#setProof(bytes32[])', async () => {
-      it('sets the proof', async () => {
+    describe('#setCodeProof(bytes32[])', async () => {
+      it('sets the code proof', async () => {
         const newProof = [ethers.utils.formatBytes32String('0xNeWPro0Ff')];
 
-        await instance.connect(owner).setProof(newProof);
+        await instance.connect(owner).setCodeProof(newProof);
 
-        expect(await instance.proof()).to.deep.eq(newProof);
+        expect(await instance.codeProof()).to.deep.eq(newProof);
       });
       describe('reverts if', () => {
         it('called by nonOwner', async () => {
           const newProof = [ethers.utils.hexZeroPad('0x', 32)];
           await expect(
-            instance.connect(nonOwner).setProof(newProof),
+            instance.connect(nonOwner).setCodeProof(newProof),
+          ).to.be.revertedWith('Ownable: sender must be owner');
+        });
+      });
+    });
+
+    describe('#setAccountProof(bytes32[])', async () => {
+      it('sets the account proof', async () => {
+        const newProof = [ethers.utils.formatBytes32String('0xNeWPro0Ff')];
+
+        await instance.connect(owner).setAccountProof(newProof);
+
+        expect(await instance.accountProof()).to.deep.eq(newProof);
+      });
+      describe('reverts if', () => {
+        it('called by nonOwner', async () => {
+          const newProof = [ethers.utils.hexZeroPad('0x', 32)];
+          await expect(
+            instance.connect(nonOwner).setAccountProof(newProof),
           ).to.be.revertedWith('Ownable: sender must be owner');
         });
       });
