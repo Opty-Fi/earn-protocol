@@ -39,15 +39,17 @@ task(TASKS.ACTION_TASKS.REWARD_HARVEST.NAME, TASKS.ACTION_TASKS.REWARD_HARVEST.D
       switch (harvestType.toUpperCase()) {
         case "ALL": {
           const harvestTx = await vaultInstance.harvestAll(liquidityPool);
-          harvestTx.wait(1);
+          await harvestTx.wait(1);
           console.log("Harvested at tx:", harvestTx.blockHash);
           console.log("Final UT balance:", await vaultInstance.balanceUT());
+          break;
         }
         case "SOME": {
           const harvestTx = await vaultInstance.harvestSome(liquidityPool, rewardTokenAmount);
-          harvestTx.wait(1);
+          await harvestTx.wait(1);
           console.log("Harvested at tx:", harvestTx.blockHash);
           console.log("Final UT balance:", await vaultInstance.balanceUT());
+          break;
         }
       }
     } catch (error) {
