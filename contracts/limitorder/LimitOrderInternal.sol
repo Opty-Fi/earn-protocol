@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import { IVault } from '../earn/IVault.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
+import { Errors } from './Errors.sol';
 import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
 import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
@@ -49,7 +50,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _vault
     ) internal {
         DataTypes.Order memory order = _userVaultOrder(_l, _maker, _vault);
-        require(order.maker != address(0), 'Order non-existent');
+        if (order.maker == address(0)) {
+            revert Errors.OrderNonExistent();
+        }
         _l.userVaultOrderActive[_maker][_vault] = false;
     }
 
@@ -93,10 +96,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         DataTypes.OrderParams memory _orderParams
     ) internal {
         address sender = msg.sender;
-        require(
-            _l.userVaultOrderActive[sender][_vault] == true,
-            'user does not have an active order'
-        );
+        if (_l.userVaultOrderActive[sender][_vault] == false) {
+            revert Errors.NoActiveOrder(sender);
+        }
 
         DataTypes.Order memory order = _l.userVaultOrder[sender][_vault];
 
@@ -302,11 +304,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
         LimitOrderStorage.Layout storage _l,
         DataTypes.Order memory _order
     ) internal view {
-        require(
-            _l.userVaultOrderActive[_order.maker][_order.vault] == true,
-            'user does not have an active order'
-        );
-        require(_order.expiration >= _timestamp(), 'order expired');
+        if (!_l.userVaultOrderActive[_order.maker][_order.vault]) {
+            revert Errors.NoActiveOrder(msg.sender);
+        }
+
+        if (_order.expiration <= _timestamp()) {
+            revert Errors.Expired(_timestamp(), _order.expiration);
+        }
         _isPriceBound(_price(_l, _order), _order);
     }
 
@@ -339,11 +343,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _vault,
         uint256 _expiration
     ) internal view {
-        require(
-            _l.userVaultOrderActive[_user][_vault] == false,
-            'user already has an active limit order'
-        );
-        require(_timestamp() < _expiration, 'end time in past');
+        if (_l.userVaultOrderActive[_user][_vault]) {
+            revert Errors.ActiveOrder(_user, _vault);
+        }
+        if (_timestamp() > _expiration) {
+            revert Errors.PastExpiration(_timestamp(), _expiration);
+        }
     }
 
     /**
@@ -490,10 +495,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
         uint256 target = _order.priceTarget;
         uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
         uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
-        require(
-            lowerBound <= _price && _price <= upperBound,
-            'price not bound'
-        );
+
+        if (!(lowerBound <= _price && _price <= upperBound)) {
+            revert Errors.UnboundPrice(_price, lowerBound, upperBound);
+        }
     }
 
     /**
