@@ -44,10 +44,18 @@ interface ILimitOrderView {
     function treasury() external view returns (address treasury);
 
     /**
-     * @notice returns LimitOrderDiamond merkle proof
-     * @return proof LimitOrder merkle proof
+     * @notice returns LimitOrderDiamond code merkle proof
+     * @dev required for deposits/withdrawals in OptyFi Vaults
+     * @return proof LimitOrder code merkle proof
      */
-    function proof() external view returns (bytes32[] memory proof);
+    function codeProof() external view returns (bytes32[] memory proof);
+
+    /**
+     * @notice returns LimitOrderDiamond account merkle proof
+     * @dev required for deposits/withdrawals in OptyFi Vaults
+     * @return proof LimitOrder account merkle proof
+     */
+    function accountProof() external view returns (bytes32[] memory proof);
 
     /**
      * @notice returns address of the OptyFiSwapper diamond
