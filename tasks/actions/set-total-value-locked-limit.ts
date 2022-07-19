@@ -3,11 +3,12 @@ import TASKS from "../task-names";
 import { Vault } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress } from "../../helpers/helpers";
+import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.SET_TOTAL_VALUE_LOCKED_LIMIT.NAME, TASKS.ACTION_TASKS.SET_TOTAL_VALUE_LOCKED_LIMIT.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
-  .addParam("totalValueLockedLimitUT", "maximum TVL in underlying token allowed for the vault", "", types.string)
-  .setAction(async ({ vault, totalValueLockedLimitUT }, { deployments, ethers }) => {
+  .addParam("totalValueLockedLimit", "maximum TVL in underlying token allowed for the vault", "", types.string)
+  .setAction(async ({ vault, totalValueLockedLimit }, { deployments, ethers }) => {
     if (vault === "") {
       throw new Error("vault address cannot be empty");
     }
@@ -18,14 +19,14 @@ task(TASKS.ACTION_TASKS.SET_TOTAL_VALUE_LOCKED_LIMIT.NAME, TASKS.ACTION_TASKS.SE
 
     try {
       const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
-      const currtotalValueLockedLimitUT = await vaultInstance.totalValueLockedLimitUT();
-      console.log("current:", currtotalValueLockedLimitUT);
+      const currtotalValueLockedLimit = await vaultInstance.totalValueLockedLimitUT();
+      console.log("current:", currtotalValueLockedLimit);
       console.log("vault.setMinimumDepositValueUT()");
-      if (currtotalValueLockedLimitUT.toString() == totalValueLockedLimitUT) {
-        console.log("totalValueLockedLimitUT is upto date on vault");
+      if (currtotalValueLockedLimit == BigNumber.from(totalValueLockedLimit)) {
+        console.log("totalValueLockedLimit is upto date on vault");
         console.log("\n");
       } else {
-        console.log("Updating totalValueLockedLimitUT on vault...");
+        console.log("Updating totalValueLockedLimit on vault...");
         console.log("\n");
         const registryInstance = await ethers.getContractAt(
           ESSENTIAL_CONTRACTS.REGISTRY,
@@ -34,11 +35,9 @@ task(TASKS.ACTION_TASKS.SET_TOTAL_VALUE_LOCKED_LIMIT.NAME, TASKS.ACTION_TASKS.SE
           ).address,
         );
         const financeOperatorSigner = await ethers.getSigner(await registryInstance.financeOperator());
-        const tx = await vaultInstance
-          .connect(financeOperatorSigner)
-          .setTotalValueLockedLimitUT(totalValueLockedLimitUT);
+        const tx = await vaultInstance.connect(financeOperatorSigner).setTotalValueLockedLimitUT(totalValueLockedLimit);
         await tx.wait(1);
-        console.log("totalValueLockedLimitUT updated!");
+        console.log("totalValueLockedLimit updated!");
       }
     } catch (error) {
       console.error(`${TASKS.ACTION_TASKS.SET_TOTAL_VALUE_LOCKED_LIMIT.NAME}: `, error);

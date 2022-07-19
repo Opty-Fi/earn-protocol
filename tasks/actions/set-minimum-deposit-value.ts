@@ -3,6 +3,7 @@ import TASKS from "../task-names";
 import { Vault } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress } from "../../helpers/helpers";
+import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.SET_MINIMUM_DEPOSIT_VALUE.NAME, TASKS.ACTION_TASKS.SET_MINIMUM_DEPOSIT_VALUE.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
@@ -21,7 +22,7 @@ task(TASKS.ACTION_TASKS.SET_MINIMUM_DEPOSIT_VALUE.NAME, TASKS.ACTION_TASKS.SET_M
       const currMinimumDepositValueUT = await vaultInstance.minimumDepositValueUT();
       console.log("current:", currMinimumDepositValueUT);
       console.log("vault.setMinimumDepositValueUT()");
-      if (currMinimumDepositValueUT.toString() == minimumDepositValue) {
+      if (currMinimumDepositValueUT == BigNumber.from(minimumDepositValue)) {
         console.log("minimumDepositValueUT is upto date on vault");
         console.log("\n");
       } else {
@@ -34,7 +35,9 @@ task(TASKS.ACTION_TASKS.SET_MINIMUM_DEPOSIT_VALUE.NAME, TASKS.ACTION_TASKS.SET_M
           ).address,
         );
         const financeOperatorSigner = await ethers.getSigner(await registryInstance.financeOperator());
-        const tx = await vaultInstance.connect(financeOperatorSigner).setMinimumDepositValueUT(minimumDepositValue);
+        const tx = await vaultInstance
+          .connect(financeOperatorSigner)
+          .setMinimumDepositValueUT(BigNumber.from(minimumDepositValue));
         await tx.wait(1);
         console.log("minimumDepositValueUT updated!");
       }

@@ -8,7 +8,7 @@ task(TASKS.ACTION_TASKS.REWARD_HARVEST.NAME, TASKS.ACTION_TASKS.REWARD_HARVEST.D
   .addParam("vault", "the address of vault", "", types.string)
   .addParam("harvestType", "harvest SOME or ALL reward tokens", "SOME" || "ALL", types.string)
   .addParam("liquidityPool", "the address of the liquidity pool to harvest", "", types.string)
-  .addOptionalParam("rewardTokenAmount", "amount of reward token to harvest")
+  .addOptionalParam("rewardTokenAmount", "amount of reward token to harvest", "0", types.string)
   .setAction(async ({ vault, harvestType, liquidityPool, rewardTokenAmount }, hre) => {
     const HARVEST_TYPE = ["SOME", "ALL"];
 
