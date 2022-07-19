@@ -3,10 +3,16 @@ import TASKS from "../task-names";
 import { Vault } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { isAddress } from "../../helpers/helpers";
+import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.NAME, TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
-  .addParam("userDepositCap", "maximum amount in underlying token allowed to be deposited by user", "", types.string)
+  .addParam(
+    "userDepositCap",
+    "maximum amount in underlying token allowed to be deposited by user (in $ETH)",
+    "",
+    types.string,
+  )
   .setAction(async ({ vault, userDepositCap }, { deployments, ethers }) => {
     if (vault === "") {
       throw new Error("vault address cannot be empty");
@@ -21,7 +27,7 @@ task(TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.NAME, TASKS.ACTION_TASKS.SET_USER_D
       const currentUserDepositCapUT = await vaultInstance.userDepositCapUT();
       console.log("current:", currentUserDepositCapUT);
       console.log("vault.setUserDepositCapUT()");
-      if (currentUserDepositCapUT.toString() == userDepositCap) {
+      if (currentUserDepositCapUT == BigNumber.from(userDepositCap)) {
         console.log("userDepositCapUT is upto date on vault");
         console.log("\n");
       } else {
@@ -34,7 +40,9 @@ task(TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.NAME, TASKS.ACTION_TASKS.SET_USER_D
           ).address,
         );
         const financeOperatorSigner = await ethers.getSigner(await registryInstance.financeOperator());
-        const tx = await vaultInstance.connect(financeOperatorSigner).setUserDepositCapUT(userDepositCap);
+        const tx = await vaultInstance
+          .connect(financeOperatorSigner)
+          .setUserDepositCapUT(BigNumber.from(userDepositCap));
         await tx.wait(1);
         console.log("userDepositCapUT updated!");
       }
