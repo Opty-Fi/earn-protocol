@@ -329,8 +329,18 @@ export function describeBehaviorOfLimitOrderActions(
           accountMerkleTree,
           instance.address,
         );
-        await instance.connect(owner).setAccountProof(instanceAccountProof);
-        await instance.connect(owner).setCodeProof(instanceCodeProof);
+        await instance
+          .connect(owner)
+          .setAccountProof(instanceAccountProof, AaveVaultProxy);
+        await instance
+          .connect(owner)
+          .setCodeProof(instanceCodeProof, AaveVaultProxy);
+        await instance
+          .connect(owner)
+          .setAccountProof(instanceAccountProof, UsdcVaultProxy);
+        await instance
+          .connect(owner)
+          .setCodeProof(instanceCodeProof, UsdcVaultProxy);
 
         codeRoot = codeMerkleTree.getHexRoot();
         accountRoot = accountMerkleTree.getHexRoot();
@@ -348,6 +358,7 @@ export function describeBehaviorOfLimitOrderActions(
           optyFiVaultOperator,
         ).setVaultConfiguration(BigNumber.from(newVaultConfig));
 
+        //set AaveVault merkle roots
         await AaveVaultInstance.connect(
           optyFiVaultOperator,
         ).setWhitelistedCodesRoot(codeRoot);
