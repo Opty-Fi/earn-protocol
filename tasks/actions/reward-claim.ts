@@ -29,7 +29,7 @@ task(TASKS.ACTION_TASKS.REWARD_CLAIM.NAME, TASKS.ACTION_TASKS.REWARD_CLAIM.DESCR
       console.log("Claiming rewards...");
       console.log("Inital reward token balance:", await vaultInstance.balanceClaimedRewardToken(liquidityPool));
       const claimTx = await vaultInstance.claimRewardToken(liquidityPool);
-      claimTx.wait(1);
+      await claimTx.wait(1);
       console.log("Claimed at tx:", claimTx.blockHash);
       console.log("Final reward token balance:", await vaultInstance.balanceClaimedRewardToken(liquidityPool));
     } catch (error) {

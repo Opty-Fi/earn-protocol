@@ -1,4 +1,3 @@
-import { getAddress } from "ethers/lib/utils";
 import fs from "fs";
 import { join } from "path";
 import { ethers } from "hardhat";
