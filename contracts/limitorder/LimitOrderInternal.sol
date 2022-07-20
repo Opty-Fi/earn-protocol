@@ -144,27 +144,32 @@ contract LimitOrderInternal is ILimitOrderInternal {
         //check order execution critera
         _canExecute(_l, order);
 
-        uint256 shares = _liquidate(_l, _vault, _maker, order.liquidationShare);
+        uint256 tokens = _liquidate(_l, _vault, _maker, order.liquidationShare);
 
-        uint256 usdc = _exchange(_l, _swapData, shares, _vault, _maker);
+        uint256 usdc = _exchange(_l, _swapData, tokens, _vault, _maker);
 
-        //calculate fee and transfer to treasury
         uint256 usdcAfterFee = _collectFee(_l, usdc, _vaultFee(_l, _vault));
 
-        //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
-        //if unsuccessful transfer USDC to user directly
         _deliver(_l, order.depositUSDC, usdcAfterFee, _maker);
     }
 
+    /**
+     * @notice liquidates an amount of shares in the target opVault
+     * @param _l LimitOrderStorage Layout struct
+     * @param _vault address of opVault
+     * @param _maker address providing shares to liquidate - Limit Order maker
+     * @param _shareBP liquidation share in basis points
+     * @return tokens amount of underlying tokens provided by opVault withdrawal
+     */
     function _liquidate(
         LimitOrderStorage.Layout storage _l,
         address _vault,
         address _maker,
-        uint256 _share
-    ) internal returns (uint256 shares) {
+        uint256 _shareBP
+    ) internal returns (uint256 tokens) {
         uint256 amount = _liquidationAmount(
             IERC20(_vault).balanceOf(_maker),
-            _share
+            _shareBP
         );
 
         IERC20(_vault).safeTransferFrom(_maker, address(this), amount);
@@ -175,24 +180,33 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.codeProofs[_vault]
         );
 
-        shares = IERC20(IVault(_vault).underlyingToken()).balanceOf(
+        tokens = IERC20(IVault(_vault).underlyingToken()).balanceOf(
             address(this)
         );
     }
 
+    /**
+     * @notice exchanges tokens for USDC via swap diamond
+     * @param _l LimitOrderStorage Layout struct
+     * @param _swapData data to perform a swap via swap diamond
+     * @param _amount amount of tokens to swap to USDC
+     * @param _vault address of opUSDC vault
+     * @param _maker address of LimitOrder maker
+     * @return uint256 output amount of USDC
+     */
     function _exchange(
         LimitOrderStorage.Layout storage _l,
         SwapDataTypes.SwapData memory _swapData,
-        uint256 _shares,
+        uint256 _amount,
         address _vault,
         address _maker
     ) internal returns (uint256) {
         IERC20(IVault(_vault).underlyingToken()).approve(
             ISwapper(_l.swapDiamond).tokenTransferProxy(),
-            _shares
+            _amount
         );
 
-        _swapData.fromAmount = _shares;
+        _swapData.fromAmount = _amount;
         (uint256 output, uint256 leftOver) = ISwapper(_l.swapDiamond).swap(
             _swapData
         );
@@ -204,17 +218,29 @@ contract LimitOrderInternal is ILimitOrderInternal {
         return output;
     }
 
+    /**
+     * @notice collects liquidation fee and sends to treasury
+     * @param _amount amount to deduct fee from
+     * @param _feeBP in basis poitns
+     */
     function _collectFee(
         LimitOrderStorage.Layout storage _l,
         uint256 _amount,
-        uint256 _fee
+        uint256 _feeBP
     ) internal returns (uint256 amountAfterFee) {
-        uint256 fee = _applyLiquidationFee(_amount, _fee);
+        uint256 fee = _applyLiquidationFee(_amount, _feeBP);
         amountAfterFee = _amount - fee;
 
         IERC20(USDC).safeTransfer(_treasury(_l), fee);
     }
 
+    /**
+     * @notice either deposits USDC into opUSDC and sends shares to _maker, or sends USDC directly to maker
+     * @param _l LimitOrderStorage Layout struct
+     * @param _depositUSDC bool determining whether to deposit and send shares, or send USDC directly
+     * @param _amount amount of USDC
+     * @param _maker address to deliver final shares or USDC to
+     */
     function _deliver(
         LimitOrderStorage.Layout storage _l,
         bool _depositUSDC,
