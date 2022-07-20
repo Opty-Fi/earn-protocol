@@ -1,124 +1,130 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.15;
 
-// helpers
-import { AdapterModifiersBase } from './AdapterModifiersBase.sol';
-
+// dependencies
+import { Ownable } from '@solidstate/contracts/access/ownable/Ownable.sol';
+import { OwnableStorage } from '@solidstate/contracts/access/ownable/OwnableStorage.sol';
 // interfaces
 import { IOptyFiOracle } from './IOptyFiOracle.sol';
-import '@chainlink/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol';
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
-contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
+// storage
+import { OptyFiOracleStorage } from './OptyFiOracleStorage.sol';
+
+contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
     address public constant USD =
         address(0x0000000000000000000000000000000000000348);
-    address public constant ETH =
-        address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
-
-    mapping(address => mapping(address => uint256))
-        public optyFiTokenAToTokenBToLatestTimestamp;
-    mapping(address => mapping(address => mapping(uint256 => uint256)))
-        public optyFiTokenAToTokenBToTimestampToPrice;
-    mapping(address => mapping(address => uint256)) public optyFiTimeAllowance;
-    mapping(address => mapping(address => uint256))
-        public chainlinkTimeAllowance;
-    mapping(address => mapping(address => MainOracle))
-        public tokenAToTokenBMainOracle;
-
-    MainOracle public defaultMainOracle;
-    uint256 public defaultChainlinkTimeAllowance;
-    uint256 public defaultOptyFiTimeAllowance;
-
-    bool public defaultMode;
-
-    FeedRegistryInterface public chainlinkFeedRegistry;
 
     constructor(
-        address _registry,
         uint256 _defaultChainlinkTimeAllowance,
         uint256 _defaultOptyFiTimeAllowance
-    ) AdapterModifiersBase(_registry) {
-        chainlinkFeedRegistry = FeedRegistryInterface(
-            0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf
-        );
+    ) {
         defaultChainlinkTimeAllowance = _defaultChainlinkTimeAllowance;
         defaultOptyFiTimeAllowance = _defaultOptyFiTimeAllowance;
         defaultMode = true;
         defaultMainOracle = MainOracle.Chainlink;
+        OwnableStorage.layout().owner = msg.sender;
     }
 
-    function setChainlinkFeedRegistry(address _chainlinkFeedRegistry)
-        external
-        onlyOperator
-    {
-        chainlinkFeedRegistry = FeedRegistryInterface(_chainlinkFeedRegistry);
-    }
-
-    function setDefaultMode(bool _defaultMode) external onlyOperator {
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
+    function setDefaultMode(bool _defaultMode) external onlyOwner {
         defaultMode = _defaultMode;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function setDefaultMainOracle(MainOracle _defaultMainOracle)
         external
-        onlyOperator
+        onlyOwner
     {
         defaultMainOracle = _defaultMainOracle;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function setDefaultChainlinkTimeAllowance(
         uint256 _defaultChainlinkTimeAllowance
-    ) external onlyOperator {
+    ) external onlyOwner {
         defaultChainlinkTimeAllowance = _defaultChainlinkTimeAllowance;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function setDefaultOptyFiTimeAllowance(uint256 _defaultOptyFiTimeAllowance)
         external
-        onlyOperator
+        onlyOwner
     {
         defaultOptyFiTimeAllowance = _defaultOptyFiTimeAllowance;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function setChainlinkTimeAllowance(
         address _tokenA,
         address _tokenB,
         uint256 _chainlinkTimeAllowance
-    ) external onlyOperator {
-        _tokenA = _tokenA == address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)
-            ? ETH
-            : _tokenA;
-        _tokenB = _tokenB == address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)
-            ? ETH
-            : _tokenB;
+    ) external onlyOwner {
         chainlinkTimeAllowance[_tokenA][_tokenB] = _chainlinkTimeAllowance;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function setOptyFiTimeAllowance(
         address _tokenA,
         address _tokenB,
         uint256 _optyFiTimeAllowance
-    ) external onlyOperator {
+    ) external onlyOwner {
         optyFiTimeAllowance[_tokenA][_tokenB] = _optyFiTimeAllowance;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function setMainOracle(
         address _tokenA,
         address _tokenB,
         MainOracle _mainOracle
-    ) external onlyOperator {
+    ) external onlyOwner {
         tokenAToTokenBMainOracle[_tokenA][_tokenB] = _mainOracle;
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
+    function setChainlinkPriceFeed(
+        address _tokenA,
+        address _tokenB,
+        address _priceFeed
+    ) external onlyOwner {
+        chainlinkPriceFeed[_tokenA][_tokenB] = _priceFeed;
+    }
+
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function updateOptyFiTokenAToTokenBPrice(
         address _tokenA,
         address _tokenB,
         uint256 price
-    ) external onlyOperator {
+    ) external onlyOwner {
         optyFiTokenAToTokenBToTimestampToPrice[_tokenA][_tokenB][
-            block.timestamp
+            _getCurrentTimestamp()
         ] = price;
-        optyFiTokenAToTokenBToLatestTimestamp[_tokenA][_tokenB] = block
-            .timestamp;
+        optyFiTokenAToTokenBToLatestTimestamp[_tokenA][
+            _tokenB
+        ] = _getCurrentTimestamp();
     }
 
+    /**
+     * @inheritdoc IOptyFiOracle
+     */
     function getTokenPrice(address _tokenA, address _tokenB)
         external
         view
@@ -135,75 +141,69 @@ contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
                 tokenAToTokenBMainOracle[_tokenA][_tokenB] == MainOracle.OptyFi
             ) {
                 _price = _getOptyFiPrice(_tokenA, _tokenB);
-                if (_price == uint256(0)) {
-                    _price = _getFallbackPrice(
-                        _tokenA,
-                        _tokenB,
-                        MainOracle.OptyFi
-                    );
-                }
             } else if (
                 tokenAToTokenBMainOracle[_tokenA][_tokenB] ==
                 MainOracle.Chainlink
             ) {
                 _price = _getChainlinkPrice(_tokenA, _tokenB);
-                if (_price == uint256(0)) {
-                    _price = _getFallbackPrice(
-                        _tokenA,
-                        _tokenB,
-                        MainOracle.Chainlink
-                    );
-                }
             }
+        }
+        if (_price == uint256(0)) {
+            _price = _getFallbackPrice(_tokenA, _tokenB);
         }
     }
 
+    /**
+     * @notice Get the price of _tokenA in _tokenB units using Chainlink price feeds
+     * @param _tokenA address of the token whose price will be calculated in _tokenB units
+     * @param _tokenB address of the token that will act as base unit for _tokenA conversion
+     * @return _price price of _tokenA in _tokenB units
+     * @dev The returned price will always have 18 decimals
+     */
     function _getChainlinkPrice(address _tokenA, address _tokenB)
         internal
         view
         returns (uint256 _price)
     {
-        _tokenA = _tokenA == address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)
-            ? ETH
-            : _tokenA;
-        _tokenB = _tokenB == address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)
-            ? ETH
-            : _tokenB;
-        try chainlinkFeedRegistry.getFeed(_tokenA, _tokenB) {
-            (, int256 _answer, , uint256 _updatedAt, ) = chainlinkFeedRegistry
-                .latestRoundData(_tokenA, _tokenB);
+        AggregatorV3Interface _priceFeed = AggregatorV3Interface(
+            chainlinkPriceFeed[_tokenA][_tokenB]
+        );
+        if (address(_priceFeed) != address(0)) {
+            (, int256 _answer, , uint256 _updatedAt, ) = _priceFeed
+                .latestRoundData();
             if (chainlinkTimeAllowance[_tokenA][_tokenB] > uint256(0)) {
                 if (
-                    (block.timestamp - _updatedAt) >
+                    (_getCurrentTimestamp() - _updatedAt) >
                     chainlinkTimeAllowance[_tokenA][_tokenB]
                 ) {
                     _price = _getChainlinkPriceWithUSD(_tokenA, _tokenB);
                 } else {
-                    uint8 _decimals = chainlinkFeedRegistry.decimals(
-                        _tokenA,
-                        _tokenB
-                    );
+                    uint8 _decimals = _priceFeed.decimals();
                     _price = (uint256(_answer) * 10**(18 - _decimals));
                 }
             } else {
                 if (
-                    (block.timestamp - _updatedAt) >
+                    (_getCurrentTimestamp() - _updatedAt) >
                     defaultChainlinkTimeAllowance
                 ) {
                     _price = _getChainlinkPriceWithUSD(_tokenA, _tokenB);
                 } else {
-                    uint8 _decimals = chainlinkFeedRegistry.decimals(
-                        _tokenA,
-                        _tokenB
-                    );
+                    uint8 _decimals = _priceFeed.decimals();
                     _price = (uint256(_answer) * 10**(18 - _decimals));
                 }
             }
-        } catch {
+        } else {
             _price = _getChainlinkPriceWithUSD(_tokenA, _tokenB);
         }
     }
 
+    /**
+     * @notice Get the price of _tokenA in _tokenB units by using prices set by owner
+     * @param _tokenA address of the token whose price will be calculated in _tokenB units
+     * @param _tokenB address of the token that will act as base unit for _tokenA conversion
+     * @return _price price of _tokenA in _tokenB units
+     * @dev The returned price will always have 18 decimals
+     */
     function _getOptyFiPrice(address _tokenA, address _tokenB)
         internal
         view
@@ -214,7 +214,7 @@ contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
         ][_tokenB];
         if (optyFiTimeAllowance[_tokenA][_tokenB] > uint256(0)) {
             if (
-                (block.timestamp -
+                (_getCurrentTimestamp() -
                     optyFiTokenAToTokenBToLatestTimestamp[_tokenA][_tokenB]) <=
                 optyFiTimeAllowance[_tokenA][_tokenB]
             ) {
@@ -224,7 +224,7 @@ contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
             }
         } else {
             if (
-                (block.timestamp -
+                (_getCurrentTimestamp() -
                     optyFiTokenAToTokenBToLatestTimestamp[_tokenA][_tokenB]) <=
                 defaultOptyFiTimeAllowance
             ) {
@@ -235,34 +235,37 @@ contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
         }
     }
 
+    /**
+     * @notice Get the price of _tokenA in _tokenB units by using Chainlink USD price feeds as an intermediate step
+     * @param _tokenA address of the token whose price will be calculated in _tokenB units
+     * @param _tokenB address of the token that will act as base unit for _tokenA conversion
+     * @return _price price of _tokenA in _tokenB units
+     * @dev The returned price will always have 18 decimals
+     */
     function _getChainlinkPriceWithUSD(address _tokenA, address _tokenB)
         internal
         view
         returns (uint256 _price)
     {
-        try chainlinkFeedRegistry.getFeed(_tokenA, USD) {
-            try chainlinkFeedRegistry.getFeed(_tokenB, USD) {
-                (
-                    ,
-                    int256 _answerA,
-                    ,
-                    uint256 _updatedAtA,
-
-                ) = chainlinkFeedRegistry.latestRoundData(_tokenA, USD);
-                (
-                    ,
-                    int256 _answerB,
-                    ,
-                    uint256 _updatedAtB,
-
-                ) = chainlinkFeedRegistry.latestRoundData(_tokenB, USD);
-                uint8 _decimalsA = chainlinkFeedRegistry.decimals(_tokenA, USD);
-                uint8 _decimalsB = chainlinkFeedRegistry.decimals(_tokenB, USD);
+        AggregatorV3Interface _priceFeedA = AggregatorV3Interface(
+            chainlinkPriceFeed[_tokenA][USD]
+        );
+        if (address(_priceFeedA) != address(0)) {
+            AggregatorV3Interface _priceFeedB = AggregatorV3Interface(
+                chainlinkPriceFeed[_tokenB][USD]
+            );
+            if (address(_priceFeedB) != address(0)) {
+                (, int256 _answerA, , uint256 _updatedAtA, ) = _priceFeedA
+                    .latestRoundData();
+                (, int256 _answerB, , uint256 _updatedAtB, ) = _priceFeedB
+                    .latestRoundData();
+                uint8 _decimalsA = _priceFeedA.decimals();
+                uint8 _decimalsB = _priceFeedB.decimals();
                 if (chainlinkTimeAllowance[_tokenA][_tokenB] > uint256(0)) {
                     if (
-                        (block.timestamp - _updatedAtA) <=
+                        (_getCurrentTimestamp() - _updatedAtA) <=
                         chainlinkTimeAllowance[_tokenA][_tokenB] &&
-                        (block.timestamp - _updatedAtB) <=
+                        (_getCurrentTimestamp() - _updatedAtB) <=
                         chainlinkTimeAllowance[_tokenA][_tokenB]
                     ) {
                         uint256 _priceA = (uint256(_answerA) *
@@ -273,9 +276,9 @@ contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
                     }
                 } else {
                     if (
-                        (block.timestamp - _updatedAtA) <=
+                        (_getCurrentTimestamp() - _updatedAtA) <=
                         defaultChainlinkTimeAllowance &&
-                        (block.timestamp - _updatedAtB) <=
+                        (_getCurrentTimestamp() - _updatedAtB) <=
                         defaultChainlinkTimeAllowance
                     ) {
                         uint256 _priceA = (uint256(_answerA) *
@@ -285,19 +288,37 @@ contract OptyFiOracle is IOptyFiOracle, AdapterModifiersBase {
                         _price = (_priceA * 10**18) / _priceB;
                     }
                 }
-            } catch {} // solhint-disable-line no-empty-blocks
-        } catch {} // solhint-disable-line no-empty-blocks
+            }
+        }
     }
 
-    function _getFallbackPrice(
-        address _tokenA,
-        address _tokenB,
-        MainOracle _mainOracle
-    ) internal view returns (uint256 _price) {
+    /**
+     * @notice Get the price of _tokenA in _tokenB units by using the fallback oracle
+     * @param _tokenA address of the token whose price will be calculated in _tokenB units
+     * @param _tokenB address of the token that will act as base unit for _tokenA conversion
+     * @return _price price of _tokenA in _tokenB units
+     * @dev The returned price will always have 18 decimals
+     * @dev The fallback oracle will depend on which the main oracle is
+     */
+    function _getFallbackPrice(address _tokenA, address _tokenB)
+        internal
+        view
+        returns (uint256 _price)
+    {
+        MainOracle _mainOracle = tokenAToTokenBMainOracle[_tokenA][_tokenB];
         if (_mainOracle == MainOracle.OptyFi) {
             _price = _getChainlinkPrice(_tokenA, _tokenB);
         } else if (_mainOracle == MainOracle.Chainlink) {
             _price = _getOptyFiPrice(_tokenA, _tokenB);
         }
+    }
+
+    /**
+     * @notice Get the current block timestamp
+     * @return block timestamp in seconds since the epoch (UNIX)
+     * @dev It is defined as virtual to ease mocking when testing
+     */
+    function _getCurrentTimestamp() internal view virtual returns (uint256) {
+        return block.timestamp;
     }
 }

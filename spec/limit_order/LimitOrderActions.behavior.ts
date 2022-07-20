@@ -5,23 +5,20 @@ import {
   IERC20,
   ILimitOrder,
   ISwapper,
-  OptyFiOracle,
   IUniswapV2Router02,
   IVault,
+  OptyFiOracle,
 } from '../../typechain-types';
 import { DataTypes } from '../../typechain-types/contracts/swap/ISwap';
 import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { convertOrderParamsToOrder } from '../../utils/converters';
-import { Interface } from 'ethers/lib/utils';
 import {
   generateMerkleTree,
   generateMerkleTreeForCodehash,
   getProof,
   getProofForCode,
-  hashCodehash,
 } from '../../scripts/utils';
-import { IERC20__factory } from '../../typechain-types/factories/@solidstate/contracts/token/ERC20';
 
 export function describeBehaviorOfLimitOrderActions(
   deploy: () => Promise<ILimitOrder>,
@@ -440,7 +437,6 @@ export function describeBehaviorOfLimitOrderActions(
             await AaveVaultInstance.getPricePerFullShare(),
           ),
           toAmount: ethers.constants.One, //note: just for testing
-          expectedAmount: ethers.constants.Zero, //TODO: verify purpose
           callees: [AaveERC20Address, UniswapV2Router02Address],
           exchangeData,
           startIndexes,
