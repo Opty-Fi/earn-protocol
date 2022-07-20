@@ -11,7 +11,6 @@ library DataTypes {
      * @param toToken address of token to swap to
      * @param fromAmount amount of fromToken to swap
      * @param toAmount amount of toToken to receive
-     * @param expectedAmount expected amount of toToken
      * @param callees array of addresses to call (DEX addresses)
      * @param exchangeData calldata to execute on callees
      * @param startIndexes the index of the beginning of each call in exchangeData
@@ -25,7 +24,6 @@ library DataTypes {
         address toToken;
         uint256 fromAmount;
         uint256 toAmount;
-        uint256 expectedAmount;
         address[] callees;
         bytes exchangeData;
         uint256[] startIndexes;
