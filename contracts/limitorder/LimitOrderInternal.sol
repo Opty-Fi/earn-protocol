@@ -132,13 +132,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l the layout of the limit order contract
      * @param _maker address of order maker
      * @param _vault address of vault that order pertains to
-     * @param _swapData token swap data
+     * @param _swapParams swap params
      */
     function _execute(
         LimitOrderStorage.Layout storage _l,
         address _maker,
         address _vault,
-        SwapDataTypes.SwapData memory _swapData
+        DataTypes.SwapParams calldata _swapParams
     ) internal {
         DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
         //check order execution critera
@@ -146,7 +146,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         uint256 tokens = _liquidate(_l, _vault, _maker, order.liquidationShare);
 
-        uint256 usdc = _exchange(_l, _swapData, tokens, _vault, _maker);
+        address underlying = IVault(_vault).underlyingToken();
+
+        uint256 usdc = _exchange(
+            _l,
+            _toSwapData(_swapParams, underlying, tokens),
+            _maker
+        );
 
         uint256 usdcAfterFee = _collectFee(_l, usdc, _vaultFee(_l, _vault));
 
@@ -189,24 +195,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @notice exchanges tokens for USDC via swap diamond
      * @param _l LimitOrderStorage Layout struct
      * @param _swapData data to perform a swap via swap diamond
-     * @param _amount amount of tokens to swap to USDC
-     * @param _vault address of opUSDC vault
      * @param _maker address of LimitOrder maker
      * @return uint256 output amount of USDC
      */
     function _exchange(
         LimitOrderStorage.Layout storage _l,
         SwapDataTypes.SwapData memory _swapData,
-        uint256 _amount,
-        address _vault,
         address _maker
     ) internal returns (uint256) {
-        IERC20(IVault(_vault).underlyingToken()).approve(
+        IERC20(_swapData.fromToken).approve(
             ISwapper(_l.swapDiamond).tokenTransferProxy(),
-            _amount
+            _swapData.fromAmount
         );
 
-        _swapData.fromAmount = _amount;
         (uint256 output, uint256 leftOver) = ISwapper(_l.swapDiamond).swap(
             _swapData
         );
@@ -577,5 +578,23 @@ contract LimitOrderInternal is ILimitOrderInternal {
         returns (uint256 fee)
     {
         fee = (_amount * _vaultFee) / BASIS;
+    }
+
+    function _toSwapData(
+        DataTypes.SwapParams calldata _swapParams,
+        address _fromToken,
+        uint256 _fromAmount
+    ) internal view returns (SwapDataTypes.SwapData memory swapData) {
+        swapData.toAmount = _swapParams.toAmount;
+        swapData.deadline = _swapParams.deadline;
+        swapData.startIndexes = _swapParams.startIndexes;
+        swapData.values = _swapParams.values;
+        swapData.callees = _swapParams.callees;
+        swapData.exchangeData = _swapParams.exchangeData;
+        swapData.permit = _swapParams.permit;
+        swapData.beneficiary = payable(address(this));
+        swapData.toToken = USDC;
+        swapData.fromToken = _fromToken;
+        swapData.fromAmount = _fromAmount;
     }
 }

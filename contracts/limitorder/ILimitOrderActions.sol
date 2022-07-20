@@ -2,7 +2,6 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
-import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 
 /**
  * @title Interface for LimitOrderActions facet
@@ -28,12 +27,12 @@ interface ILimitOrderActions {
      * @notice executes a limit order
      * @param _maker address of order maker
      * @param _vault address of vault that order pertains to
-     * @param _swapData token swap data
+     * @param _swapParams params for swap data
      */
     function execute(
         address _maker,
         address _vault,
-        SwapDataTypes.SwapData memory _swapData
+        DataTypes.SwapParams memory _swapParams
     ) external;
 
     /**
