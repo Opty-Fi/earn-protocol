@@ -391,10 +391,10 @@ export function describeBehaviorOfLimitOrderActions(
           .mul(userShares)
           .div(BASIS);
 
-        //approve tokenTransferProxy
+        //approve LO contract
         await opAaveToken
           .connect(maker)
-          .approve(await instance['transferProxy()'](), userSharesLiquidated);
+          .approve(instance.address, userSharesLiquidated);
 
         //no fees in opAAVEvault so should be precise
         const expectedAaveRedeemed = userSharesLiquidated

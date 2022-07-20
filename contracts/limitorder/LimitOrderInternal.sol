@@ -146,46 +146,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         address vault = order.vault;
 
-        //calculate liquidation amount
-        uint256 liquidationAmount = _liquidationAmount(
-            IERC20(vault).balanceOf(order.maker),
-            order.liquidationShare
-        );
+        uint256 shares = _liquidate(_l, _vault, _maker, order.liquidationShare);
 
-        //transfer vault shares from user
-        ITokenTransferProxy(_l.transferProxy).transferFrom(
-            vault,
-            _maker, //TODO: make it so that anyone can execute this function.
-            address(this),
-            liquidationAmount
-        );
-
-        //withdraw vault shares for underlying
-        IVault(vault).userWithdrawVault(
-            liquidationAmount,
-            _l.accountProofs[vault],
-            _l.codeProofs[vault]
-        );
-
-        uint256 balance = IERC20(IVault(vault).underlyingToken()).balanceOf(
-            address(this)
-        );
-
-        IERC20(IVault(vault).underlyingToken()).approve(
-            // address(0xb14B07CB647e6b60C9d3a86355a575AF0F1d85A8)
-            ISwapper(_l.swapDiamond).tokenTransferProxy(),
-            balance
-        ); //must approve address of ttfp for swapDiamond
-
-        _swapData.fromAmount = balance;
-        //perform swap for USDC via swapDiamond
-        (uint256 swapOutput, uint256 leftOver) = ISwapper(_l.swapDiamond).swap(
-            _swapData
-        );
-
-        if (leftOver > 0) {
-            IERC20(_swapData.fromToken).safeTransfer(order.maker, leftOver);
-        }
+        uint256 swapOutput = _exchange(_l, _swapData, shares, _vault, _maker);
 
         //calculate fee and transfer to treasury
         (
@@ -216,6 +179,54 @@ contract LimitOrderInternal is ILimitOrderInternal {
         } else {
             IERC20(USDC).transfer(order.maker, finalUSDCAmount);
         }
+    }
+
+    function _liquidate(
+        LimitOrderStorage.Layout storage _l,
+        address _vault,
+        address _maker,
+        uint256 _share
+    ) internal returns (uint256 shares) {
+        uint256 amount = _liquidationAmount(
+            IERC20(_vault).balanceOf(_maker),
+            _share
+        );
+
+        IERC20(_vault).safeTransferFrom(_maker, address(this), amount);
+
+        IVault(_vault).userWithdrawVault(
+            amount,
+            _l.accountProofs[_vault],
+            _l.codeProofs[_vault]
+        );
+
+        shares = IERC20(IVault(_vault).underlyingToken()).balanceOf(
+            address(this)
+        );
+    }
+
+    function _exchange(
+        LimitOrderStorage.Layout storage _l,
+        SwapDataTypes.SwapData memory _swapData,
+        uint256 _shares,
+        address _vault,
+        address _maker
+    ) internal returns (uint256) {
+        IERC20(IVault(_vault).underlyingToken()).approve(
+            ISwapper(_l.swapDiamond).tokenTransferProxy(),
+            _shares
+        );
+
+        _swapData.fromAmount = _shares;
+        (uint256 output, uint256 leftOver) = ISwapper(_l.swapDiamond).swap(
+            _swapData
+        );
+
+        if (leftOver > 0) {
+            IERC20(_swapData.fromToken).safeTransfer(_maker, leftOver);
+        }
+
+        return output;
     }
 
     /**
