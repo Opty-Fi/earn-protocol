@@ -9,7 +9,8 @@ import {
   IVault,
   OptyFiOracle,
 } from '../../typechain-types';
-import { DataTypes } from '../../typechain-types/contracts/swap/ISwap';
+import { DataTypes as SwapDataTypes } from '../../typechain-types/contracts/swap/ISwap';
+import { DataTypes } from '../../typechain-types/contracts/limitorder/ILimitOrder';
 import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { convertOrderParamsToOrder } from '../../utils/converters';
@@ -256,7 +257,7 @@ export function describeBehaviorOfLimitOrderActions(
       let tx;
       let codeRoot;
       let accountRoot;
-      let orderSwapData: DataTypes.SwapDataStruct;
+      let swapParams: DataTypes.SwapParamsStruct;
       let fee: BigNumber;
       let aaveRedeemed: BigNumber;
       let USDCAmount: BigNumber;
@@ -430,18 +431,12 @@ export function describeBehaviorOfLimitOrderActions(
           exchangeData = exchangeData.concat(calls[i].substring(2));
         }
 
-        orderSwapData = {
-          fromToken: AaveERC20Address,
-          toToken: USDC,
-          fromAmount: userSharesLiquidated.mul(
-            await AaveVaultInstance.getPricePerFullShare(),
-          ),
+        swapParams = {
           toAmount: ethers.constants.One, //note: just for testing
           callees: [AaveERC20Address, UniswapV2Router02Address],
           exchangeData,
           startIndexes,
           values: [BigNumber.from('0'), BigNumber.from('0')],
-          beneficiary: instance.address,
           permit: '0x',
           deadline: swapDeadline,
         };
@@ -477,7 +472,7 @@ export function describeBehaviorOfLimitOrderActions(
         await expect(() =>
           instance
             .connect(maker)
-            .execute(maker.address, AaveVaultProxy, orderSwapData),
+            .execute(maker.address, AaveVaultProxy, swapParams),
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
 
@@ -490,7 +485,7 @@ export function describeBehaviorOfLimitOrderActions(
         await expect(() =>
           instance
             .connect(maker)
-            .execute(maker.address, AaveVaultProxy, orderSwapData),
+            .execute(maker.address, AaveVaultProxy, swapParams),
         ).to.changeTokenBalance(USDCERC20, treasury, fee);
       });
 
@@ -532,7 +527,7 @@ export function describeBehaviorOfLimitOrderActions(
         await expect(() =>
           instance
             .connect(maker)
-            .execute(maker.address, AaveVaultProxy, orderSwapData),
+            .execute(maker.address, AaveVaultProxy, swapParams),
         ).to.changeTokenBalance(UsdcVaultInstance, maker, expectedOPUSDCShares);
       });
 
@@ -547,7 +542,7 @@ export function describeBehaviorOfLimitOrderActions(
         await expect(() =>
           instance
             .connect(maker)
-            .execute(maker.address, AaveVaultProxy, orderSwapData),
+            .execute(maker.address, AaveVaultProxy, swapParams),
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
 
@@ -556,11 +551,7 @@ export function describeBehaviorOfLimitOrderActions(
           await expect(
             instance
               .connect(optyFiVaultOperator)
-              .execute(
-                optyFiVaultOperator.address,
-                AaveVaultProxy,
-                orderSwapData,
-              ),
+              .execute(optyFiVaultOperator.address, AaveVaultProxy, swapParams),
           ).to.be.revertedWith(
             `NoActiveOrder("${optyFiVaultOperator.address}")`,
           );
@@ -577,7 +568,7 @@ export function describeBehaviorOfLimitOrderActions(
           await expect(
             instance
               .connect(maker)
-              .execute(maker.address, AaveVaultProxy, orderSwapData),
+              .execute(maker.address, AaveVaultProxy, swapParams),
           ).to.be.revertedWith(
             `Expired(${expiredTimestamp}, ${orderParams.expiration})`,
           );
@@ -606,7 +597,7 @@ export function describeBehaviorOfLimitOrderActions(
           await expect(
             instance
               .connect(maker)
-              .execute(maker.address, AaveVaultProxy, orderSwapData),
+              .execute(maker.address, AaveVaultProxy, swapParams),
           ).to.be.revertedWith(
             `UnboundPrice(${price}, ${lowerBound}, ${upperBound})`,
           );
