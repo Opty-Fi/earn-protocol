@@ -151,20 +151,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
         uint256 swapOutput = _exchange(_l, _swapData, shares, _vault, _maker);
 
         //calculate fee and transfer to treasury
-        (
-            uint256 finalUSDCAmount,
-            uint256 liquidationFee
-        ) = _applyLiquidationFee(swapOutput, _vaultFee(_l, vault));
-
-        IERC20(USDC).transfer(_treasury(_l), liquidationFee);
+        uint256 usdcAfterFee = _collectFee(
+            _l,
+            swapOutput,
+            _vaultFee(_l, vault)
+        );
 
         //deposit remaining tokens to OptyFi USDC vault and send returned shares to user
         //if unsuccessful transfer USDC to user directly
         if (order.depositUSDC) {
-            IERC20(USDC).approve(OPUSDC_VAULT, finalUSDCAmount);
+            IERC20(USDC).approve(OPUSDC_VAULT, usdcAfterFee);
             try
                 IVault(OPUSDC_VAULT).userDepositVault(
-                    finalUSDCAmount,
+                    usdcAfterFee,
                     _l.accountProofs[OPUSDC_VAULT],
                     _l.codeProofs[OPUSDC_VAULT]
                 )
@@ -174,10 +173,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
                     IERC20(OPUSDC_VAULT).balanceOf(address(this))
                 );
             } catch {
-                IERC20(USDC).transfer(order.maker, finalUSDCAmount);
+                IERC20(USDC).transfer(order.maker, usdcAfterFee);
             }
         } else {
-            IERC20(USDC).transfer(order.maker, finalUSDCAmount);
+            IERC20(USDC).transfer(order.maker, usdcAfterFee);
         }
     }
 
@@ -227,6 +226,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
         }
 
         return output;
+    }
+
+    function _collectFee(
+        LimitOrderStorage.Layout storage _l,
+        uint256 _amount,
+        uint256 _fee
+    ) internal returns (uint256 amountAfterFee) {
+        uint256 fee = _applyLiquidationFee(_amount, _fee);
+        amountAfterFee = _amount - fee;
+
+        IERC20(USDC).safeTransfer(_treasury(_l), fee);
     }
 
     /**
@@ -530,15 +540,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @notice applies the liquidation fee on an amount
      * @param _amount the total amount to apply the fee on
      * @param _vaultFee the fee in basis points pertaining to the particular vault
-     * @return finalAmount the left over amount after applying the fee
      * @return fee the total fee
      */
     function _applyLiquidationFee(uint256 _amount, uint256 _vaultFee)
         internal
         pure
-        returns (uint256 finalAmount, uint256 fee)
+        returns (uint256 fee)
     {
         fee = (_amount * _vaultFee) / BASIS;
-        finalAmount = (_amount - fee);
     }
 }
