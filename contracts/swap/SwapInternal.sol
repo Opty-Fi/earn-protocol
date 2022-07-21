@@ -4,9 +4,10 @@ pragma solidity ^0.8.15;
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 
 import { DataTypes } from './DataTypes.sol';
+import { Errors } from './Errors.sol';
+import { SwapStorage } from './SwapStorage.sol';
 import { ERC20Utils } from '../utils/ERC20Utils.sol';
 import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
-import { SwapStorage } from './SwapStorage.sol';
 
 /**
  * @title Contract for performing arbitrary swaps on DEXs
@@ -32,23 +33,22 @@ abstract contract SwapInternal {
 
         bytes memory exchangeData = _swapData.exchangeData;
 
-        for (uint256 i = 0; i < _swapData.callees.length; i++) {
-            require(
-                _swapData.callees[i] !=
-                    address(SwapStorage.layout().tokenTransferProxy),
-                'Cannot call TokenTransferProxy Contract'
-            );
-
+        uint256 calleesLength = _swapData.callees.length;
+        address tokenTransferProxy = _tokenTransferProxy();
+        bytes4 transferFromSelector = IERC20.transferFrom.selector;
+        for (uint256 i; i < calleesLength; ) {
+            if (_swapData.callees[i] == tokenTransferProxy) {
+                revert Errors.TokenTransferProxyCall();
+            }
             {
                 uint256 dataOffset = _swapData.startIndexes[i];
                 bytes32 selector;
                 assembly {
                     selector := mload(add(exchangeData, add(dataOffset, 32)))
                 }
-                require(
-                    bytes4(selector) != IERC20.transferFrom.selector,
-                    'transferFrom not allowed for externalCall'
-                );
+                if (bytes4(selector) == transferFromSelector) {
+                    revert Errors.TransferFromCall();
+                }
             }
             bool result = _externalCall(
                 _swapData.callees[i], //destination
@@ -57,7 +57,12 @@ abstract contract SwapInternal {
                 _swapData.startIndexes[i + 1] - (_swapData.startIndexes[i]), // length of calldata
                 exchangeData // total calldata
             );
-            require(result, 'External call failed');
+            if (!result) {
+                revert Errors.ExternalCallFailure();
+            }
+            unchecked {
+                ++i;
+            }
         }
 
         receivedAmount = ERC20Utils.tokenBalance(
@@ -65,10 +70,12 @@ abstract contract SwapInternal {
             address(this)
         );
 
-        require(
-            receivedAmount >= _swapData.toAmount,
-            'Received amount of tokens are less then expected'
-        );
+        if (receivedAmount < _swapData.toAmount) {
+            revert Errors.InsufficientReturn(
+                _swapData.toAmount,
+                receivedAmount
+            );
+        }
 
         ERC20Utils.transferTokens(
             _swapData.toToken,
@@ -164,15 +171,14 @@ abstract contract SwapInternal {
 
     /**
      * @notice returns address of the TokenTransferProxy
-     * @param _l the layout of the swapper contract
      * @return tokenTransferProxy address
      */
-    function _tokenTransferProxy(SwapStorage.Layout storage _l)
+    function _tokenTransferProxy()
         internal
         view
         returns (address tokenTransferProxy)
     {
-        tokenTransferProxy = _l.tokenTransferProxy;
+        tokenTransferProxy = SwapStorage.layout().tokenTransferProxy;
     }
 
     /**

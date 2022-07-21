@@ -20,6 +20,6 @@ contract SwapView is SwapInternal, ISwapView {
         override
         returns (address tokenTransferProxy)
     {
-        tokenTransferProxy = _tokenTransferProxy(SwapStorage.layout());
+        tokenTransferProxy = _tokenTransferProxy();
     }
 }
