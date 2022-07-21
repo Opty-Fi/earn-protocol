@@ -31,8 +31,10 @@ import {
   Vault,
   Vault__factory,
   TestVault,
+  IncentivisedERC20,
+  IncentivisedERC20__factory,
 } from "../../typechain";
-import { setTokenBalanceInStorage } from "./utils";
+import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
@@ -141,7 +143,9 @@ describe("::Vault", function () {
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
-    this.usdc = <ERC20>await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address);
+    this.usdc = <IncentivisedERC20>(
+      await ethers.getContractAt(IncentivisedERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
+    );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
 
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
@@ -739,6 +743,100 @@ describe("::Vault", function () {
     });
   });
 
+  describe("#userDepositVaultPermit(uint256,bytes32[],bytes32[])", function () {
+    it("fail userDepositVault() call, vault is paused", async function () {
+      await this.vault.connect(this.signers.governance).setUnpaused(false);
+      const _accountRoot = getAccountsMerkleRoot([
+        this.signers.alice.address,
+        this.signers.bob.address,
+        this.testVault.address,
+        this.signers.eve.address,
+      ]);
+      await this.vault.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
+      await this.vault.connect(this.signers.governance).setEmergencyShutdown(false);
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      const deadline = ethers.constants.MaxUint256;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.usdc,
+        this.vault.address,
+        _depositAmountUSDC,
+        deadline,
+        { version: "2" },
+      );
+      const permit = {
+        value: _depositAmountUSDC,
+        deadline: deadline,
+        v: v,
+        r: r,
+        s: s,
+      };
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
+      await expect(this.vault.connect(this.signers.alice).userDepositVaultPermit([], [], permit)).to.be.revertedWith(
+        "14",
+      );
+    });
+
+    it("first userDepositVaultPermit(), mint same shares as deposit", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
+        this.signers.alice.address,
+      );
+      // (0-15) Deposit fee UT = 0 USDC = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 USDC = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
+      await this.vault
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+      assertVaultConfiguration(
+        await this.vault.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
+      const _depositFee = await this.vault.calcDepositFeeUT(_depositAmountUSDC);
+      const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
+      await this.vault.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
+      const deadline = ethers.constants.MaxUint256;
+
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.usdc,
+        this.vault.address,
+        _depositAmountUSDC,
+        deadline,
+        { version: "2" },
+      );
+      const permit = {
+        value: _depositAmountUSDC,
+        deadline: deadline,
+        v: v,
+        r: r,
+        s: s,
+      };
+
+      await expect(this.vault.connect(this.signers.alice).userDepositVaultPermit(_proofs, [], permit))
+        .to.emit(this.vault, "Transfer")
+        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
+      expect(await this.usdc.balanceOf(this.vault.address)).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vault.totalSupply()).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+      // the vault shares VT will be same as total supply is zero
+      expect(await this.vault.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+    });
+  });
+
   describe("#userDepositVault(uint256,bytes32[],bytes32[])", function () {
     it("fail userDepositVault() call, vault is paused", async function () {
       await this.vault.connect(this.signers.governance).setUnpaused(false);
@@ -787,15 +885,21 @@ describe("::Vault", function () {
       const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       const _depositFee = await this.vault.calcDepositFeeUT(_depositAmountUSDC);
       const _depositAmountUSDCWithFee = _depositAmountUSDC.sub(_depositFee);
+      const _previousBalance = await this.vault.balanceOf(this.signers.alice.address);
+      const _previousVaultBalance = await this.vault.balanceUT();
       await this.vault.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountUSDC);
       await expect(this.vault.connect(this.signers.alice).userDepositVault(_depositAmountUSDC, _proofs, []))
         .to.emit(this.vault, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
-      expect(await this.usdc.balanceOf(this.vault.address)).to.eq(_depositAmountUSDCWithFee);
-      expect(await this.vault.totalSupply()).to.eq(_depositAmountUSDCWithFee);
-      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.usdc.balanceOf(this.vault.address)).to.eq(_previousVaultBalance.add(_depositAmountUSDCWithFee));
+      expect(await this.vault.totalSupply()).to.eq(_previousVaultBalance.add(_depositAmountUSDCWithFee));
+      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountUSDCWithFee),
+      );
       // the vault shares VT will be same as total supply is zero
-      expect(await this.vault.balanceOf(this.signers.alice.address)).to.eq(_depositAmountUSDCWithFee);
+      expect(await this.vault.balanceOf(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountUSDCWithFee),
+      );
     });
 
     it("fail userDepositVault() for non-whitelisted,EOA_NOT_WHITELISTED", async function () {
@@ -819,7 +923,7 @@ describe("::Vault", function () {
         true,
         true,
       );
-      const _depositAmountUSDC = "1000000000";
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
       await this.usdc.connect(this.signers.eve).approve(this.vault.address, _depositAmountUSDC);
       await expect(
@@ -848,7 +952,7 @@ describe("::Vault", function () {
         true,
         true,
       );
-      const _depositAmountUSDC = "1000000000";
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
       await this.usdc.connect(this.signers.alice).approve(this.vault.address, _depositAmountUSDC);
       await expect(
@@ -912,7 +1016,7 @@ describe("::Vault", function () {
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
         this.signers.eve.address,
       );
-      const _depositAmountUSDC = BigNumber.from("1000000000");
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
       await this.usdc.connect(this.signers.eve).approve(this.vault.address, _depositAmountUSDC);
       await expect(
@@ -970,7 +1074,7 @@ describe("::Vault", function () {
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
         this.signers.eve.address,
       );
-      const _depositAmountUSDC = "1000000000";
+      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       await expect(
         this.vault.connect(this.signers.eve).userDepositVault(_depositAmountUSDC, _proof, []),
       ).to.revertedWith("13");
@@ -1024,10 +1128,11 @@ describe("::Vault", function () {
         true,
         false,
       );
+      const _userBalance = await this.vault.balanceOf(this.signers.alice.address);
       expect(
         await this.vault
           .connect(this.signers.alice)
-          .userWithdrawPermitted(this.signers.alice.address, 1000000001, _accountProof, []),
+          .userWithdrawPermitted(this.signers.alice.address, _userBalance.add(1), _accountProof, []),
       ).to.have.members([false, "1"]);
     });
 

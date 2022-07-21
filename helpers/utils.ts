@@ -19,6 +19,7 @@ import {
   CurveSwapPoolAdapter,
   ERC20,
   HarvestCodeProvider,
+  ERC20Permit,
   InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
   RegistryProxy,
@@ -93,7 +94,7 @@ declare module "mocha" {
     testVault: TestVault;
     erc20: ERC20;
     token: ERC20;
-    usdc: ERC20;
+    usdc: ERC20Permit;
     weth: ERC20;
     vaults: { [key: string]: Vault };
     tokens: { [key: string]: ERC20 };
