@@ -2,15 +2,18 @@ import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
+import * as tdly from '@tenderly/hardhat-tenderly';
 import 'hardhat-docgen';
 import 'hardhat-gas-reporter';
 import 'hardhat-spdx-license-identifier';
 import 'hardhat-dependency-compiler';
+import 'hardhat-deploy';
 import 'solidity-coverage';
 
 import Dotenv from 'dotenv';
 
 Dotenv.config();
+tdly.setup();
 
 const {
   API_KEY_ETHERSCAN,
@@ -19,6 +22,7 @@ const {
   PKEY_MAINNET,
   PKEY_TESTNET,
   REPORT_GAS,
+  NODE_URL_TENDERLY,
 } = process.env;
 
 export default {
@@ -61,6 +65,13 @@ export default {
     testnet: {
       url: NODE_URL_TESTNET,
       accounts: [PKEY_TESTNET],
+    },
+
+    tenderly: {
+      url: NODE_URL_TENDERLY,
+      accounts: [PKEY_TESTNET],
+      chainId: 1,
+      deploy: ['tenderly-mainnet/'],
     },
   },
 
