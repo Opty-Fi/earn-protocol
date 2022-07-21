@@ -1,13 +1,14 @@
 // !! Important !!
 // Please do not keep this file under helpers/utils as it imports hre from hardhat
-import { BigNumber, BigNumberish } from "ethers";
-import { getAddress, parseEther } from "ethers/lib/utils";
+import { BigNumber, BigNumberish, Signature } from "ethers";
+import { getAddress, parseEther, splitSignature } from "ethers/lib/utils";
 import hre, { ethers } from "hardhat";
 import ethTokens from "@optyfi/defi-legos/ethereum/tokens/wrapped_tokens";
 import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, IWETH, Registry, Vault } from "../../typechain";
+import { ERC20, IAdapterFull, IWETH, Registry, Vault, ERC20Permit } from "../../typechain";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -214,4 +215,62 @@ export async function getOraSomeValueLP(
     index++;
   }
   return amountLP;
+}
+
+export async function getPermitSignature(
+  signer: SignerWithAddress,
+  token: ERC20Permit,
+  spender: string,
+  value: BigNumber,
+  deadline: BigNumber,
+  permitConfig?: { nonce?: BigNumber; name?: string; chainId?: number; version?: string },
+): Promise<Signature> {
+  const [nonce, name, version, chainId] = await Promise.all([
+    permitConfig?.nonce ?? token.nonces(signer.address),
+    permitConfig?.name ?? token.name(),
+    permitConfig?.version ?? "1",
+    permitConfig?.chainId ?? signer.getChainId(),
+  ]);
+
+  return splitSignature(
+    await signer._signTypedData(
+      {
+        name,
+        version,
+        chainId,
+        verifyingContract: token.address,
+      },
+      {
+        Permit: [
+          {
+            name: "owner",
+            type: "address",
+          },
+          {
+            name: "spender",
+            type: "address",
+          },
+          {
+            name: "value",
+            type: "uint256",
+          },
+          {
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+      },
+      {
+        owner: signer.address,
+        spender,
+        value,
+        nonce,
+        deadline,
+      },
+    ),
+  );
 }
