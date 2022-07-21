@@ -269,6 +269,62 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
+    function userDepositVaultPermit(
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof,
+        DataTypes.Permit calldata _permit
+    ) external override nonReentrant {
+        {
+            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
+            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        }
+        _emergencyBrake(_oraStratValueUT());
+        // check vault + strategy balance (in UT) before user token transfer
+        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
+        // check vault balance (in UT) before user token transfer
+        uint256 _vaultValuePreDepositUT = balanceUT();
+        // permit transfer
+        IERC20Permit(underlyingToken).permit(
+            msg.sender,
+            address(this),
+            _permit.value,
+            _permit.deadline,
+            _permit.v,
+            _permit.r,
+            _permit.s
+        );
+        // receive user deposit
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _permit.value);
+        // check balance after user token transfer
+        uint256 _vaultValuePostDepositUT = balanceUT();
+        // only count the actual deposited tokens received into vault
+        uint256 _actualDepositAmountUT = _vaultValuePostDepositUT.sub(_vaultValuePreDepositUT);
+        // remove deposit fees (if any) but only if deposit is accepted
+        // if deposit is not accepted, the entire transaction should revert
+        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
+        uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
+        _checkUserDeposit(msg.sender, false, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
+        // add net deposit amount to user's total deposit
+        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
+        // transfer deposit fee to vaultFeeCollector
+        if (_depositFeeUT > 0) {
+            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _depositFeeUT);
+        }
+        // mint vault tokens
+        // if _oraVaultAndStratValuePreDepositUT == 0 or totalSupply == 0, mint vault tokens 1:1 for underlying tokens
+        // else, mint vault tokens at constant pre deposit price
+        // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
+        //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
+        if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
+            _mint(msg.sender, _netUserDepositUT);
+        } else {
+            _mint(msg.sender, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
+        }
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
     function userWithdrawVault(
         address _beneficiary,
         uint256 _userWithdrawVT,
