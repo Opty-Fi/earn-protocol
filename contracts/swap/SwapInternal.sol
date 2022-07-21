@@ -22,7 +22,7 @@ abstract contract SwapInternal {
         internal
         returns (uint256 receivedAmount)
     {
-        //If source token is not ETH than transfer required amount of tokens
+        //If source token is not ETH then transfer required amount of tokens
         //from sender to this contract
         _transferTokensFromProxy(
             _swapData.fromToken,
@@ -30,7 +30,7 @@ abstract contract SwapInternal {
             _swapData.permit
         );
 
-        bytes memory _exchangeData = _swapData.exchangeData;
+        bytes memory exchangeData = _swapData.exchangeData;
 
         for (uint256 i = 0; i < _swapData.callees.length; i++) {
             require(
@@ -43,20 +43,19 @@ abstract contract SwapInternal {
                 uint256 dataOffset = _swapData.startIndexes[i];
                 bytes32 selector;
                 assembly {
-                    selector := mload(add(_exchangeData, add(dataOffset, 32)))
+                    selector := mload(add(exchangeData, add(dataOffset, 32)))
                 }
                 require(
                     bytes4(selector) != IERC20.transferFrom.selector,
                     'transferFrom not allowed for externalCall'
                 );
-                //add transfer check?
             }
             bool result = _externalCall(
                 _swapData.callees[i], //destination
                 _swapData.values[i], //value to send
                 _swapData.startIndexes[i], // start index of call data
                 _swapData.startIndexes[i + 1] - (_swapData.startIndexes[i]), // length of calldata
-                _swapData.exchangeData // total calldata
+                exchangeData // total calldata
             );
             require(result, 'External call failed');
         }
