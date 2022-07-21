@@ -38,6 +38,21 @@ library ERC20Utils {
     uint256 private constant MAX_UINT = type(uint256).max;
 
     /**
+     * @notice failed to transfer ETH
+     */
+    error ETHTransferFailed();
+
+    /**
+     * @notice permit failed
+     */
+    error PermitFailed();
+
+    /**
+     * @notice legacy permit failed
+     */
+    error LegacyPermitFailed();
+
+    /**
      * @notice returns ETH addrews
      * @return address of ETH
      */
@@ -92,11 +107,13 @@ library ERC20Utils {
     ) internal {
         if (_amount > 0) {
             if (_token == ETH_ADDRESS) {
-                (bool result, ) = _destination.call{
+                (bool success, ) = _destination.call{
                     value: _amount,
                     gas: 10000
                 }('');
-                require(result, 'Failed to transfer Ether');
+                if (!success) {
+                    revert ETHTransferFailed();
+                }
             } else {
                 IERC20(_token).safeTransfer(_destination, _amount);
             }
@@ -131,14 +148,18 @@ library ERC20Utils {
             (bool success, ) = _token.call(
                 abi.encodePacked(IERC2612.permit.selector, _permit)
             );
-            require(success, 'Permit failed');
+            if (!success) {
+                revert PermitFailed();
+            }
         }
 
         if (_permit.length == 32 * 8) {
             (bool success, ) = _token.call(
                 abi.encodePacked(IERC20PermitLegacy.permit.selector, _permit)
             );
-            require(success, 'Legacy Permit failed');
+            if (!success) {
+                revert LegacyPermitFailed();
+            }
         }
     }
 }

@@ -23,6 +23,11 @@ contract TokenTransferProxy is OwnableInternal, ITokenTransferProxy {
     }
 
     /**
+     * @notice from address is not the tx.origin or a contract
+     */
+    error InvalidFromAddress();
+
+    /**
      * @inheritdoc ITokenTransferProxy
      */
     function transferFrom(
@@ -31,7 +36,9 @@ contract TokenTransferProxy is OwnableInternal, ITokenTransferProxy {
         address to,
         uint256 amount
     ) external onlyOwner {
-        require(from == tx.origin || from.isContract(), 'Invalid from address'); //is this required?
+        if (!(from == tx.origin || from.isContract())) {
+            revert InvalidFromAddress();
+        }
         IERC20(token).safeTransferFrom(from, to, amount);
     }
 }
