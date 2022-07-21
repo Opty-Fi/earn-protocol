@@ -9,5 +9,9 @@ library Errors {
     error TokenTransferProxyCall();
     error TransferFromCall();
     error ExternalCallFailure();
-    error InsufficientReturn(uint256 expected, uint256 returned);
+    error InsufficientReturn();
+    error DeadlineBreach();
+    error ETHValueMismatch();
+    error ZeroExpectedReturns();
+    error ExchangeDataArrayMismatch();
 }

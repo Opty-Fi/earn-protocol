@@ -71,10 +71,7 @@ abstract contract SwapInternal {
         );
 
         if (receivedAmount < _swapData.toAmount) {
-            revert Errors.InsufficientReturn(
-                _swapData.toAmount,
-                receivedAmount
-            );
+            revert Errors.InsufficientReturn();
         }
 
         ERC20Utils.transferTokens(
@@ -89,22 +86,29 @@ abstract contract SwapInternal {
      * @param _swapData the parameters for the swap
      */
     function _canSwap(DataTypes.SwapData memory _swapData) internal view {
-        //add values length check
-        require(_swapData.deadline >= _timestamp(), 'Deadline breached');
-        require(
-            msg.value ==
-                (
-                    _swapData.fromToken == ERC20Utils.ethAddress()
-                        ? _swapData.fromAmount
-                        : 0
-                ),
-            'incorrect msg.value'
-        );
-        require(_swapData.toAmount > 0, 'toAmount is too low');
-        require(
-            _swapData.callees.length + 1 == _swapData.startIndexes.length,
-            'Start indexes must be 1 greater than number of callees'
-        );
+        if (
+            _swapData.callees.length + 1 != _swapData.startIndexes.length &&
+            _swapData.startIndexes.length != _swapData.values.length
+        ) {
+            revert Errors.ExchangeDataArrayMismatch();
+        }
+        if (_swapData.deadline < _timestamp()) {
+            revert Errors.DeadlineBreach();
+        }
+        if (
+            msg.value !=
+            (
+                _swapData.fromToken == ERC20Utils.ethAddress()
+                    ? _swapData.fromAmount
+                    : 0
+            )
+        ) {
+            revert Errors.ETHValueMismatch();
+        }
+
+        if (_swapData.toAmount == 0) {
+            revert Errors.ZeroExpectedReturns();
+        }
     }
 
     /**
