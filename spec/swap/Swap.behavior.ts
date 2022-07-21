@@ -93,8 +93,8 @@ export function describeBehaviorOfSwap(
       await ethers.provider.send('evm_revert', [snapshotId]);
     });
 
-    describe('swap ETH => USDC', () => {
-      it('swaps ETH amount for USDC amount', async () => {
+    describe('#swap(struct(SwapData))', () => {
+      it('swaps ETH => USDC', async () => {
         //calculate call datas for swap
         const uniswapData = uniRouter.interface.encodeFunctionData(
           'swapExactETHForTokens',
@@ -149,10 +149,8 @@ export function describeBehaviorOfSwap(
             ethSwapAmount.mul(ethers.constants.NegativeOne),
           );
       });
-    });
 
-    describe('swap USDC => ETH', () => {
-      it('swaps USDC amount for ETH amount', async () => {
+      it('swaps USDC => ETH', async () => {
         await USDCERC20.connect(maker).approve(
           uniRouter.address,
           ethers.utils.parseEther('10000'),
@@ -222,10 +220,8 @@ export function describeBehaviorOfSwap(
           )
           .to.changeEtherBalance(maker, expectedReturns[1]);
       });
-    });
 
-    describe('swap USDC => WETH', () => {
-      it('swaps USDC amount for WETH amount', async () => {
+      it('swaps USDC => WETH', async () => {
         await USDCERC20.connect(maker).approve(
           uniRouter.address,
           ethers.utils.parseEther('10000'),
@@ -295,6 +291,181 @@ export function describeBehaviorOfSwap(
         expect(newBalance.sub(oldBalance)).to.eq(
           usdcSwapAmount.mul(ethers.constants.NegativeOne),
         );
+      });
+
+      describe('reverts if', () => {
+        let uniswapData;
+        let approveData;
+        let exchangeData;
+
+        beforeEach(() => {
+          uniswapData = uniRouter.interface.encodeFunctionData(
+            'swapExactTokensForTokens',
+            [
+              usdcSwapAmount,
+              ethers.constants.Zero,
+              [USDC, WETH],
+              instance.address,
+              swapDeadline,
+            ],
+          );
+
+          approveData = USDCERC20.interface.encodeFunctionData('approve', [
+            uniRouter.address,
+            ethers.utils.parseEther('1000000'),
+          ]);
+
+          //construct swapData
+          const calls: string[] = [approveData, uniswapData];
+          const startIndexes = ['0'];
+          exchangeData = `0x`;
+          for (const i in calls) {
+            startIndexes.push(
+              startIndexes[i] + calls[i].substring(2).length / 2,
+            );
+            exchangeData = exchangeData.concat(calls[i].substring(2));
+          }
+
+          swapData = {
+            fromToken: USDC,
+            fromAmount: usdcSwapAmount,
+            toToken: WETH,
+            toAmount: ethers.constants.One,
+            callees: [USDCERC20.address, uniRouter.address],
+            exchangeData: exchangeData,
+            startIndexes: startIndexes,
+            values: [ethers.constants.Zero, ethers.constants.Zero],
+            beneficiary: maker.address,
+            permit: '0x',
+            deadline: swapDeadline,
+          };
+        });
+
+        it('callees length + 1 does not match indexes length', async () => {
+          swapData.startIndexes = ['0', '10'];
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('ExchangeDataArrayMismatch()');
+        });
+
+        it('callees length does not match values length', async () => {
+          swapData.values = [ethers.constants.Zero];
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('ExchangeDataArrayMismatch()');
+        });
+
+        it('timestamp is larger than deadline', async () => {
+          swapData.deadline = 0;
+
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('DeadlineBreach()');
+        });
+
+        it('msg.value is not 0 when ETH is not fromToken', async () => {
+          await expect(
+            instance
+              .connect(maker)
+              .swap(swapData, { value: ethers.utils.parseEther('1') }),
+          ).to.be.revertedWith('ETHValueMismatch()');
+        });
+
+        it('msg.value is not equal to fromAmount when ETH is fromToken', async () => {
+          swapData.fromToken = ETH;
+          swapData.fromAmount = ethers.utils.parseEther('100');
+
+          await expect(
+            instance
+              .connect(maker)
+              .swap(swapData, { value: ethers.utils.parseEther('10') }),
+          ).to.be.revertedWith('ETHValueMismatch');
+        });
+
+        it('toAmount is equal to 0', async () => {
+          swapData.toAmount = 0;
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('ZeroExpectedReturns()');
+        });
+
+        it('call to TokenTransferProxy contract is made', async () => {
+          swapData.callees[0] = await instance.tokenTransferProxy();
+          await USDCERC20.connect(maker).approve(
+            await instance.tokenTransferProxy(),
+            ethers.utils.parseEther('10000'),
+          );
+
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('TokenTransferProxyCall()');
+        });
+
+        it('encoded call is TransferFrom', async () => {
+          await USDCERC20.connect(maker).approve(
+            await instance.tokenTransferProxy(),
+            ethers.utils.parseEther('10000'),
+          );
+
+          const transferFromData = USDCERC20.interface.encodeFunctionData(
+            'transferFrom',
+            [
+              maker.address,
+              uniRouter.address,
+              ethers.utils.parseEther('0.001'),
+            ],
+          );
+
+          const calls: string[] = [transferFromData];
+          const startIndexes = ['0'];
+          exchangeData = `0x`;
+          for (const i in calls) {
+            startIndexes.push(
+              startIndexes[i] + calls[i].substring(2).length / 2,
+            );
+            exchangeData = exchangeData.concat(calls[i].substring(2));
+          }
+
+          swapData.exchangeData = exchangeData;
+
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('TransferFromCall()');
+        });
+
+        it('external call fails', async () => {
+          await USDCERC20.connect(maker).approve(
+            await instance.tokenTransferProxy(),
+            ethers.utils.parseEther('10000'),
+          );
+
+          uniswapData = uniRouter.interface.encodeFunctionData(
+            'swapExactTokensForTokens',
+            [
+              usdcSwapAmount,
+              ethers.constants.Zero,
+              [WETH, USDC],
+              instance.address,
+              swapDeadline,
+            ],
+          );
+
+          const calls: string[] = [approveData, uniswapData];
+          const startIndexes = ['0'];
+          exchangeData = `0x`;
+          for (const i in calls) {
+            startIndexes.push(
+              startIndexes[i] + calls[i].substring(2).length / 2,
+            );
+            exchangeData = exchangeData.concat(calls[i].substring(2));
+          }
+
+          swapData.exchangeData = exchangeData;
+
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('ExternalCallFailure()');
+        });
       });
     });
   });

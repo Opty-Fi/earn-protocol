@@ -9,7 +9,7 @@ import {
   Swap__factory,
 } from '../typechain-types';
 
-describe.only('::OptyFiSwapper Contracts', () => {
+describe('::OptyFiSwapper Contracts', () => {
   const ethers = hre.ethers;
 
   let deployer: any;

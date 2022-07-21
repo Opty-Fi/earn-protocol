@@ -87,8 +87,8 @@ abstract contract SwapInternal {
      */
     function _canSwap(DataTypes.SwapData memory _swapData) internal view {
         if (
-            _swapData.callees.length + 1 != _swapData.startIndexes.length &&
-            _swapData.startIndexes.length != _swapData.values.length
+            !(_swapData.callees.length + 1 == _swapData.startIndexes.length &&
+                _swapData.callees.length == _swapData.values.length)
         ) {
             revert Errors.ExchangeDataArrayMismatch();
         }
