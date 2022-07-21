@@ -137,14 +137,14 @@ interface IVault {
     /**
      * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
+     * @param _permit permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
-     * @param _permit permit parameters: amount, deadline, v, s, r
      */
     function userDepositVaultPermit(
+        DataTypes.Permit calldata _permit,
         bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof,
-        DataTypes.Permit calldata _permit
+        bytes32[] calldata _codesProof
     ) external;
 
     /**

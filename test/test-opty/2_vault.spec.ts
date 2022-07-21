@@ -772,7 +772,7 @@ describe("::Vault", function () {
         s: s,
       };
       await this.usdc.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountUSDC);
-      await expect(this.vault.connect(this.signers.alice).userDepositVaultPermit([], [], permit)).to.be.revertedWith(
+      await expect(this.vault.connect(this.signers.alice).userDepositVaultPermit(permit, [], [])).to.be.revertedWith(
         "14",
       );
     });
@@ -826,7 +826,7 @@ describe("::Vault", function () {
         s: s,
       };
 
-      await expect(this.vault.connect(this.signers.alice).userDepositVaultPermit(_proofs, [], permit))
+      await expect(this.vault.connect(this.signers.alice).userDepositVaultPermit(permit, _proofs, []))
         .to.emit(this.vault, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
       expect(await this.usdc.balanceOf(this.vault.address)).to.eq(_depositAmountUSDCWithFee);
