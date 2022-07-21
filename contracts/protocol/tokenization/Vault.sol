@@ -261,37 +261,26 @@ contract Vault is
             require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         }
         _emergencyBrake(_oraStratValueUT());
-        // check vault + strategy balance (in UT) before user token transfer
-        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
-        // check vault balance (in UT) before user token transfer
-        uint256 _vaultValuePreDepositUT = balanceUT();
-        // receive user deposit
-        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
-        // check balance after user token transfer
-        uint256 _vaultValuePostDepositUT = balanceUT();
-        // only count the actual deposited tokens received into vault
-        uint256 _actualDepositAmountUT = _vaultValuePostDepositUT.sub(_vaultValuePreDepositUT);
-        // remove deposit fees (if any) but only if deposit is accepted
-        // if deposit is not accepted, the entire transaction should revert
-        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
-        uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
-        _checkUserDeposit(msg.sender, false, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
-        // add net deposit amount to user's total deposit
-        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
-        // transfer deposit fee to vaultFeeCollector
-        if (_depositFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _depositFeeUT);
+
+        _depositVaultFor(msg.sender, false, _userDepositUT, _accountsProof, _codesProof);
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function userDepositVaultFor(
+        address _beneficiary,
+        uint256 _userDepositUT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) external override nonReentrant {
+        {
+            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
+            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         }
-        // mint vault tokens
-        // if _oraVaultAndStratValuePreDepositUT == 0 or totalSupply == 0, mint vault tokens 1:1 for underlying tokens
-        // else, mint vault tokens at constant pre deposit price
-        // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
-        //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
-        if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
-            _mint(msg.sender, _netUserDepositUT);
-        } else {
-            _mint(msg.sender, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
-        }
+        _emergencyBrake(_oraStratValueUT());
+
+        _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
 
     /**
@@ -307,10 +296,6 @@ contract Vault is
             require(_vaultDepositPermitted, _vaultDepositPermittedReason);
         }
         _emergencyBrake(_oraStratValueUT());
-        // check vault + strategy balance (in UT) before user token transfer
-        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
-        // check vault balance (in UT) before user token transfer
-        uint256 _vaultValuePreDepositUT = balanceUT();
         // permit transfer
         IERC20Permit(underlyingToken).permit(
             msg.sender,
@@ -321,33 +306,8 @@ contract Vault is
             _permit.r,
             _permit.s
         );
-        // receive user deposit
-        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _permit.value);
-        // check balance after user token transfer
-        uint256 _vaultValuePostDepositUT = balanceUT();
-        // only count the actual deposited tokens received into vault
-        uint256 _actualDepositAmountUT = _vaultValuePostDepositUT.sub(_vaultValuePreDepositUT);
-        // remove deposit fees (if any) but only if deposit is accepted
-        // if deposit is not accepted, the entire transaction should revert
-        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
-        uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
-        _checkUserDeposit(msg.sender, false, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
-        // add net deposit amount to user's total deposit
-        totalDeposits[msg.sender] = totalDeposits[msg.sender].add(_netUserDepositUT);
-        // transfer deposit fee to vaultFeeCollector
-        if (_depositFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _depositFeeUT);
-        }
-        // mint vault tokens
-        // if _oraVaultAndStratValuePreDepositUT == 0 or totalSupply == 0, mint vault tokens 1:1 for underlying tokens
-        // else, mint vault tokens at constant pre deposit price
-        // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
-        //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
-        if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
-            _mint(msg.sender, _netUserDepositUT);
-        } else {
-            _mint(msg.sender, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
-        }
+
+        _depositVaultFor(msg.sender, false, _permit.value, _accountsProof, _codesProof);
     }
 
     /**
@@ -684,6 +644,60 @@ contract Vault is
     }
 
     //===Internal functions===//
+
+    /**
+     * @dev internal function deposit for an user
+     * @param _beneficiary address of the beneficiary
+     * @param _addUserDepositUT whether to add _userDepositUT while
+     *         checking for TVL limit reached.
+     * @param _userDepositUT amount to deposit in underlying token
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
+     */
+    function _depositVaultFor(
+        address _beneficiary,
+        bool _addUserDepositUT,
+        uint256 _userDepositUT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) internal {
+        // check vault + strategy balance (in UT) before user token transfer
+        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
+        // check vault balance (in UT) before user token transfer
+        uint256 _vaultValuePreDepositUT = balanceUT();
+        // receive user deposit
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
+        // only count the actual deposited tokens received into vault
+        uint256 _actualDepositAmountUT = balanceUT().sub(_vaultValuePreDepositUT);
+        // remove deposit fees (if any) but only if deposit is accepted
+        // if deposit is not accepted, the entire transaction should revert
+        uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
+        uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
+        _checkUserDeposit(
+            _beneficiary,
+            _addUserDepositUT,
+            _netUserDepositUT,
+            _depositFeeUT,
+            _accountsProof,
+            _codesProof
+        );
+        // add net deposit amount to user's total deposit
+        totalDeposits[_beneficiary] = totalDeposits[_beneficiary].add(_netUserDepositUT);
+        // transfer deposit fee to vaultFeeCollector
+        if (_depositFeeUT > 0) {
+            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _depositFeeUT);
+        }
+        // mint vault tokens
+        // if _oraVaultAndStratValuePreDepositUT == 0 or totalSupply == 0, mint vault tokens 1:1 for underlying tokens
+        // else, mint vault tokens at constant pre deposit price
+        // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
+        //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
+        if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
+            _mint(_beneficiary, _netUserDepositUT);
+        } else {
+            _mint(_beneficiary, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
+        }
+    }
 
     /**
      * @dev Internal function to deposit some balance of underlying token from current strategy
