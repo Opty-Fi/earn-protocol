@@ -270,9 +270,9 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositVaultPermit(
+        DataTypes.Permit calldata _permit,
         bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof,
-        DataTypes.Permit calldata _permit
+        bytes32[] calldata _codesProof
     ) external override nonReentrant {
         {
             (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
