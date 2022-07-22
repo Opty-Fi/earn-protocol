@@ -9,11 +9,28 @@ import 'hardhat-spdx-license-identifier';
 import 'hardhat-dependency-compiler';
 import 'hardhat-deploy';
 import 'solidity-coverage';
+import path from 'path';
+import fs from 'fs';
 
 import Dotenv from 'dotenv';
 
 Dotenv.config();
-tdly.setup();
+tdly.setup({
+  automaticVerifications: false,
+});
+
+const SKIP_LOAD = process.env.SKIP_LOAD === 'true';
+
+if (!SKIP_LOAD) {
+  ['', 'actions'].forEach((folder) => {
+    const tasksPath = path.join(__dirname, 'tasks', folder);
+    fs.readdirSync(tasksPath)
+      .filter((pth: string | string[]) => pth.includes('.ts'))
+      .forEach((task) => {
+        require(`${tasksPath}/${task}`);
+      });
+  });
+}
 
 const {
   API_KEY_ETHERSCAN,
