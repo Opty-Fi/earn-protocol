@@ -41,3 +41,7 @@
 	path = contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum
 	url = git@github.com:Opty-Fi/sushiswap-masterchefv2-adapter-ethereum.git
 	branch = feat/master-chef-v2
+[submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
+	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
+	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
+	branch = feat/optyfi-oracle
