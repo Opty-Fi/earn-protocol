@@ -71,7 +71,6 @@ export default {
       url: NODE_URL_TENDERLY,
       accounts: [PKEY_TESTNET],
       chainId: 1,
-      deploy: ['tenderly-mainnet/'],
     },
   },
 
@@ -99,6 +98,13 @@ export default {
   spdxLicenseIdentifier: {
     overwrite: false,
     runOnCompile: true,
+  },
+
+  paths: {
+    artifacts: './artifacts',
+    cache: './cache',
+    sources: './contracts',
+    tests: './test',
   },
 
   typechain: {
