@@ -1,14 +1,7 @@
 import { BigNumber } from "ethers";
-import { getAddress } from "ethers/lib/utils";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
-import {
-  Registry,
-  Registry__factory,
-  SushiswapPoolAdapterEthereum,
-  SushiswapPoolAdapterEthereum__factory,
-} from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
