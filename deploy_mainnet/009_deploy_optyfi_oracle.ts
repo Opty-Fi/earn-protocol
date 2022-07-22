@@ -17,7 +17,6 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("OptyFiOracle");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
@@ -29,7 +28,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, 0, 0],
+    args: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -43,7 +42,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "OptyFiOracle",
           address: OptyFiOracle.address,
-          constructorArguments: [registryProxyAddress, 0, 0],
+          constructorArguments: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -51,7 +50,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "OptyFiOracle",
           address: OptyFiOracle.address,
-          constructorArguments: [registryProxyAddress, 0, 0],
+          constructorArguments: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
         });
       }
     }
@@ -59,4 +58,3 @@ const func: DeployFunction = async ({
 };
 export default func;
 func.tags = ["OptyFiOracle"];
-func.dependencies = ["Registry"];

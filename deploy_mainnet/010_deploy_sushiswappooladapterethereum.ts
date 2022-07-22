@@ -37,26 +37,12 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: [registryProxyAddress, optyfiOracleAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
-
-  const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-  const sushiswapPoolAdapterEthereumInstance = <SushiswapPoolAdapterEthereum>(
-    await ethers.getContractAt(SushiswapPoolAdapterEthereum__factory.abi, result.address)
-  );
-  const operatorAddress = await registryInstance.getOperator();
-  const operatorSigner = await ethers.getSigner(operatorAddress);
-  const actualOptyFiOracleAddress = await sushiswapPoolAdapterEthereumInstance.optyFiOracle();
-  if (getAddress(actualOptyFiOracleAddress) != getAddress(optyfiOracleAddress)) {
-    const tx = await sushiswapPoolAdapterEthereumInstance.connect(operatorSigner).setOptyFiOracle(optyfiOracleAddress);
-    await tx.wait(1);
-  } else {
-    console.log("optyfiOracleAddress is as expected");
-  }
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
@@ -65,7 +51,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "SushiswapPoolAdapterEthereum",
           address: sushiswapPoolAdapterEthereum.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, optyfiOracleAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -73,7 +59,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "SushiswapPoolAdapterEthereum",
           address: sushiswapPoolAdapterEthereum.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, optyfiOracleAddress],
         });
       }
     }
