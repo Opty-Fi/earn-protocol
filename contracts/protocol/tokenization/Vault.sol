@@ -225,10 +225,8 @@ contract Vault is
      * @inheritdoc IVault
      */
     function rebalance() external override {
-        (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-        require(_vaultDepositPermitted, _vaultDepositPermittedReason);
-        (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
-        require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
+        _checkVaultDeposit();
+        _checkVaultWithdraw();
         _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
         bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
         if (_nextBestInvestStrategyHash != investStrategyHash) {
@@ -256,10 +254,7 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
-        {
-            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
-        }
+        _checkVaultDeposit();
         _emergencyBrake(_oraStratValueUT());
 
         _depositVaultFor(msg.sender, false, _userDepositUT, _accountsProof, _codesProof);
@@ -318,10 +313,7 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
-        {
-            (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
-            require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
-        }
+        _checkVaultWithdraw();
         _emergencyBrake(_oraStratValueUT());
         _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
         // burning should occur at pre userwithdraw price UNLESS there is slippage
@@ -372,8 +364,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function vaultDepositAllToStrategy() external override {
-        (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-        require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        _checkVaultDeposit();
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             _vaultDepositToStrategy(investStrategySteps, balanceUT());
         }
@@ -673,14 +664,7 @@ contract Vault is
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
-        _checkUserDeposit(
-            _beneficiary,
-            _addUserDepositUT,
-            _netUserDepositUT,
-            _depositFeeUT,
-            _accountsProof,
-            _codesProof
-        );
+        _checkUserDeposit(msg.sender, _addUserDepositUT, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
         // add net deposit amount to user's total deposit
         totalDeposits[_beneficiary] = totalDeposits[_beneficiary].add(_netUserDepositUT);
         // transfer deposit fee to vaultFeeCollector
@@ -968,6 +952,22 @@ contract Vault is
                 _codesProof
             );
         require(_userDepositPermitted, _userDepositPermittedReason);
+    }
+
+    /**
+     * @dev internal function to check whether vault is paused or in emergency shutdown
+     */
+    function _checkVaultDeposit() internal view {
+        (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
+        require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+    }
+
+    /**
+     * @dev internal function to check whether vault is paused
+     */
+    function _checkVaultWithdraw() internal view {
+        (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
+        require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
     }
 
     /**
