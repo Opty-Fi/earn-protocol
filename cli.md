@@ -412,6 +412,7 @@ Options:
 --user          required <address> account address of the user
 --action        required <string>  "DEPOSIT" || "WITHDRAW" || "REBALANCE" || "VAULT-DEPOSIT-ALL-TO-STRATEGY"
 --merkle-proof  required <string>  merkle proofs in stringified form
+--beneficiary   optional <string>  beneficiary of DEPOSIT or WITHDRAW
 --useall        optional <bool>    use whole balance (default: false)
 --amount        optional <number>  amount of token (default: 0)
 --network       optional <string>  name of the network provider (default: hardhat)
@@ -425,6 +426,7 @@ Options:
   --vault-symbol opUSDCgrow \
   --user 0x0000000000000000000000000000000000000000 \
   --action deposit \
+  --beneficiary 0x0000000000000000000000000000000000000000 \
   --useall false \
   --amount 500000
 ```
