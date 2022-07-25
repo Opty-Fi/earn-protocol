@@ -269,33 +269,6 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function userDepositVaultPermit(
-        DataTypes.Permit calldata _permit,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external override nonReentrant {
-        {
-            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
-        }
-        _emergencyBrake(_oraStratValueUT());
-        // permit transfer
-        IERC20Permit(underlyingToken).permit(
-            msg.sender,
-            address(this),
-            _permit.value,
-            _permit.deadline,
-            _permit.v,
-            _permit.r,
-            _permit.s
-        );
-
-        _depositVaultFor(msg.sender, false, _permit.value, _accountsProof, _codesProof);
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
     function userWithdrawVault(
         address _beneficiary,
         uint256 _userWithdrawVT,
