@@ -176,7 +176,7 @@ interface IVault {
     /**
      * @notice function to claim _rewardTokenAmount of reward tokens and swap for the vault's underlying tokens
      * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
-     * @param _rewardTokenAmount amount of reward token to claim
+     * @param _rewardTokenAmount amount of reward token to harvest/swap
      */
     function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external;
 
