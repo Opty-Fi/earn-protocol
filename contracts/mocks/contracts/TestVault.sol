@@ -17,12 +17,13 @@ contract TestVault {
         IVault _vault,
         ERC20 _token,
         uint256 _amountUT,
+        bytes calldata _permit,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external {
         _token.transferFrom(msg.sender, address(this), _amountUT);
         _token.approve(address(_vault), _amountUT);
-        _vault.userDepositVault(_amountUT, _accountsProof, _codesProof);
+        _vault.userDepositVault(msg.sender, _amountUT, _permit, _accountsProof, _codesProof);
     }
 
     function withdraw(
@@ -31,7 +32,7 @@ contract TestVault {
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external {
-        _vault.userWithdrawVault(_amountVT, _accountsProof, _codesProof);
+        _vault.userWithdrawVault(msg.sender, _amountVT, _accountsProof, _codesProof);
     }
 
     function withdrawERC20(ERC20 _token, address _recipient) external {
