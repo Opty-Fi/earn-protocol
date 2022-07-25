@@ -17,11 +17,12 @@ contract TestEmergencyBrake {
 
     function runUserDepositVault(
         uint256 _userDepositUT,
+        bytes calldata _permit,
         bytes32[] calldata _accountProofs,
         bytes32[] calldata _codeProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
-        vaultAddr.userDepositVault(_userDepositUT, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(msg.sender, _userDepositUT, _permit, _accountProofs, _codeProofs);
     }
 
     function runUserWithdrawVault(
@@ -29,18 +30,19 @@ contract TestEmergencyBrake {
         bytes32[] calldata _accountProofs,
         bytes32[] calldata _codeProofs
     ) external {
-        vaultAddr.userWithdrawVault(_userWithdrawVT, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(msg.sender, _userWithdrawVT, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnUserDepositVault(
         uint256 _minAmountUT,
         uint256 _maxAmountUT,
+        bytes calldata _permit,
         bytes32[] calldata _accountProofs,
         bytes32[] calldata _codeProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), (_minAmountUT + _maxAmountUT));
-        vaultAddr.userDepositVault(_maxAmountUT, _accountProofs, _codeProofs);
-        vaultAddr.userDepositVault(_minAmountUT, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(msg.sender, _maxAmountUT, _permit, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(msg.sender, _minAmountUT, _permit, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnUserWithdrawVault(
@@ -51,9 +53,9 @@ contract TestEmergencyBrake {
     ) external {
         tokenAddr.approve(address(vaultAddr), (_minAmount + _maxAmount));
         tokenAddr.transfer(address(vaultAddr), _maxAmount);
-        vaultAddr.userWithdrawVault(_maxAmount, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(msg.sender, _maxAmount, _accountProofs, _codeProofs);
         tokenAddr.transfer(address(vaultAddr), _minAmount);
-        vaultAddr.userWithdrawVault(_minAmount, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(msg.sender, _minAmount, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnUserWithdrawVaultNoDeposit(
@@ -64,21 +66,22 @@ contract TestEmergencyBrake {
     ) external {
         tokenAddr.approve(address(vaultAddr), (_minAmountVT + _maxAmountVT));
         tokenAddr.transfer(address(vaultAddr), _maxAmountVT);
-        vaultAddr.userWithdrawVault(_maxAmountVT, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(msg.sender, _maxAmountVT, _accountProofs, _codeProofs);
         tokenAddr.transfer(address(vaultAddr), _minAmountVT);
-        vaultAddr.userWithdrawVault(_minAmountVT, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(msg.sender, _minAmountVT, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnWithdrawAndDepositRebalance(
         uint256 _minAmount,
         uint256 _maxAmount,
+        bytes calldata _permit,
         bytes32[] calldata _accountProofs,
         bytes32[] calldata _codeProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _maxAmount);
-        vaultAddr.userDepositVault(_maxAmount, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(msg.sender, _maxAmount, _permit, _accountProofs, _codeProofs);
         tokenAddr.transfer(address(vaultAddr), _minAmount);
-        vaultAddr.userWithdrawVault(_minAmount, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(msg.sender, _minAmount, _accountProofs, _codeProofs);
     }
 
     function getBalance() external view returns (uint256) {
