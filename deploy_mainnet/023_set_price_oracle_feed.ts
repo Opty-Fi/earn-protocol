@@ -20,6 +20,16 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      priceFeed: "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9",
+      tokenA: ethereumTokens.REWARD_TOKENS.AAVE,
+      tokenB: USD,
+    },
+    {
+      priceFeed: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+      tokenA: ethereumTokens.WRAPPED_TOKENS.WETH,
+      tokenB: USD,
+    },
+    {
       priceFeed: "0xc7de7f4d4C9c991fF62a07D18b3E31e349833A18",
       tokenA: APE,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
