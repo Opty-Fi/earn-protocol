@@ -24,6 +24,7 @@ import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.so
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Permit } from "@openzeppelin/contracts/drafts/IERC20Permit.sol";
+import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol";
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
@@ -250,114 +251,38 @@ contract Vault is
      * @inheritdoc IVault
      */
     function userDepositVault(
+        address _beneficiary,
         uint256 _userDepositUT,
+        bytes calldata _permitParams,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
         _checkVaultDeposit();
         _emergencyBrake(_oraStratValueUT());
-
-        _depositVaultFor(msg.sender, false, _userDepositUT, _accountsProof, _codesProof);
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
-    function userDepositVaultFor(
-        address _beneficiary,
-        uint256 _userDepositUT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external override nonReentrant {
-        {
-            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+        if (_beneficiary == address(0)) {
+            _beneficiary = msg.sender;
         }
-        _emergencyBrake(_oraStratValueUT());
-
+        _permit(_permitParams);
         _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function userDepositVaultPermit(
-        DataTypes.Permit calldata _permit,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external override nonReentrant {
-        {
-            (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-            require(_vaultDepositPermitted, _vaultDepositPermittedReason);
-        }
-        _emergencyBrake(_oraStratValueUT());
-        // permit transfer
-        IERC20Permit(underlyingToken).permit(
-            msg.sender,
-            address(this),
-            _permit.value,
-            _permit.deadline,
-            _permit.v,
-            _permit.r,
-            _permit.s
-        );
-
-        _depositVaultFor(msg.sender, false, _permit.value, _accountsProof, _codesProof);
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
     function userWithdrawVault(
+        address _beneficiary,
         uint256 _userWithdrawVT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
         _checkVaultWithdraw();
         _emergencyBrake(_oraStratValueUT());
-        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
-        // burning should occur at pre userwithdraw price UNLESS there is slippage
-        // if there is slippage, the withdrawing user should absorb that cost (see below)
-        // i.e. get less underlying tokens than calculated by pre userwithdraw price
-        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(_oraVaultAndStratValueUT()).div(totalSupply());
-        _burn(msg.sender, _userWithdrawVT);
-
-        uint256 _vaultValuePreStratWithdrawUT = balanceUT();
-
-        // if vault does not have sufficient UT, we need to withdraw from strategy
-        if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
-            // withdraw UT shortage from strategy
-            uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-
-            uint256 _oraAmountLP =
-                investStrategySteps.getOraSomeValueLP(
-                    address(registryContract),
-                    underlyingToken,
-                    _expectedStratWithdrawUT
-                );
-
-            _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
-
-            // Identify Slippage
-            // UT requested from strategy withdraw  = _expectedStratWithdrawUT
-            // UT actually received from strategy withdraw
-            // = _receivedStratWithdrawUT
-            // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
-            // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
-            uint256 _vaultValuePostStratWithdrawUT = balanceUT();
-            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT); // 440
-
-            // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
-            if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
-                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(_expectedStratWithdrawUT.sub(_receivedStratWithdrawUT));
-            }
+        if (_beneficiary != address(0)) {
+            require(allowance(_beneficiary, msg.sender) >= _userWithdrawVT, Errors.AMOUNT_EXCEEDS_ALLOWANCE);
+        } else {
+            _beneficiary = msg.sender;
         }
-        uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
-        // transfer withdraw fee to vaultFeeCollector
-        if (_withdrawFeeUT > 0) {
-            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
-        }
-        IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
+        _withdrawVaultFor(_beneficiary, _userWithdrawVT, _accountsProof, _codesProof);
     }
 
     /**
@@ -637,6 +562,23 @@ contract Vault is
     //===Internal functions===//
 
     /**
+     * @dev execute the permit according to the permit param
+     * @param _permitParams data
+     */
+    function _permit(bytes calldata _permitParams) internal {
+        if (_permitParams.length == 32 * 7) {
+            (bool success, ) = underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
+            require(success, Errors.PERMIT_FAILED);
+        }
+
+        if (_permitParams.length == 32 * 8) {
+            (bool success, ) =
+                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
+            require(success, Errors.PERMIT_LEGACY_FAILED);
+        }
+    }
+
+    /**
      * @dev internal function deposit for an user
      * @param _beneficiary address of the beneficiary
      * @param _addUserDepositUT whether to add _userDepositUT while
@@ -681,6 +623,64 @@ contract Vault is
         } else {
             _mint(_beneficiary, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
         }
+    }
+
+    /**
+     * @dev internal function withdraw for an user
+     * @param _beneficiary address of the beneficiary
+     * @param _userWithdrawVT amount in vault token
+     * @param _accountsProof merkle proof for caller
+     * @param _codesProof merkle proof for code hash if caller is smart contract
+     */
+    function _withdrawVaultFor(
+        address _beneficiary,
+        uint256 _userWithdrawVT,
+        bytes32[] calldata _accountsProof,
+        bytes32[] calldata _codesProof
+    ) internal {
+        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
+        // burning should occur at pre userwithdraw price UNLESS there is slippage
+        // if there is slippage, the withdrawing user should absorb that cost (see below)
+        // i.e. get less underlying tokens than calculated by pre userwithdraw price
+        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(_oraVaultAndStratValueUT()).div(totalSupply());
+        _burn(_beneficiary, _userWithdrawVT);
+
+        uint256 _vaultValuePreStratWithdrawUT = balanceUT();
+
+        // if vault does not have sufficient UT, we need to withdraw from strategy
+        if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
+            // withdraw UT shortage from strategy
+            uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+
+            uint256 _oraAmountLP =
+                investStrategySteps.getOraSomeValueLP(
+                    address(registryContract),
+                    underlyingToken,
+                    _expectedStratWithdrawUT
+                );
+
+            _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
+
+            // Identify Slippage
+            // UT requested from strategy withdraw  = _expectedStratWithdrawUT
+            // UT actually received from strategy withdraw
+            // = _receivedStratWithdrawUT
+            // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
+            // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
+            uint256 _vaultValuePostStratWithdrawUT = balanceUT();
+            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT); // 440
+
+            // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
+            if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
+                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(_expectedStratWithdrawUT.sub(_receivedStratWithdrawUT));
+            }
+        }
+        uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
+        // transfer withdraw fee to vaultFeeCollector
+        if (_withdrawFeeUT > 0) {
+            IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
+        }
+        IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
     }
 
     /**

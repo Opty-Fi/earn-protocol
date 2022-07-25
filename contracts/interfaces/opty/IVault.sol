@@ -124,52 +124,32 @@ interface IVault {
     /**
      * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
+     * @param _beneficiary the address of the deposit beneficiary,
+     *        if _beneficiary = address(0) => _beneficiary = msg.sender
      * @param _userDepositUT Amount in underlying token
+     * @param _permitParams permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userDepositVault(
-        uint256 _userDepositUT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external;
-
-    /**
-     * @notice Deposit underlying tokens to the vault
-     * @dev Mint the shares right away as per oracle based price per full share value
-     * @param _beneficiary the address of the deposit beneficiary
-     * @param _userDepositUT Amount in underlying token
-     * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
-     */
-    function userDepositVaultFor(
         address _beneficiary,
         uint256 _userDepositUT,
+        bytes calldata _permitParams,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external;
 
     /**
-     * @notice Deposit underlying tokens to the vault
-     * @dev Mint the shares right away as per oracle based price per full share value
-     * @param _permit permit parameters: amount, deadline, v, s, r
-     * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
-     */
-    function userDepositVaultPermit(
-        DataTypes.Permit calldata _permit,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external;
-
-    /**
-     * @notice redeems the vault shares and transfers underlying token to the withdrawer
+     * @notice redeems the vault shares and transfers underlying token to `_beneficiary`
      * @dev Burn the shares right away as per oracle based price per full share value
+     * @param _beneficiary the address of the withdrawal beneficiary
+     *        if _beneficiary = address(0) => _beneficiary = msg.sender
      * @param _userWithdrawVT amount in vault token
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userWithdrawVault(
+        address _beneficiary,
         uint256 _userWithdrawVT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
