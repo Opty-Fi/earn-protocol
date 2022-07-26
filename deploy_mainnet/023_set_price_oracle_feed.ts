@@ -74,17 +74,24 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       pendingFeedToTokens.push(feedToToken);
     }
   }
-
+  const ownerSigner = await ethers.getSigner(owner);
   if (pendingFeedToTokens.length > 0) {
     console.log(`Setting ${pendingFeedToTokens.length} price feeds`);
     console.log(JSON.stringify(pendingFeedToTokens, {}, 4));
-    const ownerSigner = await ethers.getSigner(owner);
     console.log("adding chainlink price oracle feed");
     const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
     await tx.wait(1);
   } else {
     console.log("price feed is upto date");
   }
+
+  const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkTimeAllowance([
+    { tokenA: APE, tokenB: USD, timeAllowance: "86400" },
+    { tokenA: ethereumTokens.PLAIN_TOKENS.USDT, tokenB: USD, timeAllowance: "86400" },
+    { tokenA: APE, tokenB: ethereumTokens.PLAIN_TOKENS.USDT, timeAllowance: "86400" },
+    { tokenA: MANA, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "10800" },
+  ]);
+  await tx.wait(1);
 };
 
 export default func;

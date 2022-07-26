@@ -1065,15 +1065,6 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
     },
   ],
-  ILV: [
-    {
-      name: "opILVaggr",
-      vaultConfig: vaultConfigRP2,
-      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ILV wei user deposit cap
-      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ILV minimum deposit
-      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ILV TVL limit
-    },
-  ],
   APE: [
     {
       name: "opAPEaggr",
