@@ -20,24 +20,31 @@ task(
     types.string,
   )
   .addParam(
-    'proof',
-    'the JSON object containing the address and account proof for that address',
+    'proofstring',
+    'a string representing the JSON object containing the opVault address and code proof of the code whitelist',
     '',
-    types.json,
+    types.string,
   )
-  .setAction(async ({ limitOrderDiamond, opVault, proof }, hre) => {
+  .setAction(async ({ limitorderdiamond, vault, proofstring }, hre) => {
     const ethers = hre.ethers;
-    if (opVault == '') {
-      throw new Error('opVault address required');
+
+    if (limitorderdiamond == '') {
+      throw new Error('limit order diamond address required');
     }
 
-    if (opVault != proof.account) {
+    if (vault == '') {
+      throw new Error('vault address required');
+    }
+
+    const proof = JSON.parse(proofstring);
+
+    if (vault != proof.address) {
       throw new Error('opVault does not match account that proof is for');
     }
 
     const instance = await ethers.getContractAt(
       'LimitOrderDiamond',
-      ethers.utils.getAddress(limitOrderDiamond),
+      ethers.utils.getAddress(limitorderdiamond),
     );
 
     const owner: SignerWithAddress = await ethers.getSigner(
@@ -45,26 +52,26 @@ task(
     );
     const settings: ILimitOrder = await ethers.getContractAt(
       'ILimitOrder',
-      ethers.utils.getAddress(limitOrderDiamond),
+      ethers.utils.getAddress(limitorderdiamond),
     );
 
-    console.log(`Setting the account proof for ${opVault}...`);
+    console.log(`Setting the account proof for ${vault}...`);
 
     try {
       let tx = await settings
         .connect(owner)
         ['setAccountProof(bytes32[],address)'](
           proof.proof,
-          ethers.utils.getAddress(opVault),
+          ethers.utils.getAddress(vault),
         );
 
       await tx.wait();
     } catch (err) {
       console.log(
-        `Failed to set the new account proof for ${opVault} to ${proof.proof}!`,
+        `Failed to set the new account proof for ${vault} to ${proof.proof}!`,
       );
       console.log(`Failed with error: ${err}`);
     }
 
-    console.log(`Successfully set the account proof for ${opVault}`);
+    console.log(`Successfully set the account proof for ${vault}`);
   });
