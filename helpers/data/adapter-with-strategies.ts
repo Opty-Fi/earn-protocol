@@ -385,29 +385,6 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
     },
-    // "newo-DEPOSIT-SushiswapPool-NEWO-USDC-SLP-DEPOSIT-NewOrder-newoSushiNEWO-USDC": {
-    //   strategyName: "newo-DEPOSIT-SushiswapPool-NEWO-USDC-SLP-DEPOSIT-NewOrder-newoSushiNEWO-USDC",
-    //   token: "0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96",
-    //   strategy: [
-    //     {
-    //       contract: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
-    //       outputToken: "0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513",
-    //       isBorrow: false,
-    //       outputTokenSymbol: "NEWO-USDC-SLP",
-    //       adapterName: "SushiswapPoolAdapterEthereum",
-    //       protocol: "Sushiswap",
-    //     },
-    //     {
-    //       contract: "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a",
-    //       outputToken: "0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a",
-    //       isBorrow: false,
-    //       outputTokenSymbol: "newoSushiNEWO-USDC",
-    //       adapterName: "NewoStakingAdapter",
-    //       protocol: "NewOrder",
-    //     },
-    //   ],
-    //   riskProfileCode: 2,
-    // },
   },
   AAVE: {
     "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP": {
@@ -464,46 +441,6 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
-  // ILV:{
-  //   "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP": {
-  //     strategyName: "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP",
-  //     token: "0x767FE9EDC9E0dF98E07454847909b5E959D7ca0E",
-  //     strategy: [
-  //       {
-  //         contract: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
-  //         outputToken: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "ILV-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapter",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   },
-  //   "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
-  //     strategyName: "ilv-DEPOSIT-SushiswapPool-ILV-WETH-SLP-DEPOSIT-SushiswapMasterChef",
-  //     token: "0x767FE9EDC9E0dF98E07454847909b5E959D7ca0E",
-  //     strategy: [
-  //       {
-  //         contract: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
-  //         outputToken: "0x6a091a3406E0073C3CD6340122143009aDac0EDa",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "ILV-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //       {
-  //         contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-  //         outputToken: "0x0000000000000000000000000000000000000000",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "",
-  //         adapterName: "SushiswapMasterChefV1Adapter",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   },
-  // },
   APE: {
     "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP": {
       strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP",
