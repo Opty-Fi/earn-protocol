@@ -8,6 +8,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const curveSwapPoolAdapter = await deployments.get("CurveSwapPoolAdapter");
+  const curveDepositPoolAdapter = await deployments.get("CurveDepositPoolAdapter");
   const curveMetaPoolSwapAdapter = await deployments.get("CurveMetapoolSwapAdapter");
   const lidoAdapter = await deployments.get("LidoAdapter");
   const sushiswapPoolAdapterEthereum = await deployments.get("SushiswapPoolAdapterEthereum");
@@ -64,6 +65,10 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7": { rate: 90, adapter: compoundAdapter.address }, // compound SUSHI pool
     "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-MANA-WETH
     "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272": { rate: 50, adapter: sushiBarAdapter.address }, // xSUSHI
+    "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06": { rate: 80, adapter: curveDepositPoolAdapter.address }, // cDAI+cUSDC
+    "0x32512Bee3848bfcBb7bEAf647aa697a100f3b706": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC
+    "0xac795D2c97e60DF6a99ff1c814727302fD747a80": { rate: 80, adapter: curveDepositPoolAdapter.address }, //cDAI+cUSDC+cUSDT
+    "0xA1c3492b71938E144ad8bE4c2fB6810b01A43dD8": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC+cUSDT
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -143,6 +148,7 @@ func.tags = ["ApproveAndMapLiquidityPoolToAdapter"];
 func.dependencies = [
   "Registry",
   "CurveSwapPoolAdapter",
+  "CurveDepositPoolAdapter",
   "LidoAdapter",
   "CurveMetapoolSwapAdapter",
   "SushiswapMasterChefV1Adapter",
