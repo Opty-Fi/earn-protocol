@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { waitforme } from "../helpers/utils";
 import {
   Registry,
@@ -77,6 +78,13 @@ const func: DeployFunction = async ({
     { liquidityPool: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97", tolerance: "150" },
   ]);
   await tx.wait(1);
+
+  const APE = "0x4d224452801ACEd8B2F0aebE155379bb5D594381";
+  const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
+  const tx1 = await sushiswapPoolAdapterEthereumInstance
+    .connect(riskOperatorSigner)
+    .setLiquidityPoolToWantTokenToSlippage([{ liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" }]);
+  await tx1.wait(1);
 };
 export default func;
 func.tags = ["SushiswapPoolAdapterEthereum"];
