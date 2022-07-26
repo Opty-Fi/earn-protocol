@@ -2,6 +2,7 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { OptyFiOracle, OptyFiOracle__factory } from "../typechain";
+import { getAddress } from "ethers/lib/utils";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
@@ -66,10 +67,24 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       tokenB: USD,
     },
   ];
-  const ownerSigner = await ethers.getSigner(owner);
-  console.log("adding chainlink price oracle feed");
-  const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
-  await tx.wait(1);
+  const pendingFeedToTokens = [];
+  for (const feedToToken of feedToTokens) {
+    const actualPriceFeed = await optyfiOracleInstance.chainlinkPriceFeed(feedToToken.tokenA, feedToToken.tokenB);
+    if (getAddress(actualPriceFeed) !== getAddress(feedToToken.priceFeed)) {
+      pendingFeedToTokens.push(feedToToken);
+    }
+  }
+
+  if (pendingFeedToTokens.length > 0) {
+    console.log(`Setting ${pendingFeedToTokens.length} price feeds`);
+    console.log(JSON.stringify(pendingFeedToTokens, {}, 4));
+    const ownerSigner = await ethers.getSigner(owner);
+    console.log("adding chainlink price oracle feed");
+    const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
+    await tx.wait(1);
+  } else {
+    console.log("price feed is upto date");
+  }
 };
 
 export default func;

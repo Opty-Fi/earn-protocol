@@ -28,7 +28,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
+    args: ["3600", "3600"],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -42,7 +42,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "OptyFiOracle",
           address: OptyFiOracle.address,
-          constructorArguments: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
+          constructorArguments: ["3600", "3600"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -50,7 +50,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "OptyFiOracle",
           address: OptyFiOracle.address,
-          constructorArguments: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
+          constructorArguments: ["3600", "3600"],
         });
       }
     }
