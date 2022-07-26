@@ -3,23 +3,28 @@ import { task, types } from 'hardhat/config';
 //@ts-ignore
 import { ILimitOrder } from '../../typechain-types';
 
-task('setOracle', 'sets the address of the OptyFiOracle contract')
+task('setVaultFee', 'sets the liquidation fee of an opVault')
   .addParam(
     'limitorderdiamond',
     'the address of the LimitOrderDiamond',
     '',
     types.string,
   )
-  .addParam('oracle', 'the address of the new OptyFiOracle', '', types.string)
-  .setAction(async ({ oracle, limitorderdiamond }, hre) => {
+  .addParam('vault', 'the address of the opVault', '', types.string)
+  .addParam('fee', 'the liquidation fee as a string', '', types.string)
+  .setAction(async ({ limitorderdiamond, vault, fee }, hre) => {
     const ethers = hre.ethers;
 
     if (limitorderdiamond == '') {
       throw new Error('limit order diamond address required');
     }
 
-    if (oracle == '') {
-      throw new Error('oracle address required');
+    if (vault == '') {
+      throw new Error('vault address required');
+    }
+
+    if (fee <= 0 || fee >= ethers.utils.parseEther('1')) {
+      throw new Error('fee out of bounds');
     }
 
     const instance = await ethers.getContractAt(
@@ -35,20 +40,21 @@ task('setOracle', 'sets the address of the OptyFiOracle contract')
       ethers.utils.getAddress(limitorderdiamond),
     );
 
-    console.log(
-      `Setting the oracle to ${oracle} for contract ${limitorderdiamond}...`,
-    );
+    console.log(`Setting the liquidation fee of ${vault} to ${fee} ETH...`);
 
     try {
       let tx = await settings
         .connect(owner)
-        ['setOracle(address)'](ethers.utils.getAddress(oracle));
+        ['setVaultLiquidationFee(uint256,address)'](
+          ethers.utils.parseEther(fee),
+          ethers.utils.getAddress(vault),
+        );
 
       await tx.wait();
     } catch (err) {
-      console.log('Failed to set new oracle address!');
+      console.log(`Failed to set the vault fee for ${vault}!`);
       console.log(`Failed with error: ${err}`);
     }
 
-    console.log(`Successfully set the oracle address to ${oracle}`);
+    console.log(`Successfully set the fee for ${vault} to ${fee} ETH!`);
   });

@@ -52,15 +52,20 @@ const deployOptyFiSwapper: DeployFunction = async (
 
   console.log('\nPerforming diamond cut...');
 
-  let tx = await OptyFiSwapper.diamondCut(
-    swapperFacetCuts,
-    ethers.constants.AddressZero,
-    '0x',
-  );
+  try {
+    let tx = await OptyFiSwapper.diamondCut(
+      swapperFacetCuts,
+      ethers.constants.AddressZero,
+      '0x',
+    );
 
-  await tx.wait();
+    await tx.wait();
 
-  console.log('\nDiamondcut successful!');
+    console.log('\nDiamondcut successful!\n\n');
+  } catch (err) {
+    console.log('Failed to cuts facets into diamond...');
+    console.log(`Failed with error: ${err}\n\n`);
+  }
 };
 
 export default deployOptyFiSwapper;

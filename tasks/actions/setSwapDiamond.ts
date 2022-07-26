@@ -13,6 +13,11 @@ task('setSwapDiamond', 'sets the address of the OptyFiSwapper contract')
   .addParam('swapper', 'the address of the new OptyFiSwapper', '', types.string)
   .setAction(async ({ swapper, limitorderdiamond }, hre) => {
     const ethers = hre.ethers;
+
+    if (limitorderdiamond == '') {
+      throw new Error('limit order diamond address required');
+    }
+
     if (swapper == '') {
       throw new Error('swapDiamond address required');
     }

@@ -13,6 +13,10 @@ task('setTreasury', 'sets the treasury for the LimitOrderDiamond contract')
   .addParam('treasury', 'the address of the new treasury', '', types.string)
   .setAction(async ({ limitorderdiamond, treasury }, hre) => {
     const ethers = hre.ethers;
+    if (limitorderdiamond == '') {
+      throw new Error('limit order diamond address required');
+    }
+
     if (treasury == '') {
       throw new Error('treasury address required');
     }
