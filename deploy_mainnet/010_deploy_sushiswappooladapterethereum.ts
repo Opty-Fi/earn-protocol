@@ -70,20 +70,61 @@ const func: DeployFunction = async ({
   const registryProxyInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
   const riskOperator = await registryProxyInstance.riskOperator();
   const riskOperatorSigner = await ethers.getSigner(riskOperator);
-  const tx = await sushiswapPoolAdapterEthereumInstance.connect(riskOperatorSigner).setLiquidityPoolToTolerance([
-    { liquidityPool: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4", tolerance: "150" },
-    { liquidityPool: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f", tolerance: "150" },
-    { liquidityPool: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0", tolerance: "150" },
-    { liquidityPool: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97", tolerance: "150" },
-  ]);
-  await tx.wait(1);
 
   const APE = "0x4d224452801ACEd8B2F0aebE155379bb5D594381";
+  const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
-  const tx1 = await sushiswapPoolAdapterEthereumInstance
-    .connect(riskOperatorSigner)
-    .setLiquidityPoolToWantTokenToSlippage([{ liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" }]);
-  await tx1.wait(1);
+  const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
+  const MANA_WETH_LP = "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97";
+
+  const liquidityPoolToTolerances = [
+    { liquidityPool: AAVE_WETH_LP, tolerance: "150" },
+    { liquidityPool: APE_USDT_LP, tolerance: "150" },
+    { liquidityPool: SUSHI_WETH_LP, tolerance: "150" },
+    { liquidityPool: MANA_WETH_LP, tolerance: "150" },
+  ];
+  const pendingLiquidityPoolToTolerances = [];
+  for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
+    const tolerance = await sushiswapPoolAdapterEthereumInstance.liquidityPoolToTolerance(
+      liquidityPoolToTolerance.liquidityPool,
+    );
+    if (!BigNumber.from(tolerance).eq(BigNumber.from(liquidityPoolToTolerance.tolerance))) {
+      pendingLiquidityPoolToTolerances.push(liquidityPoolToTolerance);
+    }
+  }
+
+  if (pendingLiquidityPoolToTolerances.length > 0) {
+    console.log("updating pending LiquidityPool To Tolerances");
+    console.log(JSON.stringify(pendingLiquidityPoolToTolerances, {}, 4));
+    const tx = await sushiswapPoolAdapterEthereumInstance
+      .connect(riskOperatorSigner)
+      .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);
+    await tx.wait(1);
+  } else {
+    console.log("liquidityPoolToTolerances are up to date");
+  }
+
+  const liquidityPoolToWantTokenToSlippages = [{ liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" }];
+  const pendingLiquidityPoolToWantTokenToSlippages = [];
+  for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
+    const slippage = await sushiswapPoolAdapterEthereumInstance.liquidityPoolToWantTokenToSlippage(
+      liquidityPoolToWantTokenToSlippage.liquidityPool,
+      liquidityPoolToWantTokenToSlippage.wantToken,
+    );
+    if (!BigNumber.from(slippage).eq(BigNumber.from(liquidityPoolToWantTokenToSlippage.slippage))) {
+      pendingLiquidityPoolToWantTokenToSlippages.push(liquidityPoolToWantTokenToSlippage);
+    }
+  }
+
+  if (pendingLiquidityPoolToWantTokenToSlippages.length > 0) {
+    console.log("updating pending LiquidityPool To Want Token To Slippages ");
+    const tx = await sushiswapPoolAdapterEthereumInstance
+      .connect(riskOperatorSigner)
+      .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
+    await tx.wait(1);
+  } else {
+    console.log("pendingLiquidityPoolToWantTokenToSlippages are up to date");
+  }
 };
 export default func;
 func.tags = ["SushiswapPoolAdapterEthereum"];
