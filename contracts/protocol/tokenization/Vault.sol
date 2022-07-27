@@ -226,8 +226,8 @@ contract Vault is
      * @inheritdoc IVault
      */
     function rebalance() external override {
-        _checkVaultDeposit();
-        _checkVaultWithdraw();
+        _checkVaultPaused();
+        _checkVaultEmergencyShutdown();
         _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
         bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
         if (_nextBestInvestStrategyHash != investStrategyHash) {
@@ -275,7 +275,6 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant {
-        _checkVaultWithdraw();
         _emergencyBrake(_oraStratValueUT());
         if (_beneficiary != address(0)) {
             require(allowance(_beneficiary, msg.sender) >= _userWithdrawVT, Errors.AMOUNT_EXCEEDS_ALLOWANCE);
@@ -460,9 +459,6 @@ contract Vault is
             return (false, Errors.CA_NOT_WHITELISTED);
         }
         // require: 0 < withdrawal amount in vault tokens < user's vault token balance
-        if (!((vaultConfiguration & (1 << 249)) != 0)) {
-            return (false, Errors.VAULT_PAUSED);
-        }
         if (!(_userWithdrawVT > 0 && _userWithdrawVT <= balanceOf(_user))) {
             return (false, Errors.USER_WITHDRAW_INSUFFICIENT_VT);
         }
@@ -955,19 +951,25 @@ contract Vault is
     }
 
     /**
-     * @dev internal function to check whether vault is paused or in emergency shutdown
+     * @dev internal function to check whether vault is in emergency shutdown
      */
-    function _checkVaultDeposit() internal view {
-        (bool _vaultDepositPermitted, string memory _vaultDepositPermittedReason) = vaultDepositPermitted();
-        require(_vaultDepositPermitted, _vaultDepositPermittedReason);
+    function _checkVaultEmergencyShutdown() internal view {
+        require(!((vaultConfiguration & (1 << 248)) != 0), Errors.VAULT_EMERGENCY_SHUTDOWN);
     }
 
     /**
      * @dev internal function to check whether vault is paused
      */
-    function _checkVaultWithdraw() internal view {
-        (bool _vaultWithdrawPermitted, string memory _vaultWithdrawPermittedReason) = vaultWithdrawPermitted();
-        require(_vaultWithdrawPermitted, _vaultWithdrawPermittedReason);
+    function _checkVaultPaused() internal view {
+        require(((vaultConfiguration & (1 << 249)) != 0), Errors.VAULT_PAUSED);
+    }
+
+    /**
+     * @dev internal function to check whether vault is paused or in emergency shutdown
+     */
+    function _checkVaultDeposit() internal view {
+        _checkVaultEmergencyShutdown();
+        _checkVaultPaused();
     }
 
     /**
