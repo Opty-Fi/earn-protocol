@@ -621,6 +621,129 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
+  LINK: {
+    "link-DEPOSIT-Sushiswap-LINK-WETH": {
+      strategyName: "link-DEPOSIT-Sushiswap-LINK-WETH",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
+          outputToken: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
+          isBorrow: false,
+          outputTokenSymbol: "LINK-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "link-DEPOSIT-Sushiswap-LINK-WETH-DEPOSIT-SushiswapMasterChef": {
+      strategyName: "link-DEPOSIT-Sushiswap-LINK-WETH-DEPOSIT-SushiswapMasterChef",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
+          outputToken: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
+          isBorrow: false,
+          outputTokenSymbol: "LINK-WETH-SLP",
+          adapterName: "SushiswapPoolAdapterEthereum",
+          protocol: "Sushiswap",
+        },
+        {
+          contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+          outputToken: "0x0000000000000000000000000000000000000000",
+          isBorrow: false,
+          outputTokenSymbol: "",
+          adapterName: "SushiswapMasterChefV1Adapter",
+          protocol: "Sushiswap",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "link-DEPOSIT-AaveV1-aLINK": {
+      strategyName: "",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+          outputToken: "0xA64BD6C70Cb9051F6A9ba1F163Fdc07E0DfB5F84",
+          isBorrow: false,
+          outputTokenSymbol: "aLINK",
+          adapterName: "AaveV1Adapter",
+          protocol: "Aave",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "link-DEPOSIT-AaveV2-aLINK": {
+      strategyName: "",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          outputToken: "0xa06bC25B5805d5F8d82847D191Cb4Af5A3e873E0",
+          isBorrow: false,
+          outputTokenSymbol: "aLINK",
+          adapterName: "AaveV1Adapter",
+          protocol: "Aave",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "link-DEPOSIT-Compound-cLINK": {
+      strategyName: "link-DEPOSIT-Compound-cLINK",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0xFAce851a4921ce59e912d19329929CE6da6EB0c7",
+          outputToken: "0xFAce851a4921ce59e912d19329929CE6da6EB0c7",
+          isBorrow: false,
+          outputTokenSymbol: "cLINK",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "link-DEPOSIT-Curve-linkCRV": {
+      strategyName: "link-DEPOSIT-Curve-linkCRV",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0",
+          outputToken: "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a",
+          isBorrow: false,
+          outputTokenSymbol: "linkCRV",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "link-DEPOSIT-Curve-linkCRV-DEPOSIT-Convex-cvxlinkCRV": {
+      strategyName: "link-DEPOSIT-Curve-linkCRV",
+      token: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      strategy: [
+        {
+          contract: "0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0",
+          outputToken: "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a",
+          isBorrow: false,
+          outputTokenSymbol: "linkCRV",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xD37969740d78C94C648d74671B8BE31eF43c30aB",
+          outputToken: "0xD37969740d78C94C648d74671B8BE31eF43c30aB",
+          isBorrow: false,
+          outputTokenSymbol: "cvxlinkCRV",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+  },
 };
 
 const kovanStrategiesByToken = {
@@ -1090,6 +1213,15 @@ const mainnetVaults: VaultType = {
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 MANA wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 MANA minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 MANA TVL limit
+    },
+  ],
+  LINK: [
+    {
+      name: "opLINKaggr",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
     },
   ],
 };

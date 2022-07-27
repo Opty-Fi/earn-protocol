@@ -23,6 +23,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const SUSHI_USD_FEED = "0xCc70F09A6CC17553b2E31954cD36E4A2d89501f7";
   const MANA_WETH_FEED = "0x82A44D92D6c329826dc557c5E1Be6ebeC5D5FeB9";
   const MANA_USD_FEED = "0x56a4857acbcfe3a66965c251628B1c9f1c408C19";
+  const LINK_WETH_FEED = "0xDC530D9457755926550b59e8ECcdaE7624181557";
+  const LINK_USD_FEED = "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c";
 
   const owner = await optyfiOracleInstance.owner();
   const feedToTokens = [
@@ -75,6 +77,21 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     {
       priceFeed: MANA_USD_FEED,
       tokenA: MANA,
+      tokenB: USD,
+    },
+    {
+      priceFeed: LINK_WETH_FEED,
+      tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: LINK_WETH_FEED,
+      tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: LINK_USD_FEED,
+      tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
       tokenB: USD,
     },
   ];

@@ -8,6 +8,7 @@ import {
   SushiswapPoolAdapterEthereum,
   SushiswapPoolAdapterEthereum__factory,
 } from "../typechain";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -76,12 +77,14 @@ const func: DeployFunction = async ({
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
   const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
   const MANA_WETH_LP = "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97";
+  const LINK_WETH_LP = "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967";
 
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "150" },
     { liquidityPool: APE_USDT_LP, tolerance: "150" },
     { liquidityPool: SUSHI_WETH_LP, tolerance: "150" },
     { liquidityPool: MANA_WETH_LP, tolerance: "150" },
+    { liquidityPool: LINK_WETH_LP, tolerance: "150" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -104,7 +107,10 @@ const func: DeployFunction = async ({
     console.log("liquidityPoolToTolerances are up to date");
   }
 
-  const liquidityPoolToWantTokenToSlippages = [{ liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" }];
+  const liquidityPoolToWantTokenToSlippages = [
+    { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" },
+    { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
+  ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
     const slippage = await sushiswapPoolAdapterEthereumInstance.liquidityPoolToWantTokenToSlippage(

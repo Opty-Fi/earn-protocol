@@ -68,6 +68,10 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x32512Bee3848bfcBb7bEAf647aa697a100f3b706": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC
     "0xac795D2c97e60DF6a99ff1c814727302fD747a80": { rate: 80, adapter: curveDepositPoolAdapter.address }, //cDAI+cUSDC+cUSDT
     "0xA1c3492b71938E144ad8bE4c2fB6810b01A43dD8": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC+cUSDT
+    "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // LINK-WETH-SLP
+    "0xFAce851a4921ce59e912d19329929CE6da6EB0c7": { rate: 90, adapter: compoundAdapter.address }, // compound LINK pool
+    "0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0": { rate: 80, adapter: curveSwapPoolAdapter.address }, // linkCRV pool
+    "0xD37969740d78C94C648d74671B8BE31eF43c30aB": { rate: 80, adapter: convexFinanceAdapter.address }, // cvxusdc3CRV
   };
 
   const onlyMapPoolsToAdapters = [];
