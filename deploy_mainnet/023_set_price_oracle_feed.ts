@@ -90,7 +90,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     { tokenA: ethereumTokens.PLAIN_TOKENS.USDT, tokenB: USD, timeAllowance: "43200" },
     { tokenA: APE, tokenB: ethereumTokens.PLAIN_TOKENS.USDT, timeAllowance: "43200" },
     { tokenA: ethereumTokens.PLAIN_TOKENS.USDT, tokenB: APE, timeAllowance: "43200" },
-    { tokenA: MANA, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "10800" },
+    { tokenA: MANA, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: MANA, timeAllowance: "43200" },
   ]);
   await tx.wait(1);
 };
