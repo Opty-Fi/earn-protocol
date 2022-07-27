@@ -40,3 +40,6 @@
 [submodule "contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum"]
 	path = contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum
 	url = git@github.com:Opty-Fi/sushiswap-masterchefv2-adapter-ethereum.git
+[submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
+	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
+	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
