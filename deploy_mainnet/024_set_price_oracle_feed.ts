@@ -85,11 +85,6 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
-      priceFeed: LINK_WETH_FEED,
-      tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
-    },
-    {
       priceFeed: LINK_USD_FEED,
       tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
       tokenB: USD,
