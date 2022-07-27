@@ -98,7 +98,7 @@ const func: DeployFunction = async ({
 
   if (pendingLiquidityPoolToTolerances.length > 0) {
     console.log("updating pending LiquidityPool To Tolerances");
-    console.log(JSON.stringify(pendingLiquidityPoolToTolerances, {}, 4));
+    console.log(JSON.stringify(pendingLiquidityPoolToTolerances, null, 4));
     const tx = await sushiswapPoolAdapterEthereumInstance
       .connect(riskOperatorSigner)
       .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);

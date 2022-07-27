@@ -12,6 +12,11 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const APE = "0x4d224452801ACEd8B2F0aebE155379bb5D594381";
   const USD = "0x0000000000000000000000000000000000000348";
   const MANA = "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942";
+  const ENS = "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72";
+  const IMX = "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF";
+  const LDO = "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32";
+  const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
+  const YFI = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
   const AAVE_WETH_FEED = "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012";
   const AAVE_USD_FEED = "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9";
   const WETH_USD_FEED = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419";
@@ -25,6 +30,17 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const MANA_USD_FEED = "0x56a4857acbcfe3a66965c251628B1c9f1c408C19";
   const LINK_WETH_FEED = "0xDC530D9457755926550b59e8ECcdaE7624181557";
   const LINK_USD_FEED = "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c";
+  const ENS_USD_FEED = "0x5C00128d4d1c2F4f652C267d7bcdD7aC99C16E16";
+  const COMP_WETH_FEED = "0x1B39Ee86Ec5979ba5C322b826B3ECb8C79991699";
+  const COMP_USD_FEED = "0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5";
+  const IMX_USD_FEED = "0xBAEbEFc1D023c0feCcc047Bff42E75F15Ff213E6";
+  const LDO_WETH_FEED = "0x4e844125952D32AcdF339BE976c98E22F6F318dB";
+  const ALCX_WETH_FEED = "0x194a9AaF2e0b67c35915cD01101585A33Fe25CAa";
+  const ALCX_USD_FEED = "0xc355e4C0B3ff4Ed0B49EaACD55FE29B311f42976";
+  const YFI_WETH_FEED = "0x7c5d4F8345e66f68099581Db340cd65B078C41f4";
+  const YFI_USD_FEED = "0xA027702dbb89fbd58938e4324ac03B58d812b0E1";
+  const SNX_WETH_FEED = "0x79291A9d692Df95334B1a0B3B4AE6bC606782f8c";
+  const SNX_USD_FEED = "0xDC3EA94CD0AC27d9A86C180091e7f78C683d3699";
 
   const owner = await optyfiOracleInstance.owner();
   const feedToTokens = [
@@ -89,6 +105,61 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
       tokenB: USD,
     },
+    {
+      priceFeed: ENS_USD_FEED,
+      tokenA: ENS,
+      tokenB: USD,
+    },
+    {
+      priceFeed: COMP_WETH_FEED,
+      tokenA: ethereumTokens.REWARD_TOKENS.COMP,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: COMP_USD_FEED,
+      tokenA: ethereumTokens.REWARD_TOKENS.COMP,
+      tokenB: USD,
+    },
+    {
+      priceFeed: IMX_USD_FEED,
+      tokenA: IMX,
+      tokenB: USD,
+    },
+    {
+      priceFeed: LDO_WETH_FEED,
+      tokenA: LDO,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: ALCX_WETH_FEED,
+      tokenA: ALCX,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: ALCX_USD_FEED,
+      tokenA: ALCX,
+      tokenB: USD,
+    },
+    {
+      priceFeed: YFI_WETH_FEED,
+      tokenA: YFI,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: YFI_USD_FEED,
+      tokenA: YFI,
+      tokenB: USD,
+    },
+    {
+      priceFeed: SNX_WETH_FEED,
+      tokenA: ethereumTokens.REWARD_TOKENS.SNX,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: SNX_USD_FEED,
+      tokenA: ethereumTokens.REWARD_TOKENS.SNX,
+      tokenB: USD,
+    },
   ];
   const pendingFeedToTokens = [];
   for (const feedToToken of feedToTokens) {
@@ -100,7 +171,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const ownerSigner = await ethers.getSigner(owner);
   if (pendingFeedToTokens.length > 0) {
     console.log(`Setting ${pendingFeedToTokens.length} price feeds`);
-    console.log(JSON.stringify(pendingFeedToTokens, {}, 4));
+    console.log(JSON.stringify(pendingFeedToTokens, null, 4));
     console.log("adding chainlink price oracle feed");
     const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
     await tx.wait(1);
