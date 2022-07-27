@@ -1074,39 +1074,16 @@ describe("::Vault", function () {
   });
 
   describe("#userWithdrawPermitted(address,uint256,bytes32[],bytes32[])", function () {
-    it("userWithdrawPermitted() return false,VAULT_PAUSED", async function () {
-      expect(await this.vault.investStrategyHash()).to.eq(ethers.constants.HashZero);
-      expect((await this.vault.getInvestStrategySteps()).length).to.eq(0);
-      await this.vault
-        .connect(this.signers.governance)
-        .setVaultConfiguration("906570639739453258250749540332912351914733262152258629340941055050750689281");
-      assertVaultConfiguration(
-        await this.vault.vaultConfiguration(),
-        BigNumber.from("1"),
-        BigNumber.from("5"),
-        BigNumber.from("1"),
-        BigNumber.from("5"),
-        BigNumber.from("100"),
-        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
-        BigNumber.from("1"),
-        false,
-        true,
-        false,
-      );
-      await this.vault.connect(this.signers.governance).setUnpaused(false);
-      expect(
-        await this.vault.connect(this.signers.alice).userWithdrawPermitted(this.signers.alice.address, 1, [], []),
-      ).to.have.members([false, "14"]);
-    });
-
     it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
       const _accountProof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
         this.signers.alice.address,
       );
-      await expect(this.vault.connect(this.signers.governance).setUnpaused(true))
-        .to.emit(this.vault, "LogUnpause")
-        .withArgs(true, this.signers.governance.address);
+      expect(await this.vault.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect((await this.vault.getInvestStrategySteps()).length).to.eq(0);
+      await this.vault
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906570639739453258250749540332912351914733262152258629340941055050750689281");
       assertVaultConfiguration(
         await this.vault.vaultConfiguration(),
         BigNumber.from("1"),
@@ -1432,18 +1409,6 @@ describe("::Vault", function () {
       const _actualReceivedUT = _userBalanceAfter.sub(_userbalanceBefore);
       expect(_actualReceivedUT).to.eq(_calculatedReceivableUTWithFee);
       expect(await this.vault.totalSupply()).to.eq(_totalSupply.sub(_redeemVT));
-    });
-
-    it("fail userWithdrawVault, VAULT_PAUSED", async function () {
-      await this.vault.connect(this.signers.governance).setUnpaused(false);
-      const _proofs = getAccountsMerkleProof(
-        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
-        this.signers.alice.address,
-      );
-      const _redeemVT = (await this.vault.balanceOf(this.signers.alice.address)).div("2");
-      await expect(
-        this.vault.connect(this.signers.alice).userWithdrawVault(ethers.constants.AddressZero, _redeemVT, _proofs, []),
-      ).to.revertedWith("14");
     });
 
     it("userWithdrawVault, during emergency shutdown", async function () {
