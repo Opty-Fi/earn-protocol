@@ -294,7 +294,7 @@ export function describeBehaviorOfSwap(
         );
       });
 
-      describe.only('reverts if', () => {
+      describe('reverts if', () => {
         let uniswapData;
         let approveData;
         let exchangeData;
@@ -468,7 +468,7 @@ export function describeBehaviorOfSwap(
           ).to.be.revertedWith('ExternalCallFailure()');
         });
 
-        it('reverts if insufficient amount of toToken returned to OptyFiSwapper', async () => {
+        it('insufficient amount of toToken returned to OptyFiSwapper', async () => {
           await USDCERC20.connect(maker).approve(
             uniRouter.address,
             ethers.utils.parseEther('10000'),
