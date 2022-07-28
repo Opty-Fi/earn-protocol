@@ -4,6 +4,7 @@ import hre from 'hardhat';
 import { IERC20, ISwapper, IUniswapV2Router02 } from '../../typechain-types';
 import { DataTypes } from '../../typechain-types/contracts/swap/ISwap';
 import { expect } from 'chai';
+import { swap } from '../../typechain-types/contracts';
 
 export function describeBehaviorOfSwap(
   deploy: () => Promise<ISwapper>,
@@ -293,7 +294,7 @@ export function describeBehaviorOfSwap(
         );
       });
 
-      describe('reverts if', () => {
+      describe.only('reverts if', () => {
         let uniswapData;
         let approveData;
         let exchangeData;
@@ -465,6 +466,50 @@ export function describeBehaviorOfSwap(
           await expect(
             instance.connect(maker).swap(swapData),
           ).to.be.revertedWith('ExternalCallFailure()');
+        });
+
+        it('reverts if insufficient amount of toToken returned to OptyFiSwapper', async () => {
+          await USDCERC20.connect(maker).approve(
+            uniRouter.address,
+            ethers.utils.parseEther('10000'),
+          );
+          await USDCERC20.connect(maker).approve(
+            await instance.tokenTransferProxy(),
+            ethers.utils.parseEther('10000'),
+          );
+
+          uniswapData = uniRouter.interface.encodeFunctionData(
+            'swapExactTokensForTokens',
+            [
+              usdcSwapAmount,
+              ethers.constants.Zero,
+              [USDC, WETH],
+              maker.address,
+              swapDeadline,
+            ],
+          );
+
+          approveData = USDCERC20.interface.encodeFunctionData('approve', [
+            uniRouter.address,
+            ethers.utils.parseEther('1000000'),
+          ]);
+
+          //construct swapData
+          const calls: string[] = [approveData, uniswapData];
+          const startIndexes = ['0'];
+          exchangeData = `0x`;
+          for (const i in calls) {
+            startIndexes.push(
+              startIndexes[i] + calls[i].substring(2).length / 2,
+            );
+            exchangeData = exchangeData.concat(calls[i].substring(2));
+          }
+
+          swapData.exchangeData = exchangeData;
+
+          await expect(
+            instance.connect(maker).swap(swapData),
+          ).to.be.revertedWith('InsufficientReturn()');
         });
       });
     });
