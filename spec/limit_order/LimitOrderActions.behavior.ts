@@ -29,6 +29,7 @@ export function describeBehaviorOfLimitOrderActions(
   const ethers = hre.ethers;
   let owner: SignerWithAddress;
   let maker: SignerWithAddress;
+  let attacker: SignerWithAddress;
   let optyFiVaultOperator: SignerWithAddress;
   let AaveWhale: SignerWithAddress;
   let USDCWhale: SignerWithAddress;
@@ -102,7 +103,7 @@ export function describeBehaviorOfLimitOrderActions(
   const aaveDepositAmount = ethers.utils.parseEther('0.1');
 
   before(async () => {
-    [owner, maker] = await ethers.getSigners();
+    [owner, maker, attacker] = await ethers.getSigners();
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
       params: [ethers.utils.getAddress(optyFiVaultOperatorAddress)],
@@ -601,6 +602,81 @@ export function describeBehaviorOfLimitOrderActions(
           ).to.be.revertedWith(
             `UnboundPrice(${price}, ${lowerBound}, ${upperBound})`,
           );
+        });
+      });
+
+      describe('malicious swap data attack vectors', () => {
+        it('prevents false beneficiary attack via internal setting beneficiary == LimitOrderDiamond.address', async () => {
+          //create order from maker
+          await instance.connect(maker).createOrder(orderParams);
+
+          //calculate user shares
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          const userSharesLiquidated = orderParams.liquidationShare
+            .mul(userShares)
+            .div(BASIS);
+
+          //approve LO contract
+          await opAaveToken
+            .connect(maker)
+            .approve(instance.address, userSharesLiquidated);
+
+          //no fees in opAAVEvault so should be precise
+          const expectedAaveRedeemed = userSharesLiquidated
+            .mul(await AaveVaultInstance.getPricePerFullShare())
+            .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
+
+          //calculate call datas for approve + swap
+          const aaveERC20Interface = AaveERC20.interface;
+          const approveData = aaveERC20Interface.encodeFunctionData('approve', [
+            uniRouter.address,
+            ethers.utils.parseEther('10000'),
+          ]);
+
+          const swapDeadline = expiration.add(
+            BigNumber.from('1000000000000000000000000000000000000'),
+          );
+
+          //ENCODE MALICIOUS SWAP DATA
+          const uniswapData = uniRouter.interface.encodeFunctionData(
+            'swapExactTokensForTokens',
+            [
+              expectedAaveRedeemed,
+              ethers.constants.Zero,
+              [AaveERC20Address, USDC],
+              attacker.address,
+              swapDeadline,
+            ],
+          );
+
+          //construct swapData
+          const calls: string[] = [approveData, uniswapData];
+          const startIndexes = ['0'];
+          let exchangeData = `0x`;
+          for (const i in calls) {
+            startIndexes.push(
+              startIndexes[i] + calls[i].substring(2).length / 2,
+            );
+            exchangeData = exchangeData.concat(calls[i].substring(2));
+          }
+
+          swapParams = {
+            toAmount: ethers.constants.One, //note: just for testing
+            callees: [AaveERC20Address, UniswapV2Router02Address],
+            exchangeData,
+            startIndexes,
+            values: [BigNumber.from('0'), BigNumber.from('0')],
+            permit: '0x',
+            deadline: swapDeadline,
+          };
+
+          //attacker attempts to send liquidated + swapped tokens to themselves, however
+          //OptyFiSwapper has received no tokens, therefore reverts
+          await expect(
+            instance
+              .connect(attacker)
+              .execute(maker.address, AaveVaultProxy, swapParams),
+          ).to.be.revertedWith('InsufficientReturn()');
         });
       });
     });
