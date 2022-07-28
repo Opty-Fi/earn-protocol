@@ -5,6 +5,7 @@ artifacts/
 cache/
 
 deployments/tenderly/*
+deployments/localhost/*
 
 coverage/
 coverage.json
