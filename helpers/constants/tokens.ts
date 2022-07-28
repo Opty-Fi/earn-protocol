@@ -123,6 +123,31 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["AAVE"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  ILV: {
+    address: TypedTokens["ILV"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["ILV"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  APE: {
+    address: TypedTokens["APE"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["APE"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  SUSHI: {
+    address: TypedTokens["SUSHI"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["SUSHI"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  MANA: {
+    address: TypedTokens["MANA"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["MANA"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  LINK: {
+    address: TypedTokens["LINK"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["LINK"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {
