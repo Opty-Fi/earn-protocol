@@ -11,8 +11,8 @@ library DataTypes {
      * @param priceTarget the price target at which the limit order can execute
      * @param liquidationShare the proportion of the investment to be liquidated in basis points
      * @param expiration the expiration timestamp of the order
-     * @param lowerBound the lower bound in basis points of the limit order's targetPrice
-     * @param upperBound the upper bound in basis points of the limit order's targetPrice
+     * @param lowerBound the lower bound in basis points of the limit order's priceTarget
+     * @param upperBound the upper bound in basis points of the limit order's priceTarget
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
@@ -33,8 +33,8 @@ library DataTypes {
      * @param priceTarget the price target at which the limit order can execute
      * @param liquidationShare the proportion of the investment to be liquidated in basis points
      * @param expiration the expiration timestamp of the order
-     * @param lowerBound the lower bound in basis points of the limit order's targetPrice
-     * @param upperBound the upper bound in basis points of the limit order's targetPrice
+     * @param lowerBound the lower bound in basis points of the limit order's priceTarget
+     * @param upperBound the upper bound in basis points of the limit order's priceTarget
      * @param vault the vault the order pertains to
      * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */

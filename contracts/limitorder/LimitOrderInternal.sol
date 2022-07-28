@@ -141,7 +141,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         DataTypes.SwapParams calldata _swapParams
     ) internal {
         DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
-        //check order execution critera
+        //check order execution criteria
         _canExecute(_l, order);
 
         uint256 tokens = _liquidate(_l, _vault, _maker, order.liquidationShare);
@@ -270,7 +270,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice sets the liquidation fee for a target vault
+     * @notice sets liquidation fee for a target vault
      * @param _l the layout of the limit order contract
      * @param _fee the fee in basis point
      * @param _vault the target vault
@@ -284,7 +284,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice set code merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @notice sets code merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _l the layout of the limit order contract
      * @param _proof the merkle proof
      * @param _vault address of OptyFi vault to get codeProof for
@@ -298,7 +298,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice set account merkle proof required for the contract to make withdrawals/deposits from the vault
+     * @notice sets account merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _l the layout of the limit order contract
      * @param _proof the merkle proof
      * @param _vault address of OptyFi vault to set accountProof for
@@ -366,10 +366,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice returns price of underlying vault token in stablecoin
-     * @dev fetched from OptyFi oracle which uses Chainlink as a default source of truth.
+     * @notice returns price of underlying vault token in USD
+     * @dev fetched from OptyFiOracle which uses Chainlink as a default source of truth. A fallback oracle
+     * is used in case Chainlink does not provide one.
      * @param _order the order containing the underlying vault token to fetch the spot price for
-     * @return price the price of the underlying vault token in stablecoin
+     * @return price the price of the underlying vault token in USD
      */
     function _price(
         LimitOrderStorage.Layout storage _l,
@@ -476,7 +477,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice returns LimitOrderDiamond account merkle proof
      * @param _l the layout of the limit order contract
-     * @param _vault address of OptyFi vault to get codeProof for
+     * @param _vault address of OptyFi vault to get accountProof for
      * @return proof LimitOrder account merkle proof for target vault
      */
     function _accountProof(LimitOrderStorage.Layout storage _l, address _vault)
@@ -537,7 +538,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice checks whether price is within an absolute bound of the target price of a limit order
      * @param _price the latest price of the underlying token of the limit order
-     * @param _order the limit order containig the target price to check the latest price against
+     * @param _order the limit order containing the target price to check the latest price against
      */
     function _isPriceBound(uint256 _price, DataTypes.Order memory _order)
         internal
