@@ -86,7 +86,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "New Order", "NEWO", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -110,7 +110,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opNEWOaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "New Order", "NEWO", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -118,7 +118,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opNEWOaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "New Order", "NEWO", "Aggressive", "aggr"],
         });
       }
     }

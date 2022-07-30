@@ -148,6 +148,51 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["LINK"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  ENS: {
+    address: TypedTokens["ENS"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["ENS"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  COMP: {
+    address: TypedTokens["COMP"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["COMP"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  IMX: {
+    address: TypedTokens["IMX"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["IMX"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  LDO: {
+    address: TypedTokens["LDO"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["LDO"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  YGG: {
+    address: TypedTokens["YGG"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["YGG"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  ALCX: {
+    address: TypedTokens["ALCX"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["ALCX"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  JPEG: {
+    address: TypedTokens["JPEG"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["JPEG"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  YFI: {
+    address: TypedTokens["YFI"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["YFI"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  SNX: {
+    address: TypedTokens["SNX"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["SNX"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {

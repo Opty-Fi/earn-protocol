@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const linkApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address);
+  const imxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
-    console.log("only set LINK hash");
+  if (imxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash)) {
+    console.log("only set IMX hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address],
     ]);
   }
-  if (!linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
-    console.log("approve LINK and set hash");
+  if (!imxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash)) {
+    console.log("approve IMX and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -76,14 +76,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opLINKaggr", {
+  const result = await deploy("opIMXaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Immutable X", "IMX", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -93,7 +93,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash, "ChainLink Token", "LINK", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash, "ENSToken", "IMX", "2"],
         },
       },
     },
@@ -102,25 +102,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opLINKaggr");
+      const vault = await deployments.get("opIMXaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opLINKaggr",
+          name: "opIMXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Immutable X", "IMX", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opLINKaggr",
+          name: "opIMXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Immutable X", "IMX", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opLINKaggr"];
+func.tags = ["opIMXaggr"];
 func.dependencies = ["Registry"];

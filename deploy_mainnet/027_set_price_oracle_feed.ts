@@ -186,6 +186,12 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     { tokenA: ethereumTokens.PLAIN_TOKENS.USDT, tokenB: APE, timeAllowance: "43200" },
     { tokenA: MANA, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
     { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: MANA, timeAllowance: "43200" },
+    { tokenA: ENS, tokenB: USD, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ENS, timeAllowance: "43200" },
+    { tokenA: ENS, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: IMX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: IMX, timeAllowance: "43200" },
+    { tokenA: IMX, tokenB: USD, timeAllowance: "43200" },
   ];
 
   const pendingChainlinkTimeallowances = [];

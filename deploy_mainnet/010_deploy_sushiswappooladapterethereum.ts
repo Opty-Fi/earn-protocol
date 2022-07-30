@@ -73,11 +73,16 @@ const func: DeployFunction = async ({
   const riskOperatorSigner = await ethers.getSigner(riskOperator);
 
   const APE = "0x4d224452801ACEd8B2F0aebE155379bb5D594381";
+  const ENS = "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72";
+  const IMX = "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF";
   const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
   const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
   const MANA_WETH_LP = "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97";
   const LINK_WETH_LP = "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967";
+  const ENS_WETH_LP = "0xa1181481bEb2dc5De0DaF2c85392d81C704BF75D";
+  const COMP_WETH_LP = "0x31503dcb60119A812feE820bb7042752019F2355";
+  const IMX_WETH_LP = "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8";
 
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "150" },
@@ -85,6 +90,9 @@ const func: DeployFunction = async ({
     { liquidityPool: SUSHI_WETH_LP, tolerance: "150" },
     { liquidityPool: MANA_WETH_LP, tolerance: "150" },
     { liquidityPool: LINK_WETH_LP, tolerance: "150" },
+    { liquidityPool: ENS_WETH_LP, tolerance: "200" },
+    { liquidityPool: COMP_WETH_LP, tolerance: "250" },
+    { liquidityPool: IMX_WETH_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -110,6 +118,10 @@ const func: DeployFunction = async ({
   const liquidityPoolToWantTokenToSlippages = [
     { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" },
     { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
+    { liquidityPool: ENS_WETH_LP, wantToken: ENS, slippage: "250" },
+    { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.COMP, slippage: "100" },
+    { liquidityPool: IMX_WETH_LP, wantToken: IMX, slippage: "150" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
