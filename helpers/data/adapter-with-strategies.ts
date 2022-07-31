@@ -877,31 +877,71 @@ const mainnetStrategiesByToken = {
   //     riskProfileCode: 2,
   //   }
   // },
-  IMX: {
-    "imx-DEPOSIT-Sushiswap-IMX-WETH": {
-      strategyName: "imx-DEPOSIT-Sushiswap-IMX-WETH",
-      token: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",
+  // IMX: {
+  //   "imx-DEPOSIT-Sushiswap-IMX-WETH": {
+  //     strategyName: "imx-DEPOSIT-Sushiswap-IMX-WETH",
+  //     token: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",
+  //     strategy: [
+  //       {
+  //         contract: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
+  //         outputToken: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "IMX-WETH-SLP",
+  //         adapterName: "SushiswapPoolAdapterEthereum",
+  //         protocol: "Sushiswap",
+  //       },
+  //     ],
+  //     riskProfileCode: 2,
+  //   },
+  //   "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
+  //     strategyName: "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
+  //     token: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",
+  //     strategy: [
+  //       {
+  //         contract: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
+  //         outputToken: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "IMX-WETH-SLP",
+  //         adapterName: "SushiswapPoolAdapterEthereum",
+  //         protocol: "Sushiswap",
+  //       },
+  //       {
+  //         contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
+  //         outputToken: "0x0000000000000000000000000000000000000000",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "",
+  //         adapterName: "SushiswapMasterChefV2AdapterEthereum",
+  //         protocol: "Sushiswap",
+  //       },
+  //     ],
+  //     riskProfileCode: 2,
+  //   },
+  // },
+  ALCX: {
+    "alcx-DEPOSIT-Sushiswap-ALCX-WETH": {
+      strategyName: "alcx-DEPOSIT-Sushiswap-ALCX-WETH",
+      token: "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF",
       strategy: [
         {
-          contract: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
-          outputToken: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
+          contract: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
+          outputToken: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
           isBorrow: false,
-          outputTokenSymbol: "IMX-WETH-SLP",
+          outputTokenSymbol: "ALCX-WETH-SLP",
           adapterName: "SushiswapPoolAdapterEthereum",
           protocol: "Sushiswap",
         },
       ],
       riskProfileCode: 2,
     },
-    "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
-      strategyName: "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
-      token: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",
+    "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
+      strategyName: "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
+      token: "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF",
       strategy: [
         {
-          contract: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
-          outputToken: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
+          contract: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
+          outputToken: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
           isBorrow: false,
-          outputTokenSymbol: "IMX-WETH-SLP",
+          outputTokenSymbol: "ALCX-WETH-SLP",
           adapterName: "SushiswapPoolAdapterEthereum",
           protocol: "Sushiswap",
         },
@@ -917,126 +957,6 @@ const mainnetStrategiesByToken = {
       riskProfileCode: 2,
     },
   },
-  // LDO:{
-  //   "ldo-DEPOSIT-Sushiswap-IMX-WETH": {
-  //     strategyName: "ldo-DEPOSIT-Sushiswap-IMX-WETH",
-  //     token: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",
-  //     strategy: [
-  //       {
-  //         contract: "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a",
-  //         outputToken: "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "LDO-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   },
-  //   "ldo-DEPOSIT-Sushiswap-IMX-WETH-DEPOSIT-SushiswapMasterChef": {
-  //     strategyName: "ldo-DEPOSIT-Sushiswap-LDO-WETH-DEPOSIT-SushiswapMasterChef",
-  //     token: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",
-  //     strategy: [
-  //       {
-  //         contract: "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a",
-  //         outputToken: "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "LDO-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //       {
-  //         contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-  //         outputToken: "0x0000000000000000000000000000000000000000",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "",
-  //         adapterName: "SushiswapMasterChefV1Adapter",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   }
-  // },
-  // YGG:{
-  //   "ygg-DEPOSIT-Sushiswap-YGG-WETH": {
-  //     strategyName: "ygg-DEPOSIT-Sushiswap-YGG-WETH",
-  //     token: "0x25f8087EAD173b73D6e8B84329989A8eEA16CF73",
-  //     strategy: [
-  //       {
-  //         contract: "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343",
-  //         outputToken: "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "YGG-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   },
-  //   "ygg-DEPOSIT-SushiswapPool-YGG-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
-  //     strategyName: "ygg-DEPOSIT-SushiswapPool-YGG-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
-  //     token: "0x25f8087EAD173b73D6e8B84329989A8eEA16CF73",
-  //     strategy: [
-  //       {
-  //         contract: "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343",
-  //         outputToken: "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "YGG-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //       {
-  //         contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
-  //         outputToken: "0x0000000000000000000000000000000000000000",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "",
-  //         adapterName: "SushiswapMasterChefV2AdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   }
-  // },
-  // ALCX:{
-  //   "alcx-DEPOSIT-Sushiswap-ALCX-WETH": {
-  //     strategyName: "alcx-DEPOSIT-Sushiswap-ALCX-WETH",
-  //     token: "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF",
-  //     strategy: [
-  //       {
-  //         contract: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
-  //         outputToken: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "ALCX-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   },
-  //   "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
-  //     strategyName: "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
-  //     token: "0x25f8087EAD173b73D6e8B84329989A8eEA16CF73",
-  //     strategy: [
-  //       {
-  //         contract: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
-  //         outputToken: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "ALCX-WETH-SLP",
-  //         adapterName: "SushiswapPoolAdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //       {
-  //         contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
-  //         outputToken: "0x0000000000000000000000000000000000000000",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "",
-  //         adapterName: "SushiswapMasterChefV2AdapterEthereum",
-  //         protocol: "Sushiswap",
-  //       },
-  //     ],
-  //     riskProfileCode: 2,
-  //   }
-  // },
   // JPEG:{
   //   "jpeg-DEPOSIT-Sushiswap-JPEG-WETH": {
   //     strategyName: "jpeg-DEPOSIT-Sushiswap-JPEG-WETH",
@@ -1577,42 +1497,24 @@ const mainnetVaults: VaultType = {
   //     totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
   //   },
   // ],
-  IMX: [
+  // IMX: [
+  //   {
+  //     name: "opIMXaggr",
+  //     vaultConfig: vaultConfigRP2,
+  //     userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
+  //     minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
+  //     totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
+  //   },
+  // ],
+  ALCX: [
     {
-      name: "opIMXaggr",
+      name: "opALCXaggr",
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
     },
   ],
-  // LDO: [
-  //   {
-  //     name: "opLDOaggr",
-  //     vaultConfig: vaultConfigRP2,
-  //     userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
-  //   },
-  // ],
-  // YGG: [
-  //   {
-  //     name: "opYGGaggr",
-  //     vaultConfig: vaultConfigRP2,
-  //     userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
-  //   },
-  // ],
-  // ALCX: [
-  //   {
-  //     name: "opALCXaggr",
-  //     vaultConfig: vaultConfigRP2,
-  //     userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
-  //   },
-  // ],
   // JPEG: [
   //   {
   //     name: "opJPEGaggr",

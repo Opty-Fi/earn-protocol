@@ -8,6 +8,7 @@ import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
 import { StrategyStepType } from "../../helpers/type";
 import { ERC20, IAdapterFull, IWETH, Registry, Vault } from "../../typechain";
+import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -45,49 +46,69 @@ const tokenBalancesSlot = async (token: ERC20) => {
 };
 
 // Source : https://github.com/Opty-Fi/defi-adapter-kit/blob/e41ab7607f737b9322b3d19d2144b0f94efc692d/test/utils.ts
-export async function setTokenBalanceInStorage(token: ERC20, account: string, amount: string): Promise<number | void> {
-  if (
-    [getAddress(ethTokens.WETH), getAddress(polygonTokens.WMATIC), getAddress(avaxTokens.WAVAX)].includes(
-      getAddress(token.address),
-    )
-  ) {
-    const weth = <IWETH>(
-      await ethers.getContractAt("@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH", token.address)
-    );
-    await weth.deposit({ value: parseEther(amount) });
-    await weth.transfer(account, parseEther(amount));
-  } else {
-    const balancesSlot = await tokenBalancesSlot(token);
-    if (balancesSlot.isVyper) {
-      return setStorageAt(
-        token.address,
-        ethers.utils
-          .keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]))
-          .replace("0x0", "0x"),
-        "0x" +
+export async function setTokenBalanceInStorage(
+  token: ERC20,
+  account: string,
+  amount: string,
+): Promise<number | void | BigNumber> {
+  try {
+    if (
+      [getAddress(ethTokens.WETH), getAddress(polygonTokens.WMATIC), getAddress(avaxTokens.WAVAX)].includes(
+        getAddress(token.address),
+      )
+    ) {
+      const weth = <IWETH>(
+        await ethers.getContractAt("@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH", token.address)
+      );
+      await weth.deposit({ value: parseEther(amount) });
+      await weth.transfer(account, parseEther(amount));
+    } else {
+      const balancesSlot = await tokenBalancesSlot(token);
+      if (balancesSlot.isVyper) {
+        return setStorageAt(
+          token.address,
           ethers.utils
-            .parseUnits(amount, await token.decimals())
-            .toHexString()
-            .slice(2)
-            .padStart(64, "0"),
+            .keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]))
+            .replace("0x0", "0x"),
+          "0x" +
+            ethers.utils
+              .parseUnits(amount, await token.decimals())
+              .toHexString()
+              .slice(2)
+              .padStart(64, "0"),
+        );
+      } else {
+        let slot = ethers.utils.keccak256(
+          ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
+        );
+        if (slot.startsWith("0x0")) {
+          slot = slot.replace("0x0", "0x");
+        }
+        return setStorageAt(
+          token.address,
+          slot.replace("0x0", "0x"),
+          "0x" +
+            ethers.utils
+              .parseUnits(amount, await token.decimals())
+              .toHexString()
+              .slice(2)
+              .padStart(64, "0"),
+        );
+      }
+    }
+  } catch (e) {
+    if (e === "balances slot not found!") {
+      const timestamp = (await getBlockTimestamp(hre)) * 2;
+      return await await fundWalletToken(
+        hre,
+        token.address,
+        await ethers.getSigner((await hre.ethers.getSigners())[0].address),
+        ethers.utils.parseUnits(amount, await token.decimals()),
+        timestamp,
+        account,
       );
     } else {
-      let slot = ethers.utils.keccak256(
-        ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
-      );
-      if (slot.startsWith("0x0")) {
-        slot = slot.replace("0x0", "0x");
-      }
-      return setStorageAt(
-        token.address,
-        slot.replace("0x0", "0x"),
-        "0x" +
-          ethers.utils
-            .parseUnits(amount, await token.decimals())
-            .toHexString()
-            .slice(2)
-            .padStart(64, "0"),
-      );
+      throw e;
     }
   }
 }
