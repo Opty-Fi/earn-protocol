@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const alcxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address);
+  const snxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("only set ALCX hash");
+  if (snxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.hash)) {
+    console.log("only set SNX hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.address],
     ]);
   }
-  if (!alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("approve ALCX and set hash");
+  if (!snxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.hash)) {
+    console.log("approve SNX and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -76,14 +76,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opALCXaggr", {
+  const result = await deploy("opSNXaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Alchemix", "ALCX", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Synthetix Network Token", "SNX", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -93,7 +93,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash, "ENSToken", "ALCX", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].SNX.hash, "ENSToken", "SNX", "2"],
         },
       },
     },
@@ -102,25 +102,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opALCXaggr");
+      const vault = await deployments.get("opSNXaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opALCXaggr",
+          name: "opSNXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Synthetix Network Token", "SNX", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opALCXaggr",
+          name: "opSNXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Synthetix Network Token", "SNX", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opALCXaggr"];
+func.tags = ["opSNXaggr"];
 func.dependencies = ["Registry"];

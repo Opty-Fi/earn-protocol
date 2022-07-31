@@ -77,6 +77,7 @@ const func: DeployFunction = async ({
   const IMX = "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF";
   const YGG = "0x25f8087EAD173b73D6e8B84329989A8eEA16CF73";
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
+  const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
   const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
   const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
@@ -88,6 +89,10 @@ const func: DeployFunction = async ({
   const LDO_WETH_LP = "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a";
   const YGG_WETH_LP = "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343";
   const ALCX_WETH_LP = "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8";
+  const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
+  const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
+  const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
+  const SNX_WETH_LP = "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470";
 
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "150" },
@@ -101,6 +106,10 @@ const func: DeployFunction = async ({
     { liquidityPool: LDO_WETH_LP, tolerance: "100" },
     { liquidityPool: YGG_WETH_LP, tolerance: "100" },
     { liquidityPool: ALCX_WETH_LP, tolerance: "100" },
+    { liquidityPool: CRV_WETH_LP, tolerance: "100" },
+    { liquidityPool: CVX_WETH_LP, tolerance: "100" },
+    { liquidityPool: YFI_WETH_LP, tolerance: "100" },
+    { liquidityPool: SNX_WETH_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -134,6 +143,14 @@ const func: DeployFunction = async ({
     { liquidityPool: YGG_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: ALCX_WETH_LP, wantToken: ALCX, slippage: "100" },
     { liquidityPool: ALCX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.CRV, slippage: "100" },
+    { liquidityPool: CVX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: CVX_WETH_LP, wantToken: CVX, slippage: "100" },
+    { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "100" },
+    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SNX, slippage: "100" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {

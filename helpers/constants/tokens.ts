@@ -193,6 +193,16 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["SNX"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  CRV: {
+    address: TypedTokens["CRV"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["CRV"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
+  CVX: {
+    address: TypedTokens["CVX"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["CVX"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {

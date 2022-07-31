@@ -79,6 +79,11 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // LDO-WETH-SLP
     "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // YGG-WETH-SLP
     "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // ALCX-WETH-SLP
+    "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // CRV-WETH-SLP
+    "0x05767d9EF41dC40689678fFca0608878fb3dE906": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // CVX-WETH-SLP
+    "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // YFI-WETH-SLP
+    "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SNX-WETH-SLP
+    "0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946": { rate: 90, adapter: compoundAdapter.address }, // compound YFI pool
   };
 
   const onlyMapPoolsToAdapters = [];
