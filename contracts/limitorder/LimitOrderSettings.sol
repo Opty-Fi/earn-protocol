@@ -72,4 +72,11 @@ contract LimitOrderSettings is
     function setOracle(address _oracle) external onlyOwner {
         _setOracle(LimitOrderStorage.layout(), _oracle);
     }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setReturnLimitBP(uint256 _limit) external onlyOwner {
+        _setReturnLimitBP(LimitOrderStorage.layout(), _limit);
+    }
 }

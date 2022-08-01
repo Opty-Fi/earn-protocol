@@ -44,4 +44,10 @@ interface ILimitOrderSettings {
      * @param _oracle the address of the OptyFiOracle
      */
     function setOracle(address _oracle) external;
+
+    /**
+     * @notice sets the return limit percentage in basis points
+     * @param _limit the new limit in basis points
+     */
+    function setReturnLimitBP(uint256 _limit) external;
 }

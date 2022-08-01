@@ -367,6 +367,18 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice sets the return limit percentage in basis points
+     * @param _l the layout of the limit order contract
+     * @param _limit the new limit in basis points
+     */
+    function _setReturnLimitBP(
+        LimitOrderStorage.Layout storage _l,
+        uint256 _limit
+    ) internal {
+        _l.returnLimitBP = _limit;
+    }
+
+    /**
      * @notice checks whether a limit order may be executed
      * @param _l the layout of the limit order contract
      * @param _order the order to check
