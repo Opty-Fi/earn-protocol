@@ -141,17 +141,26 @@ contract LimitOrderInternal is ILimitOrderInternal {
         DataTypes.SwapParams calldata _swapParams
     ) internal {
         DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
+        address token = IVault(_vault).underlyingToken();
+        address oracle = _l.oracle;
+
         //check order execution criteria
-        _canExecute(_l, order);
+        _canExecute(_l, order, _maker, _vault, token, oracle);
 
-        uint256 tokens = _liquidate(_l, _vault, _maker, order.liquidationShare);
-
-        address underlying = IVault(_vault).underlyingToken();
+        (uint256 tokens, uint256 limit) = _liquidate(
+            _l,
+            _vault,
+            _maker,
+            token,
+            oracle,
+            order.liquidationShare
+        );
 
         uint256 usdc = _exchange(
             _l,
-            _toSwapData(_swapParams, underlying, tokens),
-            _maker
+            _toSwapData(_swapParams, token, tokens, limit),
+            _maker,
+            limit
         );
 
         uint256 usdcAfterFee = _collectFee(_l, usdc, _vaultFee(_l, _vault));
@@ -165,14 +174,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _vault address of opVault
      * @param _maker address providing shares to liquidate - Limit Order maker
      * @param _shareBP liquidation share in basis points
+     * @param _token the address of the underlying token of the _vault
      * @return tokens amount of underlying tokens provided by opVault withdrawal
      */
     function _liquidate(
         LimitOrderStorage.Layout storage _l,
         address _vault,
         address _maker,
+        address _token,
+        address _oracle,
         uint256 _shareBP
-    ) internal returns (uint256 tokens) {
+    ) internal returns (uint256 tokens, uint256 limit) {
         uint256 amount = _liquidationAmount(
             IERC20(_vault).balanceOf(_maker),
             _shareBP
@@ -186,8 +198,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.codeProofs[_vault]
         );
 
-        tokens = IERC20(IVault(_vault).underlyingToken()).balanceOf(
-            address(this)
+        tokens = IERC20(_token).balanceOf(address(this));
+
+        limit = _returnLimit(
+            tokens,
+            _priceUSDC(_oracle, _token),
+            _l.returnLimitBP
         );
     }
 
@@ -196,27 +212,31 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l LimitOrderStorage Layout struct
      * @param _swapData data to perform a swap via swap diamond
      * @param _maker address of LimitOrder maker
-     * @return uint256 output amount of USDC
+     * @param _limit the minimum amount of tokens returned as output of the swap
+     * @return output output amount of USDC
      */
     function _exchange(
         LimitOrderStorage.Layout storage _l,
         SwapDataTypes.SwapData memory _swapData,
-        address _maker
-    ) internal returns (uint256) {
+        address _maker,
+        uint256 _limit
+    ) internal returns (uint256 output) {
         IERC20(_swapData.fromToken).approve(
             ISwapper(_l.swapDiamond).tokenTransferProxy(),
             _swapData.fromAmount
         );
 
-        (uint256 output, uint256 leftOver) = ISwapper(_l.swapDiamond).swap(
-            _swapData
-        );
+        uint256 leftOver;
+
+        (output, leftOver) = ISwapper(_l.swapDiamond).swap(_swapData);
+
+        if (_limit > output) {
+            revert Errors.InsufficientReturn();
+        }
 
         if (leftOver > 0) {
             IERC20(_swapData.fromToken).safeTransfer(_maker, leftOver);
         }
-
-        return output;
     }
 
     /**
@@ -353,33 +373,52 @@ contract LimitOrderInternal is ILimitOrderInternal {
      */
     function _canExecute(
         LimitOrderStorage.Layout storage _l,
-        DataTypes.Order memory _order
+        DataTypes.Order memory _order,
+        address _maker,
+        address _vault,
+        address _token,
+        address _oracle
     ) internal view {
-        if (!_l.userVaultOrderActive[_order.maker][_order.vault]) {
+        if (!_l.userVaultOrderActive[_maker][_vault]) {
             revert Errors.NoActiveOrder(msg.sender);
         }
 
         if (_order.expiration <= _timestamp()) {
             revert Errors.Expired(_timestamp(), _order.expiration);
         }
-        _isPriceBound(_price(_l, _order), _order);
+        _isPriceBound(_price(_oracle, _token), _order);
     }
 
     /**
      * @notice returns price of underlying vault token in USD
      * @dev fetched from OptyFiOracle which uses Chainlink as a default source of truth. A fallback oracle
      * is used in case Chainlink does not provide one.
-     * @param _order the order containing the underlying vault token to fetch the spot price for
+     * @param _oracle address of the OptyFiOracle
+     * @param _token address of the underlying vault token of the made LimitOrder
      * @return price the price of the underlying vault token in USD
      */
-    function _price(
-        LimitOrderStorage.Layout storage _l,
-        DataTypes.Order memory _order
-    ) internal view returns (uint256 price) {
-        price = IOptyFiOracle(_l.oracle).getTokenPrice(
-            IVault(_order.vault).underlyingToken(),
-            USD
-        );
+    function _price(address _oracle, address _token)
+        internal
+        view
+        returns (uint256 price)
+    {
+        price = IOptyFiOracle(_oracle).getTokenPrice(_token, USD);
+    }
+
+    /**
+     * @notice returns price of a token in USDC
+     * @dev fetched from OptyFiOracle which uses Chainlink as a default source of truth. A fallback oracle
+     * is used in case Chainlink does not provide one.
+     * @param _oracle address of the OptyFiOracle
+     * @param _token address of the underlying vault token of the made LimitOrder
+     * @return price the price of the token in USDC
+     */
+    function _priceUSDC(address _oracle, address _token)
+        internal
+        view
+        returns (uint256 price)
+    {
+        price = IOptyFiOracle(_oracle).getTokenPrice(_token, USDC);
     }
 
     /**
@@ -544,6 +583,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         internal
         pure
     {
+        //note: may be done inline
         uint256 target = _order.priceTarget;
         uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
         uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
@@ -584,9 +624,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _toSwapData(
         DataTypes.SwapParams calldata _swapParams,
         address _fromToken,
-        uint256 _fromAmount
+        uint256 _fromAmount,
+        uint256 _limit
     ) internal view returns (SwapDataTypes.SwapData memory swapData) {
-        swapData.toAmount = _swapParams.toAmount;
         swapData.deadline = _swapParams.deadline;
         swapData.startIndexes = _swapParams.startIndexes;
         swapData.values = _swapParams.values;
@@ -595,7 +635,16 @@ contract LimitOrderInternal is ILimitOrderInternal {
         swapData.permit = _swapParams.permit;
         swapData.beneficiary = payable(address(this));
         swapData.toToken = USDC;
+        swapData.toAmount = _limit;
         swapData.fromToken = _fromToken;
         swapData.fromAmount = _fromAmount;
+    }
+
+    function _returnLimit(
+        uint256 _amount,
+        uint256 _priceUSDC,
+        uint256 _limitBP
+    ) internal pure returns (uint256 limit) {
+        limit = (_limitBP * _priceUSDC * _amount) / (BASIS * BASIS * 10**12);
     }
 }

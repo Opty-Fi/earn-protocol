@@ -17,6 +17,7 @@ library LimitOrderStorage {
      * @param vaultFee vault address => fee
      * @param accountProofs mapping of OptyFi vault address => code merkle proof for Limit Order contract (required for OptyFi Vault withdraw/deposit)
      * @param codeProofs mapping of OptyFi vault address => code merkle proof for Limit Order contract (required for OptyFi Vaut withdraw/deposit)
+     * @param returnLimitBP maximum limit on returned tokens from swap in BASIS
      * @param treasury the treasury to send liquidation fees to
      * @param swapDiamond the address of the OptyFi swapDiamond
      * @param oracle the addres of the OptyFi Oracle
@@ -28,6 +29,7 @@ library LimitOrderStorage {
         mapping(address => uint256) vaultFee;
         mapping(address => bytes32[]) accountProofs;
         mapping(address => bytes32[]) codeProofs;
+        uint256 returnLimitBP;
         address treasury;
         address swapDiamond;
         address oracle;

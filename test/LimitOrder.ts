@@ -39,17 +39,25 @@ describe('::LimitOrder Contracts', () => {
   const opUSDC = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88'; //mainnet
   const AaveERC20Address = '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9'; //mainnet
   const AaveUSDpriceFeed = '0x547a514d5e3769680Ce22B2361c10Ea13619e8a9'; //mainnet
+  const USDCUSDCPriceFeed = '0x8fffffd4afb6115b954bd326cbe7b4ba576818f6'; //mainnet
 
   before(async () => {
     [deployer, , , treasury] = await ethers.getSigners();
 
     const day = ethers.BigNumber.from('86400');
+    const returnLimitBP = ethers.utils.parseEther('0.99');
     Oracle = await new OptyFiOracle__factory(deployer).deploy(day, day);
 
     await Oracle.connect(deployer).setChainlinkPriceFeed(
       AaveERC20Address,
       USD,
       AaveUSDpriceFeed,
+    );
+
+    await Oracle.connect(deployer).setChainlinkPriceFeed(
+      USDC,
+      USD,
+      USDCUSDCPriceFeed,
     );
 
     OptyFiSwapper = await new OptyFiSwapper__factory(deployer).deploy();
@@ -77,6 +85,7 @@ describe('::LimitOrder Contracts', () => {
       treasury.address,
       Oracle.address,
       OptyFiSwapper.address,
+      returnLimitBP,
     );
 
     const limitOrderSelectors = new Set();

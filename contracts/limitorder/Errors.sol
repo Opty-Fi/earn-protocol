@@ -49,4 +49,9 @@ library Errors {
      * @notice emitted when an order is non-existent
      */
     error OrderNonExistent();
+
+    /**
+     * @notice returned tokens too few
+     */
+    error InsufficientReturn();
 }

@@ -14,12 +14,14 @@ contract LimitOrderDiamond is SolidStateDiamond {
     constructor(
         address _treasury,
         address _optyFiOracle,
-        address _swapDiamond
+        address _swapDiamond,
+        uint256 _returnLimitBP
     ) {
         LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
         l.transferProxy = address(new TokenTransferProxy());
         l.treasury = _treasury;
         l.oracle = _optyFiOracle;
         l.swapDiamond = _swapDiamond;
+        l.returnLimitBP = _returnLimitBP;
     }
 }
