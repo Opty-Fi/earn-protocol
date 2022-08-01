@@ -2,14 +2,14 @@
 pragma solidity ^0.8.15;
 
 // interfaces
-import { IOptyFiOracle } from './IOptyFiOracle.sol';
+import { OptyFiOracleDataTypes } from './OptyFiOracleDataTypes.sol';
 
 contract OptyFiOracleStorage {
     /**
      * @notice Default main oracle
      * @dev Oracle that will be used in case default mode is activated
      */
-    IOptyFiOracle.MainOracle public defaultMainOracle;
+    OptyFiOracleDataTypes.MainOracle public defaultMainOracle;
 
     /**
      * @notice Mapping that stores the latest timestamp at which the price of tokenA in tokenB units has been updated
@@ -42,7 +42,7 @@ contract OptyFiOracleStorage {
     /**
      * @notice Mapping that stores the main oracle for _tokenA price in terms of _tokenB
      */
-    mapping(address => mapping(address => IOptyFiOracle.MainOracle))
+    mapping(address => mapping(address => OptyFiOracleDataTypes.MainOracle))
         public tokenAToTokenBMainOracle;
 
     /**

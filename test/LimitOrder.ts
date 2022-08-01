@@ -16,6 +16,8 @@ import {
   OptyFiOracle,
   OptyFiOracle__factory,
 } from '../typechain-types';
+import { oracle } from '../typechain-types/contracts';
+import { OptyFiOracleDataTypes } from '../typechain-types/contracts/oracle/IOptyFiOracle';
 import { SwapView__factory } from '../typechain-types/factories/contracts/swap/SwapView__factory';
 
 describe('::LimitOrder Contracts', () => {
@@ -39,7 +41,7 @@ describe('::LimitOrder Contracts', () => {
   const opUSDC = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88'; //mainnet
   const AaveERC20Address = '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9'; //mainnet
   const AaveUSDpriceFeed = '0x547a514d5e3769680Ce22B2361c10Ea13619e8a9'; //mainnet
-  const USDCUSDCPriceFeed = '0x8fffffd4afb6115b954bd326cbe7b4ba576818f6'; //mainnet
+  const USDCUSDpriceFeed = '0x8fffffd4afb6115b954bd326cbe7b4ba576818f6'; //mainnet
 
   before(async () => {
     [deployer, , , treasury] = await ethers.getSigners();
@@ -48,17 +50,19 @@ describe('::LimitOrder Contracts', () => {
     const returnLimitBP = ethers.utils.parseEther('0.99');
     Oracle = await new OptyFiOracle__factory(deployer).deploy(day, day);
 
-    await Oracle.connect(deployer).setChainlinkPriceFeed(
-      AaveERC20Address,
-      USD,
-      AaveUSDpriceFeed,
-    );
-
-    await Oracle.connect(deployer).setChainlinkPriceFeed(
-      USDC,
-      USD,
-      USDCUSDCPriceFeed,
-    );
+    const pricesFeeds: OptyFiOracleDataTypes.TokenPairPriceFeedStruct[] = [
+      {
+        tokenA: AaveERC20Address,
+        tokenB: USD,
+        priceFeed: AaveUSDpriceFeed,
+      },
+      {
+        tokenA: USDC,
+        tokenB: USD,
+        priceFeed: USDCUSDpriceFeed,
+      },
+    ];
+    await Oracle.connect(deployer).setChainlinkPriceFeed(pricesFeeds);
 
     OptyFiSwapper = await new OptyFiSwapper__factory(deployer).deploy();
     const swapperSelectors = new Set();

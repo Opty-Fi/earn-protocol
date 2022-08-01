@@ -4,12 +4,16 @@ pragma solidity ^0.8.15;
 // dependencies
 import { Ownable } from '@solidstate/contracts/access/ownable/Ownable.sol';
 import { OwnableStorage } from '@solidstate/contracts/access/ownable/OwnableStorage.sol';
+
 // interfaces
 import { IOptyFiOracle } from './IOptyFiOracle.sol';
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
 // storage
 import { OptyFiOracleStorage } from './OptyFiOracleStorage.sol';
+
+// DataTypes
+import { OptyFiOracleDataTypes } from './OptyFiOracleDataTypes.sol';
 
 contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
     address public constant USD =
@@ -22,7 +26,7 @@ contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
         defaultChainlinkTimeAllowance = _defaultChainlinkTimeAllowance;
         defaultOptyFiTimeAllowance = _defaultOptyFiTimeAllowance;
         defaultMode = true;
-        defaultMainOracle = MainOracle.Chainlink;
+        defaultMainOracle = OptyFiOracleDataTypes.MainOracle.Chainlink;
         OwnableStorage.layout().owner = msg.sender;
     }
 
@@ -36,10 +40,9 @@ contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
     /**
      * @inheritdoc IOptyFiOracle
      */
-    function setDefaultMainOracle(MainOracle _defaultMainOracle)
-        external
-        onlyOwner
-    {
+    function setDefaultMainOracle(
+        OptyFiOracleDataTypes.MainOracle _defaultMainOracle
+    ) external onlyOwner {
         defaultMainOracle = _defaultMainOracle;
     }
 
@@ -66,60 +69,76 @@ contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
      * @inheritdoc IOptyFiOracle
      */
     function setChainlinkTimeAllowance(
-        address _tokenA,
-        address _tokenB,
-        uint256 _chainlinkTimeAllowance
+        OptyFiOracleDataTypes.TokenPairTimeAllowance[]
+            calldata _tokenPairTimeAllowances
     ) external onlyOwner {
-        chainlinkTimeAllowance[_tokenA][_tokenB] = _chainlinkTimeAllowance;
+        uint256 _len = _tokenPairTimeAllowances.length;
+        for (uint256 _i; _i < _len; _i++) {
+            chainlinkTimeAllowance[_tokenPairTimeAllowances[_i].tokenA][
+                _tokenPairTimeAllowances[_i].tokenB
+            ] = _tokenPairTimeAllowances[_i].timeAllowance;
+        }
     }
 
     /**
      * @inheritdoc IOptyFiOracle
      */
     function setOptyFiTimeAllowance(
-        address _tokenA,
-        address _tokenB,
-        uint256 _optyFiTimeAllowance
+        OptyFiOracleDataTypes.TokenPairTimeAllowance[]
+            calldata _tokenPairTimeAllowances
     ) external onlyOwner {
-        optyFiTimeAllowance[_tokenA][_tokenB] = _optyFiTimeAllowance;
+        uint256 _len = _tokenPairTimeAllowances.length;
+        for (uint256 _i; _i < _len; _i++) {
+            optyFiTimeAllowance[_tokenPairTimeAllowances[_i].tokenA][
+                _tokenPairTimeAllowances[_i].tokenB
+            ] = _tokenPairTimeAllowances[_i].timeAllowance;
+        }
     }
 
     /**
      * @inheritdoc IOptyFiOracle
      */
     function setMainOracle(
-        address _tokenA,
-        address _tokenB,
-        MainOracle _mainOracle
+        OptyFiOracleDataTypes.TokenPairPriceOracle[]
+            calldata _tokenPairPriceOracles
     ) external onlyOwner {
-        tokenAToTokenBMainOracle[_tokenA][_tokenB] = _mainOracle;
+        uint256 _len = _tokenPairPriceOracles.length;
+        for (uint256 _i; _i < _len; _i++) {
+            tokenAToTokenBMainOracle[_tokenPairPriceOracles[_i].tokenA][
+                _tokenPairPriceOracles[_i].tokenB
+            ] = _tokenPairPriceOracles[_i].mainOracle;
+        }
     }
 
     /**
      * @inheritdoc IOptyFiOracle
      */
     function setChainlinkPriceFeed(
-        address _tokenA,
-        address _tokenB,
-        address _priceFeed
+        OptyFiOracleDataTypes.TokenPairPriceFeed[] calldata _tokenPairPriceFeeds
     ) external onlyOwner {
-        chainlinkPriceFeed[_tokenA][_tokenB] = _priceFeed;
+        uint256 _len = _tokenPairPriceFeeds.length;
+        for (uint256 _i; _i < _len; _i++) {
+            chainlinkPriceFeed[_tokenPairPriceFeeds[_i].tokenA][
+                _tokenPairPriceFeeds[_i].tokenB
+            ] = _tokenPairPriceFeeds[_i].priceFeed;
+        }
     }
 
     /**
      * @inheritdoc IOptyFiOracle
      */
     function updateOptyFiTokenAToTokenBPrice(
-        address _tokenA,
-        address _tokenB,
-        uint256 price
+        OptyFiOracleDataTypes.TokenPairPrice[] calldata _tokenPairPrices
     ) external onlyOwner {
-        optyFiTokenAToTokenBToTimestampToPrice[_tokenA][_tokenB][
-            _getCurrentTimestamp()
-        ] = price;
-        optyFiTokenAToTokenBToLatestTimestamp[_tokenA][
-            _tokenB
-        ] = _getCurrentTimestamp();
+        uint256 _len = _tokenPairPrices.length;
+        for (uint256 _i; _i < _len; _i++) {
+            optyFiTokenAToTokenBToTimestampToPrice[_tokenPairPrices[_i].tokenA][
+                _tokenPairPrices[_i].tokenB
+            ][_getCurrentTimestamp()] = _tokenPairPrices[_i].price;
+            optyFiTokenAToTokenBToLatestTimestamp[_tokenPairPrices[_i].tokenA][
+                _tokenPairPrices[_i].tokenB
+            ] = _getCurrentTimestamp();
+        }
     }
 
     /**
@@ -131,19 +150,22 @@ contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
         returns (uint256 _price)
     {
         if (defaultMode == true) {
-            if (defaultMainOracle == MainOracle.OptyFi) {
+            if (defaultMainOracle == OptyFiOracleDataTypes.MainOracle.OptyFi) {
                 _price = _getOptyFiPrice(_tokenA, _tokenB);
-            } else if (defaultMainOracle == MainOracle.Chainlink) {
+            } else if (
+                defaultMainOracle == OptyFiOracleDataTypes.MainOracle.Chainlink
+            ) {
                 _price = _getChainlinkPrice(_tokenA, _tokenB);
             }
         } else {
             if (
-                tokenAToTokenBMainOracle[_tokenA][_tokenB] == MainOracle.OptyFi
+                tokenAToTokenBMainOracle[_tokenA][_tokenB] ==
+                OptyFiOracleDataTypes.MainOracle.OptyFi
             ) {
                 _price = _getOptyFiPrice(_tokenA, _tokenB);
             } else if (
                 tokenAToTokenBMainOracle[_tokenA][_tokenB] ==
-                MainOracle.Chainlink
+                OptyFiOracleDataTypes.MainOracle.Chainlink
             ) {
                 _price = _getChainlinkPrice(_tokenA, _tokenB);
             }
@@ -305,10 +327,12 @@ contract OptyFiOracle is IOptyFiOracle, OptyFiOracleStorage, Ownable {
         view
         returns (uint256 _price)
     {
-        MainOracle _mainOracle = tokenAToTokenBMainOracle[_tokenA][_tokenB];
-        if (_mainOracle == MainOracle.OptyFi) {
+        OptyFiOracleDataTypes.MainOracle _mainOracle = tokenAToTokenBMainOracle[
+            _tokenA
+        ][_tokenB];
+        if (_mainOracle == OptyFiOracleDataTypes.MainOracle.OptyFi) {
             _price = _getChainlinkPrice(_tokenA, _tokenB);
-        } else if (_mainOracle == MainOracle.Chainlink) {
+        } else if (_mainOracle == OptyFiOracleDataTypes.MainOracle.Chainlink) {
             _price = _getOptyFiPrice(_tokenA, _tokenB);
         }
     }
