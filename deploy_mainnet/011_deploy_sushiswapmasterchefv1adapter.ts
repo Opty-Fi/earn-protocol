@@ -52,10 +52,14 @@ const func: DeployFunction = async ({
   const operator = await registryProxyInstance.operator();
   const operatorSigner = await ethers.getSigner(operator);
 
+  const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
+  const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
+  const SNX_WETH_LP = "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470";
+
   const underlyingTokenToPids = [
-    { underlyingToken: ethereumTokens.REWARD_TOKENS.CRV, pid: 17 },
-    { underlyingToken: ethereumTokens.REWARD_TOKENS.YFI, pid: 11 },
-    { underlyingToken: ethereumTokens.REWARD_TOKENS.SNX, pid: 6 },
+    { underlyingToken: CRV_WETH_LP, pid: 17 },
+    { underlyingToken: YFI_WETH_LP, pid: 11 },
+    { underlyingToken: SNX_WETH_LP, pid: 6 },
   ];
 
   const pendingUnderlyingTokens = [];

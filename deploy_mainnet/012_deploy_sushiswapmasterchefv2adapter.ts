@@ -9,6 +9,7 @@ import {
   SushiswapMasterChefV2AdapterEthereum__factory,
 } from "../typechain";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import { isAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -55,23 +56,20 @@ const func: DeployFunction = async ({
 
   const underlyingTokenToPids = [{ underlyingToken: ethereumTokens.REWARD_TOKENS.CRV, pid: 1 }];
 
-  const pendingUnderlyingTokens = [];
-  const pendingPids = [];
+  const pendingUnderlyingTokenToPids = [];
 
   for (const underlyingTokenToPid of underlyingTokenToPids) {
     const _pid = await sushiswapFarmAdapterEthereumInstance.underlyingTokenToPid(underlyingTokenToPid.underlyingToken);
     if (!BigNumber.from(_pid).eq(underlyingTokenToPid.pid)) {
-      pendingUnderlyingTokens.push(underlyingTokenToPid.underlyingToken);
-      pendingPids.push(underlyingTokenToPid.pid);
+      pendingUnderlyingTokenToPids.push(underlyingTokenToPid);
     }
   }
 
-  if (pendingUnderlyingTokens.length > 0) {
-    console.log("Pending underlying token to pids ", JSON.stringify(pendingUnderlyingTokens, null, 4));
-    console.log("Pending underlying token to pids ", JSON.stringify(pendingPids, null, 4));
+  if (pendingUnderlyingTokenToPids.length > 0) {
+    console.log("Pending underlying tokens to pids ", JSON.stringify(pendingUnderlyingTokenToPids, null, 4));
     const tx = await sushiswapFarmAdapterEthereumInstance
       .connect(operatorSigner)
-      .setUnderlyingTokenToPid(pendingUnderlyingTokens, pendingPids);
+      .setUnderlyingTokenToPid(pendingUnderlyingTokenToPids);
     await tx.wait(1);
   } else {
     console.log("underlying token to pids is up to date");
