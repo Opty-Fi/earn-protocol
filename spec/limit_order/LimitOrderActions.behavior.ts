@@ -602,6 +602,22 @@ export function describeBehaviorOfLimitOrderActions(
             `UnboundPrice(${price}, ${lowerBound}, ${upperBound})`,
           );
         });
+
+        it('return limit > swap output', async () => {
+          //create order from maker
+          await instance.connect(maker).createOrder(orderParams);
+
+          //set return limi to be 3x what is swapped so will always fail
+          await instance
+            .connect(owner)
+            .setReturnLimitBP(ethers.utils.parseEther('3'));
+
+          await expect(
+            instance
+              .connect(maker)
+              .execute(maker.address, AaveVaultProxy, swapParams),
+          ).to.be.revertedWith(`InsufficientReturn()`);
+        });
       });
 
       describe('malicious swap data attack vectors', () => {
