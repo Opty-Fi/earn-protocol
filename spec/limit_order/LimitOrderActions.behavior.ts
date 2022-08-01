@@ -433,7 +433,6 @@ export function describeBehaviorOfLimitOrderActions(
         }
 
         swapParams = {
-          toAmount: ethers.constants.One, //note: just for testing
           callees: [AaveERC20Address, UniswapV2Router02Address],
           exchangeData,
           startIndexes,
@@ -661,7 +660,6 @@ export function describeBehaviorOfLimitOrderActions(
           }
 
           swapParams = {
-            toAmount: ethers.constants.One, //note: just for testing
             callees: [AaveERC20Address, UniswapV2Router02Address],
             exchangeData,
             startIndexes,
