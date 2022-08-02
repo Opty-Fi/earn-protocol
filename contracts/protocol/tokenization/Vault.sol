@@ -256,32 +256,28 @@ contract Vault is
         bytes calldata _permitParams,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
-    ) external override nonReentrant {
+    ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
         _emergencyBrake(_oraStratValueUT());
         if (_beneficiary == address(0)) {
             _beneficiary = msg.sender;
         }
         _permit(_permitParams);
-        _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
+        return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
 
     /**
      * @inheritdoc IVault
      */
     function userWithdrawVault(
-        address _beneficiary,
+        address _receiver,
         uint256 _userWithdrawVT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
-    ) external override nonReentrant {
+    ) external override nonReentrant returns (uint256) {
         _emergencyBrake(_oraStratValueUT());
-        if (_beneficiary != address(0)) {
-            require(allowance(_beneficiary, msg.sender) >= _userWithdrawVT, Errors.AMOUNT_EXCEEDS_ALLOWANCE);
-        } else {
-            _beneficiary = msg.sender;
-        }
-        _withdrawVaultFor(_beneficiary, _userWithdrawVT, _accountsProof, _codesProof);
+
+        return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
     }
 
     /**
@@ -589,15 +585,11 @@ contract Vault is
         uint256 _userDepositUT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
-    ) internal {
+    ) internal returns (uint256) {
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
-        // check vault balance (in UT) before user token transfer
-        uint256 _vaultValuePreDepositUT = balanceUT();
-        // receive user deposit
-        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _userDepositUT);
         // only count the actual deposited tokens received into vault
-        uint256 _actualDepositAmountUT = balanceUT().sub(_vaultValuePreDepositUT);
+        uint256 _actualDepositAmountUT = _calcActualDepositAmount(_userDepositUT);
         // remove deposit fees (if any) but only if deposit is accepted
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
@@ -614,32 +606,49 @@ contract Vault is
         // else, mint vault tokens at constant pre deposit price
         // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
         //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
+        uint256 _depositAmount;
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
+            _depositAmount = _netUserDepositUT;
             _mint(_beneficiary, _netUserDepositUT);
         } else {
-            _mint(_beneficiary, (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT));
+            _depositAmount = (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT);
+            _mint(_beneficiary, _depositAmount);
         }
+        return _depositAmount;
+    }
+
+    /**
+     * @dev internal function to calculate the actual amount transfered
+     * @param _amount amount to deposit in underlying token
+     */
+    function _calcActualDepositAmount(uint256 _amount) internal returns (uint256) {
+        // check vault balance (in UT) before user token transfer
+        uint256 _vaultValuePreDepositUT = balanceUT();
+        // receive user deposit
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
+        // only count the actual deposited tokens received into vault
+        return balanceUT().sub(_vaultValuePreDepositUT);
     }
 
     /**
      * @dev internal function withdraw for an user
-     * @param _beneficiary address of the beneficiary
+     * @param _receiver address of the receiver of the underlying token
      * @param _userWithdrawVT amount in vault token
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _withdrawVaultFor(
-        address _beneficiary,
+        address _receiver,
         uint256 _userWithdrawVT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
-    ) internal {
+    ) internal returns (uint256) {
         _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
         uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(_oraVaultAndStratValueUT()).div(totalSupply());
-        _burn(_beneficiary, _userWithdrawVT);
+        _burn(msg.sender, _userWithdrawVT);
 
         uint256 _vaultValuePreStratWithdrawUT = balanceUT();
 
@@ -676,7 +685,9 @@ contract Vault is
         if (_withdrawFeeUT > 0) {
             IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
         }
-        IERC20(underlyingToken).safeTransfer(msg.sender, _oraUserWithdrawUT.sub(_withdrawFeeUT));
+        uint256 _withdrawAmount = _oraUserWithdrawUT.sub(_withdrawFeeUT);
+        IERC20(underlyingToken).safeTransfer(_receiver, _withdrawAmount);
+        return _withdrawAmount;
     }
 
     /**
