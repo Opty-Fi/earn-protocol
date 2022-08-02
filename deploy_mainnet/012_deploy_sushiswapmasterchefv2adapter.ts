@@ -54,7 +54,9 @@ const func: DeployFunction = async ({
   const operator = await registryProxyInstance.operator();
   const operatorSigner = await ethers.getSigner(operator);
 
-  const underlyingTokenToPids = [{ underlyingToken: ethereumTokens.REWARD_TOKENS.CRV, pid: 1 }];
+  const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
+
+  const underlyingTokenToPids = [{ underlyingToken: CVX_WETH_LP, pid: 1 }];
 
   const pendingUnderlyingTokenToPids = [];
 
