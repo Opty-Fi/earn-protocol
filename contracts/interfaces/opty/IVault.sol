@@ -137,23 +137,22 @@ interface IVault {
         bytes calldata _permitParams,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
-    ) external;
+    ) external returns (uint256);
 
     /**
      * @notice redeems the vault shares and transfers underlying token to `_beneficiary`
      * @dev Burn the shares right away as per oracle based price per full share value
-     * @param _beneficiary the address of the withdrawal beneficiary
-     *        if _beneficiary = address(0) => _beneficiary = msg.sender
+     * @param _receiver the address which will receive the underlying tokens
      * @param _userWithdrawVT amount in vault token
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userWithdrawVault(
-        address _beneficiary,
+        address _receiver,
         uint256 _userWithdrawVT,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
-    ) external;
+    ) external returns (uint256);
 
     /**
      * @notice function to deposit whole balance of underlying token to current strategy
