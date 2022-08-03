@@ -1,8 +1,10 @@
 node_modules/
 
-contracts/earn-protocol
-contracts/optyfi-oracle
-typechain-types
+contracts/earn-protocol/
+**/contracts/earn-protocol/contracts/protocol/adapters/defi-adapters/*
+**/contracts/earn-protocol/contracts/protocol/earn-protocol-configuration/*
+**/contracts/optyfi-oracle/*
+**/typechain-types/*
 
 **/cache
 **/coverage
@@ -19,3 +21,4 @@ coverage.json
 docgen/
 
 .env
+
