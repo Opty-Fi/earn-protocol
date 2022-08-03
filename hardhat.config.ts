@@ -102,11 +102,11 @@ export default {
       accounts: [PKEY_TESTNET],
     },
 
-    tenderly: {
-      url: NODE_URL_TENDERLY,
-      accounts: [PKEY_TESTNET],
-      chainId: 1,
-    },
+    // tenderly: {
+    //   url: NODE_URL_TENDERLY,
+    //   accounts: [PKEY_TESTNET],
+    //   chainId: 1,
+    // },
   },
 
   docgen: {
@@ -141,8 +141,12 @@ export default {
     sources: './contracts',
     tests: './test',
   },
-
   typechain: {
-    alwaysGenerateOverloads: true,
+    outDir: 'typechain-types',
+    target: 'ethers-v5',
   },
+
+  // typechain: {
+  //   alwaysGenerateOverloads: true,
+  // },
 };
