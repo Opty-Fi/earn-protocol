@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { IVault } from '../earn/IVault.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { Errors } from './Errors.sol';
@@ -11,7 +10,8 @@ import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
 import { ERC20Utils } from '../utils/ERC20Utils.sol';
 import { ISwapper } from '../swap/ISwapper.sol';
 
-import { IOptyFiOracle } from './IOptyFiOracle.sol';
+import { IVault } from '../earn-interfaces/IVault.sol';
+import { IOptyFiOracle } from '../earn-interfaces/IOptyFiOracle.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 
@@ -192,13 +192,12 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         IERC20(_vault).safeTransferFrom(_maker, address(this), amount);
 
-        IVault(_vault).userWithdrawVault(
+        tokens = IVault(_vault).userWithdrawVault(
+            address(this),
             amount,
             _l.accountProofs[_vault],
             _l.codeProofs[_vault]
         );
-
-        tokens = IERC20(_token).balanceOf(address(this));
 
         limit = _returnLimit(
             tokens,
@@ -272,20 +271,21 @@ contract LimitOrderInternal is ILimitOrderInternal {
             IERC20(USDC).approve(OPUSDC_VAULT, _amount);
             try
                 IVault(OPUSDC_VAULT).userDepositVault(
+                    _maker,
                     _amount,
+                    '0x',
                     _l.accountProofs[OPUSDC_VAULT],
                     _l.codeProofs[OPUSDC_VAULT]
                 )
             {
-                IERC20(OPUSDC_VAULT).transfer(
-                    _maker,
-                    IERC20(OPUSDC_VAULT).balanceOf(address(this))
-                );
+                emit DeliverShares(_maker);
             } catch {
                 IERC20(USDC).transfer(_maker, _amount);
+                emit DeliverUSDC(_maker, _amount);
             }
         } else {
             IERC20(USDC).transfer(_maker, _amount);
+            emit DeliverUSDC(_maker, _amount);
         }
     }
 
@@ -652,6 +652,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         swapData.fromAmount = _fromAmount;
     }
 
+    //set in create order, by maker
     function _returnLimit(
         uint256 _amount,
         uint256 _priceUSDC,
