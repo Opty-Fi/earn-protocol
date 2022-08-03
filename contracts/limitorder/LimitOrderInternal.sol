@@ -70,10 +70,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         _permitOrderCreation(_l, msg.sender, vault, _orderParams.expiration);
 
         order.priceTarget = _orderParams.priceTarget;
-        order.liquidationShare = _orderParams.liquidationShare;
+        order.liquidationShareBP = _orderParams.liquidationShareBP;
         order.expiration = _orderParams.expiration;
         order.lowerBound = _orderParams.lowerBound;
         order.upperBound = _orderParams.upperBound;
+        order.returnLimitBP = _orderParams.returnLimitBP;
         order.vault = vault;
         order.maker = payable(msg.sender);
         order.depositUSDC = _orderParams.depositUSDC;
@@ -108,8 +109,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.priceTarget != 0) {
             order.priceTarget = _orderParams.priceTarget;
         }
-        if (_orderParams.liquidationShare != 0) {
-            order.liquidationShare = _orderParams.liquidationShare;
+        if (_orderParams.liquidationShareBP != 0) {
+            order.liquidationShareBP = _orderParams.liquidationShareBP;
         }
         if (_orderParams.expiration != 0) {
             order.expiration = _orderParams.expiration;
@@ -119,6 +120,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
         }
         if (_orderParams.upperBound != 0) {
             order.upperBound = _orderParams.upperBound;
+        }
+        if (_orderParams.returnLimitBP != 0) {
+            order.returnLimitBP = _orderParams.returnLimitBP;
         }
         if (_orderParams.depositUSDC != order.depositUSDC) {
             order.depositUSDC = _orderParams.depositUSDC;
@@ -153,7 +157,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _maker,
             token,
             oracle,
-            order.liquidationShare
+            order.liquidationShareBP,
+            order.returnLimitBP
         );
 
         uint256 usdc = _exchange(
@@ -183,7 +188,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _maker,
         address _token,
         address _oracle,
-        uint256 _shareBP
+        uint256 _shareBP,
+        uint256 _limitBP
     ) internal returns (uint256 tokens, uint256 limit) {
         uint256 amount = _liquidationAmount(
             IERC20(_vault).balanceOf(_maker),
@@ -199,11 +205,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.codeProofs[_vault]
         );
 
-        limit = _returnLimit(
-            tokens,
-            _priceUSDC(_oracle, _token),
-            _l.returnLimitBP
-        );
+        limit = _returnLimit(tokens, _priceUSDC(_oracle, _token), _limitBP);
     }
 
     /**
@@ -364,18 +366,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         internal
     {
         _l.oracle = _oracle;
-    }
-
-    /**
-     * @notice sets the return limit percentage in basis points
-     * @param _l the layout of the limit order contract
-     * @param _limit the new limit in basis points
-     */
-    function _setReturnLimitBP(
-        LimitOrderStorage.Layout storage _l,
-        uint256 _limit
-    ) internal {
-        _l.returnLimitBP = _limit;
     }
 
     /**
@@ -652,7 +642,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         swapData.fromAmount = _fromAmount;
     }
 
-    //set in create order, by maker
     function _returnLimit(
         uint256 _amount,
         uint256 _priceUSDC,

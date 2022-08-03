@@ -9,20 +9,22 @@ library DataTypes {
     /**
      * @notice encapsulate a limit order
      * @param priceTarget the price target at which the limit order can execute
-     * @param liquidationShare the proportion of the investment to be liquidated in basis points
+     * @param liquidationShareBP the proportion of the investment to be liquidated in basis points
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's priceTarget
      * @param upperBound the upper bound in basis points of the limit order's priceTarget
+     * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct Order {
         uint256 priceTarget;
-        uint256 liquidationShare;
+        uint256 liquidationShareBP;
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;
+        uint256 returnLimitBP;
         address payable maker;
         address vault;
         bool depositUSDC;
@@ -31,19 +33,21 @@ library DataTypes {
     /**
      * @notice encapsulate parameters needed to create limit order
      * @param priceTarget the price target at which the limit order can execute
-     * @param liquidationShare the proportion of the investment to be liquidated in basis points
+     * @param liquidationShareBP the proportion of the investment to be liquidated in basis points
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's priceTarget
      * @param upperBound the upper bound in basis points of the limit order's priceTarget
+     * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param vault the vault the order pertains to
      * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct OrderParams {
         uint256 priceTarget;
-        uint256 liquidationShare;
+        uint256 liquidationShareBP;
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;
+        uint256 returnLimitBP;
         address vault;
         bool depositUSDC;
     }
