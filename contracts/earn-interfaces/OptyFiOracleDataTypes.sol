@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.12;
+pragma solidity ^0.8.15;
 
 library OptyFiOracleDataTypes {
     /** @notice Named constants for defining the main oracle of a tokens pair */
