@@ -108,7 +108,7 @@ const func: DeployFunction = async ({
     { liquidityPool: ALCX_WETH_LP, tolerance: "100" },
     { liquidityPool: CRV_WETH_LP, tolerance: "100" },
     { liquidityPool: CVX_WETH_LP, tolerance: "100" },
-    { liquidityPool: YFI_WETH_LP, tolerance: "150" },
+    { liquidityPool: YFI_WETH_LP, tolerance: "300" },
     { liquidityPool: SNX_WETH_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
