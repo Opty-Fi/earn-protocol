@@ -24,6 +24,7 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 
@@ -83,7 +84,9 @@ describe("VaultV2", () => {
       this.tokens[token] = <ERC20>(
         await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork][token].address)
       );
-      await setTokenBalanceInStorage(this.tokens[token], this.vaults[token].address, "10");
+      const _setTokenBalance =
+        getAddress(this.tokens[token].address) == getAddress("0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e") ? "1" : "10";
+      await setTokenBalanceInStorage(this.tokens[token], this.vaults[token].address, _setTokenBalance);
       const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
       const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
         new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()),

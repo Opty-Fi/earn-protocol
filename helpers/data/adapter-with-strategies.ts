@@ -1746,7 +1746,7 @@ const mainnetVaults: VaultType = {
       name: "opYFIaggr",
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 YFI wei user deposit cap
-      minimumDepositValueUT: BigNumber.from("1000000000000"), // 0.000001 YFI minimum deposit
+      minimumDepositValueUT: BigNumber.from("100000000000000"), // 0.0001 YFI minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 YFI TVL limit
     },
   ],

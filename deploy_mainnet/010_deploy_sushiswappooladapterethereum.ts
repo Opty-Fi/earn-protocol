@@ -78,6 +78,7 @@ const func: DeployFunction = async ({
   const YGG = "0x25f8087EAD173b73D6e8B84329989A8eEA16CF73";
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
   const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
+  const MANA = "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942";
   const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
   const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
@@ -108,7 +109,7 @@ const func: DeployFunction = async ({
     { liquidityPool: ALCX_WETH_LP, tolerance: "100" },
     { liquidityPool: CRV_WETH_LP, tolerance: "100" },
     { liquidityPool: CVX_WETH_LP, tolerance: "100" },
-    { liquidityPool: YFI_WETH_LP, tolerance: "300" },
+    { liquidityPool: YFI_WETH_LP, tolerance: "100" },
     { liquidityPool: SNX_WETH_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
@@ -134,23 +135,29 @@ const func: DeployFunction = async ({
 
   const liquidityPoolToWantTokenToSlippages = [
     { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" },
-    { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
+    { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SUSHI, slippage: "150" },
+    { liquidityPool: MANA_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "200" },
+    { liquidityPool: MANA_WETH_LP, wantToken: MANA, slippage: "200" },
+    { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.LINK, slippage: "100" },
+    { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: ENS_WETH_LP, wantToken: ENS, slippage: "250" },
     { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.COMP, slippage: "100" },
+    { liquidityPool: IMX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
     { liquidityPool: IMX_WETH_LP, wantToken: IMX, slippage: "150" },
     { liquidityPool: YGG_WETH_LP, wantToken: YGG, slippage: "100" },
     { liquidityPool: YGG_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
-    { liquidityPool: ALCX_WETH_LP, wantToken: ALCX, slippage: "100" },
-    { liquidityPool: ALCX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: ALCX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "200" },
+    { liquidityPool: ALCX_WETH_LP, wantToken: ALCX, slippage: "200" },
     { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
     { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.CRV, slippage: "150" },
     { liquidityPool: CVX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
     { liquidityPool: CVX_WETH_LP, wantToken: CVX, slippage: "100" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "100" },
-    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
-    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SNX, slippage: "100" },
+    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
+    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SNX, slippage: "150" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {

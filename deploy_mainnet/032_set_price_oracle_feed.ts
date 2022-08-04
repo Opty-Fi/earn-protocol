@@ -18,6 +18,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
   const YFI = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
   const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
+  const SNX = "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F";
   const AAVE_WETH_FEED = "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012";
   const AAVE_USD_FEED = "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9";
   const WETH_USD_FEED = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419";
@@ -220,15 +221,18 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     { tokenA: LDO, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
     { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: LDO, timeAllowance: "24000" },
     { tokenA: LDO, tokenB: USD, timeAllowance: "24000" },
-    { tokenA: ALCX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
-    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ALCX, timeAllowance: "24000" },
-    { tokenA: ALCX, tokenB: USD, timeAllowance: "24000" },
+    { tokenA: ALCX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ALCX, timeAllowance: "43200" },
+    { tokenA: ALCX, tokenB: USD, timeAllowance: "43200" },
     { tokenA: ethereumTokens.REWARD_TOKENS.CRV, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
     { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ethereumTokens.REWARD_TOKENS.CRV, timeAllowance: "24000" },
     { tokenA: ethereumTokens.REWARD_TOKENS.CRV, tokenB: USD, timeAllowance: "24000" },
     { tokenA: CVX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
     { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: CVX, timeAllowance: "24000" },
     { tokenA: CVX, tokenB: USD, timeAllowance: "24000" },
+    { tokenA: SNX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: SNX, timeAllowance: "24000" },
+    { tokenA: SNX, tokenB: USD, timeAllowance: "24000" },
   ];
 
   const pendingChainlinkTimeallowances = [];
