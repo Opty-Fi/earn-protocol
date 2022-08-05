@@ -35,13 +35,10 @@ import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
  */
 abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
     using SafeMath for uint256;
-    using Counters for Counters.Counter;
 
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
-
-    mapping(address => Counters.Counter) private _nonces;
 
     uint256 private _totalSupply;
 
@@ -262,9 +259,7 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
      * Every successful call to {permit} increases ``owner``'s nonce by one. This
      * prevents a signature from being used multiple times.
      */
-    function nonces(address owner) public view virtual returns (uint256) {
-        return _nonces[owner].current();
-    }
+    function nonces(address owner) public view virtual returns (uint256) {}
 
     /**
      * @dev Returns the domain separator used in the encoding of the signature for {permit}, as defined by {EIP712}.
@@ -277,11 +272,7 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
     /**
      * @dev "Consume a nonce": return the current value and increment
      */
-    function _useNonce(address owner) internal virtual returns (uint256 current) {
-        Counters.Counter storage nonce = _nonces[owner];
-        current = nonce.current();
-        nonce.increment();
-    }
+    function _useNonce(address owner) internal virtual returns (uint256) {}
 
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
