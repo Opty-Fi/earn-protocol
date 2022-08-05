@@ -99,6 +99,9 @@ contract VaultStorageV2 is VaultStorage {
 
     /**@dev cache strategy metadata*/
     DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
+
+    /**@dev {permit} nonce to prevent a signature from being used multiple times*/
+    mapping(address => Counters.Counter) internal _nonces;
 }
 
 contract VaultStorageV3 is VaultStorageV2 {
