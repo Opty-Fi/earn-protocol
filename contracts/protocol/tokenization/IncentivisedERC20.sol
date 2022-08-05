@@ -3,11 +3,8 @@
 pragma solidity ^0.6.12;
 
 import { Context } from "@openzeppelin/contracts/utils/Context.sol";
-import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { EIP712 } from "@openzeppelin/contracts/drafts/EIP712.sol";
-import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -33,7 +30,7 @@ import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
+abstract contract IncentivisedERC20 is Context, IERC20 {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _balances;
@@ -46,10 +43,6 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
     string private _symbol;
     uint8 private _decimals;
 
-    // solhint-disable-next-line var-name-mixedcase
-    bytes32 private constant _PERMIT_TYPEHASH =
-        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
      * a default value of 18.
@@ -59,7 +52,7 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) public EIP712(name_, "1") {
+    constructor(string memory name_, string memory symbol_) public {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;
