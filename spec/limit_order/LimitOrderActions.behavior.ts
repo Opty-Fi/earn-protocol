@@ -18,7 +18,7 @@ import {
   getProof,
   getProofForCode,
 } from '../../scripts/utils';
-//TODO: events + other sender
+
 export function describeBehaviorOfLimitOrderActions(
   deploy: () => Promise<ILimitOrder>,
   deploySwapper: () => Promise<ISwapper>,
@@ -28,6 +28,7 @@ export function describeBehaviorOfLimitOrderActions(
   let owner: SignerWithAddress;
   let maker: SignerWithAddress;
   let attacker: SignerWithAddress;
+  let nonMaker: SignerWithAddress;
   let optyFiVaultOperator: SignerWithAddress;
   let AaveWhale: SignerWithAddress;
   let USDCWhale: SignerWithAddress;
@@ -104,7 +105,7 @@ export function describeBehaviorOfLimitOrderActions(
   const aaveDepositAmount = ethers.utils.parseEther('0.1');
 
   before(async () => {
-    [owner, maker, attacker] = await ethers.getSigners();
+    [owner, maker, attacker, nonMaker] = await ethers.getSigners();
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
       params: [ethers.utils.getAddress(optyFiVaultOperatorAddress)],
@@ -137,9 +138,6 @@ export function describeBehaviorOfLimitOrderActions(
       method: 'hardhat_impersonateAccount',
       params: [ethers.utils.getAddress(proxyAdminAddress)],
     });
-    const proxyAdmin = await ethers.getSigner(
-      ethers.utils.getAddress(proxyAdminAddress),
-    );
 
     AaveVaultInstance = await ethers.getContractAt('Vault', AaveVaultProxy);
 
@@ -267,7 +265,7 @@ export function describeBehaviorOfLimitOrderActions(
       });
     });
 
-    describe.only('#execute(struct(Order),struct(SwapData))', () => {
+    describe('#execute(struct(Order),struct(SwapData))', () => {
       let snapshotId: any;
       let tx;
       let codeRoot: any;
@@ -492,6 +490,19 @@ export function describeBehaviorOfLimitOrderActions(
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
 
+      it('emits DeliverUSDC after liquidation', async () => {
+        //create order from maker
+        await instance.connect(maker).createOrder(orderParams);
+
+        await expect(
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, swapParams),
+        )
+          .to.emit(instance, 'DeliverUSDC')
+          .withArgs(maker.address, USDCAmount.sub(fee));
+      });
+
       it('sends liquidation fee to treasury', async () => {
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
@@ -544,6 +555,47 @@ export function describeBehaviorOfLimitOrderActions(
         ).to.changeTokenBalance(UsdcVaultInstance, maker, expectedOPUSDCShares);
       });
 
+      it('emits DeliverShares event after deposit to opUSDC vault', async () => {
+        //calculate expectedOPUSDCShares to reach user after fees
+        const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
+        const opUSDCprice = await opUSDCVault.getPricePerFullShare();
+        const USDCAmountAfterFee = USDCAmount.sub(fee);
+        const expectedOPUSDCShares =
+          USDCAmountAfterFee.mul(BASIS).div(opUSDCprice);
+        //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
+        const newVaultConfig =
+          '0x0201000000000000000000000000000000000000000000640000000000000000';
+        //remove opUSDCVault whitelist
+        const tx = await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setVaultConfiguration(BigNumber.from(newVaultConfig));
+
+        await tx.wait();
+        //set code + account merkle roots and remove minimum deposit value
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedAccountsRoot(accountRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedCodesRoot(codeRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setMinimumDepositValueUT(ethers.constants.Zero);
+
+        //create order from maker
+        //set params so that received USDC after swap are deposited in opUSDC vault
+        orderParams.depositUSDC = true;
+        await instance.connect(maker).createOrder(orderParams);
+
+        await expect(
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, swapParams),
+        )
+          .to.emit(instance, 'DeliverShares')
+          .withArgs(maker.address);
+      });
+
       it('sends USDC minus fee to maker if vault does not permit deposits', async () => {
         //set params so that
         orderParams.depositUSDC = true;
@@ -555,6 +607,30 @@ export function describeBehaviorOfLimitOrderActions(
         await expect(() =>
           instance
             .connect(maker)
+            .execute(maker.address, AaveVaultProxy, swapParams),
+        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
+      });
+
+      it('emits DeliverUSDC after liquidation if the vault does not permit deposits', async () => {
+        //create order from maker
+        await instance.connect(maker).createOrder(orderParams);
+
+        await expect(
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, swapParams),
+        )
+          .to.emit(instance, 'DeliverUSDC')
+          .withArgs(maker.address, USDCAmount.sub(fee));
+      });
+
+      it('may be called by any caller', async () => {
+        //create order from maker
+        await instance.connect(maker).createOrder(orderParams);
+
+        await expect(() =>
+          instance
+            .connect(nonMaker)
             .execute(maker.address, AaveVaultProxy, swapParams),
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
       });
@@ -627,7 +703,7 @@ export function describeBehaviorOfLimitOrderActions(
         });
       });
 
-      describe('malicious swap data attack vectors', () => {
+      describe('prevent malicious swap data attack vectors', () => {
         it('prevents false beneficiary attack via internal setting beneficiary == LimitOrderDiamond.address', async () => {
           //create order from maker
           await instance.connect(maker).createOrder(orderParams);
