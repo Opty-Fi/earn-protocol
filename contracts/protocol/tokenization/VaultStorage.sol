@@ -5,6 +5,7 @@ pragma solidity ^0.6.12;
 
 // library
 import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
+import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title Vault state that can change
@@ -98,4 +99,7 @@ contract VaultStorageV2 is VaultStorage {
 
     /**@dev cache strategy metadata*/
     DataTypes.StrategyStep[] internal _cacheNextInvestStrategySteps;
+
+    /**@dev {permit} nonce to prevent a signature from being used multiple times*/
+    mapping(address => Counters.Counter) internal _nonces;
 }
