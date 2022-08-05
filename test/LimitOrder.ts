@@ -1,3 +1,4 @@
+import { ContractTransaction } from 'ethers';
 import hre from 'hardhat';
 import { describeBehaviorOfLimitOrder } from '../spec/limit_order/LimitOrder.behavior';
 import {
@@ -9,16 +10,17 @@ import {
   OptyFiSwapper,
   OptyFiSwapper__factory,
   Swap__factory,
+  SwapView__factory,
   ILimitOrder,
   ISwapper,
   ILimitOrder__factory,
   ISwapper__factory,
   OptyFiOracle,
   OptyFiOracle__factory,
+  Vault,
+  AdminUpgradeabilityProxy__factory,
 } from '../typechain-types';
-import { oracle } from '../typechain-types/contracts';
-import { OptyFiOracleDataTypes } from '../typechain-types/contracts/oracle/IOptyFiOracle';
-import { SwapView__factory } from '../typechain-types/factories/contracts/swap/SwapView__factory';
+import { TokenPairPriceFeed } from '../utils/types';
 
 describe('::LimitOrder Contracts', () => {
   const ethers = hre.ethers;
@@ -27,15 +29,22 @@ describe('::LimitOrder Contracts', () => {
 
   let deployer: any;
   let treasury: any;
+  let optyFiVaultOperator: any;
 
   let LimitOrderDiamond: LimitOrderDiamond;
   let OptyFiSwapper: OptyFiSwapper;
   let Oracle: OptyFiOracle;
+  let aaveVault: Vault;
+  let usdcVault: Vault;
 
   let limitOrderInstance: ILimitOrder;
   let swapperInstance: ISwapper;
 
+  const optyFiVaultOperatorAddress =
+    '0x6bd60f089B6E8BA75c409a54CDea34AA511277f6';
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
+  const USDCVaultProxy = '0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88';
+  const RegistryProxy = '0x99fa011e33a8c6196869dec7bc407e896ba67fe3';
   const USD = '0x0000000000000000000000000000000000000348';
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; //mainnet
   const opUSDC = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88'; //mainnet
@@ -47,10 +56,10 @@ describe('::LimitOrder Contracts', () => {
     [deployer, , , treasury] = await ethers.getSigners();
 
     const day = ethers.BigNumber.from('86400');
-    const returnLimitBP = ethers.utils.parseEther('0.99');
+
     Oracle = await new OptyFiOracle__factory(deployer).deploy(day, day);
 
-    const pricesFeeds: OptyFiOracleDataTypes.TokenPairPriceFeedStruct[] = [
+    const pricesFeeds: TokenPairPriceFeed[] = [
       {
         tokenA: AaveERC20Address,
         tokenB: USD,
@@ -89,7 +98,6 @@ describe('::LimitOrder Contracts', () => {
       treasury.address,
       Oracle.address,
       OptyFiSwapper.address,
-      returnLimitBP,
     );
 
     const limitOrderSelectors = new Set();
@@ -124,6 +132,82 @@ describe('::LimitOrder Contracts', () => {
       OptyFiSwapper.address,
       deployer,
     );
+
+    let tx: ContractTransaction = await deployer.sendTransaction({
+      to: optyFiVaultOperatorAddress,
+      value: ethers.utils.parseEther('100.0'),
+      gasLimit: 10000000,
+    });
+
+    await tx.wait();
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [ethers.utils.getAddress(optyFiVaultOperatorAddress)],
+    });
+    optyFiVaultOperator = await ethers.getSigner(
+      ethers.utils.getAddress(optyFiVaultOperatorAddress),
+    );
+
+    const claimLibraryFactory = await ethers.getContractFactory(
+      'ClaimAndHarvest',
+      deployer,
+    );
+    const strategyLibraryFactory = await ethers.getContractFactory(
+      'StrategyManager',
+      deployer,
+    );
+
+    const claimLibrary = await claimLibraryFactory.deploy();
+    const strategyLibrary = await strategyLibraryFactory.deploy();
+
+    const claimAddress = claimLibrary.address;
+    const strategyAddress = strategyLibrary.address;
+
+    const vaultFactory = await ethers.getContractFactory('Vault', {
+      libraries: {
+        ClaimAndHarvest: claimAddress,
+        StrategyManager: strategyAddress,
+      },
+    });
+
+    aaveVault = await vaultFactory.deploy(
+      ethers.utils.getAddress(RegistryProxy),
+      'Aave Token',
+      'AAVE',
+      'Aggressive',
+      'aggr',
+    );
+
+    usdcVault = await vaultFactory.deploy(
+      ethers.utils.getAddress(RegistryProxy),
+      'USDC Token',
+      'USDC',
+      'Grow',
+      'grow',
+    );
+
+    const aaveProxy = AdminUpgradeabilityProxy__factory.connect(
+      ethers.utils.getAddress(AaveVaultProxy),
+      optyFiVaultOperator,
+    );
+    const usdcProxy = AdminUpgradeabilityProxy__factory.connect(
+      ethers.utils.getAddress(USDCVaultProxy),
+      optyFiVaultOperator,
+    );
+
+    const proxyAdminAddress = '0xF980ea5758f71F418909688b6448B41ACb5522E9';
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [ethers.utils.getAddress(proxyAdminAddress)],
+    });
+    const proxyAdmin = await ethers.getSigner(
+      ethers.utils.getAddress(proxyAdminAddress),
+    );
+
+    await aaveProxy.connect(proxyAdmin).upgradeTo(aaveVault.address);
+    await usdcProxy.connect(proxyAdmin).upgradeTo(usdcVault.address);
   });
 
   beforeEach(async () => {

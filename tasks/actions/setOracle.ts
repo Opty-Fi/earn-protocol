@@ -40,6 +40,7 @@ task('setOracle', 'sets the address of the OptyFiOracle contract')
     );
 
     try {
+      //@ts-ignore
       let tx = await settings
         .connect(owner)
         ['setOracle(address)'](ethers.utils.getAddress(oracle));

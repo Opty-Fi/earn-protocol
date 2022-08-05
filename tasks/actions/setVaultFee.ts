@@ -43,6 +43,7 @@ task('setVaultFee', 'sets the liquidation fee of an opVault')
     console.log(`Setting the liquidation fee of ${vault} to ${fee} ETH...`);
 
     try {
+      //@ts-ignore
       let tx = await settings
         .connect(owner)
         ['setVaultLiquidationFee(uint256,address)'](

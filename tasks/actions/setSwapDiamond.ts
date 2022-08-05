@@ -40,6 +40,7 @@ task('setSwapDiamond', 'sets the address of the OptyFiSwapper contract')
     );
 
     try {
+      //@ts-ignore
       let tx = await settings
         .connect(owner)
         ['setSwapDiamond(address)'](ethers.utils.getAddress(swapper));

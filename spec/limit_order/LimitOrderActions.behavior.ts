@@ -1,16 +1,14 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import hre from 'hardhat';
-import { Order, OrderParams, SwapData } from '../../utils/types';
+import { Order, OrderParams, SwapParams } from '../../utils/types';
 import {
   IERC20,
   ILimitOrder,
   ISwapper,
-  IUniswapV2Router02,
-  IVault,
+  UniswapV2Router02,
+  Vault,
   OptyFiOracle,
 } from '../../typechain-types';
-import { DataTypes as SwapDataTypes } from '../../typechain-types/contracts/swap/ISwap';
-import { DataTypes } from '../../typechain-types/contracts/limitorder/ILimitOrder';
 import { BigNumber } from 'ethers';
 import { expect } from 'chai';
 import { convertOrderParamsToOrder } from '../../utils/converters';
@@ -20,7 +18,7 @@ import {
   getProof,
   getProofForCode,
 } from '../../scripts/utils';
-
+//TODO: events + other sender
 export function describeBehaviorOfLimitOrderActions(
   deploy: () => Promise<ILimitOrder>,
   deploySwapper: () => Promise<ISwapper>,
@@ -35,13 +33,13 @@ export function describeBehaviorOfLimitOrderActions(
   let USDCWhale: SignerWithAddress;
 
   let instance: ILimitOrder;
-  let AaveVaultInstance: IVault;
+  let AaveVaultInstance: Vault;
   let UsdcVaultInstance: IERC20;
   let AaveERC20: IERC20;
   let USDCERC20: IERC20;
   let opAaveToken: IERC20;
   let swapper: ISwapper;
-  let uniRouter: IUniswapV2Router02;
+  let uniRouter: UniswapV2Router02;
 
   //EOA
   const AaveWhaleAddress = '0x80845058350b8c3df5c3015d8a717d64b3bf9267';
@@ -69,30 +67,33 @@ export function describeBehaviorOfLimitOrderActions(
 
   const orderParams: OrderParams = {
     priceTarget: priceTarget,
-    liquidationShare: ethers.utils.parseEther('0.1'),
+    liquidationShareBP: ethers.utils.parseEther('0.1'),
     expiration: expiration,
     upperBound: ethers.utils.parseEther('0.5'),
     lowerBound: ethers.utils.parseEther('0.5'),
+    returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
     depositUSDC: false,
   };
 
   const failedOrderParams: OrderParams = {
     priceTarget: priceTarget,
-    liquidationShare: ethers.utils.parseEther('0.1'),
+    liquidationShareBP: ethers.utils.parseEther('0.1'),
     expiration: expiration.sub(BigNumber.from('1000')),
     upperBound: ethers.utils.parseEther('0.5'),
     lowerBound: ethers.utils.parseEther('0.05'),
+    returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
     depositUSDC: false,
   };
 
   const modifyOrderParams: OrderParams = {
     priceTarget: newPriceTarget,
-    liquidationShare: ethers.utils.parseEther('0.05'),
+    liquidationShareBP: ethers.utils.parseEther('0.05'),
     expiration: newExpiration,
     upperBound: ethers.utils.parseEther('0.1'),
     lowerBound: ethers.utils.parseEther('0.1'),
+    returnLimitBP: ethers.utils.parseEther('0.9'),
     vault: AaveVaultProxy,
     depositUSDC: true,
   };
@@ -126,11 +127,22 @@ export function describeBehaviorOfLimitOrderActions(
       ethers.utils.getAddress(USDCWhaleAddress),
     );
     uniRouter = await ethers.getContractAt(
-      'IUniswapV2Router02',
+      'UniswapV2Router02',
       UniswapV2Router02Address,
     );
 
-    AaveVaultInstance = await ethers.getContractAt('IVault', AaveVaultProxy);
+    const proxyAdminAddress = '0xF980ea5758f71F418909688b6448B41ACb5522E9';
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [ethers.utils.getAddress(proxyAdminAddress)],
+    });
+    const proxyAdmin = await ethers.getSigner(
+      ethers.utils.getAddress(proxyAdminAddress),
+    );
+
+    AaveVaultInstance = await ethers.getContractAt('Vault', AaveVaultProxy);
+
     UsdcVaultInstance = <IERC20>(
       await ethers.getContractAt(
         '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
@@ -176,10 +188,11 @@ export function describeBehaviorOfLimitOrderActions(
         );
         const createdOrder: Order = {
           priceTarget: makerOrder.priceTarget,
-          liquidationShare: makerOrder.liquidationShare,
+          liquidationShareBP: makerOrder.liquidationShareBP,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
+          returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
           depositUSDC: makerOrder.depositUSDC,
@@ -196,10 +209,11 @@ export function describeBehaviorOfLimitOrderActions(
           .to.emit(instance, 'LimitOrderCreated')
           .withArgs([
             order.priceTarget,
-            order.liquidationShare,
+            order.liquidationShareBP,
             order.expiration,
             order.lowerBound,
             order.upperBound,
+            order.returnLimitBP,
             order.maker,
             order.vault,
             order.depositUSDC,
@@ -253,12 +267,12 @@ export function describeBehaviorOfLimitOrderActions(
       });
     });
 
-    describe('#execute(struct(Order),struct(SwapData))', () => {
-      let snapshotId;
+    describe.only('#execute(struct(Order),struct(SwapData))', () => {
+      let snapshotId: any;
       let tx;
-      let codeRoot;
-      let accountRoot;
-      let swapParams: DataTypes.SwapParamsStruct;
+      let codeRoot: any;
+      let accountRoot: any;
+      let swapParams: SwapParams;
       let fee: BigNumber;
       let aaveRedeemed: BigNumber;
       let USDCAmount: BigNumber;
@@ -301,9 +315,7 @@ export function describeBehaviorOfLimitOrderActions(
         //provide liquidity to pool to ensure execute works
         await uniRouter
           .connect(USDCWhale)
-          [
-            'addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)'
-          ](
+          .addLiquidity(
             AaveERC20Address,
             USDC,
             ethers.utils.parseEther('5000'),
@@ -369,24 +381,28 @@ export function describeBehaviorOfLimitOrderActions(
           optyFiVaultOperator,
         ).setWhitelistedCodesRoot(codeRoot);
 
-        await AaveVaultInstance.connect(optyFiVaultOperator)[
-          'setWhitelistedAccountsRoot(bytes32)'
-        ](accountRoot);
+        await AaveVaultInstance.connect(
+          optyFiVaultOperator,
+        ).setWhitelistedAccountsRoot(accountRoot);
 
         //approve vault to take aave from maker
         await AaveERC20.connect(maker).approve(
           AaveVaultInstance.address,
           aaveDepositAmount,
         );
+
         //deposit aave in opAAVE from maker
         await AaveVaultInstance.connect(maker).userDepositVault(
+          maker.address,
           aaveDepositAmount,
+          '0x',
           [ethers.constants.HashZero],
           [ethers.constants.HashZero],
         );
+
         //calculate user shares
         const userShares = await opAaveToken.balanceOf(maker.address);
-        const userSharesLiquidated = orderParams.liquidationShare
+        const userSharesLiquidated = orderParams.liquidationShareBP
           .mul(userShares)
           .div(BASIS);
 
@@ -425,20 +441,22 @@ export function describeBehaviorOfLimitOrderActions(
 
         //construct swapData
         const calls: string[] = [approveData, uniswapData];
-        const startIndexes = ['0'];
+        let startIndexes: any[] = ['0'];
         let exchangeData = `0x`;
         for (const i in calls) {
           startIndexes.push(startIndexes[i] + calls[i].substring(2).length / 2);
           exchangeData = exchangeData.concat(calls[i].substring(2));
         }
 
+        startIndexes = startIndexes.map((i) => BigNumber.from(i));
+
         swapParams = {
-          callees: [AaveERC20Address, UniswapV2Router02Address],
-          exchangeData,
-          startIndexes,
-          values: [BigNumber.from('0'), BigNumber.from('0')],
-          permit: '0x',
           deadline: swapDeadline,
+          startIndexes: startIndexes,
+          callees: [AaveERC20Address, UniswapV2Router02Address],
+          values: [BigNumber.from('0'), BigNumber.from('0')],
+          exchangeData,
+          permit: '0x',
         };
 
         //simulate swap call for test values
@@ -448,9 +466,7 @@ export function describeBehaviorOfLimitOrderActions(
         );
         [aaveRedeemed, USDCAmount] = await uniRouter
           .connect(AaveWhale)
-          .callStatic[
-            'swapExactTokensForTokens(uint256,uint256,address[],address,uint256)'
-          ](
+          .callStatic.swapExactTokensForTokens(
             expectedAaveRedeemed,
             ethers.constants.Zero,
             [AaveERC20Address, USDC],
@@ -491,10 +507,7 @@ export function describeBehaviorOfLimitOrderActions(
 
       it('sends opUSDC shares to maker after USDC minus fee been deposited', async () => {
         //calculate expectedOPUSDCShares to reach user after fees
-        const opUSDCVault = await ethers.getContractAt(
-          'IVault',
-          UsdcVaultProxy,
-        );
+        const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
         const opUSDCprice = await opUSDCVault.getPricePerFullShare();
         const USDCAmountAfterFee = USDCAmount.sub(fee);
         const expectedOPUSDCShares =
@@ -589,10 +602,7 @@ export function describeBehaviorOfLimitOrderActions(
             'OptyFiOracle',
             await instance.oracle(),
           );
-          const price = await oracle['getTokenPrice(address,address)'](
-            AaveERC20.address,
-            USD,
-          );
+          const price = await oracle.getTokenPrice(AaveERC20.address, USD);
 
           await expect(
             instance
@@ -604,13 +614,10 @@ export function describeBehaviorOfLimitOrderActions(
         });
 
         it('return limit > swap output', async () => {
+          //set return limi to be 3x what is swapped so will always fail
+          orderParams.returnLimitBP = ethers.utils.parseEther('3.0');
           //create order from maker
           await instance.connect(maker).createOrder(orderParams);
-
-          //set return limi to be 3x what is swapped so will always fail
-          await instance
-            .connect(owner)
-            .setReturnLimitBP(ethers.utils.parseEther('3'));
 
           await expect(
             instance
@@ -627,7 +634,7 @@ export function describeBehaviorOfLimitOrderActions(
 
           //calculate user shares
           const userShares = await opAaveToken.balanceOf(maker.address);
-          const userSharesLiquidated = orderParams.liquidationShare
+          const userSharesLiquidated = orderParams.liquidationShareBP
             .mul(userShares)
             .div(BASIS);
 
@@ -666,7 +673,7 @@ export function describeBehaviorOfLimitOrderActions(
 
           //construct swapData
           const calls: string[] = [approveData, uniswapData];
-          const startIndexes = ['0'];
+          let startIndexes: any[] = ['0'];
           let exchangeData = `0x`;
           for (const i in calls) {
             startIndexes.push(
@@ -674,6 +681,8 @@ export function describeBehaviorOfLimitOrderActions(
             );
             exchangeData = exchangeData.concat(calls[i].substring(2));
           }
+
+          startIndexes = startIndexes.map((i) => BigNumber.from(i));
 
           swapParams = {
             callees: [AaveERC20Address, UniswapV2Router02Address],
@@ -709,10 +718,11 @@ export function describeBehaviorOfLimitOrderActions(
         );
         const modifiedOrder: Order = {
           priceTarget: makerOrder.priceTarget,
-          liquidationShare: makerOrder.liquidationShare,
+          liquidationShareBP: makerOrder.liquidationShareBP,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
+          returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
           depositUSDC: makerOrder.depositUSDC,

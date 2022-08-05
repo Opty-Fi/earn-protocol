@@ -8,10 +8,11 @@ export function convertOrderParamsToOrder(
 
   order.depositUSDC = _orderParams.depositUSDC;
   order.expiration = _orderParams.expiration;
-  order.liquidationShare = _orderParams.liquidationShare;
+  order.liquidationShareBP = _orderParams.liquidationShareBP;
   order.maker = _maker;
   order.upperBound = _orderParams.upperBound;
   order.lowerBound = _orderParams.lowerBound;
+  order.returnLimitBP = _orderParams.returnLimitBP;
   order.vault = _orderParams.vault;
   order.priceTarget = _orderParams.priceTarget;
 

@@ -2,9 +2,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber } from 'ethers';
 import hre from 'hardhat';
 import { IERC20, ISwapper, IUniswapV2Router02 } from '../../typechain-types';
-import { DataTypes } from '../../typechain-types/contracts/swap/ISwap';
+import { SwapData } from '../../utils/types';
 import { expect } from 'chai';
-import { swap } from '../../typechain-types/contracts';
 
 export function describeBehaviorOfSwap(
   deploy: () => Promise<ISwapper>,
@@ -20,7 +19,7 @@ export function describeBehaviorOfSwap(
   let WETHERC20: IERC20;
   let uniRouter: IUniswapV2Router02;
 
-  let swapData: DataTypes.SwapDataStruct;
+  let swapData: SwapData;
 
   let snapshotId: number;
 
@@ -104,12 +103,15 @@ export function describeBehaviorOfSwap(
 
         //construct swapData
         const calls: string[] = [uniswapData];
-        const startIndexes = ['0'];
+        let startIndexes: any[] = ['0'];
         let exchangeData = `0x`;
         for (const i in calls) {
           startIndexes.push(startIndexes[i] + calls[i].substring(2).length / 2);
           exchangeData = exchangeData.concat(calls[i].substring(2));
         }
+
+        startIndexes = startIndexes.map((i) => BigNumber.from(i));
+
         swapData = {
           fromToken: ETH,
           fromAmount: ethSwapAmount,
@@ -179,12 +181,14 @@ export function describeBehaviorOfSwap(
 
         //construct swapData
         const calls: string[] = [approveData, uniswapData];
-        const startIndexes = ['0'];
+        let startIndexes: any[] = ['0'];
         let exchangeData = `0x`;
         for (const i in calls) {
           startIndexes.push(startIndexes[i] + calls[i].substring(2).length / 2);
           exchangeData = exchangeData.concat(calls[i].substring(2));
         }
+
+        startIndexes = startIndexes.map((i) => BigNumber.from(i));
 
         swapData = {
           fromToken: USDC,
@@ -250,12 +254,14 @@ export function describeBehaviorOfSwap(
 
         //construct swapData
         const calls: string[] = [approveData, uniswapData];
-        const startIndexes = ['0'];
+        let startIndexes: any[] = ['0'];
         let exchangeData = `0x`;
         for (const i in calls) {
           startIndexes.push(startIndexes[i] + calls[i].substring(2).length / 2);
           exchangeData = exchangeData.concat(calls[i].substring(2));
         }
+
+        startIndexes = startIndexes.map((i) => BigNumber.from(i));
 
         swapData = {
           fromToken: USDC,
@@ -296,7 +302,7 @@ export function describeBehaviorOfSwap(
 
       describe('reverts if', () => {
         let uniswapData;
-        let approveData;
+        let approveData: any;
         let exchangeData;
 
         beforeEach(() => {
@@ -318,7 +324,7 @@ export function describeBehaviorOfSwap(
 
           //construct swapData
           const calls: string[] = [approveData, uniswapData];
-          const startIndexes = ['0'];
+          let startIndexes: any[] = ['0'];
           exchangeData = `0x`;
           for (const i in calls) {
             startIndexes.push(
@@ -326,6 +332,8 @@ export function describeBehaviorOfSwap(
             );
             exchangeData = exchangeData.concat(calls[i].substring(2));
           }
+
+          startIndexes = startIndexes.map((i) => BigNumber.from(i));
 
           swapData = {
             fromToken: USDC,
@@ -343,7 +351,7 @@ export function describeBehaviorOfSwap(
         });
 
         it('callees length + 1 does not match indexes length', async () => {
-          swapData.startIndexes = ['0', '10'];
+          swapData.startIndexes = [BigNumber.from('0'), BigNumber.from('10')];
           await expect(
             instance.connect(maker).swap(swapData),
           ).to.be.revertedWith('ExchangeDataArrayMismatch()');
@@ -357,7 +365,7 @@ export function describeBehaviorOfSwap(
         });
 
         it('timestamp is larger than deadline', async () => {
-          swapData.deadline = 0;
+          swapData.deadline = BigNumber.from('0');
 
           await expect(
             instance.connect(maker).swap(swapData),
@@ -384,7 +392,7 @@ export function describeBehaviorOfSwap(
         });
 
         it('toAmount is equal to 0', async () => {
-          swapData.toAmount = 0;
+          swapData.toAmount = BigNumber.from(0);
           await expect(
             instance.connect(maker).swap(swapData),
           ).to.be.revertedWith('ZeroExpectedReturns()');

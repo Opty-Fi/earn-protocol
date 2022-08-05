@@ -39,6 +39,7 @@ task('setTreasury', 'sets the treasury for the LimitOrderDiamond contract')
     );
 
     try {
+      //@ts-ignore
       let tx = await settings
         .connect(owner)
         ['setTreasury(address)'](ethers.utils.getAddress(treasury));

@@ -58,6 +58,7 @@ task(
     console.log(`Setting the account proof for ${vault}...`);
 
     try {
+      //@ts-ignore
       let tx = await settings
         .connect(owner)
         ['setCodeProof(bytes32[],address)'](
