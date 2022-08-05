@@ -562,6 +562,7 @@ contract Vault is
 
     //===Internal functions===//
 
+    /* solhint-disable avoid-low-level-calls*/
     /**
      * @dev execute the permit according to the permit param
      * @param _permitParams data
@@ -578,6 +579,8 @@ contract Vault is
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
+
+    /* solhint-enable avoid-low-level-calls*/
 
     /**
      * @dev internal function deposit for an user
