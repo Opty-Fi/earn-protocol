@@ -11,6 +11,8 @@ import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { VaultStorageV3 } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import { EIP712 } from "@openzeppelin/contracts/drafts/EIP712.sol";
+import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 // libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
@@ -56,6 +58,10 @@ contract Vault is
      */
     uint256 public constant opTOKEN_REVISION = 0x4;
 
+    // solhint-disable-next-line var-name-mixedcase
+    bytes32 private constant _PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
     //===Constructor===//
 
     /* solhint-disable no-empty-blocks */
@@ -72,6 +78,7 @@ contract Vault is
             string(abi.encodePacked("op", _symbol, _riskProfileSymbol))
         )
         Modifiers(_registry)
+        EIP712(_name, "1")
     {}
 
     /* solhint-enable no-empty-blocks */
@@ -348,6 +355,14 @@ contract Vault is
         emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
+    /**
+     * @dev Returns the domain separator used in the encoding of the signature for {permit}, as defined by {EIP712}.
+     */
+    // solhint-disable-next-line func-name-mixedcase
+    function DOMAIN_SEPARATOR() external view returns (bytes32) {
+        return _domainSeparatorV4();
+    }
+
     //===Public view functions===//
 
     /**
@@ -560,9 +575,71 @@ contract Vault is
         return Constants.ZERO_BYTES32;
     }
 
+    /**
+     * @dev Sets `value` as the allowance of `spender` over ``owner``'s tokens,
+     * given ``owner``'s signed approval.
+     *
+     * IMPORTANT: The same issues {IERC20-approve} has related to transaction
+     * ordering also apply here.
+     *
+     * Emits an {Approval} event.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     * - `deadline` must be a timestamp in the future.
+     * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
+     * over the EIP712-formatted function arguments.
+     * - the signature must use ``owner``'s current nonce (see {nonces}).
+     *
+     * For more information on the signature format, see the
+     * https://eips.ethereum.org/EIPS/eip-2612#specification[relevant EIP
+     * section].
+     */
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public {
+        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
+
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
+
+        bytes32 hash = _hashTypedDataV4(structHash);
+
+        address signer = ECDSA.recover(hash, v, r, s);
+        require(signer == owner, "ERC20Permit: invalid signature");
+
+        _approve(owner, spender, value);
+    }
+
+    /**
+     * @dev Returns the current nonce for `owner`. This value must be
+     * included whenever a signature is generated for {permit}.
+     *
+     * Every successful call to {permit} increases ``owner``'s nonce by one. This
+     * prevents a signature from being used multiple times.
+     */
+    function nonces(address owner) public view returns (uint256) {
+        return _nonces[owner].current();
+    }
+
     //===Internal functions===//
 
     /* solhint-disable avoid-low-level-calls*/
+    /**
+     * @dev "Consume a nonce": return the current value and increment
+     */
+    function _useNonce(address owner) internal returns (uint256 current) {
+        Counters.Counter storage nonce = _nonces[owner];
+        current = nonce.current();
+        nonce.increment();
+    }
+
     /**
      * @dev execute the permit according to the permit param
      * @param _permitParams data
