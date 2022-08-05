@@ -31,8 +31,9 @@ import {
   Vault,
   Vault__factory,
   TestVault,
-  IncentivisedERC20,
   IncentivisedERC20__factory,
+  ERC20Permit,
+  ERC20Permit__factory,
 } from "../../typechain";
 import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
@@ -129,6 +130,7 @@ describe("::Vault", function () {
     const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
     const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
+    console.log("OPUSDCGROW_VAULT_ADDRESS", OPUSDCGROW_VAULT_ADDRESS);
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -143,8 +145,8 @@ describe("::Vault", function () {
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
-    this.usdc = <IncentivisedERC20>(
-      await ethers.getContractAt(IncentivisedERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
+    this.usdc = <ERC20Permit>(
+      await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
 
@@ -1043,9 +1045,7 @@ describe("::Vault", function () {
       );
       const _balanceBeforeUT = await this.usdc.balanceOf(this.signers.eve.address);
       await expect(
-        this.vault
-          .connect(this.signers.eve)
-          .userWithdrawVault(ethers.constants.AddressZero, _withdrawAmountVT, _proof, []),
+        this.vault.connect(this.signers.eve).userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _proof, []),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1401,7 +1401,7 @@ describe("::Vault", function () {
       const _calculatedWithdrawalFee = await this.vault.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
       await expect(
-        this.vault.connect(this.signers.alice).userWithdrawVault(ethers.constants.AddressZero, _redeemVT, _proofs, []),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proofs, []),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
@@ -1419,7 +1419,7 @@ describe("::Vault", function () {
       );
       const _redeemVT = (await this.vault.balanceOf(this.signers.alice.address)).div("2");
       await expect(
-        this.vault.connect(this.signers.alice).userWithdrawVault(ethers.constants.AddressZero, _redeemVT, _proof, []),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proof, []),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
