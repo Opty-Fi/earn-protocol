@@ -252,6 +252,7 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
         _approve(owner, spender, value);
     }
 
+    /* solhint-disable no-empty-blocks*/
     /**
      * @dev Returns the current nonce for `owner`. This value must be
      * included whenever a signature is generated for {permit}.
@@ -261,6 +262,8 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
      */
     function nonces(address owner) public view virtual returns (uint256) {}
 
+    /* solhint-enable no-empty-blocks*/
+
     /**
      * @dev Returns the domain separator used in the encoding of the signature for {permit}, as defined by {EIP712}.
      */
@@ -269,10 +272,13 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
         return _domainSeparatorV4();
     }
 
+    /* solhint-disable no-empty-blocks */
     /**
      * @dev "Consume a nonce": return the current value and increment
      */
     function _useNonce(address owner) internal virtual returns (uint256) {}
+
+    /* solhint-enable no-empty-blocks */
 
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
