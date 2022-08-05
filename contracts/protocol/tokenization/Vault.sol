@@ -9,7 +9,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
 import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
-import { VaultStorageV2 } from "./VaultStorage.sol";
+import { VaultStorageV3 } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 // libraries
@@ -20,6 +20,7 @@ import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
 import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
+import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -42,17 +43,18 @@ contract Vault is
     MultiCall,
     Modifiers,
     ReentrancyGuard,
-    VaultStorageV2
+    VaultStorageV3
 {
     using SafeERC20 for IERC20;
     using Address for address;
     using ClaimAndHarvest for address;
     using StrategyManager for DataTypes.StrategyStep[];
+    using Counters for Counters.Counter;
 
     /**
      * @dev The version of the Vault business logic
      */
-    uint256 public constant opTOKEN_REVISION = 0x3;
+    uint256 public constant opTOKEN_REVISION = 0x4;
 
     //===Constructor===//
 
@@ -347,6 +349,13 @@ contract Vault is
     }
 
     //===Public view functions===//
+
+    /**
+     * @inheritdoc IncentivisedERC20
+     */
+    function nonces(address owner) public view override returns (uint256) {
+        return _nonces[owner].current();
+    }
 
     /**
      * @inheritdoc IVault
@@ -999,6 +1008,15 @@ contract Vault is
         (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
             userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
+    }
+
+    /**
+     * @inheritdoc IncentivisedERC20
+     */
+    function _useNonce(address owner) internal override returns (uint256 current) {
+        Counters.Counter storage nonce = _nonces[owner];
+        current = nonce.current();
+        nonce.increment();
     }
 
     //===Internal pure functions===//
