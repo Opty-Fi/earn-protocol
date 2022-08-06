@@ -3,11 +3,12 @@
 //SPDX-license-identifier: MIT
 pragma solidity ^0.8.15;
 
+import "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-0.8.x/access/Ownable.sol";
 import { IOptyFiZapper } from "./IOptyFiZapper.sol";
-import { ISwap } from "../optyfi-swapper/contracts/swap/ISwap.sol";
+import { ISwapper } from "../optyfi-swapper/contracts/swap/ISwapper.sol";
 import { DataTypes as SwapTypes } from "../optyfi-swapper/contracts/swap/DataTypes.sol";
 import { DataTypes } from "./DataTypes.sol";
 
@@ -43,75 +44,48 @@ interface IVault is IERC20 {
 contract OptyFiZapper is IOptyFiZapper, Ownable {
     using SafeERC20 for IERC20;
 
-    address public immutable WETH;
-    ISwap public swapper;
+    address public constant ETH = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    ISwapper public swapper;
 
-    constructor(address _swapper, address _WETH) {
-        WETH = _WETH;
-        swapper = ISwap(_swapper);
-    }
-
-    function zapInETH(DataTypes.ZapData memory _zapParams) external payable override {
-        uint256 receivedAmount = msg.value;
-        IWETH(WETH).deposit{ value: receivedAmount }();
-        address underlyingToken = _getUnderlyingToken(_zapParams.vault);
-
-        if (underlyingToken != WETH) {
-            SwapTypes.SwapData memory swapData =
-                SwapTypes.SwapData(
-                    WETH,
-                    underlyingToken,
-                    receivedAmount,
-                    _zapParams.toAmount,
-                    _zapParams.callees,
-                    _zapParams.exchangeData,
-                    _zapParams.startIndexes,
-                    _zapParams.values,
-                    payable(address(this)),
-                    _zapParams.permit,
-                    _zapParams.deadline
-                );
-
-            (receivedAmount, ) = swapper.swap(swapData);
-        }
-
-        IVault(_zapParams.vault).userDepositVault(
-            msg.sender,
-            receivedAmount,
-            _zapParams.permit,
-            _zapParams.accountsProof,
-            _zapParams.codesProof
-        );
+    constructor(address _swapper) {
+        swapper = ISwapper(_swapper);
     }
 
     function zapIn(
         address _token,
         uint256 _amount,
+        bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
-    ) external override {
+    ) external payable override returns (uint256 sharesReceived) {
         address underlyingToken = _getUnderlyingToken(_zapParams.vault);
-        uint256 receivedAmount = _amount;
+        require(underlyingToken != _token, "Invalid Token");
 
-        if (underlyingToken != _token) {
-            SwapTypes.SwapData memory swapData =
-                SwapTypes.SwapData(
-                    _token,
-                    underlyingToken,
-                    _amount,
-                    _zapParams.toAmount,
-                    _zapParams.callees,
-                    _zapParams.exchangeData,
-                    _zapParams.startIndexes,
-                    _zapParams.values,
-                    payable(address(this)),
-                    _zapParams.permit,
-                    _zapParams.deadline
-                );
-
-            (receivedAmount, ) = swapper.swap(swapData);
+        if (_token != ETH) {
+            _permit(_token, _permitParams);
+            IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+            _approveTokenIfNeeded(_token, swapper.tokenTransferProxy(), _amount);
         }
 
-        IVault(_zapParams.vault).userDepositVault(
+        SwapTypes.SwapData memory swapData =
+            SwapTypes.SwapData(
+                _token,
+                underlyingToken,
+                _amount,
+                _zapParams.toAmount,
+                _zapParams.callees,
+                _zapParams.exchangeData,
+                _zapParams.startIndexes,
+                _zapParams.values,
+                payable(address(this)),
+                _zapParams.permit,
+                _zapParams.deadline
+            );
+
+        (uint256 receivedAmount, ) = swapper.swap{ value: msg.value }(swapData);
+
+        _approveTokenIfNeeded(underlyingToken, _zapParams.vault, receivedAmount);
+
+        sharesReceived = IVault(_zapParams.vault).userDepositVault(
             msg.sender,
             receivedAmount,
             _zapParams.permit,
@@ -123,42 +97,69 @@ contract OptyFiZapper is IOptyFiZapper, Ownable {
     function zapOut(
         address _token,
         uint256 _amount,
+        bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
-    ) external override {
+    ) external override returns (uint256 receivedAmount) {
         address underlyingToken = _getUnderlyingToken(_zapParams.vault);
+        require(underlyingToken != _token, "Invalid Token");
 
-        IVault(_zapParams.vault).userWithdrawVault(
-            address(this),
-            _amount,
-            _zapParams.accountsProof,
-            _zapParams.codesProof
-        );
+        _permit(_zapParams.vault, _permitParams);
 
-        if (underlyingToken != _token) {
-            SwapTypes.SwapData memory swapData =
-                SwapTypes.SwapData(
-                    underlyingToken,
-                    _token,
-                    _amount,
-                    _zapParams.toAmount,
-                    _zapParams.callees,
-                    _zapParams.exchangeData,
-                    _zapParams.startIndexes,
-                    _zapParams.values,
-                    payable(msg.sender),
-                    _zapParams.permit,
-                    _zapParams.deadline
-                );
+        IERC20(_zapParams.vault).safeTransferFrom(msg.sender, address(this), _amount);
+        uint256 amountToSwap =
+            IVault(_zapParams.vault).userWithdrawVault(
+                address(this),
+                _amount,
+                _zapParams.accountsProof,
+                _zapParams.codesProof
+            );
 
-            swapper.swap(swapData);
-        }
+        _approveTokenIfNeeded(underlyingToken, swapper.tokenTransferProxy(), amountToSwap);
+
+        SwapTypes.SwapData memory swapData =
+            SwapTypes.SwapData(
+                underlyingToken,
+                _token,
+                amountToSwap,
+                _zapParams.toAmount,
+                _zapParams.callees,
+                _zapParams.exchangeData,
+                _zapParams.startIndexes,
+                _zapParams.values,
+                payable(msg.sender),
+                _zapParams.permit,
+                _zapParams.deadline
+            );
+
+        (receivedAmount, ) = swapper.swap(swapData);
     }
 
     function setSwapper(address _swapper) external override onlyOwner {
-        swapper = ISwap(_swapper);
+        swapper = ISwapper(_swapper);
+    }
+
+    function getSwapper() external view returns (address) {
+        return address(swapper);
     }
 
     function _getUnderlyingToken(address _vault) internal returns (address) {
         return IVault(_vault).underlyingToken();
+    }
+
+    function _permit(address _token, bytes memory _permitParams) internal {
+        if (_permitParams.length == 32 * 7) {
+            (bool success, ) = _token.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
+            require(success, "Permit failed");
+        }
+    }
+
+    function _approveTokenIfNeeded(
+        address _token,
+        address _spender,
+        uint256 _amount
+    ) private {
+        if (IERC20(_token).allowance(address(this), _spender) < _amount) {
+            IERC20(_token).safeApprove(_spender, type(uint256).max);
+        }
     }
 }
