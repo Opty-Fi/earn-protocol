@@ -51,66 +51,66 @@ export async function setTokenBalanceInStorage(
   account: string,
   amount: string,
 ): Promise<number | void | BigNumber> {
-  try {
-    if (
-      [getAddress(ethTokens.WETH), getAddress(polygonTokens.WMATIC), getAddress(avaxTokens.WAVAX)].includes(
-        getAddress(token.address),
-      )
-    ) {
-      const weth = <IWETH>(
-        await ethers.getContractAt("@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH", token.address)
-      );
-      await weth.deposit({ value: parseEther(amount) });
-      await weth.transfer(account, parseEther(amount));
-    } else {
-      const balancesSlot = await tokenBalancesSlot(token);
-      if (balancesSlot.isVyper) {
-        return setStorageAt(
-          token.address,
-          ethers.utils
-            .keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]))
-            .replace("0x0", "0x"),
-          "0x" +
-            ethers.utils
-              .parseUnits(amount, await token.decimals())
-              .toHexString()
-              .slice(2)
-              .padStart(64, "0"),
-        );
-      } else {
-        let slot = ethers.utils.keccak256(
-          ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
-        );
-        if (slot.startsWith("0x0")) {
-          slot = slot.replace("0x0", "0x");
-        }
-        return setStorageAt(
-          token.address,
-          slot.replace("0x0", "0x"),
-          "0x" +
-            ethers.utils
-              .parseUnits(amount, await token.decimals())
-              .toHexString()
-              .slice(2)
-              .padStart(64, "0"),
-        );
-      }
-    }
-  } catch (e) {
-    if (e === "balances slot not found!") {
-      const timestamp = (await getBlockTimestamp(hre)) * 2;
-      return await await fundWalletToken(
-        hre,
-        token.address,
-        await ethers.getSigner((await hre.ethers.getSigners())[0].address),
-        ethers.utils.parseUnits(amount, await token.decimals()),
-        timestamp,
-        account,
-      );
-    } else {
-      throw e;
-    }
-  }
+  // try {
+  //   if (
+  //     [getAddress(ethTokens.WETH), getAddress(polygonTokens.WMATIC), getAddress(avaxTokens.WAVAX)].includes(
+  //       getAddress(token.address),
+  //     )
+  //   ) {
+  //     const weth = <IWETH>(
+  //       await ethers.getContractAt("@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH", token.address)
+  //     );
+  //     await weth.deposit({ value: parseEther(amount) });
+  //     await weth.transfer(account, parseEther(amount));
+  //   } else {
+  //     const balancesSlot = await tokenBalancesSlot(token);
+  //     if (balancesSlot.isVyper) {
+  //       return setStorageAt(
+  //         token.address,
+  //         ethers.utils
+  //           .keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "address"], [balancesSlot.index, account]))
+  //           .replace("0x0", "0x"),
+  //         "0x" +
+  //           ethers.utils
+  //             .parseUnits(amount, await token.decimals())
+  //             .toHexString()
+  //             .slice(2)
+  //             .padStart(64, "0"),
+  //       );
+  //     } else {
+  //       let slot = ethers.utils.keccak256(
+  //         ethers.utils.defaultAbiCoder.encode(["address", "uint256"], [account, balancesSlot.index]),
+  //       );
+  //       if (slot.startsWith("0x0")) {
+  //         slot = slot.replace("0x0", "0x");
+  //       }
+  //       return setStorageAt(
+  //         token.address,
+  //         slot.replace("0x0", "0x"),
+  //         "0x" +
+  //           ethers.utils
+  //             .parseUnits(amount, await token.decimals())
+  //             .toHexString()
+  //             .slice(2)
+  //             .padStart(64, "0"),
+  //       );
+  //     }
+  //   }
+  // } catch (e) {
+  //   if (e === "balances slot not found!") {
+  const timestamp = (await getBlockTimestamp(hre)) * 2;
+  return await await fundWalletToken(
+    hre,
+    token.address,
+    await ethers.getSigner((await hre.ethers.getSigners())[0].address),
+    ethers.utils.parseUnits(amount, await token.decimals()),
+    timestamp,
+    account,
+  );
+  // } else {
+  //   throw e;
+  // }
+  // }
 }
 
 export async function getDepositInternalTransactionCount(
@@ -239,4 +239,8 @@ export async function getOraSomeValueLP(
     index++;
   }
   return amountLP;
+}
+
+export async function arbitrage(): Promise<void> {
+  // balance the sushiswap pool
 }
