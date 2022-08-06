@@ -40,7 +40,7 @@ describe("::OptyFiSwapper Contracts", () => {
 
     await OptyFiSwapper.diamondCut(swapperFacetCuts, ethers.constants.AddressZero, "0x");
 
-    instance = await new OptyFiZapper__factory(deployer).deploy(OptyFiSwapper.address, WETH);
+    instance = await new OptyFiZapper__factory(deployer).deploy(OptyFiSwapper.address);
   });
 
   beforeEach(async () => {
