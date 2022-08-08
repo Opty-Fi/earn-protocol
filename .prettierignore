@@ -13,6 +13,8 @@
 **/typechain-types
 **/specification_docs
 contracts/earn-protocol
+contracts/optyfi-oracle
+contracts/optyfi-swapper
 
 # files
 *.env
