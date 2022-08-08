@@ -2,6 +2,3 @@
 	path = contracts/earn-protocol
 	url = git@github.com:Opty-Fi/earn-protocol.git
 	branch = feat/harvest
-[submodule "contracts/swapper"]
-	path = contracts/swapper
-	url = git@github.com:Opty-Fi/optyfi-swapper.git
