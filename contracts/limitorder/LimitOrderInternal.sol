@@ -4,14 +4,13 @@ pragma solidity ^0.8.15;
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { Errors } from './Errors.sol';
-import { DataTypes as SwapDataTypes } from '../swap/DataTypes.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
-import { ITokenTransferProxy } from '../utils/ITokenTransferProxy.sol';
-import { ERC20Utils } from '../utils/ERC20Utils.sol';
-import { ISwapper } from '../swap/ISwapper.sol';
 
 import { IVault } from '../earn-interfaces/IVault.sol';
 import { IOptyFiOracle } from '../earn-interfaces/IOptyFiOracle.sol';
+import { DataTypes as SwapDataTypes } from '../optyfi-swapper/contracts/swap/DataTypes.sol';
+import { ISwapper } from '../optyfi-swapper/contracts/swap/ISwapper.sol';
+import { ITokenTransferProxy } from '../optyfi-swapper/contracts/utils/ITokenTransferProxy.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 

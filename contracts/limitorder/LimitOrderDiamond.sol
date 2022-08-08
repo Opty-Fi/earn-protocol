@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import { SolidStateDiamond } from '@solidstate/contracts/proxy/diamond/SolidStateDiamond.sol';
 
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
-import { TokenTransferProxy } from '../utils/TokenTransferProxy.sol';
+import { TokenTransferProxy } from '../optyfi-swapper/contracts/utils/TokenTransferProxy.sol';
 
 /**
  * @title Diamond proxy for LimitOrder contract suite
