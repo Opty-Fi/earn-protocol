@@ -8,6 +8,8 @@ import {
   SushiswapMasterChefV2AdapterEthereum,
   SushiswapMasterChefV2AdapterEthereum__factory,
 } from "../typechain";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import { isAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
