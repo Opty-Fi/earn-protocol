@@ -328,8 +328,7 @@ export async function fundWalletToken(
   deadlineTimestamp: number,
   toAddress?: string,
 ): Promise<BigNumber> {
-  const amount = fundAmount;
-  // amountInHex(fundAmount);
+  const amount = amountInHex(fundAmount);
   const address = toAddress === undefined ? await wallet.getAddress() : toAddress;
   const ValidatedPairTokens = Object.values(TypedMultiAssetTokens).map(({ address }) => getAddress(address));
   const ValidatedCurveTokens = Object.values(TypedCurveTokens).map(({ address }) => getAddress(address));
