@@ -8,6 +8,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const curveSwapPoolAdapter = await deployments.get("CurveSwapPoolAdapter");
+  const curveDepositPoolAdapter = await deployments.get("CurveDepositPoolAdapter");
   const curveMetaPoolSwapAdapter = await deployments.get("CurveMetapoolSwapAdapter");
   const lidoAdapter = await deployments.get("LidoAdapter");
   const sushiswapPoolAdapterEthereum = await deployments.get("SushiswapPoolAdapterEthereum");
@@ -17,6 +18,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const compoundAdapter = await deployments.get("CompoundAdapter");
   const convexFinanceAdapter = await deployments.get("ConvexFinanceAdapter");
   const sushiswapMasterChefV1Adapter = await deployments.get("SushiswapMasterChefV1Adapter");
+  const sushiBarAdapter = await deployments.get("SushiBarAdapter");
+  const sushiswapMasterChefV2AdapterEthereum = await deployments.get("SushiswapMasterChefV2AdapterEthereum");
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();
@@ -55,6 +58,20 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-AAVE-WETH
     "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd": { rate: 90, adapter: sushiswapMasterChefV1Adapter.address }, // Sushiswap's MasterChef
     "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c": { rate: 90, adapter: compoundAdapter.address }, // compound AAVE pool
+    "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-APE-USDT
+    "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d": { rate: 90, adapter: sushiswapMasterChefV2AdapterEthereum.address }, // // Sushiswap's MasterChef V2
+    "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-SUSHI-WETH
+    "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7": { rate: 90, adapter: compoundAdapter.address }, // compound SUSHI pool
+    "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-MANA-WETH
+    "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272": { rate: 50, adapter: sushiBarAdapter.address }, // xSUSHI
+    "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06": { rate: 80, adapter: curveDepositPoolAdapter.address }, // cDAI+cUSDC
+    "0x32512Bee3848bfcBb7bEAf647aa697a100f3b706": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC
+    "0xac795D2c97e60DF6a99ff1c814727302fD747a80": { rate: 80, adapter: curveDepositPoolAdapter.address }, //cDAI+cUSDC+cUSDT
+    "0xA1c3492b71938E144ad8bE4c2fB6810b01A43dD8": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC+cUSDT
+    "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // LINK-WETH-SLP
+    "0xFAce851a4921ce59e912d19329929CE6da6EB0c7": { rate: 90, adapter: compoundAdapter.address }, // compound LINK pool
+    "0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0": { rate: 80, adapter: curveSwapPoolAdapter.address }, // linkCRV pool
+    "0xD37969740d78C94C648d74671B8BE31eF43c30aB": { rate: 80, adapter: convexFinanceAdapter.address }, // cvxusdc3CRV
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -134,9 +151,11 @@ func.tags = ["ApproveAndMapLiquidityPoolToAdapter"];
 func.dependencies = [
   "Registry",
   "CurveSwapPoolAdapter",
+  "CurveDepositPoolAdapter",
   "LidoAdapter",
   "CurveMetapoolSwapAdapter",
   "SushiswapMasterChefV1Adapter",
+  "SushiswapMasterChefV2AdapterEthereum",
   "SushiswapPoolAdapterEthereum",
   "NewoStakingAdapter",
   "AaveV1Adapter",
