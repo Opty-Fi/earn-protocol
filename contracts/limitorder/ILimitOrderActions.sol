@@ -38,7 +38,7 @@ interface ILimitOrderActions {
     /**
      * @notice modifies an existing order
      * @param _vault the address of the vault the order pertains to
-     * @param _orderParams the parameters to modify the exited order with
+     * @param _orderParams the parameters to modify the existing order with
      */
     function modifyOrder(
         address _vault,
