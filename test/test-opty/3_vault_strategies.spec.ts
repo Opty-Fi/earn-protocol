@@ -24,11 +24,13 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { getAddress } from "ethers/lib/utils";
+import { formatUnits /*getAddress*/ } from "ethers/lib/utils";
+import { TypedTokens } from "../../helpers/data";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
+const DEBUG = process.env.DEBUG === "true" ? true : false;
 
 describe("VaultV2", () => {
   before(async function () {
@@ -84,9 +86,9 @@ describe("VaultV2", () => {
       this.tokens[token] = <ERC20>(
         await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork][token].address)
       );
-      const _setTokenBalance =
-        getAddress(this.tokens[token].address) == getAddress("0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e") ? "1" : "10";
-      await setTokenBalanceInStorage(this.tokens[token], this.vaults[token].address, _setTokenBalance);
+      // const _setTokenBalance =
+      //   getAddress(this.tokens[token].address) == getAddress("0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e") ? "1" : "10";
+      // await setTokenBalanceInStorage(this.tokens[token], this.vaults[token].address, "10");
       const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
       const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
         new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()),
@@ -102,6 +104,7 @@ describe("VaultV2", () => {
         _userDeposit.multipliedBy("3").toString(),
       );
     }
+    this.tokens["WETH"] = <ERC20>await ethers.getContractAt(ERC20__factory.abi, TypedTokens["WETH"]);
   });
   describe("VaultV2 strategies", () => {
     for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
@@ -131,30 +134,171 @@ describe("VaultV2", () => {
               )
             );
           });
+          it(`(first) alice and bob should deposit into Vault successfully`, async function () {
+            const signers = [this.signers.alice, this.signers.bob];
+            await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+          });
           it("should receive new strategy after rebalancing", async function () {
+            console.log("\n");
+            console.log("Before rebalance ");
+            console.log(
+              "YFI balance ",
+              formatUnits(
+                await this.tokens[token].balanceOf(this.vaults[token].address),
+                await this.tokens[token].decimals(),
+              ),
+            );
+            console.log(
+              "WETH balance ",
+              formatUnits(
+                await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                await this.tokens["WETH"].decimals(),
+              ),
+            );
+            console.log(
+              "Alice YFI balance ",
+              formatUnits(
+                await this.tokens[token].balanceOf(this.signers.alice.address),
+                await this.tokens["WETH"].decimals(),
+              ),
+            );
+            console.log(
+              "Bob YFI balance ",
+              formatUnits(
+                await this.tokens[token].balanceOf(this.signers.bob.address),
+                await this.tokens[token].decimals(),
+              ),
+            );
+            console.log(
+              "Alice opToken balance ",
+              formatUnits(
+                await this.vaults[token].balanceOf(this.signers.alice.address),
+                await this.vaults[token].decimals(),
+              ),
+            );
+            console.log(
+              "Bob opToken balance ",
+              formatUnits(
+                await this.vaults[token].balanceOf(this.signers.bob.address),
+                await this.vaults[token].decimals(),
+              ),
+            );
+            console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
             const tx = await this.vaults[token].rebalance();
             await tx.wait(1);
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),
             );
             expect(await this.vaults[token].investStrategyHash()).to.eq(strategyHash);
+            console.log("\n");
+            console.log("After rebalance ");
+            console.log(
+              "YFI balance ",
+              formatUnits(
+                await this.tokens[token].balanceOf(this.vaults[token].address),
+                await this.tokens[token].decimals(),
+              ),
+            );
+            console.log(
+              "WETH balance ",
+              formatUnits(
+                await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                await this.tokens["WETH"].decimals(),
+              ),
+            );
+            console.log(
+              "Alice YFI balance ",
+              formatUnits(
+                await this.tokens[token].balanceOf(this.signers.alice.address),
+                await this.tokens["WETH"].decimals(),
+              ),
+            );
+            console.log(
+              "Bob YFI balance ",
+              formatUnits(
+                await this.tokens[token].balanceOf(this.signers.bob.address),
+                await this.tokens[token].decimals(),
+              ),
+            );
+            console.log(
+              "Alice opToken balance ",
+              formatUnits(
+                await this.vaults[token].balanceOf(this.signers.alice.address),
+                await this.vaults[token].decimals(),
+              ),
+            );
+            console.log(
+              "Bob opToken balance ",
+              formatUnits(
+                await this.vaults[token].balanceOf(this.signers.bob.address),
+                await this.vaults[token].decimals(),
+              ),
+            );
+            console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
           });
-          it(`alice and bob should deposit into Vault successfully`, async function () {
+          it(`(first) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
-            const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
-            for (let i = 0; i < signers.length; i++) {
-              const tx1 = await this.tokens[token]
-                .connect(signers[i])
-                .approve(this.vaults[token].address, _userDepositInDecimals);
-              await tx1.wait(1);
-              const _BalanceBefore = await this.tokens[token].balanceOf(signers[i].address);
-              const tx2 = await this.vaults[token].connect(signers[i]).userDepositVault(_userDepositInDecimals, [], []);
-              await tx2.wait(1);
-              const _BalanceAfter = await this.tokens[token].balanceOf(signers[i].address);
-              expect(_BalanceBefore).gt(_BalanceAfter);
-            }
+            await withdraw(
+              signers,
+              this.vaults[token],
+              this.tokens[token],
+              steps as StrategyStepType[],
+              this.registry,
+              this.tokens["WETH"],
+            );
+          });
+          it(`(second) alice and bob should deposit into Vault successfully`, async function () {
+            const signers = [this.signers.alice, this.signers.bob];
+            await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
           });
           it(`vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
+            if (DEBUG) {
+              console.log("\n");
+              console.log("Before vault deposit ");
+              console.log(
+                "YFI balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.vaults[token].address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                "WETH balance ",
+                formatUnits(
+                  await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                  await this.tokens["WETH"].decimals(),
+                ),
+              );
+              console.log(
+                "Alice YFI balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.alice.address),
+                  await this.tokens["WETH"].decimals(),
+                ),
+              );
+              console.log(
+                "Bob YFI balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.bob.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                "Alice opToken balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.alice.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                "Bob opToken balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.bob.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+            }
             const vaultBalanceBefore = await this.vaults[token].balanceUT();
             const poolBalanceBefore = await getLastStrategyStepBalanceLP(
               steps as StrategyStepType[],
@@ -173,35 +317,258 @@ describe("VaultV2", () => {
             );
             expect(vaultBalanceBefore).gt(vaultBalanceAfter);
             expect(poolBalanceBefore).lt(poolBalanceAfter);
-          });
-          it(`alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
-            const signers = [this.signers.alice, this.signers.bob];
-            for (let i = 0; i < signers.length; i++) {
-              const userWithdrawBalance = await this.vaults[token].balanceOf(signers[i].address);
-              const userBalanceBefore = await this.tokens[token].balanceOf(signers[i].address);
-              const poolBalanceBefore = await getLastStrategyStepBalanceLP(
-                steps as StrategyStepType[],
-                this.registry,
-                this.vaults[token],
-                this.tokens[token],
+            if (DEBUG) {
+              console.log("\n");
+              console.log("After vault deposit ");
+              console.log(
+                "YFI balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.vaults[token].address),
+                  await this.vaults[token].decimals(),
+                ),
               );
-              const tx = await this.vaults[token]
-                .connect(signers[i])
-                .userWithdrawVault(userWithdrawBalance.mul(3).div(4), [], []);
-              await tx.wait();
-              const userBalanceAfter = await this.tokens[token].balanceOf(signers[i].address);
-              const poolBalanceAfter = await getLastStrategyStepBalanceLP(
-                steps as StrategyStepType[],
-                this.registry,
-                this.vaults[token],
-                this.tokens[token],
+              console.log(
+                "WETH balance ",
+                formatUnits(
+                  await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                  await this.tokens["WETH"].decimals(),
+                ),
               );
-              expect(userBalanceBefore).lt(userBalanceAfter);
-              expect(poolBalanceBefore).gt(poolBalanceAfter);
+              console.log(
+                "Alice YFI balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.alice.address),
+                  await this.tokens["WETH"].decimals(),
+                ),
+              );
+              console.log(
+                "Bob YFI balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.bob.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                "Alice opToken balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.alice.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                "Bob opToken balance ",
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.bob.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
             }
+          });
+          it(`(second) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
+            const signers = [this.signers.alice, this.signers.bob];
+            await withdraw(
+              signers,
+              this.vaults[token],
+              this.tokens[token],
+              steps as StrategyStepType[],
+              this.registry,
+              this.tokens["WETH"],
+            );
           });
         });
       }
     }
   });
 });
+
+async function deposit(
+  signers: SignerWithAddress[],
+  vaultInstance: Vault,
+  underlyingTokenInstance: ERC20,
+  wethTokenInstance: ERC20,
+) {
+  const _userDepositInDecimals = await vaultInstance.minimumDepositValueUT();
+  if (DEBUG) {
+    console.log("\n");
+    console.log("Before user deposit ");
+    console.log(
+      "YFI balance ",
+      formatUnits(
+        await underlyingTokenInstance.balanceOf(vaultInstance.address),
+        await underlyingTokenInstance.decimals(),
+      ),
+    );
+    console.log(
+      "WETH balance ",
+      formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
+    );
+    console.log(
+      "Alice YFI balance ",
+      formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+    );
+    console.log(
+      "Bob YFI balance ",
+      formatUnits(
+        await underlyingTokenInstance.balanceOf(signers[1].address),
+        await underlyingTokenInstance.decimals(),
+      ),
+    );
+    console.log(
+      "Alice opToken balance ",
+      formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
+    );
+    console.log(
+      "Bob opToken balance ",
+      formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
+    );
+    console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+  }
+  for (let i = 0; i < signers.length; i++) {
+    const tx1 = await underlyingTokenInstance
+      .connect(signers[i])
+      .approve(vaultInstance.address, _userDepositInDecimals);
+    await tx1.wait(1);
+    const _BalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
+    const tx2 = await vaultInstance.connect(signers[i]).userDepositVault(_userDepositInDecimals, [], []);
+    await tx2.wait(1);
+    const _BalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
+    expect(_BalanceBefore).gt(_BalanceAfter);
+    if (DEBUG) {
+      console.log("\n");
+      console.log("After user deposit ");
+      console.log(
+        "YFI balance ",
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(vaultInstance.address),
+          await underlyingTokenInstance.decimals(),
+        ),
+      );
+      console.log(
+        "WETH balance ",
+        formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
+      );
+      console.log(
+        "Alice YFI balance ",
+        formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+      );
+      console.log(
+        "Bob YFI balance ",
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(signers[1].address),
+          await underlyingTokenInstance.decimals(),
+        ),
+      );
+      console.log(
+        "Alice opToken balance ",
+        formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
+      );
+      console.log(
+        "Bob opToken balance ",
+        formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
+      );
+      console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+    }
+  }
+}
+
+async function withdraw(
+  signers: SignerWithAddress[],
+  vaultInstance: Vault,
+  underlyingTokenInstance: ERC20,
+  steps: StrategyStepType[],
+  registryInstance: Registry,
+  wethTokenInstance: ERC20,
+) {
+  for (let i = 0; i < signers.length; i++) {
+    const userWithdrawBalance = await vaultInstance.balanceOf(signers[i].address);
+    const userBalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
+    const poolBalanceBefore = await getLastStrategyStepBalanceLP(
+      steps,
+      registryInstance,
+      vaultInstance,
+      underlyingTokenInstance,
+    );
+    if (DEBUG) {
+      console.log("\n");
+      console.log("Before user withdraw ");
+      console.log(
+        "YFI balance ",
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(vaultInstance.address),
+          await underlyingTokenInstance.decimals(),
+        ),
+      );
+      console.log(
+        "WETH balance ",
+        formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
+      );
+      console.log(
+        "Alice YFI balance ",
+        formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+      );
+      console.log(
+        "Bob YFI balance ",
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(signers[1].address),
+          await underlyingTokenInstance.decimals(),
+        ),
+      );
+      console.log(
+        "Alice opToken balance ",
+        formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
+      );
+      console.log(
+        "Bob opToken balance ",
+        formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
+      );
+      console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+    }
+    const tx = await vaultInstance.connect(signers[i]).userWithdrawVault(userWithdrawBalance.mul(3).div(4), [], []);
+    await tx.wait();
+    const userBalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
+    const poolBalanceAfter = await getLastStrategyStepBalanceLP(
+      steps as StrategyStepType[],
+      registryInstance,
+      vaultInstance,
+      underlyingTokenInstance,
+    );
+    expect(userBalanceBefore).lt(userBalanceAfter);
+    expect(poolBalanceBefore).gt(poolBalanceAfter);
+    if (DEBUG) {
+      console.log("\n");
+      console.log("After user withdraw ");
+      console.log(
+        "YFI balance ",
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(vaultInstance.address),
+          await underlyingTokenInstance.decimals(),
+        ),
+      );
+      console.log(
+        "WETH balance ",
+        formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
+      );
+      console.log(
+        "Alice YFI balance ",
+        formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+      );
+      console.log(
+        "Bob YFI balance ",
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(signers[1].address),
+          await underlyingTokenInstance.decimals(),
+        ),
+      );
+      console.log(
+        "Alice opToken balance ",
+        formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
+      );
+      console.log(
+        "Bob opToken balance ",
+        formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
+      );
+      console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+    }
+  }
+}

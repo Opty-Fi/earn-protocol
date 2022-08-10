@@ -1733,7 +1733,7 @@ const mainnetVaults: VaultType = {
       name: "opWETHgrow",
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WETH user deposit cap
-      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WETH minimum deposit
+      minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 WETH minimum deposit
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
     },
   ],
@@ -1742,7 +1742,7 @@ const mainnetVaults: VaultType = {
       name: "opNEWOaggr",
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 NEWO wei user deposit cap
-      minimumDepositValueUT: BigNumber.from("10000000000000000000000"), // 10,000 NEWO minimum deposit
+      minimumDepositValueUT: BigNumber.from("100000000000000000000000"), // 100,000 NEWO minimum deposit
       totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
     },
   ],
@@ -1850,7 +1850,7 @@ const mainnetVaults: VaultType = {
       name: "opYFIaggr",
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 YFI wei user deposit cap
-      minimumDepositValueUT: BigNumber.from("100000000000000"), // 0.0001 YFI minimum deposit
+      minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 YFI minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 YFI TVL limit
     },
   ],
