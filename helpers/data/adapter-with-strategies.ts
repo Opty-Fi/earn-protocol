@@ -224,6 +224,70 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
+      name: "USDC Lending on AAVE",
+      description:
+        "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault",
+    },
+    "usdc-DEPOSIT-AaveV1-aUSDC": {
+      strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+          outputToken: "0x9bA00D6856a4eDF4665BcA2C2309936572473B7E",
+          isBorrow: false,
+          outputTokenSymbol: "aUSDC",
+          adapterName: "AaveV1Adapter",
+          protocol: "AaveV1",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "USDC Lending on AAVE",
+      description:
+        "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault",
+    },
+    "usdc-DEPOSIT-Compound-cUSDC": {
+      strategyName: "usdc-DEPOSIT-Compound-cUSDC",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+          outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+          isBorrow: false,
+          outputTokenSymbol: "cUSDC",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "USDC Lending on Compound",
+      description:
+        "The OptyFi vault supplies USDC to the lending pool on Compound Protocol to earn interest in USDC and, potentially, additional rewards in COMP tokens. The earned USDC tokens and any harvested COMP rewards are reinvested into the vault.",
+    },
+    "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv": {
+      strategyName: "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv",
+      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      strategy: [
+        {
+          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          isBorrow: false,
+          outputTokenSymbol: "3Crv",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+          outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+          isBorrow: false,
+          outputTokenSymbol: "cvx3Crv",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+      riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
       strategyName:
@@ -256,6 +320,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
       strategyName:
@@ -288,6 +354,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv": {
       strategyName: "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv",
@@ -319,6 +387,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
   },
   WETH: {
@@ -352,6 +422,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "weth-DEPOSIT-AaveV2-aWETH": {
       strategyName: "weth-DEPOSIT-AaveV2-aWETH",
@@ -367,6 +439,27 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
+      name: "WETH Lending on Aave",
+      description:
+        "The OptyFi vault supplies WETH to the lending pool on Aave Protocol to earn interest in WETH. The earned WETH tokens are reinvested into the vault.",
+    },
+    "weth-DEPOSIT-AaveV1-aWETH": {
+      strategyName: "weth-DEPOSIT-AaveV1-aWETH",
+      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      strategy: [
+        {
+          contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
+          outputToken: "0x3a3A65aAb0dd2A17E3F1947bA16138cd37d08c04",
+          isBorrow: false,
+          outputTokenSymbol: "aWETH",
+          adapterName: "AaveV1Adapter",
+          protocol: "AaveV1",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "WETH Lending on Aave",
+      description:
+        "The OptyFi vault supplies WETH to the lending pool on Aave Protocol to earn interest in WETH. The earned WETH tokens are reinvested into the vault.",
     },
   },
   NEWO: {
@@ -384,6 +477,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: null,
+      description: null,
     },
   },
   AAVE: {
@@ -401,6 +496,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "AAVE-WETH LP Farming on Sushi",
+      description:
+        "The OptyFi vault supplies AAVE to the AAVE-WETH liquidity pool on Sushi and obtains the Sushi AAVE-WETH LP token.",
     },
     "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -424,6 +522,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "AAVE-WETH LP Farming and staking on Sushi",
+      description:
+        "The OptyFi vault supplies AAVE to the AAVE-WETH liquidity pool on Sushi and obtains the Sushi AAVE-WETH LP token. The vault then stake AAVE-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
     },
     "aave-DEPOSIT-Compound-cAAVE": {
       strategyName: "aave-DEPOSIT-Compound-cAAVE",
@@ -439,6 +540,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "AAVE Lending on Compound",
+      description:
+        "The OptyFi vault supplies AAVE to the lending pool on Compound Protocol to earn interest in AAVE and, potentially, additional rewards in COMP tokens. The earned COMP token are harvested to AAVE and are reinvested into the vault.",
     },
   },
   APE: {

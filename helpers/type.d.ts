@@ -48,6 +48,8 @@ export type STRATEGY = {
   token: string;
   strategy: STRATEGY_DATA[];
   riskProfileCode: number;
+  name?: string;
+  description?: string;
 };
 
 export type STRATEGIES = {
