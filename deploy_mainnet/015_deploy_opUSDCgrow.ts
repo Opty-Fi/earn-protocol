@@ -93,17 +93,17 @@ const func: DeployFunction = async ({
         init: {
           methodName: "initialize",
           args: [
-            registryProxyAddress,
-            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "USD Coin",
-            "USDC",
-            "1",
-            "0",
-            "0",
-            "0",
-            "0",
+            registryProxyAddress, //address _registry
+            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
+            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
+            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
+            "USD Coin", //string memory _name
+            "USDC", //string memory _symbol
+            "1", //uint256 _riskProfileCode
+            "0", //uint256 _vaultConfiguration
+            "0", //uint256 _userDepositCapUT
+            "0", //uint256 _minimumDepositValueUT
+            "0", //uint256 _totalValueLockedLimitUT
           ],
         },
       },
