@@ -24,7 +24,7 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { formatUnits /*getAddress*/ } from "ethers/lib/utils";
+import { formatEther, formatUnits /*getAddress*/ } from "ethers/lib/utils";
 import { TypedTokens } from "../../helpers/data";
 
 chai.use(solidity);
@@ -139,10 +139,12 @@ describe("VaultV2", () => {
             await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
           });
           it("should receive new strategy after rebalancing", async function () {
+            const underlyingTokenSymbol = await this.tokens[token].symbol();
+            const vaultTokenSymbol = await this.vaults[token].symbol();
             console.log("\n");
             console.log("Before rebalance ");
             console.log(
-              "YFI balance ",
+              `${underlyingTokenSymbol} balance `,
               formatUnits(
                 await this.tokens[token].balanceOf(this.vaults[token].address),
                 await this.tokens[token].decimals(),
@@ -156,28 +158,28 @@ describe("VaultV2", () => {
               ),
             );
             console.log(
-              "Alice YFI balance ",
+              `Alice ${underlyingTokenSymbol} balance `,
               formatUnits(
                 await this.tokens[token].balanceOf(this.signers.alice.address),
                 await this.tokens["WETH"].decimals(),
               ),
             );
             console.log(
-              "Bob YFI balance ",
+              `Bob ${underlyingTokenSymbol} balance `,
               formatUnits(
                 await this.tokens[token].balanceOf(this.signers.bob.address),
                 await this.tokens[token].decimals(),
               ),
             );
             console.log(
-              "Alice opToken balance ",
+              `Alice ${vaultTokenSymbol} balance `,
               formatUnits(
                 await this.vaults[token].balanceOf(this.signers.alice.address),
                 await this.vaults[token].decimals(),
               ),
             );
             console.log(
-              "Bob opToken balance ",
+              `Bob ${vaultTokenSymbol} balance `,
               formatUnits(
                 await this.vaults[token].balanceOf(this.signers.bob.address),
                 await this.vaults[token].decimals(),
@@ -193,7 +195,7 @@ describe("VaultV2", () => {
             console.log("\n");
             console.log("After rebalance ");
             console.log(
-              "YFI balance ",
+              `${underlyingTokenSymbol} balance `,
               formatUnits(
                 await this.tokens[token].balanceOf(this.vaults[token].address),
                 await this.tokens[token].decimals(),
@@ -207,28 +209,28 @@ describe("VaultV2", () => {
               ),
             );
             console.log(
-              "Alice YFI balance ",
+              `Alice ${underlyingTokenSymbol} balance `,
               formatUnits(
                 await this.tokens[token].balanceOf(this.signers.alice.address),
                 await this.tokens["WETH"].decimals(),
               ),
             );
             console.log(
-              "Bob YFI balance ",
+              `Bob ${underlyingTokenSymbol} balance `,
               formatUnits(
                 await this.tokens[token].balanceOf(this.signers.bob.address),
                 await this.tokens[token].decimals(),
               ),
             );
             console.log(
-              "Alice opToken balance ",
+              `Alice ${vaultTokenSymbol} balance `,
               formatUnits(
                 await this.vaults[token].balanceOf(this.signers.alice.address),
                 await this.vaults[token].decimals(),
               ),
             );
             console.log(
-              "Bob opToken balance ",
+              `Bob ${vaultTokenSymbol} balance `,
               formatUnits(
                 await this.vaults[token].balanceOf(this.signers.bob.address),
                 await this.vaults[token].decimals(),
@@ -252,11 +254,21 @@ describe("VaultV2", () => {
             await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
           });
           it(`vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
+            const underlyingTokenSymbol = await this.tokens[token].symbol();
+            const vaultTokenSymbol = await this.vaults[token].symbol();
+            const vaultBalanceBefore = await this.vaults[token].balanceUT();
+            const poolBalanceBefore = await getLastStrategyStepBalanceLP(
+              steps as StrategyStepType[],
+              this.registry,
+              this.vaults[token],
+              this.tokens[token],
+            );
             if (DEBUG) {
               console.log("\n");
               console.log("Before vault deposit ");
+              console.log("poolBalanceBefore ", formatEther(poolBalanceBefore));
               console.log(
-                "YFI balance ",
+                `${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.vaults[token].address),
                   await this.vaults[token].decimals(),
@@ -270,28 +282,28 @@ describe("VaultV2", () => {
                 ),
               );
               console.log(
-                "Alice YFI balance ",
+                `Alice ${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.alice.address),
                   await this.tokens["WETH"].decimals(),
                 ),
               );
               console.log(
-                "Bob YFI balance ",
+                `Bob ${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.bob.address),
                   await this.vaults[token].decimals(),
                 ),
               );
               console.log(
-                "Alice opToken balance ",
+                `Alice ${vaultTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.alice.address),
                   await this.vaults[token].decimals(),
                 ),
               );
               console.log(
-                "Bob opToken balance ",
+                `Bob ${vaultTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.bob.address),
                   await this.vaults[token].decimals(),
@@ -299,13 +311,6 @@ describe("VaultV2", () => {
               );
               console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
             }
-            const vaultBalanceBefore = await this.vaults[token].balanceUT();
-            const poolBalanceBefore = await getLastStrategyStepBalanceLP(
-              steps as StrategyStepType[],
-              this.registry,
-              this.vaults[token],
-              this.tokens[token],
-            );
             const tx = await this.vaults[token].connect(this.signers.financeOperator).vaultDepositAllToStrategy();
             await tx.wait(1);
             const vaultBalanceAfter = await this.vaults[token].balanceUT();
@@ -320,8 +325,9 @@ describe("VaultV2", () => {
             if (DEBUG) {
               console.log("\n");
               console.log("After vault deposit ");
+              console.log("poolBalanceAfter ", formatEther(poolBalanceAfter));
               console.log(
-                "YFI balance ",
+                `${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.vaults[token].address),
                   await this.vaults[token].decimals(),
@@ -335,28 +341,28 @@ describe("VaultV2", () => {
                 ),
               );
               console.log(
-                "Alice YFI balance ",
+                `Alice ${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.alice.address),
                   await this.tokens["WETH"].decimals(),
                 ),
               );
               console.log(
-                "Bob YFI balance ",
+                `Bob ${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.bob.address),
                   await this.vaults[token].decimals(),
                 ),
               );
               console.log(
-                "Alice opToken balance ",
+                `Alice {vaultTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.alice.address),
                   await this.vaults[token].decimals(),
                 ),
               );
               console.log(
-                "Bob opToken balance ",
+                `Bob {vaultTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.bob.address),
                   await this.vaults[token].decimals(),
@@ -389,11 +395,13 @@ async function deposit(
   wethTokenInstance: ERC20,
 ) {
   const _userDepositInDecimals = await vaultInstance.minimumDepositValueUT();
+  const underlyingTokenSymbol = await underlyingTokenInstance.symbol();
+  const vaultTokenSymbol = await vaultInstance.symbol();
   if (DEBUG) {
     console.log("\n");
     console.log("Before user deposit ");
     console.log(
-      "YFI balance ",
+      `${underlyingTokenSymbol} balance `,
       formatUnits(
         await underlyingTokenInstance.balanceOf(vaultInstance.address),
         await underlyingTokenInstance.decimals(),
@@ -404,22 +412,22 @@ async function deposit(
       formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
     );
     console.log(
-      "Alice YFI balance ",
+      `Alice ${underlyingTokenSymbol} balance `,
       formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
     );
     console.log(
-      "Bob YFI balance ",
+      `Bob ${underlyingTokenSymbol} balance `,
       formatUnits(
         await underlyingTokenInstance.balanceOf(signers[1].address),
         await underlyingTokenInstance.decimals(),
       ),
     );
     console.log(
-      "Alice opToken balance ",
+      `Alice ${vaultTokenSymbol} balance `,
       formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
     );
     console.log(
-      "Bob opToken balance ",
+      `Bob ${vaultTokenSymbol} balance `,
       formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
     );
     console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
@@ -449,22 +457,22 @@ async function deposit(
         formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
       );
       console.log(
-        "Alice YFI balance ",
+        `Alice ${underlyingTokenSymbol} balance `,
         formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
       );
       console.log(
-        "Bob YFI balance ",
+        `Bob ${underlyingTokenSymbol} balance `,
         formatUnits(
           await underlyingTokenInstance.balanceOf(signers[1].address),
           await underlyingTokenInstance.decimals(),
         ),
       );
       console.log(
-        "Alice opToken balance ",
+        `Alice ${vaultTokenSymbol} balance `,
         formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
       );
       console.log(
-        "Bob opToken balance ",
+        `Bob ${vaultTokenSymbol} balance `,
         formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
       );
       console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
@@ -480,6 +488,8 @@ async function withdraw(
   registryInstance: Registry,
   wethTokenInstance: ERC20,
 ) {
+  const underlyingTokenSymbol = await underlyingTokenInstance.symbol();
+  const vaultTokenSymbol = await vaultInstance.symbol();
   for (let i = 0; i < signers.length; i++) {
     const userWithdrawBalance = await vaultInstance.balanceOf(signers[i].address);
     const userBalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
@@ -492,8 +502,9 @@ async function withdraw(
     if (DEBUG) {
       console.log("\n");
       console.log("Before user withdraw ");
+      console.log("poolBalanceBefore ", formatEther(poolBalanceBefore));
       console.log(
-        "YFI balance ",
+        `${underlyingTokenSymbol} balance `,
         formatUnits(
           await underlyingTokenInstance.balanceOf(vaultInstance.address),
           await underlyingTokenInstance.decimals(),
@@ -504,22 +515,22 @@ async function withdraw(
         formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
       );
       console.log(
-        "Alice YFI balance ",
+        `Alice ${underlyingTokenSymbol} balance `,
         formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
       );
       console.log(
-        "Bob YFI balance ",
+        `Bob ${underlyingTokenSymbol} balance `,
         formatUnits(
           await underlyingTokenInstance.balanceOf(signers[1].address),
           await underlyingTokenInstance.decimals(),
         ),
       );
       console.log(
-        "Alice opToken balance ",
+        `Alice ${vaultTokenSymbol} balance `,
         formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
       );
       console.log(
-        "Bob opToken balance ",
+        `Bob ${vaultTokenSymbol} balance `,
         formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
       );
       console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
@@ -538,8 +549,9 @@ async function withdraw(
     if (DEBUG) {
       console.log("\n");
       console.log("After user withdraw ");
+      console.log("poolBalanceAfter ", formatEther(poolBalanceAfter));
       console.log(
-        "YFI balance ",
+        `${underlyingTokenSymbol} balance `,
         formatUnits(
           await underlyingTokenInstance.balanceOf(vaultInstance.address),
           await underlyingTokenInstance.decimals(),
@@ -550,22 +562,22 @@ async function withdraw(
         formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
       );
       console.log(
-        "Alice YFI balance ",
+        `Alice ${underlyingTokenSymbol} balance `,
         formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
       );
       console.log(
-        "Bob YFI balance ",
+        `Bob ${underlyingTokenSymbol} balance `,
         formatUnits(
           await underlyingTokenInstance.balanceOf(signers[1].address),
           await underlyingTokenInstance.decimals(),
         ),
       );
       console.log(
-        "Alice opToken balance ",
+        `Alice ${vaultTokenSymbol} balance `,
         formatUnits(await vaultInstance.balanceOf(signers[0].address), await vaultInstance.decimals()),
       );
       console.log(
-        "Bob opToken balance ",
+        `Bob ${vaultTokenSymbol} balance `,
         formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
       );
       console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));

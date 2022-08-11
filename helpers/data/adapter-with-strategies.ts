@@ -1732,8 +1732,8 @@ const mainnetVaults: VaultType = {
     {
       name: "opWETHgrow",
       vaultConfig: vaultConfigRP1,
-      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WETH user deposit cap
-      minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 WETH minimum deposit
+      userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 WETH minimum deposit
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
     },
   ],
