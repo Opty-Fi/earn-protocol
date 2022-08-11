@@ -115,7 +115,6 @@ const strategyKeys = Object.keys(testStrategy[fork]);
 // ToDo deploy fresh contract may be through migration scripts
 describe("Vault", () => {
   before(async function () {
-    await deployments.fixture();
     this.testVaultArtifact = <Artifact>await artifacts.readArtifact("TestVault");
 
     this.signers = {} as Signers;

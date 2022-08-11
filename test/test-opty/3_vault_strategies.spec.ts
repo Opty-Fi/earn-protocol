@@ -34,7 +34,6 @@ const DEBUG = process.env.DEBUG === "true" ? true : false;
 
 describe("VaultV2", () => {
   before(async function () {
-    await deployments.fixture();
     const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
@@ -104,7 +103,9 @@ describe("VaultV2", () => {
         _userDeposit.multipliedBy("3").toString(),
       );
     }
-    this.tokens["WETH"] = <ERC20>await ethers.getContractAt(ERC20__factory.abi, TypedTokens["WETH"]);
+    if (fork == eEVMNetwork.mainnet) {
+      this.tokens["WETH"] = <ERC20>await ethers.getContractAt(ERC20__factory.abi, TypedTokens["WETH"]);
+    }
   });
   describe("VaultV2 strategies", () => {
     for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
@@ -136,122 +137,149 @@ describe("VaultV2", () => {
           });
           it(`(first) alice and bob should deposit into Vault successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
-            await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+            if (fork == eEVMNetwork.mainnet) {
+              await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+            } else {
+              await deposit(signers, this.vaults[token], this.tokens[token], undefined);
+            }
           });
           it("should receive new strategy after rebalancing", async function () {
             const underlyingTokenSymbol = await this.tokens[token].symbol();
             const vaultTokenSymbol = await this.vaults[token].symbol();
-            console.log("\n");
-            console.log("Before rebalance ");
-            console.log(
-              `${underlyingTokenSymbol} balance `,
-              formatUnits(
-                await this.tokens[token].balanceOf(this.vaults[token].address),
-                await this.tokens[token].decimals(),
-              ),
-            );
-            console.log(
-              "WETH balance ",
-              formatUnits(
-                await this.tokens["WETH"].balanceOf(this.vaults[token].address),
-                await this.tokens["WETH"].decimals(),
-              ),
-            );
-            console.log(
-              `Alice ${underlyingTokenSymbol} balance `,
-              formatUnits(
-                await this.tokens[token].balanceOf(this.signers.alice.address),
-                await this.tokens["WETH"].decimals(),
-              ),
-            );
-            console.log(
-              `Bob ${underlyingTokenSymbol} balance `,
-              formatUnits(
-                await this.tokens[token].balanceOf(this.signers.bob.address),
-                await this.tokens[token].decimals(),
-              ),
-            );
-            console.log(
-              `Alice ${vaultTokenSymbol} balance `,
-              formatUnits(
-                await this.vaults[token].balanceOf(this.signers.alice.address),
-                await this.vaults[token].decimals(),
-              ),
-            );
-            console.log(
-              `Bob ${vaultTokenSymbol} balance `,
-              formatUnits(
-                await this.vaults[token].balanceOf(this.signers.bob.address),
-                await this.vaults[token].decimals(),
-              ),
-            );
-            console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+            if (DEBUG == true) {
+              console.log("\n");
+              console.log("Before rebalance ");
+              console.log(
+                `${underlyingTokenSymbol} balance `,
+                formatUnits(
+                  await this.tokens[token].balanceOf(this.vaults[token].address),
+                  await this.tokens[token].decimals(),
+                ),
+              );
+              if (fork == eEVMNetwork.mainnet) {
+                console.log(
+                  "WETH balance ",
+                  formatUnits(
+                    await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                    await this.tokens["WETH"].decimals(),
+                  ),
+                );
+              }
+              console.log(
+                `Alice ${underlyingTokenSymbol} balance `,
+                formatUnits(
+                  await this.tokens[token].balanceOf(this.signers.alice.address),
+                  await this.tokens[token].decimals(),
+                ),
+              );
+              console.log(
+                `Bob ${underlyingTokenSymbol} balance `,
+                formatUnits(
+                  await this.tokens[token].balanceOf(this.signers.bob.address),
+                  await this.tokens[token].decimals(),
+                ),
+              );
+              console.log(
+                `Alice ${vaultTokenSymbol} balance `,
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.alice.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                `Bob ${vaultTokenSymbol} balance `,
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.bob.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+            }
             const tx = await this.vaults[token].rebalance();
             await tx.wait(1);
             expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
               steps.map(item => Object.values(item)),
             );
             expect(await this.vaults[token].investStrategyHash()).to.eq(strategyHash);
-            console.log("\n");
-            console.log("After rebalance ");
-            console.log(
-              `${underlyingTokenSymbol} balance `,
-              formatUnits(
-                await this.tokens[token].balanceOf(this.vaults[token].address),
-                await this.tokens[token].decimals(),
-              ),
-            );
-            console.log(
-              "WETH balance ",
-              formatUnits(
-                await this.tokens["WETH"].balanceOf(this.vaults[token].address),
-                await this.tokens["WETH"].decimals(),
-              ),
-            );
-            console.log(
-              `Alice ${underlyingTokenSymbol} balance `,
-              formatUnits(
-                await this.tokens[token].balanceOf(this.signers.alice.address),
-                await this.tokens["WETH"].decimals(),
-              ),
-            );
-            console.log(
-              `Bob ${underlyingTokenSymbol} balance `,
-              formatUnits(
-                await this.tokens[token].balanceOf(this.signers.bob.address),
-                await this.tokens[token].decimals(),
-              ),
-            );
-            console.log(
-              `Alice ${vaultTokenSymbol} balance `,
-              formatUnits(
-                await this.vaults[token].balanceOf(this.signers.alice.address),
-                await this.vaults[token].decimals(),
-              ),
-            );
-            console.log(
-              `Bob ${vaultTokenSymbol} balance `,
-              formatUnits(
-                await this.vaults[token].balanceOf(this.signers.bob.address),
-                await this.vaults[token].decimals(),
-              ),
-            );
-            console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+            if (DEBUG == true) {
+              console.log("\n");
+              console.log("After rebalance ");
+              console.log(
+                `${underlyingTokenSymbol} balance `,
+                formatUnits(
+                  await this.tokens[token].balanceOf(this.vaults[token].address),
+                  await this.tokens[token].decimals(),
+                ),
+              );
+              if (fork == eEVMNetwork.mainnet) {
+                console.log(
+                  "WETH balance ",
+                  formatUnits(
+                    await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                    await this.tokens["WETH"].decimals(),
+                  ),
+                );
+              }
+              console.log(
+                `Alice ${underlyingTokenSymbol} balance `,
+                formatUnits(
+                  await this.tokens[token].balanceOf(this.signers.alice.address),
+                  await this.tokens[token].decimals(),
+                ),
+              );
+              console.log(
+                `Bob ${underlyingTokenSymbol} balance `,
+                formatUnits(
+                  await this.tokens[token].balanceOf(this.signers.bob.address),
+                  await this.tokens[token].decimals(),
+                ),
+              );
+              console.log(
+                `Alice ${vaultTokenSymbol} balance `,
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.alice.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log(
+                `Bob ${vaultTokenSymbol} balance `,
+                formatUnits(
+                  await this.vaults[token].balanceOf(this.signers.bob.address),
+                  await this.vaults[token].decimals(),
+                ),
+              );
+              console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+            }
           });
           it(`(first) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
-            await withdraw(
-              signers,
-              this.vaults[token],
-              this.tokens[token],
-              steps as StrategyStepType[],
-              this.registry,
-              this.tokens["WETH"],
-            );
+            if (fork == eEVMNetwork.mainnet) {
+              await withdraw(
+                signers,
+                this.vaults[token],
+                this.tokens[token],
+                steps as StrategyStepType[],
+                this.registry,
+                this.tokens["WETH"],
+              );
+            } else {
+              await withdraw(
+                signers,
+                this.vaults[token],
+                this.tokens[token],
+                steps as StrategyStepType[],
+                this.registry,
+                undefined,
+              );
+            }
           });
           it(`(second) alice and bob should deposit into Vault successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
-            await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+            if (fork == eEVMNetwork.mainnet) {
+              await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+            } else {
+              await deposit(signers, this.vaults[token], this.tokens[token], undefined);
+            }
           });
           it(`vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
             const underlyingTokenSymbol = await this.tokens[token].symbol();
@@ -263,7 +291,7 @@ describe("VaultV2", () => {
               this.vaults[token],
               this.tokens[token],
             );
-            if (DEBUG) {
+            if (DEBUG == true) {
               console.log("\n");
               console.log("Before vault deposit ");
               console.log("poolBalanceBefore ", formatEther(poolBalanceBefore));
@@ -274,18 +302,20 @@ describe("VaultV2", () => {
                   await this.vaults[token].decimals(),
                 ),
               );
-              console.log(
-                "WETH balance ",
-                formatUnits(
-                  await this.tokens["WETH"].balanceOf(this.vaults[token].address),
-                  await this.tokens["WETH"].decimals(),
-                ),
-              );
+              if (fork == eEVMNetwork.mainnet) {
+                console.log(
+                  "WETH balance ",
+                  formatUnits(
+                    await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                    await this.tokens["WETH"].decimals(),
+                  ),
+                );
+              }
               console.log(
                 `Alice ${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.alice.address),
-                  await this.tokens["WETH"].decimals(),
+                  await this.tokens[token].decimals(),
                 ),
               );
               console.log(
@@ -322,7 +352,7 @@ describe("VaultV2", () => {
             );
             expect(vaultBalanceBefore).gt(vaultBalanceAfter);
             expect(poolBalanceBefore).lt(poolBalanceAfter);
-            if (DEBUG) {
+            if (DEBUG == true) {
               console.log("\n");
               console.log("After vault deposit ");
               console.log("poolBalanceAfter ", formatEther(poolBalanceAfter));
@@ -333,18 +363,20 @@ describe("VaultV2", () => {
                   await this.vaults[token].decimals(),
                 ),
               );
-              console.log(
-                "WETH balance ",
-                formatUnits(
-                  await this.tokens["WETH"].balanceOf(this.vaults[token].address),
-                  await this.tokens["WETH"].decimals(),
-                ),
-              );
+              fork == eEVMNetwork.mainnet &&
+                console.log(
+                  "WETH balance ",
+                  formatUnits(
+                    await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                    await this.tokens["WETH"].decimals(),
+                  ),
+                );
+
               console.log(
                 `Alice ${underlyingTokenSymbol} balance `,
                 formatUnits(
                   await this.vaults[token].balanceOf(this.signers.alice.address),
-                  await this.tokens["WETH"].decimals(),
+                  await this.tokens[token].decimals(),
                 ),
               );
               console.log(
@@ -373,14 +405,25 @@ describe("VaultV2", () => {
           });
           it(`(second) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
-            await withdraw(
-              signers,
-              this.vaults[token],
-              this.tokens[token],
-              steps as StrategyStepType[],
-              this.registry,
-              this.tokens["WETH"],
-            );
+            if (fork == eEVMNetwork.mainnet) {
+              await withdraw(
+                signers,
+                this.vaults[token],
+                this.tokens[token],
+                steps as StrategyStepType[],
+                this.registry,
+                this.tokens["WETH"],
+              );
+            } else {
+              await withdraw(
+                signers,
+                this.vaults[token],
+                this.tokens[token],
+                steps as StrategyStepType[],
+                this.registry,
+                undefined,
+              );
+            }
           });
         });
       }
@@ -392,12 +435,12 @@ async function deposit(
   signers: SignerWithAddress[],
   vaultInstance: Vault,
   underlyingTokenInstance: ERC20,
-  wethTokenInstance: ERC20,
+  wethTokenInstance: ERC20 | undefined,
 ) {
   const _userDepositInDecimals = await vaultInstance.minimumDepositValueUT();
   const underlyingTokenSymbol = await underlyingTokenInstance.symbol();
   const vaultTokenSymbol = await vaultInstance.symbol();
-  if (DEBUG) {
+  if (DEBUG == true) {
     console.log("\n");
     console.log("Before user deposit ");
     console.log(
@@ -407,13 +450,20 @@ async function deposit(
         await underlyingTokenInstance.decimals(),
       ),
     );
-    console.log(
-      "WETH balance ",
-      formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
-    );
+    fork == eEVMNetwork.mainnet &&
+      console.log(
+        "WETH balance ",
+        formatUnits(
+          await (wethTokenInstance as ERC20).balanceOf(vaultInstance.address),
+          await (wethTokenInstance as ERC20).decimals(),
+        ),
+      );
     console.log(
       `Alice ${underlyingTokenSymbol} balance `,
-      formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+      formatUnits(
+        await underlyingTokenInstance.balanceOf(signers[0].address),
+        await underlyingTokenInstance.decimals(),
+      ),
     );
     console.log(
       `Bob ${underlyingTokenSymbol} balance `,
@@ -442,23 +492,30 @@ async function deposit(
     await tx2.wait(1);
     const _BalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
     expect(_BalanceBefore).gt(_BalanceAfter);
-    if (DEBUG) {
+    if (DEBUG == true) {
       console.log("\n");
       console.log("After user deposit ");
       console.log(
-        "YFI balance ",
+        `${underlyingTokenSymbol} balance `,
         formatUnits(
           await underlyingTokenInstance.balanceOf(vaultInstance.address),
           await underlyingTokenInstance.decimals(),
         ),
       );
-      console.log(
-        "WETH balance ",
-        formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
-      );
+      fork == eEVMNetwork.mainnet &&
+        console.log(
+          "WETH balance ",
+          formatUnits(
+            await (wethTokenInstance as ERC20).balanceOf(vaultInstance.address),
+            await (wethTokenInstance as ERC20).decimals(),
+          ),
+        );
       console.log(
         `Alice ${underlyingTokenSymbol} balance `,
-        formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(signers[0].address),
+          await underlyingTokenInstance.decimals(),
+        ),
       );
       console.log(
         `Bob ${underlyingTokenSymbol} balance `,
@@ -486,7 +543,7 @@ async function withdraw(
   underlyingTokenInstance: ERC20,
   steps: StrategyStepType[],
   registryInstance: Registry,
-  wethTokenInstance: ERC20,
+  wethTokenInstance: ERC20 | undefined,
 ) {
   const underlyingTokenSymbol = await underlyingTokenInstance.symbol();
   const vaultTokenSymbol = await vaultInstance.symbol();
@@ -499,7 +556,7 @@ async function withdraw(
       vaultInstance,
       underlyingTokenInstance,
     );
-    if (DEBUG) {
+    if (DEBUG == true) {
       console.log("\n");
       console.log("Before user withdraw ");
       console.log("poolBalanceBefore ", formatEther(poolBalanceBefore));
@@ -510,13 +567,20 @@ async function withdraw(
           await underlyingTokenInstance.decimals(),
         ),
       );
-      console.log(
-        "WETH balance ",
-        formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
-      );
+      fork == eEVMNetwork.mainnet &&
+        console.log(
+          "WETH balance ",
+          formatUnits(
+            await (wethTokenInstance as ERC20).balanceOf(vaultInstance.address),
+            await (wethTokenInstance as ERC20).decimals(),
+          ),
+        );
       console.log(
         `Alice ${underlyingTokenSymbol} balance `,
-        formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(signers[0].address),
+          await underlyingTokenInstance.decimals(),
+        ),
       );
       console.log(
         `Bob ${underlyingTokenSymbol} balance `,
@@ -546,7 +610,7 @@ async function withdraw(
     );
     expect(userBalanceBefore).lt(userBalanceAfter);
     expect(poolBalanceBefore).gt(poolBalanceAfter);
-    if (DEBUG) {
+    if (DEBUG == true) {
       console.log("\n");
       console.log("After user withdraw ");
       console.log("poolBalanceAfter ", formatEther(poolBalanceAfter));
@@ -557,13 +621,20 @@ async function withdraw(
           await underlyingTokenInstance.decimals(),
         ),
       );
-      console.log(
-        "WETH balance ",
-        formatUnits(await wethTokenInstance.balanceOf(vaultInstance.address), await wethTokenInstance.decimals()),
-      );
+      fork == eEVMNetwork.mainnet &&
+        console.log(
+          "WETH balance ",
+          formatUnits(
+            await (wethTokenInstance as ERC20).balanceOf(vaultInstance.address),
+            await (wethTokenInstance as ERC20).decimals(),
+          ),
+        );
       console.log(
         `Alice ${underlyingTokenSymbol} balance `,
-        formatUnits(await underlyingTokenInstance.balanceOf(signers[0].address), await wethTokenInstance.decimals()),
+        formatUnits(
+          await underlyingTokenInstance.balanceOf(signers[0].address),
+          await underlyingTokenInstance.decimals(),
+        ),
       );
       console.log(
         `Bob ${underlyingTokenSymbol} balance `,
