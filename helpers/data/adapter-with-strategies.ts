@@ -560,6 +560,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "APE-USDT LP on Sushi",
+      description: null,
     },
     "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -583,6 +585,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "APE-USDT LP Farming on Sushi",
+      description: null,
     },
   },
   SUSHI: {
@@ -600,6 +604,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SUSHI-WETH LP on Sushi",
+      description: null,
     },
     "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -623,6 +629,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SUSHI-WETH LP Farming on Sushi",
+      description: null,
     },
     "sushi-DEPOSIT-Compound-cSUSHI": {
       strategyName: "sushi-DEPOSIT-Compound-cSUSHI",
@@ -638,6 +646,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SUSHI Lending on Compound",
+      description:
+        "The OptyFi vault supplies SUSHI to the lending pool on Compound Protocol to earn interest in SUSHI and, potentially, additional rewards in COMP tokens. The earned SUSHI tokens and any harvested COMP rewards are reinvested into the vault.",
     },
     "sushi-DEPOSIT-SushiBar-xSUSHI": {
       strategyName: "sushi-DEPOSIT-SushiBar-xSUSHI",
@@ -653,6 +664,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "Native SUSHI Staking on Sushi Bar",
+      description: null,
     },
     "sushi-DEPOSIT-SushiBar-xSUSHI-DEPOSIT-AaveV2-aXSUSHI": {
       strategyName: "sushi-DEPOSIT-SushiBar-xSUSHI-DEPOSIT-AaveV2-aXSUSHI",
@@ -676,6 +689,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "Lending xSUSHI to Aave",
+      description: null,
     },
   },
   MANA: {
@@ -693,6 +708,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "MANA-WETH LP on Sushi",
+      description: null,
     },
     "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -716,6 +733,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "MANA-WETH LP Farming on Sushi",
+      description: null,
     },
     "mana-DEPOSIT-AaveV1-aMANA": {
       strategyName: "mana-DEPOSIT-AaveV1-aMANA",
@@ -731,6 +750,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "MANA Lending on Aave",
+      description:
+        "The OptyFi vault supplies MANA to the lending pool on Aave Protocol to earn interest in MANA. The earned MANA tokens are reinvested into the vault.",
     },
     "mana-DEPOSIT-AaveV2-aMANA": {
       strategyName: "mana-DEPOSIT-AaveV2-aMANA",
@@ -746,6 +768,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "MANA Lending on Aave",
+      description:
+        "The OptyFi vault supplies MANA to the lending pool on Aave Protocol to earn interest in MANA. The earned MANA tokens are reinvested into the vault.",
     },
   },
   LINK: {
@@ -763,6 +788,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "LINK-WETH LP on Sushi",
+      description: null,
     },
     "link-DEPOSIT-Sushiswap-LINK-WETH-DEPOSIT-SushiswapMasterChef": {
       strategyName: "link-DEPOSIT-Sushiswap-LINK-WETH-DEPOSIT-SushiswapMasterChef",
@@ -786,6 +813,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "LINK-WETH LP Farming on Sushi",
+      description: null,
     },
     "link-DEPOSIT-AaveV1-aLINK": {
       strategyName: "link-DEPOSIT-AaveV1-aLINK",
@@ -801,6 +830,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "LINK Lending on Aave",
+      description:
+        "The OptyFi vault supplies LINK to the lending pool on Aave Protocol to earn interest in LINK. The earned LINK tokens are reinvested into the vault.",
     },
     "link-DEPOSIT-AaveV2-aLINK": {
       strategyName: "link-DEPOSIT-AaveV2-aLINK",
@@ -816,6 +848,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "LINK Lending on Aave",
+      description:
+        "The OptyFi vault supplies LINK to the lending pool on Aave Protocol to earn interest in LINK. The earned LINK tokens are reinvested into the vault.",
     },
     "link-DEPOSIT-Compound-cLINK": {
       strategyName: "link-DEPOSIT-Compound-cLINK",
@@ -831,6 +866,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "LINK Lending on Compound",
+      description:
+        "The OptyFi vault supplies LINK to the lending pool on Compound Protocol to earn interest in LINK and, potentially, additional rewards in COMP tokens. The earned LINK tokens and any harvested COMP rewards are reinvested into the vault.",
     },
     "link-DEPOSIT-Curve-linkCRV": {
       strategyName: "link-DEPOSIT-Curve-linkCRV",
@@ -846,6 +884,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: null,
+      description: null,
     },
     "link-DEPOSIT-Curve-linkCRV-DEPOSIT-Convex-cvxlinkCRV": {
       strategyName: "link-DEPOSIT-Curve-linkCRV-DEPOSIT-Convex-cvxlinkCRV",
@@ -869,6 +909,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: null,
+      description: null,
     },
   },
   ENS: {
@@ -886,6 +928,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "ENS-WETH LP on Sushi",
+      description: null,
     },
     "ens-DEPOSIT-Sushiswap-ENS-WETH-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "ens-DEPOSIT-Sushiswap-ENS-WETH-DEPOSIT-SushiswapMasterChefV2",
@@ -909,6 +953,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "ENS-WETH LP Farming on Sushi",
+      description: null,
     },
     "ens-DEPOSIT-AaveV2-aENS": {
       strategyName: "ens-DEPOSIT-AaveV2-aENS",
@@ -924,11 +970,14 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "ENS Lending on Aave",
+      description:
+        "The OptyFi vault supplies ENS to the lending pool on Aave Protocol to earn interest in ENS. The earned ENS tokens are reinvested into the vault.",
     },
   },
   COMP: {
     "comp-DEPOSIT-Sushiswap-COMP-WETH": {
-      strategyName: "ens-DEPOSIT-Sushiswap-COMP-WETH",
+      strategyName: "comp-DEPOSIT-Sushiswap-COMP-WETH",
       token: "0xc00e94Cb662C3520282E6f5717214004A7f26888",
       strategy: [
         {
@@ -941,6 +990,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "COMP-WETH LP on Sushi",
+      description: null,
     },
     "comp-DEPOSIT-Sushiswap-COMP-WETH-DEPOSIT-SushiswapMasterChef": {
       strategyName: "comp-DEPOSIT-Sushiswap-COMP-WETH-DEPOSIT-SushiswapMasterChef",
@@ -964,6 +1015,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "COMP-WETH LP Farming on Sushi",
+      description: null,
     },
     "comp-DEPOSIT-Compound-cCOMP": {
       strategyName: "comp-DEPOSIT-Compound-cCOMP",
@@ -979,6 +1032,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "COMP Lending on Compound",
+      description:
+        "The OptyFi vault supplies COMP to the lending pool on Compound Protocol to earn interest in COMP and, potentially, additional rewards also in COMP tokens. The earned COMP tokens and any additional rewards are reinvested into the vault.",
     },
   },
   IMX: {
@@ -996,6 +1052,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "IMX-WETH LP on Sushi",
+      description: null,
     },
     "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -1019,6 +1077,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "IMX-WETH LP Farming on Sushi",
+      description: null,
     },
   },
   ALCX: {
@@ -1036,6 +1096,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "ALCX-WETH LP on Sushi",
+      description: null,
     },
     "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -1059,6 +1121,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "ALCX-WETH LP Farming on Sushi",
+      description: null,
     },
   },
   CRV: {
@@ -1076,6 +1140,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: " CRV-WETH LP on Sushi",
+      description: null,
     },
     "crv-DEPOSIT-SushiswapPool-CRV-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "crv-DEPOSIT-SushiswapPool-CRV-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -1099,6 +1165,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: " CRV-WETH LP Farming on Sushi",
+      description: null,
     },
     "crv-DEPOSIT-AaveV2-aCRV": {
       strategyName: "crv-DEPOSIT-AaveV2-aCRV",
@@ -1114,6 +1182,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "CRV Lending on Aave",
+      description:
+        "The OptyFi vault supplies CRV to the lending pool on Aave Protocol to earn interest in CRV. The earned CRV tokens are reinvested into the vault.",
     },
   },
   CVX: {
@@ -1131,6 +1202,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "CVX-WETH LP on Sushi",
+      description: null,
     },
     "cvx-DEPOSIT-SushiswapPool-CVX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "cvx-DEPOSIT-SushiswapPool-CVX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -1154,6 +1227,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "CVX-WETH LP Farming on Sushi",
+      description: null,
     },
   },
   YFI: {
@@ -1171,6 +1246,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "YFI-WETH LP on Sushi",
+      description: null,
     },
     "yfi-DEPOSIT-SushiswapPool-YFI-WETH-SLP-DEPOSIT-SushiswapMasterChefV1": {
       strategyName: "yfi-DEPOSIT-SushiswapPool-YFI-WETH-SLP-DEPOSIT-SushiswapMasterChefV1",
@@ -1194,6 +1271,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "YFI-WETH LP Farming on Sushi",
+      description: null,
     },
     "yfi-DEPOSIT-AaveV2-aYFI": {
       strategyName: "yfi-DEPOSIT-AaveV2-aYFI",
@@ -1209,6 +1288,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "YFI Lending on Aave",
+      description:
+        "The OptyFi vault supplies YFI to the lending pool on Aave Protocol to earn interest in YFI. The earned YFI tokens are reinvested into the vault.",
     },
     "yfi-DEPOSIT-AaveV1-aYFI": {
       strategyName: "yfi-DEPOSIT-AaveV1-aYFI",
@@ -1224,6 +1306,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "YFI Lending on Aave",
+      description:
+        "The OptyFi vault supplies YFI to the lending pool on Aave Protocol to earn interest in YFI. The earned YFI tokens are reinvested into the vault.",
     },
     "yfi-DEPOSIT-Compound-cYFI": {
       strategyName: "yfi-DEPOSIT-Compound-cYFI",
@@ -1239,6 +1324,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "YFI Lending on Compound",
+      description:
+        "The OptyFi vault supplies YFI to the lending pool on Compound Protocol to earn interest in YFI and, potentially, additional rewards in COMP tokens. The earned YFI tokens and any harvested COMP rewards are reinvested into the vault.",
     },
   },
   SNX: {
@@ -1256,6 +1344,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SNX-WETH LP Sushi",
+      description: null,
     },
     "snx-DEPOSIT-SushiswapPool-SNX-WETH-SLP-DEPOSIT-SushiswapMasterChefV1": {
       strategyName: "snx-DEPOSIT-SushiswapPool-SNX-WETH-SLP-DEPOSIT-SushiswapMasterChefV1",
@@ -1279,6 +1369,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SNX-WETH LP Farming on Sushi",
+      description: null,
     },
     "snx-DEPOSIT-AaveV2-aSNX": {
       strategyName: "snx-DEPOSIT-AaveV2-aSNX",
@@ -1294,6 +1386,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SNX Lending on Aave",
+      description:
+        "The OptyFi vault supplies SNX to the lending pool on Aave Protocol to earn interest in SNX. The earned SNX tokens are reinvested into the vault.",
     },
     "snx-DEPOSIT-AaveV1-aSNX": {
       strategyName: "snx-DEPOSIT-AaveV1-aSNX",
@@ -1309,6 +1404,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
+      name: "SNX Lending on Aave",
+      description:
+        "The OptyFi vault supplies SNX to the lending pool on Aave Protocol to earn interest in SNX. The earned SNX tokens are reinvested into the vault.",
     },
   },
 };
@@ -1372,6 +1470,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Aave-amUSDC": {
       strategyName: "usdc-DEPOSIT-Aave-amUSDC",
@@ -1387,6 +1487,9 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: "USDC Lending on Aave",
+      description:
+        "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault.",
     },
     "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
       strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
@@ -1410,6 +1513,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Sushiswap-USDC-USDT-SLP-DEPOSIT-Beefy-mooSushiUSDC-USDT": {
       strategyName: "usdc-DEPOSIT-USDCUSDTSLP-DEPOSIT-Beefy-mooSushiUSDC-USDT",
@@ -1433,6 +1538,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI": {
       strategyName: "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI",
@@ -1456,6 +1563,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT": {
       strategyName: "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT",
@@ -1479,6 +1588,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI": {
       strategyName: "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI",
@@ -1502,6 +1613,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooMaiUSDC-miMATIC": {
       strategyName: "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooQuickUSDC-MAI",
@@ -1525,6 +1638,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
     "usdc-DEPOSIT-Apeswap-USDC-DAI-ALP-Beefy-mooApeUSDC-DAI": {
       strategyName: "usdc-DEPOSIT-Apeswap-USDC-MAI-QLP-Beefy-mooApeUSDC-MAI",
@@ -1548,6 +1663,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
   },
   WMATIC: {
@@ -1565,6 +1682,8 @@ const polygonStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+      name: null,
+      description: null,
     },
   },
 };
