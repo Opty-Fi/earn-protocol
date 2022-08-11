@@ -3,7 +3,17 @@ import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-con
 import { RegistryProxy, opWETHgrow as opWETHgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeWETH(): Promise<void> {
-  const opWETHgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
+  const strategyManagerFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.STRATEGY_MANAGER);
+  const strategyManager = await strategyManagerFactory.deploy();
+  const claimAndHarvestFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.CLAIM_AND_HARVEST);
+  const claimAndHarvest = await claimAndHarvestFactory.deploy();
+
+  const opWETHgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT, {
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
+    },
+  });
   const opWETHgrow = await opWETHgrowFactory.deploy(RegistryProxy, "Wrapped Ether", "WETH", "Growth", "grow");
   const { getAddress } = ethers.utils;
   const opWETHgrowAddress = opWETHgrow.address;

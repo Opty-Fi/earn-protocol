@@ -3,7 +3,17 @@ import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-con
 import { RegistryProxy, opUSDCgrow as opUSDCgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeUSDC(): Promise<void> {
-  const opUSDCgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
+  const strategyManagerFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.STRATEGY_MANAGER);
+  const strategyManager = await strategyManagerFactory.deploy();
+  const claimAndHarvestFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.CLAIM_AND_HARVEST);
+  const claimAndHarvest = await claimAndHarvestFactory.deploy();
+
+  const opUSDCgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT, {
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
+    },
+  });
   const opUSDCgrow = await opUSDCgrowFactory.deploy(RegistryProxy, "USD Coin", "USDC", "Growth", "grow");
   const { getAddress } = ethers.utils;
   const opUSDCgrowAddress = opUSDCgrow.address;
