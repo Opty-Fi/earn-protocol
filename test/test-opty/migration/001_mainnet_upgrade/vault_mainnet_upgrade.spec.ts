@@ -8,6 +8,8 @@ import { getAddress } from "ethers/lib/utils";
 import { assertVaultConfiguration, Signers, to_10powNumber_BN } from "../../../../helpers/utils";
 import {
   ERC20,
+  ERC20Permit,
+  ERC20Permit__factory,
   InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
   RegistryProxy,
@@ -142,7 +144,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
     this.signers.riskOperator = await ethers.getSigner(riskOperatorAddress);
     await setZeroStrategy();
-    this.usdc = <ERC20>(
+    this.usdc = <ERC20Permit>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
@@ -199,8 +201,8 @@ describe("Vault Ethereum on-chain upgrade", () => {
     );
   });
 
-  it("default values from for old opUSDCgrow should be as expected", async function () {
-    expect(await this.opUSDCgrow.opTOKEN_REVISION()).to.eq("0x3");
+  it("default values for old opUSDCgrow should be as expected", async function () {
+    expect(await this.opUSDCgrow.opTOKEN_REVISION()).to.eq("0x4");
     expect(await this.opUSDCgrow.registryContract()).to.eq(getAddress(this.registry.address));
     expect(await this.opUSDCgrow.whitelistedAccountsRoot()).to.eq(
       "0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -217,7 +219,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
   });
 
   it("default values for old opWETHgrow should be as expected", async function () {
-    expect(await this.opWETHgrow.opTOKEN_REVISION()).to.eq("0x3");
+    expect(await this.opWETHgrow.opTOKEN_REVISION()).to.eq("0x4");
     expect(await this.opWETHgrow.registryContract()).to.eq(getAddress(this.registry.address));
     expect(await this.opWETHgrow.whitelistedAccountsRoot()).to.eq(
       "0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -292,18 +294,18 @@ describe("Vault Ethereum on-chain upgrade", () => {
 
   it("null strategy for USDC vault", async function () {
     expect(await this.opUSDCgrow.investStrategyHash()).to.eq(ethers.constants.HashZero);
-    expect(await (await this.opUSDCgrow.getInvestStrategySteps()).length).to.eq(0);
+    expect((await this.opUSDCgrow.getInvestStrategySteps()).length).to.eq(0);
   });
 
   it("null strategy for WETH vault", async function () {
     expect(await this.opWETHgrow.investStrategyHash()).to.eq(ethers.constants.HashZero);
-    expect(await (await this.opWETHgrow.getInvestStrategySteps()).length).to.eq(0);
+    expect((await this.opWETHgrow.getInvestStrategySteps()).length).to.eq(0);
   });
 
   describe("test frax, usdn3Crv and steth strategy", async function () {
     before(async function () {
-      this.usdc = <ERC20>(
-        await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
+      this.usdc = <ERC20Permit>(
+        await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
       );
       this.weth = <ERC20>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].WETH.address)
@@ -603,7 +605,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       const _expectedShares = _userDepositWETH.mul(totalSupply).div(_balanceInopWETHgrowUT.add(_oraStratValueUT));
       const _expectedTotalSupply = totalSupply.add(_expectedShares);
       const _userBalanceBeforeVT = await this.opWETHgrow.balanceOf(this.signers.alice.address);
-      await this.opWETHgrow.connect(this.signers.alice).userDepositVault(_userDepositWETH, this._aliceMerkleProof, []);
+      await this.opWETHgrow
+        .connect(this.signers.alice)
+        .userDepositVault(this.signers.alice.address, _userDepositWETH, "0x", this._aliceMerkleProof, []);
       const _balanceBeforeDeposit = await this.weth.balanceOf(this.opWETHgrow.address);
       await this.opWETHgrow.vaultDepositAllToStrategy();
       const _balanceAfterDeposit = await this.weth.balanceOf(this.opWETHgrow.address);
@@ -626,7 +630,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       );
       const expectedUT = _userWithdrawVT.mul(_balanceInopWETHgrowUT.add(_oraStratValueUT)).div(_totalSupply);
       const _balanceBefore = await this.weth.balanceOf(this.signers.alice.address);
-      await this.opWETHgrow.connect(this.signers.alice).userWithdrawVault(_userWithdrawVT, this._aliceMerkleProof, []);
+      await this.opWETHgrow
+        .connect(this.signers.alice)
+        .userWithdrawVault(this.signers.alice.address, _userWithdrawVT, this._aliceMerkleProof, []);
       const _balanceAfter = await this.weth.balanceOf(this.signers.alice.address);
       expect(_balanceAfter.sub(_balanceBefore)).gte(expectedUT.sub(expectedUT.mul(7).div(100)));
       expect(await this.opWETHgrow.totalSupply()).to.eq(_expectedTotalSupply);
@@ -638,7 +644,6 @@ describe("Vault Ethereum on-chain upgrade", () => {
         this.signers.bob.address,
         new BN(_userDepositUSDC.toString()).div(new BN(to_10powNumber_BN("6").toString())).toString(),
       );
-      await this.usdc.connect(this.signers.bob).approve(this.opUSDCgrow.address, _userDepositUSDC);
       const _balanceInopUSDCgrowUT = await this.usdc.balanceOf(this.opUSDCgrow.address);
       const _oraStratValueUT = await getOraValueUT(
         cvxFRAX3CRVStrategySteps as StrategyStepType[],
@@ -650,7 +655,10 @@ describe("Vault Ethereum on-chain upgrade", () => {
       const _expectedShares = _userDepositUSDC.mul(totalSupply).div(_balanceInopUSDCgrowUT.add(_oraStratValueUT));
       const _expectedTotalSupply = totalSupply.add(_expectedShares);
       const _userBalanceBeforeVT = await this.opUSDCgrow.balanceOf(this.signers.bob.address);
-      await this.opUSDCgrow.connect(this.signers.bob).userDepositVault(_userDepositUSDC, this._bobMerkleProof, []);
+      await this.usdc.connect(this.signers.bob).approve(this.opUSDCgrow.address, _userDepositUSDC);
+      await this.opUSDCgrow
+        .connect(this.signers.bob)
+        .userDepositVault(this.signers.bob.address, _userDepositUSDC, "0x", this._bobMerkleProof, []);
       const _balanceBeforeDeposit = await this.usdc.balanceOf(this.opUSDCgrow.address);
       await this.opUSDCgrow.vaultDepositAllToStrategy();
       const _balanceAfterDeposit = await this.usdc.balanceOf(this.opUSDCgrow.address);
@@ -673,7 +681,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       );
       const expectedUT = _userWithdrawVT.mul(_balanceInopWETHgrowUT.add(_oraStratValueUT)).div(_totalSupply);
       const _balanceBefore = await this.usdc.balanceOf(this.signers.bob.address);
-      await this.opUSDCgrow.connect(this.signers.bob).userWithdrawVault(_userWithdrawVT, this._bobMerkleProof, []);
+      await this.opUSDCgrow
+        .connect(this.signers.bob)
+        .userWithdrawVault(this.signers.bob.address, _userWithdrawVT, this._bobMerkleProof, []);
       const _balanceAfter = await this.usdc.balanceOf(this.signers.bob.address);
       expect(_balanceAfter.sub(_balanceBefore)).to.gte(expectedUT.sub(expectedUT.mul(3).div(1000)));
       expect(await this.opUSDCgrow.totalSupply()).to.eq(_expectedTotalSupply);
@@ -708,7 +718,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       );
       await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, _depositUSDC);
       await expect(
-        this.opUSDCgrow.connect(this.signers.alice).userDepositVault(_depositUSDC, this._aliceMerkleProof, []),
+        this.opUSDCgrow
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof, []),
       ).to.revertedWith("10");
     });
     it("fail - opWETHgrow.userDepositVault, MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
@@ -721,7 +733,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       );
       await this.weth.connect(this.signers.bob).approve(this.opWETHgrow.address, _depositWETH);
       await expect(
-        this.opWETHgrow.connect(this.signers.bob).userDepositVault(_depositWETH, this._bobMerkleProof, []),
+        this.opWETHgrow
+          .connect(this.signers.bob)
+          .userDepositVault(this.signers.bob.address, _depositWETH, "0x", this._bobMerkleProof, []),
       ).to.revertedWith("10");
     });
     it("fail - opUSDCgrow.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
@@ -737,7 +751,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       const _depositUSDC = await this.usdc.balanceOf(this.signers.alice.address);
       await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, _depositUSDC);
       await expect(
-        this.opUSDCgrow.connect(this.signers.alice).userDepositVault(_depositUSDC, this._aliceMerkleProof, []),
+        this.opUSDCgrow
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof, []),
       ).to.revertedWith("12");
     });
     it("fail - opWETHgrow.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
@@ -751,7 +767,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       const _depositWETH = await this.weth.balanceOf(this.signers.bob.address);
       await this.weth.connect(this.signers.bob).approve(this.opWETHgrow.address, _depositWETH);
       await expect(
-        this.opWETHgrow.connect(this.signers.bob).userDepositVault(_depositWETH, this._bobMerkleProof, []),
+        this.opWETHgrow
+          .connect(this.signers.bob)
+          .userDepositVault(this.signers.bob.address, _depositWETH, "0x", this._bobMerkleProof, []),
       ).to.revertedWith("12");
     });
     it("fail - opWETHgrow.userDepositVault, TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
@@ -762,7 +780,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
       );
       const _depositWETH = await this.weth.balanceOf(this.signers.bob.address);
       await expect(
-        this.opWETHgrow.connect(this.signers.bob).userDepositVault(_depositWETH, this._bobMerkleProof, []),
+        this.opWETHgrow
+          .connect(this.signers.bob)
+          .userDepositVault(this.signers.bob.address, _depositWETH, "0x", this._bobMerkleProof, []),
       ).to.revertedWith("11");
     });
     it("fail - opUSDCgrow.userDepositVault, TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
@@ -772,7 +792,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
         "0", // 0 USDC TVL
       );
       await expect(
-        this.opUSDCgrow.connect(this.signers.alice).userDepositVault("2500000000", this._aliceMerkleProof, []),
+        this.opUSDCgrow
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, "2500000000", "0x", this._aliceMerkleProof, []),
       ).to.revertedWith("11");
     });
   });
