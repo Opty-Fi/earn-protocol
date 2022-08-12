@@ -82,7 +82,6 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // CRV-WETH-SLP
     "0x05767d9EF41dC40689678fFca0608878fb3dE906": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // CVX-WETH-SLP
     "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // YFI-WETH-SLP
-    "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SNX-WETH-SLP
     "0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946": { rate: 90, adapter: compoundAdapter.address }, // compound YFI pool
     "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C": { rate: 80, adapter: convexFinanceAdapter.address }, //cvx3Crv
   };

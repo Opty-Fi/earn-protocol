@@ -1329,86 +1329,6 @@ const mainnetStrategiesByToken = {
         "The OptyFi vault supplies YFI to the lending pool on Compound Protocol to earn interest in YFI and, potentially, additional rewards in COMP tokens. The earned YFI tokens and any harvested COMP rewards are reinvested into the vault.",
     },
   },
-  SNX: {
-    "snx-DEPOSIT-Sushiswap-SNX-WETH": {
-      strategyName: "snx-DEPOSIT-Sushiswap-SNX-WETH",
-      token: "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
-      strategy: [
-        {
-          contract: "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470",
-          outputToken: "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470",
-          isBorrow: false,
-          outputTokenSymbol: "SNX-WETH-SLP",
-          adapterName: "SushiswapPoolAdapterEthereum",
-          protocol: "Sushiswap",
-        },
-      ],
-      riskProfileCode: 2,
-      name: "SNX-WETH LP Sushi",
-      description: null,
-    },
-    "snx-DEPOSIT-SushiswapPool-SNX-WETH-SLP-DEPOSIT-SushiswapMasterChefV1": {
-      strategyName: "snx-DEPOSIT-SushiswapPool-SNX-WETH-SLP-DEPOSIT-SushiswapMasterChefV1",
-      token: "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
-      strategy: [
-        {
-          contract: "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470",
-          outputToken: "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470",
-          isBorrow: false,
-          outputTokenSymbol: "SNX-WETH-SLP",
-          adapterName: "SushiswapPoolAdapterEthereum",
-          protocol: "Sushiswap",
-        },
-        {
-          contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-          outputToken: "0x0000000000000000000000000000000000000000",
-          isBorrow: false,
-          outputTokenSymbol: "",
-          adapterName: "SushiswapMasterChefV1Adapter",
-          protocol: "Sushiswap",
-        },
-      ],
-      riskProfileCode: 2,
-      name: "SNX-WETH LP Farming on Sushi",
-      description: null,
-    },
-    "snx-DEPOSIT-AaveV2-aSNX": {
-      strategyName: "snx-DEPOSIT-AaveV2-aSNX",
-      token: "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
-      strategy: [
-        {
-          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
-          outputToken: "0x35f6B052C598d933D69A4EEC4D04c73A191fE6c2",
-          isBorrow: false,
-          outputTokenSymbol: "aSNX",
-          adapterName: "AaveV2Adapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 2,
-      name: "SNX Lending on Aave",
-      description:
-        "The OptyFi vault supplies SNX to the lending pool on Aave Protocol to earn interest in SNX. The earned SNX tokens are reinvested into the vault.",
-    },
-    "snx-DEPOSIT-AaveV1-aSNX": {
-      strategyName: "snx-DEPOSIT-AaveV1-aSNX",
-      token: "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
-      strategy: [
-        {
-          contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
-          outputToken: "0x328C4c80BC7aCa0834Db37e6600A6c49E12Da4DE",
-          isBorrow: false,
-          outputTokenSymbol: "aSNX",
-          adapterName: "AaveV1Adapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 2,
-      name: "SNX Lending on Aave",
-      description:
-        "The OptyFi vault supplies SNX to the lending pool on Aave Protocol to earn interest in SNX. The earned SNX tokens are reinvested into the vault.",
-    },
-  },
 };
 
 const kovanStrategiesByToken = {
@@ -1971,15 +1891,6 @@ const mainnetVaults: VaultType = {
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 YFI wei user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 YFI minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 YFI TVL limit
-    },
-  ],
-  SNX: [
-    {
-      name: "opSNXaggr",
-      vaultConfig: vaultConfigRP2,
-      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
-      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
-      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
     },
   ],
 };

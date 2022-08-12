@@ -93,7 +93,6 @@ const func: DeployFunction = async ({
   const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
   const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
   const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
-  const SNX_WETH_LP = "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470";
 
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "50" },
@@ -110,7 +109,6 @@ const func: DeployFunction = async ({
     { liquidityPool: CRV_WETH_LP, tolerance: "50" },
     { liquidityPool: CVX_WETH_LP, tolerance: "70" },
     { liquidityPool: YFI_WETH_LP, tolerance: "100" },
-    { liquidityPool: SNX_WETH_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -160,8 +158,6 @@ const func: DeployFunction = async ({
     { liquidityPool: CVX_WETH_LP, wantToken: CVX, slippage: "90" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "90" },
-    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
-    { liquidityPool: SNX_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SNX, slippage: "50" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
