@@ -43,3 +43,4 @@
 [submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
 	path = contracts/protocol/adapters/ethereum/team-defi-adapters
 	url = git@github.com:Opty-Fi/team-defi-adapters.git
+	branch = fix/aave-v1
