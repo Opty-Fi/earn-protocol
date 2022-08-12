@@ -181,7 +181,10 @@ export type StrategyStepType = [string, string, boolean] & {
 };
 
 export type VaultDetailType = {
+  symbol: string;
   name: string;
+  underlyingToken: string;
+  underlyingTokensHash: string;
   vaultConfig: BigNumberish;
   userDepositCapUT: BigNumberish;
   minimumDepositValueUT: BigNumberish;

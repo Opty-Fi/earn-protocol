@@ -24,7 +24,7 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { formatEther, formatUnits /*getAddress*/ } from "ethers/lib/utils";
+import { formatEther, formatUnits, getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "../../helpers/data";
 
 chai.use(solidity);
@@ -66,9 +66,17 @@ describe("VaultV2", () => {
         await ethers.getContractAt(
           Vault__factory.abi,
           await (
-            await deployments.get(MultiChainVaults[fork][token][0].name)
+            await deployments.get(MultiChainVaults[fork][token][0].symbol)
           ).address,
         )
+      );
+      expect(await this.vaults[token].symbol()).to.eq(MultiChainVaults[fork][token][0].symbol);
+      expect(await this.vaults[token].name()).to.eq(MultiChainVaults[fork][token][0].name);
+      expect(getAddress(await this.vaults[token].underlyingToken())).to.eq(
+        getAddress(MultiChainVaults[fork][token][0].underlyingToken),
+      );
+      expect(await this.vaults[token].underlyingTokensHash()).to.eq(
+        MultiChainVaults[fork][token][0].underlyingTokensHash,
       );
       let tx = await this.vaults[token]
         .connect(governance)
@@ -85,9 +93,6 @@ describe("VaultV2", () => {
       this.tokens[token] = <ERC20>(
         await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork][token].address)
       );
-      // const _setTokenBalance =
-      //   getAddress(this.tokens[token].address) == getAddress("0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e") ? "1" : "10";
-      // await setTokenBalanceInStorage(this.tokens[token], this.vaults[token].address, "10");
       const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
       const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
         new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()),

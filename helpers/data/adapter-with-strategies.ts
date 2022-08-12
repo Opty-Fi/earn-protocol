@@ -17,6 +17,7 @@ import {
   CONVEX_ADAPTER_NAME,
 } from "../constants/adapters";
 import { eEVMNetwork, NETWORKS_CHAIN_ID, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../constants/tokens";
 
 export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   [CONVEX_ADAPTER_NAME]: [
@@ -1760,7 +1761,10 @@ const vaultConfigRP2 = ethers.BigNumber.from(
 const mainnetVaults: VaultType = {
   USDC: [
     {
-      name: "opUSDCgrow",
+      symbol: "opUSDCgrow",
+      name: "op USD Coin Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
@@ -1769,7 +1773,10 @@ const mainnetVaults: VaultType = {
   ],
   WETH: [
     {
-      name: "opWETHgrow",
+      symbol: "opWETHgrow",
+      name: "op Wrapped Ether Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 WETH minimum deposit
@@ -1778,7 +1785,10 @@ const mainnetVaults: VaultType = {
   ],
   NEWO: [
     {
-      name: "opNEWOaggr",
+      symbol: "opNEWOaggr",
+      name: "op New Order Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 NEWO wei user deposit cap
       minimumDepositValueUT: BigNumber.from("100000000000000000000000"), // 100,000 NEWO minimum deposit
@@ -1787,7 +1797,10 @@ const mainnetVaults: VaultType = {
   ],
   AAVE: [
     {
-      name: "opAAVEaggr",
+      symbol: "opAAVEaggr",
+      name: "op Aave Token Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
@@ -1796,7 +1809,10 @@ const mainnetVaults: VaultType = {
   ],
   APE: [
     {
-      name: "opAPEaggr",
+      symbol: "opAPEaggr",
+      name: "op ApeCoin Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 APE wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 APE minimum deposit
@@ -1805,7 +1821,10 @@ const mainnetVaults: VaultType = {
   ],
   SUSHI: [
     {
-      name: "opSUSHIaggr",
+      symbol: "opSUSHIaggr",
+      name: "op SushiToken Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 SUSHI wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 SUSHI minimum deposit
@@ -1814,7 +1833,10 @@ const mainnetVaults: VaultType = {
   ],
   MANA: [
     {
-      name: "opMANAaggr",
+      symbol: "opMANAaggr",
+      name: "op Decentraland MANA Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 MANA wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 MANA minimum deposit
@@ -1823,7 +1845,10 @@ const mainnetVaults: VaultType = {
   ],
   LINK: [
     {
-      name: "opLINKaggr",
+      symbol: "opLINKaggr",
+      name: "op ChainLink Token Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
@@ -1832,7 +1857,10 @@ const mainnetVaults: VaultType = {
   ],
   ENS: [
     {
-      name: "opENSaggr",
+      symbol: "opENSaggr",
+      name: "op Ethereum Name Service Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ENS wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ENS minimum deposit
@@ -1841,7 +1869,10 @@ const mainnetVaults: VaultType = {
   ],
   COMP: [
     {
-      name: "opCOMPaggr",
+      symbol: "opCOMPaggr",
+      name: "op Compound Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 COMP wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 COMP minimum deposit
@@ -1850,7 +1881,10 @@ const mainnetVaults: VaultType = {
   ],
   IMX: [
     {
-      name: "opIMXaggr",
+      symbol: "opIMXaggr",
+      name: "op Immutable X Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 IMX wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 IMX minimum deposit
@@ -1859,7 +1893,10 @@ const mainnetVaults: VaultType = {
   ],
   ALCX: [
     {
-      name: "opALCXaggr",
+      symbol: "opALCXaggr",
+      name: "op Alchemix Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ALCX wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ALCX minimum deposit
@@ -1868,7 +1905,10 @@ const mainnetVaults: VaultType = {
   ],
   CRV: [
     {
-      name: "opCRVaggr",
+      symbol: "opCRVaggr",
+      name: "op Curve DAO Token Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 CRV wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CRV minimum deposit
@@ -1877,7 +1917,10 @@ const mainnetVaults: VaultType = {
   ],
   CVX: [
     {
-      name: "opCVXaggr",
+      symbol: "opCVXaggr",
+      name: "op Convex Token Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 CVX wei user deposit cap
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CVX minimum deposit
@@ -1886,7 +1929,10 @@ const mainnetVaults: VaultType = {
   ],
   YFI: [
     {
-      name: "opYFIaggr",
+      symbol: "opYFIaggr",
+      name: "op yearn.finance Aggressive",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.hash,
       vaultConfig: vaultConfigRP2,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 YFI wei user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 YFI minimum deposit
@@ -1898,7 +1944,10 @@ const mainnetVaults: VaultType = {
 const kovanVaults: VaultType = {
   USDC: [
     {
-      name: "opAVUSDCint",
+      symbol: "opAVUSDCint",
+      name: "op Aave USD Coin intermediate",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
       minimumDepositValueUT: BigNumber.from("0"),
@@ -1910,7 +1959,10 @@ const kovanVaults: VaultType = {
 const polygonVaults: VaultType = {
   USDC: [
     {
-      name: "opUSDCgrow",
+      symbol: "opUSDCgrow",
+      name: "op USD Coin (PoS) Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
@@ -1919,7 +1971,10 @@ const polygonVaults: VaultType = {
   ],
   WMATIC: [
     {
-      name: "opWMATICgrow",
+      symbol: "opWMATICgrow",
+      name: "op Wrapped Matic Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WMATIC user deposit cap
       minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WMATIC minimum deposit
@@ -1931,7 +1986,10 @@ const polygonVaults: VaultType = {
 const mumbaiVaults: VaultType = {
   USDC: [
     {
-      name: "opUSDCgrow",
+      symbol: "opUSDCgrow",
+      name: "op USD Coin (PoS) Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
       minimumDepositValueUT: BigNumber.from("0"),
@@ -1943,7 +2001,10 @@ const mumbaiVaults: VaultType = {
 const avalancheVaults: VaultType = {
   USDC: [
     {
-      name: "opUSDCgrow",
+      symbol: "opUSDCgrow",
+      name: "op USD Coin Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
@@ -1952,7 +2013,10 @@ const avalancheVaults: VaultType = {
   ],
   USDCe: [
     {
-      name: "opUSDCegrow",
+      symbol: "opUSDC.egrow",
+      name: "op USD Coin Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
@@ -1961,7 +2025,10 @@ const avalancheVaults: VaultType = {
   ],
   WAVAX: [
     {
-      name: "opWAVAXgrow",
+      symbol: "opWAVAXgrow",
+      name: "op Wrapped AVAX Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WAVAX user deposit cap
       minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WAVAX minimum deposit
