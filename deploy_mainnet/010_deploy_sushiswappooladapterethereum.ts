@@ -172,6 +172,7 @@ const func: DeployFunction = async ({
 
   if (pendingLiquidityPoolToWantTokenToSlippages.length > 0) {
     console.log("updating pending LiquidityPool To Want Token To Slippages ");
+    console.log(JSON.stringify(pendingLiquidityPoolToWantTokenToSlippages, null, 4));
     const tx = await sushiswapPoolAdapterEthereumInstance
       .connect(riskOperatorSigner)
       .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);

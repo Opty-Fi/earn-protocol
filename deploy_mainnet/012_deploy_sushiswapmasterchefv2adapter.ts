@@ -67,10 +67,10 @@ const func: DeployFunction = async ({
 
   if (pendingUnderlyingTokenToPids.length > 0) {
     console.log("Pending underlying tokens to pids ", JSON.stringify(pendingUnderlyingTokenToPids, null, 4));
-    const tx = await sushiswapFarmAdapterEthereumInstance
-      .connect(operatorSigner)
-      .setUnderlyingTokenToPid(pendingUnderlyingTokenToPids);
-    await tx.wait(1);
+    // const tx = await sushiswapFarmAdapterEthereumInstance
+    //   .connect(operatorSigner)
+    //   .setUnderlyingTokenToPid(pendingUnderlyingTokenToPids);
+    // await tx.wait(1);
   } else {
     console.log("underlying token to pids is up to date");
   }

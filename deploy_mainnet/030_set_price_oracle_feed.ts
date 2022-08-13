@@ -233,6 +233,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 
   if (pendingChainlinkTimeallowances.length > 0) {
     console.log("setting pending Chainlink Time allowances ");
+    console.log(JSON.stringify(pendingChainlinkTimeallowances, null, 4));
+
     const tx = await optyfiOracleInstance
       .connect(ownerSigner)
       .setChainlinkTimeAllowance(pendingChainlinkTimeallowances);

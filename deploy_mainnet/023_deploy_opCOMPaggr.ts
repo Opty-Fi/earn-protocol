@@ -50,6 +50,7 @@ const func: DeployFunction = async ({
     console.log("approve token and map hash");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
@@ -64,6 +65,7 @@ const func: DeployFunction = async ({
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
