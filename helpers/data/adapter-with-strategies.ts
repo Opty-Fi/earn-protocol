@@ -287,8 +287,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
-      name: null,
-      description: null,
+      name: "3CRV LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies USDC to the 3CRV liquidity pool on Curve Finance and obtains the 3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the 3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
     },
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
       strategyName:
@@ -321,8 +322,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
-      name: null,
-      description: null,
+      name: "FRAX3CRV LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies USDC to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
     },
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
       strategyName:
@@ -355,8 +357,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
-      name: null,
-      description: null,
+      name: "MIM3CRV LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies USDC to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
     },
     "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv": {
       strategyName: "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv",
@@ -423,8 +426,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 1,
-      name: null,
-      description: null,
+      name: "stETH LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
     },
     "weth-DEPOSIT-AaveV2-aWETH": {
       strategyName: "weth-DEPOSIT-AaveV2-aWETH",
@@ -462,6 +466,50 @@ const mainnetStrategiesByToken = {
       description:
         "The OptyFi vault supplies WETH to the lending pool on Aave Protocol to earn interest in WETH. The earned WETH tokens are reinvested into the vault.",
     },
+    "weth-DEPOSIT-Compound-cETH": {
+      strategyName: "weth-DEPOSIT-Compound-cETH",
+      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      strategy: [
+        {
+          contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+          outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+          isBorrow: false,
+          outputTokenSymbol: "cETH",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "ETH Lending on Compound",
+      description:
+        "The OptyFi vault converts WETH to ETH and supplies ETH to the lending pool on Compound Protocol to earn interest in ETH and, potentially, additional rewards in COMP tokens. The earned COMP tokens are harvested to ETH and reinvested into the vault.",
+    },
+    "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV": {
+      strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV",
+      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      strategy: [
+        {
+          contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
+          outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
+          isBorrow: false,
+          outputTokenSymbol: "eCRV",
+          adapterName: "CurveSwapPoolAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
+          outputToken: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
+          isBorrow: false,
+          outputTokenSymbol: "cvxeCRV",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "sETH LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+    },
   },
   NEWO: {
     "newo-DEPOSIT-NewOrder-stkNEWO": {
@@ -478,8 +526,8 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
-      name: null,
-      description: null,
+      name: "NEWO Staking on NEWO V2",
+      description: "The OptyFi vault supplies NEWO to the NEWO V2 staking pool to earn NEWO rewards.",
     },
   },
   AAVE: {
@@ -562,7 +610,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "APE-USDT LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies APE to the APE-USDT liquidity pool on Sushi and obtains the Sushi APE-USDT LP token which accrues yield from the pool’s trading fees.",
     },
     "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "ape-DEPOSIT-SushiswapPool-APE-USDT-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -587,7 +636,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "APE-USDT LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies APE to the APE-USDT liquidity pool on Sushi and obtains the Sushi APE-USDT LP token which accrues yield from the pool’s trading fees. The vault then stakes the APE-USDT LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to APE and reinvested into the vault.",
     },
   },
   SUSHI: {
@@ -606,7 +656,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "SUSHI-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies SUSHI to the SUSHI-WETH liquidity pool on SushiSwap and obtains the SushiSwap SUSHI-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "sushi-DEPOSIT-SushiswapPool-SUSHI-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -631,7 +682,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "SUSHI-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies SUSHI to the SUSHI-WETH liquidity pool on SushiSwap and obtains the SushiSwap SUSHI-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the SUSHI-WETH LP token on SushiSwap MasterChef to earn additional SUSHI rewards which are reinvested into the vault.",
     },
     "sushi-DEPOSIT-Compound-cSUSHI": {
       strategyName: "sushi-DEPOSIT-Compound-cSUSHI",
@@ -666,7 +718,7 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "Native SUSHI Staking on Sushi Bar",
-      description: null,
+      description: "The OptyFi vault supplies SUSHI to the Sushi Bar to earn SUSHI staking rewards.",
     },
     "sushi-DEPOSIT-SushiBar-xSUSHI-DEPOSIT-AaveV2-aXSUSHI": {
       strategyName: "sushi-DEPOSIT-SushiBar-xSUSHI-DEPOSIT-AaveV2-aXSUSHI",
@@ -691,7 +743,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "Lending xSUSHI to Aave",
-      description: null,
+      description:
+        "The OptyFi vault supplies SUSHI to the Sushi Bar and lends xSUSHI to Aave to earn xSUSHI and SUSHI staking rewards.",
     },
   },
   MANA: {
@@ -710,7 +763,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "MANA-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies MANA to the MANA-WETH liquidity pool on Sushi and obtains the Sushi MANA-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "mana-DEPOSIT-SushiswapPool-MANA-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -735,7 +789,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "MANA-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies MANA to the MANA-WETH liquidity pool on Sushi and obtains the Sushi MANA-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the MANA-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to MANA and reinvested into the vault.",
     },
     "mana-DEPOSIT-AaveV1-aMANA": {
       strategyName: "mana-DEPOSIT-AaveV1-aMANA",
@@ -790,7 +845,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "LINK-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies LINK to the LINK-WETH liquidity pool on Sushi and obtains the Sushi LINK-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "link-DEPOSIT-Sushiswap-LINK-WETH-DEPOSIT-SushiswapMasterChef": {
       strategyName: "link-DEPOSIT-Sushiswap-LINK-WETH-DEPOSIT-SushiswapMasterChef",
@@ -815,7 +871,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "LINK-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies LINK to the LINK-WETH liquidity pool on Sushi and obtains the Sushi LINK-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the LINK-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to LINK and reinvested into the vault.",
     },
     "link-DEPOSIT-AaveV1-aLINK": {
       strategyName: "link-DEPOSIT-AaveV1-aLINK",
@@ -930,7 +987,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "ENS-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies ENS to the ENS-WETH liquidity pool on Sushi and obtains the Sushi ENS-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "ens-DEPOSIT-Sushiswap-ENS-WETH-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "ens-DEPOSIT-Sushiswap-ENS-WETH-DEPOSIT-SushiswapMasterChefV2",
@@ -955,7 +1013,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "ENS-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies ENS to the ENS-WETH liquidity pool on Sushi and obtains the Sushi ENS-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the ENS-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to ENS and reinvested into the vault.",
     },
     "ens-DEPOSIT-AaveV2-aENS": {
       strategyName: "ens-DEPOSIT-AaveV2-aENS",
@@ -992,7 +1051,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "COMP-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies COMP to the COMP-WETH liquidity pool on Sushi and obtains the Sushi COMP-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "comp-DEPOSIT-Sushiswap-COMP-WETH-DEPOSIT-SushiswapMasterChef": {
       strategyName: "comp-DEPOSIT-Sushiswap-COMP-WETH-DEPOSIT-SushiswapMasterChef",
@@ -1017,7 +1077,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "COMP-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies COMP to the COMP-WETH liquidity pool on Sushi and obtains the Sushi COMP-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the COMP-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to COMP and reinvested into the vault.",
     },
     "comp-DEPOSIT-Compound-cCOMP": {
       strategyName: "comp-DEPOSIT-Compound-cCOMP",
@@ -1054,7 +1115,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "IMX-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies IMX to the IMX-WETH liquidity pool on Sushi and obtains the Sushi IMX-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "imx-DEPOSIT-SushiswapPool-IMX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -1079,7 +1141,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "IMX-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies IMX to the IMX-WETH liquidity pool on Sushi and obtains the Sushi IMX-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the IMX-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to IMX and reinvested into the vault.",
     },
   },
   ALCX: {
@@ -1098,7 +1161,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "ALCX-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies ALCX to the ALCX-WETH liquidity pool on Sushi and obtains the Sushi ALCX-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "alcx-DEPOSIT-SushiswapPool-ALCX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -1123,7 +1187,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "ALCX-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies ALCX to the ALCX-WETH liquidity pool on Sushi and obtains the Sushi ALCX-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the ALCX-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to ALCX and reinvested into the vault.",
     },
   },
   CRV: {
@@ -1141,8 +1206,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
-      name: " CRV-WETH LP on Sushi",
-      description: null,
+      name: "CRV-WETH LP on Sushi",
+      description:
+        "The OptyFi vault supplies CRV to the CRV-WETH liquidity pool on Sushi and obtains the Sushi CRV-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "crv-DEPOSIT-SushiswapPool-CRV-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
       strategyName: "crv-DEPOSIT-SushiswapPool-CRV-WETH-SLP-DEPOSIT-SushiswapMasterChef",
@@ -1166,8 +1232,9 @@ const mainnetStrategiesByToken = {
         },
       ],
       riskProfileCode: 2,
-      name: " CRV-WETH LP Farming on Sushi",
-      description: null,
+      name: "CRV-WETH LP Farming on Sushi",
+      description:
+        "The OptyFi vault supplies CRV to the CRV-WETH liquidity pool on Sushi and obtains the Sushi CRV-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the CRV-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to CRV and reinvested into the vault.",
     },
     "crv-DEPOSIT-AaveV2-aCRV": {
       strategyName: "crv-DEPOSIT-AaveV2-aCRV",
@@ -1204,7 +1271,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "CVX-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies CVX to the CVX-WETH liquidity pool on Sushi and obtains the Sushi CVX-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "cvx-DEPOSIT-SushiswapPool-CVX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2": {
       strategyName: "cvx-DEPOSIT-SushiswapPool-CVX-WETH-SLP-DEPOSIT-SushiswapMasterChefV2",
@@ -1229,7 +1297,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "CVX-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies CVX to the CVX-WETH liquidity pool on Sushi and obtains the Sushi CVX-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the CVX-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to CVX and reinvested into the vault.",
     },
   },
   YFI: {
@@ -1248,7 +1317,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "YFI-WETH LP on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies YFI to the YFI-WETH liquidity pool on Sushi and obtains the Sushi YFI-WETH LP token which accrues yield from the pool’s trading fees.",
     },
     "yfi-DEPOSIT-SushiswapPool-YFI-WETH-SLP-DEPOSIT-SushiswapMasterChefV1": {
       strategyName: "yfi-DEPOSIT-SushiswapPool-YFI-WETH-SLP-DEPOSIT-SushiswapMasterChefV1",
@@ -1273,7 +1343,8 @@ const mainnetStrategiesByToken = {
       ],
       riskProfileCode: 2,
       name: "YFI-WETH LP Farming on Sushi",
-      description: null,
+      description:
+        "The OptyFi vault supplies YFI to the YFI-WETH liquidity pool on Sushi and obtains the Sushi YFI-WETH LP token which accrues yield from the pool’s trading fees. The vault then stakes the YFI-WETH LP token on Sushi MasterChef to earn additional SUSHI rewards which are harvested to YFI and reinvested into the vault.",
     },
     "yfi-DEPOSIT-AaveV2-aYFI": {
       strategyName: "yfi-DEPOSIT-AaveV2-aYFI",
