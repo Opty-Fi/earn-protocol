@@ -18,6 +18,7 @@ task(TASKS.ACTION_TASKS.CHANGE_VAULT_PROXY_V2_ADMIN.NAME, TASKS.ACTION_TASKS.CHA
         BigNumber.from("0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103"),
       );
       const currentAdmin = getAddress(`0x${storage.slice(-40)}`);
+      console.log("currentAdmin ", currentAdmin);
       if (getAddress(newAdmin) != getAddress(currentAdmin)) {
         const feeData = await ethers.provider.getFeeData();
         const tx = await vaultProxyInstance.changeAdmin(newAdmin, {

@@ -62,7 +62,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-SUSHI-WETH
     "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7": { rate: 90, adapter: compoundAdapter.address }, // compound SUSHI pool
     "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-MANA-WETH
-    "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272": { rate: 50, adapter: sushiBarAdapter.address }, // xSUSHI
+    "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272": { rate: 90, adapter: sushiBarAdapter.address }, // xSUSHI
     "0x32512Bee3848bfcBb7bEAf647aa697a100f3b706": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC
     "0xA1c3492b71938E144ad8bE4c2fB6810b01A43dD8": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxcDAI+cUSDC+cUSDT
     "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // LINK-WETH-SLP
