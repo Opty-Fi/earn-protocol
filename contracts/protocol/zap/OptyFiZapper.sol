@@ -49,12 +49,15 @@ contract OptyFiZapper is IOptyFiZapper, Ownable {
         swapper = ISwapper(_swapper);
     }
 
+    /**
+     * @inheritdoc IOptyFiZapper
+     */
     function zapIn(
         address _token,
         uint256 _amount,
         bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
-    ) external payable override returns (uint256 sharesReceived) {
+    ) external payable override returns (uint256) {
         address underlyingToken = _getUnderlyingToken(_zapParams.vault);
         require(underlyingToken != _token, "Invalid Token");
 
@@ -79,25 +82,34 @@ contract OptyFiZapper is IOptyFiZapper, Ownable {
                 _zapParams.deadline
             );
 
-        (uint256 receivedAmount, ) = swapper.swap{ value: msg.value }(swapData);
+        (uint256 receivedAmount, uint256 returnedBalance) = swapper.swap{ value: msg.value }(swapData);
+        if (returnedBalance > 0) {
+            IERC20(_token).safeTransfer(msg.sender, returnedBalance);
+        }
 
         _approveTokenIfNeeded(underlyingToken, _zapParams.vault, receivedAmount);
 
-        sharesReceived = IVault(_zapParams.vault).userDepositVault(
-            msg.sender,
-            receivedAmount,
-            _zapParams.permit,
-            _zapParams.accountsProof,
-            _zapParams.codesProof
-        );
+        uint256 sharesReceived =
+            IVault(_zapParams.vault).userDepositVault(
+                msg.sender,
+                receivedAmount,
+                _zapParams.permit,
+                _zapParams.accountsProof,
+                _zapParams.codesProof
+            );
+
+        return sharesReceived;
     }
 
+    /**
+     * @inheritdoc IOptyFiZapper
+     */
     function zapOut(
         address _token,
         uint256 _amount,
         bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
-    ) external override returns (uint256 receivedAmount) {
+    ) external override returns (uint256) {
         address underlyingToken = _getUnderlyingToken(_zapParams.vault);
         require(underlyingToken != _token, "Invalid Token");
 
@@ -129,21 +141,40 @@ contract OptyFiZapper is IOptyFiZapper, Ownable {
                 _zapParams.deadline
             );
 
-        (receivedAmount, ) = swapper.swap(swapData);
+        (uint256 receivedAmount, uint256 returnedBalance) = swapper.swap(swapData);
+        if (returnedBalance > 0) {
+            IERC20(_token).safeTransfer(msg.sender, returnedBalance);
+        }
+
+        return receivedAmount;
     }
 
+    /**
+     * @inheritdoc IOptyFiZapper
+     */
     function setSwapper(address _swapper) external override onlyOwner {
         swapper = ISwapper(_swapper);
     }
 
+    /**
+     * @inheritdoc IOptyFiZapper
+     */
     function getSwapper() external view returns (address) {
         return address(swapper);
     }
 
+    /**
+     * @dev function to get the underlying token of the OptyFi Vault
+     */
     function _getUnderlyingToken(address _vault) internal returns (address) {
         return IVault(_vault).underlyingToken();
     }
 
+    /**
+     * @dev function to call token permit method of extended ERC20
+     * @param _token address of the token to call
+     * @param _permitData raw data of the call `permit` of the token
+     */
     function _permit(address _token, bytes memory _permitParams) internal {
         if (_permitParams.length == 32 * 7) {
             (bool success, ) = _token.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
@@ -151,6 +182,12 @@ contract OptyFiZapper is IOptyFiZapper, Ownable {
         }
     }
 
+    /**
+     * @dev function to increase allowance
+     * @param _token address of the token to call
+     * @param _spender address of the spender
+     * @param _amount transfer amount
+     */
     function _approveTokenIfNeeded(
         address _token,
         address _spender,
