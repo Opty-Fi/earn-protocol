@@ -24,6 +24,18 @@ library Errors {
         uint256 _upperBound
     );
 
+    error PriceOutwithBounds(
+        uint256 _price,
+        uint256 _lowerBound,
+        uint256 _upperBound
+    );
+
+    error PriceWithinBounds(
+        uint256 _price,
+        uint256 _lowerBound,
+        uint256 _upperBound
+    );
+
     /**
      * @notice emitted when maker has an active order
      * @param _maker address of maker of order

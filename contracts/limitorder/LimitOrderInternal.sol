@@ -68,11 +68,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address vault = _orderParams.vault;
         _permitOrderCreation(_l, msg.sender, vault, _orderParams.expiration);
 
-        order.priceTarget = _orderParams.priceTarget;
         order.liquidationShareBP = _orderParams.liquidationShareBP;
         order.expiration = _orderParams.expiration;
         order.lowerBound = _orderParams.lowerBound;
         order.upperBound = _orderParams.upperBound;
+        order.direction = _orderParams.direction;
         order.returnLimitBP = _orderParams.returnLimitBP;
         order.vault = vault;
         order.maker = payable(msg.sender);
@@ -105,9 +105,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.vault != address(0)) {
             order.vault = _orderParams.vault;
         }
-        if (_orderParams.priceTarget != 0) {
-            order.priceTarget = _orderParams.priceTarget;
-        }
         if (_orderParams.liquidationShareBP != 0) {
             order.liquidationShareBP = _orderParams.liquidationShareBP;
         }
@@ -120,6 +117,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.upperBound != 0) {
             order.upperBound = _orderParams.upperBound;
         }
+        if (_orderParams.direction != order.direction) {
+            order.direction = _orderParams.direction;
+        }
+
         if (_orderParams.returnLimitBP != 0) {
             order.returnLimitBP = _orderParams.returnLimitBP;
         }
@@ -387,7 +388,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_order.expiration <= _timestamp()) {
             revert Errors.Expired(_timestamp(), _order.expiration);
         }
-        _isPriceBound(_price(_oracle, _token), _order);
+        _areBoundsSatisfied(_price(_oracle, _token), _order);
     }
 
     /**
@@ -580,17 +581,25 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _price the latest price of the underlying token of the limit order
      * @param _order the limit order containing the target price to check the latest price against
      */
-    function _isPriceBound(uint256 _price, DataTypes.Order memory _order)
+    function _areBoundsSatisfied(uint256 _price, DataTypes.Order memory _order)
         internal
         pure
     {
-        //note: may be done inline
-        uint256 target = _order.priceTarget;
-        uint256 lowerBound = (target - (target * _order.lowerBound) / BASIS);
-        uint256 upperBound = (target + (target * _order.upperBound) / BASIS);
+        uint256 lowerBound = _order.lowerBound;
+        uint256 upperBound = _order.upperBound;
 
-        if (!(lowerBound <= _price && _price <= upperBound)) {
-            revert Errors.UnboundPrice(_price, lowerBound, upperBound);
+        if (_order.direction == DataTypes.BoundDirection.Out) {
+            if (!(lowerBound >= _price || _price >= upperBound)) {
+                revert Errors.PriceWithinBounds(_price, lowerBound, upperBound);
+            }
+        } else {
+            if (!(lowerBound <= _price && _price <= upperBound)) {
+                revert Errors.PriceOutwithBounds(
+                    _price,
+                    lowerBound,
+                    upperBound
+                );
+            }
         }
     }
 
