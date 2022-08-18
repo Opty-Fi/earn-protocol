@@ -1,15 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber } from "ethers";
 import hre, { deployments } from "hardhat";
-import {
-  ERC20,
-  ERC20Permit,
-  IncentivisedERC20__factory,
-  IOptyFiZapper,
-  ISwapper,
-  IUniswapV2Router02,
-  Vault,
-} from "../typechain";
+import { ERC20, IOptyFiZapper, ISwapper, IUniswapV2Router02, Vault } from "../typechain";
 import { ZapData } from "../helpers/type";
 import { expect } from "chai";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -23,13 +15,11 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
   let UNIWhale: SignerWithAddress;
 
   let instance: IOptyFiZapper;
-  let swapper: ISwapper;
   let USDCERC20: ERC20;
   let WETHERC20: ERC20;
   let UNIERC20: ERC20;
   let uniRouter: IUniswapV2Router02;
   let vault: Vault;
-  let vaultToken: ERC20Permit;
   let zapData: ZapData;
 
   let snapshotId: number;
@@ -56,7 +46,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
     before(async () => {
       OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
       vault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_ADDRESS);
-      vaultToken = <ERC20Permit>await ethers.getContractAt(IncentivisedERC20__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
 
       await vault.setUnpaused(true);
       await vault.setValueControlParams(
@@ -285,24 +274,21 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
 
         const expectedReturns = await uniRouter.getAmountsOut(usdcZapOutAmount, [USDC, WETH]);
 
-        // const deadline = ethers.constants.MaxUint256;
-        // const { v, r, s } = await getPermitSignature(maker, vaultToken, instance.address, usdcZapOutAmount, deadline);
-        // const dataPermit = ethers.utils.defaultAbiCoder.encode(
-        //   ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
-        //   [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
-        // );
-        await vaultToken.connect(maker).approve(instance.address, usdcZapOutAmount);
-        //zap UNI -> opUSDCgrow
-        await expect(await instance.connect(maker).zapOut(ETH, usdcZapOutAmount, "0x", zapData)).to.changeEtherBalance(
-          maker,
-          expectedReturns[1],
+        const deadline = ethers.constants.MaxUint256;
+        const { v, r, s } = await getPermitSignature(maker, vault, instance.address, usdcZapOutAmount, deadline);
+        const dataPermit = ethers.utils.defaultAbiCoder.encode(
+          ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
+          [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
         );
+        // await vaultToken.connect(maker).approve(instance.address, usdcZapOutAmount);
+        //zap UNI -> opUSDCgrow
+        await expect(
+          await instance.connect(maker).zapOut(ETH, usdcZapOutAmount, dataPermit, zapData),
+        ).to.changeEtherBalance(maker, expectedReturns[1]);
       });
 
       it("opUSDCgrow => WETH", async () => {
         usdcZapOutAmount = await vault.balanceOf(maker.address);
-
-        await vaultToken.connect(maker).approve(instance.address, usdcZapOutAmount);
 
         //calculate call datas for swap
         const uniswapData = uniRouter.interface.encodeFunctionData("swapExactTokensForTokens", [
@@ -339,25 +325,16 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
 
         const expectedReturns = await uniRouter.getAmountsOut(usdcZapOutAmount, [USDC, WETH]);
 
-        // const deadline = ethers.constants.MaxUint256;
-        // const { v, r, s } = await getPermitSignature(
-        //   maker,
-        //   vaultToken,
-        //   instance.address,
-        //   usdcZapOutAmount,
-        //   deadline
-        // );
-        // const dataPermit = ethers.utils.defaultAbiCoder.encode(
-        //   ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
-        //   [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
-        // );
-        await vaultToken.connect(maker).approve(instance.address, usdcZapOutAmount);
-        // zap opUSDCgrow => WETH
-        await expect(() => instance.connect(maker).zapOut(WETH, usdcZapOutAmount, "0x", zapData)).to.changeTokenBalance(
-          WETHERC20,
-          maker,
-          expectedReturns[1],
+        const deadline = ethers.constants.MaxUint256;
+        const { v, r, s } = await getPermitSignature(maker, vault, instance.address, usdcZapOutAmount, deadline);
+        const dataPermit = ethers.utils.defaultAbiCoder.encode(
+          ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
+          [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
         );
+        // zap opUSDCgrow => WETH
+        await expect(() =>
+          instance.connect(maker).zapOut(WETH, usdcZapOutAmount, dataPermit, zapData),
+        ).to.changeTokenBalance(WETHERC20, maker, expectedReturns[1]);
       });
     });
   });
