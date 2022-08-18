@@ -9,7 +9,7 @@ import {
   OptyFiZapper__factory,
 } from "../../typechain";
 
-describe("::OptyFiSwapper Contracts", () => {
+describe("::OptyFiZapper Contracts", () => {
   const ethers = hre.ethers;
   const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
