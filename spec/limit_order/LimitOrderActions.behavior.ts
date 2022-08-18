@@ -240,6 +240,16 @@ export function describeBehaviorOfLimitOrderActions(
             `PastExpiration(${orderParams.expiration}, ${failedOrderParams.expiration})`,
           );
         });
+
+        it('lower bound is larger than upper bound', async () => {
+          failedOrderParams.upperBound = ethers.constants.Zero;
+          failedOrderParams.expiration = failedOrderParams.expiration.add(
+            BigNumber.from('10000'),
+          );
+          await expect(
+            instance.connect(maker).createOrder(failedOrderParams),
+          ).to.be.revertedWith(`ReverseBounds()`);
+        });
       });
     });
 
