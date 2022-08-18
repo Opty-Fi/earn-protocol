@@ -120,7 +120,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.direction != order.direction) {
             order.direction = _orderParams.direction;
         }
-
         if (_orderParams.returnLimitBP != 0) {
             order.returnLimitBP = _orderParams.returnLimitBP;
         }
@@ -583,7 +582,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
      */
     function _areBoundsSatisfied(uint256 _price, DataTypes.Order memory _order)
         internal
-        pure
+        view
     {
         uint256 lowerBound = _order.lowerBound;
         uint256 upperBound = _order.upperBound;

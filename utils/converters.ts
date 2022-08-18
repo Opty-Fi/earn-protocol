@@ -14,7 +14,7 @@ export function convertOrderParamsToOrder(
   order.lowerBound = _orderParams.lowerBound;
   order.returnLimitBP = _orderParams.returnLimitBP;
   order.vault = _orderParams.vault;
-  order.priceTarget = _orderParams.priceTarget;
+  order.direction = _orderParams.direction;
 
   return order;
 }

@@ -1,11 +1,11 @@
 import { BigNumber, BytesLike } from 'ethers';
 
 export interface Order {
-  priceTarget: BigNumber;
   liquidationShareBP: BigNumber;
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
+  direction: BigNumber;
   returnLimitBP: BigNumber;
   maker: string;
   vault: string;
@@ -13,11 +13,11 @@ export interface Order {
 }
 
 export interface OrderParams {
-  priceTarget: BigNumber;
   liquidationShareBP: BigNumber;
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
+  direction: BigNumber;
   returnLimitBP: BigNumber;
   vault: string;
   depositUSDC: boolean;

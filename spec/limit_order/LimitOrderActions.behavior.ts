@@ -67,33 +67,33 @@ export function describeBehaviorOfLimitOrderActions(
   const newPriceTarget = ethers.utils.parseEther('1');
 
   const orderParams: OrderParams = {
-    priceTarget: priceTarget,
     liquidationShareBP: ethers.utils.parseEther('0.1'),
     expiration: expiration,
-    upperBound: ethers.utils.parseEther('0.5'),
-    lowerBound: ethers.utils.parseEther('0.5'),
+    upperBound: ethers.utils.parseEther('150'),
+    lowerBound: ethers.utils.parseEther('50'),
+    direction: ethers.constants.One,
     returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
     depositUSDC: false,
   };
 
   const failedOrderParams: OrderParams = {
-    priceTarget: priceTarget,
     liquidationShareBP: ethers.utils.parseEther('0.1'),
     expiration: expiration.sub(BigNumber.from('1000')),
-    upperBound: ethers.utils.parseEther('0.5'),
-    lowerBound: ethers.utils.parseEther('0.05'),
+    upperBound: ethers.utils.parseEther('150'),
+    lowerBound: ethers.utils.parseEther('50'),
+    direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
     depositUSDC: false,
   };
 
   const modifyOrderParams: OrderParams = {
-    priceTarget: newPriceTarget,
     liquidationShareBP: ethers.utils.parseEther('0.05'),
     expiration: newExpiration,
-    upperBound: ethers.utils.parseEther('0.1'),
-    lowerBound: ethers.utils.parseEther('0.1'),
+    upperBound: ethers.utils.parseEther('250'),
+    lowerBound: ethers.utils.parseEther('150'),
+    direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.9'),
     vault: AaveVaultProxy,
     depositUSDC: true,
@@ -184,12 +184,13 @@ export function describeBehaviorOfLimitOrderActions(
           maker.address,
           AaveVaultProxy,
         );
+
         const createdOrder: Order = {
-          priceTarget: makerOrder.priceTarget,
           liquidationShareBP: makerOrder.liquidationShareBP,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
+          direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
@@ -197,7 +198,6 @@ export function describeBehaviorOfLimitOrderActions(
         };
 
         const order = convertOrderParamsToOrder(orderParams, maker.address);
-
         expect(createdOrder).to.deep.equal(order);
       });
 
@@ -206,7 +206,6 @@ export function describeBehaviorOfLimitOrderActions(
         await expect(await instance.connect(maker).createOrder(orderParams))
           .to.emit(instance, 'LimitOrderCreated')
           .withArgs([
-            order.priceTarget,
             order.liquidationShareBP,
             order.expiration,
             order.lowerBound,
@@ -214,6 +213,7 @@ export function describeBehaviorOfLimitOrderActions(
             order.returnLimitBP,
             order.maker,
             order.vault,
+            order.direction,
             order.depositUSDC,
           ]);
       });
@@ -662,17 +662,9 @@ export function describeBehaviorOfLimitOrderActions(
             `Expired(${expiredTimestamp}, ${orderParams.expiration})`,
           );
         });
-        it('price is not within bounds', async () => {
+        it('price is outwith bounds when set to be within bounds', async () => {
+          modifyOrderParams.direction = ethers.constants.One;
           await instance.connect(maker).createOrder(modifyOrderParams);
-
-          const lowerError = newPriceTarget
-            .mul(modifyOrderParams.lowerBound)
-            .div(BASIS);
-          const upperError = newPriceTarget
-            .mul(modifyOrderParams.upperBound)
-            .div(BASIS);
-          const lowerBound = newPriceTarget.sub(lowerError);
-          const upperBound = newPriceTarget.add(upperError);
 
           const oracle: OptyFiOracle = await ethers.getContractAt(
             'OptyFiOracle',
@@ -685,7 +677,29 @@ export function describeBehaviorOfLimitOrderActions(
               .connect(maker)
               .execute(maker.address, AaveVaultProxy, swapParams),
           ).to.be.revertedWith(
-            `UnboundPrice(${price}, ${lowerBound}, ${upperBound})`,
+            `PriceOutwithBounds(${price}, ${modifyOrderParams.lowerBound}, ${modifyOrderParams.upperBound})`,
+          );
+        });
+
+        it('price is within bounds when set to be outwith bounds', async () => {
+          modifyOrderParams.direction = ethers.constants.Zero;
+          modifyOrderParams.lowerBound = ethers.utils.parseEther('50.0');
+          modifyOrderParams.upperBound = ethers.utils.parseEther('70.0');
+
+          await instance.connect(maker).createOrder(modifyOrderParams);
+
+          const oracle: OptyFiOracle = await ethers.getContractAt(
+            'OptyFiOracle',
+            await instance.oracle(),
+          );
+          const price = await oracle.getTokenPrice(AaveERC20.address, USD);
+
+          await expect(
+            instance
+              .connect(maker)
+              .execute(maker.address, AaveVaultProxy, swapParams),
+          ).to.be.revertedWith(
+            `PriceWithinBounds(${price}, ${modifyOrderParams.lowerBound}, ${modifyOrderParams.upperBound})`,
           );
         });
 
@@ -793,11 +807,11 @@ export function describeBehaviorOfLimitOrderActions(
           AaveVaultProxy,
         );
         const modifiedOrder: Order = {
-          priceTarget: makerOrder.priceTarget,
           liquidationShareBP: makerOrder.liquidationShareBP,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
+          direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
