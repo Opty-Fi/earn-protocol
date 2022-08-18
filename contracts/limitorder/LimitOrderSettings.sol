@@ -7,7 +7,7 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
 
 /**
- * @title LimitOrderActions facet for LimitOrderDiamond
+ * @title LimitOrderSettings facet for LimitOrderDiamond
  * @author OptyFi
  * @dev contains all governance-facing actions
  */

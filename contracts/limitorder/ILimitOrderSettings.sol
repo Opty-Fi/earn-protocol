@@ -15,7 +15,7 @@ interface ILimitOrderSettings {
     /**
      * @notice sets the code merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _proof the code merkle proof
-     * @param _vault address of OptyFi vault to get codeProof for
+     * @param _vault address of OptyFi vault to set codeProof
      */
     function setCodeProof(bytes32[] memory _proof, address _vault) external;
 
