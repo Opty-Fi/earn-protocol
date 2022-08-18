@@ -212,3 +212,16 @@ export type PoolRate = {
   pool: string;
   rate: number;
 };
+
+export type ZapData = {
+  vault: string;
+  toAmount: BigNumberish;
+  deadline: BigNumberish;
+  exchangeData: string;
+  permit: string;
+  callees: string[];
+  startIndexes: BigNumberish[];
+  values: BigNumberish[];
+  accountsProof: string[];
+  codesProof: string[];
+};
