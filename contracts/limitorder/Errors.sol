@@ -13,28 +13,35 @@ library Errors {
     error NoActiveOrder(address _maker);
 
     /**
-     * @notice emitted when a given price is not withing lower/upper bounds
+     * @notice emitted when a given price is not within upper/lower bounds when direction of
+     * bounds is 'In'
      * @param _price price to check
      * @param _lowerBound lower bound to check against
      * @param _upperBound upper bound to check against
      */
-    error UnboundPrice(
-        uint256 _price,
-        uint256 _lowerBound,
-        uint256 _upperBound
-    );
-
     error PriceOutwithBounds(
         uint256 _price,
         uint256 _lowerBound,
         uint256 _upperBound
     );
 
+    /**
+     * @notice emitted when a given price is within upper/lower bounds when direction of
+     * bounds is 'Out'
+     * @param _price price to check
+     * @param _lowerBound lower bound to check against
+     * @param _upperBound upper bound to check against
+     */
     error PriceWithinBounds(
         uint256 _price,
         uint256 _lowerBound,
         uint256 _upperBound
     );
+
+    /**
+     * @notice emitted when lowerBound >= upperBound
+     */
+    error ReverseBounds();
 
     /**
      * @notice emitted when maker has an active order

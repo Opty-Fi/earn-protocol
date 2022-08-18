@@ -66,12 +66,21 @@ contract LimitOrderInternal is ILimitOrderInternal {
         DataTypes.OrderParams memory _orderParams
     ) internal returns (DataTypes.Order memory order) {
         address vault = _orderParams.vault;
-        _permitOrderCreation(_l, msg.sender, vault, _orderParams.expiration);
+        uint256 upperBound = _orderParams.upperBound;
+        uint256 lowerBound = _orderParams.lowerBound;
+        _permitOrderCreation(
+            _l,
+            msg.sender,
+            vault,
+            _orderParams.expiration,
+            lowerBound,
+            upperBound
+        );
 
         order.liquidationShareBP = _orderParams.liquidationShareBP;
         order.expiration = _orderParams.expiration;
-        order.lowerBound = _orderParams.lowerBound;
-        order.upperBound = _orderParams.upperBound;
+        order.lowerBound = lowerBound;
+        order.upperBound = upperBound;
         order.direction = _orderParams.direction;
         order.returnLimitBP = _orderParams.returnLimitBP;
         order.vault = vault;
@@ -433,13 +442,18 @@ contract LimitOrderInternal is ILimitOrderInternal {
         LimitOrderStorage.Layout storage _l,
         address _user,
         address _vault,
-        uint256 _expiration
+        uint256 _expiration,
+        uint256 _lowerBound,
+        uint256 _upperBound
     ) internal view {
         if (_l.userVaultOrderActive[_user][_vault]) {
             revert Errors.ActiveOrder(_user, _vault);
         }
         if (_timestamp() > _expiration) {
             revert Errors.PastExpiration(_timestamp(), _expiration);
+        }
+        if (_lowerBound >= _upperBound) {
+            revert Errors.ReverseBounds();
         }
     }
 
