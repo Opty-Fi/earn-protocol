@@ -105,6 +105,18 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: "0.8.15",
+        settings: {
+          metadata: {
+            bytecodeHash: "none",
+          },
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   etherscan: {
