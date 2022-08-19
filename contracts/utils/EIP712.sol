@@ -3,7 +3,7 @@
 pragma solidity >=0.6.0 <0.8.0;
 
 /**
- * @dev This contract is a modified version of the OpenZeppelin v3.4 implementation as it does not cache
+ * @dev This contract is a modified version of the OpenZeppelin v3.4 implementation as it does not cach
  * the domain seprator and chain_id in order to work with OptyFi's Vault Upgradeability pattern
  */
 abstract contract EIP712 {
