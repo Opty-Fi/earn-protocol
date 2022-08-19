@@ -6,7 +6,7 @@ import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { EIP712 } from "@openzeppelin/contracts/drafts/EIP712.sol";
+import { EIP712 } from "../../utils/EIP712.sol";
 import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 /**
