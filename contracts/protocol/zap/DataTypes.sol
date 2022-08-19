@@ -9,7 +9,7 @@ library DataTypes {
     /**
      * @param vault address of the vault
      * @param toAmount amount of toToken to receive
-     * @param callees array of addresses to call (DEX addresses)
+     * @param callees array of addresses to call (DEX and token addresses)
      * @param exchangeData calldata to execute on callees
      * @param startIndexes the index of the beginning of each call in exchangeData
      * @param values array of encoded values for each call in exchangeData
