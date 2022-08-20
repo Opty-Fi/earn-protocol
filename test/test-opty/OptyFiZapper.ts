@@ -5,19 +5,22 @@ import {
   OptyFiSwapper__factory,
   SwapView__factory,
   Swap__factory,
-  IOptyFiZapper,
   OptyFiZapper__factory,
+  OptyFiZapper,
+  Zap__factory,
+  ZapView__factory,
+  IZap,
 } from "../../typechain";
 
 describe("::OptyFiZapper Contracts", () => {
   const ethers = hre.ethers;
-  const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
   let deployer: any;
-  let instance: IOptyFiZapper;
   let snapshotId: number;
 
   let OptyFiSwapper: OptyFiSwapper;
+  let OptyFiZapper: OptyFiZapper;
+  let instance: IZap;
 
   before(async () => {
     await deployments.fixture();
@@ -40,7 +43,23 @@ describe("::OptyFiZapper Contracts", () => {
 
     await OptyFiSwapper.diamondCut(swapperFacetCuts, ethers.constants.AddressZero, "0x");
 
-    instance = await new OptyFiZapper__factory(deployer).deploy(OptyFiSwapper.address);
+    OptyFiZapper = await new OptyFiZapper__factory(deployer).deploy(OptyFiSwapper.address);
+    const zapperSelectors = new Set();
+    const zapperFacetCuts = [
+      await new Zap__factory(deployer).deploy(),
+      await new ZapView__factory(deployer).deploy(),
+    ].map(function (f) {
+      return {
+        target: f.address,
+        action: 0,
+        selectors: Object.keys(f.interface.functions)
+          .filter(fn => !zapperSelectors.has(fn) && zapperSelectors.add(fn))
+          .map(fn => f.interface.getSighash(fn)),
+      };
+    });
+
+    await OptyFiZapper.diamondCut(zapperFacetCuts, ethers.constants.AddressZero, "0x");
+    instance = Zap__factory.connect(OptyFiZapper.address, deployer);
   });
 
   beforeEach(async () => {
