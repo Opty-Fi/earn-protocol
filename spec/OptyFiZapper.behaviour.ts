@@ -1,30 +1,32 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber } from "ethers";
 import hre, { deployments } from "hardhat";
-import { ERC20, IOptyFiZapper, ISwapper, IUniswapV2Router02, Vault } from "../typechain";
+import { ERC20, IUniswapV2Router02, IZap, IZapView, IZapView__factory, Vault } from "../typechain";
 import { ZapData } from "../helpers/type";
 import { expect } from "chai";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { getAccountsMerkleRoot, getCodesMerkleRoot } from "../helpers/utils";
 import { getPermitSignature } from "../test/test-opty/utils";
 
-export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapper>, skips?: string[]) {
+export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skips?: string[]) {
   const ethers = hre.ethers;
   let owner: SignerWithAddress;
   let maker: SignerWithAddress;
   let UNIWhale: SignerWithAddress;
 
-  let instance: IOptyFiZapper;
+  let instance: IZap;
   let USDCERC20: ERC20;
   let WETHERC20: ERC20;
   let UNIERC20: ERC20;
   let uniRouter: IUniswapV2Router02;
   let vault: Vault;
   let zapData: ZapData;
+  let zapView: IZapView;
 
   let snapshotId: number;
   let usdcZapOutAmount: BigNumber;
   let OPUSDCGROW_VAULT_ADDRESS: string;
+  let SWAPPER_ADDRESS: string;
 
   //EOA
   const UNIWhaleAddress = "0x7d2d43e63666f45b40316b44212325625dbaeb40";
@@ -71,6 +73,8 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
     beforeEach(async () => {
       let tx;
       instance = await deploy();
+      zapView = await ethers.getContractAt(IZapView__factory.abi, instance.address);
+      SWAPPER_ADDRESS = await zapView.getSwapper();
       snapshotId = await ethers.provider.send("evm_snapshot", []);
 
       //whitelist zap code
@@ -107,7 +111,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
         const uniswapData = uniRouter.interface.encodeFunctionData("swapExactETHForTokens", [
           ethers.constants.Zero,
           [WETH, USDC],
-          await instance.getSwapper(),
+          SWAPPER_ADDRESS,
           swapDeadline,
         ]);
 
@@ -157,7 +161,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
           uniSwapAmount,
           ethers.constants.Zero,
           [UNI, USDC],
-          await instance.getSwapper(),
+          SWAPPER_ADDRESS,
           swapDeadline,
         ]);
         const approveData = UNIERC20.interface.encodeFunctionData("approve", [uniRouter.address, uniSwapAmount.mul(2)]);
@@ -206,7 +210,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
         const uniswapData = uniRouter.interface.encodeFunctionData("swapExactETHForTokens", [
           ethers.constants.Zero,
           [WETH, USDC],
-          await instance.getSwapper(),
+          SWAPPER_ADDRESS,
           swapDeadline,
         ]);
 
@@ -244,7 +248,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
           usdcZapOutAmount,
           ethers.constants.Zero,
           [USDC, WETH],
-          await instance.getSwapper(),
+          SWAPPER_ADDRESS,
           swapDeadline,
         ]);
 
@@ -295,7 +299,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IOptyFiZapp
           usdcZapOutAmount,
           ethers.constants.Zero,
           [USDC, WETH],
-          await instance.getSwapper(),
+          SWAPPER_ADDRESS,
           swapDeadline,
         ]);
 
