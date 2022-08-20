@@ -2,12 +2,13 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from "./DataTypes.sol";
+import { ZapStorage } from "./ZapStorage.sol";
 
 /**
  * @title OptyFiZapper interface
  * @author OptyFi
  */
-interface IOptyFiZapper {
+interface IZap {
     /**
      * @notice performs an arbitrary swap of a given token or ETH to deposit in a OptyFi Vault
      * @param _token the address of the input token
@@ -44,9 +45,4 @@ interface IOptyFiZapper {
      * @param _swapper swapper address
      */
     function setSwapper(address _swapper) external;
-
-    /**
-     * @notice get swapper address
-     */
-    function getSwapper() external view returns (address);
 }
