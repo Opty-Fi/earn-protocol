@@ -1043,9 +1043,7 @@ describe("::Vault", function () {
       );
       const _balanceBeforeUT = await this.usdc.balanceOf(this.signers.eve.address);
       await expect(
-        this.vault
-          .connect(this.signers.eve)
-          .userWithdrawVault(ethers.constants.AddressZero, _withdrawAmountVT, _proof, []),
+        this.vault.connect(this.signers.eve).userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _proof, []),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1068,7 +1066,7 @@ describe("::Vault", function () {
       await expect(
         this.vault
           .connect(this.signers.eve)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof, []),
       ).to.revertedWith("13");
     });
   });
@@ -1422,7 +1420,7 @@ describe("::Vault", function () {
       const _calculatedWithdrawalFee = await this.vault.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
       await expect(
-        this.vault.connect(this.signers.alice).userWithdrawVault(ethers.constants.AddressZero, _redeemVT, _proofs, []),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proofs, []),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
@@ -1440,7 +1438,7 @@ describe("::Vault", function () {
       );
       const _redeemVT = (await this.vault.balanceOf(this.signers.alice.address)).div("2");
       await expect(
-        this.vault.connect(this.signers.alice).userWithdrawVault(ethers.constants.AddressZero, _redeemVT, _proof, []),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proof, []),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
