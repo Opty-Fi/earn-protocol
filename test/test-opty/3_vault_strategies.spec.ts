@@ -147,7 +147,7 @@ describe("VaultV2", () => {
               const _BalanceBefore = await this.tokens[token].balanceOf(signers[i].address);
               const tx2 = await this.vaults[token]
                 .connect(signers[i])
-                .userDepositVault(ethers.constants.AddressZero, _userDepositInDecimals, [], [], []);
+                .userDepositVault(signers[i].address, _userDepositInDecimals, [], [], []);
               await tx2.wait(1);
               const _BalanceAfter = await this.tokens[token].balanceOf(signers[i].address);
               expect(_BalanceBefore).gt(_BalanceAfter);
@@ -186,7 +186,7 @@ describe("VaultV2", () => {
               );
               const tx = await this.vaults[token]
                 .connect(signers[i])
-                .userWithdrawVault(ethers.constants.AddressZero, userWithdrawBalance.mul(3).div(4), [], []);
+                .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), [], []);
               await tx.wait();
               const userBalanceAfter = await this.tokens[token].balanceOf(signers[i].address);
               const poolBalanceAfter = await getLastStrategyStepBalanceLP(
