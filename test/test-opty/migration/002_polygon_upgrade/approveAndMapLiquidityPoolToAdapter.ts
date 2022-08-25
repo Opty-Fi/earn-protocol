@@ -1,4 +1,4 @@
-import { deployments, ethers } from "hardhat";
+import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { RegistryProxy as registryProxyAddress } from "../../_deployments/polygon.json";
 

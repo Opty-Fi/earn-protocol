@@ -13,7 +13,6 @@ import {
   to_10powNumber_BN,
 } from "../../../../helpers/utils";
 import {
-  ERC20,
   ERC20Permit,
   ERC20Permit__factory,
   InitializableImmutableAdminUpgradeabilityProxy,
