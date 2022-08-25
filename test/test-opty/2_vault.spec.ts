@@ -983,7 +983,7 @@ describe("::Vault", function () {
       await expect(
         this.vault
           .connect(this.signers.eve)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof, []),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
