@@ -116,7 +116,7 @@ library StrategyManager {
             IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
             if (_strategyConfigurationParams.internalTransactionIndex != 0) {
                 _underlyingToken = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1]
-                .outputToken;
+                    .outputToken;
                 _depositAmountUT = IERC20(_underlyingToken).balanceOf(_strategyConfigurationParams.vault);
             }
             _codes = _adapter.getDepositSomeCodes(
@@ -145,7 +145,7 @@ library StrategyManager {
             (_strategyConfigurationParams.internalTransactionCount - 1)
         ) {
             _redeemAmountLP = IERC20(_strategySteps[_strategyConfigurationParams.internalTransactionIndex].outputToken)
-            .balanceOf(_strategyConfigurationParams.vault);
+                .balanceOf(_strategyConfigurationParams.vault);
         }
         _codes = (_strategyConfigurationParams.internalTransactionIndex ==
             (_strategyConfigurationParams.internalTransactionCount - 1) &&
