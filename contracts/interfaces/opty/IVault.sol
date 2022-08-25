@@ -124,8 +124,7 @@ interface IVault {
     /**
      * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
-     * @param _beneficiary the address of the deposit beneficiary,
-     *        if _beneficiary = address(0) => _beneficiary = msg.sender
+     * @param _beneficiary the address of the deposit beneficiary
      * @param _userDepositUT Amount in underlying token
      * @param _permitParams permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
