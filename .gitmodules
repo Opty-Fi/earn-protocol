@@ -44,4 +44,3 @@
 [submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
 	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
 	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
-	branch = feat/swap-remaining-tokens
