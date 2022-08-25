@@ -571,7 +571,7 @@ contract Vault is
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) = 
+            (bool success, ) =
                 underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
@@ -707,7 +707,7 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount = 
+        uint256 _internalTransactionCount =
             _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
@@ -958,7 +958,7 @@ contract Vault is
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = 
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
             userDepositPermitted(
                 _user,
                 _addUserDepositUT,
@@ -1005,7 +1005,7 @@ contract Vault is
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) = 
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
             userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
