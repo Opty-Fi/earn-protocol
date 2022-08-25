@@ -46,9 +46,8 @@ library StrategyManager {
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             uint256 _iterator = _nStrategySteps - 1 - _i;
             address _liquidityPool = _strategySteps[_iterator].pool;
-            IAdapterFull _adapter = IAdapterFull(
-                IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool)
-            );
+            IAdapterFull _adapter = 
+                IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
             address _inputToken = _underlyingToken;
             if (_iterator != 0) {
                 _inputToken = _strategySteps[_iterator - 1].outputToken;
@@ -75,9 +74,8 @@ library StrategyManager {
         uint256 _nStrategySteps = _strategySteps.length;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             address _liquidityPool = _strategySteps[_i].pool;
-            IAdapterFull _adapter = IAdapterFull(
-                IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool)
-            );
+            IAdapterFull _adapter = 
+                IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
             address _inputToken = _underlyingToken;
             if (_i != 0) {
                 _inputToken = _strategySteps[_i - 1].outputToken;
