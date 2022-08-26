@@ -19,8 +19,9 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("Vault");
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
+  const strategyManager = await deployments.get("StrategyManager");
+  const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
@@ -34,6 +35,10 @@ const func: DeployFunction = async ({
     args: [registryProxyAddress, "USD Coin (PoS)", "USDC", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
+    },
     proxy: {
       owner: admin,
       upgradeIndex: 0,
