@@ -50,7 +50,19 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WAVAX.hash, "Wrapped AVAX", "WAVAX", "1"],
+          args: [
+            registryProxyAddress, //address _registry
+            MULTI_CHAIN_VAULT_TOKENS[chainId].WAVAX.hash, //bytes32 _underlyingTokensHash
+            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
+            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
+            "Wrapped AVAX", //string memory _name
+            "WAVAX", //string memory _symbol
+            "1", //uint256 _riskProfileCode
+            "0", //uint256 _vaultConfiguration
+            "0", //uint256 _userDepositCapUT
+            "0", //uint256 _minimumDepositValueUT
+            "0", //uint256 _totalValueLockedLimitUT
+          ],
         },
       },
     },
