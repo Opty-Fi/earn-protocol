@@ -1,6 +1,3 @@
-[submodule "contracts/protocol/earn-protocol-configuration"]
-	path = contracts/protocol/earn-protocol-configuration
-	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
 [submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
 	path = contracts/protocol/adapters/ethereum/team-defi-adapters
 	url = git@github.com:Opty-Fi/team-defi-adapters.git
@@ -54,3 +51,7 @@
 	path = lib/forge-std
 	url = git@github.com:foundry-rs/forge-std.git
 	branch = v0.3
+[submodule "contracts/protocol/earn-protocol-configuration"]
+	path = contracts/protocol/earn-protocol-configuration
+	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
+	branch = code-size-fix

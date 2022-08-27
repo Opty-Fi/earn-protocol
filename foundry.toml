@@ -4,10 +4,12 @@ out = 'out'
 libs = ['node_modules','lib']
 remappings = [
     '@optyfi/defi-legos/=lib/defi-legos/src/',
-    'forge-std/=lib/forge-std/src/'
+    'forge-std/=lib/forge-std/src/',
+    'earn-protocol-configuration/=contracts/protocol/earn-protocol-configuration/'
 ]
 optimizer = true
 optimizer_runs = 200
 test = "test/foundry"
+gas_reports = ["*"]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config
