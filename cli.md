@@ -20,7 +20,7 @@ Usage: deploy specific adapter contract
 Options :
   --registry      required  <address> the address of registry
   --name          required  <string>  the name of adapter
-  --deployed-once  optional  <bool>    allow checking whether contracts were deployed previously (default: true)
+  --deployed-once optional  <bool>    allow checking whether contracts were deployed previously (default: true)
   --network       optional  <string>  name of the network provider (default: hardhat)
 ```
 
@@ -40,9 +40,9 @@ Options :
 ```
 Usage: deploy all available adapter contracts
 
---registry     required  <address> the address of registry
+--registry      required  <address> the address of registry
 --deployed-once optional  <bool>    allow checking whether contracts were deployed previously (default: true)
---network      optional  <string>  name of the network provider (default: hardhat)
+--network       optional  <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -51,7 +51,7 @@ Usage: deploy all available adapter contracts
   yarn hardhat deploy-adapters \
   --network localhost \
   --registry 0x0000000000000000000000000000000000000000 \
-  --deployedonce false \
+  --deployed-once false \
   --network localhost
 ```
 
@@ -61,9 +61,9 @@ Usage: deploy all available adapter contracts
 Usage : deploy HarvestCodeProvider contract
 
 Options:
---registry     required <address> the address of registry
+--registry      required <address> the address of registry
 --deployed-once optional <bool>    allow checking whether contracts were deployed previously (default: true)
---network      optional  <string> name of the network provider (default: hardhat)
+--network       optional <string> name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -82,9 +82,9 @@ Options:
 Usage : deploy Claim and Harvest library
 
 Options:
---registry     required <address> the address of registry
+--registry      required <address> the address of registry
 --deployed-once optional <bool>    allow checking whether contracts were deployed previously (default: true)
---network      optional  <string> name of the network provider (default: hardhat)
+--network       optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -103,9 +103,9 @@ Options:
 Usage : deploy Strategy Manager library
 
 Options:
---registry     required <address> the address of registry
+--registry      required <address> the address of registry
 --deployed-once optional <bool>    allow checking whether contracts were deployed previously (default: true)
---network      optional  <string> name of the network provider (default: hardhat)
+--network       optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -125,7 +125,7 @@ Usage: deploy Registry contract
 
 Options:
 --deployed-once optional <bool>   allow checking whether contracts were deployed previously (default: true)
---network      optional <string> name of the network provider (default: hardhat)
+--network       optional <string> name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -142,9 +142,9 @@ Options:
 Usage: deploy RiskManager contract
 
 Options:
---registry     required <string>  the address of registry
+--registry      required <string>  the address of registry
 --deployed-once optional <bool>    allow checking whether contracts were deployed previously (default: true)
---network      optional <string>  name of the network provider (default: hardhat) (default: hardhat)
+--network       optional <string>  name of the network provider (default: hardhat) (default: hardhat)
 ```
 
 - Example:
@@ -162,9 +162,9 @@ Options:
 Usage: deploy StrategyProvider contract
 
 Options:
---registry     required <address> the address of registry
+--registry      required <address> the address of registry
 --deployed-once optional <bool>    allow checking whether contracts were deployed previously (default: true)
---network      optional <string>  name of the network provider (default: hardhat)
+--network       optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -173,7 +173,7 @@ Options:
   yarn hardhat deploy-strategy-provider \
   --network localhost \
   --registry 0x0000000000000000000000000000000000000000 \
-  --deployedonce false \
+  --deployed-once false \
 ```
 
 ### deploy-vault
@@ -182,10 +182,10 @@ Options:
 Usage: deploy Vault contract
 
 Options:
---registry     required <address> the address of registry
---token        required <address> the address of underlying token
---risk-profile-code       required <number>  the code of Vault's risk profile
---network      optional <string>  name of the network provider (default: hardhat)
+--registry          required <address> the address of registry
+--token             required <address> the address of underlying token
+--risk-profile-code required <number>  the code of Vault's risk profile
+--network           optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -204,12 +204,12 @@ Options:
 Usage: deploy erc20 contract
 
 Options:
---name         required <string> the name of token
---symbol       required <string> the symbol of token
---total        optional <number> the totalSupply of token (default: 0)
---decimal      required <number> the decimal of token(defaukt: 18)
+--name          required <string> the name of token
+--symbol        required <string> the symbol of token
+--total         optional <number> the totalSupply of token (default: 0)
+--decimal       required <number> the decimal of token(defaukt: 18)
 --deployed-once optional <bool>   allow checking whether contracts were deployed previously (default: true)
---network      optional <string> name of the network provider (default: hardhat)
+--network       optional <string> name of the network provider (default: hardhat)
 
 ```
 
@@ -234,11 +234,11 @@ To execute functions in a OptyFi's contract.
 Usage: add risk profile in Registry contract
 
 Options:
---risk-profile-code required <number>   the code of risk profile
---can-borrow       required <boolean>  whether risk profile can borrow or not
---lowest-rating    required <number>   the lowest rating
---highest-rating   required <number>   the highest rating
---network         optional <string>   name of the network provider (default: hardhat)
+--risk-profile-code required <number>  the code of risk profile
+--can-borrow        required <boolean> whether risk profile can borrow or not
+--lowest-rating     required <number>  the lowest rating
+--highest-rating    required <number>  the highest rating
+--network           optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -318,11 +318,11 @@ Options:
 Usage: get best strategy or default best strategy for the token with risk profile
 
 Options:
---token            required <address> the address of token
---risk-profile-code           required <number>  the code of risk profile
+--token             required <address> the address of token
+--risk-profile-code required <number>  the code of risk profile
 --strategy-provider required <address> the address of strategyProvider
 --is-default        required <bool>    get default strategy or not
---network          optional <string>  name of the network provider (default: hardhat)
+--network           optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -388,9 +388,9 @@ Options:
 Usage: activates or deactives vault mode where all strategies go into full withdrawal
 
 Options:
---vault  required <address> the address of vault
---active         required <address> If true, the Vault goes into Emergency Shutdown. If false, the Vault goes back into Normal Operation
---network       optional <string>  name of the network provider (default: hardhat)
+--vault   required <address> the address of vault
+--active  required <address> If true, the Vault goes into Emergency Shutdown. If false, the Vault goes back into Normal Operation
+--network optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -437,11 +437,11 @@ Options:
 Usage: execute harvestSome() or harvestAll(): (SOME || All)
 
 Options:
---vault  required <address> the address of vault
---harvest-type required <string> harvest SOME or ALL reward tokens "SOME" || "ALL"
---liquidity-pool required <string> the address of the liquidity pool to harvest
---reward-token-amount        optional <number>  amount of token (default: 0)
---network       optional <string>  name of the network provider (default: hardhat)
+--vault               required <address> the address of vault
+--harvest-type        required <string>  harvest SOME or ALL reward tokens "SOME" || "ALL"
+--liquidity-pool      required <string>  the address of the liquidity pool to harvest
+--reward-token-amount optional <number>  amount of token (default: 0)
+--network             optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -461,9 +461,9 @@ Options:
 Usage: claim the whole balance of reward tokens
 
 Options:
---vault  required <address> the address of vault
---liquidity-pool required <string> the address of the liquidity pool to harvest
---network       optional <string>  name of the network provider (default: hardhat)
+--vault          required <address> the address of vault
+--liquidity-pool required <string>  the address of the liquidity pool to harvest
+--network        optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -481,9 +481,9 @@ Options:
 Usage: set the address of the underlying asset and its keccak256 hash
 
 Options:
---vault      required <address> the address of vault
---underlying-tokens-hash required <string> keccak256 hash of underlying token address and chain id
---network       optional <string>  name of the network provider (default: hardhat)
+--vault                  required <address> the address of vault
+--underlying-tokens-hash required <string>  keccak256 hash of underlying token address and chain id
+--network                optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -501,9 +501,9 @@ yarn hardhat set-underlying-tokens-hash \
 Usage: set a risk profile code for a given vault
 
 Options:
---vault      required <address> the address of vault
---risk-profile-code required <string> code of the risk profile
---network       optional <string>  name of the network provider (default: hardhat)
+--vault             required <address> the address of vault
+--risk-profile-code required <string>  code of the risk profile
+--network           optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -521,9 +521,9 @@ yarn hardhat set-risk-profile-code \
 Usage: set the maximum amount a user could deposit in entire life cycle of this vault in underlying token
 
 Options:
---vault      required <address> the address of vault
---user-deposit-cap required <string> maximum amount in underlying token allowed to be deposited by user
---network       optional <string>  name of the network provider (default: hardhat)
+--vault            required <address> the address of vault
+--user-deposit-cap required <string>  maximum amount in underlying token allowed to be deposited by user
+--network          optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -541,9 +541,9 @@ yarn hardhat set-user-deposit-cap \
 Usage: set the minimum amount in underlying token required to be deposited by the user
 
 Options:
---vault      required <address> the address of vault
---minimum-deposit-value required <string> minimum deposit value in underlying token required
---network       optional <string>  name of the network provider (default: hardhat)
+--vault                 required <address> the address of vault
+--minimum-deposit-value required <string>  minimum deposit value in underlying token required
+--network               optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -561,9 +561,9 @@ yarn hardhat set-minimum-deposit-value \
 Usage: set the total value locked limit in underlying token
 
 Options:
---vault      required <address> the address of vault
---total-value-locked-limit required <string> maximum TVL in underlying token allowed for the vault
---network       optional <string>  name of the network provider (default: hardhat)
+--vault                    required <address> the address of vault
+--total-value-locked-limit required <string>  maximum TVL in underlying token allowed for the vault
+--network                  optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -581,10 +581,10 @@ yarn hardhat set-minimum-deposit-value \
 Usage: approve and map liquidity pool to adapter
 
 Options:
---registry      required <address> the address of registry
+--registry       required <address> the address of registry
 --liquidity-pool required <address> the address of liquidity
---adapter       required <address> the address of defi adapter
---network       optional <string>  name of the network provider (default: hardhat)
+--adapter        required <address> the address of defi adapter
+--network        optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -603,10 +603,10 @@ yarn hardhat map-liquiditypool-to-adapter \
 Usage: approve and map liquidity pools to a specific adapter
 
 Options:
---registry      required <address> the address of registry
---adapter-name   required <address> the name of adapter
---adapter       required <address> the address of defi adapter
---network       optional <string>  name of the network provider (default: hardhat)
+--registry     required <address> the address of registry
+--adapter-name required <address> the name of adapter
+--adapter      required <address> the address of defi adapter
+--network      optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -625,13 +625,13 @@ yarn hardhat map-liquiditypools-to-adapter \
 Usage: set max deposit for a specific adapter
 
 Options:
---adapter         required <address> the address of adapter
---amount          required <number>  the max deposit amount
---mode            required <address> the max deposit mode (*)
+--adapter          required <address> the address of adapter
+--amount           required <number>  the max deposit amount
+--mode             required <address> the max deposit mode (*)
 --liquidity-pool   required <address> the address of liquiditypool (*)
 --underlying-token required <address> the address of underlying token (*)
 --set-protocol     optional <boolean> set amount for Protocol or not (default: false)
---network         optional <string>  name of the network provider (default: hardhat)
+--network          optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Notes:
@@ -656,9 +656,9 @@ yarn hardhat set-max-deposit
 Usage: set max deposit mode for a specific adapter
 
 Options:
---adapter      required <address> the address of adapter
---mode         required <address> the max deposit mode
---network      optional <string>  name of the network provider (default: hardhat)
+--adapter required <address> the address of adapter
+--mode    required <address> the max deposit mode
+--network optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -712,9 +712,9 @@ yarn hardhat list-accounts \
 Usage: print the strategy
 
 Options:
---token                 required <string>  the address of token
+--token         required <string> the address of token
 --strategy-name required <string> name of strategy
---network optional <string>  name of the network provider (default: hardhat)
+--network       optional <string> name of the network provider (default: hardhat)
 ```
 
 - Example
@@ -732,7 +732,7 @@ yarn hardhat print-strategy-hash \
 Usage: print tokens hash
 
 Options:
---token                 required <string>  the address of token
+--token   required <string>  the address of token
 --network optional <string>  name of the network provider (default: hardhat)
 ```
 
@@ -778,9 +778,9 @@ yarn hardhat get-action \
 Usage: get price per full share of the vault
 
 Options:
---vault            required <address> the address of vault
---block-number     optional <number>  block number (default: current block number)
---network          optional <string>  name of the network provider (default: hardhat)
+--vault        required <address> the address of vault
+--block-number optional <number>  block number (default: current block number)
+--network      optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -798,9 +798,9 @@ Options:
 Usage: get total supply of the vault
 
 Options:
---vault            required <address> the address of vault
---block-number     optional <number>  block number (default: current block number)
---network          optional <string>  name of the network provider (default: hardhat)
+--vault         required <address> the address of vault
+--block-number  optional <number>  block number (default: current block number)
+--network       optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -1016,8 +1016,8 @@ yarn hardhat set-whitelisted-codes-root \
 Usage: approve token and map token to tokenshash
 
 Options:
---token                 required <string>  the address of token
---network               optional <string>  name of the network provider (default: hardhat)
+--token   required <string>  the address of token
+--network optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -1054,11 +1054,11 @@ yarn hardhat set-vault-configuration \
 Usage: set value control params
 
 Options:
---vault-symbol        required <string> the vault symbol
---user-deposit-cap-ut required <string> user deposit cap in underlying token
---minimum-deposit-value-ut required <string> minimum deposit value in underlying token
+--vault-symbol                required <string> the vault symbol
+--user-deposit-cap-ut         required <string> user deposit cap in underlying token
+--minimum-deposit-value-ut    required <string> minimum deposit value in underlying token
 --total-value-locked-limit-ut required <string> TVL in underlying token
---network             optional <string> name of the network provider (default: hardhat)
+--network                     optional <string> name of the network provider (default: hardhat)
 ```
 
 - Example:
@@ -1079,7 +1079,7 @@ Usage: change polygon opUSDCgrow vault proxy v2 admin
 
 Options:
 --new-admin required <string> address of the new admin
---network       optional  <string>  name of the network provider (default: hardhat)
+--network   optional  <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
