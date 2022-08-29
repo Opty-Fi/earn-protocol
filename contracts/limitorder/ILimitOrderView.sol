@@ -78,8 +78,12 @@ interface ILimitOrderView {
     function oracle() external view returns (address oracle);
 
     /**
-     * @notice returns address of the TokenTransferProxy
-     * @return transferProxy address
+     * @notice resolver function for automation relayer
+     * @return canExec whether Ops should execute the task
+     * @return execPayload data that executors should use for the execution
      */
-    function transferProxy() external view returns (address transferProxy);
+    function canExecuteOrder(address _maker, address _vault)
+        external
+        view
+        returns (bool canExec, bytes memory execPayload);
 }

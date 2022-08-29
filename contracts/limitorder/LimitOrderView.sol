@@ -97,7 +97,9 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
-    function transferProxy() external view returns (address transferProxy) {
-        transferProxy = _transferProxy(LimitOrderStorage.layout());
-    }
+    function canExecuteOrder(address _maker, address _vault)
+        external
+        view
+        returns (bool _canExec, bytes memory _execPayload)
+    {}
 }

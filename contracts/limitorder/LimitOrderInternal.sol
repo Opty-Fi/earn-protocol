@@ -5,14 +5,17 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { Errors } from './Errors.sol';
 import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
+import { ILimitOrderActions } from './ILimitOrderActions.sol';
+import { ILimitOrderView } from './ILimitOrderView.sol';
 
 import { IVault } from '../earn-interfaces/IVault.sol';
-import { IOptyFiOracle } from '../earn-interfaces/IOptyFiOracle.sol';
+import { IOptyFiOracle } from '../optyfi-oracle/contracts/interfaces/IOptyFiOracle.sol';
 import { DataTypes as SwapDataTypes } from '../optyfi-swapper/contracts/swap/DataTypes.sol';
 import { ISwapper } from '../optyfi-swapper/contracts/swap/ISwapper.sol';
 import { ITokenTransferProxy } from '../optyfi-swapper/contracts/utils/ITokenTransferProxy.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
+import { IOps } from '../vendor/gelato/IOps.sol';
 
 /**
  * @title Contract for writing limit orders
@@ -89,6 +92,17 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         _l.userVaultOrder[msg.sender][vault] = order;
         _l.userVaultOrderActive[msg.sender][vault] = true;
+
+        IOps(_l.ops).createTask(
+            address(this),
+            ILimitOrderView.canExecuteOrder.selector,
+            address(this),
+            abi.encodeWithSelector(
+                ILimitOrderView.canExecuteOrder.selector,
+                msg.sender,
+                vault
+            )
+        );
 
         emit LimitOrderCreated(order);
     }
@@ -566,19 +580,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         returns (address oracle)
     {
         oracle = _l.oracle;
-    }
-
-    /**
-     * @notice returns address of the TokenTransferProxy
-     * @param _l the layout of the limit order contract
-     * @return transferProxy address
-     */
-    function _transferProxy(LimitOrderStorage.Layout storage _l)
-        internal
-        view
-        returns (address transferProxy)
-    {
-        transferProxy = _l.transferProxy;
     }
 
     /**

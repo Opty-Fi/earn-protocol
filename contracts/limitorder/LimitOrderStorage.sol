@@ -21,7 +21,7 @@ library LimitOrderStorage {
      * @param treasury the treasury to send liquidation fees to
      * @param swapDiamond the address of the OptyFi swapDiamond
      * @param oracle the addres of the OptyFi Oracle
-     * @param transferProxy address of the TokenTransferProxy
+     * @param ops address of contract that helps automate limit order
      */
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
@@ -33,7 +33,7 @@ library LimitOrderStorage {
         address treasury;
         address swapDiamond;
         address oracle;
-        address transferProxy;
+        address ops;
     }
 
     /**
