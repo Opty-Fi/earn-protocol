@@ -391,6 +391,29 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice sets the address of the operations contract that automated limit order execution
+     * @param _l the layout of the limit order contract
+     * @param _ops the address of the operations contract
+     */
+    function _setOps(LimitOrderStorage.Layout storage _l, address _ops)
+        internal
+    {
+        _l.ops = _ops;
+    }
+
+    /**
+     * @notice sets the address of the DEX for swapping tokens
+     * @param _l the layout of the limit order contract
+     * @param _exchangeRouter the address of DEX
+     */
+    function _setExchangeRouter(
+        LimitOrderStorage.Layout storage _l,
+        address _exchangeRouter
+    ) internal {
+        _l.exchangeRouter = _exchangeRouter;
+    }
+
+    /**
      * @notice checks whether a limit order may be executed
      * @param _l the layout of the limit order contract
      * @param _order the order to check

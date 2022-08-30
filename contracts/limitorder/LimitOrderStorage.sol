@@ -22,6 +22,7 @@ library LimitOrderStorage {
      * @param swapDiamond the address of the OptyFi swapDiamond
      * @param oracle the addres of the OptyFi Oracle
      * @param ops address of contract that helps automate limit order
+     * @param exchangeRouter address of dex router
      */
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
@@ -34,6 +35,7 @@ library LimitOrderStorage {
         address swapDiamond;
         address oracle;
         address ops;
+        address exchangeRouter;
     }
 
     /**

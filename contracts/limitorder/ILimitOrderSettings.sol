@@ -44,4 +44,16 @@ interface ILimitOrderSettings {
      * @param _oracle the address of the OptyFiOracle
      */
     function setOracle(address _oracle) external;
+
+    /**
+     * @notice sets the address of the operation contract that automates limit order execution
+     * @param _ops the address of the operation contract
+     */
+    function setOps(address _ops) external;
+
+    /**
+     * @notice sets the address of DEX for swapping tokens
+     * @param _exchangeRouter the address of DEX
+     */
+    function setExchangeRouter(address _exchangeRouter) external;
 }

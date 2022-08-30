@@ -79,6 +79,8 @@ interface ILimitOrderView {
 
     /**
      * @notice resolver function for automation relayer
+     * @param _maker address of limit order creator
+     * @param _vault address of the vault
      * @return canExec whether Ops should execute the task
      * @return execPayload data that executors should use for the execution
      */
