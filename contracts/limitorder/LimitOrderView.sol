@@ -7,6 +7,9 @@ import { ILimitOrderActions } from './ILimitOrderActions.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { IVault } from '../earn-interfaces/IVault.sol';
+import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
+
+import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
 
 /**
  * @title LimitOrderView facet for LimitOrderDiamond
@@ -104,80 +107,121 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
         view
         returns (bool, bytes memory)
     {
+        DataTypes.Order memory _order = LimitOrderStorage
+            .layout()
+            .userVaultOrder[_maker][_vault];
+        address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
+        uint256 _amountInShares = _liquidationAmount(
+            IERC20(_vault).balanceOf(_maker),
+            _order.liquidationShareBP
+        );
+        uint256 _amountIn = (_amountInShares *
+            IVault(_vault).getPricePerFullShare()) / 10**18;
+
         if (!LimitOrderStorage.layout().userVaultOrderActive[_maker][_vault]) {
             return (false, bytes('No active order'));
         }
 
-        if (
-            LimitOrderStorage
-            .layout()
-            .userVaultOrder[_maker][_vault].expiration <= _timestamp()
-        ) {
+        if (_order.expiration <= _timestamp()) {
             return (false, bytes('Order is expired'));
         }
 
-        if (
-            LimitOrderStorage
-            .layout()
-            .userVaultOrder[_maker][_vault].direction ==
-            DataTypes.BoundDirection.Out
-        ) {
+        if (_order.direction == DataTypes.BoundDirection.Out) {
             if (
-                !(LimitOrderStorage
-                .layout()
-                .userVaultOrder[_maker][_vault].lowerBound >=
+                !(_order.lowerBound >=
                     _price(
                         LimitOrderStorage.layout().oracle,
-                        IVault(_vault).underlyingToken()
+                        _vaultUnderlyingToken
                     ) ||
                     _price(
                         LimitOrderStorage.layout().oracle,
-                        IVault(_vault).underlyingToken()
+                        _vaultUnderlyingToken
                     ) >=
-                    LimitOrderStorage
-                    .layout()
-                    .userVaultOrder[_maker][_vault].upperBound)
+                    _order.upperBound)
             ) {
                 return (false, bytes('Price out of bounds'));
             }
         } else {
             if (
-                !(LimitOrderStorage
-                .layout()
-                .userVaultOrder[_maker][_vault].lowerBound <=
+                !(_order.lowerBound <=
                     _price(
                         LimitOrderStorage.layout().oracle,
-                        IVault(_vault).underlyingToken()
+                        _vaultUnderlyingToken
                     ) &&
                     _price(
                         LimitOrderStorage.layout().oracle,
-                        IVault(_vault).underlyingToken()
+                        _vaultUnderlyingToken
                     ) <=
-                    LimitOrderStorage
-                    .layout()
-                    .userVaultOrder[_maker][_vault].upperBound)
+                    _order.upperBound)
             ) {
                 return (false, bytes('Price out of bounds'));
             }
         }
 
-        uint256[] memory _startIndexes = new uint256[](3);
-        uint256[] memory _values = new uint256[](2);
-        address[] memory _callees = new address[](2);
+        bytes memory _swapData = abi.encodeWithSelector(
+            IUniswapV2Router01.swapExactTokensForTokens.selector,
+            _amountIn,
+            _priceUSDC(
+                LimitOrderStorage.layout().oracle,
+                _vaultUnderlyingToken
+            ),
+            [_vaultUnderlyingToken, USDC],
+            address(this),
+            _timestamp() + 20 minutes
+        );
+
+        uint256[] memory _startIndexes;
+        address[] memory _callees;
+        uint256[] memory _values;
+        bytes memory _exchangeData;
+
+        if (
+            IERC20(_vaultUnderlyingToken).allowance(
+                address(this),
+                LimitOrderStorage.layout().exchangeRouter
+            ) >= _amountIn
+        ) {
+            _startIndexes = new uint256[](2);
+            _callees = new address[](1);
+            _values = new uint256[](1);
+            _startIndexes[0] = 0;
+            _startIndexes[1] = _swapData.length;
+            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
+            _values[0] = 0;
+            _exchangeData = _swapData;
+        } else {
+            bytes memory _approveData = abi.encodeWithSelector(
+                IERC20.approve.selector,
+                LimitOrderStorage.layout().exchangeRouter,
+                type(uint256).max
+            );
+            _startIndexes = new uint256[](3);
+            _callees = new address[](2);
+            _values = new uint256[](2);
+            _startIndexes[0] = 0;
+            _startIndexes[1] = _approveData.length;
+            _startIndexes[2] = _startIndexes[1] + _swapData.length;
+            _callees[0] = _vaultUnderlyingToken;
+            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
+            _values[0] = 0;
+            _values[1] = 0;
+            _exchangeData = bytes.concat(_approveData, _swapData);
+        }
 
         DataTypes.SwapParams memory _swapParams = DataTypes.SwapParams({
             deadline: _timestamp() + 10 minutes,
             startIndexes: _startIndexes,
             values: _values,
             callees: _callees,
-            exchangeData: bytes('0x'),
+            exchangeData: _exchangeData,
             permit: bytes('0x')
         });
 
         bytes memory _execPayload = abi.encodeWithSelector(
             ILimitOrderActions.execute.selector,
             _maker,
-            _vault
+            _vault,
+            _swapParams
         );
 
         return (true, _execPayload);
