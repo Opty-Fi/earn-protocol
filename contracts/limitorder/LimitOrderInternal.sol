@@ -56,6 +56,8 @@ contract LimitOrderInternal is ILimitOrderInternal {
             revert Errors.OrderNonExistent();
         }
         _l.userVaultOrderActive[_maker][_vault] = false;
+
+        IOps(_l.ops).cancelTask(order.taskId);
     }
 
     /**
@@ -80,20 +82,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             upperBound
         );
 
-        order.liquidationShareBP = _orderParams.liquidationShareBP;
-        order.expiration = _orderParams.expiration;
-        order.lowerBound = lowerBound;
-        order.upperBound = upperBound;
-        order.direction = _orderParams.direction;
-        order.returnLimitBP = _orderParams.returnLimitBP;
-        order.vault = vault;
-        order.maker = payable(msg.sender);
-        order.depositUSDC = _orderParams.depositUSDC;
-
-        _l.userVaultOrder[msg.sender][vault] = order;
-        _l.userVaultOrderActive[msg.sender][vault] = true;
-
-        IOps(_l.ops).createTask(
+        bytes32 _taskId = IOps(_l.ops).createTask(
             address(this),
             ILimitOrderView.canExecuteOrder.selector,
             address(this),
@@ -103,6 +92,20 @@ contract LimitOrderInternal is ILimitOrderInternal {
                 vault
             )
         );
+
+        order.liquidationShareBP = _orderParams.liquidationShareBP;
+        order.expiration = _orderParams.expiration;
+        order.lowerBound = lowerBound;
+        order.upperBound = upperBound;
+        order.direction = _orderParams.direction;
+        order.returnLimitBP = _orderParams.returnLimitBP;
+        order.vault = vault;
+        order.maker = payable(msg.sender);
+        order.depositUSDC = _orderParams.depositUSDC;
+        order.taskId = _taskId;
+
+        _l.userVaultOrder[msg.sender][vault] = order;
+        _l.userVaultOrderActive[msg.sender][vault] = true;
 
         emit LimitOrderCreated(order);
     }

@@ -8,4 +8,6 @@ interface IOps {
         address _resolverAddress,
         bytes calldata _resolverData
     ) external returns (bytes32 task);
+
+    function cancelTask(bytes32 _taskId) external;
 }

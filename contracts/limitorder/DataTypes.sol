@@ -23,6 +23,7 @@ library DataTypes {
      * @param lowerBound the lower bound of the limit order in USD price of the underlying token
      * @param upperBound the upper bound of the limit order in USD price of the underlying token
      * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
+     * @param taskId unique identifier of the limit order
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param direction the direction of the bounds
@@ -34,6 +35,7 @@ library DataTypes {
         uint256 lowerBound;
         uint256 upperBound;
         uint256 returnLimitBP;
+        bytes32 taskId;
         address payable maker;
         address vault;
         BoundDirection direction;
