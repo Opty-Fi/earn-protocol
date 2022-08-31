@@ -41,6 +41,7 @@ export function describeBehaviorOfLimitOrderActions(
   let opAaveToken: IERC20;
   let swapper: ISwapper;
   let uniRouter: UniswapV2Router02;
+  let liquidationAmount: BigNumber;
 
   //EOA
   const AaveWhaleAddress = '0x80845058350b8c3df5c3015d8a717d64b3bf9267';
@@ -183,7 +184,7 @@ export function describeBehaviorOfLimitOrderActions(
         );
 
         const createdOrder: Order = {
-          liquidationShareBP: makerOrder.liquidationShareBP,
+          liquidationAmount: makerOrder.liquidationAmount,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
@@ -193,16 +194,24 @@ export function describeBehaviorOfLimitOrderActions(
           vault: makerOrder.vault,
         };
 
-        const order = convertOrderParamsToOrder(orderParams, maker.address);
+        const order = convertOrderParamsToOrder(
+          orderParams,
+          await opAaveToken.balanceOf(maker.address),
+          maker.address,
+        );
         expect(createdOrder).to.deep.equal(order);
       });
 
       it('emits LimitOrderCreated event', async () => {
-        const order = convertOrderParamsToOrder(orderParams, maker.address);
+        const order = convertOrderParamsToOrder(
+          orderParams,
+          await opAaveToken.balanceOf(maker.address),
+          maker.address,
+        );
         await expect(await instance.connect(maker).createOrder(orderParams))
           .to.emit(instance, 'LimitOrderCreated')
           .withArgs([
-            order.liquidationShareBP,
+            order.liquidationAmount,
             order.expiration,
             order.lowerBound,
             order.upperBound,
@@ -538,8 +547,6 @@ export function describeBehaviorOfLimitOrderActions(
         const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
         const opUSDCprice = await opUSDCVault.getPricePerFullShare();
         const USDCAmountAfterFee = USDCAmount.sub(fee);
-        const expectedOPUSDCShares =
-          USDCAmountAfterFee.mul(BASIS).div(opUSDCprice);
         //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
         const newVaultConfig =
           '0x0201000000000000000000000000000000000000000000640000000000000000';
@@ -780,7 +787,7 @@ export function describeBehaviorOfLimitOrderActions(
           AaveVaultProxy,
         );
         const modifiedOrder: Order = {
-          liquidationShareBP: makerOrder.liquidationShareBP,
+          liquidationAmount: makerOrder.liquidationAmount,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
@@ -792,6 +799,7 @@ export function describeBehaviorOfLimitOrderActions(
 
         const order = convertOrderParamsToOrder(
           modifyOrderParams,
+          await opAaveToken.balanceOf(maker.address),
           maker.address,
         );
 

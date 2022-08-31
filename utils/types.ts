@@ -1,7 +1,7 @@
 import { BigNumber, BytesLike } from 'ethers';
 
 export interface Order {
-  liquidationShareBP: BigNumber;
+  liquidationAmount: BigNumber;
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
