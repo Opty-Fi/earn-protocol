@@ -102,11 +102,11 @@ export default {
       accounts: [PKEY_TESTNET],
     },
 
-    // tenderly: {
-    //   url: NODE_URL_TENDERLY,
-    //   accounts: [PKEY_TESTNET],
-    //   chainId: 1,
-    // },
+    tenderly: {
+      url: NODE_URL_TENDERLY,
+      accounts: [PKEY_TESTNET],
+      chainId: 1,
+    },
   },
 
   docgen: {

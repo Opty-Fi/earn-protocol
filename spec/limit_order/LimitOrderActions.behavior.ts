@@ -467,6 +467,8 @@ export function describeBehaviorOfLimitOrderActions(
           permit: '0x',
         };
 
+        console.log('sp: ', swapParams);
+
         //simulate swap call for test values
         await AaveERC20.connect(AaveWhale).approve(
           uniRouter.address,

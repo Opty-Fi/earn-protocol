@@ -85,7 +85,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.returnLimitBP = _orderParams.returnLimitBP;
         order.vault = vault;
         order.maker = payable(msg.sender);
-        order.depositUSDC = _orderParams.depositUSDC;
 
         _l.userVaultOrder[msg.sender][vault] = order;
         _l.userVaultOrderActive[msg.sender][vault] = true;
@@ -132,9 +131,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.returnLimitBP != 0) {
             order.returnLimitBP = _orderParams.returnLimitBP;
         }
-        if (_orderParams.depositUSDC != order.depositUSDC) {
-            order.depositUSDC = _orderParams.depositUSDC;
-        }
 
         _l.userVaultOrder[sender][order.vault] = order;
     }
@@ -178,7 +174,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         uint256 usdcAfterFee = _collectFee(_l, usdc, _vaultFee(_l, _vault));
 
-        _deliver(_l, order.depositUSDC, usdcAfterFee, _maker);
+        _deliver(_l, usdcAfterFee, _maker);
     }
 
     /**
@@ -267,33 +263,26 @@ contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice either deposits USDC into opUSDC and sends shares to _maker, or sends USDC directly to maker
      * @param _l LimitOrderStorage Layout struct
-     * @param _depositUSDC bool determining whether to deposit and send shares, or send USDC directly
      * @param _amount amount of USDC
      * @param _maker address to deliver final shares or USDC to
      */
     function _deliver(
         LimitOrderStorage.Layout storage _l,
-        bool _depositUSDC,
         uint256 _amount,
         address _maker
     ) internal {
-        if (_depositUSDC) {
-            IERC20(USDC).approve(OPUSDC_VAULT, _amount);
-            try
-                IVault(OPUSDC_VAULT).userDepositVault(
-                    _maker,
-                    _amount,
-                    '0x',
-                    _l.accountProofs[OPUSDC_VAULT],
-                    _l.codeProofs[OPUSDC_VAULT]
-                )
-            {
-                emit DeliverShares(_maker);
-            } catch {
-                IERC20(USDC).transfer(_maker, _amount);
-                emit DeliverUSDC(_maker, _amount);
-            }
-        } else {
+        IERC20(USDC).approve(OPUSDC_VAULT, _amount);
+        try
+            IVault(OPUSDC_VAULT).userDepositVault(
+                _maker,
+                _amount,
+                '0x',
+                _l.accountProofs[OPUSDC_VAULT],
+                _l.codeProofs[OPUSDC_VAULT]
+            )
+        {
+            emit DeliverShares(_maker);
+        } catch {
             IERC20(USDC).transfer(_maker, _amount);
             emit DeliverUSDC(_maker, _amount);
         }

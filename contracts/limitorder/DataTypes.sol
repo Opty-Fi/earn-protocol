@@ -26,7 +26,6 @@ library DataTypes {
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param direction the direction of the bounds
-     * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct Order {
         uint256 liquidationShareBP;
@@ -37,7 +36,6 @@ library DataTypes {
         address payable maker;
         address vault;
         BoundDirection direction;
-        bool depositUSDC;
     }
 
     /**
@@ -49,7 +47,6 @@ library DataTypes {
      * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param vault the vault the order pertains to
      * @param direction the direction of the bounds
-     * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct OrderParams {
         uint256 liquidationShareBP;
@@ -59,7 +56,6 @@ library DataTypes {
         uint256 returnLimitBP;
         address vault;
         BoundDirection direction;
-        bool depositUSDC;
     }
 
     /**
