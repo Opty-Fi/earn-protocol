@@ -18,7 +18,7 @@ library DataTypes {
 
     /**
      * @notice encapsulate a limit order
-     * @param liquidationShareBP the proportion of the investment to be liquidated in basis points
+     * @param liquidationAmount the amount of shares to be liquidated by the limit order
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound of the limit order in USD price of the underlying token
      * @param upperBound the upper bound of the limit order in USD price of the underlying token
@@ -28,7 +28,7 @@ library DataTypes {
      * @param direction the direction of the bounds
      */
     struct Order {
-        uint256 liquidationShareBP;
+        uint256 liquidationAmount;
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;

@@ -77,7 +77,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
             upperBound
         );
 
-        order.liquidationShareBP = _orderParams.liquidationShareBP;
+        order.liquidationAmount = _liquidationAmount(
+            IERC20(vault).balanceOf(msg.sender),
+            _orderParams.liquidationShareBP
+        );
         order.expiration = _orderParams.expiration;
         order.lowerBound = lowerBound;
         order.upperBound = upperBound;
@@ -113,9 +116,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.vault != address(0)) {
             order.vault = _orderParams.vault;
         }
-        if (_orderParams.liquidationShareBP != 0) {
-            order.liquidationShareBP = _orderParams.liquidationShareBP;
-        }
+
+        uint256 liquidationAmount = _liquidationAmount(
+            IERC20(_vault).balanceOf(msg.sender),
+            _orderParams.liquidationShareBP
+        );
+        order.liquidationAmount = liquidationAmount;
+
         if (_orderParams.expiration != 0) {
             order.expiration = _orderParams.expiration;
         }
@@ -161,7 +168,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _maker,
             token,
             oracle,
-            order.liquidationShareBP,
+            order.liquidationAmount,
             order.returnLimitBP
         );
 
@@ -182,7 +189,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l LimitOrderStorage Layout struct
      * @param _vault address of opVault
      * @param _maker address providing shares to liquidate - Limit Order maker
-     * @param _shareBP liquidation share in basis points
+     * @param _amount amount of shares to liquidate
      * @param _token the address of the underlying token of the _vault
      * @return tokens amount of underlying tokens provided by opVault withdrawal
      */
@@ -192,19 +199,14 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _maker,
         address _token,
         address _oracle,
-        uint256 _shareBP,
+        uint256 _amount,
         uint256 _limitBP
     ) internal returns (uint256 tokens, uint256 limit) {
-        uint256 amount = _liquidationAmount(
-            IERC20(_vault).balanceOf(_maker),
-            _shareBP
-        );
-
-        IERC20(_vault).safeTransferFrom(_maker, address(this), amount);
+        IERC20(_vault).safeTransferFrom(_maker, address(this), _amount);
 
         tokens = IVault(_vault).userWithdrawVault(
             address(this),
-            amount,
+            _amount,
             _l.accountProofs[_vault],
             _l.codeProofs[_vault]
         );
