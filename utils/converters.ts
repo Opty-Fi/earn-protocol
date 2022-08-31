@@ -6,7 +6,6 @@ export function convertOrderParamsToOrder(
 ): Order {
   let order: Order = <Order>{};
 
-  order.depositUSDC = _orderParams.depositUSDC;
   order.expiration = _orderParams.expiration;
   order.liquidationShareBP = _orderParams.liquidationShareBP;
   order.maker = _maker;

@@ -74,7 +74,6 @@ export function describeBehaviorOfLimitOrderActions(
     direction: ethers.constants.One,
     returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
-    depositUSDC: false,
   };
 
   const failedOrderParams: OrderParams = {
@@ -85,7 +84,6 @@ export function describeBehaviorOfLimitOrderActions(
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
-    depositUSDC: false,
   };
 
   const modifyOrderParams: OrderParams = {
@@ -96,7 +94,6 @@ export function describeBehaviorOfLimitOrderActions(
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.9'),
     vault: AaveVaultProxy,
-    depositUSDC: true,
   };
 
   const liquidationFeeBP = ethers.utils.parseEther('0.02');
@@ -194,7 +191,6 @@ export function describeBehaviorOfLimitOrderActions(
           returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
-          depositUSDC: makerOrder.depositUSDC,
         };
 
         const order = convertOrderParamsToOrder(orderParams, maker.address);
@@ -214,7 +210,6 @@ export function describeBehaviorOfLimitOrderActions(
             order.maker,
             order.vault,
             order.direction,
-            order.depositUSDC,
           ]);
       });
 
@@ -467,8 +462,6 @@ export function describeBehaviorOfLimitOrderActions(
           permit: '0x',
         };
 
-        console.log('sp: ', swapParams);
-
         //simulate swap call for test values
         await AaveERC20.connect(AaveWhale).approve(
           uniRouter.address,
@@ -490,31 +483,6 @@ export function describeBehaviorOfLimitOrderActions(
       afterEach(async () => {
         await ethers.provider.send('evm_revert', [snapshotId]);
       });
-
-      it('returns USDC amount liquidated minus liquidation fee to maker', async () => {
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-
-        await expect(() =>
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
-      });
-
-      it('emits DeliverUSDC after liquidation', async () => {
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-
-        await expect(
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        )
-          .to.emit(instance, 'DeliverUSDC')
-          .withArgs(maker.address, USDCAmount.sub(fee));
-      });
-
       it('sends liquidation fee to treasury', async () => {
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
@@ -556,8 +524,6 @@ export function describeBehaviorOfLimitOrderActions(
           .setMinimumDepositValueUT(ethers.constants.Zero);
 
         //create order from maker
-        //set params so that received USDC after swap are deposited in opUSDC vault
-        orderParams.depositUSDC = true;
         await instance.connect(maker).createOrder(orderParams);
 
         await expect(() =>
@@ -595,8 +561,6 @@ export function describeBehaviorOfLimitOrderActions(
           .setMinimumDepositValueUT(ethers.constants.Zero);
 
         //create order from maker
-        //set params so that received USDC after swap are deposited in opUSDC vault
-        orderParams.depositUSDC = true;
         await instance.connect(maker).createOrder(orderParams);
 
         await expect(
@@ -609,9 +573,6 @@ export function describeBehaviorOfLimitOrderActions(
       });
 
       it('sends USDC minus fee to maker if vault does not permit deposits', async () => {
-        //set params so that
-        orderParams.depositUSDC = true;
-
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
         //since opUSDCVault is whitelisted, LimitOrder Contracts will not be able to deposit so 'catch' statement
@@ -827,7 +788,6 @@ export function describeBehaviorOfLimitOrderActions(
           returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
-          depositUSDC: makerOrder.depositUSDC,
         };
 
         const order = convertOrderParamsToOrder(

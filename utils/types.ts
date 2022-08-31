@@ -9,7 +9,6 @@ export interface Order {
   returnLimitBP: BigNumber;
   maker: string;
   vault: string;
-  depositUSDC: boolean;
 }
 
 export interface OrderParams {
@@ -20,7 +19,6 @@ export interface OrderParams {
   direction: BigNumber;
   returnLimitBP: BigNumber;
   vault: string;
-  depositUSDC: boolean;
 }
 
 export interface SwapData {
