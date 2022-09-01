@@ -217,6 +217,46 @@ const avalancheTokens = {
       NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
     ),
   },
+  USDT: {
+    address: "0xc7198437980c041c805a1edcba50c1ce5db95118",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0xc7198437980c041c805a1edcba50c1ce5db95118"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
+  LINK: {
+    address: "0x5947bb275c521040051d82396192181b413227a3",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0x5947bb275c521040051d82396192181b413227a3"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
+  DAI: {
+    address: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0xd586e7f844cea2f87f50152665bcbc2c279d8d70"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
+  WBTC: {
+    address: "0x50b7545627a5162f82a992c33b87adc75187b218",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0x50b7545627a5162f82a992c33b87adc75187b218"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
+  WETH: {
+    address: "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
 };
 
 export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {

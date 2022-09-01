@@ -1039,6 +1039,21 @@ const avalancheStrategiesbyToken = {
       ],
       riskProfileCode: 1,
     },
+    "usdc-DEPOSIT-TraderJoeLend-jUSDCNative": {
+      strategyName: "",
+      token: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+      strategy: [
+        {
+          contract: "0x29472D511808Ce925F501D25F9Ee9efFd2328db2",
+          outputToken: "0x29472D511808Ce925F501D25F9Ee9efFd2328db2",
+          isBorrow: false,
+          outputTokenSymbol: "jUSDCNative",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
   },
   WAVAX: {
     "wavax-DEPOSIT-AaveV2-avWAVAX": {
@@ -1071,6 +1086,36 @@ const avalancheStrategiesbyToken = {
       ],
       riskProfileCode: 1,
     },
+    "wavax-DEPOSIT-Benqi-qiAVAX": {
+      strategyName: "",
+      token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      strategy: [
+        {
+          contract: "0x5C0401e81Bc07Ca70fAD469b451682c0d747Ef1c",
+          outputToken: "0x5C0401e81Bc07Ca70fAD469b451682c0d747Ef1c",
+          isBorrow: false,
+          outputTokenSymbol: "qiAVAX",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+    "wavax-DEPOSIT-TraderJoeLend-jAVAX": {
+      strategyName: "",
+      token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+      strategy: [
+        {
+          contract: "0xC22F01ddc8010Ee05574028528614634684EC29e",
+          outputToken: "0xC22F01ddc8010Ee05574028528614634684EC29e",
+          isBorrow: false,
+          outputTokenSymbol: "jAVAX",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
   },
   USDCe: {
     "usdce-DEPOSIT-AaveV2-avUSDC": {
@@ -1084,6 +1129,121 @@ const avalancheStrategiesbyToken = {
           outputTokenSymbol: "avUSDC",
           adapterName: "AaveV2AvalancheAdapter",
           protocol: "AaveV2",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+    "usdce-DEPOSIT-Benqi-qiUSDC": {
+      strategyName: "",
+      token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
+      strategy: [
+        {
+          contract: "0xBEb5d47A3f720Ec0a390d04b4d41ED7d9688bC7F",
+          outputToken: "0xBEb5d47A3f720Ec0a390d04b4d41ED7d9688bC7F",
+          isBorrow: false,
+          outputTokenSymbol: "qiUSDC",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+    "usdce-DEPOSIT-TraderJoeLend-jUSDC": {
+      strategyName: "",
+      token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
+      strategy: [
+        {
+          contract: "0xEd6AaF91a2B084bd594DBd1245be3691F9f637aC",
+          outputToken: "0xEd6AaF91a2B084bd594DBd1245be3691F9f637aC",
+          isBorrow: false,
+          outputTokenSymbol: "jUSDC",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  LINK: {
+    "link-DEPOSIT-Benqi-qiLINK": {
+      strategyName: "",
+      token: "0x5947bb275c521040051d82396192181b413227a3",
+      strategy: [
+        {
+          contract: "0x4e9f683A27a6BdAD3FC2764003759277e93696e6",
+          outputToken: "0x4e9f683A27a6BdAD3FC2764003759277e93696e6",
+          isBorrow: false,
+          outputTokenSymbol: "qiLINK",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  DAI: {
+    "dai-DEPOSIT-Benqi-qiDAI": {
+      strategyName: "",
+      token: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
+      strategy: [
+        {
+          contract: "0x835866d37AFB8CB8F8334dCCdaf66cf01832Ff5D",
+          outputToken: "0x835866d37AFB8CB8F8334dCCdaf66cf01832Ff5D",
+          isBorrow: false,
+          outputTokenSymbol: "qiDAI",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  WBTC: {
+    "wbtc-DEPOSIT-Benqi-qiBTC": {
+      strategyName: "",
+      token: "0x50b7545627a5162f82a992c33b87adc75187b218",
+      strategy: [
+        {
+          contract: "0xe194c4c5aC32a3C9ffDb358d9Bfd523a0B6d1568",
+          outputToken: "0xe194c4c5aC32a3C9ffDb358d9Bfd523a0B6d1568",
+          isBorrow: false,
+          outputTokenSymbol: "qiBTC",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  WETH: {
+    "WETH-DEPOSIT-Benqi-qiETH": {
+      strategyName: "",
+      token: "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab",
+      strategy: [
+        {
+          contract: "0x334AD834Cd4481BB02d09615E7c11a00579A7909",
+          outputToken: "0x334AD834Cd4481BB02d09615E7c11a00579A7909",
+          isBorrow: false,
+          outputTokenSymbol: "qiETH",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  USDT: {
+    "usdt-DEPOSIT-Benqi-qiUSDT": {
+      strategyName: "",
+      token: "0xc7198437980c041c805a1edcba50c1ce5db95118",
+      strategy: [
+        {
+          contract: "0xc9e5999b8e75C3fEB117F6f73E664b9f3C8ca65C",
+          outputToken: "0xc9e5999b8e75C3fEB117F6f73E664b9f3C8ca65C",
+          isBorrow: false,
+          outputTokenSymbol: "qiUSDT",
+          adapterName: "BenqiAdapter",
+          protocol: "Benqi",
         },
       ],
       riskProfileCode: 1,
@@ -1279,6 +1439,51 @@ const avalancheVaults: VaultType = {
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+  ],
+  USDT: [
+    {
+      name: "opUSDTgrow",
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDT user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDT minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDT TVL limit
+    },
+  ],
+  WBTC: [
+    {
+      name: "opWBTCgrow",
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("10000000000000"), // 100,000 WBTC user deposit cap
+      minimumDepositValueUT: BigNumber.from("100000000000"), // 1000 WBTC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("1000000000000000"), // 10,000,000 WBTC TVL limit
+    },
+  ],
+  DAI: [
+    {
+      name: "opDAIgrow",
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 DAI minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 DAI TVL limit
+    },
+  ],
+  LINK: [
+    {
+      name: "opLINKgrow",
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
+    },
+  ],
+  WETH: [
+    {
+      name: "opWETHgrow",
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WETH user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WETH minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
     },
   ],
   USDCe: [

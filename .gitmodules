@@ -43,3 +43,6 @@
 [submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
 	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
 	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
+[submodule "contracts/protocol/adapters/avalanche/traderjoe-and-benqi-adapters"]
+	path = contracts/protocol/adapters/avalanche/traderjoe-and-benqi-adapters
+	url = git@github.com:Opty-Fi/traderjoe-and-benqi-adapters.git
