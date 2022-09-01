@@ -41,6 +41,7 @@ export function describeBehaviorOfLimitOrderActions(
   let opAaveToken: IERC20;
   let swapper: ISwapper;
   let uniRouter: UniswapV2Router02;
+  let liquidationAmount: BigNumber;
 
   //EOA
   const AaveWhaleAddress = '0x80845058350b8c3df5c3015d8a717d64b3bf9267';
@@ -74,7 +75,6 @@ export function describeBehaviorOfLimitOrderActions(
     direction: ethers.constants.One,
     returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
-    depositUSDC: false,
   };
 
   const failedOrderParams: OrderParams = {
@@ -85,7 +85,6 @@ export function describeBehaviorOfLimitOrderActions(
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.99'),
     vault: AaveVaultProxy,
-    depositUSDC: false,
   };
 
   const modifyOrderParams: OrderParams = {
@@ -96,7 +95,6 @@ export function describeBehaviorOfLimitOrderActions(
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.9'),
     vault: AaveVaultProxy,
-    depositUSDC: true,
   };
 
   const liquidationFeeBP = ethers.utils.parseEther('0.02');
@@ -186,7 +184,7 @@ export function describeBehaviorOfLimitOrderActions(
         );
 
         const createdOrder: Order = {
-          liquidationShareBP: makerOrder.liquidationShareBP,
+          liquidationAmount: makerOrder.liquidationAmount,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
@@ -194,19 +192,26 @@ export function describeBehaviorOfLimitOrderActions(
           returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
-          depositUSDC: makerOrder.depositUSDC,
         };
 
-        const order = convertOrderParamsToOrder(orderParams, maker.address);
+        const order = convertOrderParamsToOrder(
+          orderParams,
+          await opAaveToken.balanceOf(maker.address),
+          maker.address,
+        );
         expect(createdOrder).to.deep.equal(order);
       });
 
       it('emits LimitOrderCreated event', async () => {
-        const order = convertOrderParamsToOrder(orderParams, maker.address);
+        const order = convertOrderParamsToOrder(
+          orderParams,
+          await opAaveToken.balanceOf(maker.address),
+          maker.address,
+        );
         await expect(await instance.connect(maker).createOrder(orderParams))
           .to.emit(instance, 'LimitOrderCreated')
           .withArgs([
-            order.liquidationShareBP,
+            order.liquidationAmount,
             order.expiration,
             order.lowerBound,
             order.upperBound,
@@ -214,7 +219,6 @@ export function describeBehaviorOfLimitOrderActions(
             order.maker,
             order.vault,
             order.direction,
-            order.depositUSDC,
           ]);
       });
 
@@ -488,31 +492,6 @@ export function describeBehaviorOfLimitOrderActions(
       afterEach(async () => {
         await ethers.provider.send('evm_revert', [snapshotId]);
       });
-
-      it('returns USDC amount liquidated minus liquidation fee to maker', async () => {
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-
-        await expect(() =>
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
-      });
-
-      it('emits DeliverUSDC after liquidation', async () => {
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-
-        await expect(
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        )
-          .to.emit(instance, 'DeliverUSDC')
-          .withArgs(maker.address, USDCAmount.sub(fee));
-      });
-
       it('sends liquidation fee to treasury', async () => {
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
@@ -554,8 +533,6 @@ export function describeBehaviorOfLimitOrderActions(
           .setMinimumDepositValueUT(ethers.constants.Zero);
 
         //create order from maker
-        //set params so that received USDC after swap are deposited in opUSDC vault
-        orderParams.depositUSDC = true;
         await instance.connect(maker).createOrder(orderParams);
 
         await expect(() =>
@@ -570,8 +547,6 @@ export function describeBehaviorOfLimitOrderActions(
         const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
         const opUSDCprice = await opUSDCVault.getPricePerFullShare();
         const USDCAmountAfterFee = USDCAmount.sub(fee);
-        const expectedOPUSDCShares =
-          USDCAmountAfterFee.mul(BASIS).div(opUSDCprice);
         //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
         const newVaultConfig =
           '0x0201000000000000000000000000000000000000000000640000000000000000';
@@ -593,8 +568,6 @@ export function describeBehaviorOfLimitOrderActions(
           .setMinimumDepositValueUT(ethers.constants.Zero);
 
         //create order from maker
-        //set params so that received USDC after swap are deposited in opUSDC vault
-        orderParams.depositUSDC = true;
         await instance.connect(maker).createOrder(orderParams);
 
         await expect(
@@ -607,9 +580,6 @@ export function describeBehaviorOfLimitOrderActions(
       });
 
       it('sends USDC minus fee to maker if vault does not permit deposits', async () => {
-        //set params so that
-        orderParams.depositUSDC = true;
-
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
         //since opUSDCVault is whitelisted, LimitOrder Contracts will not be able to deposit so 'catch' statement
@@ -817,7 +787,7 @@ export function describeBehaviorOfLimitOrderActions(
           AaveVaultProxy,
         );
         const modifiedOrder: Order = {
-          liquidationShareBP: makerOrder.liquidationShareBP,
+          liquidationAmount: makerOrder.liquidationAmount,
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
@@ -825,11 +795,11 @@ export function describeBehaviorOfLimitOrderActions(
           returnLimitBP: makerOrder.returnLimitBP,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
-          depositUSDC: makerOrder.depositUSDC,
         };
 
         const order = convertOrderParamsToOrder(
           modifyOrderParams,
+          await opAaveToken.balanceOf(maker.address),
           maker.address,
         );
 

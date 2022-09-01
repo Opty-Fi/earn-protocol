@@ -18,7 +18,7 @@ library DataTypes {
 
     /**
      * @notice encapsulate a limit order
-     * @param liquidationShareBP the proportion of the investment to be liquidated in basis points
+     * @param liquidationAmount the amount of shares to be liquidated by the limit order
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound of the limit order in USD price of the underlying token
      * @param upperBound the upper bound of the limit order in USD price of the underlying token
@@ -27,10 +27,9 @@ library DataTypes {
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param direction the direction of the bounds
-     * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct Order {
-        uint256 liquidationShareBP;
+        uint256 liquidationAmount;
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;
@@ -39,29 +38,26 @@ library DataTypes {
         address payable maker;
         address vault;
         BoundDirection direction;
-        bool depositUSDC;
     }
 
     /**
      * @notice encapsulate parameters needed to create limit order
-     * @param liquidationShareBP the proportion of the investment to be liquidated in basis points
+     * @param liquidationAmount the amount of shares to be liquidated by the limit order
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's priceTarget
      * @param upperBound the upper bound in basis points of the limit order's priceTarget
      * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param vault the vault the order pertains to
      * @param direction the direction of the bounds
-     * @param depositUSDC indicated whether the USDC should be deposited in opUSDC vault or user receives it
      */
     struct OrderParams {
-        uint256 liquidationShareBP;
+        uint256 liquidationAmount;
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;
         uint256 returnLimitBP;
         address vault;
         BoundDirection direction;
-        bool depositUSDC;
     }
 
     /**

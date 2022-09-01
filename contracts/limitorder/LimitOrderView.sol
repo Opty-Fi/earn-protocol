@@ -111,11 +111,12 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
             .layout()
             .userVaultOrder[_maker][_vault];
         address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
-        uint256 _amountInShares = _liquidationAmount(
-            IERC20(_vault).balanceOf(_maker),
-            _order.liquidationShareBP
-        );
-        uint256 _amountIn = (_amountInShares *
+
+        if (IERC20(_vault).balanceOf(_maker) < _order.liquidationAmount) {
+            return (false, bytes('Not enough shares'));
+        }
+
+        uint256 _amountIn = (_order.liquidationAmount *
             IVault(_vault).getPricePerFullShare()) / 10**18;
 
         if (!LimitOrderStorage.layout().userVaultOrderActive[_maker][_vault]) {
