@@ -78,6 +78,18 @@ interface ILimitOrderView {
     function oracle() external view returns (address oracle);
 
     /**
+     * @notice returns address of limit order operation contract address
+     * @return ops address
+     */
+    function ops() external view returns (address ops);
+
+    /**
+     * @notice returns address of the DEX
+     * @return exchangeRouter address
+     */
+    function exchangeRouter() external view returns (address exchangeRouter);
+
+    /**
      * @notice resolver function for automation relayer
      * @param _maker address of limit order creator
      * @param _vault address of the vault

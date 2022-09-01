@@ -12,7 +12,7 @@ export interface Order {
 }
 
 export interface OrderParams {
-  liquidationShareBP: BigNumber;
+  liquidationAmount: BigNumber;
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;

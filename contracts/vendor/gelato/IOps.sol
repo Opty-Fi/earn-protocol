@@ -10,4 +10,15 @@ interface IOps {
     ) external returns (bytes32 task);
 
     function cancelTask(bytes32 _taskId) external;
+
+    function getTaskId(
+        address _taskCreator,
+        address _execAddress,
+        bytes4 _selector,
+        bool _useTaskTreasuryFunds,
+        address _feeToken,
+        bytes32 _resolverHash
+    ) external pure returns (bytes32);
+
+    function getSelector(string calldata _func) external pure returns (bytes4);
 }

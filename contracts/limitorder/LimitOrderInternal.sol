@@ -593,6 +593,32 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice returns address of the operations contract that assists limit order
+     * @param _l the layout of the limit order contract
+     * @return ops address
+     */
+    function _ops(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address ops)
+    {
+        ops = _l.ops;
+    }
+
+    /**
+     * @notice returns address of the DEX
+     * @param _l the layout of the limit order contract
+     * @return exchangeRouter address
+     */
+    function _exchangeRouter(LimitOrderStorage.Layout storage _l)
+        internal
+        view
+        returns (address exchangeRouter)
+    {
+        exchangeRouter = _l.exchangeRouter;
+    }
+
+    /**
      * @notice returns the block timestamp
      * @return uint256 current block timestamp
      */

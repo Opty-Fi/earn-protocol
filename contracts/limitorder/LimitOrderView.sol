@@ -102,6 +102,20 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
+    function ops() external view returns (address ops) {
+        ops = _ops(LimitOrderStorage.layout());
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function exchangeRouter() external view returns (address exchangeRouter) {
+        exchangeRouter = _exchangeRouter(LimitOrderStorage.layout());
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
     function canExecuteOrder(address _maker, address _vault)
         external
         view

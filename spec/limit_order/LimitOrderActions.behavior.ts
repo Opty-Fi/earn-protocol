@@ -8,6 +8,8 @@ import {
   UniswapV2Router02,
   Vault,
   OptyFiOracle,
+  IOps__factory,
+  IOps,
 } from '../../typechain-types';
 import { BigNumber } from 'ethers';
 import { expect } from 'chai';
@@ -67,8 +69,10 @@ export function describeBehaviorOfLimitOrderActions(
   const priceTarget = ethers.utils.parseEther('100'); //always high enough to execute order for testing
   const newPriceTarget = ethers.utils.parseEther('1');
 
+  const Gelato_Ops = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
+
   const orderParams: OrderParams = {
-    liquidationShareBP: ethers.utils.parseEther('0.1'),
+    liquidationAmount: ethers.BigNumber.from('0'),
     expiration: expiration,
     upperBound: ethers.utils.parseEther('150'),
     lowerBound: ethers.utils.parseEther('50'),
@@ -78,7 +82,7 @@ export function describeBehaviorOfLimitOrderActions(
   };
 
   const failedOrderParams: OrderParams = {
-    liquidationShareBP: ethers.utils.parseEther('0.1'),
+    liquidationAmount: ethers.BigNumber.from('0'),
     expiration: expiration.sub(BigNumber.from('1000')),
     upperBound: ethers.utils.parseEther('150'),
     lowerBound: ethers.utils.parseEther('50'),
@@ -88,7 +92,7 @@ export function describeBehaviorOfLimitOrderActions(
   };
 
   const modifyOrderParams: OrderParams = {
-    liquidationShareBP: ethers.utils.parseEther('0.05'),
+    liquidationAmount: ethers.BigNumber.from('0'),
     expiration: newExpiration,
     upperBound: ethers.utils.parseEther('250'),
     lowerBound: ethers.utils.parseEther('150'),
@@ -176,6 +180,9 @@ export function describeBehaviorOfLimitOrderActions(
   describe(':LimitOrderActions', () => {
     describe('#createOrder(struct(orderParams)))', () => {
       it('successfully created a limit order', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         await instance.connect(maker).createOrder(orderParams);
 
         const makerOrder = await instance.userVaultOrder(
@@ -194,20 +201,40 @@ export function describeBehaviorOfLimitOrderActions(
           vault: makerOrder.vault,
         };
 
-        const order = convertOrderParamsToOrder(
-          orderParams,
-          await opAaveToken.balanceOf(maker.address),
-          maker.address,
-        );
+        const order = convertOrderParamsToOrder(orderParams, maker.address);
         expect(createdOrder).to.deep.equal(order);
       });
 
       it('emits LimitOrderCreated event', async () => {
-        const order = convertOrderParamsToOrder(
-          orderParams,
-          await opAaveToken.balanceOf(maker.address),
-          maker.address,
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
+        const order = convertOrderParamsToOrder(orderParams, maker.address);
+        const resolverHash = ethers.utils.keccak256(
+          new ethers.utils.AbiCoder().encode(
+            ['address', 'bytes'],
+            [
+              instance.address,
+              instance.interface.encodeFunctionData('canExecuteOrder', [
+                maker.address,
+                opAaveToken.address,
+              ]),
+            ],
+          ),
         );
+        const _opsInstance = <IOps>(
+          await ethers.getContractAt(IOps__factory.abi, Gelato_Ops)
+        );
+
+        const _taskId = await _opsInstance.getTaskId(
+          instance.address,
+          instance.address,
+          await _opsInstance.getSelector('canExecuteOrder(address,address)'),
+          true,
+          ethers.constants.AddressZero,
+          resolverHash,
+        );
+
         await expect(await instance.connect(maker).createOrder(orderParams))
           .to.emit(instance, 'LimitOrderCreated')
           .withArgs([
@@ -216,6 +243,7 @@ export function describeBehaviorOfLimitOrderActions(
             order.lowerBound,
             order.upperBound,
             order.returnLimitBP,
+            _taskId,
             order.maker,
             order.vault,
             order.direction,
@@ -224,6 +252,9 @@ export function describeBehaviorOfLimitOrderActions(
 
       describe('reverts if', () => {
         it('user has an active limit order', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          orderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
           await instance.connect(maker).createOrder(orderParams);
 
           await expect(
@@ -234,9 +265,15 @@ export function describeBehaviorOfLimitOrderActions(
         });
 
         it('expiration is before current block timestamp', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          orderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
           await hre.network.provider.send('evm_setNextBlockTimestamp', [
             orderParams.expiration.toNumber(),
           ]);
+
+          failedOrderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
 
           await expect(
             instance.connect(maker).createOrder(failedOrderParams),
@@ -246,6 +283,9 @@ export function describeBehaviorOfLimitOrderActions(
         });
 
         it('lower bound is larger than upper bound', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          failedOrderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
           failedOrderParams.upperBound = ethers.constants.Zero;
           failedOrderParams.expiration = failedOrderParams.expiration.add(
             BigNumber.from('10000'),
@@ -259,6 +299,9 @@ export function describeBehaviorOfLimitOrderActions(
 
     describe('#cancelOrder(address)', () => {
       it('cancels an active order', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         await instance.connect(maker).createOrder(orderParams);
 
         expect(
@@ -414,9 +457,9 @@ export function describeBehaviorOfLimitOrderActions(
 
         //calculate user shares
         const userShares = await opAaveToken.balanceOf(maker.address);
-        const userSharesLiquidated = orderParams.liquidationShareBP
-          .mul(userShares)
-          .div(BASIS);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div('2');
+        const userSharesLiquidated = orderParams.liquidationAmount;
 
         //approve LO contract
         await opAaveToken
@@ -493,6 +536,9 @@ export function describeBehaviorOfLimitOrderActions(
         await ethers.provider.send('evm_revert', [snapshotId]);
       });
       it('sends liquidation fee to treasury', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
@@ -532,6 +578,10 @@ export function describeBehaviorOfLimitOrderActions(
           .connect(optyFiVaultOperator)
           .setMinimumDepositValueUT(ethers.constants.Zero);
 
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
+
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
@@ -567,6 +617,10 @@ export function describeBehaviorOfLimitOrderActions(
           .connect(optyFiVaultOperator)
           .setMinimumDepositValueUT(ethers.constants.Zero);
 
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
+
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
@@ -580,6 +634,9 @@ export function describeBehaviorOfLimitOrderActions(
       });
 
       it('sends USDC minus fee to maker if vault does not permit deposits', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
         //since opUSDCVault is whitelisted, LimitOrder Contracts will not be able to deposit so 'catch' statement
@@ -592,6 +649,9 @@ export function describeBehaviorOfLimitOrderActions(
       });
 
       it('emits DeliverUSDC after liquidation if the vault does not permit deposits', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
@@ -605,6 +665,9 @@ export function describeBehaviorOfLimitOrderActions(
       });
 
       it('may be called by any caller', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
@@ -626,6 +689,9 @@ export function describeBehaviorOfLimitOrderActions(
           );
         });
         it('order has expired', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          orderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
           const expiredTimestamp = orderParams.expiration.toNumber() + 10000;
 
           await instance.connect(maker).createOrder(orderParams);
@@ -643,6 +709,9 @@ export function describeBehaviorOfLimitOrderActions(
           );
         });
         it('price is outwith bounds when set to be within bounds', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          modifyOrderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(3);
           modifyOrderParams.direction = ethers.constants.One;
           await instance.connect(maker).createOrder(modifyOrderParams);
 
@@ -662,6 +731,9 @@ export function describeBehaviorOfLimitOrderActions(
         });
 
         it('price is within bounds when set to be outwith bounds', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          modifyOrderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(3);
           modifyOrderParams.direction = ethers.constants.Zero;
           modifyOrderParams.lowerBound = ethers.utils.parseEther('50.0');
           modifyOrderParams.upperBound = ethers.utils.parseEther('70.0');
@@ -684,6 +756,9 @@ export function describeBehaviorOfLimitOrderActions(
         });
 
         it('return limit > swap output', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          orderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
           //set return limi to be 3x what is swapped so will always fail
           orderParams.returnLimitBP = ethers.utils.parseEther('3.0');
           //create order from maker
@@ -699,14 +774,14 @@ export function describeBehaviorOfLimitOrderActions(
 
       describe('prevent malicious swap data attack vectors', () => {
         it('prevents false beneficiary attack via internal setting beneficiary == LimitOrderDiamond.address', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          orderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
           //create order from maker
           await instance.connect(maker).createOrder(orderParams);
 
           //calculate user shares
-          const userShares = await opAaveToken.balanceOf(maker.address);
-          const userSharesLiquidated = orderParams.liquidationShareBP
-            .mul(userShares)
-            .div(BASIS);
+          const userSharesLiquidated = orderParams.liquidationAmount;
 
           //approve LO contract
           await opAaveToken
@@ -776,7 +851,13 @@ export function describeBehaviorOfLimitOrderActions(
 
     describe('#modifyOrder(address,struct(OrderParams))', () => {
       it('modifies an existing order', async () => {
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
         await instance.connect(maker).createOrder(orderParams);
+
+        modifyOrderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(3);
 
         await instance
           .connect(maker)
@@ -799,7 +880,6 @@ export function describeBehaviorOfLimitOrderActions(
 
         const order = convertOrderParamsToOrder(
           modifyOrderParams,
-          await opAaveToken.balanceOf(maker.address),
           maker.address,
         );
 
@@ -808,6 +888,9 @@ export function describeBehaviorOfLimitOrderActions(
 
       describe('reverts if', () => {
         it('user does not have an active order to modify', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          modifyOrderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(3);
           await expect(
             instance
               .connect(maker)

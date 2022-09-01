@@ -51,6 +51,8 @@ describe('::LimitOrder Contracts', () => {
   const AaveERC20Address = '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9'; //mainnet
   const AaveUSDpriceFeed = '0x547a514d5e3769680Ce22B2361c10Ea13619e8a9'; //mainnet
   const USDCUSDpriceFeed = '0x8fffffd4afb6115b954bd326cbe7b4ba576818f6'; //mainnet
+  const Gelato_Ops = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
+  const uniswapRouter = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; // mainnet
 
   before(async () => {
     [deployer, , , treasury] = await ethers.getSigners();
@@ -98,6 +100,8 @@ describe('::LimitOrder Contracts', () => {
       treasury.address,
       Oracle.address,
       OptyFiSwapper.address,
+      Gelato_Ops,
+      uniswapRouter,
     );
 
     const limitOrderSelectors = new Set();
