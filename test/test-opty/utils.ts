@@ -1,6 +1,6 @@
 // !! Important !!
 // Please do not keep this file under helpers/utils as it imports hre from hardhat
-import { BigNumber, BigNumberish, Signature } from "ethers";
+import { BigNumber, BigNumberish, Contract, Signature } from "ethers";
 import { getAddress, parseEther, splitSignature } from "ethers/lib/utils";
 import hre, { ethers } from "hardhat";
 import ethTokens from "@optyfi/defi-legos/ethereum/tokens/wrapped_tokens";
@@ -111,7 +111,7 @@ export async function getDepositInternalTransactionCount(
 export async function getOraValueUT(
   investStrategySteps: StrategyStepType[],
   registryContract: Registry,
-  vault: Vault,
+  vault: Contract,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   let outputTokenAmount = BigNumber.from("0");
@@ -173,7 +173,7 @@ export async function getOraSomeValueUT(
 export async function getLastStrategyStepBalanceLP(
   investStrategySteps: StrategyStepType[],
   registryContract: Registry,
-  vault: Vault,
+  vault: Contract,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);

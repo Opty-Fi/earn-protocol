@@ -172,10 +172,19 @@ export type StrategiesByTokenByChainType = {
   [key: string]: TokenStrategyType;
 };
 
-export type StrategyStepType = [string, string, boolean] & {
+export type StrategyStepType = {
   pool: string;
   outputToken: string;
   isBorrow: boolean;
+};
+
+export type StrategyConfigurationParams = {
+  registryContract: string;
+  vault: string;
+  underlyingToken: string;
+  initialStepInputAmount: BigNumberish;
+  internalTransactionIndex: BigNumberish;
+  internalTransactionCount: BigNumberish;
 };
 
 export type VaultDetailType = {
