@@ -307,7 +307,20 @@ export function describeBehaviorOfLimitOrderActions(
         expect(
           await instance.userVaultOrderActive(maker.address, AaveVaultProxy),
         ).to.eq(true);
-        await instance.connect(maker).cancelOrder(AaveVaultProxy);
+
+        const _opsInstance = <IOps>(
+          await ethers.getContractAt(IOps__factory.abi, Gelato_Ops)
+        );
+
+        expect(await instance.connect(maker).cancelOrder(AaveVaultProxy))
+          .to.emit(_opsInstance, 'TaskCancelled')
+          .withArgs([
+            await (
+              await instance.userVaultOrder(maker.address, opAaveToken.address)
+            ).taskId,
+            instance.address,
+          ]);
+
         expect(
           await instance.userVaultOrderActive(maker.address, AaveVaultProxy),
         ).to.eq(false);
