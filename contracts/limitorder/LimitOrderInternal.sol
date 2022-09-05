@@ -18,6 +18,8 @@ import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 import { IOps } from '../vendor/gelato/IOps.sol';
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
 
+import 'hardhat/console.sol';
+
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -85,7 +87,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         bytes32 _taskId = IOps(_l.ops).createTask(
             address(this),
-            ILimitOrderView.canExecuteOrder.selector,
+            ILimitOrderActions.execute.selector,
             address(this),
             abi.encodeWithSelector(
                 ILimitOrderView.canExecuteOrder.selector,
@@ -765,16 +767,25 @@ contract LimitOrderInternal is ILimitOrderInternal {
             }
         }
 
-        bytes memory _swapData = abi.encodeWithSelector(
-            IUniswapV2Router01.swapExactTokensForTokens.selector,
-            _amountIn,
-            _priceUSDC(
-                LimitOrderStorage.layout().oracle,
-                _vaultUnderlyingToken
-            ),
-            [_vaultUnderlyingToken, USDC],
-            address(this),
-            _timestamp() + 20 minutes
+        console.log('_amountIn ', _amountIn);
+
+        address[] memory _addrs = new address[](2);
+        _addrs[0] = _vaultUnderlyingToken;
+        _addrs[1] = USDC;
+
+        bytes memory _swapData = abi.encodeCall(
+            IUniswapV2Router01.swapExactTokensForTokens,
+            (
+                _amountIn,
+                0,
+                // _priceUSDC(
+                //     LimitOrderStorage.layout().oracle,
+                //     _vaultUnderlyingToken
+                // ),
+                _addrs,
+                LimitOrderStorage.layout().swapDiamond,
+                _timestamp() + 20 minutes
+            )
         );
 
         uint256[] memory _startIndexes;
@@ -824,11 +835,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
             permit: bytes('0x')
         });
 
-        bytes memory _execPayload = abi.encodeWithSelector(
-            ILimitOrderActions.execute.selector,
-            _maker,
-            _vault,
-            _swapParams
+        bytes memory _execPayload = abi.encodeCall(
+            ILimitOrderActions.execute,
+            (_maker, _vault, _swapParams)
         );
 
         return (true, _execPayload);

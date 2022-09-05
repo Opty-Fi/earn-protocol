@@ -34,9 +34,11 @@ export function describeBehaviorOfLimitOrderActions(
   let optyFiVaultOperator: SignerWithAddress;
   let AaveWhale: SignerWithAddress;
   let USDCWhale: SignerWithAddress;
+  let GelatoNetworkSigner: SignerWithAddress;
 
   let instance: ILimitOrder;
   let AaveVaultInstance: Vault;
+  let opsInstance: IOps;
   let UsdcVaultInstance: IERC20;
   let AaveERC20: IERC20;
   let USDCERC20: IERC20;
@@ -55,11 +57,14 @@ export function describeBehaviorOfLimitOrderActions(
   const USD = '0x0000000000000000000000000000000000000348';
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
   const AaveERC20Address = '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9';
+  const ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
   //Contracts
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
   const UsdcVaultProxy = '0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88';
   const UniswapV2Router02Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //mainnet
+  const Gelato_Network = '0x3CACa7b48D0573D793d3b0279b5F0029180E83b6'; // mainnet
+  const Gelato_Pokeme = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
 
   //Params
   const expirationNum = 1657190461 + 120; //unix timestamp of block 15095000 + 120s
@@ -68,8 +73,6 @@ export function describeBehaviorOfLimitOrderActions(
 
   const priceTarget = ethers.utils.parseEther('100'); //always high enough to execute order for testing
   const newPriceTarget = ethers.utils.parseEther('1');
-
-  const Gelato_Ops = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
 
   const orderParams: OrderParams = {
     liquidationAmount: ethers.BigNumber.from('0'),
@@ -129,6 +132,11 @@ export function describeBehaviorOfLimitOrderActions(
     USDCWhale = await ethers.getSigner(
       ethers.utils.getAddress(USDCWhaleAddress),
     );
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [Gelato_Network],
+    });
+    GelatoNetworkSigner = await ethers.getSigner(Gelato_Network);
     uniRouter = await ethers.getContractAt(
       'UniswapV2Router02',
       UniswapV2Router02Address,
@@ -166,6 +174,10 @@ export function describeBehaviorOfLimitOrderActions(
         '@solidstate/contracts/token/ERC20/IERC20.sol:IERC20',
         AaveVaultInstance.address,
       )
+    );
+
+    opsInstance = <IOps>(
+      await ethers.getContractAt(IOps__factory.abi, Gelato_Pokeme)
     );
   });
 
@@ -222,14 +234,13 @@ export function describeBehaviorOfLimitOrderActions(
             ],
           ),
         );
-        const _opsInstance = <IOps>(
-          await ethers.getContractAt(IOps__factory.abi, Gelato_Ops)
-        );
 
-        const _taskId = await _opsInstance.getTaskId(
+        const _taskId = await opsInstance.getTaskId(
           instance.address,
           instance.address,
-          await _opsInstance.getSelector('canExecuteOrder(address,address)'),
+          await opsInstance.getSelector(
+            'execute(address,address,(uint256,uint256[],uint256[],address[],bytes,bytes))',
+          ),
           true,
           ethers.constants.AddressZero,
           resolverHash,
@@ -308,12 +319,8 @@ export function describeBehaviorOfLimitOrderActions(
           await instance.userVaultOrderActive(maker.address, AaveVaultProxy),
         ).to.eq(true);
 
-        const _opsInstance = <IOps>(
-          await ethers.getContractAt(IOps__factory.abi, Gelato_Ops)
-        );
-
         expect(await instance.connect(maker).cancelOrder(AaveVaultProxy))
-          .to.emit(_opsInstance, 'TaskCancelled')
+          .to.emit(opsInstance, 'TaskCancelled')
           .withArgs([
             await (
               await instance.userVaultOrder(maker.address, opAaveToken.address)
@@ -477,7 +484,7 @@ export function describeBehaviorOfLimitOrderActions(
         //approve LO contract
         await opAaveToken
           .connect(maker)
-          .approve(instance.address, userSharesLiquidated);
+          .approve(instance.address, ethers.constants.MaxUint256);
 
         //no fees in opAAVEvault so should be precise
         const expectedAaveRedeemed = userSharesLiquidated
@@ -527,6 +534,8 @@ export function describeBehaviorOfLimitOrderActions(
           permit: '0x',
         };
 
+        console.log('exchangeData ', exchangeData);
+
         //simulate swap call for test values
         await AaveERC20.connect(AaveWhale).approve(
           uniRouter.address,
@@ -548,20 +557,56 @@ export function describeBehaviorOfLimitOrderActions(
       afterEach(async () => {
         await ethers.provider.send('evm_revert', [snapshotId]);
       });
-      it('sends liquidation fee to treasury', async () => {
+      it.only('sends liquidation fee to treasury', async () => {
         const userShares = await opAaveToken.balanceOf(maker.address);
-        orderParams.liquidationAmount =
-          ethers.BigNumber.from(userShares).div(2);
+        orderParams.liquidationAmount = ethers.BigNumber.from(userShares);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
         const treasuryAddress = await instance.treasury();
         const treasury = await ethers.getSigner(treasuryAddress);
-        await expect(() =>
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        ).to.changeTokenBalance(USDCERC20, treasury, fee);
+        // await expect(() =>
+        //   instance
+        //     .connect(maker)
+        //     .execute(maker.address, AaveVaultProxy, swapParams),
+        // ).to.changeTokenBalance(USDCERC20, treasury, fee);
+        const [canExec, execPayload] = await instance.canExecuteOrder(
+          maker.address,
+          opAaveToken.address,
+        );
+
+        console.log('execPayload ', execPayload);
+
+        console.log('canExec ', canExec);
+
+        const resolverHash = ethers.utils.keccak256(
+          new ethers.utils.AbiCoder().encode(
+            ['address', 'bytes'],
+            [
+              instance.address,
+              instance.interface.encodeFunctionData('canExecuteOrder', [
+                maker.address,
+                opAaveToken.address,
+              ]),
+            ],
+          ),
+        );
+
+        // await opsInstance.connect(GelatoNetworkSigner).exec(
+        //   ethers.utils.parseEther("1"),
+        //   ETH,
+        //   instance.address,
+        //   true,
+        //   true,
+        //   resolverHash,
+        //   instance.address,
+        //   execPayload
+        // )
+        await maker.sendTransaction({
+          to: instance.address,
+          data: execPayload,
+          gasLimit: '30000000',
+        });
       });
 
       it('sends opUSDC shares to maker after USDC minus fee been deposited', async () => {
@@ -689,6 +734,88 @@ export function describeBehaviorOfLimitOrderActions(
             .connect(nonMaker)
             .execute(maker.address, AaveVaultProxy, swapParams),
         ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
+      });
+
+      it('Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault', async () => {
+        //calculate expectedOPUSDCShares to reach user after fees
+        const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
+        const opUSDCprice = await opUSDCVault.getPricePerFullShare();
+        const USDCAmountAfterFee = USDCAmount.sub(fee);
+        //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
+        const newVaultConfig =
+          '0x0201000000000000000000000000000000000000000000640000000000000000';
+        //remove opUSDCVault whitelist
+        const tx = await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setVaultConfiguration(BigNumber.from(newVaultConfig));
+
+        await tx.wait();
+        //set code + account merkle roots and remove minimum deposit value
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedAccountsRoot(accountRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedCodesRoot(codeRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setMinimumDepositValueUT(ethers.constants.Zero);
+
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
+
+        const resolverHash = ethers.utils.keccak256(
+          new ethers.utils.AbiCoder().encode(
+            ['address', 'bytes'],
+            [
+              instance.address,
+              instance.interface.encodeFunctionData('canExecuteOrder', [
+                maker.address,
+                opAaveToken.address,
+              ]),
+            ],
+          ),
+        );
+
+        const _taskId = await opsInstance.getTaskId(
+          instance.address,
+          instance.address,
+          await opsInstance.getSelector(
+            'execute(address,address,(uint256,uint256[],uint256[],address[],bytes,bytes))',
+          ),
+          true,
+          ethers.constants.AddressZero,
+          resolverHash,
+        );
+
+        //create order from maker
+        expect(await instance.connect(maker).createOrder(orderParams))
+          .to.emit(opsInstance, 'TaskCreated')
+          .withArgs([
+            instance.address,
+            instance.address,
+            await opsInstance.getSelector(
+              'execute(address,address,(uint256,uint256[],uint256[],address[],bytes,bytes))',
+            ),
+            instance.address,
+            _taskId,
+            instance.interface.encodeFunctionData('canExecuteOrder', [
+              maker.address,
+              opAaveToken.address,
+            ]),
+            true,
+            ethers.constants.AddressZero,
+            resolverHash,
+          ]);
+
+        await expect(
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, swapParams),
+        )
+          .to.emit(instance, 'DeliverShares')
+          .withArgs(maker.address);
       });
 
       describe('reverts if', () => {

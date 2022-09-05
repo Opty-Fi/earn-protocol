@@ -21,4 +21,15 @@ interface IOps {
     ) external pure returns (bytes32);
 
     function getSelector(string calldata _func) external pure returns (bytes4);
+
+    function exec(
+        uint256 _txFee,
+        address _feeToken,
+        address _taskCreator,
+        bool _useTaskTreasuryFunds,
+        bool _revertOnFailure,
+        bytes32 _resolverHash,
+        address _execAddress,
+        bytes calldata _execData
+    ) external;
 }
