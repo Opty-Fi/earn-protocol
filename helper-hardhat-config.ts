@@ -95,7 +95,7 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.ropsten]: undefined,
   [eEVMNetwork.hardhat]: undefined,
   [eEVMNetwork.polygon]: 25200204,
-  [eEVMNetwork.avalanche]: 17246557,
+  [eEVMNetwork.avalanche]: 19573166,
   [eEVMNetwork.staging]: undefined,
   [eEVMNetwork.ganache]: undefined,
   [eEVMNetwork.mumbai]: 25291667,
