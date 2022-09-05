@@ -1463,7 +1463,7 @@ const avalancheVaults: VaultType = {
     {
       name: "opDAIgrow",
       vaultConfig: vaultConfigRP1,
-      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 DAI wei user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 DAI minimum deposit
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 DAI TVL limit
     },
