@@ -257,6 +257,22 @@ const avalancheTokens = {
       NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
     ),
   },
+  MIM: {
+    address: "0x130966628846bfd36ff31a822705796e8cb8c18d",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0x130966628846bfd36ff31a822705796e8cb8c18d"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
+  JOE: {
+    address: "0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd",
+    pair: false,
+    hash: generateTokenHashV2(
+      ["0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd"],
+      NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche],
+    ),
+  },
 };
 
 export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {

@@ -25,14 +25,14 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
 
-  const result = await deploy("opWETHgrow", {
+  const result = await deploy("opJOEgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Wrapped ETH", "WETH.e", "Growth", "grow"],
+    args: [registryProxyAddress, "JoeToken", "JOE", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -46,7 +46,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, "Wrapped BTC", "WETH.e", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].JOE.hash, "JoeToken", "JOE", "1"],
         },
       },
     },
@@ -56,25 +56,25 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opWETHgrow");
+      const vault = await deployments.get("opJOEgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opWETHgrow",
+          name: "opJOEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped BTC", "WETH.e", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "JoeToken", "JOE", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opWETHgrow",
+          name: "opJOEgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped BTC", "WETH.e", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "JoeToken", "JOE", "Growth", "grow"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["AvalancheopWETHgrow"];
+func.tags = ["AvalancheopJOEgrow"];
 func.dependencies = ["AvalancheApproveTokensAndMapTokensHash"];

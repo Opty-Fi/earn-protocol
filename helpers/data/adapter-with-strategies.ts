@@ -1180,6 +1180,21 @@ const avalancheStrategiesbyToken = {
       ],
       riskProfileCode: 1,
     },
+    "link-DEPOSIT-TraderJoeLend-jLink": {
+      strategyName: "",
+      token: "0x5947bb275c521040051d82396192181b413227a3",
+      strategy: [
+        {
+          contract: "0x585E7bC75089eD111b656faA7aeb1104F5b96c15",
+          outputToken: "0x585E7bC75089eD111b656faA7aeb1104F5b96c15",
+          isBorrow: false,
+          outputTokenSymbol: "jLink",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
   },
   DAI: {
     "dai-DEPOSIT-Benqi-qiDAI": {
@@ -1193,6 +1208,21 @@ const avalancheStrategiesbyToken = {
           outputTokenSymbol: "qiDAI",
           adapterName: "BenqiAdapter",
           protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+    "dai-DEPOSIT-TraderJoeLend-jDAI": {
+      strategyName: "",
+      token: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
+      strategy: [
+        {
+          contract: "0xc988c170d0E38197DC634A45bF00169C7Aa7CA19",
+          outputToken: "0xc988c170d0E38197DC634A45bF00169C7Aa7CA19",
+          isBorrow: false,
+          outputTokenSymbol: "jDai",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
         },
       ],
       riskProfileCode: 1,
@@ -1214,6 +1244,21 @@ const avalancheStrategiesbyToken = {
       ],
       riskProfileCode: 1,
     },
+    "wbtc-DEPOSIT-TraderJoeLend-jWBTC": {
+      strategyName: "",
+      token: "0x50b7545627a5162F82A992c33b87aDc75187B218",
+      strategy: [
+        {
+          contract: "0x3fE38b7b610C0ACD10296fEf69d9b18eB7a9eB1F",
+          outputToken: "0x3fE38b7b610C0ACD10296fEf69d9b18eB7a9eB1F",
+          isBorrow: false,
+          outputTokenSymbol: "jWBTC",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
   },
   WETH: {
     "WETH-DEPOSIT-Benqi-qiETH": {
@@ -1227,6 +1272,21 @@ const avalancheStrategiesbyToken = {
           outputTokenSymbol: "qiETH",
           adapterName: "BenqiAdapter",
           protocol: "Benqi",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+    "WETH-DEPOSIT-TraderJoeLend-jETH": {
+      strategyName: "",
+      token: "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab",
+      strategy: [
+        {
+          contract: "0x929f5caB61DFEc79a5431a7734a68D714C4633fa",
+          outputToken: "0x929f5caB61DFEc79a5431a7734a68D714C4633fa",
+          isBorrow: false,
+          outputTokenSymbol: "jETH",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
         },
       ],
       riskProfileCode: 1,
@@ -1247,6 +1307,78 @@ const avalancheStrategiesbyToken = {
         },
       ],
       riskProfileCode: 1,
+    },
+    "usdt-DEPOSIT-TraderJoeLend-jUSDT": {
+      strategyName: "",
+      token: "0xc7198437980c041c805A1EDcbA50c1Ce5db95118",
+      strategy: [
+        {
+          contract: "0x8b650e26404AC6837539ca96812f0123601E4448",
+          outputToken: "0x8b650e26404AC6837539ca96812f0123601E4448",
+          isBorrow: false,
+          outputTokenSymbol: "jUSDT",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  MIM: {
+    "mim-DEPOSIT-TraderJoeLend-jMIM": {
+      strategyName: "",
+      token: "0x130966628846bfd36ff31a822705796e8cb8c18d",
+      strategy: [
+        {
+          contract: "0xcE095A9657A02025081E0607c8D8b081c76A75ea",
+          outputToken: "0xcE095A9657A02025081E0607c8D8b081c76A75ea",
+          isBorrow: false,
+          outputTokenSymbol: "jMIM",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 1,
+    },
+  },
+  JOE: {
+    "JOE-DEPOSIT-TraderJoeStake-xJOE": {
+      strategyName: "",
+      token: "0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd",
+      strategy: [
+        {
+          contract: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
+          outputToken: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
+          isBorrow: false,
+          outputTokenSymbol: "xJOE",
+          adapterName: "TraderJoeStakeAdapter",
+          protocol: "TraderJoeStake",
+        },
+      ],
+      riskProfileCode: 2,
+    },
+    "JOE-DEPOSIT-TraderJoeStake-xJOE-DEPOSIT-TranderJoeLend-jXJOE": {
+      strategyName: "",
+      token: "0x6e84a6216ea6dacc71ee8e6b0a5b7322eebc0fdd",
+      strategy: [
+        {
+          contract: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
+          outputToken: "0x57319d41F71E81F3c65F2a47CA4e001EbAFd4F33",
+          isBorrow: false,
+          outputTokenSymbol: "xJOE",
+          adapterName: "TraderJoeStakeAdapter",
+          protocol: "TraderJoeStake",
+        },
+        {
+          contract: "0xC146783a59807154F92084f9243eb139D58Da696",
+          outputToken: "0xC146783a59807154F92084f9243eb139D58Da696",
+          isBorrow: false,
+          outputTokenSymbol: "jXJOE",
+          adapterName: "TraderJoeLendAdapter",
+          protocol: "TraderJoeLend",
+        },
+      ],
+      riskProfileCode: 2,
     },
   },
 };
@@ -1502,6 +1634,24 @@ const avalancheVaults: VaultType = {
       userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WAVAX user deposit cap
       minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WAVAX minimum deposit
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WAVAX TVL limit
+    },
+  ],
+  MIM: [
+    {
+      name: "opMIMgrow",
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 MIM user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 MIM minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 MIM TVL limit
+    },
+  ],
+  JOE: [
+    {
+      name: "opJOEgrow",
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 JOE user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 JOE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 JOE TVL limit
     },
   ],
 };
