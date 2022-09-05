@@ -49,12 +49,16 @@ jobs:
       - name: Optyfi-SDK Mainnet
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
-      - name: Test
+      - name: Test Mainnet
         run: |
           yarn test-fast:mainnet
           yarn test-fast:vaultv2-upgrade-test:mainnet
           yarn test-fast:vaultv2-strategy:mainnet
+      - name: Test Polygon
+        run: |
           yarn test-fast:vaultv2-strategy:polygon
+      - name: Test Avalanche
+        run: |
           yarn test-fast:vaultv2-strategy:avalanche
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
