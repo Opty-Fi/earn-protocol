@@ -10,6 +10,8 @@ import {
   OptyFiOracle,
   IOps__factory,
   IOps,
+  ITaskTreasury,
+  ITaskTreasury__factory,
 } from '../../typechain-types';
 import { BigNumber } from 'ethers';
 import { expect } from 'chai';
@@ -39,6 +41,7 @@ export function describeBehaviorOfLimitOrderActions(
   let instance: ILimitOrder;
   let AaveVaultInstance: Vault;
   let opsInstance: IOps;
+  let gelatoTaskTreasury: ITaskTreasury;
   let UsdcVaultInstance: IERC20;
   let AaveERC20: IERC20;
   let USDCERC20: IERC20;
@@ -65,6 +68,7 @@ export function describeBehaviorOfLimitOrderActions(
   const UniswapV2Router02Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //mainnet
   const Gelato_Network = '0x3CACa7b48D0573D793d3b0279b5F0029180E83b6'; // mainnet
   const Gelato_Pokeme = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
+  const Gelato_Task_Treasury = '0x2807B4aE232b624023f87d0e237A3B1bf200Fd99'; // mainnet
 
   //Params
   const expirationNum = 1657190461 + 120; //unix timestamp of block 15095000 + 120s
@@ -178,6 +182,13 @@ export function describeBehaviorOfLimitOrderActions(
 
     opsInstance = <IOps>(
       await ethers.getContractAt(IOps__factory.abi, Gelato_Pokeme)
+    );
+
+    gelatoTaskTreasury = <ITaskTreasury>(
+      await ethers.getContractAt(
+        ITaskTreasury__factory.abi,
+        Gelato_Task_Treasury,
+      )
     );
   });
 
@@ -534,8 +545,6 @@ export function describeBehaviorOfLimitOrderActions(
           permit: '0x',
         };
 
-        console.log('exchangeData ', exchangeData);
-
         //simulate swap call for test values
         await AaveERC20.connect(AaveWhale).approve(
           uniRouter.address,
@@ -552,61 +561,32 @@ export function describeBehaviorOfLimitOrderActions(
           );
 
         fee = USDCAmount.mul(liquidationFeeBP).div(BASIS);
+
+        // fund Gelato
+        await gelatoTaskTreasury
+          .connect(maker)
+          .depositFunds(instance.address, ETH, ethers.utils.parseEther('1'), {
+            value: ethers.utils.parseEther('1'),
+          });
       });
 
       afterEach(async () => {
         await ethers.provider.send('evm_revert', [snapshotId]);
       });
-      it.only('sends liquidation fee to treasury', async () => {
+      it('sends liquidation fee to treasury', async () => {
         const userShares = await opAaveToken.balanceOf(maker.address);
-        orderParams.liquidationAmount = ethers.BigNumber.from(userShares);
+        orderParams.liquidationAmount =
+          ethers.BigNumber.from(userShares).div('2');
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
         const treasuryAddress = await instance.treasury();
         const treasury = await ethers.getSigner(treasuryAddress);
-        // await expect(() =>
-        //   instance
-        //     .connect(maker)
-        //     .execute(maker.address, AaveVaultProxy, swapParams),
-        // ).to.changeTokenBalance(USDCERC20, treasury, fee);
-        const [canExec, execPayload] = await instance.canExecuteOrder(
-          maker.address,
-          opAaveToken.address,
-        );
-
-        console.log('execPayload ', execPayload);
-
-        console.log('canExec ', canExec);
-
-        const resolverHash = ethers.utils.keccak256(
-          new ethers.utils.AbiCoder().encode(
-            ['address', 'bytes'],
-            [
-              instance.address,
-              instance.interface.encodeFunctionData('canExecuteOrder', [
-                maker.address,
-                opAaveToken.address,
-              ]),
-            ],
-          ),
-        );
-
-        // await opsInstance.connect(GelatoNetworkSigner).exec(
-        //   ethers.utils.parseEther("1"),
-        //   ETH,
-        //   instance.address,
-        //   true,
-        //   true,
-        //   resolverHash,
-        //   instance.address,
-        //   execPayload
-        // )
-        await maker.sendTransaction({
-          to: instance.address,
-          data: execPayload,
-          gasLimit: '30000000',
-        });
+        await expect(() =>
+          instance
+            .connect(maker)
+            .execute(maker.address, AaveVaultProxy, swapParams),
+        ).to.changeTokenBalance(USDCERC20, treasury, fee);
       });
 
       it('sends opUSDC shares to maker after USDC minus fee been deposited', async () => {
@@ -809,10 +789,26 @@ export function describeBehaviorOfLimitOrderActions(
             resolverHash,
           ]);
 
-        await expect(
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
+        const [canExec, execPayload] = await instance.canExecuteOrder(
+          maker.address,
+          opAaveToken.address,
+        );
+
+        expect(canExec).to.be.true;
+
+        expect(
+          await opsInstance
+            .connect(GelatoNetworkSigner)
+            .exec(
+              ethers.utils.parseEther('1'),
+              ETH,
+              instance.address,
+              true,
+              true,
+              resolverHash,
+              instance.address,
+              execPayload,
+            ),
         )
           .to.emit(instance, 'DeliverShares')
           .withArgs(maker.address);

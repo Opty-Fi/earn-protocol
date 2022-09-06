@@ -57,8 +57,8 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
-    function treasury() external view returns (address treasury) {
-        treasury = _treasury(LimitOrderStorage.layout());
+    function treasury() external view returns (address treasuryAddress) {
+        treasuryAddress = _treasury(LimitOrderStorage.layout());
     }
 
     /**
@@ -86,29 +86,33 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
-    function swapDiamond() external view returns (address swapDiamond) {
-        swapDiamond = _swapDiamond(LimitOrderStorage.layout());
+    function swapDiamond() external view returns (address swapDiamondAddress) {
+        swapDiamondAddress = _swapDiamond(LimitOrderStorage.layout());
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function oracle() external view returns (address oracle) {
-        oracle = _oracle(LimitOrderStorage.layout());
+    function oracle() external view returns (address oracleAddress) {
+        oracleAddress = _oracle(LimitOrderStorage.layout());
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function ops() external view returns (address ops) {
-        ops = _ops(LimitOrderStorage.layout());
+    function ops() external view returns (address opsAddress) {
+        opsAddress = _ops(LimitOrderStorage.layout());
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function exchangeRouter() external view returns (address exchangeRouter) {
-        exchangeRouter = _exchangeRouter(LimitOrderStorage.layout());
+    function exchangeRouter()
+        external
+        view
+        returns (address exchangeRouterAddress)
+    {
+        exchangeRouterAddress = _exchangeRouter(LimitOrderStorage.layout());
     }
 
     /**

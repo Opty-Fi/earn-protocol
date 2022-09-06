@@ -18,8 +18,6 @@ import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 import { IOps } from '../vendor/gelato/IOps.sol';
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
 
-import 'hardhat/console.sol';
-
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -211,7 +209,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _vault,
         address _maker,
         address _token,
-        address _oracle,
+        address _oracleAddress,
         uint256 _amount,
         uint256 _limitBP
     ) internal returns (uint256 tokens, uint256 limit) {
@@ -224,7 +222,11 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _l.codeProofs[_vault]
         );
 
-        limit = _returnLimit(tokens, _priceUSDC(_oracle, _token), _limitBP);
+        limit = _returnLimit(
+            tokens,
+            _priceUSDC(_oracleAddress, _token),
+            _limitBP
+        );
     }
 
     /**
@@ -348,59 +350,60 @@ contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice sets the address of the treasury to send limit order fees to
      * @param _l the layout of the limit order contract
-     * @param _treasury the address of the treasury
+     * @param _treasuryAddress the address of the treasury
      */
     function _setTreasury(
         LimitOrderStorage.Layout storage _l,
-        address _treasury
+        address _treasuryAddress
     ) internal {
-        _l.treasury = _treasury;
+        _l.treasury = _treasuryAddress;
     }
 
     /**
      * @notice sets the address of the OptyFiSwapper diamond
      * @param _l the layout of the limit order contract
-     * @param _swapDiamond the address of the OptyFiSwapper
+     * @param _swapDiamondAddress the address of the OptyFiSwapper
      */
     function _setSwapDiamond(
         LimitOrderStorage.Layout storage _l,
-        address _swapDiamond
+        address _swapDiamondAddress
     ) internal {
-        _l.swapDiamond = _swapDiamond;
+        _l.swapDiamond = _swapDiamondAddress;
     }
 
     /**
      * @notice sets the address of the OptyFiOracle to read prices from
      * @param _l the layout of the limit order contract
-     * @param _oracle the address of the OptyFiOracle
+     * @param _oracleAddress the address of the OptyFiOracle
      */
-    function _setOracle(LimitOrderStorage.Layout storage _l, address _oracle)
-        internal
-    {
-        _l.oracle = _oracle;
+    function _setOracle(
+        LimitOrderStorage.Layout storage _l,
+        address _oracleAddress
+    ) internal {
+        _l.oracle = _oracleAddress;
     }
 
     /**
      * @notice sets the address of the operations contract that automated limit order execution
      * @param _l the layout of the limit order contract
-     * @param _ops the address of the operations contract
+     * @param _opsAddress the address of the operations contract
      */
-    function _setOps(LimitOrderStorage.Layout storage _l, address _ops)
+    function _setOps(LimitOrderStorage.Layout storage _l, address _opsAddress)
         internal
     {
-        _l.ops = _ops;
+        _l.ops = _opsAddress;
     }
 
     /**
      * @notice sets the address of the DEX for swapping tokens
      * @param _l the layout of the limit order contract
-     * @param _exchangeRouter the address of DEX
+     * @param _exchangeRouterAddress the address of DEX
      */
     function _setExchangeRouter(
         LimitOrderStorage.Layout storage _l,
-        address _exchangeRouter
+        address _exchangeRouterAddress
     ) internal {
-        _l.exchangeRouter = _exchangeRouter;
+        _l.exchangeRouter = _exchangeRouterAddress;
     }
 
     /**
@@ -414,7 +417,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _maker,
         address _vault,
         address _token,
-        address _oracle
+        address _oracleAddress
     ) internal view {
         if (!_l.userVaultOrderActive[_maker][_vault]) {
             revert Errors.NoActiveOrder(msg.sender);
@@ -423,39 +426,39 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_order.expiration <= _timestamp()) {
             revert Errors.Expired(_timestamp(), _order.expiration);
         }
-        _areBoundsSatisfied(_price(_oracle, _token), _order);
+        _areBoundsSatisfied(_price(_oracleAddress, _token), _order);
     }
 
     /**
      * @notice returns price of underlying vault token in USD
      * @dev fetched from OptyFiOracle which uses Chainlink as a default source of truth. A fallback oracle
      * is used in case Chainlink does not provide one.
-     * @param _oracle address of the OptyFiOracle
+     * @param _oracleAddress address of the OptyFiOracle
      * @param _token address of the underlying vault token of the made LimitOrder
      * @return price the price of the underlying vault token in USD
      */
-    function _price(address _oracle, address _token)
+    function _price(address _oracleAddress, address _token)
         internal
         view
         returns (uint256 price)
     {
-        price = IOptyFiOracle(_oracle).getTokenPrice(_token, USD);
+        price = IOptyFiOracle(_oracleAddress).getTokenPrice(_token, USD);
     }
 
     /**
      * @notice returns price of a token in USDC
      * @dev fetched from OptyFiOracle which uses Chainlink as a default source of truth. A fallback oracle
      * is used in case Chainlink does not provide one.
-     * @param _oracle address of the OptyFiOracle
+     * @param _oracleAddress address of the OptyFiOracle
      * @param _token address of the underlying vault token of the made LimitOrder
      * @return price the price of the token in USDC
      */
-    function _priceUSDC(address _oracle, address _token)
+    function _priceUSDC(address _oracleAddress, address _token)
         internal
         view
         returns (uint256 price)
     {
-        price = IOptyFiOracle(_oracle).getTokenPrice(_token, USDC);
+        price = IOptyFiOracle(_oracleAddress).getTokenPrice(_token, USDC);
     }
 
     /**
@@ -631,24 +634,28 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
     /**
      * @notice checks whether price is within an absolute bound of the target price of a limit order
-     * @param _price the latest price of the underlying token of the limit order
+     * @param _latestPrice the latest price of the underlying token of the limit order
      * @param _order the limit order containing the target price to check the latest price against
      */
-    function _areBoundsSatisfied(uint256 _price, DataTypes.Order memory _order)
-        internal
-        view
-    {
+    function _areBoundsSatisfied(
+        uint256 _latestPrice,
+        DataTypes.Order memory _order
+    ) internal pure {
         uint256 lowerBound = _order.lowerBound;
         uint256 upperBound = _order.upperBound;
 
         if (_order.direction == DataTypes.BoundDirection.Out) {
-            if (!(lowerBound >= _price || _price >= upperBound)) {
-                revert Errors.PriceWithinBounds(_price, lowerBound, upperBound);
+            if (!(lowerBound >= _latestPrice || _latestPrice >= upperBound)) {
+                revert Errors.PriceWithinBounds(
+                    _latestPrice,
+                    lowerBound,
+                    upperBound
+                );
             }
         } else {
-            if (!(lowerBound <= _price && _price <= upperBound)) {
+            if (!(lowerBound <= _latestPrice && _latestPrice <= upperBound)) {
                 revert Errors.PriceOutwithBounds(
-                    _price,
+                    _latestPrice,
                     lowerBound,
                     upperBound
                 );
@@ -673,15 +680,15 @@ contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice applies the liquidation fee on an amount
      * @param _amount the total amount to apply the fee on
-     * @param _vaultFee the fee in basis points pertaining to the particular vault
+     * @param _vaultFeeUT the fee in basis points pertaining to the particular vault
      * @return fee the total fee
      */
-    function _applyLiquidationFee(uint256 _amount, uint256 _vaultFee)
+    function _applyLiquidationFee(uint256 _amount, uint256 _vaultFeeUT)
         internal
         pure
         returns (uint256 fee)
     {
-        fee = (_amount * _vaultFee) / BASIS;
+        fee = (_amount * _vaultFeeUT) / BASIS;
     }
 
     function _toSwapData(
@@ -767,8 +774,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
             }
         }
 
-        console.log('_amountIn ', _amountIn);
-
         address[] memory _addrs = new address[](2);
         _addrs[0] = _vaultUnderlyingToken;
         _addrs[1] = USDC;
@@ -845,9 +850,9 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
     function _returnLimit(
         uint256 _amount,
-        uint256 _priceUSDC,
+        uint256 _priceInUSDC,
         uint256 _limitBP
     ) internal pure returns (uint256 limit) {
-        limit = (_limitBP * _priceUSDC * _amount) / (BASIS * BASIS * 10**12);
+        limit = (_limitBP * _priceInUSDC * _amount) / (BASIS * BASIS * 10**12);
     }
 }
