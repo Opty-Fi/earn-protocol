@@ -175,7 +175,15 @@ export async function deployAdapters(
 export async function deployVault(
   hre: HardhatRuntimeEnvironment,
   registry: string,
+  strategyManager: string,
+  claimAndHarvest: string,
   underlyingToken: string,
+  whitelistedCodesRoot: string,
+  whitelistedAccountsRoot: string,
+  vaultConfiguration: string,
+  userDepositCapUT: number,
+  minimumDepositValueUT: number,
+  totalValueLockedLimitUT: number,
   owner: Signer,
   admin: Signer,
   underlyingTokenName: string,
@@ -184,34 +192,48 @@ export async function deployVault(
   isDeployedOnce: boolean,
 ): Promise<Contract> {
   const registryContract = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.REGISTRY, registry, owner);
-
   const riskProfile = await registryContract.getRiskProfile(riskProfileCode);
-
-  let vault = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.VAULT, isDeployedOnce, owner, [
+  const adminAddress = await admin.getAddress();
+  const vaultFactory = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.VAULT, {
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest,
+    },
+    signer: admin,
+  });
+  let vault = await vaultFactory.deploy(
     registry,
     underlyingTokenName,
     underlyingTokenSymbol,
     riskProfile.name,
     riskProfile.symbol,
-  ]);
-
-  const adminAddress = await admin.getAddress();
-
+  );
   const vaultProxy = await deployContract(hre, ESSENTIAL_CONTRACTS_DATA.VAULT_PROXY, isDeployedOnce, owner, [
     adminAddress,
   ]);
-
   await executeFunc(vaultProxy, admin, "upgradeTo(address)", [vault.address]);
-
   vault = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS_DATA.VAULT, vaultProxy.address, owner);
+  const chainId = NETWORKS_CHAIN_ID_TO_HEX[await hre.getChainId()];
+  const underlyingTokenHash = generateTokenHashV2([underlyingToken], chainId);
+  await executeFunc(
+    vault,
+    owner,
+    "initialize(address,bytes32,bytes32,bytes32,string,string,uint256,uint256,uint256,uint256,uint256)",
+    [
+      registry,
+      underlyingTokenHash,
+      whitelistedCodesRoot,
+      whitelistedAccountsRoot,
+      underlyingTokenName,
+      underlyingTokenSymbol,
+      riskProfileCode,
+      vaultConfiguration,
+      userDepositCapUT,
+      minimumDepositValueUT,
+      totalValueLockedLimitUT,
+    ],
+  );
 
-  await executeFunc(vault, owner, "initialize(address,address,string,string,uint256)", [
-    registry,
-    underlyingToken,
-    underlyingTokenName,
-    underlyingTokenSymbol,
-    riskProfileCode,
-  ]);
   return vault;
 }
 
@@ -253,8 +275,8 @@ export async function deployVaultWithHash(
       deployedBytecode: vaultArtifact.deployedBytecode,
     },
     args: [registry, underlyingTokenName, underlyingTokenSymbol, riskProfile.name, riskProfile.symbol],
-    log: true,
-    skipIfAlreadyDeployed: true,
+    log: false,
+    skipIfAlreadyDeployed: false,
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager,
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest,
