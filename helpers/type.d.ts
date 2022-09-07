@@ -202,3 +202,8 @@ export type VaultType = {
 export type MultiChainVaultsType = {
   [key: string]: VaultType;
 };
+
+export type PoolRate = {
+  pool: string;
+  rate: number;
+};
