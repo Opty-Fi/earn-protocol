@@ -29,4 +29,5 @@ library Errors {
     string public constant PERMIT_FAILED = "24";
     string public constant PERMIT_LEGACY_FAILED = "25";
     string public constant AMOUNT_EXCEEDS_ALLOWANCE = "26";
+    string public constant DEPOSIT_PROTECTION = "27";
 }

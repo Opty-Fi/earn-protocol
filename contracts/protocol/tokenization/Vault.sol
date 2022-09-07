@@ -260,7 +260,7 @@ contract Vault is
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
-        _emergencyBrake(_oraStratValueUT());
+        _activateDepositProtection(_beneficiary);
         _permit(_permitParams);
         return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
@@ -274,7 +274,7 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
-        _emergencyBrake(_oraStratValueUT());
+        require(!(_depositProtection[msg.sender][block.number]), Errors.DEPOSIT_PROTECTION);
 
         return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
     }
@@ -571,8 +571,9 @@ contract Vault is
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) =
-                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
+            (bool success, ) = underlyingToken.call(
+                abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams)
+            );
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
@@ -666,12 +667,11 @@ contract Vault is
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
-            uint256 _oraAmountLP =
-                investStrategySteps.getOraSomeValueLP(
-                    address(registryContract),
-                    underlyingToken,
-                    _expectedStratWithdrawUT
-                );
+            uint256 _oraAmountLP = investStrategySteps.getOraSomeValueLP(
+                address(registryContract),
+                underlyingToken,
+                _expectedStratWithdrawUT
+            );
 
             _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
 
@@ -707,8 +707,9 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount =
-            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
+        uint256 _internalTransactionCount = _investStrategySteps.getDepositInternalTransactionCount(
+            address(registryContract)
+        );
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -880,6 +881,14 @@ contract Vault is
         _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
     }
 
+    /**
+     * @dev Internal function to activate same block deposit-withdrawal protection
+     * @param _receiver address of the receiver of the shares
+     */
+    function _activateDepositProtection(address _receiver) internal {
+        _depositProtection[_receiver][block.number] = true;
+    }
+
     //===Internal view functions===//
 
     /**
@@ -958,15 +967,14 @@ contract Vault is
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(
-                _user,
-                _addUserDepositUT,
-                _userDepositUTWithDeductions,
-                _deductions,
-                _accountsProof,
-                _codesProof
-            );
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = userDepositPermitted(
+            _user,
+            _addUserDepositUT,
+            _userDepositUTWithDeductions,
+            _deductions,
+            _accountsProof,
+            _codesProof
+        );
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -1005,8 +1013,12 @@ contract Vault is
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
-            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) = userWithdrawPermitted(
+            _user,
+            _userWithdrawVT,
+            _accountsProof,
+            _codesProof
+        );
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
