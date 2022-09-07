@@ -32,4 +32,27 @@ interface IOps {
         address _execAddress,
         bytes calldata _execData
     ) external;
+
+    event ExecSuccess(
+        uint256 indexed txFee,
+        address indexed feeToken,
+        address indexed execAddress,
+        bytes execData,
+        bytes32 taskId,
+        bool callSuccess
+    );
+
+    event TaskCreated(
+        address taskCreator,
+        address execAddress,
+        bytes4 selector,
+        address resolverAddress,
+        bytes32 taskId,
+        bytes resolverData,
+        bool useTaskTreasuryFunds,
+        address feeToken,
+        bytes32 resolverHash
+    );
+
+    event TaskCancelled(bytes32 taskId, address taskCreator);
 }

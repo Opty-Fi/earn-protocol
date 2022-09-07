@@ -182,6 +182,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         require(_isExecutable, _reason);
 
+        if (msg.sender != _l.ops) {
+            IOps(_l.ops).cancelTask(order.taskId);
+        }
+
         (uint256 tokens, uint256 limit) = _liquidate(
             _l,
             _vault,

@@ -1,6 +1,14 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import hre from 'hardhat';
-import { Order, OrderParams, SwapParams } from '../../utils/types';
+import { BigNumber } from 'ethers';
+import { expect } from 'chai';
+import { decodeLogs, addABI } from 'abi-decoder';
+import {
+  DecodedLogType,
+  Order,
+  OrderParams,
+  SwapParams,
+} from '../../utils/types';
 import {
   IERC20,
   ILimitOrder,
@@ -12,9 +20,8 @@ import {
   IOps,
   ITaskTreasury,
   ITaskTreasury__factory,
+  ILimitOrder__factory,
 } from '../../typechain-types';
-import { BigNumber } from 'ethers';
-import { expect } from 'chai';
 import { convertOrderParamsToOrder } from '../../utils/converters';
 import {
   generateMerkleTree,
@@ -22,6 +29,10 @@ import {
   getProof,
   getProofForCode,
 } from '../../scripts/utils';
+import { getAddress } from 'ethers/lib/utils';
+
+addABI(ILimitOrder__factory.abi);
+addABI(IOps__factory.abi);
 
 export function describeBehaviorOfLimitOrderActions(
   deploy: () => Promise<ILimitOrder>,
@@ -702,18 +713,56 @@ export function describeBehaviorOfLimitOrderActions(
           .withArgs(maker.address, USDCAmount.sub(fee));
       });
 
-      it('may be called by any caller', async () => {
+      it('may be called by any caller, task should be cancelled', async () => {
         const userShares = await opAaveToken.balanceOf(maker.address);
         orderParams.liquidationAmount =
           ethers.BigNumber.from(userShares).div(2);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
-        await expect(() =>
-          instance
-            .connect(nonMaker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
+        const makerUSDCBalanceBefore = await USDCERC20.balanceOf(maker.address);
+        const tx = await instance
+          .connect(nonMaker)
+          .execute(maker.address, AaveVaultProxy, swapParams);
+        const { logs } = await tx.wait(1);
+        const [TaskCancelledEventData, DeliverUSDCEventData]: DecodedLogType[] =
+          decodeLogs(logs);
+
+        expect(TaskCancelledEventData.name).eq('TaskCancelled');
+        expect(TaskCancelledEventData.events[0].name).to.eq('taskId');
+        expect(TaskCancelledEventData.events[0].type).to.eq('bytes32');
+        expect(TaskCancelledEventData.events[0].value).to.eq(
+          await (
+            await instance.userVaultOrder(maker.address, opAaveToken.address)
+          ).taskId,
+        );
+        expect(TaskCancelledEventData.events[1].name).to.eq('taskCreator');
+        expect(TaskCancelledEventData.events[1].type).to.eq('address');
+        expect(getAddress(TaskCancelledEventData.events[1].value)).to.eq(
+          getAddress(instance.address),
+        );
+        expect(ethers.utils.getAddress(TaskCancelledEventData.address)).to.eq(
+          ethers.utils.getAddress(Gelato_Pokeme),
+        );
+
+        expect(DeliverUSDCEventData.name).to.eq('DeliverUSDC');
+        expect(DeliverUSDCEventData.events[0].name).to.eq('_maker');
+        expect(DeliverUSDCEventData.events[0].type).to.eq('address');
+        expect(getAddress(DeliverUSDCEventData.events[0].value)).to.eq(
+          getAddress(maker.address),
+        );
+        expect(DeliverUSDCEventData.events[1].name).to.eq('_amount');
+        expect(DeliverUSDCEventData.events[1].type).to.eq('uint256');
+        expect(DeliverUSDCEventData.events[1].value.toString()).to.eq(
+          USDCAmount.sub(fee).toString(),
+        );
+        expect(getAddress(DeliverUSDCEventData.address)).to.eq(
+          getAddress(instance.address),
+        );
+
+        expect(await USDCERC20.balanceOf(maker.address)).to.eq(
+          USDCAmount.sub(fee).add(makerUSDCBalanceBefore),
+        );
       });
 
       it('Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault', async () => {
@@ -801,7 +850,6 @@ export function describeBehaviorOfLimitOrderActions(
 
         // assert the payload
         // write testcases for different scenario of canExecuteOrder
-        // cancel the order if someone else other than Gelato executes the order.
 
         expect(canExec).to.be.true;
 

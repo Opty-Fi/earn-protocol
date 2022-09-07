@@ -49,3 +49,15 @@ export interface TokenPairPriceFeed {
   tokenB: string;
   priceFeed: string;
 }
+
+export type EventParamType = {
+  name: string;
+  type: string;
+  value: string;
+};
+
+export type DecodedLogType = {
+  name: string;
+  events: EventParamType[];
+  address: string;
+};
