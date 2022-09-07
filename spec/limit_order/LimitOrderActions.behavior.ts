@@ -769,6 +769,11 @@ export function describeBehaviorOfLimitOrderActions(
           resolverHash,
         );
 
+        const _resolverData = instance.interface.encodeFunctionData(
+          'canExecuteOrder',
+          [maker.address, opAaveToken.address],
+        );
+
         //create order from maker
         expect(await instance.connect(maker).createOrder(orderParams))
           .to.emit(opsInstance, 'TaskCreated')
@@ -780,19 +785,23 @@ export function describeBehaviorOfLimitOrderActions(
             ),
             instance.address,
             _taskId,
-            instance.interface.encodeFunctionData('canExecuteOrder', [
-              maker.address,
-              opAaveToken.address,
-            ]),
+            _resolverData,
             true,
             ethers.constants.AddressZero,
             resolverHash,
           ]);
 
-        const [canExec, execPayload] = await instance.canExecuteOrder(
-          maker.address,
-          opAaveToken.address,
+        const [canExec, execPayload] = ethers.utils.defaultAbiCoder.decode(
+          ['bool', 'bytes'],
+          await ethers.provider.call({
+            to: instance.address,
+            data: _resolverData,
+          }),
         );
+
+        // assert the payload
+        // write testcases for different scenario of canExecuteOrder
+        // cancel the order if someone else other than Gelato executes the order.
 
         expect(canExec).to.be.true;
 
@@ -820,9 +829,7 @@ export function describeBehaviorOfLimitOrderActions(
             instance
               .connect(optyFiVaultOperator)
               .execute(optyFiVaultOperator.address, AaveVaultProxy, swapParams),
-          ).to.be.revertedWith(
-            `NoActiveOrder("${optyFiVaultOperator.address}")`,
-          );
+          ).to.be.revertedWith('no active order');
         });
         it('order has expired', async () => {
           const userShares = await opAaveToken.balanceOf(maker.address);
@@ -840,9 +847,7 @@ export function describeBehaviorOfLimitOrderActions(
             instance
               .connect(maker)
               .execute(maker.address, AaveVaultProxy, swapParams),
-          ).to.be.revertedWith(
-            `Expired(${expiredTimestamp}, ${orderParams.expiration})`,
-          );
+          ).to.be.revertedWith('expired');
         });
         it('price is outwith bounds when set to be within bounds', async () => {
           const userShares = await opAaveToken.balanceOf(maker.address);
@@ -861,9 +866,7 @@ export function describeBehaviorOfLimitOrderActions(
             instance
               .connect(maker)
               .execute(maker.address, AaveVaultProxy, swapParams),
-          ).to.be.revertedWith(
-            `PriceOutwithBounds(${price}, ${modifyOrderParams.lowerBound}, ${modifyOrderParams.upperBound})`,
-          );
+          ).to.be.revertedWith('price out with bounds');
         });
 
         it('price is within bounds when set to be outwith bounds', async () => {
@@ -886,9 +889,7 @@ export function describeBehaviorOfLimitOrderActions(
             instance
               .connect(maker)
               .execute(maker.address, AaveVaultProxy, swapParams),
-          ).to.be.revertedWith(
-            `PriceWithinBounds(${price}, ${modifyOrderParams.lowerBound}, ${modifyOrderParams.upperBound})`,
-          );
+          ).to.be.revertedWith('price within bounds');
         });
 
         it('return limit > swap output', async () => {

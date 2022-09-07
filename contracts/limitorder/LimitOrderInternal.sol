@@ -14,6 +14,7 @@ import { DataTypes as SwapDataTypes } from '../optyfi-swapper/contracts/swap/Dat
 import { ISwapper } from '../optyfi-swapper/contracts/swap/ISwapper.sol';
 import { ITokenTransferProxy } from '../optyfi-swapper/contracts/utils/ITokenTransferProxy.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
+import { ISolidStateERC20 } from '@solidstate/contracts/token/ERC20/ISolidStateERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 import { IOps } from '../vendor/gelato/IOps.sol';
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
@@ -168,17 +169,25 @@ contract LimitOrderInternal is ILimitOrderInternal {
     ) internal {
         DataTypes.Order memory order = _l.userVaultOrder[_maker][_vault];
         address token = IVault(_vault).underlyingToken();
-        address oracle = _l.oracle;
 
         //check order execution criteria
-        _canExecute(_l, order, _maker, _vault, token, oracle);
+        (bool _isExecutable, string memory _reason) = _canExecute(
+            _l,
+            order,
+            _maker,
+            _vault,
+            token,
+            _l.oracle
+        );
+
+        require(_isExecutable, _reason);
 
         (uint256 tokens, uint256 limit) = _liquidate(
             _l,
             _vault,
             _maker,
             token,
-            oracle,
+            _l.oracle,
             order.liquidationAmount,
             order.returnLimitBP
         );
@@ -418,15 +427,15 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _vault,
         address _token,
         address _oracleAddress
-    ) internal view {
+    ) internal view returns (bool, string memory) {
         if (!_l.userVaultOrderActive[_maker][_vault]) {
-            revert Errors.NoActiveOrder(msg.sender);
+            return (false, 'no active order');
         }
 
         if (_order.expiration <= _timestamp()) {
-            revert Errors.Expired(_timestamp(), _order.expiration);
+            return (false, 'expired');
         }
-        _areBoundsSatisfied(_price(_oracleAddress, _token), _order);
+        return _areBoundsSatisfied(_price(_oracleAddress, _token), _order);
     }
 
     /**
@@ -640,27 +649,20 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _areBoundsSatisfied(
         uint256 _latestPrice,
         DataTypes.Order memory _order
-    ) internal pure {
+    ) internal pure returns (bool, string memory) {
         uint256 lowerBound = _order.lowerBound;
         uint256 upperBound = _order.upperBound;
 
         if (_order.direction == DataTypes.BoundDirection.Out) {
             if (!(lowerBound >= _latestPrice || _latestPrice >= upperBound)) {
-                revert Errors.PriceWithinBounds(
-                    _latestPrice,
-                    lowerBound,
-                    upperBound
-                );
+                return (false, 'price within bounds');
             }
         } else {
             if (!(lowerBound <= _latestPrice && _latestPrice <= upperBound)) {
-                revert Errors.PriceOutwithBounds(
-                    _latestPrice,
-                    lowerBound,
-                    upperBound
-                );
+                return (false, 'price out with bounds');
             }
         }
+        return (true, '');
     }
 
     /**
@@ -734,44 +736,16 @@ contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _amountIn = (_order.liquidationAmount *
             IVault(_vault).getPricePerFullShare()) / 10**18;
 
-        if (!LimitOrderStorage.layout().userVaultOrderActive[_maker][_vault]) {
-            return (false, bytes('No active order'));
-        }
-
-        if (_order.expiration <= _timestamp()) {
-            return (false, bytes('Order is expired'));
-        }
-
-        if (_order.direction == DataTypes.BoundDirection.Out) {
-            if (
-                !(_order.lowerBound >=
-                    _price(
-                        LimitOrderStorage.layout().oracle,
-                        _vaultUnderlyingToken
-                    ) ||
-                    _price(
-                        LimitOrderStorage.layout().oracle,
-                        _vaultUnderlyingToken
-                    ) >=
-                    _order.upperBound)
-            ) {
-                return (false, bytes('Price out of bounds'));
-            }
-        } else {
-            if (
-                !(_order.lowerBound <=
-                    _price(
-                        LimitOrderStorage.layout().oracle,
-                        _vaultUnderlyingToken
-                    ) &&
-                    _price(
-                        LimitOrderStorage.layout().oracle,
-                        _vaultUnderlyingToken
-                    ) <=
-                    _order.upperBound)
-            ) {
-                return (false, bytes('Price out of bounds'));
-            }
+        (bool _isExecutable, string memory _reason) = _canExecute(
+            LimitOrderStorage.layout(),
+            _order,
+            _maker,
+            _vault,
+            _vaultUnderlyingToken,
+            LimitOrderStorage.layout().oracle
+        );
+        if (!_isExecutable) {
+            return (false, bytes(_reason));
         }
 
         address[] memory _addrs = new address[](2);
@@ -782,11 +756,16 @@ contract LimitOrderInternal is ILimitOrderInternal {
             IUniswapV2Router01.swapExactTokensForTokens,
             (
                 _amountIn,
-                0,
-                // _priceUSDC(
-                //     LimitOrderStorage.layout().oracle,
-                //     _vaultUnderlyingToken
-                // ),
+                (((_amountIn *
+                    _priceUSDC(
+                        LimitOrderStorage.layout().oracle,
+                        _vaultUnderlyingToken
+                    ) *
+                    10**ISolidStateERC20(USDC).decimals()) /
+                    10 **
+                        (18 +
+                            ISolidStateERC20(_vaultUnderlyingToken)
+                                .decimals())) * 99) / 100,
                 _addrs,
                 LimitOrderStorage.layout().swapDiamond,
                 _timestamp() + 20 minutes
@@ -831,21 +810,24 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _exchangeData = bytes.concat(_approveData, _swapData);
         }
 
-        DataTypes.SwapParams memory _swapParams = DataTypes.SwapParams({
-            deadline: _timestamp() + 10 minutes,
-            startIndexes: _startIndexes,
-            values: _values,
-            callees: _callees,
-            exchangeData: _exchangeData,
-            permit: bytes('0x')
-        });
-
-        bytes memory _execPayload = abi.encodeCall(
-            ILimitOrderActions.execute,
-            (_maker, _vault, _swapParams)
+        return (
+            true,
+            abi.encodeCall(
+                ILimitOrderActions.execute,
+                (
+                    _maker,
+                    _vault,
+                    DataTypes.SwapParams({
+                        deadline: _timestamp() + 10 minutes,
+                        startIndexes: _startIndexes,
+                        values: _values,
+                        callees: _callees,
+                        exchangeData: _exchangeData,
+                        permit: bytes('0x')
+                    })
+                )
+            )
         );
-
-        return (true, _execPayload);
     }
 
     function _returnLimit(
