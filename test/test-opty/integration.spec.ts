@@ -3,7 +3,13 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
-import { getRiskProfileCode, Signers, to_10powNumber_BN } from "../../helpers/utils";
+import {
+  assertVaultConfiguration,
+  getAccountsMerkleProof,
+  getAccountsMerkleRoot,
+  getRiskProfileCode,
+  Signers,
+} from "../../helpers/utils";
 import { deployRegistry, deployVault } from "../../helpers/contracts-deployments";
 import {
   AaveV1Adapter,
@@ -13,6 +19,7 @@ import {
   CompoundETHGateway,
   ConvexFinanceAdapter,
   CurveDepositPoolAdapter,
+  CurveMetapoolSwapAdapter,
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
   ERC20,
@@ -21,120 +28,21 @@ import {
   RegistryProxy,
   RiskManager,
   RiskManagerProxy,
+  StrategyManager,
   StrategyProvider,
   Vault,
 } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { TypedTokens } from "../../helpers/data";
-import { TypedDefiPools } from "../../helpers/data/defiPools";
-import { deployContract, generateStrategyHash, generateTokenHashV2 } from "../../helpers/helpers";
+import { deployContract, generateStrategyHashV2, generateTokenHashV2 } from "../../helpers/helpers";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
+import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
+import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
+import { PoolRate } from "../../helpers/type";
+
 chai.use(solidity);
 
-const USDC_LIQUIDITY_POOLS = [
-  TypedDefiPools.CompoundAdapter.usdc.pool,
-  TypedDefiPools.AaveV1Adapter.usdc.pool,
-  TypedDefiPools.AaveV2Adapter.usdc.pool,
-  TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
-  TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool,
-  TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
-  TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
-  TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
-];
-
-const USDC_TOKEN_HASH = generateTokenHashV2([TypedTokens.USDC], "0x1");
-
-const USDC_COMPOUND_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.CompoundAdapter.usdc.pool,
-      outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
-
-const USDC_AAVEV1_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.AaveV1Adapter.usdc.pool,
-      outputToken: TypedDefiPools.AaveV1Adapter.usdc.lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
-
-const USDC_AAVEV2_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.AaveV2Adapter.usdc.pool,
-      outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
-
-const USDC_CURVE_DEPOSIT_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
-      outputToken: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
-
-const USDC_CURVE_SWAP_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
-
-const USDC_3CRV_CURVE_SWAP_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
-      isBorrow: false,
-    },
-    {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
-
-const USDC_CONVEX_HASH = generateStrategyHash(
-  [
-    {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].lpToken,
-      isBorrow: false,
-    },
-    {
-      contract: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
-      outputToken: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].lpToken,
-      isBorrow: false,
-    },
-    {
-      contract: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
-      outputToken: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].lpToken,
-      isBorrow: false,
-    },
-  ],
-  TypedTokens.USDC,
-);
+const fork = process.env.FORK as eEVMNetwork;
 
 describe("Integration tests", function () {
   before(async function () {
@@ -162,6 +70,7 @@ describe("Integration tests", function () {
       assert.isDefined(this.registry, "!Registry and/pr !RegistryProxy");
       assert.isDefined(this.registryProxy, "!RegistryProxy");
     });
+
     it("1. Should have defaults role addresses on deployment as expected", async function () {
       expect(await this.registry.governance()).to.equal(this.signers.admin.address);
       expect(await this.registry.financeOperator()).to.equal(this.signers.admin.address);
@@ -169,6 +78,7 @@ describe("Integration tests", function () {
       expect(await this.registry.strategyOperator()).to.equal(this.signers.admin.address);
       expect(await this.registry.operator()).to.equal(this.signers.admin.address);
     });
+
     it("2. Should be to able to change the governance", async function () {
       await expect(this.registryProxy.setPendingGovernance(this.signers.governance.address))
         .to.emit(this.registryProxy, "NewPendingGovernance")
@@ -178,6 +88,7 @@ describe("Integration tests", function () {
         .withArgs(this.signers.admin.address, this.signers.governance.address);
       expect(await this.registry.governance()).to.equal(this.signers.governance.address);
     });
+
     it("3. New governance should be to able to change the finance operator", async function () {
       await expect(
         this.registry.connect(this.signers.governance).setFinanceOperator(this.signers.financeOperator.address),
@@ -186,12 +97,14 @@ describe("Integration tests", function () {
         .withArgs(this.signers.financeOperator.address, this.signers.governance.address);
       expect(await this.registry.financeOperator()).to.equal(this.signers.financeOperator.address);
     });
+
     it("4. New governance should be to able to change the risk operator", async function () {
       await expect(this.registry.connect(this.signers.governance).setRiskOperator(this.signers.riskOperator.address))
         .to.emit(this.registry, "TransferRiskOperator")
         .withArgs(this.signers.riskOperator.address, this.signers.governance.address);
       expect(await this.registry.riskOperator()).to.equal(this.signers.riskOperator.address);
     });
+
     it("5. New governance should be to able to change the strategy operator", async function () {
       await expect(
         this.registry.connect(this.signers.governance).setStrategyOperator(this.signers.strategyOperator.address),
@@ -208,41 +121,50 @@ describe("Integration tests", function () {
       expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
 
-    it("7. Operator should be able to approve USDC", async function () {
-      await expect(this.registry.connect(this.signers.operator)["approveToken(address)"](TypedTokens.USDC))
-        .to.emit(this.registry, "LogToken")
-        .withArgs(TypedTokens.USDC, true, this.signers.operator.address);
-      expect(await this.registry.tokens(TypedTokens.USDC)).to.be.true;
+    it("7. Operator should be able to approve tokens", async function () {
+      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
+        await expect(this.registry.connect(this.signers.operator)["approveToken(address)"](TypedTokens[token]))
+          .to.emit(this.registry, "LogToken")
+          .withArgs(TypedTokens[token], true, this.signers.operator.address);
+        expect(await this.registry.tokens(TypedTokens[token])).to.be.true;
+      }
     });
 
     it("8. Operator should be able to set tokens hash to tokens", async function () {
-      await expect(
-        this.registry
-          .connect(this.signers.operator)
-          ["setTokensHashToTokens(bytes32,address[])"](USDC_TOKEN_HASH, [TypedTokens.USDC]),
-      )
-        .to.emit(this.registry, "LogTokensToTokensHash")
-        .withArgs(USDC_TOKEN_HASH, this.signers.operator.address);
-      expect(await this.registry.getTokensHashToTokenList(USDC_TOKEN_HASH)).to.include(TypedTokens.USDC);
-      expect(await this.registry.getTokensHashIndexByHash(USDC_TOKEN_HASH)).to.equal(BigNumber.from("0"));
-      expect(await this.registry.getTokenHashes()).to.include(USDC_TOKEN_HASH);
-      expect(await this.registry.getTokensHashByIndex(0)).to.include(USDC_TOKEN_HASH);
+      let tokenIndex = 0;
+      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
+        const tokenHash = generateTokenHashV2([TypedTokens[token]], NETWORKS_CHAIN_ID_HEX[fork]);
+        await expect(
+          this.registry
+            .connect(this.signers.operator)
+            ["setTokensHashToTokens(bytes32,address[])"](tokenHash, [TypedTokens[token]]),
+        )
+          .to.emit(this.registry, "LogTokensToTokensHash")
+          .withArgs(tokenHash, this.signers.operator.address);
+        expect(await this.registry.getTokensHashToTokenList(tokenHash)).to.include(TypedTokens[token]);
+        expect(await this.registry.getTokensHashIndexByHash(tokenHash)).to.equal(BigNumber.from(tokenIndex));
+        expect(await this.registry.getTokenHashes()).to.include(tokenHash);
+        expect(await this.registry.getTokensHashByIndex(tokenIndex)).to.include(tokenHash);
+        tokenIndex++;
+      }
     });
 
     it("9. Operator should be able to approve USDC liquidity pools", async function () {
-      await expect(
-        this.registry.connect(this.signers.operator)["approveLiquidityPool(address[])"](USDC_LIQUIDITY_POOLS),
-      )
-        .to.emit(this.registry, "LogLiquidityPool")
-        .withArgs(USDC_LIQUIDITY_POOLS[0], true, this.signers.operator.address);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[0])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[1])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[2])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[3])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[4])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[5])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[6])).isLiquidityPool).to.be.true;
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[7])).isLiquidityPool).to.be.true;
+      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
+        let tokenPools: string[] = [];
+        for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
+          const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
+          strategyDetail.strategy.map(step => {
+            !tokenPools.includes(step.contract) ? tokenPools.push(step.contract) : null;
+          });
+        }
+        await expect(this.registry.connect(this.signers.operator)["approveLiquidityPool(address[])"](tokenPools))
+          .to.emit(this.registry, "LogLiquidityPool")
+          .withArgs(tokenPools[0], true, this.signers.operator.address);
+        for (const pool of tokenPools) {
+          expect((await this.registry.liquidityPools(pool)).isLiquidityPool).to.be.true;
+        }
+      }
     });
 
     it("10. Risk Operator should be able to rate approved liquidity pools", async function () {
@@ -250,37 +172,42 @@ describe("Integration tests", function () {
         ESSENTIAL_CONTRACTS.REGISTRY,
         this.registry.address,
       );
-      await expect(
-        registryContractInstance.connect(this.signers.riskOperator)["rateLiquidityPool((address,uint8)[])"]([
-          { pool: USDC_LIQUIDITY_POOLS[0], rate: 1 },
-          { pool: USDC_LIQUIDITY_POOLS[1], rate: 2 },
-          { pool: USDC_LIQUIDITY_POOLS[2], rate: 3 },
-          { pool: USDC_LIQUIDITY_POOLS[3], rate: 4 },
-          { pool: USDC_LIQUIDITY_POOLS[4], rate: 5 },
-          { pool: USDC_LIQUIDITY_POOLS[5], rate: 6 },
-          { pool: USDC_LIQUIDITY_POOLS[6], rate: 7 },
-          { pool: USDC_LIQUIDITY_POOLS[7], rate: 8 },
-        ]),
-      )
-        .to.emit(this.registry, "LogRateLiquidityPool")
-        .withArgs(USDC_LIQUIDITY_POOLS[0], 1, this.signers.riskOperator.address);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[0])).rating).to.be.equal(1);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[1])).rating).to.be.equal(2);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[2])).rating).to.be.equal(3);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[3])).rating).to.be.equal(4);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[4])).rating).to.be.equal(5);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[5])).rating).to.be.equal(6);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[6])).rating).to.be.equal(7);
-      expect((await this.registry.liquidityPools(USDC_LIQUIDITY_POOLS[7])).rating).to.be.equal(8);
+      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
+        let poolRates: PoolRate[] = [];
+        let tokenPools: string[] = [];
+        let rate = 1;
+        for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
+          const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
+          strategyDetail.strategy.map(step => {
+            if (!tokenPools.includes(step.contract)) {
+              tokenPools.push(step.contract);
+              poolRates.push({ pool: step.contract, rate: rate });
+              rate++;
+            }
+          });
+        }
+        await expect(
+          registryContractInstance
+            .connect(this.signers.riskOperator)
+            ["rateLiquidityPool((address,uint8)[])"](poolRates),
+        )
+          .to.emit(this.registry, "LogRateLiquidityPool")
+          .withArgs(poolRates[0].pool, 1, this.signers.riskOperator.address);
+        let checkRate = 1;
+        for (const poolRate of poolRates) {
+          expect((await this.registry.liquidityPools(poolRate.pool)).rating).to.be.equal(checkRate);
+          checkRate++;
+        }
+      }
     });
 
     it("11. Risk operator should be able to add the risk profile", async function () {
       await expect(
         this.registry
           .connect(this.signers.riskOperator)
-          ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "INTERMEDIATE", "INT", false, {
+          ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggressive", "aggr", false, {
             lowerLimit: "1",
-            upperLimit: "10",
+            upperLimit: "20",
           }),
       )
         .to.emit(this.registry, "LogRiskProfile")
@@ -289,10 +216,10 @@ describe("Integration tests", function () {
       expect(riskProfile.index).to.be.equal("0");
       expect(riskProfile.canBorrow).to.be.false;
       expect(riskProfile.poolRatingsRange.lowerLimit).to.be.equal(BigNumber.from("1"));
-      expect(riskProfile.poolRatingsRange.upperLimit).to.be.equal(BigNumber.from("10"));
+      expect(riskProfile.poolRatingsRange.upperLimit).to.be.equal(BigNumber.from("20"));
       expect(riskProfile.exists).to.be.true;
-      expect(riskProfile.name).to.be.equal("INTERMEDIATE");
-      expect(riskProfile.symbol).to.be.equal("INT");
+      expect(riskProfile.name).to.be.equal("Aggressive");
+      expect(riskProfile.symbol).to.be.equal("aggr");
       expect((await this.registry.getRiskProfileList())[0]).to.equal("2");
     });
 
@@ -363,7 +290,19 @@ describe("Integration tests", function () {
       expect(await this.curveDepositPoolAdapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
     });
 
-    it("18. Risk operator deploys CurveSwapPool Adapter", async function () {
+    it("18. Risk operator/operator deploys CurveMetapoolSwapAdapter Adapter", async function () {
+      // Note : For deploying CurveMetapoolSwapAdapter, operator and risk operator should have same address
+      await this.registry.connect(this.signers.governance).setOperator(this.signers.riskOperator.address);
+      expect(await this.registry.operator()).to.equal(this.signers.riskOperator.address);
+      this.curveMetapoolSwapAdapter = <CurveMetapoolSwapAdapter>(
+        await deployContract(hre, "CurveMetapoolSwapAdapter", false, this.signers.riskOperator, [this.registry.address])
+      );
+      assert.isDefined(this.curveMetapoolSwapAdapter, "!CurveMetapoolSwapAdapter");
+      expect(await this.curveMetapoolSwapAdapter.maxDepositProtocolPct()).to.equal("10000");
+      expect(await this.curveMetapoolSwapAdapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
+    });
+
+    it("19. Risk operator deploys CurveSwapPool Adapter", async function () {
       // Note : For deploying CurveDepositPool, operator and risk operator should have same address
       this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
         await deployContract(hre, "CurveSwapPoolAdapter", false, this.signers.riskOperator, [this.registry.address])
@@ -386,82 +325,48 @@ describe("Integration tests", function () {
       expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
 
-    it("19. Operator can register adapter to approved liquidity pools", async function () {
+    it("20. Operator can register adapter to approved liquidity pools", async function () {
+      const adapterNameToAddress = new Map<string, string>([
+        ["AaveV1Adapter", this.aavev1Adapter.address],
+        ["AaveV2Adapter", this.aaveV2Adapter.address],
+        ["CurveSwapPoolAdapter", this.curveSwapPoolAdapter.address],
+        ["CurveMetapoolSwapAdapter", this.curveMetapoolSwapAdapter.address],
+        ["CurveDepositPoolAdapter", this.curveDepositPoolAdapter.address],
+        ["ConvexFinanceAdapter", this.convexAdapter.address],
+      ]);
+
       const registryContractInstance = await hre.ethers.getContractAt(
         ESSENTIAL_CONTRACTS.REGISTRY,
         this.registry.address,
       );
+      let poolAdapters: { pool: string; adapter: string }[] = [];
+      let tokenPools: string[] = [];
+      for (const strategy of Object.keys(StrategiesByTokenByChain[fork]["USDC"])) {
+        const strategyDetail = StrategiesByTokenByChain[fork]["USDC"][strategy];
+        strategyDetail.strategy.map(step => {
+          let adapterAddress = step.adapterName !== undefined ? adapterNameToAddress.get(step.adapterName) : "";
+          !tokenPools.includes(step.contract)
+            ? poolAdapters.push({
+                pool: step.contract,
+                adapter: adapterAddress !== undefined ? adapterAddress : "",
+              })
+            : null;
+          tokenPools.push(step.contract);
+        });
+      }
       await expect(
-        registryContractInstance.connect(this.signers.operator)["setLiquidityPoolToAdapter((address,address)[])"]([
-          {
-            pool: TypedDefiPools.CompoundAdapter.usdc.pool,
-            adapter: this.compoundAdapter.address,
-          },
-          {
-            pool: TypedDefiPools.AaveV1Adapter.usdc.pool,
-            adapter: this.aavev1Adapter.address,
-          },
-          {
-            pool: TypedDefiPools.AaveV2Adapter.usdc.pool,
-            adapter: this.aaveV2Adapter.address,
-          },
-          {
-            pool: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
-            adapter: this.curveDepositPoolAdapter.address,
-          },
-          {
-            pool: TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool,
-            adapter: this.curveDepositPoolAdapter.address,
-          },
-          {
-            pool: TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
-            adapter: this.curveSwapPoolAdapter.address,
-          },
-          {
-            pool: TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool,
-            adapter: this.curveSwapPoolAdapter.address,
-          },
-          {
-            pool: TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool,
-            adapter: this.convexAdapter.address,
-          },
-        ]),
+        registryContractInstance
+          .connect(this.signers.operator)
+          ["setLiquidityPoolToAdapter((address,address)[])"](poolAdapters),
       )
         .to.emit(this.registry, "LogLiquidityPoolToAdapter")
-        .withArgs(
-          TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool,
-          this.curveSwapPoolAdapter.address,
-          this.signers.operator.address,
-        );
-      expect(await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CompoundAdapter.usdc.pool)).to.equal(
-        this.compoundAdapter.address,
-      );
-      expect(await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.AaveV1Adapter.usdc.pool)).to.equal(
-        this.aavev1Adapter.address,
-      );
-      expect(await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.AaveV2Adapter.usdc.pool)).to.equal(
-        this.aaveV2Adapter.address,
-      );
-      expect(
-        await this.registry.getLiquidityPoolToAdapter(
-          TypedDefiPools.CurveDepositPoolAdapter["dai+usdc+usdt+gusd"].pool,
-        ),
-      ).to.equal(this.curveDepositPoolAdapter.address);
-      expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveDepositPoolAdapter["dai+usdc"].pool),
-      ).to.equal(this.curveDepositPoolAdapter.address);
-      expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["dai+usdc+usdt_3crv"].pool),
-      ).to.equal(this.curveSwapPoolAdapter.address);
-      expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.CurveSwapPoolAdapter["mim+3Crv"].pool),
-      ).to.equal(this.curveSwapPoolAdapter.address);
-      expect(
-        await this.registry.getLiquidityPoolToAdapter(TypedDefiPools.ConvexFinanceAdapter["MIM-3LP3CRV-f"].pool),
-      ).to.equal(this.convexAdapter.address);
+        .withArgs(poolAdapters[0].pool, poolAdapters[0].adapter, this.signers.operator.address);
+      for (const pool of poolAdapters) {
+        expect(await this.registry.getLiquidityPoolToAdapter(pool.pool)).to.equal(pool.adapter);
+      }
     });
 
-    it("22. Strategy operator can deploy StrategyProvider and operator can register", async function () {
+    it("21. Strategy operator can deploy StrategyProvider and operator can register", async function () {
       this.strategyProvider = <StrategyProvider>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, false, this.signers.strategyOperator, [
           this.registry.address,
@@ -472,7 +377,8 @@ describe("Integration tests", function () {
       await this.registry.connect(this.signers.operator).setStrategyProvider(this.strategyProvider.address);
       expect(await this.registry.getStrategyProvider()).to.equal(this.strategyProvider.address);
     });
-    it("23. Deployer can deploy RiskManager and operator can register it", async function () {
+
+    it("22. Deployer can deploy RiskManager and operator can register it", async function () {
       this.riskManager = <RiskManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER, false, this.signers.deployer, [
           this.registry.address,
@@ -495,640 +401,304 @@ describe("Integration tests", function () {
       expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
     });
 
-    it("26. Operator can deploy vault and admin can upgrade", async function () {
+    it("23. Deployer can deploy StrategyManager and ClaimAndHarvest ", async function () {
+      this.strategyManager = <StrategyManager>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER, false, this.signers.deployer, [])
+      );
+      assert.isDefined(this.strategyManager, "!StrategyManager");
+
+      this.claimAndHarvest = <RiskManagerProxy>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.CLAIM_AND_HARVEST, false, this.signers.deployer, [])
+      );
+      assert.isDefined(this.claimAndHarvest, "!ClaimAndHarvest");
+    });
+
+    it("24. Operator can deploy vault and admin can upgrade", async function () {
+      // (0-15) Deposit fee UT = 1 USDC = 0001
+      // (16-31) Deposit fee % = 0.05% = 0005
+      // (32-47) Withdrawal fee UT = 1 USDC = 0001
+      // (48-63) Withdrawal fee % = 0.05% = 0005
+      // (64-79) Max vault value jump % = 0.01% = 0001
+      // (80-239) vault fee address = 0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5
+      // (240-247) risk profile code = 2 = 02
+      // (248) emergency shutdown = false = 0
+      // (249) unpause = true = 1
+      // (250) allow whitelisted state = true = 0
+      // (251) - 0
+      // (252) - 0
+      // (253) - 0
+      // (254) - 0
+      // (255) - 0
+      // 0x060219cDeDF678aBE15a921a2AB26C9Bc8867fc35cE500010000000000000000
+      const _vaultConfiguration = BigNumber.from(
+        "2717588881137297196073629478594403830637904256449768059589358340699261501440",
+      );
       this.vault = <Vault>(
         await deployVault(
           hre,
           this.registry.address,
-          TypedTokens.USDC,
+          this.strategyManager.address,
+          this.claimAndHarvest.address,
+          StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[0]].token,
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          _vaultConfiguration.toString(),
+          0,
+          0,
+          0,
           this.signers.operator,
           this.signers.admin,
           "USD Coin",
           "USDC",
           2,
-          false,
+          true,
         )
       );
-      expect(await this.vault.name()).to.equal("op USD Coin INTERMEDIATE");
-      expect(await this.vault.symbol()).to.equal("opUSDCINT");
+
+      expect(await this.vault.name()).to.equal("op USD Coin Aggressive");
+      expect(await this.vault.symbol()).to.equal("opUSDCaggr");
       expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
       const actualRiskProfileCode = getRiskProfileCode(await this.vault.vaultConfiguration());
       expect(actualRiskProfileCode).to.equal("2");
+      assertVaultConfiguration(
+        await this.vault.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("1"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("2"),
+        false,
+        true,
+        true,
+      );
     });
 
-    it("27. Alice deposit*, withdraw*, rebalance and harvest transactions should fail", async function () {
+    it("25. Alice deposit should fail, EOA_NOT_WHITELISTED", async function () {
       this.erc20 = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.USDC);
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
         TypedTokens.USDC,
         this.signers.alice,
-        BigNumber.from("1000000000"), // 1000 USDC
+        BigNumber.from("1600000000000"),
         deadline,
         this.signers.alice.address,
       );
-      expect(await this.erc20.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("1000000000")); // 1000 USDC
+      expect(await this.erc20.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("1600000000000")); // 1000 USDC
       await this.erc20.connect(this.signers.alice).approve(this.vault.address, BigNumber.from("1000000000")); // 1000 USDC
       expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(
         BigNumber.from("1000000000"),
       ); // USDC
-      await expect(this.vault.connect(this.signers.alice).userDepositAll()).to.revertedWith("paused or discontinued");
-      await expect(this.vault.connect(this.signers.alice).userDepositAllRebalance()).to.revertedWith(
-        "paused or discontinued",
-      );
-      await expect(this.vault.connect(this.signers.alice).userWithdrawAllRebalance()).to.revertedWith("e18");
-      await expect(this.vault.connect(this.signers.alice).rebalance()).to.revertedWith("paused or discontinued");
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .harvest("0x0000000000000000000000000000000000000000000000000000000000000000"),
-      ).to.revertedWith("caller is not the operator");
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", [], []),
+      ).to.revertedWith("8");
     });
 
-    it("28. Governance can set maxVaultValueJump=1%", async function () {
-      await this.vault.connect(this.signers.governance).setMaxVaultValueJump("100");
-      expect(await this.vault.maxVaultValueJump()).to.equal(BigNumber.from("100"));
+    it("26. Operator can whitelist Alice,Bob for USDC vault", async function () {
+      const _root = getAccountsMerkleRoot([this.signers.alice.address, this.signers.bob.address]);
+      await this.vault.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
+      expect(await this.vault.whitelistedAccountsRoot()).to.eq(_root);
     });
-    it("29. Operator can whitelist Alice,Bob for USDC vault", async function () {
-      await this.registry
-        .connect(this.signers.operator)
-        .setWhitelistedUsers(this.vault.address, [this.signers.alice.address, this.signers.bob.address], true);
-      expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.alice.address)).to.be.true;
-      expect(await this.registry.isUserWhitelisted(this.vault.address, this.signers.bob.address)).to.be.true;
-    });
-    it("30. Finance Operator can set USDC vault configuration", async function () {
-      await this.registry.connect(this.signers.financeOperator).setVaultConfiguration(
-        this.vault.address,
-        true,
-        true,
-        [],
-        0,
-        "10000000000", // 10,000 USDC
-        "1000000000", //1000 USDC
-        "1000000000000", //1,000,000 USDC
-      );
-      const vaultConfiguration = await this.registry.getVaultConfiguration(this.vault.address);
-      expect(vaultConfiguration.discontinued).to.be.false;
-      expect(vaultConfiguration.unpaused).to.be.false;
-      expect(vaultConfiguration.isLimitedState).to.be.true;
-      expect(vaultConfiguration.allowWhitelistedState).to.be.true;
-      expect(vaultConfiguration.treasuryShares.length).to.be.equal(BigNumber.from("0"));
-      expect(vaultConfiguration.withdrawalFee).to.be.equal(BigNumber.from("0"));
-      expect(vaultConfiguration.userDepositCap).to.equal(BigNumber.from("10000000000"));
-      expect(vaultConfiguration.minimumDepositAmount).to.equal(BigNumber.from("1000000000"));
-      expect(vaultConfiguration.totalValueLockedLimitInUnderlying).to.equal(BigNumber.from("1000000000000"));
-      expect(vaultConfiguration.queueCap).to.equal(BigNumber.from("0"));
-    });
-    it("31. Operator can set the queueCap for the USDC vault for userDeposit without rebalance", async function () {
-      await this.registry.connect(this.signers.operator).setQueueCap(this.vault.address, "3");
-      expect((await this.registry.getVaultConfiguration(this.vault.address)).queueCap).to.equal(BigNumber.from("3"));
-    });
-    it("32. Operator can unpause the vault", async function () {
-      await this.registry.connect(this.signers.operator).unpauseVaultContract(this.vault.address, true);
-      expect((await this.registry.getVaultConfiguration(this.vault.address)).unpaused).to.be.true;
-    });
-    it("33. Alice has to deposit atleast 1000 USDC without rebalance", async function () {
-      await expect(this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000")))
-        .to.emit(this.vault, "DepositQueue")
-        .withArgs(this.signers.alice.address, "1", BigNumber.from("1000000000"));
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("1"));
-      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.balance()).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.pendingDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("1000000000"));
-      const userDepositOperation = await this.vault.queue("0");
-      expect(userDepositOperation.account).to.equal(this.signers.alice.address);
-      expect(userDepositOperation.value).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("0"));
-      expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("0"));
-    });
-    it("34. Eve cannot do deposit*/withdraw* transaction", async function () {
-      await expect(this.vault.connect(this.signers.eve).userDeposit(BigNumber.from("1000000000"))).to.revertedWith(
-        "e12",
-      );
-      await expect(
-        this.vault.connect(this.signers.eve).userDepositRebalance(BigNumber.from("1000000000")),
-      ).to.revertedWith("e12");
-      await expect(
-        this.vault.connect(this.signers.eve).userWithdrawRebalance(BigNumber.from("1000000000")),
-      ).to.revertedWith("e20");
-    });
-    it("35. Bob cannot deposit less than 1000 USDC without rebalance", async function () {
-      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("900000000"))).revertedWith("e15");
-    });
-    it("36. Bob has to deposit atleast 1000 USDC without rebalance", async function () {
-      const deadline = (await getBlockTimestamp(hre)) * 2;
-      await fundWalletToken(
-        hre,
-        TypedTokens.USDC,
-        this.signers.bob,
-        BigNumber.from("1000000000"), // 1000 USDC
-        deadline,
-        this.signers.bob.address,
-      );
-      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000")); // 1000 USDC
-      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("1000000000")); // 1000 USDC
-      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
-        BigNumber.from("1000000000"),
-      ); // USDC
 
-      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("1000000000")))
-        .to.emit(this.vault, "DepositQueue")
-        .withArgs(this.signers.bob.address, "2", BigNumber.from("1000000000"));
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("2"));
-      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("2000000000"));
-      expect(await this.vault.balance()).to.equal(BigNumber.from("2000000000"));
-      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("2000000000"));
-      const userDepositOperation = await this.vault.queue("1");
-      expect(userDepositOperation.account).to.equal(this.signers.bob.address);
-      expect(userDepositOperation.value).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("0"));
-      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("0"));
+    it("27. Finance Operator can deposit min, cap and TVL limit", async function () {
+      await this.vault
+        .connect(this.signers.financeOperator)
+        .setValueControlParams(BigNumber.from(10000000000), BigNumber.from(1000000000), BigNumber.from(1000000000000));
+      expect(await this.vault.userDepositCapUT()).to.be.equal(BigNumber.from(10000000000));
+      expect(await this.vault.minimumDepositValueUT()).to.be.equal(BigNumber.from(1000000000));
+      expect(await this.vault.totalValueLockedLimitUT()).to.be.equal(BigNumber.from(1000000000000));
     });
-    it("37. Operator can rebalance and Alice,Bob should receive there shares. DefaultStrategyState is CompoundOrAave", async function () {
-      const expectedCurrentStrategy = await this.riskManager.getBestStrategy("2", [TypedTokens.USDC]);
-      await expect(this.vault.connect(this.signers.operator).rebalance())
-        .to.emit(this.vault, "Transfer")
-        .withArgs(hre.ethers.constants.AddressZero, this.signers.bob.address, BigNumber.from("1000000000"));
-      expect(await this.vault.investStrategyHash()).to.equal(expectedCurrentStrategy);
-      expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
-      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("0"));
-      expect(await this.vault.pendingDeposits(this.signers.alice.address)).to.equal(BigNumber.from("0"));
-      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("0"));
-      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
-      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
-    });
-    it("38. Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
-      const deadline = (await getBlockTimestamp(hre)) * 2;
-      await fundWalletToken(
-        hre,
-        TypedTokens.USDC,
-        this.signers.bob,
-        BigNumber.from("10000000000"), // 10000 USDC
-        deadline,
-        this.signers.bob.address,
-      );
-      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("10000000000")); // 10000 USDC
-      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("10000000000")); // 10000 USDC
-      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
-        BigNumber.from("10000000000"),
-      ); // USDC
 
-      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("10000000000"))).revertedWith("e13");
-    });
-    it("39. Finance operator increases the userDepositCap", async function () {
-      await expect(
-        this.registry
-          .connect(this.signers.financeOperator)
-          .setUserDepositCap(this.vault.address, BigNumber.from("550000000000")),
-      )
-        .to.emit(this.registry, "LogUserDepositCapVault")
-        .withArgs(this.vault.address, BigNumber.from("550000000000"), this.signers.financeOperator.address);
-      expect((await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).to.equal(
-        BigNumber.from("550000000000"),
-      );
-    });
-    it("40. Big fish Bob can now successfully deposit 499K", async function () {
-      const deadline = (await getBlockTimestamp(hre)) * 2;
-      await fundWalletToken(
-        hre,
-        TypedTokens.USDC,
-        this.signers.bob,
-        BigNumber.from("489000000000"), // 489k USDC
-        deadline,
-        this.signers.bob.address,
-      );
-      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("499000000000")); // 499k USDC
-      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("499000000000")); // 499k USDC
-      expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
-        BigNumber.from("499000000000"),
-      ); // USDC
-      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("499000000000")))
-        .to.emit(this.vault, "DepositQueue")
-        .withArgs(this.signers.bob.address, "1", BigNumber.from("499000000000"));
-
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("1"));
-      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.balance()).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
-      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("499000000000"));
-      const userDepositOperation = await this.vault.queue("0");
-      expect(userDepositOperation.account).to.equal(this.signers.bob.address);
-      expect(userDepositOperation.value).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
-      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
-    });
-    it("41. Another Big fish Alice does failed attempt to go beyond TVL cap of vault", async function () {
-      const deadline = (await getBlockTimestamp(hre)) * 2;
-      await fundWalletToken(
-        hre,
-        TypedTokens.USDC,
-        this.signers.alice,
-        BigNumber.from("510000000000"), // 510k USDC
-        deadline,
+    it("28. Alice has to deposit atleast 1000 USDC", async function () {
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
         this.signers.alice.address,
       );
-      expect(await this.erc20.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("510000000000")); // 510k USDC
-      await this.erc20.connect(this.signers.alice).approve(this.vault.address, BigNumber.from("510000000000")); // 510k USDC
-      expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(
-        BigNumber.from("510000000000"),
-      ); // USDC
-      await expect(this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("510000000000"))).to.revertedWith(
-        "e22",
-      );
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("1"));
-      expect(await this.erc20.balanceOf(this.vault.address)).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.balance()).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
-      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("499000000000"));
-      const userDepositOperation = await this.vault.queue("0");
-      expect(userDepositOperation.account).to.equal(this.signers.bob.address);
-      expect(userDepositOperation.value).to.equal(BigNumber.from("499000000000"));
-      expect(await this.vault.totalSupply()).to.equal(BigNumber.from("2000000000"));
-      expect(await this.vault.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("1000000000"));
-    });
-
-    it("42. The strategy operator can set the best strategy to be 3crv", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CURVE_SWAP_HASH);
-      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        USDC_CURVE_SWAP_HASH,
-      );
-    });
-
-    it("43. The Big fish Alice can successfully withdraw 500 shares", async function () {
-      await expect(this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("500000000")))
+      await expect(
+        this.vault
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), "0x", _proof, []),
+      ).to.revertedWith("10");
+      await expect(
+        this.vault
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", _proof, []),
+      )
         .to.emit(this.vault, "Transfer")
-        .withArgs(this.signers.alice.address, hre.ethers.constants.AddressZero, BigNumber.from("500000000"));
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_SWAP_HASH);
-      expect(await this.vault.balanceOf(this.signers.alice.address)).to.equal(BigNumber.from("500000000"));
-      expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
-      expect(await this.vault.pendingDeposits(this.signers.bob.address)).to.equal(BigNumber.from("0"));
-      expect(await this.vault.depositQueue()).to.equal(BigNumber.from("0"));
-      expect(await this.vault.balanceOf(this.signers.bob.address)).to.closeTo(BigNumber.from("499999985030"), 1000000);
-      expect(await this.vault.totalSupply()).to.closeTo(BigNumber.from("500499985030"), 1000000);
+        .withArgs(hre.ethers.constants.AddressZero, this.signers.alice.address, BigNumber.from("1000000000"));
     });
 
-    it("44. The big fish Bob can successfully withdraw 100K shares", async function () {
-      await expect(this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("100000000000")))
-        .to.emit(this.vault, "Transfer")
-        .withArgs(this.signers.bob.address, hre.ethers.constants.AddressZero, BigNumber.from("100000000000"));
-      expect(await this.vault.balanceOf(this.signers.bob.address)).to.closeTo(BigNumber.from("399999985030"), 1000000);
-      expect(await this.vault.totalDeposits(this.signers.alice.address)).to.equal(BigNumber.from("1000000000"));
-      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("500000000000"));
-      expect(await this.vault.totalSupply()).to.closeTo(BigNumber.from("400499985030"), 1000000);
-    });
-
-    it("45. The strategy operator can set the best strategy to be Compound USDC", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_COMPOUND_HASH);
-      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        USDC_COMPOUND_HASH,
+    it("29. Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
+      const deadline = (await getBlockTimestamp(hre)) * 2;
+      await fundWalletToken(
+        hre,
+        TypedTokens.USDC,
+        this.signers.bob,
+        BigNumber.from("100000000000"), // 100000 USDC
+        deadline,
+        this.signers.bob.address,
       );
-    });
-
-    it("46. Big whale Bob does a failed attempt to deposit 60000 USDC with rebalance", async function () {
-      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("60000000000")); // 1000 USDC
+      expect(await this.erc20.balanceOf(this.signers.bob.address)).to.equal(BigNumber.from("100000000000"));
+      await this.erc20.connect(this.signers.bob).approve(this.vault.address, BigNumber.from("100000000000"));
       expect(await this.erc20.allowance(this.signers.bob.address, this.vault.address)).to.equal(
-        BigNumber.from("60000000000"),
+        BigNumber.from("100000000000"),
+      ); // USDC
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.bob.address,
       );
       await expect(
-        this.vault.connect(this.signers.bob).userDepositRebalance(BigNumber.from("60000000000")),
-      ).revertedWith("e13");
+        this.vault
+          .connect(this.signers.bob)
+          .userDepositVault(this.signers.bob.address, BigNumber.from("100000000000"), "0x", _proof, []),
+      ).revertedWith("12");
     });
 
-    it("47. Big whale Bob can deposit 30000 USDC with rebalance", async function () {
-      const sharesBefore: BigNumber = await this.vault.balanceOf(this.signers.bob.address);
-      await expect(this.vault.connect(this.signers.bob).userDepositRebalance(BigNumber.from("30000000000")))
-        .to.emit(this.erc20, "Transfer")
-        .withArgs(this.signers.bob.address, this.vault.address, BigNumber.from("30000000000"));
-      const sharesAfter: BigNumber = await this.vault.balanceOf(this.signers.bob.address);
-      expect(sharesAfter).to.gt(sharesBefore);
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
-      expect(await this.vault.totalDeposits(this.signers.bob.address)).to.equal(BigNumber.from("530000000000"));
+    it("30. Finance operator increases the userDepositCap and totalValueLockedLimit", async function () {
+      await expect(this.vault.connect(this.signers.financeOperator).setUserDepositCapUT(BigNumber.from("500000000000")))
+        .to.emit(this.vault, "LogUserDepositCapUT")
+        .withArgs(BigNumber.from("500000000000"), this.signers.financeOperator.address);
+      expect(await this.vault.userDepositCapUT()).to.equal(BigNumber.from("500000000000"));
+      await expect(
+        this.vault.connect(this.signers.financeOperator).setTotalValueLockedLimitUT(BigNumber.from("1500000000000")),
+      )
+        .to.emit(this.vault, "LogTotalValueLockedLimitUT")
+        .withArgs(BigNumber.from("1500000000000"), this.signers.financeOperator.address);
+      expect(await this.vault.totalValueLockedLimitUT()).to.equal(BigNumber.from("1500000000000"));
     });
-    it("48. Strategy operator can set default strategy to Aave v2 USDC strategy, defaultStrategyState to zero", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, hre.ethers.constants.HashZero);
-      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        hre.ethers.constants.HashZero,
+
+    it("31. Big fish Bob can now successfully deposit 100K", async function () {
+      const depositValue = BigNumber.from("100000000000");
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.bob.address,
       );
-      await this.strategyProvider.connect(this.signers.strategyOperator).setDefaultStrategyState(BigNumber.from("0"));
-      expect(await this.strategyProvider.getDefaultStrategyState()).to.equal(BigNumber.from("0"));
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_AAVEV2_HASH);
-      expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        USDC_AAVEV2_HASH,
-      );
-      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(
-        USDC_AAVEV2_HASH,
-      );
+      await expect(
+        this.vault.connect(this.signers.bob).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof, []),
+      )
+        .to.emit(this.vault, "Transfer")
+        .withArgs(hre.ethers.constants.AddressZero, this.signers.bob.address, depositValue);
     });
-    it("49. Deposit :Alice - 4K and Bob - 2K USDC each, verify queuecap", async function () {
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
-      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
-      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
-      expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
+
+    it("32. Operator can set the next strategy and rebalance", async function () {
+      const strategyDetail =
+        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[0]];
+      const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
+      const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
+      const steps = strategyDetail.strategy.map(item => ({
+        pool: item.contract,
+        outputToken: item.outputToken,
+        isBorrow: item.isBorrow,
+      }));
+      expect((await this.vault.getInvestStrategySteps()).length).to.eq(0);
+      await this.strategyProvider.connect(this.signers.strategyOperator).setBestStrategy("2", tokenHash, steps);
+      expect(await this.vault.getNextBestInvestStrategy()).to.deep.eq(steps.map(item => Object.values(item)));
+      const tx = await this.vault.rebalance();
+      await tx.wait(1);
+      expect(await this.vault.investStrategyHash()).to.eq(strategyHash);
+      expect(await this.vault.getInvestStrategySteps()).to.deep.eq(steps.map(item => Object.values(item)));
     });
-    // 2001.008705
-    // 2001.029412
-    it("50. Operator rebalances, strategy should be USDC Aavev2", async function () {
-      const pricePerFullShare = await this.vault.getPricePerFullShare();
-      const totalSupply = await this.vault.totalSupply();
-      const vaultValue = pricePerFullShare.mul(totalSupply).div(to_10powNumber_BN("18"));
-      const expectedAlice1MintAmount = BigNumber.from("2000000000").mul(totalSupply).div(vaultValue);
-      console.log("pricePerFullShare : ", pricePerFullShare.toString());
-      console.log("expectedAlice1MintAmount: ", expectedAlice1MintAmount.toString());
-      // await expect(this.vault.connect(this.signers.operator).rebalance())
-      //   .to.emit(this.vault, "Transfer")
-      //   .withArgs(hre.ethers.constants.AddressZero, this.signers.alice.address, expectedAlice1MintAmount);
-      const tx = await this.vault.connect(this.signers.operator).rebalance();
-      const txc = await tx.wait();
-      // console.log("# of rebalance events", txc.events);
-      console.log("Alice1 value :", txc?.events?.[6].args?.["value"].toString());
-      console.log("Bob1 value :", txc?.events?.[7].args?.["value"].toString());
-      console.log("Alice2 value :", txc?.events?.[8].args?.["value"].toString());
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_AAVEV2_HASH);
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
-      expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
+
+    it("33. Alice does failed attempt to go beyond TVL cap of vault", async function () {
+      const depositValue = BigNumber.from("1500000000000");
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.alice.address,
+      );
+      await this.erc20.connect(this.signers.alice).approve(this.vault.address, depositValue);
+      expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(depositValue);
+      await expect(
+        this.vault
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.bob.address, depositValue, "0x", _proof, []),
+      ).to.revertedWith("11");
     });
-    it("51. Strategy operator sets zero strategy", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, hre.ethers.constants.HashZero);
-      expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        hre.ethers.constants.HashZero,
-      );
-      expect(await this.strategyProvider.rpToTokenToDefaultStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        hre.ethers.constants.HashZero,
-      );
-      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(
-        hre.ethers.constants.HashZero,
-      );
+
+    it("34. The strategy operator can set the new best strategy", async function () {
+      const strategyDetail =
+        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[1]];
+      const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
+      const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
+      const steps = strategyDetail.strategy.map(item => ({
+        pool: item.contract,
+        outputToken: item.outputToken,
+        isBorrow: item.isBorrow,
+      }));
+      await this.strategyProvider.connect(this.signers.strategyOperator).setBestStrategy("2", tokenHash, steps);
+      expect(await this.vault.getNextBestInvestStrategy()).to.deep.eq(steps.map(item => Object.values(item)));
+      const tx = await this.vault.rebalance();
+      await tx.wait(1);
+      expect(await this.vault.investStrategyHash()).to.eq(strategyHash);
+      expect(await this.vault.getInvestStrategySteps()).to.deep.eq(steps.map(item => Object.values(item)));
     });
-    it("52. Deposit : Alice - 2K Bob - 4K USDC each, operator rebalance to zero", async function () {
-      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
-      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
-      const balanceBefore: BigNumber = await this.vault.balance();
-      const tx = await this.vault.connect(this.signers.operator).rebalance();
-      const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("0"));
-      expect(await this.vault.investStrategyHash()).to.equal(hre.ethers.constants.HashZero);
-      const balanceAfter: BigNumber = await this.vault.balance();
-      expect(balanceAfter).to.gt(balanceBefore);
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
+
+    it("35. Alice can successfully withdraw 500 shares", async function () {
+      const withdrawValue = BigNumber.from("500000000");
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.alice.address,
       );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
+      await expect(
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, withdrawValue, _proof, []),
+      )
+        .to.emit(this.vault, "Transfer")
+        .withArgs(this.signers.alice.address, hre.ethers.constants.AddressZero, withdrawValue);
     });
-    it("53. Strategy operator changes best strategy to USDC Curve gusd", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CURVE_DEPOSIT_HASH);
-      expect(await this.riskManager.getBestStrategy(BigNumber.from("2"), [TypedTokens.USDC])).to.equal(
-        USDC_CURVE_DEPOSIT_HASH,
+
+    it("36. The big fish Bob can successfully withdraw 100K shares", async function () {
+      const withdrawValue = BigNumber.from("100000000000");
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address],
+        this.signers.bob.address,
       );
+      await expect(
+        this.vault.connect(this.signers.bob).userWithdrawVault(this.signers.bob.address, withdrawValue, _proof, []),
+      )
+        .to.emit(this.vault, "Transfer")
+        .withArgs(this.signers.bob.address, hre.ethers.constants.AddressZero, withdrawValue);
     });
-    it("54. The operator rebalances", async function () {
-      const tx = await this.vault.connect(this.signers.operator).rebalance();
-      const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_CURVE_DEPOSIT_HASH);
-      expect(await this.vault.balance()).to.equal(BigNumber.from("0"));
+
+    it("37. The strategy operator claims rewards successfully", async function () {
+      const strategyDetail =
+        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[1]];
+      const claimedRewardBefore = await this.vault.balanceClaimedRewardToken(
+        strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
+      );
+      expect(
+        await this.vault
+          .connect(this.signers.strategyOperator)
+          .claimRewardToken(strategyDetail.strategy[strategyDetail.strategy.length - 1].contract),
+      ).to.emit(this.vault, "RewardTokenClaimed");
+      const claimedRewardAfter = await this.vault.balanceClaimedRewardToken(
+        strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
+      );
+      expect(claimedRewardAfter).gt(claimedRewardBefore);
     });
-    it("55. The strategy operator can set the best strategy to be 2 steps usdc-3crv", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_3CRV_CURVE_SWAP_HASH);
-      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        USDC_3CRV_CURVE_SWAP_HASH,
-      );
-      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
-      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
-      console.log("Queue Cap : ", (await this.registry.getVaultConfiguration(this.vault.address)).queueCap.toString());
-      console.log("Alice Balance : ", (await this.erc20.balanceOf(this.signers.alice.address)).toString());
-      console.log("Bob Balance : ", (await this.erc20.balanceOf(this.signers.bob.address)).toString());
-      console.log("Alice totalDeposit : ", await this.vault.totalDeposits(this.signers.alice.address));
-      console.log("Bob totalDeposit : ", await this.vault.totalDeposits(this.signers.bob.address));
-      console.log(
-        "User deposit cap : ",
-        (await (await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).toString(),
-      );
-      console.log(
-        "Alice allowance : ",
-        (await this.erc20.allowance(this.signers.alice.address, this.vault.address)).toString(),
-      );
-      console.log(
-        "Bob allowance : ",
-        (await this.erc20.allowance(this.signers.bob.address, this.vault.address)).toString(),
-      );
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
+
+    it("38. The strategy operator harvest rewards successfully", async function () {
+      const strategyDetail =
+        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[1]];
+      const balanceBeforeUT = await this.vault.balanceUT();
+      await expect(
+        await this.vault.connect(this.signers.strategyOperator).harvestAll(strategyDetail.strategy[0].contract),
+      ).to.emit(this.vault, "Harvested");
+      const balanceAfterUT = await this.vault.balanceUT();
+      expect(balanceAfterUT).gt(balanceBeforeUT);
     });
-    it("56. Rebalance to 3crv-usdc", async function () {
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000"));
-      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("1000000000"));
-      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
-      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
-      const tx = await this.vault.connect(this.signers.alice).rebalance();
-      const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_3CRV_CURVE_SWAP_HASH);
-      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
-      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
-      console.log("Queue Cap : ", (await this.registry.getVaultConfiguration(this.vault.address)).queueCap.toString());
-      console.log("Alice Balance : ", (await this.erc20.balanceOf(this.signers.alice.address)).toString());
-      console.log("Bob Balance : ", (await this.erc20.balanceOf(this.signers.bob.address)).toString());
-      console.log("Alice totalDeposit : ", (await this.vault.totalDeposits(this.signers.alice.address)).toString());
-      console.log("Bob totalDeposit : ", (await this.vault.totalDeposits(this.signers.bob.address)).toString());
-      console.log(
-        "User deposit cap : ",
-        (await (await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).toString(),
-      );
-      console.log(
-        "Alice allowance : ",
-        (await this.erc20.allowance(this.signers.alice.address, this.vault.address)).toString(),
-      );
-      console.log(
-        "Bob allowance : ",
-        (await this.erc20.allowance(this.signers.bob.address, this.vault.address)).toString(),
-      );
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log("Price Per full share ", (await this.vault.getPricePerFullShare()).toString());
-    });
-    it("55. Alice and bob can now withdraw", async function () {
-      await this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("1500000000"));
-      await this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("1500000000"));
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log("Price Per full share ", (await this.vault.getPricePerFullShare()).toString());
-    });
-    it("57. Rebalance back to compound strategy", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_COMPOUND_HASH);
-      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        USDC_COMPOUND_HASH,
-      );
-      console.log("Price Per full share Before", (await this.vault.getPricePerFullShare()).toString());
-      const tx = await this.vault.connect(this.signers.bob).rebalance();
-      const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
-      console.log("Price Per full share After", (await this.vault.getPricePerFullShare()).toString());
-    });
-    it("58. Deposit :Alice - 4K and Bob - 2K USDC each, verify queuecap, then rebalance() - (same strategy)", async function () {
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
-      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"));
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("2000000000"));
-      expect((await this.vault.getDepositQueue()).length).to.equal(BigNumber.from("3"));
-      await expect(this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("2000000000"))).revertedWith("e14");
-      expect(await this.vault.balance()).to.equal(BigNumber.from("6000000000"));
-      const tx = await this.vault.connect(this.signers.bob).rebalance();
-      const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_COMPOUND_HASH);
-    });
-    it("59. The strategy operator can set the best strategy to be 3 steps usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH, USDC_CONVEX_HASH);
-      expect(await this.strategyProvider.rpToTokenToBestStrategy(BigNumber.from("2"), USDC_TOKEN_HASH)).to.equal(
-        USDC_CONVEX_HASH,
-      );
-      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
-      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
-      console.log("Queue Cap : ", (await this.registry.getVaultConfiguration(this.vault.address)).queueCap.toString());
-      console.log("Alice Balance : ", (await this.erc20.balanceOf(this.signers.alice.address)).toString());
-      console.log("Bob Balance : ", (await this.erc20.balanceOf(this.signers.bob.address)).toString());
-      console.log("Alice totalDeposit : ", await this.vault.totalDeposits(this.signers.alice.address));
-      console.log("Bob totalDeposit : ", await this.vault.totalDeposits(this.signers.bob.address));
-      console.log(
-        "User deposit cap : ",
-        (await (await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).toString(),
-      );
-      console.log(
-        "Alice allowance : ",
-        (await this.erc20.allowance(this.signers.alice.address, this.vault.address)).toString(),
-      );
-      console.log(
-        "Bob allowance : ",
-        (await this.erc20.allowance(this.signers.bob.address, this.vault.address)).toString(),
-      );
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-    });
-    it("60. Rebalance to usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f", async function () {
-      await this.vault.connect(this.signers.alice).userDeposit(BigNumber.from("1000000000"));
-      await this.vault.connect(this.signers.bob).userDeposit(BigNumber.from("1000000000"));
-      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
-      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
-      const tx = await this.vault.connect(this.signers.alice).rebalance();
-      const txc = await tx.wait();
-      console.log("# of rebalance events", txc.events?.length);
-      expect(await this.vault.investStrategyHash()).to.equal(USDC_CONVEX_HASH);
-      console.log("Deposit Queue : ", (await this.vault.depositQueue()).toString());
-      console.log("Queue length : ", (await this.vault.getDepositQueue()).length.toString());
-      console.log("Queue Cap : ", (await this.registry.getVaultConfiguration(this.vault.address)).queueCap.toString());
-      console.log("Alice Balance : ", (await this.erc20.balanceOf(this.signers.alice.address)).toString());
-      console.log("Bob Balance : ", (await this.erc20.balanceOf(this.signers.bob.address)).toString());
-      console.log("Alice totalDeposit : ", (await this.vault.totalDeposits(this.signers.alice.address)).toString());
-      console.log("Bob totalDeposit : ", (await this.vault.totalDeposits(this.signers.bob.address)).toString());
-      console.log(
-        "User deposit cap : ",
-        (await (await this.registry.getVaultConfiguration(this.vault.address)).userDepositCap).toString(),
-      );
-      console.log(
-        "Alice allowance : ",
-        (await this.erc20.allowance(this.signers.alice.address, this.vault.address)).toString(),
-      );
-      console.log(
-        "Bob allowance : ",
-        (await this.erc20.allowance(this.signers.bob.address, this.vault.address)).toString(),
-      );
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log("Price Per full share ", (await this.vault.getPricePerFullShare()).toString());
-    });
-    it("61. Alice and bob can now withdraw", async function () {
-      await this.vault.connect(this.signers.alice).userWithdrawRebalance(BigNumber.from("1500000000"));
-      await this.vault.connect(this.signers.bob).userWithdrawRebalance(BigNumber.from("1500000000"));
-      console.log(
-        `Alice shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.alice.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log(
-        `Bob shares : ${BigNumber.from(await this.vault.balanceOf(this.signers.bob.address))
-          .div(to_10powNumber_BN(BigNumber.from("6")))
-          .toString()} opINTUSDC`,
-      );
-      console.log("Price Per full share ", (await this.vault.getPricePerFullShare()).toString());
+
+    it("39. Governance calls emergency shutdown", async function () {
+      const _balanceUTBefore = await this.vault.balanceUT();
+      await expect(this.vault.connect(this.signers.governance).setEmergencyShutdown(true))
+        .to.emit(this.vault, "LogEmergencyShutdown")
+        .withArgs(true, this.signers.governance.address);
+      const _balanceUTAfter = await this.vault.balanceUT();
+      expect(_balanceUTAfter).to.gt(_balanceUTBefore);
+      expect(await this.vault.investStrategyHash()).to.eq(hre.ethers.constants.HashZero);
+      expect((await this.vault.getInvestStrategySteps()).length).to.eq(0);
     });
   });
 });
