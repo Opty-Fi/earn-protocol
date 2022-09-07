@@ -768,11 +768,12 @@ contract Vault is
      * @inheritdoc IncentivisedERC20
      */
     function _beforeTokenTransfer(
-        address,
+        address _from,
         address _to,
         uint256
     ) internal override {
         require(_to != address(this), Errors.TRANSFER_TO_THIS_CONTRACT);
+        require(!(_depositProtection[_from][block.number]), Errors.DEPOSIT_PROTECTION);
     }
 
     /**
