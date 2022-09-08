@@ -70,7 +70,12 @@ library Errors {
     error OrderNonExistent();
 
     /**
-     * @notice returned tokens too few
+     * @notice emitted when returned tokens too few
      */
     error InsufficientReturn();
+
+    /**
+     * @notice emitted when destination of share/asset delivery is not whitelisted
+     */
+    error ForbiddenDestination();
 }

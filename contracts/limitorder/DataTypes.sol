@@ -25,6 +25,8 @@ library DataTypes {
      * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
+     * @param destination the opVault with stable coins as underlying to send liquidated shares to
+     * @param underlying the opVault (destination) underlying stablecoin address
      * @param direction the direction of the bounds
      */
     struct Order {
@@ -35,6 +37,8 @@ library DataTypes {
         uint256 returnLimitBP;
         address payable maker;
         address vault;
+        address destination;
+        address underlying;
         BoundDirection direction;
     }
 
@@ -46,6 +50,7 @@ library DataTypes {
      * @param upperBound the upper bound in basis points of the limit order's priceTarget
      * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param vault the vault the order pertains to
+     * @param destination the opVault with stable coins as underlying to send liquidated shares to
      * @param direction the direction of the bounds
      */
     struct OrderParams {
@@ -55,6 +60,7 @@ library DataTypes {
         uint256 upperBound;
         uint256 returnLimitBP;
         address vault;
+        address destination;
         BoundDirection direction;
     }
 
