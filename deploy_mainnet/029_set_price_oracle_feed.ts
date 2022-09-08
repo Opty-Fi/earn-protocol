@@ -17,6 +17,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const LDO = "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32";
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
   const YFI = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
+  const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
   const AAVE_WETH_FEED = "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012";
   const AAVE_USD_FEED = "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9";
   const WETH_USD_FEED = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419";
@@ -39,8 +40,10 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const ALCX_USD_FEED = "0xc355e4C0B3ff4Ed0B49EaACD55FE29B311f42976";
   const YFI_WETH_FEED = "0x7c5d4F8345e66f68099581Db340cd65B078C41f4";
   const YFI_USD_FEED = "0xA027702dbb89fbd58938e4324ac03B58d812b0E1";
-  const SNX_WETH_FEED = "0x79291A9d692Df95334B1a0B3B4AE6bC606782f8c";
-  const SNX_USD_FEED = "0xDC3EA94CD0AC27d9A86C180091e7f78C683d3699";
+  const CRV_ETH_FEED = "0x8a12Be339B0cD1829b91Adc01977caa5E9ac121e";
+  const CRV_USD_FEED = "0xCd627aA160A6fA45Eb793D19Ef54f5062F20f33f";
+  const CVX_ETH_FEED = "0xC9CbF687f43176B302F03f5e58470b77D07c61c6";
+  const CVX_USD_FEED = "0xd962fC30A72A84cE50161031391756Bf2876Af5D";
 
   const owner = await optyfiOracleInstance.owner();
   const feedToTokens = [
@@ -151,13 +154,23 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       tokenB: USD,
     },
     {
-      priceFeed: SNX_WETH_FEED,
-      tokenA: ethereumTokens.REWARD_TOKENS.SNX,
+      priceFeed: CRV_ETH_FEED,
+      tokenA: ethereumTokens.REWARD_TOKENS.CRV,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
-      priceFeed: SNX_USD_FEED,
-      tokenA: ethereumTokens.REWARD_TOKENS.SNX,
+      priceFeed: CRV_USD_FEED,
+      tokenA: ethereumTokens.REWARD_TOKENS.CRV,
+      tokenB: USD,
+    },
+    {
+      priceFeed: CVX_ETH_FEED,
+      tokenA: CVX,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+    },
+    {
+      priceFeed: CVX_USD_FEED,
+      tokenA: CVX,
       tokenB: USD,
     },
   ];
@@ -186,6 +199,24 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     { tokenA: ethereumTokens.PLAIN_TOKENS.USDT, tokenB: APE, timeAllowance: "43200" },
     { tokenA: MANA, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
     { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: MANA, timeAllowance: "43200" },
+    { tokenA: ENS, tokenB: USD, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ENS, timeAllowance: "43200" },
+    { tokenA: ENS, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: IMX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: IMX, timeAllowance: "43200" },
+    { tokenA: IMX, tokenB: USD, timeAllowance: "43200" },
+    { tokenA: LDO, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: LDO, timeAllowance: "24000" },
+    { tokenA: LDO, tokenB: USD, timeAllowance: "24000" },
+    { tokenA: ALCX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ALCX, timeAllowance: "43200" },
+    { tokenA: ALCX, tokenB: USD, timeAllowance: "43200" },
+    { tokenA: ethereumTokens.REWARD_TOKENS.CRV, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ethereumTokens.REWARD_TOKENS.CRV, timeAllowance: "24000" },
+    { tokenA: ethereumTokens.REWARD_TOKENS.CRV, tokenB: USD, timeAllowance: "24000" },
+    { tokenA: CVX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: CVX, timeAllowance: "24000" },
+    { tokenA: CVX, tokenB: USD, timeAllowance: "24000" },
   ];
 
   const pendingChainlinkTimeallowances = [];
@@ -202,6 +233,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 
   if (pendingChainlinkTimeallowances.length > 0) {
     console.log("setting pending Chainlink Time allowances ");
+    console.log(JSON.stringify(pendingChainlinkTimeallowances, null, 4));
+
     const tx = await optyfiOracleInstance
       .connect(ownerSigner)
       .setChainlinkTimeAllowance(pendingChainlinkTimeallowances);

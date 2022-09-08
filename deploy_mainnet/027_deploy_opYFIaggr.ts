@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const apeApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address);
+  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("only set APE hash");
+  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash)) {
+    console.log("only set YFI hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.address],
     ]);
   }
-  if (!apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("approve APE and set hash");
+  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash)) {
+    console.log("approve YFI and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,14 +78,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAPEaggr", {
+  const result = await deploy("opYFIaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -96,7 +96,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash, "ApeCoin", "APE", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash, "yearn.finance", "YFI", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAPEaggr");
+      const vault = await deployments.get("opYFIaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAPEaggr",
+          name: "opYFIaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opAPEaggr",
+          name: "opYFIaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opAPEaggr"];
+func.tags = ["opYFIaggr"];
 func.dependencies = ["Registry"];

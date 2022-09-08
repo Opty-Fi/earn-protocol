@@ -1,9 +1,7 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { waitforme } from "../helpers/utils";
-import { Registry } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -18,13 +16,12 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const artifact = await deployments.getArtifact("CurveSwapPoolAdapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const operatorAddress = await registryV2Instance.getOperator();
+  const deployer = (await ethers.getSigners())[0].address;
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
   const result = await deploy("CurveSwapPoolAdapter", {
-    from: operatorAddress,
+    from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,

@@ -6252,7 +6252,7 @@ __metadata:
     ethers: ^5.4.7
     fs-extra: ^10.0.0
     hardhat: ^2.6.4
-    hardhat-deploy: ^0.9.3
+    hardhat-deploy: ^0.9.24
     hardhat-docgen: ^1.1.2
     hardhat-gas-reporter: ^1.0.4
     husky: ^7.0.2
@@ -8859,15 +8859,16 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"hardhat-deploy@npm:^0.9.3":
-  version: 0.9.3
-  resolution: "hardhat-deploy@npm:0.9.3"
+"hardhat-deploy@npm:^0.9.24":
+  version: 0.9.29
+  resolution: "hardhat-deploy@npm:0.9.29"
   dependencies:
     "@ethersproject/abi": ^5.4.0
     "@ethersproject/abstract-signer": ^5.4.1
     "@ethersproject/address": ^5.4.0
     "@ethersproject/bignumber": ^5.4.1
     "@ethersproject/bytes": ^5.4.0
+    "@ethersproject/constants": ^5.4.0
     "@ethersproject/contracts": ^5.4.1
     "@ethersproject/providers": ^5.4.4
     "@ethersproject/solidity": ^5.4.0
@@ -8886,8 +8887,8 @@ fsevents@~2.3.2:
     qs: ^6.9.4
   peerDependencies:
     "@ethersproject/hardware-wallets": ^5.0.14
-    hardhat: ^2.0.0
-  checksum: f30e519720bd0bfcd4ef3c21dc6a1f9efcb7b0b8ded3991fcb46c71c654d189c7f129811dfbb55eb3beba49634a7376c5737acd8a1c269219cb0729a37ec663d
+    hardhat: ^2.6.8
+  checksum: 065495376ccb9c1508fec16eeaf54f86d4cb40ccbdd9f2debceb90d8c0b3d75be1c163c08000d3190bd3729b79ba8f47ddfab3d448b918dafef2cc441a5eb487
   languageName: node
   linkType: hard
 

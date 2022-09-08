@@ -14,10 +14,6 @@ task(TASKS.ACTION_TASKS.GET_ACTION.NAME, TASKS.ACTION_TASKS.GET_ACTION.DESCRIPTI
       throw new Error("name cannot be empty");
     }
 
-    if (!Object.values(ESSENTIAL_CONTRACTS).includes(name)) {
-      throw new Error("name doesn't match with the available contracts list");
-    }
-
     if (address === "") {
       throw new Error("address cannot be empty");
     }

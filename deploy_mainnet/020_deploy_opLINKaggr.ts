@@ -5,10 +5,8 @@ import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { BigNumber } from "ethers";
-import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
-const FORK = process.env.FORK || "";
 
 const func: DeployFunction = async ({
   deployments,
@@ -21,38 +19,38 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
-  let chainId = await getChainId();
+  const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
-  chainId =
-    ["31337", "1337"].includes(chainId) && FORK != "" ? NETWORKS_CHAIN_ID[FORK as eEVMNetwork].toString() : chainId;
+
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const newoApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address);
+  const linkApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (newoApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash)) {
-    console.log("only set NEWO hash");
+  if (linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
+    console.log("only set LINK hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
     ]);
   }
-  if (!newoApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash)) {
-    console.log("approve NEWO and set hash");
+  if (!linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
+    console.log("approve LINK and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
@@ -67,6 +65,7 @@ const func: DeployFunction = async ({
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
@@ -79,24 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opNEWOaggr", {
+  const result = await deploy("opLINKaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEaggr_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash, "Newo Order", "NEWO", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash, "ChainLink Token", "LINK", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opNEWOaggr");
+      const vault = await deployments.get("opLINKaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opNEWOaggr",
+          name: "opLINKaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opNEWOaggr",
+          name: "opLINKaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opNEWOaggr"];
+func.tags = ["opLINKaggr"];
 func.dependencies = ["Registry"];
