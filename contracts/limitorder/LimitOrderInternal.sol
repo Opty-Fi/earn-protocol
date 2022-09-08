@@ -827,7 +827,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
                         values: _values,
                         callees: _callees,
                         exchangeData: _exchangeData,
-                        permit: bytes('0x')
+                        permit: bytes('')
                     })
                 )
             )
