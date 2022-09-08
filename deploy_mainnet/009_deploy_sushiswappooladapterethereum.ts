@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { waitforme } from "../helpers/utils";
 import {
   Registry,
@@ -8,7 +9,6 @@ import {
   SushiswapPoolAdapterEthereum,
   SushiswapPoolAdapterEthereum__factory,
 } from "../typechain";
-import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
