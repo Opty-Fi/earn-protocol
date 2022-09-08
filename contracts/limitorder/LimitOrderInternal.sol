@@ -118,7 +118,10 @@ contract LimitOrderInternal is ILimitOrderInternal {
 
         DataTypes.Order memory order = _l.userVaultOrder[sender][_vault];
 
-        if (_orderParams.vault != address(0)) {
+        if (
+            _orderParams.vault != address(0) &&
+            _orderParams.vault != order.vault
+        ) {
             order.vault = _orderParams.vault;
             order.underlying = IVault(_orderParams.vault).underlyingToken();
         }
@@ -129,19 +132,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
         order.liquidationAmount = liquidationAmount;
 
-        if (_orderParams.expiration != 0) {
+        if (_orderParams.expiration != order.expiration) {
             order.expiration = _orderParams.expiration;
         }
-        if (_orderParams.lowerBound != 0) {
+        if (_orderParams.lowerBound != order.lowerBound) {
             order.lowerBound = _orderParams.lowerBound;
         }
-        if (_orderParams.upperBound != 0) {
+        if (_orderParams.upperBound != order.upperBound) {
             order.upperBound = _orderParams.upperBound;
         }
         if (_orderParams.direction != order.direction) {
             order.direction = _orderParams.direction;
         }
-        if (_orderParams.returnLimitBP != 0) {
+        if (_orderParams.returnLimitBP != order.returnLimitBP) {
             order.returnLimitBP = _orderParams.returnLimitBP;
         }
 
