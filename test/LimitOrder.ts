@@ -103,9 +103,9 @@ describe('::LimitOrder Contracts', () => {
     const limitOrderSelectors = new Set();
 
     const limitOrderFacetCuts = [
-      await new LimitOrderActions__factory(deployer).deploy(USD, USDC, opUSDC),
-      await new LimitOrderSettings__factory(deployer).deploy(USD, USDC, opUSDC),
-      await new LimitOrderView__factory(deployer).deploy(USD, USDC, opUSDC),
+      await new LimitOrderActions__factory(deployer).deploy(USD),
+      await new LimitOrderSettings__factory(deployer).deploy(USD),
+      await new LimitOrderView__factory(deployer).deploy(USD),
     ].map(function (f) {
       return {
         target: f.address,
@@ -132,6 +132,8 @@ describe('::LimitOrder Contracts', () => {
       OptyFiSwapper.address,
       deployer,
     );
+
+    await limitOrderInstance.setVault(opUSDC);
 
     let tx: ContractTransaction = await deployer.sendTransaction({
       to: optyFiVaultOperatorAddress,

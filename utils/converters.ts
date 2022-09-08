@@ -7,6 +7,7 @@ export function convertOrderParamsToOrder(
   _orderParams: OrderParams,
   _balance: BigNumber,
   _maker: string,
+  _underlying: string,
 ): Order {
   let order: Order = <Order>{};
 
@@ -20,6 +21,8 @@ export function convertOrderParamsToOrder(
   order.returnLimitBP = _orderParams.returnLimitBP;
   order.vault = _orderParams.vault;
   order.direction = _orderParams.direction;
+  order.destination = _orderParams.destination;
+  order.underlying = _underlying;
 
   return order;
 }

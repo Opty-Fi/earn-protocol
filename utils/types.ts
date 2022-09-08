@@ -5,10 +5,12 @@ export interface Order {
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
-  direction: BigNumber;
   returnLimitBP: BigNumber;
   maker: string;
   vault: string;
+  destination: string;
+  underlying: string;
+  direction: BigNumber;
 }
 
 export interface OrderParams {
@@ -16,9 +18,10 @@ export interface OrderParams {
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
-  direction: BigNumber;
   returnLimitBP: BigNumber;
   vault: string;
+  destination: string;
+  direction: BigNumber;
 }
 
 export interface SwapData {
