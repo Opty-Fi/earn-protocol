@@ -82,4 +82,10 @@ interface ILimitOrderView {
      * @return transferProxy address
      */
     function transferProxy() external view returns (address transferProxy);
+
+    /**
+     * @notice returns the whitelisted state of a target vault
+     * @param _vault address of target vault
+     */
+    function vaultWhitelisted(address _vault) external view returns (bool);
 }

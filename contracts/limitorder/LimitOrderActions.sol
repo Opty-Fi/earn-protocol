@@ -12,11 +12,7 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
  * @dev contains all user-facing actions
  */
 contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
-    constructor(
-        address _usd,
-        address _usdc,
-        address _opUSDC
-    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+    constructor(address _usd) LimitOrderInternal(_usd) {}
 
     /**
      * @inheritdoc ILimitOrderActions

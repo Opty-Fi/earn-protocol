@@ -12,11 +12,7 @@ import { LimitOrderStorage } from './LimitOrderStorage.sol';
  * @dev contains all viewing actions
  */
 contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
-    constructor(
-        address _usd,
-        address _usdc,
-        address _opUSDC
-    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+    constructor(address _usd) LimitOrderInternal(_usd) {}
 
     /**
      * @inheritdoc ILimitOrderView
@@ -99,5 +95,12 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
      */
     function transferProxy() external view returns (address transferProxy) {
         transferProxy = _transferProxy(LimitOrderStorage.layout());
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function vaultWhitelisted(address _vault) external view returns (bool) {
+        return _vaultWhitelisted(LimitOrderStorage.layout(), _vault);
     }
 }

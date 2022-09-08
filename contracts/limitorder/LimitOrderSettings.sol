@@ -16,11 +16,7 @@ contract LimitOrderSettings is
     OwnableInternal,
     ILimitOrderSettings
 {
-    constructor(
-        address _usd,
-        address _usdc,
-        address _opUSDC
-    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+    constructor(address _usd) LimitOrderInternal(_usd) {}
 
     /**
      * @inheritdoc ILimitOrderSettings
@@ -71,5 +67,49 @@ contract LimitOrderSettings is
      */
     function setOracle(address _oracle) external onlyOwner {
         _setOracle(LimitOrderStorage.layout(), _oracle);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setVault(address _vault) external onlyOwner {
+        _setVault(LimitOrderStorage.layout(), _vault);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setVaults(address[] memory _vaults) external onlyOwner {
+        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
+        uint256 length = _vaults.length;
+
+        unchecked {
+            for (uint256 i; i < length; ) {
+                _setVault(l, _vaults[i]);
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function unsetVault(address _vault) external onlyOwner {
+        _unsetVault(LimitOrderStorage.layout(), _vault);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function unsetVaults(address[] memory _vaults) external onlyOwner {
+        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
+        uint256 length = _vaults.length;
+
+        unchecked {
+            for (uint256 i; i < length; ) {
+                _unsetVault(l, _vaults[i]);
+                ++i;
+            }
+        }
     }
 }
