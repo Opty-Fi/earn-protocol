@@ -104,6 +104,22 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: "0.8.15",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/solidity-template/issues/31
+            bytecodeHash: "none",
+          },
+          // Disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   etherscan: {
@@ -169,7 +185,7 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 1_00_000_000,
       gasPrice: "auto",
       forking: buildForkConfig(FORK as eEVMNetwork, FORK_BLOCK_NUMBER),
-      allowUnlimitedContractSize: false,
+      allowUnlimitedContractSize: true,
       chainId: NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
       accounts: {
         mnemonic,
