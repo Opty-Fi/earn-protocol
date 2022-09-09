@@ -96,7 +96,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('50'),
     direction: ethers.constants.One,
     returnLimitBP: ethers.utils.parseEther('0.99'),
-    destination: UsdcVaultProxy,
+    stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -107,7 +107,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('50'),
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.99'),
-    destination: UsdcVaultProxy,
+    stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -118,7 +118,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('150'),
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.9'),
-    destination: UsdcVaultProxy,
+    stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -232,12 +232,11 @@ export function describeBehaviorOfLimitOrderActions(
           expiration: makerOrder.expiration,
           lowerBound: makerOrder.lowerBound,
           upperBound: makerOrder.upperBound,
-          direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
-          destination: UsdcVaultProxy,
-          underlying: USDC,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
+          stablecoinVault: UsdcVaultProxy,
+          direction: BigNumber.from(makerOrder.direction.toString()),
         };
 
         const order = convertOrderParamsToOrder(orderParams, maker.address);
@@ -284,8 +283,7 @@ export function describeBehaviorOfLimitOrderActions(
             _taskId,
             order.maker,
             order.vault,
-            ethers.utils.getAddress(order.destination),
-            order.underlying,
+            order.stablecoinVault,
             order.direction,
           ]);
       });
@@ -338,7 +336,7 @@ export function describeBehaviorOfLimitOrderActions(
         it('destination is not whitelisted', async () => {
           failedOrderParams.upperBound = orderParams.upperBound;
           failedOrderParams.expiration = orderParams.expiration;
-          failedOrderParams.destination = maker.address;
+          failedOrderParams.stablecoinVault = maker.address;
           await expect(
             instance.connect(maker).createOrder(failedOrderParams),
           ).to.be.revertedWith(`ForbiddenDestination()`);
@@ -987,6 +985,7 @@ export function describeBehaviorOfLimitOrderActions(
             direction: ethers.constants.One,
             returnLimitBP: ethers.utils.parseEther('0.99'),
             vault: AaveVaultProxy,
+            stablecoinVault: UsdcVaultProxy,
           });
 
           const expiredTimestamp =
@@ -1222,8 +1221,7 @@ export function describeBehaviorOfLimitOrderActions(
           upperBound: makerOrder.upperBound,
           direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
-          destination: UsdcVaultProxy,
-          underlying: USDC,
+          stablecoinVault: UsdcVaultProxy,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
         };
@@ -1231,7 +1229,6 @@ export function describeBehaviorOfLimitOrderActions(
         const order = convertOrderParamsToOrder(
           modifyOrderParams,
           maker.address,
-          USDC,
         );
 
         expect(order).to.deep.eq(modifiedOrder);
@@ -1286,7 +1283,7 @@ export function describeBehaviorOfLimitOrderActions(
 
           modifyOrderParams.lowerBound = orderParams.lowerBound;
           modifyOrderParams.upperBound = orderParams.upperBound;
-          modifyOrderParams.destination = maker.address;
+          modifyOrderParams.stablecoinVault = maker.address;
           await expect(
             instance
               .connect(maker)

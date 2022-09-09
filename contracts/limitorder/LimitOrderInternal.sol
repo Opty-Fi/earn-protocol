@@ -180,7 +180,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         (bool _isExecutable, string memory _reason) = _canExecute(
             _order,
             _l.userVaultOrderActive[_order.maker][_vault],
-            IVault(_order.stablecoinVault).underlyingToken(),
+            IVault(_vault).underlyingToken(),
             _l.oracle
         );
 
