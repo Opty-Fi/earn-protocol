@@ -330,20 +330,16 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _maker
     ) internal {
         IERC20(_coin).approve(_vault, _amount);
-        try
-            IVault(_vault).userDepositVault(
-                _maker,
-                _amount,
-                '0x',
-                _l.accountProofs[_vault],
-                _l.codeProofs[_vault]
-            )
-        {
-            emit DeliverShares(_maker);
-        } catch {
-            IERC20(_coin).transfer(_maker, _amount);
-            emit DeliverUSDC(_maker, _amount);
-        }
+
+        IVault(_vault).userDepositVault(
+            _maker,
+            _amount,
+            '0x',
+            _l.accountProofs[_vault],
+            _l.codeProofs[_vault]
+        );
+
+        emit DeliverShares(_maker);
     }
 
     /**
