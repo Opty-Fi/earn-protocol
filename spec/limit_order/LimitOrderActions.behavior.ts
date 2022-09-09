@@ -75,7 +75,7 @@ export function describeBehaviorOfLimitOrderActions(
 
   //Contracts
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
-  const UsdcVaultProxy = '0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88';
+  const UsdcVaultProxy = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88';
   const UniswapV2Router02Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //mainnet
   const Gelato_Network = '0x3CACa7b48D0573D793d3b0279b5F0029180E83b6'; // mainnet
   const Gelato_Pokeme = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
@@ -96,6 +96,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('50'),
     direction: ethers.constants.One,
     returnLimitBP: ethers.utils.parseEther('0.99'),
+    destination: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -106,6 +107,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('50'),
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.99'),
+    destination: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -116,6 +118,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('150'),
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.9'),
+    destination: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -231,6 +234,8 @@ export function describeBehaviorOfLimitOrderActions(
           upperBound: makerOrder.upperBound,
           direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
+          destination: UsdcVaultProxy,
+          underlying: USDC,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
         };
@@ -279,6 +284,8 @@ export function describeBehaviorOfLimitOrderActions(
             _taskId,
             order.maker,
             order.vault,
+            ethers.utils.getAddress(order.destination),
+            order.underlying,
             order.direction,
           ]);
       });
@@ -326,6 +333,15 @@ export function describeBehaviorOfLimitOrderActions(
           await expect(
             instance.connect(maker).createOrder(failedOrderParams),
           ).to.be.revertedWith(`ReverseBounds()`);
+        });
+
+        it('destination is not whitelisted', async () => {
+          failedOrderParams.upperBound = orderParams.upperBound;
+          failedOrderParams.expiration = orderParams.expiration;
+          failedOrderParams.destination = maker.address;
+          await expect(
+            instance.connect(maker).createOrder(failedOrderParams),
+          ).to.be.revertedWith(`ForbiddenDestination()`);
         });
       });
     });
@@ -1206,6 +1222,8 @@ export function describeBehaviorOfLimitOrderActions(
           upperBound: makerOrder.upperBound,
           direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
+          destination: UsdcVaultProxy,
+          underlying: USDC,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
         };
@@ -1213,6 +1231,7 @@ export function describeBehaviorOfLimitOrderActions(
         const order = convertOrderParamsToOrder(
           modifyOrderParams,
           maker.address,
+          USDC,
         );
 
         expect(order).to.deep.eq(modifiedOrder);
@@ -1228,6 +1247,51 @@ export function describeBehaviorOfLimitOrderActions(
               .connect(maker)
               .modifyOrder(AaveVaultProxy, modifyOrderParams),
           ).to.be.revertedWith(`NoActiveOrder("${maker.address}")`);
+        });
+
+        it('expiration is before current block timestamp', async () => {
+          await instance.connect(maker).createOrder(orderParams);
+
+          await hre.network.provider.send('evm_setNextBlockTimestamp', [
+            orderParams.expiration.toNumber(),
+          ]);
+
+          modifyOrderParams.expiration = ethers.constants.Zero;
+
+          await expect(
+            instance
+              .connect(maker)
+              .modifyOrder(AaveVaultProxy, modifyOrderParams),
+          ).to.be.revertedWith(
+            `PastExpiration(${orderParams.expiration}, ${modifyOrderParams.expiration})`,
+          );
+        });
+
+        it('lower bound is larger than upper bound', async () => {
+          await instance.connect(maker).createOrder(orderParams);
+
+          modifyOrderParams.upperBound = ethers.constants.Zero;
+          modifyOrderParams.expiration = orderParams.expiration.add(
+            BigNumber.from('10000'),
+          );
+          await expect(
+            instance
+              .connect(maker)
+              .modifyOrder(AaveVaultProxy, modifyOrderParams),
+          ).to.be.revertedWith(`ReverseBounds()`);
+        });
+
+        it('destination is not whitelisted', async () => {
+          await instance.connect(maker).createOrder(orderParams);
+
+          modifyOrderParams.lowerBound = orderParams.lowerBound;
+          modifyOrderParams.upperBound = orderParams.upperBound;
+          modifyOrderParams.destination = maker.address;
+          await expect(
+            instance
+              .connect(maker)
+              .modifyOrder(AaveVaultProxy, modifyOrderParams),
+          ).to.be.revertedWith(`ForbiddenDestination()`);
         });
       });
     });

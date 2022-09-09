@@ -15,11 +15,7 @@ import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
  * @dev contains all viewing actions
  */
 contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
-    constructor(
-        address _usd,
-        address _usdc,
-        address _opUSDC
-    ) LimitOrderInternal(_usd, _usdc, _opUSDC) {}
+    constructor(address _usd) LimitOrderInternal(_usd) {}
 
     /**
      * @inheritdoc ILimitOrderView
@@ -124,5 +120,12 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
         returns (bool, bytes memory)
     {
         return _canExecuteOrder(_maker, _vault);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function vaultWhitelisted(address _vault) external view returns (bool) {
+        return _vaultWhitelisted(LimitOrderStorage.layout(), _vault);
     }
 }

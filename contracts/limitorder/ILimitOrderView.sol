@@ -100,4 +100,10 @@ interface ILimitOrderView {
         external
         view
         returns (bool canExec, bytes memory execPayload);
+
+    /**
+     * @notice returns the whitelisted state of a target vault
+     * @param _vault address of target vault
+     */
+    function vaultWhitelisted(address _vault) external view returns (bool);
 }

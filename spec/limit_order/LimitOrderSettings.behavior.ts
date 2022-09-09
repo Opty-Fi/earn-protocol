@@ -15,6 +15,7 @@ export function describeBehaviorOfLimitOrderSettings(
   let instance: ILimitOrder;
 
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
+  const UsdcVaultProxy = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88';
 
   before(async () => {
     [owner, nonOwner] = await ethers.getSigners();
@@ -138,6 +139,38 @@ export function describeBehaviorOfLimitOrderSettings(
           const newOracle = nonOwner.address;
           await expect(
             instance.connect(nonOwner).setOracle(newOracle),
+          ).to.be.revertedWith('Ownable: sender must be owner');
+        });
+      });
+    });
+
+    describe('#setVault(address)', () => {
+      it('sets vault whitelist to true', async () => {
+        await instance.setVault(AaveVaultProxy);
+
+        expect(await instance.vaultWhitelisted(AaveVaultProxy)).to.eq(true);
+      });
+
+      describe('reverts if', () => {
+        it('called by nonOwner', async () => {
+          await expect(
+            instance.connect(nonOwner).setVault(AaveVaultProxy),
+          ).to.be.revertedWith('Ownable: sender must be owner');
+        });
+      });
+    });
+
+    describe('#unsetVault(address)', () => {
+      it('sets vault whitelist to false', async () => {
+        await instance.setVault(AaveVaultProxy);
+        await instance.unsetVault(AaveVaultProxy);
+        expect(await instance.vaultWhitelisted(AaveVaultProxy)).to.eq(false);
+      });
+
+      describe('reverts if', () => {
+        it('called by nonOwner', async () => {
+          await expect(
+            instance.connect(nonOwner).unsetVault(AaveVaultProxy),
           ).to.be.revertedWith('Ownable: sender must be owner');
         });
       });
