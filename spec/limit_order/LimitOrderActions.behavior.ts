@@ -601,6 +601,28 @@ export function describeBehaviorOfLimitOrderActions(
         await ethers.provider.send('evm_revert', [snapshotId]);
       });
       it('sends liquidation fee to treasury', async () => {
+        //calculate expectedOPUSDCShares to reach user after fees
+        const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
+        //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
+        const newVaultConfig =
+          '0x0201000000000000000000000000000000000000000000640000000000000000';
+        //remove opUSDCVault whitelist
+        const tx = await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setVaultConfiguration(BigNumber.from(newVaultConfig));
+
+        await tx.wait();
+        //set code + account merkle roots and remove minimum deposit value
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedAccountsRoot(accountRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedCodesRoot(codeRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setMinimumDepositValueUT(ethers.constants.Zero);
+
         const userShares = await opAaveToken.balanceOf(maker.address);
         orderParams.liquidationAmount =
           ethers.BigNumber.from(userShares).div('2');
@@ -698,51 +720,46 @@ export function describeBehaviorOfLimitOrderActions(
           .withArgs(maker.address);
       });
 
-      it('sends USDC minus fee to maker if vault does not permit deposits', async () => {
-        const userShares = await opAaveToken.balanceOf(maker.address);
-        orderParams.liquidationAmount =
-          ethers.BigNumber.from(userShares).div(2);
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-        //since opUSDCVault is whitelisted, LimitOrder Contracts will not be able to deposit so 'catch' statement
-        //will execute, returning USDC to maker
-        await expect(() =>
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        ).to.changeTokenBalance(USDCERC20, maker, USDCAmount.sub(fee));
-      });
-
-      it('emits DeliverUSDC after liquidation if the vault does not permit deposits', async () => {
-        const userShares = await opAaveToken.balanceOf(maker.address);
-        orderParams.liquidationAmount =
-          ethers.BigNumber.from(userShares).div(2);
-        //create order from maker
-        await instance.connect(maker).createOrder(orderParams);
-
-        await expect(
-          instance
-            .connect(maker)
-            .execute(maker.address, AaveVaultProxy, swapParams),
-        )
-          .to.emit(instance, 'DeliverUSDC')
-          .withArgs(maker.address, USDCAmount.sub(fee));
-      });
-
       it('may be called by any caller, task should be cancelled', async () => {
+        //calculate expectedOPUSDCShares to reach user after fees
+        const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
+        //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
+        const newVaultConfig =
+          '0x0201000000000000000000000000000000000000000000640000000000000000';
+        //remove opUSDCVault whitelist
+        let tx = await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setVaultConfiguration(BigNumber.from(newVaultConfig));
+
+        await tx.wait();
+        //set code + account merkle roots and remove minimum deposit value
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedAccountsRoot(accountRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedCodesRoot(codeRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setMinimumDepositValueUT(ethers.constants.Zero);
+
         const userShares = await opAaveToken.balanceOf(maker.address);
         orderParams.liquidationAmount =
           ethers.BigNumber.from(userShares).div(2);
         //create order from maker
         await instance.connect(maker).createOrder(orderParams);
 
-        const makerUSDCBalanceBefore = await USDCERC20.balanceOf(maker.address);
-        const tx = await instance
+        const makeropUSDCBalanceBefore = await opUSDCVault.balanceOf(
+          maker.address,
+        );
+        tx = await instance
           .connect(nonMaker)
           .execute(maker.address, AaveVaultProxy, swapParams);
         const { logs } = await tx.wait(1);
-        const [TaskCancelledEventData, DeliverUSDCEventData]: DecodedLogType[] =
-          decodeLogs(logs);
+        const [
+          TaskCancelledEventData,
+          DeliverSharesEventData,
+        ]: DecodedLogType[] = decodeLogs(logs);
 
         expect(TaskCancelledEventData.name).eq('TaskCancelled');
         expect(TaskCancelledEventData.events[0].name).to.eq('taskId');
@@ -761,23 +778,22 @@ export function describeBehaviorOfLimitOrderActions(
           ethers.utils.getAddress(Gelato_Pokeme),
         );
 
-        expect(DeliverUSDCEventData.name).to.eq('DeliverUSDC');
-        expect(DeliverUSDCEventData.events[0].name).to.eq('_maker');
-        expect(DeliverUSDCEventData.events[0].type).to.eq('address');
-        expect(getAddress(DeliverUSDCEventData.events[0].value)).to.eq(
+        expect(DeliverSharesEventData.name).to.eq('DeliverShares');
+        expect(DeliverSharesEventData.events[0].name).to.eq('_maker');
+        expect(DeliverSharesEventData.events[0].type).to.eq('address');
+        expect(getAddress(DeliverSharesEventData.events[0].value)).to.eq(
           getAddress(maker.address),
         );
-        expect(DeliverUSDCEventData.events[1].name).to.eq('_amount');
-        expect(DeliverUSDCEventData.events[1].type).to.eq('uint256');
-        expect(DeliverUSDCEventData.events[1].value.toString()).to.eq(
-          USDCAmount.sub(fee).toString(),
-        );
-        expect(getAddress(DeliverUSDCEventData.address)).to.eq(
+        expect(getAddress(DeliverSharesEventData.address)).to.eq(
           getAddress(instance.address),
         );
 
-        expect(await USDCERC20.balanceOf(maker.address)).to.eq(
-          USDCAmount.sub(fee).add(makerUSDCBalanceBefore),
+        const opUSDCSharesReceived = USDCAmount.sub(fee)
+          .mul(ethers.utils.parseEther('1'))
+          .div(await opUSDCVault.getPricePerFullShare());
+
+        expect(await opUSDCVault.balanceOf(maker.address)).to.eq(
+          opUSDCSharesReceived.add(makeropUSDCBalanceBefore),
         );
       });
 
@@ -969,6 +985,21 @@ export function describeBehaviorOfLimitOrderActions(
               .connect(optyFiVaultOperator)
               .execute(optyFiVaultOperator.address, AaveVaultProxy, swapParams),
           ).to.be.revertedWith('no active order');
+        });
+
+        it('vault does not permit deposits', async () => {
+          const userShares = await opAaveToken.balanceOf(maker.address);
+          orderParams.liquidationAmount =
+            ethers.BigNumber.from(userShares).div(2);
+          //create order from maker
+          await instance.connect(maker).createOrder(orderParams);
+          //since opUSDCVault is whitelisted, LimitOrder Contracts will not be able to deposit so 'catch' statement
+          //will execute, returning USDC to maker
+          await expect(
+            instance
+              .connect(maker)
+              .execute(maker.address, AaveVaultProxy, swapParams),
+          ).to.be.reverted;
         });
 
         it('order has expired', async () => {
