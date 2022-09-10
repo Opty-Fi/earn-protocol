@@ -116,7 +116,6 @@ const strategyKeys = Object.keys(testStrategy[fork]);
 
 describe("::Vault", function () {
   before(async function () {
-    await deployments.fixture();
     this.testVaultArtifact = <Artifact>await artifacts.readArtifact("TestVault");
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();

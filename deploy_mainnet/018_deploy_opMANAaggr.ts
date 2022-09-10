@@ -21,7 +21,7 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
   const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -30,22 +30,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const apeApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address);
+  const manaApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("only set APE hash");
+  if (manaApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash)) {
+    console.log("only set MANA hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address],
     ]);
   }
-  if (!apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("approve APE and set hash");
+  if (!manaApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash)) {
+    console.log("approve MANA and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -80,14 +80,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAPEaggr", {
+  const result = await deploy("opMANAaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
@@ -104,11 +104,11 @@ const func: DeployFunction = async ({
           methodName: "initialize",
           args: [
             registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash, //bytes32 _underlyingTokensHash
+            MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "ApeCoin", //string memory _name
-            "APE", //string memory _symbol
+            "Decentraland MANA", //string memory _name
+            "MANA", //string memory _symbol
             "2", //uint256 _riskProfileCode
             "0", //uint256 _vaultConfiguration
             "0", //uint256 _userDepositCapUT
@@ -123,25 +123,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAPEaggr");
+      const vault = await deployments.get("opMANAaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAPEaggr",
+          name: "opMANAaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opAPEaggr",
+          name: "opMANAaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opAPEaggr"];
+func.tags = ["opMANAaggr"];
 func.dependencies = ["Registry"];

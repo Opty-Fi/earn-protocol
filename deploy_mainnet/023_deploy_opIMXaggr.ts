@@ -21,37 +21,36 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
-  const strategyManager = await deployments.get("StrategyManager");
-  const claimAndHarvest = await deployments.get("ClaimAndHarvest");
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const linkApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address);
+  const imxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
-    console.log("only set LINK hash");
+  if (imxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash)) {
+    console.log("only set IMX hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address],
     ]);
   }
-  if (!linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
-    console.log("approve LINK and set hash");
+  if (!imxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash)) {
+    console.log("approve IMX and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
@@ -66,6 +65,7 @@ const func: DeployFunction = async ({
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
@@ -78,40 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opLINKaggr", {
+  const result = await deploy("opIMXaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "LINKToken", "LINK", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Immutable X", "IMX", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
-    libraries: {
-      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
-      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
-    },
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEaggr_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash, //bytes32 _underlyingTokensHash
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "LinkToken", //string memory _name
-            "LINK", //string memory _symbol
-            "2", //uint256 _riskProfileCode
-            "0", //uint256 _vaultConfiguration
-            "0", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "0", //uint256 _totalValueLockedLimitUT
-          ],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash, "Immutable X", "IMX", "2"],
         },
       },
     },
@@ -120,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opLINKaggr");
+      const vault = await deployments.get("opIMXaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opLINKaggr",
+          name: "opIMXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "LINKToken", "LINK", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Immutable X", "IMX", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opLINKaggr",
+          name: "opIMXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "LINKToken", "LINK", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Immutable X", "IMX", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opLINKaggr"];
+func.tags = ["opIMXaggr"];
 func.dependencies = ["Registry"];

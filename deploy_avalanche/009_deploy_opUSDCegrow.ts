@@ -26,7 +26,7 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
 
-  const result = await deploy("opUSDCegrow", {
+  const result = await deploy("opUSDC.egrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,

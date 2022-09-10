@@ -30,28 +30,29 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const sushiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.address);
+  const linkApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (sushiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash)) {
-    console.log("only set SUSHI hash");
+  if (linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
+    console.log("only set LINK hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
     ]);
   }
-  if (!sushiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash)) {
-    console.log("approve SUSHI and set hash");
+  if (!linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
+    console.log("approve LINK and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
@@ -66,6 +67,7 @@ const func: DeployFunction = async ({
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
@@ -78,14 +80,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opSUSHIaggr", {
+  const result = await deploy("opLINKaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "SushiToken", "SUSHI", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
@@ -96,16 +98,17 @@ const func: DeployFunction = async ({
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEaggr_Implementation",
       execute: {
         init: {
           methodName: "initialize",
           args: [
             registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash, //bytes32 _underlyingTokensHash
+            MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "SushiToken", //string memory _name
-            "SUSHI", //string memory _symbol
+            "ChainLink Token", //string memory _name
+            "LINK", //string memory _symbol
             "2", //uint256 _riskProfileCode
             "0", //uint256 _vaultConfiguration
             "0", //uint256 _userDepositCapUT
@@ -120,25 +123,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opSUSHIaggr");
+      const vault = await deployments.get("opLINKaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opSUSHIaggr",
+          name: "opLINKaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "SushiToken", "SUSHI", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opSUSHIaggr",
+          name: "opLINKaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "SushiToken", "SUSHI", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opSUSHIaggr"];
+func.tags = ["opLINKaggr"];
 func.dependencies = ["Registry"];
