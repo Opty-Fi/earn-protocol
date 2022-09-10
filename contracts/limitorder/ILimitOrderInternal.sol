@@ -14,13 +14,6 @@ interface ILimitOrderInternal {
     event LimitOrderCreated(DataTypes.Order _order);
 
     /**
-     * @notice Logs when USDC is delivered to the maker of a LimitOrder post execution
-     * @param _maker address of the maker of the LimitOrder
-     * @param _amount the amount of USDC sent
-     */
-    event DeliverUSDC(address _maker, uint256 _amount);
-
-    /**
      * @notice Logs when opVault shares are delivered to the maker of a LimitOrder post execution
      * @param _maker the address of the maker of the LimitOrder
      */

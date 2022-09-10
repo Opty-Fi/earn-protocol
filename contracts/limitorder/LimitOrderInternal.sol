@@ -332,20 +332,16 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _maker
     ) internal {
         IERC20(_coin).approve(_vault, _amount);
-        try
-            IVault(_vault).userDepositVault(
-                _maker,
-                _amount,
-                '0x',
-                _l.accountProofs[_vault],
-                _l.codeProofs[_vault]
-            )
-        {
-            emit DeliverShares(_maker);
-        } catch {
-            IERC20(_coin).transfer(_maker, _amount);
-            emit DeliverUSDC(_maker, _amount);
-        }
+
+        IVault(_vault).userDepositVault(
+            _maker,
+            _amount,
+            '0x',
+            _l.accountProofs[_vault],
+            _l.codeProofs[_vault]
+        );
+
+        emit DeliverShares(_maker);
     }
 
     /**
@@ -751,7 +747,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _areBoundsSatisfied(
         uint256 _latestPrice,
         DataTypes.Order memory _order
-    ) internal view returns (bool, string memory) {
+    ) internal pure returns (bool, string memory) {
         uint256 lowerBound = _order.lowerBound;
         uint256 upperBound = _order.upperBound;
 
