@@ -123,6 +123,22 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
+    function setName(string calldata _name) external override onlyGovernance {
+        require(bytes(_name).length > 0, Errors.EMPTY_STRING);
+        _setName(_name);
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function setSymbol(string calldata _symbol) external override onlyGovernance {
+        require(bytes(_symbol).length > 0, Errors.EMPTY_STRING);
+        _setSymbol(_symbol);
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
     function setRiskProfileCode(uint256 _riskProfileCode) external override onlyGovernance {
         _setRiskProfileCode(_riskProfileCode, registryContract.getRiskProfile(_riskProfileCode).exists);
     }
