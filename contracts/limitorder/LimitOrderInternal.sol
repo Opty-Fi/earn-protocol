@@ -19,6 +19,8 @@ import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 import { IOps } from '../vendor/gelato/IOps.sol';
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
 
+import { ISwapRouter } from '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
+
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -180,7 +182,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         (bool _isExecutable, string memory _reason) = _canExecute(
             _order,
             _l.userVaultOrderActive[_order.maker][_vault],
-            IVault(_order.stablecoinVault).underlyingToken(),
+            IVault(_vault).underlyingToken(),
             _l.oracle
         );
 
@@ -470,6 +472,21 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice sets the optimal swap path for tokenIn and tokenOut
+     * @param _tokenIn address of token to be swapped
+     * @param _tokenOut address of token to be swapped out
+     * @param _path the optimal path encoded along with swap fee
+     */
+    function _setSwapPath(
+        LimitOrderStorage.Layout storage _l,
+        address _tokenIn,
+        address _tokenOut,
+        bytes memory _path
+    ) internal {
+        _l.swapPaths[_tokenIn][_tokenOut] = _path;
+    }
+
+    /**
      * @notice checks whether a limit order may be executed
      * @param _order the order to check
      */
@@ -714,6 +731,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice returns path encoded with fees
+     * @param _tokenIn address of swap-in token
+     * @param _tokenOut address of swap-out token
+     */
+    function _swapPath(
+        LimitOrderStorage.Layout storage _l,
+        address _tokenIn,
+        address _tokenOut
+    ) internal view returns (bytes memory) {
+        return _l.swapPaths[_tokenIn][_tokenOut];
+    }
+
+    /**
      * @notice checks whether price is within an absolute bound of the target price of a limit order
      * @param _latestPrice the latest price of the underlying token of the limit order
      * @param _order the limit order containing the target price to check the latest price against
@@ -721,7 +751,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
     function _areBoundsSatisfied(
         uint256 _latestPrice,
         DataTypes.Order memory _order
-    ) internal pure returns (bool, string memory) {
+    ) internal view returns (bool, string memory) {
         uint256 lowerBound = _order.lowerBound;
         uint256 upperBound = _order.upperBound;
 
@@ -841,6 +871,118 @@ contract LimitOrderInternal is ILimitOrderInternal {
                 _addrs,
                 LimitOrderStorage.layout().swapDiamond,
                 _timestamp() + 20 minutes
+            )
+        );
+
+        uint256[] memory _startIndexes;
+        address[] memory _callees;
+        uint256[] memory _values;
+        bytes memory _exchangeData;
+
+        if (
+            IERC20(_vaultUnderlyingToken).allowance(
+                address(this),
+                LimitOrderStorage.layout().exchangeRouter
+            ) >= _amountIn
+        ) {
+            _startIndexes = new uint256[](2);
+            _callees = new address[](1);
+            _values = new uint256[](1);
+            _startIndexes[0] = 0;
+            _startIndexes[1] = _swapData.length;
+            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
+            _values[0] = 0;
+            _exchangeData = _swapData;
+        } else {
+            bytes memory _approveData = abi.encodeWithSelector(
+                IERC20.approve.selector,
+                LimitOrderStorage.layout().exchangeRouter,
+                type(uint256).max
+            );
+            _startIndexes = new uint256[](3);
+            _callees = new address[](2);
+            _values = new uint256[](2);
+            _startIndexes[0] = 0;
+            _startIndexes[1] = _approveData.length;
+            _startIndexes[2] = _startIndexes[1] + _swapData.length;
+            _callees[0] = _vaultUnderlyingToken;
+            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
+            _values[0] = 0;
+            _values[1] = 0;
+            _exchangeData = bytes.concat(_approveData, _swapData);
+        }
+
+        return (
+            true,
+            abi.encodeCall(
+                ILimitOrderActions.execute,
+                (
+                    _maker,
+                    _vault,
+                    DataTypes.SwapParams({
+                        deadline: _timestamp() + 10 minutes,
+                        startIndexes: _startIndexes,
+                        values: _values,
+                        callees: _callees,
+                        exchangeData: _exchangeData,
+                        permit: bytes('')
+                    })
+                )
+            )
+        );
+    }
+
+    function _canExecuteOrderUniV3(address _maker, address _vault)
+        internal
+        view
+        returns (bool, bytes memory)
+    {
+        DataTypes.Order memory _order = LimitOrderStorage
+            .layout()
+            .userVaultOrder[_maker][_vault];
+        address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
+
+        if (IERC20(_vault).balanceOf(_maker) < _order.liquidationAmount) {
+            return (false, bytes('Not enough shares'));
+        }
+
+        uint256 _amountIn = (_order.liquidationAmount *
+            IVault(_vault).getPricePerFullShare()) / 10**18;
+
+        (bool _isExecutable, string memory _reason) = _canExecute(
+            _order,
+            LimitOrderStorage.layout().userVaultOrderActive[_maker][_vault],
+            _vaultUnderlyingToken,
+            LimitOrderStorage.layout().oracle
+        );
+        if (!_isExecutable) {
+            return (false, bytes(_reason));
+        }
+
+        address _stableCoin = IVault(_order.stablecoinVault).underlyingToken();
+
+        bytes memory _swapData = abi.encodeCall(
+            ISwapRouter.exactInput,
+            (
+                ISwapRouter.ExactInputParams({
+                    path: LimitOrderStorage.layout().swapPaths[
+                        _vaultUnderlyingToken
+                    ][_stableCoin],
+                    recipient: LimitOrderStorage.layout().swapDiamond,
+                    deadline: _timestamp() + 20 minutes,
+                    amountIn: _amountIn,
+                    amountOutMinimum: (((_amountIn *
+                        _priceStablecoin(
+                            LimitOrderStorage.layout().oracle,
+                            _vaultUnderlyingToken,
+                            _stableCoin
+                        ) *
+                        10**ISolidStateERC20(_stableCoin).decimals()) /
+                        10 **
+                            (18 +
+                                ISolidStateERC20(_vaultUnderlyingToken)
+                                    .decimals())) * 99) / 100
+                })
             )
         );
 

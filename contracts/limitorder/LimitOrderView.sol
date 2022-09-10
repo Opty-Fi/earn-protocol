@@ -119,7 +119,7 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
         view
         returns (bool, bytes memory)
     {
-        return _canExecuteOrder(_maker, _vault);
+        return _canExecuteOrderUniV3(_maker, _vault);
     }
 
     /**
@@ -127,5 +127,16 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
      */
     function vaultWhitelisted(address _vault) external view returns (bool) {
         return _vaultWhitelisted(LimitOrderStorage.layout(), _vault);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
+    function swapPath(address _tokenIn, address _tokenOut)
+        external
+        view
+        returns (bytes memory)
+    {
+        return _swapPath(LimitOrderStorage.layout(), _tokenIn, _tokenOut);
     }
 }

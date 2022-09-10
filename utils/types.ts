@@ -8,8 +8,7 @@ export interface Order {
   returnLimitBP: BigNumber;
   maker: string;
   vault: string;
-  destination: string;
-  underlying: string;
+  stablecoinVault: string;
   direction: BigNumber;
 }
 
@@ -20,7 +19,7 @@ export interface OrderParams {
   upperBound: BigNumber;
   returnLimitBP: BigNumber;
   vault: string;
-  destination: string;
+  stablecoinVault: string;
   direction: BigNumber;
 }
 

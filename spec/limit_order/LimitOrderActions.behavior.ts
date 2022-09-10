@@ -22,6 +22,8 @@ import {
   ITaskTreasury,
   ITaskTreasury__factory,
   ILimitOrder__factory,
+  IUniswapV2Router02,
+  IUniswapV2Router02__factory,
 } from '../../typechain-types';
 import { convertOrderParamsToOrder } from '../../utils/converters';
 import {
@@ -30,6 +32,8 @@ import {
   getProof,
   getProofForCode,
 } from '../../scripts/utils';
+import { ISwapRouter } from '../../typechain-types/ISwapRouter';
+import { ISwapRouter__factory } from '../../typechain-types/factories/ISwapRouter__factory';
 
 addABI(ILimitOrder__factory.abi);
 addABI(IOps__factory.abi);
@@ -59,6 +63,7 @@ export function describeBehaviorOfLimitOrderActions(
   let opAaveToken: IERC20;
   let swapper: ISwapper;
   let uniRouter: UniswapV2Router02;
+  let uniV3Router: ISwapRouter;
   let liquidationAmount: BigNumber;
 
   //EOA
@@ -77,6 +82,7 @@ export function describeBehaviorOfLimitOrderActions(
   const AaveVaultProxy = '0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19';
   const UsdcVaultProxy = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88';
   const UniswapV2Router02Address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //mainnet
+  const UniswapV3RouterAddress = '0xE592427A0AEce92De3Edee1F18E0157C05861564'; //mainnet
   const Gelato_Network = '0x3CACa7b48D0573D793d3b0279b5F0029180E83b6'; // mainnet
   const Gelato_Pokeme = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
   const Gelato_Task_Treasury = '0x2807B4aE232b624023f87d0e237A3B1bf200Fd99'; // mainnet
@@ -96,7 +102,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('50'),
     direction: ethers.constants.One,
     returnLimitBP: ethers.utils.parseEther('0.99'),
-    destination: UsdcVaultProxy,
+    stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -107,7 +113,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('50'),
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.99'),
-    destination: UsdcVaultProxy,
+    stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -118,7 +124,7 @@ export function describeBehaviorOfLimitOrderActions(
     lowerBound: ethers.utils.parseEther('150'),
     direction: ethers.constants.Zero,
     returnLimitBP: ethers.utils.parseEther('0.9'),
-    destination: UsdcVaultProxy,
+    stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
   };
 
@@ -155,9 +161,18 @@ export function describeBehaviorOfLimitOrderActions(
       params: [Gelato_Network],
     });
     GelatoNetworkSigner = await ethers.getSigner(Gelato_Network);
-    uniRouter = await ethers.getContractAt(
-      'UniswapV2Router02',
-      UniswapV2Router02Address,
+    uniRouter = <IUniswapV2Router02>(
+      await ethers.getContractAt(
+        IUniswapV2Router02__factory.abi,
+        UniswapV2Router02Address,
+      )
+    );
+
+    uniV3Router = <ISwapRouter>(
+      await ethers.getContractAt(
+        ISwapRouter__factory.abi,
+        UniswapV3RouterAddress,
+      )
     );
 
     const proxyAdminAddress = '0xF980ea5758f71F418909688b6448B41ACb5522E9';
@@ -234,8 +249,7 @@ export function describeBehaviorOfLimitOrderActions(
           upperBound: makerOrder.upperBound,
           direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
-          destination: UsdcVaultProxy,
-          underlying: USDC,
+          stablecoinVault: UsdcVaultProxy,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
         };
@@ -284,8 +298,7 @@ export function describeBehaviorOfLimitOrderActions(
             _taskId,
             order.maker,
             order.vault,
-            ethers.utils.getAddress(order.destination),
-            order.underlying,
+            ethers.utils.getAddress(order.stablecoinVault),
             order.direction,
           ]);
       });
@@ -338,7 +351,7 @@ export function describeBehaviorOfLimitOrderActions(
         it('destination is not whitelisted', async () => {
           failedOrderParams.upperBound = orderParams.upperBound;
           failedOrderParams.expiration = orderParams.expiration;
-          failedOrderParams.destination = maker.address;
+          failedOrderParams.stablecoinVault = maker.address;
           await expect(
             instance.connect(maker).createOrder(failedOrderParams),
           ).to.be.revertedWith(`ForbiddenDestination()`);
@@ -864,7 +877,7 @@ export function describeBehaviorOfLimitOrderActions(
         ).timestamp;
 
         const approveData = AaveERC20.interface.encodeFunctionData('approve', [
-          uniRouter.address,
+          uniV3Router.address,
           ethers.constants.MaxUint256,
         ]);
 
@@ -886,19 +899,32 @@ export function describeBehaviorOfLimitOrderActions(
           .mul(BigNumber.from('99'))
           .div('100');
 
-        const uniswapData = uniRouter.interface.encodeFunctionData(
-          'swapExactTokensForTokens',
+        // const uniswapData = uniRouter.interface.encodeFunctionData(
+        //   'swapExactTokensForTokens',
+        //   [
+        //     expectedAaveRedeemed,
+        //     expectedUSDC,
+        //     [AaveERC20Address, USDC],
+        //     await instance.swapDiamond(),
+        //     timestamp + 20 * 60,
+        //   ],
+        // );
+
+        const uniswapV3Data = uniV3Router.interface.encodeFunctionData(
+          'exactInput',
           [
-            expectedAaveRedeemed,
-            expectedUSDC,
-            [AaveERC20Address, USDC],
-            await instance.swapDiamond(),
-            timestamp + 20 * 60,
+            {
+              path: await instance.swapPath(AaveERC20Address, USDC),
+              recipient: await instance.swapDiamond(),
+              deadline: timestamp + 20 * 60,
+              amountIn: expectedAaveRedeemed,
+              amountOutMinimum: expectedUSDC,
+            },
           ],
         );
 
         //construct swapData
-        const calls: string[] = [approveData, uniswapData];
+        const calls: string[] = [approveData, uniswapV3Data];
         let startIndexes: any[] = ['0'];
         let exchangeData = `0x`;
         for (const i in calls) {
@@ -914,7 +940,7 @@ export function describeBehaviorOfLimitOrderActions(
           deadline: BigNumber.from(timestamp + 10 * 60),
           startIndexes: startIndexes,
           values: [BigNumber.from('0'), BigNumber.from('0')],
-          callees: [AaveERC20Address, UniswapV2Router02Address],
+          callees: [AaveERC20Address, uniV3Router.address],
           exchangeData,
           permit: '0x',
         };
@@ -953,6 +979,10 @@ export function describeBehaviorOfLimitOrderActions(
         )
           .to.emit(instance, 'DeliverShares')
           .withArgs(maker.address);
+        // await maker.sendTransaction({
+        //   to: instance.address,
+        //   data: execPayload,
+        // });
       });
 
       describe('reverts if', () => {
@@ -987,6 +1017,7 @@ export function describeBehaviorOfLimitOrderActions(
             direction: ethers.constants.One,
             returnLimitBP: ethers.utils.parseEther('0.99'),
             vault: AaveVaultProxy,
+            stablecoinVault: UsdcVaultProxy,
           });
 
           const expiredTimestamp =
@@ -1222,8 +1253,7 @@ export function describeBehaviorOfLimitOrderActions(
           upperBound: makerOrder.upperBound,
           direction: BigNumber.from(makerOrder.direction.toString()),
           returnLimitBP: makerOrder.returnLimitBP,
-          destination: UsdcVaultProxy,
-          underlying: USDC,
+          stablecoinVault: UsdcVaultProxy,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
         };
@@ -1231,7 +1261,6 @@ export function describeBehaviorOfLimitOrderActions(
         const order = convertOrderParamsToOrder(
           modifyOrderParams,
           maker.address,
-          USDC,
         );
 
         expect(order).to.deep.eq(modifiedOrder);
@@ -1286,7 +1315,7 @@ export function describeBehaviorOfLimitOrderActions(
 
           modifyOrderParams.lowerBound = orderParams.lowerBound;
           modifyOrderParams.upperBound = orderParams.upperBound;
-          modifyOrderParams.destination = maker.address;
+          modifyOrderParams.stablecoinVault = maker.address;
           await expect(
             instance
               .connect(maker)

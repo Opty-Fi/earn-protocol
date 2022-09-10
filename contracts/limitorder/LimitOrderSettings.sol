@@ -116,6 +116,17 @@ contract LimitOrderSettings is
     /**
      * @inheritdoc ILimitOrderSettings
      */
+    function setSwapPath(
+        address _tokenIn,
+        address _tokenOut,
+        bytes calldata _path
+    ) external onlyOwner {
+        _setSwapPath(LimitOrderStorage.layout(), _tokenIn, _tokenOut, _path);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
     function setOps(address _ops) external onlyOwner {
         _setOps(LimitOrderStorage.layout(), _ops);
     }

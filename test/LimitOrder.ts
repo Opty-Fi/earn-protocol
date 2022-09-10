@@ -46,6 +46,7 @@ describe('::LimitOrder Contracts', () => {
   const USDCVaultProxy = '0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88';
   const RegistryProxy = '0x99fa011e33a8c6196869dec7bc407e896ba67fe3';
   const USD = '0x0000000000000000000000000000000000000348';
+  const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; //mainnet
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; //mainnet
   const opUSDC = '0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88'; //mainnet
   const AaveERC20Address = '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9'; //mainnet
@@ -53,6 +54,7 @@ describe('::LimitOrder Contracts', () => {
   const USDCUSDpriceFeed = '0x8fffffd4afb6115b954bd326cbe7b4ba576818f6'; //mainnet
   const Gelato_Ops = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
   const uniswapRouter = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; // mainnet
+  const uniswapV3Router = '0xE592427A0AEce92De3Edee1F18E0157C05861564'; // mainnet
 
   before(async () => {
     [deployer, , , treasury] = await ethers.getSigners();
@@ -101,7 +103,7 @@ describe('::LimitOrder Contracts', () => {
       Oracle.address,
       OptyFiSwapper.address,
       Gelato_Ops,
-      uniswapRouter,
+      uniswapV3Router,
     );
 
     const limitOrderSelectors = new Set();
@@ -138,6 +140,15 @@ describe('::LimitOrder Contracts', () => {
     );
 
     await limitOrderInstance.setVault(opUSDC);
+
+    await limitOrderInstance.setSwapPath(
+      AaveERC20Address,
+      USDC,
+      ethers.utils.solidityPack(
+        ['address', 'uint24', 'address', 'uint24', 'address'],
+        [AaveERC20Address, 3000, WETH, 500, USDC],
+      ),
+    );
 
     let tx: ContractTransaction = await deployer.sendTransaction({
       to: optyFiVaultOperatorAddress,

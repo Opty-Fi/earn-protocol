@@ -70,6 +70,18 @@ interface ILimitOrderSettings {
     function unsetVaults(address[] memory _vaults) external;
 
     /**
+     * @notice sets the optimal swap path for tokenIn and tokenOut
+     * @param _tokenIn address of token to be swapped
+     * @param _tokenOut address of token to be swapped out
+     * @param _path the optimal path encoded along with swap fee
+     */
+    function setSwapPath(
+        address _tokenIn,
+        address _tokenOut,
+        bytes calldata _path
+    ) external;
+
+    /**
      * @notice sets the address of the operation contract that automates limit order execution
      * @param _ops the address of the operation contract
      */
