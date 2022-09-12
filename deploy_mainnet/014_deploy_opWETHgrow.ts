@@ -74,7 +74,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+    args: [registryProxyAddress],
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
@@ -97,7 +97,6 @@ const func: DeployFunction = async ({
             MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "Wrapped Ether",
             "WETH",
             "1",
             "0",
@@ -116,7 +115,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -124,7 +123,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

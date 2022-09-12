@@ -21,7 +21,7 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
   const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -87,7 +87,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
@@ -107,7 +107,6 @@ const func: DeployFunction = async ({
             MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "Decentraland MANA", //string memory _name
             "MANA", //string memory _symbol
             "2", //uint256 _riskProfileCode
             "0", //uint256 _vaultConfiguration
@@ -128,7 +127,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opMANAaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -136,7 +135,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opMANAaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

@@ -85,7 +85,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -96,7 +96,18 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash, "yearn.finance", "YFI", "2"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "YFI",
+            "2",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
         },
       },
     },
@@ -110,7 +121,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opYFIaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -118,7 +129,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opYFIaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

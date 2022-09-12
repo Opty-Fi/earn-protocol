@@ -85,7 +85,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Convex Token", "CVX", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -96,7 +96,18 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash, "Convex Token", "CVX", "2"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "CVX",
+            "2",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
         },
       },
     },
@@ -110,7 +121,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opCVXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Convex Token", "CVX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -118,7 +129,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opCVXaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Convex Token", "CVX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

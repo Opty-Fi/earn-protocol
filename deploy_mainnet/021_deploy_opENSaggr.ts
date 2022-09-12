@@ -85,7 +85,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Ethereum Name Service", "ENS", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -96,7 +96,18 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash, "Ethereum Name Service", "ENS", "2"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "ENS",
+            "2",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
         },
       },
     },
@@ -110,7 +121,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opENSaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Ethereum Name Service", "ENS", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -118,7 +129,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opENSaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Ethereum Name Service", "ENS", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

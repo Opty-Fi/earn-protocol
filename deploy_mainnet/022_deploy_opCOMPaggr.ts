@@ -85,7 +85,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Compound", "COMP", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -96,7 +96,18 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].COMP.hash, "Compound", "COMP", "2"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].COMP.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "COMP",
+            "2",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
         },
       },
     },
@@ -110,7 +121,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opCOMPaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Compound", "COMP", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -118,7 +129,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opCOMPaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Compound", "COMP", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

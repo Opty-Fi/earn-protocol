@@ -87,7 +87,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
@@ -107,7 +107,6 @@ const func: DeployFunction = async ({
             MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "ChainLink Token", //string memory _name
             "LINK", //string memory _symbol
             "2", //uint256 _riskProfileCode
             "0", //uint256 _vaultConfiguration
@@ -128,7 +127,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opLINKaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -136,7 +135,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opLINKaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

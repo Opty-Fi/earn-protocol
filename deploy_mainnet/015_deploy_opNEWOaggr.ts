@@ -88,7 +88,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Newo Order", "NEWO", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
@@ -107,7 +107,6 @@ const func: DeployFunction = async ({
             MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "New Order",
             "NEWO",
             "2",
             "0",
@@ -128,7 +127,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opNEWOaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "New Order", "NEWO", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -136,7 +135,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opNEWOaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "New Order", "NEWO", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }
