@@ -59,17 +59,11 @@ contract Vault is
     //===Constructor===//
 
     /* solhint-disable no-empty-blocks */
-    constructor(
-        address _registry,
-        string memory _name,
-        string memory _symbol,
-        string memory _riskProfileName,
-        string memory _riskProfileSymbol
-    )
+    constructor(address _registry)
         public
         IncentivisedERC20(
-            string(abi.encodePacked("op ", _name, " ", _riskProfileName)),
-            string(abi.encodePacked("op", _symbol, _riskProfileSymbol))
+            string(abi.encodePacked("OptyFi Vault Name")),
+            string(abi.encodePacked("OptyFi Vauly Symbol"))
         )
         Modifiers(_registry)
     {}
@@ -84,7 +78,6 @@ contract Vault is
      * @param _underlyingTokensHash The keccak256 hash of the tokens and chain id
      * @param _whitelistedCodesRoot Whitelisted codes root hash
      * @param _whitelistedAccountsRoot Whitelisted accounts root hash
-     * @param _name The name of the underlying asset
      * @param _symbol The symbol of the underlying  asset
      * @param _riskProfileCode Risk profile code of this vault
      * @param _vaultConfiguration Bit banging value for vault config
@@ -97,7 +90,6 @@ contract Vault is
         bytes32 _underlyingTokensHash,
         bytes32 _whitelistedCodesRoot,
         bytes32 _whitelistedAccountsRoot,
-        string memory _name,
         string memory _symbol,
         uint256 _riskProfileCode,
         uint256 _vaultConfiguration,
@@ -105,14 +97,13 @@ contract Vault is
         uint256 _minimumDepositValueUT,
         uint256 _totalValueLockedLimitUT
     ) external virtual initializer {
-        require(bytes(_name).length > 0, Errors.EMPTY_STRING);
         require(bytes(_symbol).length > 0, Errors.EMPTY_STRING);
         registryContract = IRegistry(_registry);
         DataTypes.RiskProfile memory _riskProfile = registryContract.getRiskProfile(_riskProfileCode);
         _setRiskProfileCode(_riskProfileCode, _riskProfile.exists);
         _setUnderlyingTokensHash(_underlyingTokensHash);
-        _setName(string(abi.encodePacked("op ", _name, " ", _riskProfile.name)));
-        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
+        _setName(string(abi.encodePacked("OptyFi ", _symbol, " ", _riskProfile.name, " Vault")));
+        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.name)));
         _setDecimals(IncentivisedERC20(underlyingToken).decimals());
         _setWhitelistedCodesRoot(_whitelistedCodesRoot);
         _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
@@ -308,7 +299,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function adminCall(bytes[] memory _codes) external override onlyOperator {
+    function adminCall(bytes[] memory _codes) external override onlyGovernance {
         executeCodes(_codes, Errors.ADMIN_CALL);
     }
 
