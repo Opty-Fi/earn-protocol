@@ -115,7 +115,6 @@ contract Vault is
      * @inheritdoc IVault
      */
     function setName(string calldata _name) external override onlyGovernance {
-        require(bytes(_name).length > 0, Errors.EMPTY_STRING);
         _setName(_name);
     }
 
@@ -123,7 +122,6 @@ contract Vault is
      * @inheritdoc IVault
      */
     function setSymbol(string calldata _symbol) external override onlyGovernance {
-        require(bytes(_symbol).length > 0, Errors.EMPTY_STRING);
         _setSymbol(_symbol);
     }
 
