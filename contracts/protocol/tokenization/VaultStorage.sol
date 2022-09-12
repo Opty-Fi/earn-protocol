@@ -106,5 +106,5 @@ contract VaultStorageV3 is VaultStorageV2 {
     mapping(address => Counters.Counter) internal _nonces;
 
     /**@dev prevent deposit-withdrawal in the same block*/
-    mapping(address => mapping(uint256 => bool)) internal _depositProtection;
+    mapping(uint256 => bool) internal _depositProtection;
 }

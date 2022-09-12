@@ -260,7 +260,7 @@ contract Vault is
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
-        _activateDepositProtection(_beneficiary);
+        _activateDepositProtection();
         _permit(_permitParams);
         return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
@@ -274,8 +274,6 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
-        require(!(_depositProtection[msg.sender][block.number]), Errors.DEPOSIT_PROTECTION);
-
         return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
     }
 
@@ -571,9 +569,8 @@ contract Vault is
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) = underlyingToken.call(
-                abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams)
-            );
+            (bool success, ) =
+                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
@@ -664,14 +661,17 @@ contract Vault is
 
         // if vault does not have sufficient UT, we need to withdraw from strategy
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
+            _checkDepositProtection();
+
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
-            uint256 _oraAmountLP = investStrategySteps.getOraSomeValueLP(
-                address(registryContract),
-                underlyingToken,
-                _expectedStratWithdrawUT
-            );
+            uint256 _oraAmountLP =
+                investStrategySteps.getOraSomeValueLP(
+                    address(registryContract),
+                    underlyingToken,
+                    _expectedStratWithdrawUT
+                );
 
             _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
 
@@ -707,9 +707,8 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount = _investStrategySteps.getDepositInternalTransactionCount(
-            address(registryContract)
-        );
+        uint256 _internalTransactionCount =
+            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -773,7 +772,9 @@ contract Vault is
         uint256
     ) internal override {
         require(_to != address(this), Errors.TRANSFER_TO_THIS_CONTRACT);
-        require(!(_depositProtection[_from][block.number]), Errors.DEPOSIT_PROTECTION);
+        if (_from != address(0) && _to != address(0)) {
+            _checkDepositProtection();
+        }
     }
 
     /**
@@ -884,10 +885,9 @@ contract Vault is
 
     /**
      * @dev Internal function to activate same block deposit-withdrawal protection
-     * @param _receiver address of the receiver of the shares
      */
-    function _activateDepositProtection(address _receiver) internal {
-        _depositProtection[_receiver][block.number] = true;
+    function _activateDepositProtection() internal {
+        _depositProtection[block.number] = true;
     }
 
     //===Internal view functions===//
@@ -968,14 +968,15 @@ contract Vault is
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = userDepositPermitted(
-            _user,
-            _addUserDepositUT,
-            _userDepositUTWithDeductions,
-            _deductions,
-            _accountsProof,
-            _codesProof
-        );
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
+            userDepositPermitted(
+                _user,
+                _addUserDepositUT,
+                _userDepositUTWithDeductions,
+                _deductions,
+                _accountsProof,
+                _codesProof
+            );
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -1014,13 +1015,16 @@ contract Vault is
         bytes32[] memory _accountsProof,
         bytes32[] memory _codesProof
     ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) = userWithdrawPermitted(
-            _user,
-            _userWithdrawVT,
-            _accountsProof,
-            _codesProof
-        );
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
+            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
+    }
+
+    /**
+     * @dev Internal function to check same block deposit-withdrawal protection
+     */
+    function _checkDepositProtection() internal view {
+        require(!(_depositProtection[block.number]), Errors.DEPOSIT_PROTECTION);
     }
 
     /**
