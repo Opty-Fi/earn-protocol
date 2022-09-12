@@ -1,12 +1,13 @@
 import hre, { deployments, ethers } from "hardhat";
 import chai, { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { solidity } from "ethereum-waffle";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
+import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { eEVMNetwork } from "../../helper-hardhat-config";
+import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../../helper-hardhat-config";
 import {
   getAccountsMerkleProof,
   getAccountsMerkleRoot,
@@ -15,11 +16,49 @@ import {
   Signers,
 } from "../../helpers/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
-import { ERC20, ERC20__factory, Registry, Registry__factory, Vault, Vault__factory } from "../../typechain";
+import {
+  ERC20,
+  ERC20__factory,
+  Registry,
+  Registry__factory,
+  StrategyProvider,
+  StrategyProvider__factory,
+  Vault,
+  Vault__factory,
+} from "../../typechain";
+import { generateStrategyHashV2 } from "../../helpers/helpers";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
+
+const testStrategy: {
+  [key: string]: {
+    [name: string]: { steps: { pool: string; outputToken: string; isBorrow: boolean }[]; hash: string };
+  };
+} = {
+  [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
+    USDC_COMPOUND: {
+      steps: [
+        {
+          pool: TypedDefiPools.CompoundAdapter.usdc.pool,
+          outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
+          isBorrow: false,
+        },
+      ],
+      hash: generateStrategyHashV2(
+        [
+          {
+            contract: TypedDefiPools.CompoundAdapter.usdc.pool,
+            outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
+            isBorrow: false,
+          },
+        ],
+        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
+      ),
+    },
+  },
+};
 
 describe("Vault Protection", function () {
   before(async function () {
@@ -27,10 +66,13 @@ describe("Vault Protection", function () {
     await deployments.fixture();
     const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
+    const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     this.vaultToken = <ERC20>await ethers.getContractAt(ERC20__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
-
+    this.strategyProvider = <StrategyProvider>(
+      await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
+    );
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.owner = signers[0];
@@ -38,6 +80,8 @@ describe("Vault Protection", function () {
     this.signers.governance = await ethers.getSigner(governanceAddress);
     const financeOperatorAddress = await this.registry.getFinanceOperator();
     this.signers.financeOperator = await ethers.getSigner(financeOperatorAddress);
+    const strategyOperatorAddress = await this.registry.getStrategyOperator();
+    this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
 
     // (0-15) Deposit fee UT = 0 USDC = 0000
     // (16-31) Deposit fee % = 0% = 0000
@@ -130,7 +174,20 @@ describe("Vault Protection", function () {
       expect(balanceAfter).eq(balanceBefore.sub(BigNumber.from("2000000000")));
     });
 
+    it("User should be able to deposit and withdraw in the same block if there is unallocated balance", async function () {
+      const balanceBefore = await this.vault.balanceOf(this.userContract.address);
+      await this.userContract
+        .connect(this.signers.owner)
+        .runTwoTxnDepositAndWithdraw(BigNumber.from("1000000000"), "0x", this.accountProof, this.codeProof);
+      const balanceAfter = await this.vault.balanceOf(this.userContract.address);
+      expect(balanceAfter).eq(balanceBefore);
+    });
+
     it("User should NOT be able to deposit and withdraw in the same block, DEPOSIT_PROTECTION", async function () {
+      await this.strategyProvider
+        .connect(this.signers.strategyOperator)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork]["USDC_COMPOUND"].steps);
+
       await expect(
         this.userContract
           .connect(this.signers.owner)
