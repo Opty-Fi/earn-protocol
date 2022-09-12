@@ -32,6 +32,10 @@ task(TASKS.ACTION_TASKS.REWARD_HARVEST.NAME, TASKS.ACTION_TASKS.REWARD_HARVEST.D
       throw new Error("liquidityPool address is invalid");
     }
 
+    if (+rewardTokenAmount > 0) {
+      throw new Error("reward token amount is invalid");
+    }
+
     try {
       const vaultInstance = <Vault>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
       console.log("Harvesting...");
