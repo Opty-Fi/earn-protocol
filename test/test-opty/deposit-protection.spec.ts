@@ -194,13 +194,5 @@ describe("Vault Protection", function () {
           .runTwoTxnDepositAndWithdraw(BigNumber.from("1000000000"), "0x", this.accountProof, this.codeProof),
       ).to.be.revertedWith("27");
     });
-
-    it("User should NOT be able to deposit and transfer in the same block, DEPOSIT_PROTECTION", async function () {
-      await expect(
-        this.userContract
-          .connect(this.signers.owner)
-          .runTwoTxnDepositAndTransfer(BigNumber.from("1000000000"), "0x", this.accountProof, this.codeProof),
-      ).to.be.revertedWith("27");
-    });
   });
 });
