@@ -235,8 +235,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function rebalance() external override {
-        _checkVaultPaused();
-        _checkVaultEmergencyShutdown();
+        _checkVaultDeposit();
         _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
         bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
         if (_nextBestInvestStrategyHash != investStrategyHash) {
