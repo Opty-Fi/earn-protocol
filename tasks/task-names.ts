@@ -206,7 +206,7 @@ export default {
       NAME: "set-value-control-params",
       DESCRIPTION: "Set value control params",
     },
-    SET_BEST_STRATEGY_MULTI_SIG: {
+    SET_BEST_STRATEGY_MULTISIG: {
       NAME: "set-best-strategy-multisig",
       DESCRIPTION: "Set the best strategy for a specific token via multisig",
     },
