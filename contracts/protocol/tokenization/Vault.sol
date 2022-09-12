@@ -103,7 +103,7 @@ contract Vault is
         _setRiskProfileCode(_riskProfileCode, _riskProfile.exists);
         _setUnderlyingTokensHash(_underlyingTokensHash);
         _setName(string(abi.encodePacked("OptyFi ", _symbol, " ", _riskProfile.name, " Vault")));
-        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.name)));
+        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
         _setDecimals(IncentivisedERC20(underlyingToken).decimals());
         _setWhitelistedCodesRoot(_whitelistedCodesRoot);
         _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
@@ -992,8 +992,8 @@ contract Vault is
      * @dev internal function to check whether vault is paused or in emergency shutdown
      */
     function _checkVaultDeposit() internal view {
-        _checkVaultEmergencyShutdown();
         _checkVaultPaused();
+        _checkVaultEmergencyShutdown();
     }
 
     /**
