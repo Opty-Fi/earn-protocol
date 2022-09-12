@@ -15,7 +15,7 @@ export async function deployAndUpgradeUSDC(): Promise<void> {
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
     },
   });
-  const opUSDCgrow = await opUSDCgrowFactory.deploy(RegistryProxy, "USD Coin (PoS)", "USDC", "Growth", "grow");
+  const opUSDCgrow = await opUSDCgrowFactory.deploy(RegistryProxy);
   const { getAddress } = ethers.utils;
   const opUSDCgrowAddress = opUSDCgrow.address;
   const opUSDCgrowProxyInstance = await ethers.getContractAt(Proxy.abi, opUSDCgrowObj.VaultProxy);
