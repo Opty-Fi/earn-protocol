@@ -63,7 +63,7 @@ contract Vault is
         public
         IncentivisedERC20(
             string(abi.encodePacked("OptyFi Vault Name")),
-            string(abi.encodePacked("OptyFi Vauly Symbol"))
+            string(abi.encodePacked("OptyFi Vault Symbol"))
         )
         Modifiers(_registry)
     {}
