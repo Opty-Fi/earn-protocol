@@ -63,7 +63,7 @@ contract Vault is
         public
         IncentivisedERC20(
             string(abi.encodePacked("OptyFi Vault Name")),
-            string(abi.encodePacked("OptyFi Vauly Symbol"))
+            string(abi.encodePacked("OptyFi Vault Symbol"))
         )
         Modifiers(_registry)
     {}
@@ -233,8 +233,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function rebalance() external override {
-        _checkVaultPaused();
-        _checkVaultEmergencyShutdown();
+        _checkVaultDeposit();
         _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
         bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
         if (_nextBestInvestStrategyHash != investStrategyHash) {
