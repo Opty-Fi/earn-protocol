@@ -163,49 +163,49 @@ describe("VaultV2", () => {
                 this.skip();
               }
             }
-            // if (fork == eEVMNetwork.mainnet) {
-            //   this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
-            //     await ethers.getContractAt(
-            //       CurveSwapPoolAdapter__factory.abi,
-            //       await (
-            //         await deployments.get("CurveSwapPoolAdapter")
-            //       ).address,
-            //     )
-            //   );
-            //   this.curveSwapEthGateway = <CurveSwapETHGateway>(
-            //     await ethers.getContractAt(
-            //       CurveSwapETHGateway__factory.abi,
-            //       await this.curveSwapPoolAdapter.curveSwapETHGatewayContract(),
-            //     )
-            //   );
-            //   if (
-            //     strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV" ||
-            //     strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
-            //   ) {
-            //     DEBUG && console.log("\nLIDO strategy");
-            //     const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
-            //     if (!isConvertToStEth) {
-            //       DEBUG && console.log("\nStrategyOperator setting convertToStEth");
-            //       const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(true);
-            //       await tx.wait(1);
-            //     } else {
-            //       DEBUG && console.log("\nStrategyOperator already set convertToStEth");
-            //     }
-            //   } else if (
-            //     strategy === "weth-DEPOSIT-CurveSwapPool-steCRV" ||
-            //     strategy === "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
-            //   ) {
-            //     DEBUG && console.log("\n non-LIDO strategy");
-            //     const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
-            //     if (isConvertToStEth) {
-            //       DEBUG && console.log("\nStrategyOperator un-setting convertToStEth");
-            //       const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(false);
-            //       await tx.wait(1);
-            //     } else {
-            //       DEBUG && console.log("\nStrategyOperator already un-set convertToStEth");
-            //     }
-            //   }
-            // }
+            if (fork == eEVMNetwork.mainnet) {
+              this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
+                await ethers.getContractAt(
+                  CurveSwapPoolAdapter__factory.abi,
+                  await (
+                    await deployments.get("CurveSwapPoolAdapter")
+                  ).address,
+                )
+              );
+              this.curveSwapEthGateway = <CurveSwapETHGateway>(
+                await ethers.getContractAt(
+                  CurveSwapETHGateway__factory.abi,
+                  await this.curveSwapPoolAdapter.curveSwapETHGatewayContract(),
+                )
+              );
+              if (
+                strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV" ||
+                strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+              ) {
+                DEBUG && console.log("\nLIDO strategy");
+                const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
+                if (!isConvertToStEth) {
+                  DEBUG && console.log("\nStrategyOperator setting convertToStEth");
+                  const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(true);
+                  await tx.wait(1);
+                } else {
+                  DEBUG && console.log("\nStrategyOperator already set convertToStEth");
+                }
+              } else if (
+                strategy === "weth-DEPOSIT-CurveSwapPool-steCRV" ||
+                strategy === "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+              ) {
+                DEBUG && console.log("\n non-LIDO strategy");
+                const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
+                if (isConvertToStEth) {
+                  DEBUG && console.log("\nStrategyOperator un-setting convertToStEth");
+                  const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(false);
+                  await tx.wait(1);
+                } else {
+                  DEBUG && console.log("\nStrategyOperator already un-set convertToStEth");
+                }
+              }
+            }
           });
           it(`(first) alice and bob should deposit into Vault successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
