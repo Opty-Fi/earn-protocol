@@ -56,7 +56,6 @@ jobs:
       - name: Test
         run: |
           yarn test-fast:mainnet
-          yarn test-fast:vaultv2-upgrade-test:mainnet
           yarn test-fast:vaultv2-strategy:mainnet
           yarn test-fast:vaultv2-strategy:polygon
           yarn test-fast:vaultv2-strategy:avalanche
