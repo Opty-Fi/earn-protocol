@@ -104,4 +104,7 @@ contract VaultStorageV2 is VaultStorage {
 contract VaultStorageV3 is VaultStorageV2 {
     /**@dev nonce counter*/
     mapping(address => Counters.Counter) internal _nonces;
+
+    /**@dev deposit and withdraw flag*/
+    mapping(uint256 => bool) internal _blockTransaction;
 }

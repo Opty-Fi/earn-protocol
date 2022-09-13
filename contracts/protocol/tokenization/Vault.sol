@@ -260,7 +260,7 @@ contract Vault is
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
-        _emergencyBrake(true);
+        _emergencyBrake();
         _permit(_permitParams);
         return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
@@ -274,6 +274,7 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
+        _emergencyBrake();
         return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
     }
 
@@ -661,8 +662,6 @@ contract Vault is
 
         // if vault does not have sufficient UT, we need to withdraw from strategy
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
-            _emergencyBrake(false);
-
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
@@ -1060,19 +1059,9 @@ contract Vault is
 
     /**
      * @dev Private function to prevent same block deposit-withdrawal
-     * @param _deposit true if executed in deposit function
      */
-    function _emergencyBrake(bool _deposit) private {
-        if (_deposit) {
-            blockToBlockVaultValues[block.number].push(
-                DataTypes.BlockVaultValue({
-                    actualVaultValue: uint256(1),
-                    blockMinVaultValue: uint256(0),
-                    blockMaxVaultValue: uint256(0)
-                })
-            );
-        } else if (blockToBlockVaultValues[block.number].length > 0) {
-            require(blockToBlockVaultValues[block.number][0].actualVaultValue == 0, Errors.DEPOSIT_PROTECTION);
-        }
+    function _emergencyBrake() private {
+        require(!_blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
+        _blockTransaction[block.number] = true;
     }
 }
