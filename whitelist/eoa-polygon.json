@@ -12,7 +12,7 @@
     "rpcUrls": []
   },
   "vaults": {
-    "opUSDCgrow_proxy": "0x7FeA9Dc468855B999389E396BdB1e3EbF6d19E83",
+    "opUSDCearn_proxy": "0x7FeA9Dc468855B999389E396BdB1e3EbF6d19E83",
     "merkle_root_service": "https://lo8az9edjd.execute-api.us-east-1.amazonaws.com/yield/proof/0x89/0x7FeA9Dc468855B999389E396BdB1e3EbF6d19E83/:user_address",
     "root_hash": "0x4a7e14b2b81abccd2dfd58372f0cbd5b5512749fbafee2e2cda5c56ac0fc947a",
     "addresses": [

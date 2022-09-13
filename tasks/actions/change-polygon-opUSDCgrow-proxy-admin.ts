@@ -5,15 +5,15 @@ import { getAddress } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 
 task(
-  TASKS.ACTION_TASKS.CHANGE_POLYGON_OPUSDCGROW_PROXY_V2_ADMIN.NAME,
-  TASKS.ACTION_TASKS.CHANGE_POLYGON_OPUSDCGROW_PROXY_V2_ADMIN.DESCRIPTION,
+  TASKS.ACTION_TASKS.CHANGE_POLYGON_OPUSDCEARN_PROXY_V2_ADMIN.NAME,
+  TASKS.ACTION_TASKS.CHANGE_POLYGON_OPUSDCEARN_PROXY_V2_ADMIN.DESCRIPTION,
 )
   .addParam("newAdmin", "address of the new admin", "", types.string)
   .setAction(async ({ newAdmin }, hre) => {
     const chainId = await hre.getChainId();
 
     if (chainId != "137") {
-      throw new Error("action is only for opUSDCgrow on polygon");
+      throw new Error("action is only for opUSDCearn on polygon");
     }
 
     if (!isAddress(newAdmin)) {
@@ -24,7 +24,7 @@ task(
       const vaultProxyInstance = await hre.ethers.getContractAt(
         EIP173_ABI,
         await (
-          await hre.deployments.get("opUSDCgrow_Proxy")
+          await hre.deployments.get("opUSDCearn_Proxy")
         ).address,
       );
       const currentAdmin = await vaultProxyInstance.owner();
@@ -44,7 +44,7 @@ task(
         console.log("current admin is upto date");
       }
     } catch (error: any) {
-      console.error(`${TASKS.ACTION_TASKS.CHANGE_POLYGON_OPUSDCGROW_PROXY_V2_ADMIN.NAME}: `, error);
+      console.error(`${TASKS.ACTION_TASKS.CHANGE_POLYGON_OPUSDCEARN_PROXY_V2_ADMIN.NAME}: `, error);
     }
   });
 

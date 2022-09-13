@@ -2,18 +2,18 @@ import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { oldAbis } from "../../../../helpers/data/oldAbis";
-import { opUSDCgrow } from "../../_deployments/mainnet.json";
+import { opUSDCearn } from "../../_deployments/";
 
 export async function usdcRebalance(): Promise<void> {
-  const opUSDCgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCgrow.VaultProxy);
-  const actualopUSDCgrowImplementation = await opUSDCgrowProxyInstance.implementation();
-  if (getAddress(opUSDCgrow.Vault) == getAddress(actualopUSDCgrowImplementation)) {
-    const opUSDCgrowInstance = await ethers.getContractAt(oldAbis.oldVault, opUSDCgrow.VaultProxy);
+  const opUSDCearnProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCearn.VaultProxy);
+  const actualopUSDCearnImplementation = await opUSDCearnProxyInstance.implementation();
+  if (getAddress(opUSDCearn.Vault) == getAddress(actualopUSDCearnImplementation)) {
+    const opUSDCearnInstance = await ethers.getContractAt(oldAbis.oldVault, opUSDCearn.VaultProxy);
 
-    const usdcCurrentStrategyHash = await opUSDCgrowInstance.investStrategyHash();
+    const usdcCurrentStrategyHash = await opUSDCearnInstance.investStrategyHash();
 
     if (usdcCurrentStrategyHash != ethers.constants.HashZero) {
-      const tx = await opUSDCgrowInstance.rebalance();
+      const tx = await opUSDCearnInstance.rebalance();
       await tx.wait(1);
     }
   }

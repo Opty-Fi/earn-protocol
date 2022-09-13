@@ -170,8 +170,12 @@ export type TokenStrategyType = {
   [name: string]: STRATEGIES;
 };
 
-export type StrategiesByTokenByChainType = {
-  [key: string]: TokenStrategyType;
+export type RiskProfileTokenStrategyType = {
+  [name: string]: TokenStrategyType;
+};
+
+export type StrategiesByRiskProfileByTokenByChainType = {
+  [key: string]: RiskProfileTokenStrategyType;
 };
 
 export type StrategyStepType = [string, string, boolean] & {
@@ -191,8 +195,12 @@ export type VaultDetailType = {
   totalValueLockedLimitUT: BigNumberish;
 };
 
-export type VaultType = {
+export type VaultRiskProfileType = {
   [name: string]: VaultDetailType[];
+};
+
+export type VaultType = {
+  [name: string]: VaultRiskProfileType;
 };
 
 export type MultiChainVaultsType = {

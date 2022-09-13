@@ -12,8 +12,8 @@
     "rpcUrls": []
   },
   "vaults": {
-    "opUSDCgrow": {
-      "opUSDCgrow_proxy": "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88",
+    "opUSDCearn": {
+      "opUSDCearn_proxy": "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88",
       "merkle_root_service": "https://lo8az9edjd.execute-api.us-east-1.amazonaws.com/yield/proof/0x1/0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88/:user_address",
       "root_hash": "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694",
       "addresses": [
@@ -11988,8 +11988,8 @@
         }
       ]
     },
-    "opWETHgrow": {
-      "opWETHgrow_proxy": "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8",
+    "opWETHearn": {
+      "opWETHearn_proxy": "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8",
       "merkle_root_service": "https://lo8az9edjd.execute-api.us-east-1.amazonaws.com/yield/proof/0x1/0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8/:user_address",
       "root_hash": "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694",
       "addresses": [
@@ -23964,8 +23964,8 @@
         }
       ]
     },
-    "opNEWOaggr": {
-      "opNEWOaggr_proxy": "0xF10aF2cf774B40bd4411fDF91d7C22003B46a130",
+    "opNEWOinvst": {
+      "opNEWOinvst_proxy": "0xF10aF2cf774B40bd4411fDF91d7C22003B46a130",
       "merkle_root_service": "https://lo8az9edjd.execute-api.us-east-1.amazonaws.com/yield/proof/0x1/0xF10aF2cf774B40bd4411fDF91d7C22003B46a130/:user_address",
       "root_hash": "0x800adf36e93f6ae878edc063a6053734453e35bbb5b9279c4cde50f5d3379c0f",
       "addresses": [
@@ -24035,8 +24035,8 @@
         }
       ]
     },
-    "opAAVEaggr": {
-      "opAAVEaggr_proxy": "0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19",
+    "opAAVEinvst": {
+      "opAAVEinvst_proxy": "0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19",
       "merkle_root_service": "",
       "root_hash": "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783",
       "addresses": [

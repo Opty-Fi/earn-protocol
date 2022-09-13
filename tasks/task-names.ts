@@ -63,9 +63,9 @@ export default {
     },
     SET_PENDING_GOVERNANCE: { NAME: "set-pending-governance", DESCRIPTION: "set pending governance" },
     ACCEPT_GOVERNANCE: { NAME: "accept-governance", DESCRIPTION: "accept governance" },
-    CHANGE_POLYGON_OPUSDCGROW_PROXY_V2_ADMIN: {
-      NAME: "change-polygon-opusdcgrow-proxy-v2-admin",
-      DESCRIPTION: "change polygon opUSDCgrow vault proxy v2 admin",
+    CHANGE_POLYGON_OPUSDCEARN_PROXY_V2_ADMIN: {
+      NAME: "change-polygon-opusdcearn-proxy-v2-admin",
+      DESCRIPTION: "change polygon opUSDCearn vault proxy v2 admin",
     },
     CHANGE_VAULT_PROXY_V2_ADMIN: { NAME: "change-vault-proxy-v2-admin", DESCRIPTION: "change vault proxy v2 admin" },
     SET_WHITELISTED_ACCOUNTS_ROOT: {

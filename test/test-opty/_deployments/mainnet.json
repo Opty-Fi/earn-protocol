@@ -14,11 +14,11 @@
   "RiskManager": "0xc6b82c47974b7ba338c1984cac4488a540313e16",
   "StrategyManager": "0x4106a6dce5e552a931684485e004687d6bb57f40",
   "APROracle": "0xffc22425d67ed8a72b95cbf46ec6167246df93f8",
-  "opUSDCgrow": {
+  "opUSDCsave": {
     "Vault": "0xfad37e3197e6331647030954512964cd2e55acaf",
     "VaultProxy": "0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88"
   },
-  "opWETHgrow": {
+  "opWETHsave": {
     "Vault": "0x72ce52a66713257b9805ffa0a0b14162d4b95b69",
     "VaultProxy": "0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8"
   }

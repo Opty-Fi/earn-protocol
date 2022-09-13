@@ -22,16 +22,16 @@ task(
   .addParam("strategyName", "the strategy name as adapter-with-strategies", "", types.string)
   .addParam("vaultSymbol", "vault symbol", "", types.string)
   .setAction(async ({ tokenSymbol, strategyName, vaultSymbol }, { ethers, deployments, getChainId }) => {
-    const safeOwner = await ethers.provider.getSigner(0);
-    const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
-    const vaultAddress = await (
+    const safeOwner = ethers.provider.getSigner(0);
+    const strategyProviderAddress = (await deployments.get("StrategyProvider")).address;
+    const vaultAddress = (
       await deployments.get(
-        (vaultSymbol === "opUSDCgrow" || vaultSymbol === "opWETHgrow") && (await getChainId()) == "1"
+        (vaultSymbol === "opUSDCearn" || vaultSymbol === "opWETHearn") && (await getChainId()) == "1"
           ? `${vaultSymbol}Proxy`
           : vaultSymbol,
       )
     ).address;
-    const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+    const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
 
     const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
     const safeAddress = await registryInstance.getStrategyOperator();
