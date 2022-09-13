@@ -122,7 +122,7 @@ export const buildForkConfig = (
 
 export const buildDeployConfig = (fork: eEVMNetwork): string[] | undefined => {
   if (fork) {
-    const deployFolders: string[] = [`deploy`, `deploy_${fork}`];
+    const deployFolders: string[] = [`deploy`, `deploy_phase2`];
     return deployFolders;
   }
 };

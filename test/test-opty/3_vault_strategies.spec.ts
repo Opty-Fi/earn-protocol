@@ -23,6 +23,7 @@ import {
   CurveSwapPoolAdapter__factory,
   CurveSwapETHGateway,
   CurveSwapETHGateway__factory,
+  IComptroller__factory,
 } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
@@ -30,6 +31,7 @@ import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils"
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { formatEther, formatUnits, getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "../../helpers/data";
+import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
@@ -97,7 +99,11 @@ describe("VaultV2", () => {
       this.tokens[token] = <ERC20>(
         await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork][token].address)
       );
-      const _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
+      let _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
+      const decimals = await this.tokens[token].decimals();
+      if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
+        _userDepositInDecimals = BigNumber.from("10").pow(decimals);
+      }
       const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
         new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()),
       );
@@ -143,49 +149,63 @@ describe("VaultV2", () => {
                 await this.registry.getLiquidityPoolToAdapter(lastPool),
               )
             );
-            if (fork == eEVMNetwork.mainnet) {
-              this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
-                await ethers.getContractAt(
-                  CurveSwapPoolAdapter__factory.abi,
-                  await (
-                    await deployments.get("CurveSwapPoolAdapter")
-                  ).address,
-                )
+            if (
+              (await this.registry.getLiquidityPoolToAdapter(lastPool)) ==
+              (await deployments.get("CompoundAdapter")).address
+            ) {
+              const comptrollerInstance = await ethers.getContractAt(
+                IComptroller__factory.abi,
+                "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B",
               );
-              this.curveSwapEthGateway = <CurveSwapETHGateway>(
-                await ethers.getContractAt(
-                  CurveSwapETHGateway__factory.abi,
-                  await this.curveSwapPoolAdapter.curveSwapETHGatewayContract(),
-                )
-              );
-              if (
-                strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV" ||
-                strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
-              ) {
-                DEBUG && console.log("\nLIDO strategy");
-                const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
-                if (!isConvertToStEth) {
-                  DEBUG && console.log("\nStrategyOperator setting convertToStEth");
-                  const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(true);
-                  await tx.wait(1);
-                } else {
-                  DEBUG && console.log("\nStrategyOperator already set convertToStEth");
-                }
-              } else if (
-                strategy === "weth-DEPOSIT-CurveSwapPool-steCRV" ||
-                strategy === "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
-              ) {
-                DEBUG && console.log("\n non-LIDO strategy");
-                const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
-                if (isConvertToStEth) {
-                  DEBUG && console.log("\nStrategyOperator un-setting convertToStEth");
-                  const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(false);
-                  await tx.wait(1);
-                } else {
-                  DEBUG && console.log("\nStrategyOperator already un-set convertToStEth");
-                }
+              const mintGuardianPaused = await comptrollerInstance.mintGuardianPaused(lastPool);
+              if (mintGuardianPaused == true) {
+                console.log("Skipping because Comptroller's mintGuardianPaused is true");
+                this.skip();
               }
             }
+            // if (fork == eEVMNetwork.mainnet) {
+            //   this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
+            //     await ethers.getContractAt(
+            //       CurveSwapPoolAdapter__factory.abi,
+            //       await (
+            //         await deployments.get("CurveSwapPoolAdapter")
+            //       ).address,
+            //     )
+            //   );
+            //   this.curveSwapEthGateway = <CurveSwapETHGateway>(
+            //     await ethers.getContractAt(
+            //       CurveSwapETHGateway__factory.abi,
+            //       await this.curveSwapPoolAdapter.curveSwapETHGatewayContract(),
+            //     )
+            //   );
+            //   if (
+            //     strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV" ||
+            //     strategy === "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+            //   ) {
+            //     DEBUG && console.log("\nLIDO strategy");
+            //     const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
+            //     if (!isConvertToStEth) {
+            //       DEBUG && console.log("\nStrategyOperator setting convertToStEth");
+            //       const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(true);
+            //       await tx.wait(1);
+            //     } else {
+            //       DEBUG && console.log("\nStrategyOperator already set convertToStEth");
+            //     }
+            //   } else if (
+            //     strategy === "weth-DEPOSIT-CurveSwapPool-steCRV" ||
+            //     strategy === "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+            //   ) {
+            //     DEBUG && console.log("\n non-LIDO strategy");
+            //     const isConvertToStEth = await this.curveSwapEthGateway.convertToStEth();
+            //     if (isConvertToStEth) {
+            //       DEBUG && console.log("\nStrategyOperator un-setting convertToStEth");
+            //       const tx = await this.curveSwapEthGateway.connect(strategyOperator).setConvertToStEth(false);
+            //       await tx.wait(1);
+            //     } else {
+            //       DEBUG && console.log("\nStrategyOperator already un-set convertToStEth");
+            //     }
+            //   }
+            // }
           });
           it(`(first) alice and bob should deposit into Vault successfully`, async function () {
             const signers = [this.signers.alice, this.signers.bob];
@@ -489,8 +509,12 @@ async function deposit(
   underlyingTokenInstance: ERC20,
   wethTokenInstance: ERC20 | undefined,
 ) {
-  const _userDepositInDecimals = await vaultInstance.minimumDepositValueUT();
+  let _userDepositInDecimals = await vaultInstance.minimumDepositValueUT();
   const underlyingTokenSymbol = await underlyingTokenInstance.symbol();
+  const decimals = await underlyingTokenInstance.decimals();
+  if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
+    _userDepositInDecimals = BigNumber.from("10").pow(decimals);
+  }
   const vaultTokenSymbol = await vaultInstance.symbol();
   if (DEBUG == true) {
     console.log("\n");
