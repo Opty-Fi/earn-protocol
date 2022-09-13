@@ -1831,367 +1831,375 @@ const mainnetStrategiesByToken = {
 };
 
 const kovanStrategiesByToken = {
-  USDC: {
-    "usdc-DEPOSIT-AaveV1-aUSDC": {
-      strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
-      token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-      strategy: [
-        {
-          contract: "0x506B0B2CF20FAA8f38a4E2B524EE43e1f4458Cc5",
-          outputToken: "0x02F626c6ccb6D2ebC071c068DC1f02Bf5693416a",
-          isBorrow: false,
-          outputTokenSymbol: "aUSDC",
-          adapterName: "AaveV1Adapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-    "usdc-DEPOSIT-AaveV2-aUSDC": {
-      strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
-      token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-      strategy: [
-        {
-          contract: "0x1E40B561EC587036f9789aF83236f057D1ed2A90",
-          outputToken: "0xe12AFeC5aa12Cf614678f9bFeeB98cA9Bb95b5B0",
-          isBorrow: false,
-          outputTokenSymbol: "aUSDC",
-          adapterName: "AaveV2Adapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 1,
+  Earn: {
+    USDC: {
+      "usdc-DEPOSIT-AaveV1-aUSDC": {
+        strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
+        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+        strategy: [
+          {
+            contract: "0x506B0B2CF20FAA8f38a4E2B524EE43e1f4458Cc5",
+            outputToken: "0x02F626c6ccb6D2ebC071c068DC1f02Bf5693416a",
+            isBorrow: false,
+            outputTokenSymbol: "aUSDC",
+            adapterName: "AaveV1Adapter",
+            protocol: "Aave",
+          },
+        ],
+        riskProfileCode: 1,
+      },
+      "usdc-DEPOSIT-AaveV2-aUSDC": {
+        strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
+        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
+        strategy: [
+          {
+            contract: "0x1E40B561EC587036f9789aF83236f057D1ed2A90",
+            outputToken: "0xe12AFeC5aa12Cf614678f9bFeeB98cA9Bb95b5B0",
+            isBorrow: false,
+            outputTokenSymbol: "aUSDC",
+            adapterName: "AaveV2Adapter",
+            protocol: "Aave",
+          },
+        ],
+        riskProfileCode: 1,
+      },
     },
   },
 };
 
 const polygonStrategiesbyToken = {
-  USDC: {
-    "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-CurveGauge-am3CRV-gauge": {
-      strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
-          outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
-          isBorrow: false,
-          outputTokenSymbol: "am3CRV",
-          adapterName: "CurveStableSwapAdapter",
-          protocol: "Curve",
-        },
-        {
-          contract: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
-          outputToken: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
-          isBorrow: false,
-          outputTokenSymbol: "am3CRV-gauge",
-          adapterName: "CurveGaugeAdapter",
-          protocol: "Curve",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
+  Earn: {
+    USDC: {
+      "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-CurveGauge-am3CRV-gauge": {
+        strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
+            outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
+            isBorrow: false,
+            outputTokenSymbol: "am3CRV",
+            adapterName: "CurveStableSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
+            outputToken: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
+            isBorrow: false,
+            outputTokenSymbol: "am3CRV-gauge",
+            adapterName: "CurveGaugeAdapter",
+            protocol: "Curve",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Aave-amUSDC": {
+        strategyName: "usdc-DEPOSIT-Aave-amUSDC",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
+            outputToken: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F",
+            isBorrow: false,
+            outputTokenSymbol: "amUSDC",
+            adapterName: "AaveAdapter",
+            protocol: "Aave",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDC Lending on Aave",
+        description:
+          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
+        strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
+            outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
+            isBorrow: false,
+            outputTokenSymbol: "am3CRV",
+            adapterName: "CurveStableSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
+            outputToken: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
+            isBorrow: false,
+            outputTokenSymbol: "mooCurveAm3CRV",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Sushiswap-USDC-USDT-SLP-DEPOSIT-Beefy-mooSushiUSDC-USDT": {
+        strategyName: "usdc-DEPOSIT-USDCUSDTSLP-DEPOSIT-Beefy-mooSushiUSDC-USDT",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
+            outputToken: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-USDT-SLP",
+            adapterName: "SushiswapPoolAdapter",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
+            outputToken: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
+            isBorrow: false,
+            outputTokenSymbol: "mooSushiUSDC-USDT",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI": {
+        strategyName: "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
+            outputToken: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-DAI-SLP",
+            adapterName: "SushiswapPoolAdapter",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
+            outputToken: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
+            isBorrow: false,
+            outputTokenSymbol: "mooSushiUSDC-DAI",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT": {
+        strategyName: "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x2cF7252e74036d1Da831d11089D326296e64a728",
+            outputToken: "0x2cF7252e74036d1Da831d11089D326296e64a728",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-USDT-QLP",
+            adapterName: "QuickSwapPoolAdapter",
+            protocol: "Quickswap",
+          },
+          {
+            contract: "0x4462817b53E76b722c2D174D0148ddb81452f1dE",
+            outputToken: "0x4462817b53E76b722c2D174D0148ddb81452f1dE",
+            isBorrow: false,
+            outputTokenSymbol: "mooQuickUSDC-USDT",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI": {
+        strategyName: "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
+            outputToken: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-DAI-QLP",
+            adapterName: "QuickSwapPoolAdapter",
+            protocol: "Quickswap",
+          },
+          {
+            contract: "0x0dFd8c4dd493d8f87Be362878E41537Ca7Ee4d9e",
+            outputToken: "0x0dFd8c4dd493d8f87Be362878E41537Ca7Ee4d9e",
+            isBorrow: false,
+            outputTokenSymbol: "mooquickUSDC-DAI",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooMaiUSDC-miMATIC": {
+        strategyName: "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooQuickUSDC-MAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x160532D2536175d65C03B97b0630A9802c274daD",
+            outputToken: "0x160532D2536175d65C03B97b0630A9802c274daD",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-MAI-QLP",
+            adapterName: "QuickSwapPoolAdapter",
+            protocol: "Quickswap",
+          },
+          {
+            contract: "0xebe0c8d842AA5A57D7BEf8e524dEabA676F91cD1",
+            outputToken: "0xebe0c8d842AA5A57D7BEf8e524dEabA676F91cD1",
+            isBorrow: false,
+            outputTokenSymbol: "mooMaiUSDC-miMATIC",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
+      "usdc-DEPOSIT-Apeswap-USDC-DAI-ALP-Beefy-mooApeUSDC-DAI": {
+        strategyName: "usdc-DEPOSIT-Apeswap-USDC-MAI-QLP-Beefy-mooApeUSDC-MAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
+            outputToken: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-DAI-ALP",
+            adapterName: "ApeSwapPoolAdapter",
+            protocol: "Apeswap",
+          },
+          {
+            contract: "0x8440DAe4E1002e83D57fbFD6d33E6F3684a35036",
+            outputToken: "0x8440DAe4E1002e83D57fbFD6d33E6F3684a35036",
+            isBorrow: false,
+            outputTokenSymbol: "mooApeSwapUSDC-DAI",
+            adapterName: "BeefyFinanceAdapter",
+            protocol: "Beefy",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
     },
-    "usdc-DEPOSIT-Aave-amUSDC": {
-      strategyName: "usdc-DEPOSIT-Aave-amUSDC",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
-          outputToken: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F",
-          isBorrow: false,
-          outputTokenSymbol: "amUSDC",
-          adapterName: "AaveAdapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 1,
-      name: "USDC Lending on Aave",
-      description:
-        "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault.",
-    },
-    "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV": {
-      strategyName: "usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
-          outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
-          isBorrow: false,
-          outputTokenSymbol: "am3CRV",
-          adapterName: "CurveStableSwapAdapter",
-          protocol: "Curve",
-        },
-        {
-          contract: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
-          outputToken: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
-          isBorrow: false,
-          outputTokenSymbol: "mooCurveAm3CRV",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-    "usdc-DEPOSIT-Sushiswap-USDC-USDT-SLP-DEPOSIT-Beefy-mooSushiUSDC-USDT": {
-      strategyName: "usdc-DEPOSIT-USDCUSDTSLP-DEPOSIT-Beefy-mooSushiUSDC-USDT",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
-          outputToken: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
-          isBorrow: false,
-          outputTokenSymbol: "USDC-USDT-SLP",
-          adapterName: "SushiswapPoolAdapter",
-          protocol: "Sushiswap",
-        },
-        {
-          contract: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
-          outputToken: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
-          isBorrow: false,
-          outputTokenSymbol: "mooSushiUSDC-USDT",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-    "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI": {
-      strategyName: "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
-          outputToken: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
-          isBorrow: false,
-          outputTokenSymbol: "USDC-DAI-SLP",
-          adapterName: "SushiswapPoolAdapter",
-          protocol: "Sushiswap",
-        },
-        {
-          contract: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
-          outputToken: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
-          isBorrow: false,
-          outputTokenSymbol: "mooSushiUSDC-DAI",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-    "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT": {
-      strategyName: "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x2cF7252e74036d1Da831d11089D326296e64a728",
-          outputToken: "0x2cF7252e74036d1Da831d11089D326296e64a728",
-          isBorrow: false,
-          outputTokenSymbol: "USDC-USDT-QLP",
-          adapterName: "QuickSwapPoolAdapter",
-          protocol: "Quickswap",
-        },
-        {
-          contract: "0x4462817b53E76b722c2D174D0148ddb81452f1dE",
-          outputToken: "0x4462817b53E76b722c2D174D0148ddb81452f1dE",
-          isBorrow: false,
-          outputTokenSymbol: "mooQuickUSDC-USDT",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-    "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI": {
-      strategyName: "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
-          outputToken: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
-          isBorrow: false,
-          outputTokenSymbol: "USDC-DAI-QLP",
-          adapterName: "QuickSwapPoolAdapter",
-          protocol: "Quickswap",
-        },
-        {
-          contract: "0x0dFd8c4dd493d8f87Be362878E41537Ca7Ee4d9e",
-          outputToken: "0x0dFd8c4dd493d8f87Be362878E41537Ca7Ee4d9e",
-          isBorrow: false,
-          outputTokenSymbol: "mooquickUSDC-DAI",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-    "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooMaiUSDC-miMATIC": {
-      strategyName: "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooQuickUSDC-MAI",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x160532D2536175d65C03B97b0630A9802c274daD",
-          outputToken: "0x160532D2536175d65C03B97b0630A9802c274daD",
-          isBorrow: false,
-          outputTokenSymbol: "USDC-MAI-QLP",
-          adapterName: "QuickSwapPoolAdapter",
-          protocol: "Quickswap",
-        },
-        {
-          contract: "0xebe0c8d842AA5A57D7BEf8e524dEabA676F91cD1",
-          outputToken: "0xebe0c8d842AA5A57D7BEf8e524dEabA676F91cD1",
-          isBorrow: false,
-          outputTokenSymbol: "mooMaiUSDC-miMATIC",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-    "usdc-DEPOSIT-Apeswap-USDC-DAI-ALP-Beefy-mooApeUSDC-DAI": {
-      strategyName: "usdc-DEPOSIT-Apeswap-USDC-MAI-QLP-Beefy-mooApeUSDC-MAI",
-      token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      strategy: [
-        {
-          contract: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
-          outputToken: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
-          isBorrow: false,
-          outputTokenSymbol: "USDC-DAI-ALP",
-          adapterName: "ApeSwapPoolAdapter",
-          protocol: "Apeswap",
-        },
-        {
-          contract: "0x8440DAe4E1002e83D57fbFD6d33E6F3684a35036",
-          outputToken: "0x8440DAe4E1002e83D57fbFD6d33E6F3684a35036",
-          isBorrow: false,
-          outputTokenSymbol: "mooApeSwapUSDC-DAI",
-          adapterName: "BeefyFinanceAdapter",
-          protocol: "Beefy",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
-    },
-  },
-  WMATIC: {
-    "wmatic-DEPOSIT-Aave-amWMATIC": {
-      strategyName: "wmatic-DEPOSIT-Aave-amWMATIC",
-      token: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
-      strategy: [
-        {
-          contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
-          outputToken: "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4",
-          isBorrow: false,
-          outputTokenSymbol: "amWMATIC",
-          adapterName: "AaveAdapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 1,
-      name: null,
-      description: null,
+    WMATIC: {
+      "wmatic-DEPOSIT-Aave-amWMATIC": {
+        strategyName: "wmatic-DEPOSIT-Aave-amWMATIC",
+        token: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+        strategy: [
+          {
+            contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
+            outputToken: "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4",
+            isBorrow: false,
+            outputTokenSymbol: "amWMATIC",
+            adapterName: "AaveAdapter",
+            protocol: "Aave",
+          },
+        ],
+        riskProfileCode: 1,
+        name: null,
+        description: null,
+      },
     },
   },
 };
 
 const mumbaiStrategiesbyToken = {
-  USDC: {
-    "usdc-DEPOSIT-Aave-amUSDC": {
-      strategyName: "",
-      token: "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e",
-      strategy: [
-        {
-          contract: "0xE6ef11C967898F9525D550014FDEdCFAB63536B5",
-          outputToken: "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9",
-          isBorrow: false,
-          outputTokenSymbol: "amUSDC",
-          adapterName: "AaveAdapter",
-          protocol: "Aave",
-        },
-      ],
-      riskProfileCode: 1,
+  Earn: {
+    USDC: {
+      "usdc-DEPOSIT-Aave-amUSDC": {
+        strategyName: "",
+        token: "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e",
+        strategy: [
+          {
+            contract: "0xE6ef11C967898F9525D550014FDEdCFAB63536B5",
+            outputToken: "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9",
+            isBorrow: false,
+            outputTokenSymbol: "amUSDC",
+            adapterName: "AaveAdapter",
+            protocol: "Aave",
+          },
+        ],
+        riskProfileCode: 1,
+      },
     },
   },
 };
 
 const avalancheStrategiesbyToken = {
-  USDC: {
-    "usdc-DEPOSIT-AaveV3-aAvaUSDC": {
-      strategyName: "",
-      token: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
-      strategy: [
-        {
-          contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
-          outputToken: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
-          isBorrow: false,
-          outputTokenSymbol: "aAvaUSDC",
-          adapterName: "AaveV3AvalancheAdapter",
-          protocol: "AaveV3",
-        },
-      ],
-      riskProfileCode: 1,
+  Earn: {
+    USDC: {
+      "usdc-DEPOSIT-AaveV3-aAvaUSDC": {
+        strategyName: "",
+        token: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+        strategy: [
+          {
+            contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
+            outputToken: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+            isBorrow: false,
+            outputTokenSymbol: "aAvaUSDC",
+            adapterName: "AaveV3AvalancheAdapter",
+            protocol: "AaveV3",
+          },
+        ],
+        riskProfileCode: 1,
+      },
     },
-  },
-  WAVAX: {
-    "wavax-DEPOSIT-AaveV2-avWAVAX": {
-      strategyName: "",
-      token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
-      strategy: [
-        {
-          contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
-          outputToken: "0xDFE521292EcE2A4f44242efBcD66Bc594CA9714B",
-          isBorrow: false,
-          outputTokenSymbol: "avWAVAX",
-          adapterName: "AaveV2AvalancheAdapter",
-          protocol: "AaveV2",
-        },
-      ],
-      riskProfileCode: 1,
+    WAVAX: {
+      "wavax-DEPOSIT-AaveV2-avWAVAX": {
+        strategyName: "",
+        token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+        strategy: [
+          {
+            contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
+            outputToken: "0xDFE521292EcE2A4f44242efBcD66Bc594CA9714B",
+            isBorrow: false,
+            outputTokenSymbol: "avWAVAX",
+            adapterName: "AaveV2AvalancheAdapter",
+            protocol: "AaveV2",
+          },
+        ],
+        riskProfileCode: 1,
+      },
+      "wavax-DEPOSIT-AaveV3-aAvaWAVAX": {
+        strategyName: "",
+        token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+        strategy: [
+          {
+            contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
+            outputToken: "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97",
+            isBorrow: false,
+            outputTokenSymbol: "aAvaWAVAX",
+            adapterName: "AaveV3AvalancheAdapter",
+            protocol: "AaveV3",
+          },
+        ],
+        riskProfileCode: 1,
+      },
     },
-    "wavax-DEPOSIT-AaveV3-aAvaWAVAX": {
-      strategyName: "",
-      token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
-      strategy: [
-        {
-          contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
-          outputToken: "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97",
-          isBorrow: false,
-          outputTokenSymbol: "aAvaWAVAX",
-          adapterName: "AaveV3AvalancheAdapter",
-          protocol: "AaveV3",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  },
-  USDCe: {
-    "usdce-DEPOSIT-AaveV2-avUSDC": {
-      strategyName: "",
-      token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
-      strategy: [
-        {
-          contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
-          outputToken: "0x46A51127C3ce23fb7AB1DE06226147F446e4a857",
-          isBorrow: false,
-          outputTokenSymbol: "avUSDC",
-          adapterName: "AaveV2AvalancheAdapter",
-          protocol: "AaveV2",
-        },
-      ],
-      riskProfileCode: 1,
+    USDCe: {
+      "usdce-DEPOSIT-AaveV2-avUSDC": {
+        strategyName: "",
+        token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
+        strategy: [
+          {
+            contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
+            outputToken: "0x46A51127C3ce23fb7AB1DE06226147F446e4a857",
+            isBorrow: false,
+            outputTokenSymbol: "avUSDC",
+            adapterName: "AaveV2AvalancheAdapter",
+            protocol: "AaveV2",
+          },
+        ],
+        riskProfileCode: 1,
+      },
     },
   },
 };

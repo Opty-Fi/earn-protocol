@@ -170,12 +170,12 @@ export type TokenStrategyType = {
   [name: string]: STRATEGIES;
 };
 
-export type RiskProfileTokenStrategyType = {
-  [name: string]: TokenStrategyType;
+export type StrategiesByTokenByChainType = {
+  [key: string]: TokenStrategyType;
 };
 
 export type StrategiesByRiskProfileByTokenByChainType = {
-  [key: string]: RiskProfileTokenStrategyType;
+  [key: string]: StrategiesByTokenByChainType;
 };
 
 export type StrategyStepType = [string, string, boolean] & {
