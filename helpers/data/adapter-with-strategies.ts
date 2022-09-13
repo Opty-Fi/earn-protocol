@@ -1473,354 +1473,354 @@ const mainnetStrategiesByToken = {
   //       "The OptyFi vault supplies YFI to the lending pool on Compound Protocol to earn interest in YFI and, potentially, additional rewards in COMP tokens. The earned YFI tokens and any harvested COMP rewards are reinvested into the vault.",
   //   },
   // },
-  // DAI: {
-  //   "dai-DEPOSIT-AaveV2-aDAI": {
-  //     strategyName: "dai-DEPOSIT-AaveV2-aDAI",
-  //     token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-  //     strategy: [
-  //       {
-  //         contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
-  //         outputToken: "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "aDAI",
-  //         adapterName: "AaveV2Adapter",
-  //         protocol: "AaveV2",
-  //       },
-  //     ],
-  //     riskProfileCode: 0,
-  //     name: "DAI Lending on AAVE",
-  //     description:
-  //       "The OptyFi vault supplies DAI to the lending pool on Aave Protocol to earn interest in DAI. The earned DAI tokens are reinvested into the vault",
-  //   },
-  //   "dai-DEPOSIT-Compound-cDAI": {
-  //     strategyName: "dai-DEPOSIT-Compound-cDAI",
-  //     token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-  //     strategy: [
-  //       {
-  //         contract: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-  //         outputToken: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cDAI",
-  //         adapterName: "CompoundAdapter",
-  //         protocol: "Compound",
-  //       },
-  //     ],
-  //     riskProfileCode: 0,
-  //     name: "DAI Lending on Compound",
-  //     description:
-  //       "The OptyFi vault supplies DAI to the lending pool on Compound Protocol to earn interest in DAI and, potentially, additional rewards in COMP tokens. The earned DAI tokens and any harvested COMP rewards are reinvested into the vault.",
-  //   },
-  // },
-  // USDT: {
-  //   "usdt-DEPOSIT-AaveV2-aUSDT": {
-  //     strategyName: "usdt-DEPOSIT-AaveV2-aUSDT",
-  //     token: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-  //     strategy: [
-  //       {
-  //         contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
-  //         outputToken: "0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "aUSDT",
-  //         adapterName: "AaveV2Adapter",
-  //         protocol: "AaveV2",
-  //       },
-  //     ],
-  //     riskProfileCode: 0,
-  //     name: "USDT Lending on AAVE",
-  //     description:
-  //       "The OptyFi vault supplies USDT to the lending pool on Aave Protocol to earn interest in USDT. The earned USDT tokens are reinvested into the vault",
-  //   },
-  //   "usdt-DEPOSIT-Compound-cUSDT": {
-  //     strategyName: "usdt-DEPOSIT-Compound-cUSDT",
-  //     token: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-  //     strategy: [
-  //       {
-  //         contract: "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
-  //         outputToken: "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cUSDT",
-  //         adapterName: "CompoundAdapter",
-  //         protocol: "Compound",
-  //       },
-  //     ],
-  //     riskProfileCode: 0,
-  //     name: "USDT Lending on Compound",
-  //     description:
-  //       "The OptyFi vault supplies USDT to the lending pool on Compound Protocol to earn interest in USDT and, potentially, additional rewards in COMP tokens. The earned USDT tokens and any harvested COMP rewards are reinvested into the vault.",
-  //   },
-  // },
-  // WBTC: {
-  //   "wbtc-DEPOSIT-AaveV2-aWBTC": {
-  //     strategyName: "wbtc-DEPOSIT-AaveV2-aWBTC",
-  //     token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-  //     strategy: [
-  //       {
-  //         contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
-  //         outputToken: "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "aWBTC",
-  //         adapterName: "AaveV2Adapter",
-  //         protocol: "AaveV2",
-  //       },
-  //     ],
-  //     riskProfileCode: 0,
-  //     name: "WBTC Lending on AAVE",
-  //     description:
-  //       "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol to earn interest in WBTC. The earned WBTC tokens are reinvested into the vault",
-  //   },
-  //   "wbtc-DEPOSIT-Compound-cWBTC": {
-  //     strategyName: "wbtc-DEPOSIT-Compound-cWBTC",
-  //     token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-  //     strategy: [
-  //       {
-  //         contract: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
-  //         outputToken: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cWBTC",
-  //         adapterName: "CompoundAdapter",
-  //         protocol: "Compound",
-  //       },
-  //     ],
-  //     riskProfileCode: 0,
-  //     name: "WBTC Lending on Compound",
-  //     description:
-  //       "The OptyFi vault supplies WBTC to the lending pool on Compound Protocol to earn interest in WBTC and, potentially, additional rewards in COMP tokens. The earned WBTC tokens and any harvested COMP rewards are reinvested into the vault.",
-  //   },
-  // },
-  // USD3: {
-  //   "3Crv-DEPOSIT-Convex-cvx3Crv": {
-  //     strategyName: "3Crv-DEPOSIT-Convex-cvx3Crv",
-  //     token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-  //     strategy: [
-  //       {
-  //         contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
-  //         outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cvx3Crv",
-  //         adapterName: "ConvexFinanceAdapter",
-  //         protocol: "Convex",
-  //       },
-  //     ],
-  //     riskProfileCode: 1,
-  //     name: "3CRV LP Staking on Convex",
-  //     description:
-  //       "The OptyFi vault stakes the 3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
-  //   },
-  //   "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
-  //     strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
-  //     token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-  //     strategy: [
-  //       {
-  //         contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-  //         outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "FRAX3CRV-f",
-  //         adapterName: "CurveMetapoolSwapAdapter",
-  //         protocol: "Curve",
-  //       },
-  //       {
-  //         contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-  //         outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cvxFRAX3CRV-f",
-  //         adapterName: "ConvexFinanceAdapter",
-  //         protocol: "Convex",
-  //       },
-  //     ],
-  //     riskProfileCode: 1,
-  //     name: "FRAX3CRV LP Staking on Convex",
-  //     description:
-  //       "The OptyFi vault supplies 3CRV to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
-  //   },
-  //   "3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
-  //     strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
-  //     token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-  //     strategy: [
-  //       {
-  //         contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-  //         outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "MIM-3LP3CRV-f",
-  //         adapterName: "CurveMetapoolSwapAdapter",
-  //         protocol: "Curve",
-  //       },
-  //       {
-  //         contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-  //         outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "cvxMIM-3LP3CRV-f",
-  //         adapterName: "ConvexFinanceAdapter",
-  //         protocol: "Convex",
-  //       },
-  //     ],
-  //     riskProfileCode: 1,
-  //     name: "MIM3CRV LP Staking on Convex",
-  //     description:
-  //       "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
-  //   },
-  //   "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV": {
-  //     strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV",
-  //     token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-  //     strategy: [
-  //       {
-  //         contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-  //         outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "FRAX3CRV-f",
-  //         adapterName: "CurveMetapoolSwapAdapter",
-  //         protocol: "Curve",
-  //       },
-  //     ],
-  //     riskProfileCode: 1,
-  //     name: "FRAX3CRV LP on Curve",
-  //     description:
-  //       "The OptyFi vault supplies 3CRV to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
-  //   },
-  //   "3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV": {
-  //     strategyName: "3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
-  //     token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-  //     strategy: [
-  //       {
-  //         contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-  //         outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-  //         isBorrow: false,
-  //         outputTokenSymbol: "MIM-3LP3CRV-f",
-  //         adapterName: "CurveMetapoolSwapAdapter",
-  //         protocol: "Curve",
-  //       },
-  //     ],
-  //     riskProfileCode: 1,
-  //     name: "MIM3CRV LP on Curve",
-  //     description:
-  //       "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
-  //   },
-  // },
-  WETH: {
-    "weth-DEPOSIT-AaveV2-aWETH": {
-      strategyName: "weth-DEPOSIT-AaveV2-aWETH",
-      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  DAI: {
+    "dai-DEPOSIT-AaveV2-aDAI": {
+      strategyName: "dai-DEPOSIT-AaveV2-aDAI",
+      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
       strategy: [
         {
           contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
-          outputToken: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+          outputToken: "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
           isBorrow: false,
-          outputTokenSymbol: "aWETH",
+          outputTokenSymbol: "aDAI",
           adapterName: "AaveV2Adapter",
           protocol: "AaveV2",
         },
       ],
-      riskProfileCode: 1,
-      name: "WETH Lending on Aave",
+      riskProfileCode: 0,
+      name: "DAI Lending on AAVE",
       description:
-        "The OptyFi vault supplies WETH to the lending pool on Aave Protocol to earn interest in WETH. The earned WETH tokens are reinvested into the vault.",
+        "The OptyFi vault supplies DAI to the lending pool on Aave Protocol to earn interest in DAI. The earned DAI tokens are reinvested into the vault",
     },
-    "weth-DEPOSIT-Compound-cETH": {
-      strategyName: "weth-DEPOSIT-Compound-cETH",
-      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "dai-DEPOSIT-Compound-cDAI": {
+      strategyName: "dai-DEPOSIT-Compound-cDAI",
+      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
       strategy: [
         {
-          contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
-          outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+          contract: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+          outputToken: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
           isBorrow: false,
-          outputTokenSymbol: "cETH",
+          outputTokenSymbol: "cDAI",
           adapterName: "CompoundAdapter",
           protocol: "Compound",
         },
       ],
-      riskProfileCode: 1,
-      name: "ETH Lending on Compound",
+      riskProfileCode: 0,
+      name: "DAI Lending on Compound",
       description:
-        "The OptyFi vault converts WETH to ETH and supplies ETH to the lending pool on Compound Protocol to earn interest in ETH and, potentially, additional rewards in COMP tokens. The earned COMP tokens are harvested to ETH and reinvested into the vault.",
-    },
-    "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV": {
-      strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV",
-      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-      strategy: [
-        {
-          contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
-          outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
-          isBorrow: false,
-          outputTokenSymbol: "eCRV",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-        {
-          contract: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
-          outputToken: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
-          isBorrow: false,
-          outputTokenSymbol: "cvxeCRV",
-          adapterName: "ConvexFinanceAdapter",
-          protocol: "Convex",
-        },
-      ],
-      riskProfileCode: 1,
-      name: "sETH LP Staking on Convex",
-      description:
-        "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
-    },
-    "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
-      strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
-      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-      strategy: [
-        {
-          contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-          outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
-          isBorrow: false,
-          outputTokenSymbol: "steCRV",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-        {
-          contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
-          outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
-          isBorrow: false,
-          outputTokenSymbol: "cvxsteCRV",
-          adapterName: "ConvexFinanceAdapter",
-          protocol: "Convex",
-        },
-      ],
-      riskProfileCode: 1,
-      name: "stETH LP Staking on Convex",
-      description:
-        "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
-    },
-    "weth-DEPOSIT-CurveSwapPool-eCRV": {
-      strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV",
-      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-      strategy: [
-        {
-          contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
-          outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
-          isBorrow: false,
-          outputTokenSymbol: "eCRV",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-      ],
-      riskProfileCode: 1,
-      name: "sETH LP Staking on Convex",
-      description:
-        "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
-    },
-    "weth-DEPOSIT-CurveSwapPool-steCRV": {
-      strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
-      token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-      strategy: [
-        {
-          contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
-          outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
-          isBorrow: false,
-          outputTokenSymbol: "steCRV",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-      ],
-      riskProfileCode: 1,
-      name: "stETH LP Staking on Curve",
-      description:
-        "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Curve Gauge to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+        "The OptyFi vault supplies DAI to the lending pool on Compound Protocol to earn interest in DAI and, potentially, additional rewards in COMP tokens. The earned DAI tokens and any harvested COMP rewards are reinvested into the vault.",
     },
   },
+  USDT: {
+    "usdt-DEPOSIT-AaveV2-aUSDT": {
+      strategyName: "usdt-DEPOSIT-AaveV2-aUSDT",
+      token: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      strategy: [
+        {
+          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          outputToken: "0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811",
+          isBorrow: false,
+          outputTokenSymbol: "aUSDT",
+          adapterName: "AaveV2Adapter",
+          protocol: "AaveV2",
+        },
+      ],
+      riskProfileCode: 0,
+      name: "USDT Lending on AAVE",
+      description:
+        "The OptyFi vault supplies USDT to the lending pool on Aave Protocol to earn interest in USDT. The earned USDT tokens are reinvested into the vault",
+    },
+    "usdt-DEPOSIT-Compound-cUSDT": {
+      strategyName: "usdt-DEPOSIT-Compound-cUSDT",
+      token: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      strategy: [
+        {
+          contract: "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+          outputToken: "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+          isBorrow: false,
+          outputTokenSymbol: "cUSDT",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+      riskProfileCode: 0,
+      name: "USDT Lending on Compound",
+      description:
+        "The OptyFi vault supplies USDT to the lending pool on Compound Protocol to earn interest in USDT and, potentially, additional rewards in COMP tokens. The earned USDT tokens and any harvested COMP rewards are reinvested into the vault.",
+    },
+  },
+  WBTC: {
+    "wbtc-DEPOSIT-AaveV2-aWBTC": {
+      strategyName: "wbtc-DEPOSIT-AaveV2-aWBTC",
+      token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+      strategy: [
+        {
+          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+          outputToken: "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
+          isBorrow: false,
+          outputTokenSymbol: "aWBTC",
+          adapterName: "AaveV2Adapter",
+          protocol: "AaveV2",
+        },
+      ],
+      riskProfileCode: 0,
+      name: "WBTC Lending on AAVE",
+      description:
+        "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol to earn interest in WBTC. The earned WBTC tokens are reinvested into the vault",
+    },
+    "wbtc-DEPOSIT-Compound-cWBTC": {
+      strategyName: "wbtc-DEPOSIT-Compound-cWBTC",
+      token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+      strategy: [
+        {
+          contract: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
+          outputToken: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
+          isBorrow: false,
+          outputTokenSymbol: "cWBTC",
+          adapterName: "CompoundAdapter",
+          protocol: "Compound",
+        },
+      ],
+      riskProfileCode: 0,
+      name: "WBTC Lending on Compound",
+      description:
+        "The OptyFi vault supplies WBTC to the lending pool on Compound Protocol to earn interest in WBTC and, potentially, additional rewards in COMP tokens. The earned WBTC tokens and any harvested COMP rewards are reinvested into the vault.",
+    },
+  },
+  USD3: {
+    "3Crv-DEPOSIT-Convex-cvx3Crv": {
+      strategyName: "3Crv-DEPOSIT-Convex-cvx3Crv",
+      token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+      strategy: [
+        {
+          contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+          outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+          isBorrow: false,
+          outputTokenSymbol: "cvx3Crv",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "3CRV LP Staking on Convex",
+      description:
+        "The OptyFi vault stakes the 3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
+    },
+    "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
+      strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
+      token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+      strategy: [
+        {
+          contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+          outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+          isBorrow: false,
+          outputTokenSymbol: "FRAX3CRV-f",
+          adapterName: "CurveMetapoolSwapAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+          outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+          isBorrow: false,
+          outputTokenSymbol: "cvxFRAX3CRV-f",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "FRAX3CRV LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies 3CRV to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
+    },
+    "3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
+      strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+      token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+      strategy: [
+        {
+          contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+          outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+          isBorrow: false,
+          outputTokenSymbol: "MIM-3LP3CRV-f",
+          adapterName: "CurveMetapoolSwapAdapter",
+          protocol: "Curve",
+        },
+        {
+          contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+          outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+          isBorrow: false,
+          outputTokenSymbol: "cvxMIM-3LP3CRV-f",
+          adapterName: "ConvexFinanceAdapter",
+          protocol: "Convex",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "MIM3CRV LP Staking on Convex",
+      description:
+        "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
+    },
+    "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV": {
+      strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV",
+      token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+      strategy: [
+        {
+          contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+          outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+          isBorrow: false,
+          outputTokenSymbol: "FRAX3CRV-f",
+          adapterName: "CurveMetapoolSwapAdapter",
+          protocol: "Curve",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "FRAX3CRV LP on Curve",
+      description:
+        "The OptyFi vault supplies 3CRV to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
+    },
+    "3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV": {
+      strategyName: "3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+      token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+      strategy: [
+        {
+          contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+          outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+          isBorrow: false,
+          outputTokenSymbol: "MIM-3LP3CRV-f",
+          adapterName: "CurveMetapoolSwapAdapter",
+          protocol: "Curve",
+        },
+      ],
+      riskProfileCode: 1,
+      name: "MIM3CRV LP on Curve",
+      description:
+        "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
+    },
+  },
+  // WETH: {
+  //   "weth-DEPOSIT-AaveV2-aWETH": {
+  //     strategyName: "weth-DEPOSIT-AaveV2-aWETH",
+  //     token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  //     strategy: [
+  //       {
+  //         contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+  //         outputToken: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "aWETH",
+  //         adapterName: "AaveV2Adapter",
+  //         protocol: "AaveV2",
+  //       },
+  //     ],
+  //     riskProfileCode: 1,
+  //     name: "WETH Lending on Aave",
+  //     description:
+  //       "The OptyFi vault supplies WETH to the lending pool on Aave Protocol to earn interest in WETH. The earned WETH tokens are reinvested into the vault.",
+  //   },
+  //   "weth-DEPOSIT-Compound-cETH": {
+  //     strategyName: "weth-DEPOSIT-Compound-cETH",
+  //     token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  //     strategy: [
+  //       {
+  //         contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+  //         outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "cETH",
+  //         adapterName: "CompoundAdapter",
+  //         protocol: "Compound",
+  //       },
+  //     ],
+  //     riskProfileCode: 1,
+  //     name: "ETH Lending on Compound",
+  //     description:
+  //       "The OptyFi vault converts WETH to ETH and supplies ETH to the lending pool on Compound Protocol to earn interest in ETH and, potentially, additional rewards in COMP tokens. The earned COMP tokens are harvested to ETH and reinvested into the vault.",
+  //   },
+  //   "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV": {
+  //     strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV",
+  //     token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  //     strategy: [
+  //       {
+  //         contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
+  //         outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "eCRV",
+  //         adapterName: "CurveSwapPoolAdapter",
+  //         protocol: "Curve",
+  //       },
+  //       {
+  //         contract: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
+  //         outputToken: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "cvxeCRV",
+  //         adapterName: "ConvexFinanceAdapter",
+  //         protocol: "Convex",
+  //       },
+  //     ],
+  //     riskProfileCode: 1,
+  //     name: "sETH LP Staking on Convex",
+  //     description:
+  //       "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+  //   },
+  //   "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
+  //     strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
+  //     token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  //     strategy: [
+  //       {
+  //         contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
+  //         outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "steCRV",
+  //         adapterName: "CurveSwapPoolAdapter",
+  //         protocol: "Curve",
+  //       },
+  //       {
+  //         contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+  //         outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "cvxsteCRV",
+  //         adapterName: "ConvexFinanceAdapter",
+  //         protocol: "Convex",
+  //       },
+  //     ],
+  //     riskProfileCode: 1,
+  //     name: "stETH LP Staking on Convex",
+  //     description:
+  //       "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+  //   },
+  //   "weth-DEPOSIT-CurveSwapPool-eCRV": {
+  //     strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV",
+  //     token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  //     strategy: [
+  //       {
+  //         contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
+  //         outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "eCRV",
+  //         adapterName: "CurveSwapPoolAdapter",
+  //         protocol: "Curve",
+  //       },
+  //     ],
+  //     riskProfileCode: 1,
+  //     name: "sETH LP Staking on Convex",
+  //     description:
+  //       "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+  //   },
+  //   "weth-DEPOSIT-CurveSwapPool-steCRV": {
+  //     strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
+  //     token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  //     strategy: [
+  //       {
+  //         contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
+  //         outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
+  //         isBorrow: false,
+  //         outputTokenSymbol: "steCRV",
+  //         adapterName: "CurveSwapPoolAdapter",
+  //         protocol: "Curve",
+  //       },
+  //     ],
+  //     riskProfileCode: 1,
+  //     name: "stETH LP Staking on Curve",
+  //     description:
+  //       "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Curve Gauge to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+  //   },
+  // },
 };
 
 const kovanStrategiesByToken = {
@@ -2451,66 +2451,66 @@ const mainnetVaults: VaultType = {
   //     totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 YFI TVL limit
   //   },
   // ],
-  // DAI: [
-  //   {
-  //     symbol: "opDAIsave",
-  //     name: "op Dai Stablecoin Save",
-  //     underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.address,
-  //     underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.hash,
-  //     vaultConfig: vaultConfigRP0,
-  //     userDepositCapUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("0"), // 0 DAI minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI TVL limit
-  //   },
-  // ],
-  // USDT: [
-  //   {
-  //     symbol: "opUSDTsave",
-  //     name: "op Tether USD Save",
-  //     underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.address,
-  //     underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.hash,
-  //     vaultConfig: vaultConfigRP0,
-  //     userDepositCapUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("0"), // 0 USDT minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT TVL limit
-  //   },
-  // ],
-  // WBTC: [
-  //   {
-  //     symbol: "opWBTCsave",
-  //     name: "op Wrapped BTC Save",
-  //     underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
-  //     underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
-  //     vaultConfig: vaultConfigRP0,
-  //     userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
-  //   },
-  // ],
-  // USD3: [
-  //   {
-  //     symbol: "op3Crvgrow",
-  //     name: "op Curve.fi DAI/USDC/USDT Growth",
-  //     underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
-  //     underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
-  //     vaultConfig: vaultConfigRP1,
-  //     userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV user deposit cap
-  //     minimumDepositValueUT: BigNumber.from("0"), // 0 3CRV minimum deposit
-  //     totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV TVL limit
-  //   },
-  // ],
-  WETH: [
+  DAI: [
     {
-      symbol: "opWETHgrow",
-      name: "op Wrapped Ether Growth",
-      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
-      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
-      vaultConfig: vaultConfigRP1,
-      userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
-      minimumDepositValueUT: BigNumber.from("0"), // 0 WETH minimum deposit
-      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
+      symbol: "opDAIsave",
+      name: "op Dai Stablecoin Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 DAI minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI TVL limit
     },
   ],
+  USDT: [
+    {
+      symbol: "opUSDTsave",
+      name: "op Tether USD Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 USDT minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT TVL limit
+    },
+  ],
+  WBTC: [
+    {
+      symbol: "opWBTCsave",
+      name: "op Wrapped BTC Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
+    },
+  ],
+  USD3: [
+    {
+      symbol: "op3Crvgrow",
+      name: "op Curve.fi DAI/USDC/USDT Growth",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 3CRV minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV TVL limit
+    },
+  ],
+  // WETH: [
+  //   {
+  //     symbol: "opWETHgrow",
+  //     name: "op Wrapped Ether Growth",
+  //     underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
+  //     underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
+  //     vaultConfig: vaultConfigRP1,
+  //     userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
+  //     minimumDepositValueUT: BigNumber.from("0"), // 0 WETH minimum deposit
+  //     totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
+  //   },
+  // ],
 };
 
 const kovanVaults: VaultType = {

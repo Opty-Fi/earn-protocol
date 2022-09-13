@@ -58,7 +58,7 @@ const getCommonNetworkConfig = (rpcUrl: string, networkName: eEVMNetwork, networ
   gasMultiplier: DEFAULT_GAS_MUL,
   gasPrice: NETWORKS_DEFAULT_GAS[networkName] || "auto",
   chainId: networkId,
-  deploy: [`deploy`, "deploy_phase2"],
+  deploy: [`deploy`, `deploy_${NETWORK_NAME}`],
   timeout: 100000,
   accounts: process.env.PK?.split(","),
 });

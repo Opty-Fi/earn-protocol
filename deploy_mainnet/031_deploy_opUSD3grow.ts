@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
+  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
-    console.log("only set WETH hash");
+  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
+    console.log("only set USD3 hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
-    console.log("approve WETH and set hash");
+  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
+    console.log("approve USD3 and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,14 +78,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opWETHgrow", {
+  const result = await deploy("op3Crvgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+    args: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Grow", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -96,7 +96,13 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, "Wrapped Ether", "WETH", "1"],
+          args: [
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
+            "Curve.fi DAI/USDC/USDT",
+            "3Crv",
+            "1",
+          ],
         },
       },
     },
@@ -105,25 +111,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opWETHgrow");
+      const vault = await deployments.get("op3Crvgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opWETHgrow",
+          name: "op3Crvgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Grow", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opWETHgrow",
+          name: "op3Crvgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Grow", "grow"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opWETHgrow"];
+func.tags = ["op3Crvgrow"];
 func.dependencies = ["Registry"];
