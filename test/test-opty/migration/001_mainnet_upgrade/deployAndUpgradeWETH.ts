@@ -1,21 +1,21 @@
 import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { RegistryProxy, opWETHsave as opWETHsaveObj } from "../../_deployments/mainnet.json";
+import { RegistryProxy, opWETHgrow as opWETHgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeWETH(): Promise<void> {
-  const opWETHsaveFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
-  const opWETHsave = await opWETHsaveFactory.deploy(RegistryProxy, "Wrapped Ether", "WETH", "Save", "save");
+  const opWETHgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
+  const opWETHgrow = await opWETHgrowFactory.deploy(RegistryProxy, "Wrapped Ether", "WETH", "Growth", "grow");
   const { getAddress } = ethers.utils;
-  const opWETHsaveAddress = opWETHsave.address;
+  const opWETHgrowAddress = opWETHgrow.address;
 
-  const opWETHsaveProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opWETHsaveObj.VaultProxy);
-  const proxyAdminAddress = await opWETHsaveProxyInstance.admin();
+  const opWETHgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opWETHgrowObj.VaultProxy);
+  const proxyAdminAddress = await opWETHgrowProxyInstance.admin();
   const proxyAdminSigner = await ethers.getSigner(proxyAdminAddress);
 
-  const implementationAddress = await opWETHsaveProxyInstance.implementation();
+  const implementationAddress = await opWETHgrowProxyInstance.implementation();
 
-  if (getAddress(implementationAddress) != getAddress(opWETHsaveAddress)) {
-    const tx1 = await opWETHsaveProxyInstance.connect(proxyAdminSigner).upgradeTo(opWETHsaveAddress);
+  if (getAddress(implementationAddress) != getAddress(opWETHgrowAddress)) {
+    const tx1 = await opWETHgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opWETHgrowAddress);
     await tx1.wait(1);
   }
 }

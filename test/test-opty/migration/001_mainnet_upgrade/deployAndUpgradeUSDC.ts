@@ -1,20 +1,20 @@
 import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { RegistryProxy, opUSDCsave as opUSDCsaveObj } from "../../_deployments/mainnet.json";
+import { RegistryProxy, opUSDCgrow as opUSDCgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeUSDC(): Promise<void> {
-  const opUSDCsaveFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
-  const opUSDCsave = await opUSDCsaveFactory.deploy(RegistryProxy, "USD Coin", "USDC", "Save", "save");
+  const opUSDCgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
+  const opUSDCgrow = await opUSDCgrowFactory.deploy(RegistryProxy, "USD Coin", "USDC", "Growth", "grow");
   const { getAddress } = ethers.utils;
-  const opUSDCsaveAddress = opUSDCsave.address;
+  const opUSDCgrowAddress = opUSDCgrow.address;
 
-  const opUSDCsaveProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCsaveObj.VaultProxy);
-  const proxyAdminAddress = await opUSDCsaveProxyInstance.admin();
+  const opUSDCgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCgrowObj.VaultProxy);
+  const proxyAdminAddress = await opUSDCgrowProxyInstance.admin();
   const proxyAdminSigner = await ethers.getSigner(proxyAdminAddress);
 
-  const implementationAddress = await opUSDCsaveProxyInstance.implementation();
-  if (getAddress(implementationAddress) != getAddress(opUSDCsaveAddress)) {
-    const tx1 = await opUSDCsaveProxyInstance.connect(proxyAdminSigner).upgradeTo(opUSDCsaveAddress);
+  const implementationAddress = await opUSDCgrowProxyInstance.implementation();
+  if (getAddress(implementationAddress) != getAddress(opUSDCgrowAddress)) {
+    const tx1 = await opUSDCgrowProxyInstance.connect(proxyAdminSigner).upgradeTo(opUSDCgrowAddress);
     await tx1.wait(1);
   }
 }

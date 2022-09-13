@@ -718,6 +718,32 @@ const mainnetStrategiesByToken = {
         description:
           "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Curve Gauge to earn additional rewards which are harvested to WETH and reinvested into the vault.",
       },
+      "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
+        strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
+            outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
+            isBorrow: false,
+            outputTokenSymbol: "steCRV",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+            outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+            isBorrow: false,
+            outputTokenSymbol: "cvxsteCRV",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "stETH LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+      },
     },
     USD3: {
       "3Crv-DEPOSIT-Convex-cvx3Crv": {
