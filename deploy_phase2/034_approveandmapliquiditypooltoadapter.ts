@@ -20,15 +20,15 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   // approve liquidity pools and map to adapter
   const poolsWithRatings: { [key: string]: { rate: number; adapter: string } } = {
     // "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7": { rate: 80, adapter: curveSwapPoolAdapter.address }, // curve Pool for DAI/USDC/USDT
-    // "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022": { rate: 80, adapter: curveSwapPoolAdapter.address }, // curve ETH/stETH StableSwap
-    "0x5a6A4D54456819380173272A5E8E9B9904BdF41B": { rate: 80, adapter: curveMetaPoolSwapAdapter.address }, // curve MIM Metapool
-    "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B": { rate: 80, adapter: curveMetaPoolSwapAdapter.address }, // curve swap pool for FRAX3CRV
-    // "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413": { rate: 90, adapter: aaveV2Adapter.address }, // aave v2 lending pool address provider
+    "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022": { rate: 80, adapter: curveSwapPoolAdapter.address }, // curve ETH/stETH StableSwap
+    // "0x5a6A4D54456819380173272A5E8E9B9904BdF41B": { rate: 80, adapter: curveMetaPoolSwapAdapter.address }, // curve MIM Metapool
+    // "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B": { rate: 80, adapter: curveMetaPoolSwapAdapter.address }, // curve swap pool for FRAX3CRV
+    "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413": { rate: 90, adapter: aaveV2Adapter.address }, // aave v2 lending pool address provider
     // "0x39AA39c021dfbaE8faC545936693aC917d5E7563": { rate: 90, adapter: compoundAdapter.address }, // compound usdc pool
-    // "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5": { rate: 90, adapter: compoundAdapter.address }, // compound eth pool
-    "0xabB54222c2b77158CC975a2b715a3d703c256F05": { rate: 80, adapter: convexFinanceAdapter.address }, // convex pool cvxMIM-3LP3CRV-f
-    "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA": { rate: 80, adapter: convexFinanceAdapter.address }, // convex pool for cvxFRAX3CRV-f
-    // "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0": { rate: 80, adapter: convexFinanceAdapter.address }, // convex pool for cvxsteCR:{rate:80, adapter:}
+    "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5": { rate: 90, adapter: compoundAdapter.address }, // compound eth pool
+    // "0xabB54222c2b77158CC975a2b715a3d703c256F05": { rate: 80, adapter: convexFinanceAdapter.address }, // convex pool cvxMIM-3LP3CRV-f
+    // "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA": { rate: 80, adapter: convexFinanceAdapter.address }, // convex pool for cvxFRAX3CRV-f
+    "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0": { rate: 80, adapter: convexFinanceAdapter.address }, // convex pool for cvxsteCR:{rate:80, adapter:}
     // "0x87650D7bbfC3A9F10587d7778206671719d9910D": { rate: 80, adapter: curveSwapPoolAdapter.address }, // ousd+3Crv curve pool
     // "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956": { rate: 80, adapter: curveSwapPoolAdapter.address }, // gusd3CRV curve pool
     // "0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604": { rate: 80, adapter: curveSwapPoolAdapter.address }, // husd3CRV curve pool
@@ -51,12 +51,12 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     // "0xD37969740d78C94C648d74671B8BE31eF43c30aB": { rate: 80, adapter: convexFinanceAdapter.address }, // cvxusdc3CRV
     // "0x70e36f6BF80a52b3B46b3aF8e106CC0ed743E8e4": { rate: 90, adapter: compoundAdapter.address }, // compound COMP pool
     // "0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946": { rate: 90, adapter: compoundAdapter.address }, // compound YFI pool
-    "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C": { rate: 80, adapter: convexFinanceAdapter.address }, //cvx3Crv
-    // "0xc5424B857f758E906013F3555Dad202e4bdB4567": { rate: 80, adapter: curveSwapPoolAdapter.address }, //eCRV
-    // "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxeCRV
+    // "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C": { rate: 80, adapter: convexFinanceAdapter.address }, //cvx3Crv
+    "0xc5424B857f758E906013F3555Dad202e4bdB4567": { rate: 80, adapter: curveSwapPoolAdapter.address }, //eCRV
+    "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98": { rate: 80, adapter: convexFinanceAdapter.address }, //cvxeCRV
     // "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643": { rate: 90, adapter: compoundAdapter.address }, // compound DAI pool
     // "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9": { rate: 90, adapter: compoundAdapter.address }, // compound USDT pool
-    // "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4": { rate: 90, adapter: compoundAdapter.address }, // compound USDT pool
+    // "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4": { rate: 90, adapter: compoundAdapter.address }, // compound WBTC pool
   };
 
   const onlyMapPoolsToAdapters = [];

@@ -78,14 +78,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opWETHearn", {
+  const result = await deploy("opWETHgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Earn", "earn"],
+    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opWETHearn");
+      const vault = await deployments.get("opWETHgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opWETHearn",
+          name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Earn", "earn"],
+          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opWETHearn",
+          name: "opWETHgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Earn", "earn"],
+          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Growth", "grow"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opWETHearn"];
+func.tags = ["opWETHgrow"];
 func.dependencies = ["Registry"];
