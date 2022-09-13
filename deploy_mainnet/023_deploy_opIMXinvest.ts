@@ -28,28 +28,29 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const aaveApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.address);
+  const imxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (aaveApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash)) {
-    console.log("only set AAVE hash");
+  if (imxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash)) {
+    console.log("only set IMX hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address],
     ]);
   }
-  if (!aaveApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash)) {
-    console.log("approve AAVE and set hash");
+  if (!imxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash)) {
+    console.log("approve IMX and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
@@ -64,6 +65,7 @@ const func: DeployFunction = async ({
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
@@ -76,24 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAAVEaggr", {
+  const result = await deploy("opIMXinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Immutable X", "IMX", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash, "Aave Token", "AAVE", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].IMX.hash, "Immutable X", "IMX", "2"],
         },
       },
     },
@@ -102,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAAVEaggr");
+      const vault = await deployments.get("opIMXinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAAVEaggr",
+          name: "opIMXinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Immutable X", "IMX", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opAAVEaggr",
+          name: "opIMXinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Aave Token", "AAVE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Immutable X", "IMX", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opAAVEaggr"];
+func.tags = ["opIMXinvest"];
 func.dependencies = ["Registry"];

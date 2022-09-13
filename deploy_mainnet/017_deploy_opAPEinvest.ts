@@ -78,21 +78,21 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAPEaggr", {
+  const result = await deploy("opAPEinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "ApeCoin", "APE", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAPEaggr");
+      const vault = await deployments.get("opAPEinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAPEaggr",
+          name: "opAPEinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opAPEaggr",
+          name: "opAPEinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ApeCoin", "APE", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opAPEaggr"];
+func.tags = ["opAPEinvest"];
 func.dependencies = ["Registry"];

@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const alcxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address);
+  const sushiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("only set ALCX hash");
+  if (sushiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash)) {
+    console.log("only set SUSHI hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.address],
     ]);
   }
-  if (!alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("approve ALCX and set hash");
+  if (!sushiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash)) {
+    console.log("approve SUSHI and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,25 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opALCXaggr", {
+  const result = await deploy("opSUSHIinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Alchemix", "ALCX", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "SushiToken", "SUSHI", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash, "Alchemix", "ALCX", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash, "SushiToken", "SUSHI", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opALCXaggr");
+      const vault = await deployments.get("opSUSHIinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opALCXaggr",
+          name: "opSUSHIinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "SushiToken", "SUSHI", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opALCXaggr",
+          name: "opSUSHIinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "SushiToken", "SUSHI", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opALCXaggr"];
+func.tags = ["opSUSHIinvest"];
 func.dependencies = ["Registry"];

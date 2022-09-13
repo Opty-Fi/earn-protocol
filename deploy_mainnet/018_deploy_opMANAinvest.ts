@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const ensApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.address);
+  const manaApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (ensApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash)) {
-    console.log("only set ENS hash");
+  if (manaApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash)) {
+    console.log("only set MANA hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address],
     ]);
   }
-  if (!ensApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash)) {
-    console.log("approve ENS and set hash");
+  if (!manaApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash)) {
+    console.log("approve MANA and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,25 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opENSaggr", {
+  const result = await deploy("opMANAinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Ethereum Name Service", "ENS", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Decentraland MANA", "MANA", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash, "Ethereum Name Service", "ENS", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash, "Decentraland MANA", "MANA", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opENSaggr");
+      const vault = await deployments.get("opMANAinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opENSaggr",
+          name: "opMANAinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Ethereum Name Service", "ENS", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opENSaggr",
+          name: "opMANAinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Ethereum Name Service", "ENS", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opENSaggr"];
+func.tags = ["opMANAinvest"];
 func.dependencies = ["Registry"];

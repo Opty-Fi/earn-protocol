@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.address);
+  const ensApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash)) {
-    console.log("only set YFI hash");
+  if (ensApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash)) {
+    console.log("only set ENS hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash)) {
-    console.log("approve YFI and set hash");
+  if (!ensApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash)) {
+    console.log("approve ENS and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,25 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opYFIaggr", {
+  const result = await deploy("opENSinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Ethereum Name Service", "ENS", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].YFI.hash, "yearn.finance", "YFI", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash, "Ethereum Name Service", "ENS", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opYFIaggr");
+      const vault = await deployments.get("opENSinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opYFIaggr",
+          name: "opENSinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Ethereum Name Service", "ENS", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opYFIaggr",
+          name: "opENSinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "yearn.finance", "YFI", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Ethereum Name Service", "ENS", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opYFIaggr"];
+func.tags = ["opENSaggr"];
 func.dependencies = ["Registry"];

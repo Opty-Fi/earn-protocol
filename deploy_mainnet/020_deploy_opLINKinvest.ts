@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const cvxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.address);
+  const linkApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (cvxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash)) {
-    console.log("only set CVX hash");
+  if (linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
+    console.log("only set LINK hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
     ]);
   }
-  if (!cvxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash)) {
-    console.log("approve CVX and set hash");
+  if (!linkApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash)) {
+    console.log("approve LINK and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,25 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opCVXaggr", {
+  const result = await deploy("opLINKinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Convex Token", "CVX", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "ChainLink Token", "LINK", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash, "Convex Token", "CVX", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].LINK.hash, "ChainLink Token", "LINK", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opCVXaggr");
+      const vault = await deployments.get("opLINKinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opCVXaggr",
+          name: "opLINKinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Convex Token", "CVX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opCVXaggr",
+          name: "opLINKinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Convex Token", "CVX", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "ChainLink Token", "LINK", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opCVXaggr"];
+func.tags = ["opLINKinvest"];
 func.dependencies = ["Registry"];

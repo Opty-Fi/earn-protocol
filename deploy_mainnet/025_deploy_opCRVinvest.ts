@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const manaApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address);
+  const crvApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (manaApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash)) {
-    console.log("only set MANA hash");
+  if (crvApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash)) {
+    console.log("only set CRV hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address],
     ]);
   }
-  if (!manaApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash)) {
-    console.log("approve MANA and set hash");
+  if (!crvApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash)) {
+    console.log("approve CRV and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,25 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opMANAaggr", {
+  const result = await deploy("opCRVinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Curve DAO Token", "CRV", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash, "Decentraland MANA", "MANA", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash, "Curve DAO Token", "CRV", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opMANAaggr");
+      const vault = await deployments.get("opCRVinvest");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opMANAaggr",
+          name: "opCRVinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Curve DAO Token", "CRV", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opMANAaggr",
+          name: "opCRVinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Curve DAO Token", "CRV", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opMANAaggr"];
+func.tags = ["opCRVinvest"];
 func.dependencies = ["Registry"];

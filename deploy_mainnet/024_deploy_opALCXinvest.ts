@@ -28,22 +28,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const crvApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address);
+  const alcxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (crvApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash)) {
-    console.log("only set CRV hash");
+  if (alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
+    console.log("only set ALCX hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
     ]);
   }
-  if (!crvApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash)) {
-    console.log("approve CRV and set hash");
+  if (!alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
+    console.log("approve ALCX and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -78,25 +78,25 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opCRVaggr", {
+  const result = await deploy("opALCXinvest", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Curve DAO Token", "CRV", "Aggressive", "aggr"],
+    args: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invest"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      implementationName: "opAAVEinvest_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash, "Curve DAO Token", "CRV", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash, "Alchemix", "ALCX", "2"],
         },
       },
     },
@@ -105,25 +105,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opCRVaggr");
+      const vault = await deployments.get("opALCXaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opCRVaggr",
+          name: "opALCXinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Curve DAO Token", "CRV", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invest"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opCRVaggr",
+          name: "opALCXinvest",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Curve DAO Token", "CRV", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invest"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opCRVaggr"];
+func.tags = ["opALCXinvest"];
 func.dependencies = ["Registry"];
