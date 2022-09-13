@@ -6,7 +6,7 @@ pragma solidity ^0.6.12;
 import { Vault } from "../../protocol/tokenization/Vault.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TestDepositProtection {
+contract TestEmergencyBrake {
     ERC20 tokenAddr;
     Vault vaultAddr;
 
@@ -52,7 +52,6 @@ contract TestDepositProtection {
         tokenAddr.approve(address(vaultAddr), (_userDepositUT + _userDepositUT));
         tokenAddr.transfer(address(vaultAddr), (_userDepositUT + _userDepositUT));
         vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs, _codeProofs);
-        vaultAddr.rebalance();
         vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs, _codeProofs);
     }
 
@@ -64,7 +63,6 @@ contract TestDepositProtection {
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
         vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
-        vaultAddr.rebalance();
         vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs, _codeProofs);
     }
 
@@ -77,10 +75,5 @@ contract TestDepositProtection {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
         vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
         vaultAddr.transfer(msg.sender, _userDepositUT);
-    }
-
-    function getBalance() external view returns (uint256) {
-        uint256 balance = vaultAddr.balanceUT();
-        return balance;
     }
 }
