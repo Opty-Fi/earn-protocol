@@ -28,9 +28,9 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.address);
+  const usdtApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.hash)) {
+  if (usdtApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.hash)) {
     console.log("only set USDT hash");
     console.log("\n");
     onlySetTokensHash.push([
@@ -38,7 +38,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.hash)) {
+  if (!usdtApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDT.hash)) {
     console.log("approve USDT and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([

@@ -28,9 +28,9 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.address);
+  const wbtcApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.hash)) {
+  if (wbtcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.hash)) {
     console.log("only set WBTC hash");
     console.log("\n");
     onlySetTokensHash.push([
@@ -38,7 +38,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.hash)) {
+  if (!wbtcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WBTC.hash)) {
     console.log("approve WBTC and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
