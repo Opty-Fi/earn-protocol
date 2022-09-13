@@ -71,7 +71,7 @@ describe("VaultV2", () => {
       this.vaults[token] = <Vault>(
         await ethers.getContractAt(
           Vault__factory.abi,
-          await (
+          (
             await deployments.get(MultiChainVaults[fork][token][0].symbol)
           ).address,
         )

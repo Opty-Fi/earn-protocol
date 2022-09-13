@@ -78,7 +78,7 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opUSD3earn", {
+  const result = await deploy("op3Crvgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -111,10 +111,10 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSD3earn");
+      const vault = await deployments.get("op3Crvgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSD3earn",
+          name: "op3Crvgrow",
           address: vault.address,
           constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
         });
@@ -122,7 +122,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSD3earn",
+          name: "op3Crvgrow",
           address: vault.address,
           constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
         });
@@ -131,5 +131,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["opUSD3earn"];
+func.tags = ["op3Crvgrow"];
 func.dependencies = ["Registry"];
