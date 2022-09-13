@@ -149,21 +149,21 @@ describe("VaultV2", () => {
                 await this.registry.getLiquidityPoolToAdapter(lastPool),
               )
             );
-            if (
-              (await this.registry.getLiquidityPoolToAdapter(lastPool)) ==
-              (await deployments.get("CompoundAdapter")).address
-            ) {
-              const comptrollerInstance = await ethers.getContractAt(
-                IComptroller__factory.abi,
-                "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B",
-              );
-              const mintGuardianPaused = await comptrollerInstance.mintGuardianPaused(lastPool);
-              if (mintGuardianPaused == true) {
-                console.log("Skipping because Comptroller's mintGuardianPaused is true");
-                this.skip();
-              }
-            }
             if (fork == eEVMNetwork.mainnet) {
+              if (
+                (await this.registry.getLiquidityPoolToAdapter(lastPool)) ==
+                (await deployments.get("CompoundAdapter")).address
+              ) {
+                const comptrollerInstance = await ethers.getContractAt(
+                  IComptroller__factory.abi,
+                  "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B",
+                );
+                const mintGuardianPaused = await comptrollerInstance.mintGuardianPaused(lastPool);
+                if (mintGuardianPaused == true) {
+                  console.log("Skipping because Comptroller's mintGuardianPaused is true");
+                  this.skip();
+                }
+              }
               this.curveSwapPoolAdapter = <CurveSwapPoolAdapter>(
                 await ethers.getContractAt(
                   CurveSwapPoolAdapter__factory.abi,
