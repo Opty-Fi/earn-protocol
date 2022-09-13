@@ -28,9 +28,9 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address);
+  const usd3Approved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
+  if (usd3Approved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
     console.log("only set USD3 hash");
     console.log("\n");
     onlySetTokensHash.push([
@@ -38,7 +38,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
+  if (!usd3Approved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
     console.log("approve USD3 and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
@@ -78,14 +78,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("op3Crvgrow", {
+  const result = await deploy("opUSD3earn", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Grow", "grow"],
+    args: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "USD3", "Earn", "earn"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -100,7 +100,7 @@ const func: DeployFunction = async ({
             registryProxyAddress,
             MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
             "Curve.fi DAI/USDC/USDT",
-            "3Crv",
+            "USD3",
             "1",
           ],
         },
@@ -116,7 +116,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "op3Crvgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Grow", "grow"],
+          constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -124,12 +124,12 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "op3Crvgrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Grow", "grow"],
+          constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["op3Crvgrow"];
+func.tags = ["opUSD3earn"];
 func.dependencies = ["Registry"];

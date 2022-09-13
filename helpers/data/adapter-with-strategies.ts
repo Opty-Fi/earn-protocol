@@ -2489,8 +2489,8 @@ const mainnetVaults: VaultType = {
   ],
   USD3: [
     {
-      symbol: "op3Crvgrow",
-      name: "op Curve.fi DAI/USDC/USDT Growth",
+      symbol: "opUSD3earn",
+      name: "op Curve.fi DAI/USDC/USDT Earn",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
       vaultConfig: vaultConfigRP1,

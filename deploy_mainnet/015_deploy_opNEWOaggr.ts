@@ -1,10 +1,10 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { BigNumber } from "ethers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { BigNumber } from "ethers";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
