@@ -28,9 +28,9 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.address);
+  const daiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.hash)) {
+  if (daiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.hash)) {
     console.log("only set DAI hash");
     console.log("\n");
     onlySetTokensHash.push([
@@ -38,7 +38,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.hash)) {
+  if (!daiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].DAI.hash)) {
     console.log("approve DAI and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([

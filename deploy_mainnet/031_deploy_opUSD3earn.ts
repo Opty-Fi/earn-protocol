@@ -28,9 +28,9 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const yfiApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address);
+  const usd3Approved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
+  if (usd3Approved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
     console.log("only set USD3 hash");
     console.log("\n");
     onlySetTokensHash.push([
@@ -38,7 +38,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address],
     ]);
   }
-  if (!yfiApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
+  if (!usd3Approved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
     console.log("approve USD3 and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
