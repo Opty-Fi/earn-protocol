@@ -182,7 +182,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash,
   );
   const currentBestStrategyHash = await opWAVAXearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps = StrategiesByTokenByChain[networkName].WAVAX[strategyName].strategy;
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"].WAVAX[strategyName].strategy;
   const expectedStrategyHash = await opWAVAXearnInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

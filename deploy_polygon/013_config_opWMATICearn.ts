@@ -183,7 +183,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     MULTI_CHAIN_VAULT_TOKENS[networkName].WMATIC.hash,
   );
   const currentBestStrategyHash = await opWMATICearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps = StrategiesByTokenByChain[networkName].WMATIC[strategyName].strategy;
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"].WMATIC[strategyName].strategy;
   const expectedStrategyHash = await opWMATICearnInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

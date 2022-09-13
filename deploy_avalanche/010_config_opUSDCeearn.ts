@@ -183,7 +183,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     MULTI_CHAIN_VAULT_TOKENS[networkName].USDCe.hash,
   );
   const currentBestStrategyHash = await opUSDCeearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps = StrategiesByTokenByChain[networkName].USDCe[strategyName].strategy;
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"].USDCe[strategyName].strategy;
   const expectedStrategyHash = await opUSDCeearnInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

@@ -44,7 +44,7 @@ const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 
 // ================================================================
 const mim =
-  StrategiesByTokenByChain[fork].USDC[
+  StrategiesByTokenByChain[fork]["Earn"].USDC[
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f"
   ].strategy;
 
@@ -62,8 +62,9 @@ const mimStrategyStepsContract = mim.map(strategy => ({
 // =================================================================
 
 const cvxsteCRV =
-  StrategiesByTokenByChain[fork].WETH["weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"]
-    .strategy;
+  StrategiesByTokenByChain[fork]["Earn"].WETH[
+    "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+  ].strategy;
 const convexSteCRVStrategySteps = cvxsteCRV.map(strategy => ({
   pool: strategy.contract,
   outputToken: strategy.outputToken,
@@ -78,7 +79,7 @@ const convexSteCRVStrategyStepsContract = cvxsteCRV.map(strategy => ({
 // =================================================================
 
 const cvxFRAX3CRV =
-  StrategiesByTokenByChain[fork].USDC[
+  StrategiesByTokenByChain[fork]["Earn"].USDC[
     "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f"
   ].strategy;
 const cvxFRAX3CRVStrategySteps = cvxFRAX3CRV.map(strategy => ({
@@ -92,8 +93,9 @@ const cvxFRAX3CRVStrategyStepsContract = cvxFRAX3CRV.map(strategy => ({
   isBorrow: false,
 }));
 const cvxusdn3Crv =
-  StrategiesByTokenByChain[fork].USDC["usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"]
-    .strategy;
+  StrategiesByTokenByChain[fork]["Earn"].USDC[
+    "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"
+  ].strategy;
 const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
   pool: strategy.contract,
   outputToken: strategy.outputToken,
@@ -525,7 +527,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
         true,
       );
       const convexFrax =
-        StrategiesByTokenByChain[fork].USDC[
+        StrategiesByTokenByChain[fork]["Earn"].USDC[
           "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f"
         ].strategy;
       const convexFraxStrategySteps = convexFrax.map(strategy => ({
