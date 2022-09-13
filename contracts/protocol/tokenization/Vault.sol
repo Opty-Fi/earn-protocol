@@ -260,7 +260,7 @@ contract Vault is
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
-        _registerDeposit();
+        _emergencyBrake(true);
         _permit(_permitParams);
         return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
@@ -661,7 +661,7 @@ contract Vault is
 
         // if vault does not have sufficient UT, we need to withdraw from strategy
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
-            _emergencyBrake();
+            _emergencyBrake(false);
 
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
@@ -880,19 +880,6 @@ contract Vault is
         _setTotalValueLockedLimitUT(_totalValueLockedLimitUT);
     }
 
-    /**
-     * @dev Internal function to count deposits in the current block
-     */
-    function _registerDeposit() internal {
-        blockToBlockVaultValues[block.number].push(
-            DataTypes.BlockVaultValue({
-                actualVaultValue: uint256(1),
-                blockMinVaultValue: uint256(0),
-                blockMaxVaultValue: uint256(0)
-            })
-        );
-    }
-
     //===Internal view functions===//
 
     /**
@@ -1073,8 +1060,19 @@ contract Vault is
 
     /**
      * @dev Private function to prevent same block deposit-withdrawal
+     * @param _deposit true if executed in deposit function
      */
-    function _emergencyBrake() private {
-        require(blockToBlockVaultValues[block.number][0].actualVaultValue == 0, Errors.DEPOSIT_PROTECTION);
+    function _emergencyBrake(bool _deposit) private {
+        if (_deposit) {
+            blockToBlockVaultValues[block.number].push(
+                DataTypes.BlockVaultValue({
+                    actualVaultValue: uint256(1),
+                    blockMinVaultValue: uint256(0),
+                    blockMaxVaultValue: uint256(0)
+                })
+            );
+        } else if (blockToBlockVaultValues[block.number].length > 0) {
+            require(blockToBlockVaultValues[block.number][0].actualVaultValue == 0, Errors.DEPOSIT_PROTECTION);
+        }
     }
 }
