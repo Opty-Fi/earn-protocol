@@ -21,7 +21,9 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
+  const strategyManager = await deployments.get("StrategyManager");
+  const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
@@ -86,6 +88,10 @@ const func: DeployFunction = async ({
       deployedBytecode: artifact.deployedBytecode,
     },
     args: [registryProxyAddress],
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
+    },
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
