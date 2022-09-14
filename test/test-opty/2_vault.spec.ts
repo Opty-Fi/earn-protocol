@@ -112,9 +112,9 @@ const testStrategy: {
 
 const strategyKeys = Object.keys(testStrategy[fork]);
 
-// ToDo deploy fresh contract may be through migration scripts
 describe("Vault", () => {
   before(async function () {
+    await deployments.fixture();
     this.testVaultArtifact = <Artifact>await artifacts.readArtifact("TestVault");
 
     this.signers = {} as Signers;
@@ -124,11 +124,11 @@ describe("Vault", () => {
     this.signers.alice = signers[3];
     this.signers.bob = signers[4];
     this.signers.eve = signers[10];
-    const REGISTRY_PROXY_ADDRESS = await (await deployments.get("RegistryProxy")).address;
-    const RISKMANAGER_PROXY_ADDRESS = await (await deployments.get("RiskManagerProxy")).address;
-    const STRATEGYPROVIDER_ADDRESS = await (await deployments.get("StrategyProvider")).address;
-    const OPUSDCEARN_VAULT_ADDRESS = await (await deployments.get("opUSDCearn")).address;
-    const OPWETHEARN_VAULT_ADDRESS = await (await deployments.get("opWETHearn")).address;
+    const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
+    const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
+    const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPWETHEARN_VAULT_ADDRESS = (await deployments.get("opWETHearn")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
