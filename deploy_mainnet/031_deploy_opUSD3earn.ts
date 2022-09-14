@@ -78,14 +78,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("op3Crvearn", {
+  const result = await deploy("opUSD3earn", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
+    args: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "USD3", "Earn", "earn"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -100,7 +100,7 @@ const func: DeployFunction = async ({
             registryProxyAddress,
             MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
             "Curve.fi DAI/USDC/USDT",
-            "3Crv",
+            "USD3",
             "1",
           ],
         },
@@ -111,10 +111,10 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("op3Crvearn");
+      const vault = await deployments.get("opUSD3earn");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "op3Crvearn",
+          name: "opUSD3earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
         });
@@ -122,7 +122,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "op3Crvearn",
+          name: "opUSD3earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress, "Curve.fi DAI/USDC/USDT", "3Crv", "Earn", "earn"],
         });
@@ -131,5 +131,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["op3Crvearn"];
+func.tags = ["opUSD3earn"];
 func.dependencies = ["Registry"];

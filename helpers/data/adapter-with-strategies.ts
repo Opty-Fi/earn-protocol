@@ -2313,378 +2313,340 @@ const vaultConfigRP2 = ethers.BigNumber.from(
 
 const mainnetVaults: VaultType = {
   Save: {
-    USDC: [
-      {
-        symbol: "opUSDCsave",
-        name: "op USD Coin Save",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
-        vaultConfig: vaultConfigRP0,
-        userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
-        minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
-      },
-    ],
-    WETH: [
-      {
-        symbol: "opWETHsave",
-        name: "op Wrapped Ether Save",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
-        vaultConfig: vaultConfigRP0,
-        userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
-        minimumDepositValueUT: BigNumber.from("0"), // 0 WETH minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
-      },
-    ],
-    DAI: [
-      {
-        symbol: "opDAIsave",
-        name: "op Dai Stablecoin Save",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.hash,
-        vaultConfig: vaultConfigRP0,
-        userDepositCapUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI user deposit cap
-        minimumDepositValueUT: BigNumber.from("0"), // 0 DAI minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI TVL limit
-      },
-    ],
-    USDT: [
-      {
-        symbol: "opUSDTsave",
-        name: "op Tether USD Save",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.hash,
-        vaultConfig: vaultConfigRP0,
-        userDepositCapUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT user deposit cap
-        minimumDepositValueUT: BigNumber.from("0"), // 0 USDT minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT TVL limit
-      },
-    ],
-    WBTC: [
-      {
-        symbol: "opWBTCsave",
-        name: "op Wrapped BTC Save",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
-        vaultConfig: vaultConfigRP0,
-        userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
-        minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
-      },
-    ],
+    USDC: {
+      symbol: "opUSDCsave",
+      name: "op USD Coin Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+    WETH: {
+      symbol: "opWETHsave",
+      name: "op Wrapped Ether Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 WETH minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
+    },
+    DAI: {
+      symbol: "opDAIsave",
+      name: "op Dai Stablecoin Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 DAI minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000000000000000"), // 1000000000000000000 DAI TVL limit
+    },
+
+    USDT: {
+      symbol: "opUSDTsave",
+      name: "op Tether USD Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 USDT minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("1000000000000000000000000"), // 1000000000000000000 USDT TVL limit
+    },
+
+    WBTC: {
+      symbol: "opWBTCsave",
+      name: "op Wrapped BTC Save",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
+      vaultConfig: vaultConfigRP0,
+      userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
+    },
   },
   Earn: {
-    USDC: [
-      {
-        symbol: "opUSDCearn",
-        name: "op USD Coin Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
-        minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
-      },
-    ],
-    WETH: [
-      {
-        symbol: "opWETHearn",
-        name: "op Wrapped Ether Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 WETH minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
-      },
-    ],
-    USD3: [
-      {
-        symbol: "op3Crvearn",
-        name: "op Curve.fi DAI/USDC/USDT Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV user deposit cap
-        minimumDepositValueUT: BigNumber.from("0"), // 0 3CRV minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV TVL limit
-      },
-    ],
-    WBTC: [
-      {
-        symbol: "opWBTCsave",
-        name: "op Wrapped BTC Save",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
-        minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
-      },
-    ],
+    USDC: {
+      symbol: "opUSDCearn",
+      name: "op USD Coin Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+
+    WETH: {
+      symbol: "opWETHearn",
+      name: "op Wrapped Ether Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 WETH minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
+    },
+
+    USD3: {
+      symbol: "opUSD3earn",
+      name: "op Curve.fi DAI/USDC/USDT Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 3CRV minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 3CRV TVL limit
+    },
+
+    WBTC: {
+      symbol: "opWBTCearn",
+      name: "op Wrapped BTC Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
+    },
   },
   Invest: {
-    NEWO: [
-      {
-        symbol: "opNEWOinvst",
-        name: "op New Order Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 NEWO wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("100000000000000000000000"), // 100,000 NEWO minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
-      },
-    ],
-    AAVE: [
-      {
-        symbol: "opAAVEinvst",
-        name: "op Aave Token Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
-      },
-    ],
-    APE: [
-      {
-        symbol: "opAPEinvst",
-        name: "op ApeCoin Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 APE wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 APE minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 APE TVL limit
-      },
-    ],
-    SUSHI: [
-      {
-        symbol: "opSUSHIinvst",
-        name: "op SushiToken Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 SUSHI wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 SUSHI minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 SUSHI TVL limit
-      },
-    ],
-    MANA: [
-      {
-        symbol: "opMANAinvst",
-        name: "op Decentraland MANA Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 MANA wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 MANA minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 MANA TVL limit
-      },
-    ],
-    LINK: [
-      {
-        symbol: "opLINKinvst",
-        name: "op ChainLink Token Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
-      },
-    ],
-    ENS: [
-      {
-        symbol: "opENSinvst",
-        name: "op Ethereum Name Service Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ENS wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ENS minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ENS TVL limit
-      },
-    ],
-    COMP: [
-      {
-        symbol: "opCOMPinvst",
-        name: "op Compound Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 COMP wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 COMP minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 COMP TVL limit
-      },
-    ],
-    IMX: [
-      {
-        symbol: "opIMXinvst",
-        name: "op Immutable X Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 IMX wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 IMX minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 IMX TVL limit
-      },
-    ],
-    ALCX: [
-      {
-        symbol: "opALCXinvst",
-        name: "op Alchemix Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ALCX wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ALCX minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ALCX TVL limit
-      },
-    ],
-    CRV: [
-      {
-        symbol: "opCRVinvst",
-        name: "op Curve DAO Token Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 CRV wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CRV minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 CRV TVL limit
-      },
-    ],
-    CVX: [
-      {
-        symbol: "opCVXinvst",
-        name: "op Convex Token Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 CVX wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CVX minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 CVX TVL limit
-      },
-    ],
-    YFI: [
-      {
-        symbol: "opYFIinvst",
-        name: "op yearn.finance Invest",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.hash,
-        vaultConfig: vaultConfigRP2,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 YFI wei user deposit cap
-        minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 YFI minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 YFI TVL limit
-      },
-    ],
+    NEWO: {
+      symbol: "opNEWOinvst",
+      name: "op New Order Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 NEWO wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("100000000000000000000000"), // 100,000 NEWO minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
+    },
+
+    AAVE: {
+      symbol: "opAAVEinvst",
+      name: "op Aave Token Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 AAVE wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
+    },
+
+    APE: {
+      symbol: "opAPEinvst",
+      name: "op ApeCoin Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 APE wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 APE minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 APE TVL limit
+    },
+
+    SUSHI: {
+      symbol: "opSUSHIinvst",
+      name: "op SushiToken Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 SUSHI wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 SUSHI minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 SUSHI TVL limit
+    },
+
+    MANA: {
+      symbol: "opMANAinvst",
+      name: "op Decentraland MANA Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 MANA wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 MANA minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 MANA TVL limit
+    },
+
+    LINK: {
+      symbol: "opLINKinvst",
+      name: "op ChainLink Token Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 LINK wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
+    },
+
+    ENS: {
+      symbol: "opENSinvst",
+      name: "op Ethereum Name Service Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ENS wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ENS minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ENS TVL limit
+    },
+
+    COMP: {
+      symbol: "opCOMPinvst",
+      name: "op Compound Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 COMP wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 COMP minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 COMP TVL limit
+    },
+
+    IMX: {
+      symbol: "opIMXinvst",
+      name: "op Immutable X Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 IMX wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 IMX minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 IMX TVL limit
+    },
+
+    ALCX: {
+      symbol: "opALCXinvst",
+      name: "op Alchemix Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 ALCX wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ALCX minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ALCX TVL limit
+    },
+
+    CRV: {
+      symbol: "opCRVinvst",
+      name: "op Curve DAO Token Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 CRV wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CRV minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 CRV TVL limit
+    },
+
+    CVX: {
+      symbol: "opCVXinvst",
+      name: "op Convex Token Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 CVX wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CVX minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 CVX TVL limit
+    },
+
+    YFI: {
+      symbol: "opYFIinvst",
+      name: "op yearn.finance Invest",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256), // 2^256 YFI wei user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000000000000"), // 1 YFI minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 YFI TVL limit
+    },
   },
 };
 
 const kovanVaults: VaultType = {
   Intermediate: {
-    USDC: [
-      {
-        symbol: "opAVUSDCint",
-        name: "op Aave USD Coin intermediate",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
-        minimumDepositValueUT: BigNumber.from("0"),
-        totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
-      },
-    ],
+    USDC: {
+      symbol: "opAVUSDCint",
+      name: "op Aave USD Coin intermediate",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
+      minimumDepositValueUT: BigNumber.from("0"),
+      totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
+    },
   },
 };
 
 const polygonVaults: VaultType = {
   Earn: {
-    USDC: [
-      {
-        symbol: "opUSDCearn",
-        name: "op USD Coin (PoS) Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
-        minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
-      },
-    ],
-    WMATIC: [
-      {
-        symbol: "opWMATICearn",
-        name: "op Wrapped Matic Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WMATIC user deposit cap
-        minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WMATIC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WMATIC TVL limit
-      },
-    ],
+    USDC: {
+      symbol: "opUSDCearn",
+      name: "op USD Coin (PoS) Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+
+    WMATIC: {
+      symbol: "opWMATICearn",
+      name: "op Wrapped Matic Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WMATIC user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WMATIC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WMATIC TVL limit
+    },
   },
 };
 
 const mumbaiVaults: VaultType = {
   Earn: {
-    USDC: [
-      {
-        symbol: "opUSDCearn",
-        name: "op USD Coin (PoS) Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
-        minimumDepositValueUT: BigNumber.from("0"),
-        totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
-      },
-    ],
+    USDC: {
+      symbol: "opUSDCearn",
+      name: "op USD Coin (PoS) Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
+      minimumDepositValueUT: BigNumber.from("0"),
+      totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
+    },
   },
 };
 
 const avalancheVaults: VaultType = {
   Earn: {
-    USDC: [
-      {
-        symbol: "opUSDCearn",
-        name: "op USD Coin Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
-        minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
-      },
-    ],
-    USDCe: [
-      {
-        symbol: "opUSDC.eearn",
-        name: "op USD Coin Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
-        minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDCe TVL limit
-      },
-    ],
-    WAVAX: [
-      {
-        symbol: "opWAVAXearn",
-        name: "op Wrapped AVAX Earn",
-        underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.address,
-        underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.hash,
-        vaultConfig: vaultConfigRP1,
-        userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WAVAX user deposit cap
-        minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WAVAX minimum deposit
-        totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WAVAX TVL limit
-      },
-    ],
+    USDC: {
+      symbol: "opUSDCearn",
+      name: "op USD Coin Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+
+    USDCe: {
+      symbol: "opUSDC.eearn",
+      name: "op USD Coin Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDCe TVL limit
+    },
+
+    WAVAX: {
+      symbol: "opWAVAXearn",
+      name: "op Wrapped AVAX Earn",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.hash,
+      vaultConfig: vaultConfigRP1,
+      userDepositCapUT: BigNumber.from("5000000000000000000"), // 5 WAVAX user deposit cap
+      minimumDepositValueUT: BigNumber.from("250000000000000000"), // 0.25 WAVAX minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WAVAX TVL limit
+    },
   },
 };
 

@@ -68,45 +68,46 @@ describe("VaultV2", () => {
     const financeOperatorAddress = await this.registry.getFinanceOperator();
     const financeOperator = await ethers.getSigner(financeOperatorAddress);
     for (const riskProfile of Object.keys(MultiChainVaults[fork])) {
+      this.vaults[riskProfile] = {};
       for (const token of Object.keys(MultiChainVaults[fork][riskProfile])) {
-        this.vaults[token] = <Vault>(
+        this.vaults[riskProfile][token] = <Vault>(
           await ethers.getContractAt(
             Vault__factory.abi,
             (
-              await deployments.get(MultiChainVaults[fork][riskProfile][token][0].symbol)
+              await deployments.get(MultiChainVaults[fork][riskProfile][token].symbol)
             ).address,
           )
         );
-        expect(await this.vaults[token].symbol()).to.eq(MultiChainVaults[fork][riskProfile][token][0].symbol);
-        expect(await this.vaults[token].name()).to.eq(MultiChainVaults[fork][riskProfile][token][0].name);
-        expect(getAddress(await this.vaults[token].underlyingToken())).to.eq(
-          getAddress(MultiChainVaults[fork][riskProfile][token][0].underlyingToken),
+        expect(await this.vaults[riskProfile][token].symbol()).to.eq(MultiChainVaults[fork][riskProfile][token].symbol);
+        expect(await this.vaults[riskProfile][token].name()).to.eq(MultiChainVaults[fork][riskProfile][token].name);
+        expect(getAddress(await this.vaults[riskProfile][token].underlyingToken())).to.eq(
+          getAddress(MultiChainVaults[fork][riskProfile][token].underlyingToken),
         );
-        expect(await this.vaults[token].underlyingTokensHash()).to.eq(
-          MultiChainVaults[fork][riskProfile][token][0].underlyingTokensHash,
+        expect(await this.vaults[riskProfile][token].underlyingTokensHash()).to.eq(
+          MultiChainVaults[fork][riskProfile][token].underlyingTokensHash,
         );
-        let tx = await this.vaults[token]
+        let tx = await this.vaults[riskProfile][token]
           .connect(governance)
-          .setVaultConfiguration(MultiChainVaults[fork][riskProfile][token][0].vaultConfig);
+          .setVaultConfiguration(MultiChainVaults[fork][riskProfile][token].vaultConfig);
         await tx.wait(1);
-        tx = await this.vaults[token]
+        tx = await this.vaults[riskProfile][token]
           .connect(financeOperator)
           .setValueControlParams(
-            MultiChainVaults[fork][riskProfile][token][0].userDepositCapUT,
-            MultiChainVaults[fork][riskProfile][token][0].minimumDepositValueUT,
-            MultiChainVaults[fork][riskProfile][token][0].totalValueLockedLimitUT,
+            MultiChainVaults[fork][riskProfile][token].userDepositCapUT,
+            MultiChainVaults[fork][riskProfile][token].minimumDepositValueUT,
+            MultiChainVaults[fork][riskProfile][token].totalValueLockedLimitUT,
           );
         await tx.wait(1);
         this.tokens[token] = <ERC20>(
           await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork][token].address)
         );
-        let _userDepositInDecimals = await this.vaults[token].minimumDepositValueUT();
+        let _userDepositInDecimals = await this.vaults[riskProfile][token].minimumDepositValueUT();
         const decimals = await this.tokens[token].decimals();
         if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
           _userDepositInDecimals = BigNumber.from("10").pow(decimals);
         }
         const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
-          new BN(to_10powNumber_BN(await this.vaults[token].decimals()).toString()),
+          new BN(to_10powNumber_BN(await this.vaults[riskProfile][token].decimals()).toString()),
         );
         await setTokenBalanceInStorage(
           this.tokens[token],
@@ -138,7 +139,7 @@ describe("VaultV2", () => {
             isBorrow: item.isBorrow,
           }));
 
-          describe(`${strategy}`, () => {
+          describe(`${riskProfile}-${token}-${strategy}`, () => {
             before(async function () {
               const strategyOperatorAddress = await this.registry.getStrategyOperator();
               const strategyOperator = await ethers.getSigner(strategyOperatorAddress);
@@ -210,24 +211,24 @@ describe("VaultV2", () => {
                 }
               }
             });
-            it(`(first) alice and bob should deposit into Vault successfully`, async function () {
+            it(`${riskProfile}-${token}-${strategy}-(first) alice and bob should deposit into Vault successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
-                await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+                await deposit(signers, this.vaults[riskProfile][token], this.tokens[token], this.tokens["WETH"]);
               } else {
-                await deposit(signers, this.vaults[token], this.tokens[token], undefined);
+                await deposit(signers, this.vaults[riskProfile][token], this.tokens[token], undefined);
               }
             });
-            it("should receive new strategy after rebalancing", async function () {
+            it(`${riskProfile}-${token}-${strategy}-should receive new strategy after rebalancing`, async function () {
               const underlyingTokenSymbol = await this.tokens[token].symbol();
-              const vaultTokenSymbol = await this.vaults[token].symbol();
+              const vaultTokenSymbol = await this.vaults[riskProfile][token].symbol();
               if (DEBUG == true) {
                 console.log("\n");
                 console.log("Before rebalance ");
                 console.log(
                   `${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.tokens[token].balanceOf(this.vaults[token].address),
+                    await this.tokens[token].balanceOf(this.vaults[riskProfile][token].address),
                     await this.tokens[token].decimals(),
                   ),
                 );
@@ -235,7 +236,7 @@ describe("VaultV2", () => {
                   console.log(
                     "WETH balance ",
                     formatUnits(
-                      await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                      await this.tokens["WETH"].balanceOf(this.vaults[riskProfile][token].address),
                       await this.tokens["WETH"].decimals(),
                     ),
                   );
@@ -257,32 +258,33 @@ describe("VaultV2", () => {
                 console.log(
                   `Alice ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.alice.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.alice.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 console.log(
                   `Bob ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.bob.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.bob.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
-                console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+                console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
               }
-              const tx = await this.vaults[token].rebalance();
+
+              const tx = await this.vaults[riskProfile][token].rebalance();
               await tx.wait(1);
-              expect(await this.vaults[token].getInvestStrategySteps()).to.deep.eq(
+              expect(await this.vaults[riskProfile][token].getInvestStrategySteps()).to.deep.eq(
                 steps.map(item => Object.values(item)),
               );
-              expect(await this.vaults[token].investStrategyHash()).to.eq(strategyHash);
+              expect(await this.vaults[riskProfile][token].investStrategyHash()).to.eq(strategyHash);
               if (DEBUG == true) {
                 console.log("\n");
                 console.log("After rebalance ");
                 console.log(
                   `${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.tokens[token].balanceOf(this.vaults[token].address),
+                    await this.tokens[token].balanceOf(this.vaults[riskProfile][token].address),
                     await this.tokens[token].decimals(),
                   ),
                 );
@@ -290,7 +292,7 @@ describe("VaultV2", () => {
                   console.log(
                     "WETH balance ",
                     formatUnits(
-                      await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                      await this.tokens["WETH"].balanceOf(this.vaults[riskProfile][token].address),
                       await this.tokens["WETH"].decimals(),
                     ),
                   );
@@ -312,26 +314,26 @@ describe("VaultV2", () => {
                 console.log(
                   `Alice ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.alice.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.alice.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 console.log(
                   `Bob ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.bob.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.bob.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
-                console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+                console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
               }
             });
-            it(`(first) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
+            it(`${riskProfile}-${token}-${strategy}-(first) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
                 await withdraw(
                   signers,
-                  this.vaults[token],
+                  this.vaults[riskProfile][token],
                   this.tokens[token],
                   steps as StrategyStepType[],
                   this.registry,
@@ -340,7 +342,7 @@ describe("VaultV2", () => {
               } else {
                 await withdraw(
                   signers,
-                  this.vaults[token],
+                  this.vaults[riskProfile][token],
                   this.tokens[token],
                   steps as StrategyStepType[],
                   this.registry,
@@ -348,22 +350,22 @@ describe("VaultV2", () => {
                 );
               }
             });
-            it(`(second) alice and bob should deposit into Vault successfully`, async function () {
+            it(`${riskProfile}-${token}-${strategy}-(second) alice and bob should deposit into Vault successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
-                await deposit(signers, this.vaults[token], this.tokens[token], this.tokens["WETH"]);
+                await deposit(signers, this.vaults[riskProfile][token], this.tokens[token], this.tokens["WETH"]);
               } else {
-                await deposit(signers, this.vaults[token], this.tokens[token], undefined);
+                await deposit(signers, this.vaults[riskProfile][token], this.tokens[token], undefined);
               }
             });
-            it(`vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
+            it(`${riskProfile}-${token}-${strategy}-vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
               const underlyingTokenSymbol = await this.tokens[token].symbol();
-              const vaultTokenSymbol = await this.vaults[token].symbol();
-              const vaultBalanceBefore = await this.vaults[token].balanceUT();
+              const vaultTokenSymbol = await this.vaults[riskProfile][token].symbol();
+              const vaultBalanceBefore = await this.vaults[riskProfile][token].balanceUT();
               const poolBalanceBefore = await getLastStrategyStepBalanceLP(
                 steps as StrategyStepType[],
                 this.registry,
-                this.vaults[token],
+                this.vaults[riskProfile][token],
                 this.tokens[token],
               );
               if (DEBUG == true) {
@@ -373,15 +375,15 @@ describe("VaultV2", () => {
                 console.log(
                   `${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.vaults[token].address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.vaults[riskProfile][token].address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 if (fork == eEVMNetwork.mainnet) {
                   console.log(
                     "WETH balance ",
                     formatUnits(
-                      await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                      await this.tokens["WETH"].balanceOf(this.vaults[riskProfile][token].address),
                       await this.tokens["WETH"].decimals(),
                     ),
                   );
@@ -389,40 +391,42 @@ describe("VaultV2", () => {
                 console.log(
                   `Alice ${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.alice.address),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.alice.address),
                     await this.tokens[token].decimals(),
                   ),
                 );
                 console.log(
                   `Bob ${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.bob.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.bob.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 console.log(
                   `Alice ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.alice.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.alice.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 console.log(
                   `Bob ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.bob.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.bob.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
-                console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+                console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
               }
-              const tx = await this.vaults[token].connect(this.signers.financeOperator).vaultDepositAllToStrategy();
+              const tx = await this.vaults[riskProfile][token]
+                .connect(this.signers.financeOperator)
+                .vaultDepositAllToStrategy();
               await tx.wait(1);
-              const vaultBalanceAfter = await this.vaults[token].balanceUT();
+              const vaultBalanceAfter = await this.vaults[riskProfile][token].balanceUT();
               const poolBalanceAfter = await getLastStrategyStepBalanceLP(
                 steps as StrategyStepType[],
                 this.registry,
-                this.vaults[token],
+                this.vaults[riskProfile][token],
                 this.tokens[token],
               );
               expect(vaultBalanceBefore).gt(vaultBalanceAfter);
@@ -434,15 +438,15 @@ describe("VaultV2", () => {
                 console.log(
                   `${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.vaults[token].address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.vaults[riskProfile][token].address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 fork == eEVMNetwork.mainnet &&
                   console.log(
                     "WETH balance ",
                     formatUnits(
-                      await this.tokens["WETH"].balanceOf(this.vaults[token].address),
+                      await this.tokens["WETH"].balanceOf(this.vaults[riskProfile][token].address),
                       await this.tokens["WETH"].decimals(),
                     ),
                   );
@@ -450,40 +454,40 @@ describe("VaultV2", () => {
                 console.log(
                   `Alice ${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.alice.address),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.alice.address),
                     await this.tokens[token].decimals(),
                   ),
                 );
                 console.log(
                   `Bob ${underlyingTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.bob.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.bob.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 console.log(
                   `Alice ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.alice.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.alice.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
                 console.log(
                   `Bob ${vaultTokenSymbol} balance `,
                   formatUnits(
-                    await this.vaults[token].balanceOf(this.signers.bob.address),
-                    await this.vaults[token].decimals(),
+                    await this.vaults[riskProfile][token].balanceOf(this.signers.bob.address),
+                    await this.vaults[riskProfile][token].decimals(),
                   ),
                 );
-                console.log("PPS ", formatUnits(await this.vaults[token].getPricePerFullShare(), 18));
+                console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
               }
             });
-            it(`(second) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
+            it(`${riskProfile}-${token}-${strategy}-(second) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
                 await withdraw(
                   signers,
-                  this.vaults[token],
+                  this.vaults[riskProfile][token],
                   this.tokens[token],
                   steps as StrategyStepType[],
                   this.registry,
@@ -492,7 +496,7 @@ describe("VaultV2", () => {
               } else {
                 await withdraw(
                   signers,
-                  this.vaults[token],
+                  this.vaults[riskProfile][token],
                   this.tokens[token],
                   steps as StrategyStepType[],
                   this.registry,

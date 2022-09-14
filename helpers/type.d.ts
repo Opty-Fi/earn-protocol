@@ -196,7 +196,7 @@ export type VaultDetailType = {
 };
 
 export type VaultRiskProfileType = {
-  [name: string]: VaultDetailType[];
+  [name: string]: VaultDetailType;
 };
 
 export type VaultType = {
