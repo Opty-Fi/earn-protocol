@@ -15,12 +15,12 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
@@ -77,7 +77,7 @@ const func: DeployFunction = async ({
   }
 
   const networkName = network.name;
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("opWETHearn", {
     from: deployer,
     contract: {
@@ -91,11 +91,8 @@ const func: DeployFunction = async ({
     proxy: {
       owner: admin,
       upgradeIndex: 0,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEinvst_Implementation",
       execute: {
         init: {
           methodName: "initialize",
@@ -103,6 +100,8 @@ const func: DeployFunction = async ({
         },
       },
     },
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
