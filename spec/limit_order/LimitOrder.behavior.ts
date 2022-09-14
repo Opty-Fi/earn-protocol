@@ -15,5 +15,5 @@ export function describeBehaviorOfLimitOrder(
 ) {
   describeBehaviorOfLimitOrderActions(deploy, deploySwapper, skips),
     describeBehaviorOfLimitOrderSettings(deploy, skips),
-    describeBehaviorOfLimitOrderView(deploy, skips);
+    describeBehaviorOfLimitOrderView(deploy, deploySwapper, skips);
 }
