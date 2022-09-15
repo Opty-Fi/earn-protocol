@@ -101,6 +101,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
         order.stablecoinVault = _stablecoinVault;
         order.maker = payable(msg.sender);
         order.taskId = _taskId;
+        order.dexRouter = _orderParams.dexRouter;
+        order.swapOnUniV3 = _orderParams.swapOnUniV3;
+        if (order.swapOnUniV3) {
+            order.uniV3Path = _orderParams.uniV3Path;
+        } else {
+            order.uniV2Path = _orderParams.uniV2Path;
+        }
 
         _l.userVaultOrder[msg.sender][_vault] = order;
         _l.userVaultOrderActive[msg.sender][_vault] = true;
@@ -158,6 +165,19 @@ contract LimitOrderInternal is ILimitOrderInternal {
         }
         if (_orderParams.returnLimitBP != order.returnLimitBP) {
             order.returnLimitBP = _orderParams.returnLimitBP;
+        }
+        if (_orderParams.swapOnUniV3 != order.swapOnUniV3) {
+            order.swapOnUniV3 = _orderParams.swapOnUniV3;
+        }
+
+        if (_orderParams.swapOnUniV3) {
+            if (_orderParams.uniV3Path.length != 0) {
+                order.uniV3Path = _orderParams.uniV3Path;
+            }
+        } else {
+            if (_orderParams.uniV2Path.length != 0) {
+                order.uniV2Path = _orderParams.uniV2Path;
+            }
         }
 
         _l.userVaultOrder[sender][order.vault] = order;
@@ -434,18 +454,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice sets the address of the DEX for swapping tokens
-     * @param _l the layout of the limit order contract
-     * @param _exchangeRouterAddress the address of DEX
-     */
-    function _setExchangeRouter(
-        LimitOrderStorage.Layout storage _l,
-        address _exchangeRouterAddress
-    ) internal {
-        _l.exchangeRouter = _exchangeRouterAddress;
-    }
-
-    /**
      * @notice whitelists a new vault
      * @param _l the LimitOrderStorage Layout struct
      * @param _vault the address of the opVault
@@ -465,21 +473,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         internal
     {
         _l.stableVaults[_vault] = false;
-    }
-
-    /**
-     * @notice sets the optimal swap path for tokenIn and tokenOut
-     * @param _tokenIn address of token to be swapped
-     * @param _tokenOut address of token to be swapped out
-     * @param _path the optimal path encoded along with swap fee
-     */
-    function _setSwapPath(
-        LimitOrderStorage.Layout storage _l,
-        address _tokenIn,
-        address _tokenOut,
-        bytes memory _path
-    ) internal {
-        _l.swapPaths[_tokenIn][_tokenOut] = _path;
     }
 
     /**
@@ -694,19 +687,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice returns address of the DEX
-     * @param _l the layout of the limit order contract
-     * @return exchangeRouter address
-     */
-    function _exchangeRouter(LimitOrderStorage.Layout storage _l)
-        internal
-        view
-        returns (address exchangeRouter)
-    {
-        exchangeRouter = _l.exchangeRouter;
-    }
-
-    /**
      * @notice returns the block timestamp
      * @return uint256 current block timestamp
      */
@@ -724,19 +704,6 @@ contract LimitOrderInternal is ILimitOrderInternal {
         address _vault
     ) internal view virtual returns (bool) {
         return _l.stableVaults[_vault];
-    }
-
-    /**
-     * @notice returns path encoded with fees
-     * @param _tokenIn address of swap-in token
-     * @param _tokenOut address of swap-out token
-     */
-    function _swapPath(
-        LimitOrderStorage.Layout storage _l,
-        address _tokenIn,
-        address _tokenOut
-    ) internal view returns (bytes memory) {
-        return _l.swapPaths[_tokenIn][_tokenOut];
     }
 
     /**

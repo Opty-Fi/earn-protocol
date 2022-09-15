@@ -84,12 +84,6 @@ interface ILimitOrderView {
     function ops() external view returns (address ops);
 
     /**
-     * @notice returns address of the DEX
-     * @return exchangeRouter address
-     */
-    function exchangeRouter() external view returns (address exchangeRouter);
-
-    /**
      * @notice resolver function for automation relayer
      * @param _maker address of limit order creator
      * @param _vault address of the vault
@@ -106,14 +100,4 @@ interface ILimitOrderView {
      * @param _vault address of target vault
      */
     function vaultWhitelisted(address _vault) external view returns (bool);
-
-    /**
-     * @notice returns path encoded with fees
-     * @param _tokenIn address of swap-in token
-     * @param _tokenOut address of swap-out token
-     */
-    function swapPath(address _tokenIn, address _tokenOut)
-        external
-        view
-        returns (bytes memory);
 }

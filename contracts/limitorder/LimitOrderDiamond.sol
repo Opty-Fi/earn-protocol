@@ -14,14 +14,12 @@ contract LimitOrderDiamond is SolidStateDiamond {
         address _treasury,
         address _optyFiOracle,
         address _swapDiamond,
-        address payable _ops,
-        address _exchangeRouter
+        address payable _ops
     ) {
         LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
         l.treasury = _treasury;
         l.oracle = _optyFiOracle;
         l.swapDiamond = _swapDiamond;
         l.ops = _ops;
-        l.exchangeRouter = _exchangeRouter;
     }
 }

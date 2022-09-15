@@ -103,17 +103,6 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
-    function exchangeRouter()
-        external
-        view
-        returns (address exchangeRouterAddress)
-    {
-        exchangeRouterAddress = _exchangeRouter(LimitOrderStorage.layout());
-    }
-
-    /**
-     * @inheritdoc ILimitOrderView
-     */
     function canExecuteOrder(address _maker, address _vault)
         external
         view
@@ -127,16 +116,5 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
      */
     function vaultWhitelisted(address _vault) external view returns (bool) {
         return _vaultWhitelisted(LimitOrderStorage.layout(), _vault);
-    }
-
-    /**
-     * @inheritdoc ILimitOrderView
-     */
-    function swapPath(address _tokenIn, address _tokenOut)
-        external
-        view
-        returns (bytes memory)
-    {
-        return _swapPath(LimitOrderStorage.layout(), _tokenIn, _tokenOut);
     }
 }
