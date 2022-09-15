@@ -27,9 +27,9 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const usdcApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
+  const wethApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+  if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
     console.log("only set WETH hash");
     console.log("\n");
     onlySetTokensHash.push([
@@ -37,7 +37,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
-  if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+  if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
     console.log("approve WETH and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
