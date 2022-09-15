@@ -1,7 +1,7 @@
 import { DATA_OBJECT } from "../type";
 
 export const TESTING_CONTRACTS: DATA_OBJECT = {
-  TESTING_DEPOSIT_PROTECTION: "TestDepositProtection",
+  TESTING_EMERGENCY_BRAKE: "TestEmergencyBrake",
   TEST_DUMMY_TOKEN:
     "contracts/protocol/earn-protocol-configuration/contracts/mocks/contracts/TestDummyToken.sol:TestDummyToken",
   TEST_DUMMY_TOKEN_TRANSFER_FEE:
