@@ -1,7 +1,6 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -16,64 +15,48 @@ const func: DeployFunction = async ({
   ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
-  const { deployer, admin } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
+  const { deployer } = await getNamedAccounts();
+  const artifact = await deployments.getArtifact("AaveV1Adapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opUSDCgrow", {
+  const result = await deploy("AaveV1Adapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin (PoS)", "USDC", "Growth", "grow"],
+    args: [registryProxyAddress, "0x68d2BA9fc2009c39384F5a0e28a4f1E72E6AB1fA"],
     log: true,
     skipIfAlreadyDeployed: true,
-    proxy: {
-      owner: admin,
-      upgradeIndex: 0,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
-      execute: {
-        init: {
-          methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USD Coin (PoS)", "USDC", "1"],
-        },
-      },
-    },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSDCgrow");
+      const aavev1Adapter = await deployments.get("AaveV1Adapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSDCgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin (PoS)", "USDC", "Growth", "grow"],
+          name: "AaveV1Adapter",
+          address: aavev1Adapter.address,
+          constructorArguments: [registryProxyAddress, "0x68d2BA9fc2009c39384F5a0e28a4f1E72E6AB1fA"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSDCgrow",
-          address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin (PoS)", "USDC", "Growth", "grow"],
+          name: "AaveV1Adapter",
+          address: aavev1Adapter.address,
+          constructorArguments: [registryProxyAddress, "0x68d2BA9fc2009c39384F5a0e28a4f1E72E6AB1fA"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["PolygonopUSDCgrow"];
-func.dependencies = ["PolygonApproveTokensAndMapTokensHash"];
+func.tags = ["AaveV1Adapter"];
+func.dependencies = ["Registry"];

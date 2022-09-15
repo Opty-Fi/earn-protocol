@@ -5,8 +5,8 @@ import { waitforme } from "../helpers/utils";
 import {
   Registry,
   Registry__factory,
-  SushiswapMasterChefV1Adapter,
-  SushiswapMasterChefV1Adapter__factory,
+  SushiswapMasterChefV2AdapterEthereum,
+  SushiswapMasterChefV2AdapterEthereum__factory,
 } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -22,60 +22,54 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("SushiswapMasterChefV1Adapter");
+  const artifact = await deployments.getArtifact("SushiswapMasterChefV2AdapterEthereum");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("SushiswapMasterChefV1Adapter", {
+  const result = await deploy("SushiswapMasterChefV2AdapterEthereum", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: [registryProxyAddress, optyfiOracleAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
-  const sushiswapFarmAdapterEthereum = await (await deployments.get("SushiswapMasterChefV1Adapter")).address;
+  const sushiswapFarmAdapterEthereum = await (await deployments.get("SushiswapMasterChefV2AdapterEthereum")).address;
 
-  const sushiswapFarmAdapterEthereumInstance = <SushiswapMasterChefV1Adapter>(
-    await ethers.getContractAt(SushiswapMasterChefV1Adapter__factory.abi, sushiswapFarmAdapterEthereum)
+  const sushiswapFarmAdapterEthereumInstance = <SushiswapMasterChefV2AdapterEthereum>(
+    await ethers.getContractAt(SushiswapMasterChefV2AdapterEthereum__factory.abi, sushiswapFarmAdapterEthereum)
   );
   const registryProxyInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
   const operator = await registryProxyInstance.operator();
   const operatorSigner = await ethers.getSigner(operator);
 
-  const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
-  const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
+  const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
 
-  const underlyingTokenToPids = [
-    { underlyingToken: CRV_WETH_LP, pid: 17 },
-    { underlyingToken: YFI_WETH_LP, pid: 11 },
-  ];
+  const underlyingTokenToPids = [{ underlyingToken: CVX_WETH_LP, pid: 1 }];
 
-  const pendingUnderlyingTokens = [];
-  const pendingPids = [];
+  const pendingUnderlyingTokenToPids = [];
 
   for (const underlyingTokenToPid of underlyingTokenToPids) {
     const _pid = await sushiswapFarmAdapterEthereumInstance.underlyingTokenToPid(underlyingTokenToPid.underlyingToken);
     if (!BigNumber.from(_pid).eq(underlyingTokenToPid.pid)) {
-      pendingUnderlyingTokens.push(underlyingTokenToPid.underlyingToken);
-      pendingPids.push(underlyingTokenToPid.pid);
+      pendingUnderlyingTokenToPids.push(underlyingTokenToPid);
     }
   }
 
-  if (pendingUnderlyingTokens.length > 0) {
-    console.log("Pending underlying token to pids ", JSON.stringify(pendingUnderlyingTokens, null, 4));
-    console.log("Pending underlying token to pids ", JSON.stringify(pendingPids, null, 4));
+  if (pendingUnderlyingTokenToPids.length > 0) {
+    console.log("Pending underlying tokens to pids ", JSON.stringify(pendingUnderlyingTokenToPids, null, 4));
     const tx = await sushiswapFarmAdapterEthereumInstance
       .connect(operatorSigner)
-      .setUnderlyingTokenToPid(pendingUnderlyingTokens, pendingPids);
+      .setUnderlyingTokenToPid(pendingUnderlyingTokenToPids);
     await tx.wait(1);
   } else {
     console.log("underlying token to pids is up to date");
@@ -85,22 +79,22 @@ const func: DeployFunction = async ({
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "SushiswapMasterChefV1Adapter",
+          name: "SushiswapMasterChefV2AdapterEthereum",
           address: sushiswapFarmAdapterEthereum,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, optyfiOracleAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "SushiswapMasterChefV1Adapter",
+          name: "SushiswapMasterChefV2AdapterEthereum",
           address: sushiswapFarmAdapterEthereum,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, optyfiOracleAddress],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["SushiswapMasterChefV1Adapter"];
+func.tags = ["SushiswapMasterChefV2AdapterEthereum"];
 func.dependencies = ["Registry"];

@@ -34,7 +34,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const opUSDCegrowAddress = await (await deployments.get("opUSDCegrow")).address; // fetches proxy address
+  const opUSDCegrowAddress = await (await deployments.get("opUSDC.egrow")).address; // fetches proxy address
   const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
   const opUSDCegrowInstance = await ethers.getContractAt("Vault", opUSDCegrowAddress);

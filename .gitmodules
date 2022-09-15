@@ -1,9 +1,6 @@
 [submodule "contracts/protocol/earn-protocol-configuration"]
 	path = contracts/protocol/earn-protocol-configuration
 	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
-[submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
-	path = contracts/protocol/adapters/ethereum/team-defi-adapters
-	url = git@github.com:Opty-Fi/team-defi-adapters.git
 [submodule "contracts/protocol/adapters/defi-adapters"]
 	path = contracts/protocol/adapters/defi-adapters
 	url = git@github.com:Opty-Fi/defi-adapters.git
@@ -34,6 +31,15 @@
 [submodule "contracts/protocol/adapters/avalanche/aave-avalanche-adapter"]
 	path = contracts/protocol/adapters/avalanche/aave-avalanche-adapter
 	url = git@github.com:Opty-Fi/aave-avalanche-adapter.git
+[submodule "contracts/protocol/adapters/ethereum/sushi-bar-adapter"]
+	path = contracts/protocol/adapters/ethereum/sushi-bar-adapter
+	url = git@github.com:Opty-Fi/sushi-bar-adapter.git
+[submodule "contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum"]
+	path = contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum
+	url = git@github.com:Opty-Fi/sushiswap-masterchefv2-adapter-ethereum.git
 [submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
 	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
 	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
+[submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
+	path = contracts/protocol/adapters/ethereum/team-defi-adapters
+	url = git@github.com:Opty-Fi/team-defi-adapters.git

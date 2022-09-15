@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { waitforme } from "../helpers/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -16,20 +17,19 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("AaveV1Adapter");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.OPTYFI_ORACLE);
 
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("AaveV1Adapter", {
+  const result = await deploy("OptyFiOracle", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: ["3600", "3600"],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -38,25 +38,24 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const aavev1Adapter = await deployments.get("AaveV1Adapter");
+      const OptyFiOracle = await deployments.get("OptyFiOracle");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "AaveV1Adapter",
-          address: aavev1Adapter.address,
-          constructorArguments: [registryProxyAddress],
+          name: "OptyFiOracle",
+          address: OptyFiOracle.address,
+          constructorArguments: ["3600", "3600"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "AaveV1Adapter",
-          address: aavev1Adapter.address,
-          constructorArguments: [registryProxyAddress],
+          name: "OptyFiOracle",
+          address: OptyFiOracle.address,
+          constructorArguments: ["3600", "3600"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["AaveV1Adapter"];
-func.dependencies = ["Registry"];
+func.tags = ["OptyFiOracle"];

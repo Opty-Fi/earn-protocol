@@ -16,13 +16,13 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("LidoAdapter");
+  const artifact = await deployments.getArtifact("SushiBarAdapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("LidoAdapter", {
+  const result = await deploy("SushiBarAdapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -36,21 +36,22 @@ const func: DeployFunction = async ({
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
+  const sushiBarAdapter = await deployments.get("SushiBarAdapter");
+
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const lidoAdapter = await deployments.get("LidoAdapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "LidoAdapter",
-          address: lidoAdapter.address,
+          name: "SushiBarAdapter",
+          address: sushiBarAdapter.address,
           constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "LidoAdapter",
-          address: lidoAdapter.address,
+          name: "SushiBarAdapter",
+          address: sushiBarAdapter.address,
           constructorArguments: [registryProxyAddress],
         });
       }
@@ -58,5 +59,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["LidoAdapter"];
+func.tags = ["SushiBarAdapter"];
 func.dependencies = ["Registry"];

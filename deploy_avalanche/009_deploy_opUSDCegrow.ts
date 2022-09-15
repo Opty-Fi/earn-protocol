@@ -25,7 +25,7 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
 
-  const result = await deploy("opUSDCegrow", {
+  const result = await deploy("opUSDC.egrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -46,7 +46,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDCe.hash, "USDC Coin", "USDC.e", "1"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDCe.hash, "USD Coin", "USDC.e", "1"],
         },
       },
     },
