@@ -86,8 +86,9 @@ export async function configopWETHgrow(strategyProviderAddress: string, fork: eE
   );
   const currentBestStrategyHash = await opWETHgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
   const expectedStrategySteps =
-    StrategiesByTokenByChain[fork].WETH["weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"]
-      .strategy;
+    StrategiesByTokenByChain[fork]["Earn"].WETH[
+      "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
+    ].strategy;
   const expectedStrategyHash = await opWETHgrowInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

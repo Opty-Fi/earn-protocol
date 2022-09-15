@@ -24,7 +24,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     MULTI_CHAIN_VAULT_TOKENS["kovan"].USDC.hash,
   );
   const currentBestStrategyHash = await opAVUSDCintInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps = StrategiesByTokenByChain["kovan"].USDC["usdc-DEPOSIT-AaveV1-aUSDC"].strategy;
+  const expectedStrategySteps = StrategiesByTokenByChain["kovan"]["Earn"].USDC["usdc-DEPOSIT-AaveV1-aUSDC"].strategy;
   const expectedStrategyHash = await opAVUSDCintInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

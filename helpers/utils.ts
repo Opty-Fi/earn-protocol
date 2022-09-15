@@ -83,10 +83,10 @@ declare module "mocha" {
     riskManager: RiskManager;
     vault: Vault;
     vaultProxy: InitializableImmutableAdminUpgradeabilityProxy;
-    opUSDCgrow: Vault;
-    opUSDCgrowProxy: InitializableImmutableAdminUpgradeabilityProxy;
-    opWETHgrow: Vault;
-    opWETHgrowProxy: InitializableImmutableAdminUpgradeabilityProxy;
+    opUSDCearn: Vault;
+    opUSDCearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
+    opWETHearn: Vault;
+    opWETHearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
     vaultArtifact: Artifact;
     vaultProxyV2: AdminUpgradeabilityProxy;
     testVaultArtifact: Artifact;
@@ -95,7 +95,7 @@ declare module "mocha" {
     token: ERC20;
     usdc: ERC20;
     weth: ERC20;
-    vaults: { [key: string]: Vault };
+    vaults: { [key: string]: { [name: string]: Vault } };
     tokens: { [key: string]: ERC20 };
   }
 }

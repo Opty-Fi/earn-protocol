@@ -12,7 +12,7 @@ import {
 
 async function main() {
   const sushiswapMasterchefV1 = ethers.utils.getAddress("0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd");
-  const opAAVEaggr = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
+  const opAAVEinvst = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
   const AAVE_WETH_PID = 37;
   const aaveWethSlp = ethers.utils.getAddress("0xD75EA151a61d06868E31F8988D28DFE5E9df57B4");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
@@ -20,9 +20,9 @@ async function main() {
   const sushiswapMasterchefV1Instance = <ISushiswapMasterChef>(
     await ethers.getContractAt(ISushiswapMasterChef__factory.abi, sushiswapMasterchefV1)
   );
-  const opAAVEaggrInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEaggr);
+  const opAAVEinvstInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEinvst);
   const aaveWethSlpInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, aaveWethSlp);
-  const stakedAmount = await (await sushiswapMasterchefV1Instance.userInfo(AAVE_WETH_PID, opAAVEaggr)).amount;
+  const stakedAmount = await (await sushiswapMasterchefV1Instance.userInfo(AAVE_WETH_PID, opAAVEinvst)).amount;
   const operatorSigner = await ethers.getSigner(await registryInstance.getOperator());
 
   const abi = ["function withdraw(uint256 _pid, uint256 _amount)"];
@@ -41,11 +41,11 @@ async function main() {
     ),
   );
 
-  const aave_weth_slp_balance_before = await aaveWethSlpInstance.balanceOf(opAAVEaggr);
+  const aave_weth_slp_balance_before = await aaveWethSlpInstance.balanceOf(opAAVEinvst);
   console.log("AAVE-WETH-SLP balance before : ", ethers.utils.formatEther(aave_weth_slp_balance_before));
-  const tx = await opAAVEaggrInstance.connect(operatorSigner).adminCall(codes);
+  const tx = await opAAVEinvstInstance.connect(operatorSigner).adminCall(codes);
   await tx.wait(1);
-  const aave_weth_slp_balance_after = await aaveWethSlpInstance.balanceOf(opAAVEaggr);
+  const aave_weth_slp_balance_after = await aaveWethSlpInstance.balanceOf(opAAVEinvst);
   console.log("AAVE-WETH-SLP balance after : ", ethers.utils.formatEther(aave_weth_slp_balance_after));
 }
 
