@@ -841,34 +841,34 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _vaultUnderlyingToken,
             LimitOrderStorage.layout().oracle
         );
+
         if (!_isExecutable) {
             return (false, bytes(_reason));
         }
 
-        address[] memory _addrs = new address[](2);
-        _addrs[0] = _vaultUnderlyingToken;
-        _addrs[1] = IVault(_order.stablecoinVault).underlyingToken();
+        ////// add if-else in _execute for _canExecute
 
-        bytes memory _swapData = abi.encodeCall(
-            IUniswapV2Router01.swapExactTokensForTokens,
-            (
+        bytes memory _swapData;
+
+        if (_order.swapOnUniV3) {
+            _swapData = _encodeUniV3SwapData(
+                LimitOrderStorage.layout().oracle,
+                IVault(_order.stablecoinVault).underlyingToken(),
+                _vaultUnderlyingToken,
+                _swapDiamond(LimitOrderStorage.layout()),
                 _amountIn,
-                (((_amountIn *
-                    _priceStablecoin(
-                        LimitOrderStorage.layout().oracle,
-                        _vaultUnderlyingToken,
-                        _addrs[1]
-                    ) *
-                    10**ISolidStateERC20(_addrs[1]).decimals()) /
-                    10 **
-                        (18 +
-                            ISolidStateERC20(_vaultUnderlyingToken)
-                                .decimals())) * 99) / 100,
-                _addrs,
-                LimitOrderStorage.layout().swapDiamond,
-                _timestamp() + 20 minutes
-            )
-        );
+                _order.uniV3Path
+            );
+        } else {
+            _swapData = _encodeUniV2SwapData(
+                LimitOrderStorage.layout().oracle,
+                IVault(_order.stablecoinVault).underlyingToken(),
+                _vaultUnderlyingToken,
+                _swapDiamond(LimitOrderStorage.layout()),
+                _amountIn,
+                _order.uniV2Path
+            );
+        }
 
         uint256[] memory _startIndexes;
         address[] memory _callees;
@@ -878,7 +878,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (
             IERC20(_vaultUnderlyingToken).allowance(
                 address(this),
-                LimitOrderStorage.layout().exchangeRouter
+                _order.dexRouter
             ) >= _amountIn
         ) {
             _startIndexes = new uint256[](2);
@@ -886,13 +886,13 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _values = new uint256[](1);
             _startIndexes[0] = 0;
             _startIndexes[1] = _swapData.length;
-            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
+            _callees[1] = _order.dexRouter;
             _values[0] = 0;
             _exchangeData = _swapData;
         } else {
             bytes memory _approveData = abi.encodeWithSelector(
                 IERC20.approve.selector,
-                LimitOrderStorage.layout().exchangeRouter,
+                _order.dexRouter,
                 type(uint256).max
             );
             _startIndexes = new uint256[](3);
@@ -902,7 +902,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
             _startIndexes[1] = _approveData.length;
             _startIndexes[2] = _startIndexes[1] + _swapData.length;
             _callees[0] = _vaultUnderlyingToken;
-            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
+            _callees[1] = _order.dexRouter;
             _values[0] = 0;
             _values[1] = 0;
             _exchangeData = bytes.concat(_approveData, _swapData);
@@ -928,48 +928,25 @@ contract LimitOrderInternal is ILimitOrderInternal {
         );
     }
 
-    function _canExecuteOrderUniV3(address _maker, address _vault)
-        internal
-        view
-        returns (bool, bytes memory)
-    {
-        DataTypes.Order memory _order = LimitOrderStorage
-            .layout()
-            .userVaultOrder[_maker][_vault];
-        address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
-
-        if (IERC20(_vault).balanceOf(_maker) < _order.liquidationAmount) {
-            return (false, bytes('Not enough shares'));
-        }
-
-        uint256 _amountIn = (_order.liquidationAmount *
-            IVault(_vault).getPricePerFullShare()) / 10**18;
-
-        (bool _isExecutable, string memory _reason) = _canExecute(
-            _order,
-            LimitOrderStorage.layout().userVaultOrderActive[_maker][_vault],
-            _vaultUnderlyingToken,
-            LimitOrderStorage.layout().oracle
-        );
-        if (!_isExecutable) {
-            return (false, bytes(_reason));
-        }
-
-        address _stableCoin = IVault(_order.stablecoinVault).underlyingToken();
-
-        bytes memory _swapData = abi.encodeCall(
+    function _encodeUniV3SwapData(
+        address _oracleAddress,
+        address _stableCoin,
+        address _vaultUnderlyingToken,
+        address _recipient,
+        uint256 _amountIn,
+        bytes memory _path
+    ) internal view returns (bytes memory swapData) {
+        swapData = abi.encodeCall(
             ISwapRouter.exactInput,
             (
                 ISwapRouter.ExactInputParams({
-                    path: LimitOrderStorage.layout().swapPaths[
-                        _vaultUnderlyingToken
-                    ][_stableCoin],
-                    recipient: LimitOrderStorage.layout().swapDiamond,
+                    path: _path,
+                    recipient: _recipient,
                     deadline: _timestamp() + 20 minutes,
                     amountIn: _amountIn,
                     amountOutMinimum: (((_amountIn *
                         _priceStablecoin(
-                            LimitOrderStorage.layout().oracle,
+                            _oracleAddress,
                             _vaultUnderlyingToken,
                             _stableCoin
                         ) *
@@ -981,61 +958,35 @@ contract LimitOrderInternal is ILimitOrderInternal {
                 })
             )
         );
+    }
 
-        uint256[] memory _startIndexes;
-        address[] memory _callees;
-        uint256[] memory _values;
-        bytes memory _exchangeData;
-
-        if (
-            IERC20(_vaultUnderlyingToken).allowance(
-                address(this),
-                LimitOrderStorage.layout().exchangeRouter
-            ) >= _amountIn
-        ) {
-            _startIndexes = new uint256[](2);
-            _callees = new address[](1);
-            _values = new uint256[](1);
-            _startIndexes[0] = 0;
-            _startIndexes[1] = _swapData.length;
-            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
-            _values[0] = 0;
-            _exchangeData = _swapData;
-        } else {
-            bytes memory _approveData = abi.encodeWithSelector(
-                IERC20.approve.selector,
-                LimitOrderStorage.layout().exchangeRouter,
-                type(uint256).max
-            );
-            _startIndexes = new uint256[](3);
-            _callees = new address[](2);
-            _values = new uint256[](2);
-            _startIndexes[0] = 0;
-            _startIndexes[1] = _approveData.length;
-            _startIndexes[2] = _startIndexes[1] + _swapData.length;
-            _callees[0] = _vaultUnderlyingToken;
-            _callees[1] = LimitOrderStorage.layout().exchangeRouter;
-            _values[0] = 0;
-            _values[1] = 0;
-            _exchangeData = bytes.concat(_approveData, _swapData);
-        }
-
-        return (
-            true,
-            abi.encodeCall(
-                ILimitOrderActions.execute,
-                (
-                    _maker,
-                    _vault,
-                    DataTypes.SwapParams({
-                        deadline: _timestamp() + 10 minutes,
-                        startIndexes: _startIndexes,
-                        values: _values,
-                        callees: _callees,
-                        exchangeData: _exchangeData,
-                        permit: bytes('')
-                    })
-                )
+    function _encodeUniV2SwapData(
+        address _oracleAddress,
+        address _stableCoin, //perhaps for check, otherwise unrequired
+        address _vaultUnderlyingToken,
+        address _recipient,
+        uint256 _amountIn,
+        address[] memory _path
+    ) internal view returns (bytes memory swapData) {
+        //perhaps require check final and initial address in _path
+        swapData = abi.encodeCall(
+            IUniswapV2Router01.swapExactTokensForTokens,
+            (
+                _amountIn,
+                (((_amountIn *
+                    _priceStablecoin(
+                        _oracleAddress,
+                        _vaultUnderlyingToken,
+                        _path[_path.length - 1]
+                    ) *
+                    10**ISolidStateERC20(_path[_path.length - 1]).decimals()) /
+                    10 **
+                        (18 +
+                            ISolidStateERC20(_vaultUnderlyingToken)
+                                .decimals())) * 99) / 100,
+                _path,
+                _recipient,
+                _timestamp() + 20 minutes
             )
         );
     }

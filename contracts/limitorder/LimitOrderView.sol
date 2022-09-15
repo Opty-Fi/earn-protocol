@@ -119,7 +119,7 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
         view
         returns (bool, bytes memory)
     {
-        return _canExecuteOrderUniV3(_maker, _vault);
+        return _canExecuteOrder(_maker, _vault);
     }
 
     /**

@@ -27,7 +27,11 @@ library DataTypes {
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
      * @param stablecoinVault the opVault with stable coins as underlying to send liquidated shares to
+     * @param dexRouter address of dex to swap on
      * @param direction the direction of the bounds
+     * @param swapOnUniV3 boolean indicating whether the swap should be done via UniV3 router
+     * @param uniV3Path token swap path for uniV3
+     * @param uniV2Path token swap path for uniV2
      */
     struct Order {
         uint256 liquidationAmount;
@@ -39,7 +43,11 @@ library DataTypes {
         address payable maker;
         address vault;
         address stablecoinVault;
+        address dexRouter;
+        bool swapOnUniV3;
         BoundDirection direction;
+        bytes uniV3Path;
+        address[] uniV2Path;
     }
 
     /**
@@ -51,7 +59,11 @@ library DataTypes {
      * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
      * @param vault the vault the order pertains to
      * @param stablecoinVault the opVault with stable coins as underlying to send liquidated shares to
+     * @param dexRouter address of dex to swap on
      * @param direction the direction of the bounds
+     * @param swapOnUniV3 boolean indicating whether the swap should be done via UniV3 router
+     * @param uniV3Path token swap path for uniV3
+     * @param uniV2Path token swap path for uniV2
      */
     struct OrderParams {
         uint256 liquidationAmount;
@@ -61,7 +73,11 @@ library DataTypes {
         uint256 returnLimitBP;
         address vault;
         address stablecoinVault;
+        address dexRouter;
+        bool swapOnUniV3;
         BoundDirection direction;
+        bytes uniV3Path;
+        address[] uniV2Path;
     }
 
     /**
