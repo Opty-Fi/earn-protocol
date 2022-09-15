@@ -18,5 +18,10 @@ export function convertOrderParamsToOrder(
   order.vault = _orderParams.vault;
   order.direction = _orderParams.direction;
   order.stablecoinVault = _orderParams.stablecoinVault;
+  order.dexRouter = _orderParams.dexRouter;
+  order.uniV2Path = _orderParams.uniV2Path;
+  order.uniV3Path = _orderParams.uniV3Path;
+  order.swapOnUniV3 = _orderParams.swapOnUniV3;
+
   return order;
 }

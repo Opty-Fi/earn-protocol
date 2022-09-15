@@ -21,6 +21,8 @@ import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/I
 
 import { ISwapRouter } from '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
+import 'hardhat/console.sol';
+
 /**
  * @title Contract for writing limit orders
  * @author OptyFi
@@ -136,7 +138,7 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.lowerBound >= _orderParams.upperBound) {
             revert Errors.ReverseBounds();
         }
-        if (!_l.stableVaults[_orderParams.stablecoinVault]) {
+        if (!_vaultWhitelisted(_l, _orderParams.stablecoinVault)) {
             revert Errors.ForbiddenDestination();
         }
 
@@ -169,14 +171,18 @@ contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.swapOnUniV3 != order.swapOnUniV3) {
             order.swapOnUniV3 = _orderParams.swapOnUniV3;
         }
-
+        if (_orderParams.dexRouter != order.dexRouter) {
+            order.dexRouter = _orderParams.dexRouter;
+        }
         if (_orderParams.swapOnUniV3) {
             if (_orderParams.uniV3Path.length != 0) {
                 order.uniV3Path = _orderParams.uniV3Path;
+                order.uniV2Path = new address[](1);
             }
         } else {
             if (_orderParams.uniV2Path.length != 0) {
                 order.uniV2Path = _orderParams.uniV2Path;
+                order.uniV3Path = bytes('');
             }
         }
 

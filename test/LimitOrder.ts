@@ -103,7 +103,6 @@ describe('::LimitOrder Contracts', () => {
       Oracle.address,
       OptyFiSwapper.address,
       Gelato_Ops,
-      uniswapV3Router,
     );
 
     const limitOrderSelectors = new Set();
@@ -141,14 +140,14 @@ describe('::LimitOrder Contracts', () => {
 
     await limitOrderInstance.setVault(opUSDC);
 
-    await limitOrderInstance.setSwapPath(
-      AaveERC20Address,
-      USDC,
-      ethers.utils.solidityPack(
-        ['address', 'uint24', 'address', 'uint24', 'address'],
-        [AaveERC20Address, 3000, WETH, 500, USDC],
-      ),
-    );
+    // await limitOrderInstance.setSwapPath(
+    //   AaveERC20Address,
+    //   USDC,
+    //   ethers.utils.solidityPack(
+    //     ['address', 'uint24', 'address', 'uint24', 'address'],
+    //     [AaveERC20Address, 3000, WETH, 500, USDC],
+    //   ),
+    // );
 
     let tx: ContractTransaction = await deployer.sendTransaction({
       to: optyFiVaultOperatorAddress,

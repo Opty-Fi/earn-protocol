@@ -3,7 +3,7 @@ import hre from 'hardhat';
 import { BigNumber, providers } from 'ethers';
 import { expect } from 'chai';
 import { decodeLogs, addABI } from 'abi-decoder';
-import { getAddress } from 'ethers/lib/utils';
+import { getAddress, isBytesLike } from 'ethers/lib/utils';
 import {
   DecodedLogType,
   Order,
@@ -86,6 +86,7 @@ export function describeBehaviorOfLimitOrderActions(
   const Gelato_Network = '0x3CACa7b48D0573D793d3b0279b5F0029180E83b6'; // mainnet
   const Gelato_Pokeme = '0xB3f5503f93d5Ef84b06993a1975B9D21B962892F'; // mainnet
   const Gelato_Task_Treasury = '0x2807B4aE232b624023f87d0e237A3B1bf200Fd99'; // mainnet
+  const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; //mainnet
 
   //Params
   const expirationNum = 1657190461 + 120; //unix timestamp of block 15095000 + 120s
@@ -94,6 +95,11 @@ export function describeBehaviorOfLimitOrderActions(
 
   const priceTarget = ethers.utils.parseEther('100'); //always high enough to execute order for testing
   const newPriceTarget = ethers.utils.parseEther('1');
+
+  const uniV3SwapPath = ethers.utils.solidityPack(
+    ['address', 'uint24', 'address', 'uint24', 'address'],
+    [AaveERC20Address, 3000, WETH, 500, USDC],
+  );
 
   const orderParams: OrderParams = {
     liquidationAmount: ethers.BigNumber.from('0'),
@@ -104,6 +110,25 @@ export function describeBehaviorOfLimitOrderActions(
     returnLimitBP: ethers.utils.parseEther('0.99'),
     stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
+    dexRouter: UniswapV2Router02Address,
+    uniV3Path: '0x',
+    uniV2Path: [AaveERC20Address, USDC],
+    swapOnUniV3: false,
+  };
+
+  const orderParamsUniV3: OrderParams = {
+    liquidationAmount: ethers.BigNumber.from('0'),
+    expiration: expiration,
+    upperBound: ethers.utils.parseEther('150'),
+    lowerBound: ethers.utils.parseEther('50'),
+    direction: ethers.constants.One,
+    returnLimitBP: ethers.utils.parseEther('0.99'),
+    stablecoinVault: UsdcVaultProxy,
+    vault: AaveVaultProxy,
+    dexRouter: UniswapV3RouterAddress,
+    uniV3Path: uniV3SwapPath,
+    uniV2Path: [],
+    swapOnUniV3: true,
   };
 
   const failedOrderParams: OrderParams = {
@@ -115,6 +140,10 @@ export function describeBehaviorOfLimitOrderActions(
     returnLimitBP: ethers.utils.parseEther('0.99'),
     stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
+    dexRouter: UniswapV2Router02Address,
+    uniV3Path: '0x',
+    uniV2Path: [AaveERC20Address, USDC],
+    swapOnUniV3: false,
   };
 
   const modifyOrderParams: OrderParams = {
@@ -126,6 +155,10 @@ export function describeBehaviorOfLimitOrderActions(
     returnLimitBP: ethers.utils.parseEther('0.9'),
     stablecoinVault: UsdcVaultProxy,
     vault: AaveVaultProxy,
+    dexRouter: UniswapV3RouterAddress,
+    uniV3Path: uniV3SwapPath,
+    uniV2Path: [ethers.constants.AddressZero],
+    swapOnUniV3: true,
   };
 
   const liquidationFeeBP = ethers.utils.parseEther('0.02');
@@ -252,8 +285,11 @@ export function describeBehaviorOfLimitOrderActions(
           maker: makerOrder.maker,
           vault: makerOrder.vault,
           direction: BigNumber.from(makerOrder.direction.toString()),
+          dexRouter: makerOrder.dexRouter,
+          swapOnUniV3: makerOrder.swapOnUniV3,
+          uniV2Path: makerOrder.uniV2Path,
+          uniV3Path: makerOrder.uniV3Path,
         };
-
         const order = convertOrderParamsToOrder(orderParams, maker.address);
         expect(createdOrder).to.deep.equal(order);
       });
@@ -287,6 +323,45 @@ export function describeBehaviorOfLimitOrderActions(
           resolverHash,
         );
 
+        // const creationTx = await instance.connect(maker).createOrder(orderParams);
+
+        // const { events } = await creationTx.wait();
+
+        // const makerOrder  = events?.find((e) => e.event == 'LimitOrderCreated')?.args;
+
+        // interface OrderWithTask {
+        //   order: Order;
+        //   taskId: string;
+        // }
+
+        // const orderWithTask: OrderWithTask = {
+        //   order: order,
+        //   taskId: _taskId
+        // };
+        // const createdOrder: Order = {
+        //   liquidationAmount: makerOrder[0][0],
+        //   expiration: makerOrder?.expiration,
+        //   lowerBound: makerOrder?.lowerBound,
+        //   upperBound: makerOrder?.upperBound,
+        //   returnLimitBP: makerOrder?.returnLimitBP,
+        //   stablecoinVault: UsdcVaultProxy,
+        //   maker: makerOrder?.maker,
+        //   vault: makerOrder?.vault,
+        //   direction: BigNumber.from(makerOrder?.direction?.toString()),
+        //   dexRouter: makerOrder?.dexRouter,
+        //   swapOnUniV3: makerOrder?.swapOnUniV3,
+        //   uniV2Path: makerOrder?.uniV2Path,
+        //   uniV3Path: makerOrder?.uniV3Path
+        // };
+        // const createdOrderWithTask: OrderWithTask = {
+        //   order: createdOrder,
+        //   taskId: _taskId,
+        // };
+
+        // console.log(createdOrder);
+        // console.log(order);
+        // expect(createdOrderWithTask).to.deep.eq(orderWithTask);
+
         await expect(await instance.connect(maker).createOrder(orderParams))
           .to.emit(instance, 'LimitOrderCreated')
           .withArgs([
@@ -299,7 +374,14 @@ export function describeBehaviorOfLimitOrderActions(
             order.maker,
             order.vault,
             ethers.utils.getAddress(order.stablecoinVault),
+            order.dexRouter,
+            order.swapOnUniV3,
             order.direction,
+            order.uniV3Path,
+            [
+              ethers.utils.getAddress(order.uniV2Path[0]),
+              ethers.utils.getAddress(order.uniV2Path[1]),
+            ],
           ]);
       });
 
@@ -812,7 +894,7 @@ export function describeBehaviorOfLimitOrderActions(
         );
       });
 
-      it('Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault', async () => {
+      it('UniV2: Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault', async () => {
         //calculate expectedOPUSDCShares to reach user after fees
         const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
         const opAAVEprice = await AaveVaultInstance.getPricePerFullShare();
@@ -893,7 +975,7 @@ export function describeBehaviorOfLimitOrderActions(
         ).timestamp;
 
         const approveData = AaveERC20.interface.encodeFunctionData('approve', [
-          uniV3Router.address,
+          UniswapV2Router02Address,
           ethers.constants.MaxUint256,
         ]);
 
@@ -915,22 +997,183 @@ export function describeBehaviorOfLimitOrderActions(
           .mul(BigNumber.from('99'))
           .div('100');
 
-        // const uniswapData = uniRouter.interface.encodeFunctionData(
-        //   'swapExactTokensForTokens',
-        //   [
-        //     expectedAaveRedeemed,
-        //     expectedUSDC,
-        //     [AaveERC20Address, USDC],
-        //     await instance.swapDiamond(),
-        //     timestamp + 20 * 60,
-        //   ],
-        // );
+        const uniswapData = uniRouter.interface.encodeFunctionData(
+          'swapExactTokensForTokens',
+          [
+            expectedAaveRedeemed,
+            expectedUSDC,
+            [AaveERC20Address, USDC],
+            await instance.swapDiamond(),
+            timestamp + 20 * 60,
+          ],
+        );
+
+        //construct swapData
+        const calls: string[] = [approveData, uniswapData];
+        let startIndexes: any[] = ['0'];
+        let exchangeData = `0x`;
+        for (const i in calls) {
+          startIndexes.push(
+            parseInt(startIndexes[i]) + calls[i].substring(2).length / 2,
+          );
+          exchangeData = exchangeData.concat(calls[i].substring(2));
+        }
+
+        startIndexes = startIndexes.map((i) => BigNumber.from(i));
+
+        swapParams = {
+          deadline: BigNumber.from(timestamp + 10 * 60),
+          startIndexes: startIndexes,
+          values: [BigNumber.from('0'), BigNumber.from('0')],
+          callees: [AaveERC20Address, UniswapV2Router02Address],
+          exchangeData,
+          permit: '0x',
+        };
+
+        const expectedPayload = instance.interface.encodeFunctionData(
+          'execute',
+          [maker.address, opAaveToken.address, swapParams],
+        );
+
+        const [canExec, execPayload] = ethers.utils.defaultAbiCoder.decode(
+          ['bool', 'bytes'],
+          await ethers.provider.call({
+            to: instance.address,
+            data: _resolverData,
+          }),
+        );
+
+        // assert the payload
+        expect(execPayload).to.eq(expectedPayload);
+
+        expect(canExec).to.be.true;
+
+        expect(
+          await opsInstance
+            .connect(GelatoNetworkSigner)
+            .exec(
+              ethers.utils.parseEther('1'),
+              ETH,
+              instance.address,
+              true,
+              true,
+              resolverHash,
+              instance.address,
+              execPayload,
+            ),
+        )
+          .to.emit(instance, 'DeliverShares')
+          .withArgs(maker.address);
+      });
+
+      it('UniV3: Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault', async () => {
+        //calculate expectedOPUSDCShares to reach user after fees
+        const opUSDCVault = await ethers.getContractAt('Vault', UsdcVaultProxy);
+        const opAAVEprice = await AaveVaultInstance.getPricePerFullShare();
+        const opUSDCprice = await opUSDCVault.getPricePerFullShare();
+        const USDCAmountAfterFee = USDCAmount.sub(fee);
+        //taken from opUSDCVault.vaultConfiguration() and replace 0x06 with 0x02
+        const newVaultConfig =
+          '0x0201000000000000000000000000000000000000000000640000000000000000';
+        //remove opUSDCVault whitelist
+        const tx = await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setVaultConfiguration(BigNumber.from(newVaultConfig));
+
+        await tx.wait();
+        //set code + account merkle roots and remove minimum deposit value
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedAccountsRoot(accountRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setWhitelistedCodesRoot(codeRoot);
+        await opUSDCVault
+          .connect(optyFiVaultOperator)
+          .setMinimumDepositValueUT(ethers.constants.Zero);
+
+        const userShares = await opAaveToken.balanceOf(maker.address);
+        orderParamsUniV3.liquidationAmount =
+          ethers.BigNumber.from(userShares).div(2);
+
+        const resolverHash = ethers.utils.keccak256(
+          new ethers.utils.AbiCoder().encode(
+            ['address', 'bytes'],
+            [
+              instance.address,
+              instance.interface.encodeFunctionData('canExecuteOrder', [
+                maker.address,
+                opAaveToken.address,
+              ]),
+            ],
+          ),
+        );
+
+        const _taskId = await opsInstance.getTaskId(
+          instance.address,
+          instance.address,
+          await opsInstance.getSelector(
+            'execute(address,address,(uint256,uint256[],uint256[],address[],bytes,bytes))',
+          ),
+          true,
+          ethers.constants.AddressZero,
+          resolverHash,
+        );
+
+        const _resolverData = instance.interface.encodeFunctionData(
+          'canExecuteOrder',
+          [maker.address, opAaveToken.address],
+        );
+
+        //create order from maker
+        expect(await instance.connect(maker).createOrder(orderParamsUniV3))
+          .to.emit(opsInstance, 'TaskCreated')
+          .withArgs([
+            instance.address,
+            instance.address,
+            await opsInstance.getSelector(
+              'execute(address,address,(uint256,uint256[],uint256[],address[],bytes,bytes))',
+            ),
+            instance.address,
+            _taskId,
+            _resolverData,
+            true,
+            ethers.constants.AddressZero,
+            resolverHash,
+          ]);
+
+        const timestamp = await (
+          await ethers.provider.getBlock('latest')
+        ).timestamp;
+
+        const approveData = AaveERC20.interface.encodeFunctionData('approve', [
+          uniV3Router.address,
+          ethers.constants.MaxUint256,
+        ]);
+
+        const expectedAaveRedeemed = opAAVEprice
+          .mul(orderParamsUniV3.liquidationAmount)
+          .div(BigNumber.from('10').pow('18'));
+
+        const oracle: OptyFiOracle = await ethers.getContractAt(
+          'OptyFiOracle',
+          await instance.oracle(),
+        );
+
+        const expectedUSDC = BigNumber.from(
+          expectedAaveRedeemed
+            .mul(await oracle.getTokenPrice(AaveERC20Address, USDC))
+            .mul(BigNumber.from('10').pow('6')),
+        )
+          .div(BigNumber.from('10').pow(BigNumber.from('18').add('18')))
+          .mul(BigNumber.from('99'))
+          .div('100');
 
         const uniswapV3Data = uniV3Router.interface.encodeFunctionData(
           'exactInput',
           [
             {
-              path: await instance.swapPath(AaveERC20Address, USDC),
+              path: uniV3SwapPath,
               recipient: await instance.swapDiamond(),
               deadline: timestamp + 20 * 60,
               amountIn: expectedAaveRedeemed,
@@ -1045,6 +1288,10 @@ export function describeBehaviorOfLimitOrderActions(
             returnLimitBP: ethers.utils.parseEther('0.99'),
             vault: AaveVaultProxy,
             stablecoinVault: UsdcVaultProxy,
+            dexRouter: UniswapV2Router02Address,
+            uniV2Path: [AaveERC20Address, USDC],
+            uniV3Path: '0x',
+            swapOnUniV3: false,
           });
 
           const expiredTimestamp =
@@ -1283,6 +1530,10 @@ export function describeBehaviorOfLimitOrderActions(
           stablecoinVault: UsdcVaultProxy,
           maker: makerOrder.maker,
           vault: makerOrder.vault,
+          swapOnUniV3: makerOrder.swapOnUniV3,
+          dexRouter: makerOrder.dexRouter,
+          uniV2Path: makerOrder.uniV2Path,
+          uniV3Path: makerOrder.uniV3Path,
         };
 
         const order = convertOrderParamsToOrder(

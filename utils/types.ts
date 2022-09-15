@@ -9,7 +9,11 @@ export interface Order {
   maker: string;
   vault: string;
   stablecoinVault: string;
+  dexRouter: string;
+  swapOnUniV3: boolean;
   direction: BigNumber;
+  uniV3Path: BytesLike;
+  uniV2Path: string[];
 }
 
 export interface OrderParams {
@@ -20,7 +24,11 @@ export interface OrderParams {
   returnLimitBP: BigNumber;
   vault: string;
   stablecoinVault: string;
+  dexRouter: string;
+  swapOnUniV3: boolean;
   direction: BigNumber;
+  uniV3Path: BytesLike;
+  uniV2Path: string[];
 }
 
 export interface SwapData {
