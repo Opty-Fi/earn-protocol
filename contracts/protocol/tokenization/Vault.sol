@@ -766,7 +766,7 @@ contract Vault is
      * @inheritdoc IncentivisedERC20
      */
     function _beforeTokenTransfer(
-        address _from,
+        address,
         address _to,
         uint256
     ) internal override {
