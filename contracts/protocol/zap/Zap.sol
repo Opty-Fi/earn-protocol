@@ -1,17 +1,22 @@
 //SPDX-license-identifier: MIT
 pragma solidity ^0.8.15;
 
-import { OwnableInternal } from "@solidstate/contracts/access/ownable/OwnableInternal.sol";
-import { IZap } from "./IZap.sol";
-import { DataTypes } from "./DataTypes.sol";
-import { ZapStorage } from "./ZapStorage.sol";
+// helper contracts
 import { ZapInternal } from "./ZapInternal.sol";
+import { Ownable } from "@solidstate/contracts/access/ownable/Ownable.sol";
+
+// libraries
+import { DataTypes } from "./lib/DataTypes.sol";
+import { ZapStorage } from "./ZapStorage.sol";
+
+// interfaces
+import { IZap } from "./IZap.sol";
 
 /**
  * @title Zap
  * @author OptyFi
  */
-contract Zap is IZap, ZapInternal, OwnableInternal {
+contract Zap is IZap, ZapInternal, Ownable {
     using ZapStorage for ZapStorage.Layout;
 
     /**
