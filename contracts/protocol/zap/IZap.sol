@@ -1,7 +1,7 @@
 //SPDX-license-identifier: MIT
 pragma solidity ^0.8.15;
 
-import { DataTypes } from "./DataTypes.sol";
+import { DataTypes } from "./lib/DataTypes.sol";
 import { ZapStorage } from "./ZapStorage.sol";
 
 /**

@@ -1,56 +1,19 @@
 //SPDX-license-identifier: MIT
 pragma solidity ^0.8.15;
 
-import "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-0.8.x/access/Ownable.sol";
-import "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
-import { Errors } from "./Errors.sol";
+// libraries
 import { ZapStorage } from "./ZapStorage.sol";
-import { ISwapper } from "../optyfi-swapper/contracts/swap/ISwapper.sol";
+import { Errors } from "./lib/Errors.sol";
+import { DataTypes } from "./lib/DataTypes.sol";
 import { DataTypes as SwapTypes } from "../optyfi-swapper/contracts/swap/DataTypes.sol";
-import { DataTypes } from "./DataTypes.sol";
 
-interface IVault {
-    /**
-     * @notice Deposit underlying tokens to the vault
-     * @dev Mint the shares right away as per oracle based price per full share value
-     * @param _beneficiary the address of the deposit beneficiary,
-     *        if _beneficiary = address(0) => _beneficiary = msg.sender
-     * @param _userDepositUT Amount in underlying token
-     * @param _permitParams permit parameters: amount, deadline, v, s, r
-     * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
-     */
-    function userDepositVault(
-        address _beneficiary,
-        uint256 _userDepositUT,
-        bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external returns (uint256);
-
-    /**
-     * @notice redeems the vault shares and transfers underlying token to `_beneficiary`
-     * @dev Burn the shares right away as per oracle based price per full share value
-     * @param _receiver the address which will receive the underlying tokens
-     * @param _userWithdrawVT amount in vault token
-     * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
-     */
-    function userWithdrawVault(
-        address _receiver,
-        uint256 _userWithdrawVT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external returns (uint256);
-
-    /**
-     * @dev the vault underlying token contract address
-     */
-    function underlyingToken() external returns (address);
-}
+// interfaces
+import { SafeERC20 } from "@solidstate/contracts/utils/SafeERC20.sol";
+import { IWETH } from "@solidstate/contracts/utils/IWETH.sol";
+import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
+import { IERC2612 } from "@solidstate/contracts/token/ERC20/permit/IERC2612.sol";
+import { ISwapper } from "../optyfi-swapper/contracts/swap/ISwapper.sol";
+import { IVault } from "./interfaces/IVault.sol";
 
 /**
  * @title OptyFiZapper
@@ -76,7 +39,7 @@ abstract contract ZapInternal {
         bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
     ) internal returns (uint256 sharesReceived) {
-        address vaultUnderlyingToken = _vaultUnderlyingToken(_zapParams.vault);
+        address vaultUnderlyingToken = _underlying(_zapParams.vault);
         if (vaultUnderlyingToken == _token) {
             revert Errors.InvalidToken();
         }
@@ -134,7 +97,7 @@ abstract contract ZapInternal {
         bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
     ) internal returns (uint256 receivedAmount) {
-        address vaultUnderlyingToken = _vaultUnderlyingToken(_zapParams.vault);
+        address vaultUnderlyingToken = _underlying(_zapParams.vault);
         if (vaultUnderlyingToken == _token) {
             revert Errors.InvalidToken();
         }
@@ -174,6 +137,20 @@ abstract contract ZapInternal {
     }
 
     /**
+     * @dev function to call token permit method of extended ERC20
+     * @param _token address of the token to call
+     * @param _permitParams raw data of the call `permit` of the token
+     */
+    function _permit(address _token, bytes memory _permitParams) internal {
+        if (_permitParams.length == 32 * 7) {
+            (bool success, ) = _token.call(abi.encodePacked(IERC2612.permit.selector, _permitParams));
+            if (!success) {
+                revert Errors.PermitFailed();
+            }
+        }
+    }
+
+    /**
      * @dev set swapper address
      * @param _l the zap layout struct
      * @param _swapper swapper address
@@ -183,31 +160,17 @@ abstract contract ZapInternal {
     }
 
     /**
-     * @dev get swapper address
-     */
-    function _getSwapper() internal view returns (ISwapper swapper) {
-        swapper = ZapStorage.layout().swapper;
-    }
-
-    /**
      * @dev function to get the underlying token of the OptyFi Vault
      */
-    function _vaultUnderlyingToken(address _vault) internal returns (address) {
+    function _underlying(address _vault) internal returns (address) {
         return IVault(_vault).underlyingToken();
     }
 
     /**
-     * @dev function to call token permit method of extended ERC20
-     * @param _token address of the token to call
-     * @param _permitParams raw data of the call `permit` of the token
+     * @dev get swapper address
      */
-    function _permit(address _token, bytes memory _permitParams) internal {
-        if (_permitParams.length == 32 * 7) {
-            (bool success, ) = _token.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
-            if (!success) {
-                revert Errors.PermitFailed();
-            }
-        }
+    function _getSwapper() internal view returns (ISwapper swapper) {
+        swapper = ZapStorage.layout().swapper;
     }
 
     /**
