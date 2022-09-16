@@ -1905,7 +1905,7 @@ const mainnetVaults: VaultType = {
   USDC: [
     {
       symbol: "opUSDCgrow",
-      name: "op USD Coin Growth",
+      name: "OptyFi USDC Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -1917,7 +1917,7 @@ const mainnetVaults: VaultType = {
   WETH: [
     {
       symbol: "opWETHgrow",
-      name: "op Wrapped Ether Growth",
+      name: "OptyFi WETH Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
       vaultConfig: vaultConfigRP1,
@@ -1929,7 +1929,7 @@ const mainnetVaults: VaultType = {
   NEWO: [
     {
       symbol: "opNEWOaggr",
-      name: "op New Order Aggressive",
+      name: "OptyFi NEWO Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.hash,
       vaultConfig: vaultConfigRP2,
@@ -1941,7 +1941,7 @@ const mainnetVaults: VaultType = {
   AAVE: [
     {
       symbol: "opAAVEaggr",
-      name: "op Aave Token Aggressive",
+      name: "OptyFi AAVE Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.hash,
       vaultConfig: vaultConfigRP2,
@@ -1953,7 +1953,7 @@ const mainnetVaults: VaultType = {
   APE: [
     {
       symbol: "opAPEaggr",
-      name: "op ApeCoin Aggressive",
+      name: "OptyFi APE Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.hash,
       vaultConfig: vaultConfigRP2,
@@ -1965,7 +1965,7 @@ const mainnetVaults: VaultType = {
   SUSHI: [
     {
       symbol: "opSUSHIaggr",
-      name: "op SushiToken Aggressive",
+      name: "OptyFi SUSHI Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.hash,
       vaultConfig: vaultConfigRP2,
@@ -1977,7 +1977,7 @@ const mainnetVaults: VaultType = {
   MANA: [
     {
       symbol: "opMANAaggr",
-      name: "op Decentraland MANA Aggressive",
+      name: "OptyFi MANA Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.hash,
       vaultConfig: vaultConfigRP2,
@@ -1989,7 +1989,7 @@ const mainnetVaults: VaultType = {
   LINK: [
     {
       symbol: "opLINKaggr",
-      name: "op ChainLink Token Aggressive",
+      name: "OptyFi LINK Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.hash,
       vaultConfig: vaultConfigRP2,
@@ -2001,7 +2001,7 @@ const mainnetVaults: VaultType = {
   ENS: [
     {
       symbol: "opENSaggr",
-      name: "op Ethereum Name Service Aggressive",
+      name: "OptyFi ENS Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,
       vaultConfig: vaultConfigRP2,
@@ -2013,7 +2013,7 @@ const mainnetVaults: VaultType = {
   COMP: [
     {
       symbol: "opCOMPaggr",
-      name: "op Compound Aggressive",
+      name: "OptyFi COMP Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.hash,
       vaultConfig: vaultConfigRP2,
@@ -2025,7 +2025,7 @@ const mainnetVaults: VaultType = {
   IMX: [
     {
       symbol: "opIMXaggr",
-      name: "op Immutable X Aggressive",
+      name: "OptyFi IMX Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.hash,
       vaultConfig: vaultConfigRP2,
@@ -2037,7 +2037,7 @@ const mainnetVaults: VaultType = {
   ALCX: [
     {
       symbol: "opALCXaggr",
-      name: "op Alchemix Aggressive",
+      name: "OptyFi ALCX Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.hash,
       vaultConfig: vaultConfigRP2,
@@ -2049,7 +2049,7 @@ const mainnetVaults: VaultType = {
   CRV: [
     {
       symbol: "opCRVaggr",
-      name: "op Curve DAO Token Aggressive",
+      name: "OptyFi CRV Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.hash,
       vaultConfig: vaultConfigRP2,
@@ -2061,7 +2061,7 @@ const mainnetVaults: VaultType = {
   CVX: [
     {
       symbol: "opCVXaggr",
-      name: "op Convex Token Aggressive",
+      name: "OptyFi CVX Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.hash,
       vaultConfig: vaultConfigRP2,
@@ -2073,7 +2073,7 @@ const mainnetVaults: VaultType = {
   YFI: [
     {
       symbol: "opYFIaggr",
-      name: "op yearn.finance Aggressive",
+      name: "OptyFi YFI Aggressive Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.hash,
       vaultConfig: vaultConfigRP2,
@@ -2088,7 +2088,7 @@ const kovanVaults: VaultType = {
   USDC: [
     {
       symbol: "opAVUSDCint",
-      name: "op Aave USD Coin intermediate",
+      name: "OptyFi AVUSDC intermediate Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2103,7 +2103,7 @@ const polygonVaults: VaultType = {
   USDC: [
     {
       symbol: "opUSDCgrow",
-      name: "op USD Coin (PoS) Growth",
+      name: "OptyFi USDC Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2115,7 +2115,7 @@ const polygonVaults: VaultType = {
   WMATIC: [
     {
       symbol: "opWMATICgrow",
-      name: "op Wrapped Matic Growth",
+      name: "OptyFi WMATIC Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2130,7 +2130,7 @@ const mumbaiVaults: VaultType = {
   USDC: [
     {
       symbol: "opUSDCgrow",
-      name: "op USD Coin (PoS) Growth",
+      name: "OptyFi USDC Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2145,7 +2145,7 @@ const avalancheVaults: VaultType = {
   USDC: [
     {
       symbol: "opUSDCgrow",
-      name: "op USD Coin Growth",
+      name: "OptyFi USDC Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2157,7 +2157,7 @@ const avalancheVaults: VaultType = {
   USDCe: [
     {
       symbol: "opUSDC.egrow",
-      name: "op USD Coin Growth",
+      name: "OptyFi USDC.e Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
       vaultConfig: vaultConfigRP1,
@@ -2169,7 +2169,7 @@ const avalancheVaults: VaultType = {
   WAVAX: [
     {
       symbol: "opWAVAXgrow",
-      name: "op Wrapped AVAX Growth",
+      name: "OptyFi WAVAX Growth Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.hash,
       vaultConfig: vaultConfigRP1,
