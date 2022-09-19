@@ -28,16 +28,16 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
   let OPUSDCGROW_VAULT_ADDRESS: string;
   let SWAPPER_ADDRESS: string;
 
-  //EOA
+  //EOA mainnet
   const UNIWhaleAddress = "0x7d2d43e63666f45b40316b44212325625dbaeb40";
 
-  //tokens
+  //tokens mainnet
   const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
   const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
   const UNI = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
 
-  //contracts
+  //contracts mainnet
   const UniswapV2Router02Address = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 
   const swapDeadline = BigNumber.from("1000000000000000000000000000000000000");
@@ -49,14 +49,14 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
       OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
       vault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_ADDRESS);
 
-      await vault.setUnpaused(true);
-      await vault.setValueControlParams(
+      [owner, maker] = await ethers.getSigners();
+
+      await vault.connect(owner).setUnpaused(true);
+      await vault.connect(owner).setValueControlParams(
         "1000000000000", // userDepositCapUT: 1,000,000 USDC
         "0", // minimumDepositValueUT: 0 USDC
         "1000000000000000", // totalValueLockedLimitUT: 1,000,000,000 USDC
       );
-
-      [owner, maker] = await ethers.getSigners();
 
       await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
