@@ -151,7 +151,7 @@ describe("Integration tests", function () {
 
     it("9. Operator should be able to approve USDC liquidity pools", async function () {
       for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
-        let tokenPools: string[] = [];
+        const tokenPools: string[] = [];
         for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
           const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
           strategyDetail.strategy.map(step => {
@@ -173,8 +173,8 @@ describe("Integration tests", function () {
         this.registry.address,
       );
       for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
-        let poolRates: PoolRate[] = [];
-        let tokenPools: string[] = [];
+        const poolRates: PoolRate[] = [];
+        const tokenPools: string[] = [];
         let rate = 1;
         for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
           const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
@@ -339,12 +339,12 @@ describe("Integration tests", function () {
         ESSENTIAL_CONTRACTS.REGISTRY,
         this.registry.address,
       );
-      let poolAdapters: { pool: string; adapter: string }[] = [];
-      let tokenPools: string[] = [];
+      const poolAdapters: { pool: string; adapter: string }[] = [];
+      const tokenPools: string[] = [];
       for (const strategy of Object.keys(StrategiesByTokenByChain[fork]["USDC"])) {
         const strategyDetail = StrategiesByTokenByChain[fork]["USDC"][strategy];
         strategyDetail.strategy.map(step => {
-          let adapterAddress = step.adapterName !== undefined ? adapterNameToAddress.get(step.adapterName) : "";
+          const adapterAddress = step.adapterName !== undefined ? adapterNameToAddress.get(step.adapterName) : "";
           !tokenPools.includes(step.contract)
             ? poolAdapters.push({
                 pool: step.contract,
@@ -668,7 +668,7 @@ describe("Integration tests", function () {
       const claimedRewardBefore = await this.vault.balanceClaimedRewardToken(
         strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
       );
-      expect(
+      await expect(
         await this.vault
           .connect(this.signers.strategyOperator)
           .claimRewardToken(strategyDetail.strategy[strategyDetail.strategy.length - 1].contract),
