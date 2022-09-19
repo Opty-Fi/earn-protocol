@@ -39,7 +39,7 @@
 	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
 [submodule "contracts/protocol/optyfi-swapper"]
 	path = contracts/protocol/optyfi-swapper
-	url = https://github.com/Opty-Fi/optyfi-swapper.git
+	url = git@https://github.com/Opty-Fi/optyfi-swapper.git
 [submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
 	path = contracts/protocol/adapters/ethereum/team-defi-adapters
 	url = git@github.com:Opty-Fi/team-defi-adapters.git
