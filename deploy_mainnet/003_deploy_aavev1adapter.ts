@@ -17,7 +17,7 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("AaveV1Adapter");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
 
   const chainId = await getChainId();
   const networkName = network.name;
@@ -29,7 +29,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: [registryProxyAddress, "0x68d2BA9fc2009c39384F5a0e28a4f1E72E6AB1fA"],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -43,7 +43,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "AaveV1Adapter",
           address: aavev1Adapter.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, "0x68d2BA9fc2009c39384F5a0e28a4f1E72E6AB1fA"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -51,7 +51,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "AaveV1Adapter",
           address: aavev1Adapter.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, "0x68d2BA9fc2009c39384F5a0e28a4f1E72E6AB1fA"],
         });
       }
     }

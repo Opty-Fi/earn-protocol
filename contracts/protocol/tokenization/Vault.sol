@@ -264,7 +264,7 @@ contract Vault is
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
-        _emergencyBrake(_oraStratValueUT());
+        _emergencyBrake(true);
         _permit(_permitParams);
         return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
@@ -278,8 +278,7 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
-        _emergencyBrake(_oraStratValueUT());
-
+        _emergencyBrake(false);
         return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
     }
 
@@ -1063,46 +1062,13 @@ contract Vault is
     //===Private functions===//
 
     /**
-     * @notice It checks the min/max balance of the first transaction of the current block
-     *         with the value from the previous block.
-     *         It is not a protection against flash loan attacks rather just an arbitrary sanity check.
-     * @dev Mechanism to restrict the vault value deviating from maxVaultValueJump
-     * @param _vaultValue The value of vault in underlying token
+     * @dev Private function to prevent same block deposit-withdrawal
      */
-    function _emergencyBrake(uint256 _vaultValue) private {
-        uint256 _blockTransactions = blockToBlockVaultValues[block.number].length;
-        if (_blockTransactions > 0) {
-            blockToBlockVaultValues[block.number].push(
-                DataTypes.BlockVaultValue({
-                    actualVaultValue: _vaultValue,
-                    blockMinVaultValue: _vaultValue <
-                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue
-                        ? _vaultValue
-                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMinVaultValue,
-                    blockMaxVaultValue: _vaultValue >
-                        blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
-                        ? _vaultValue
-                        : blockToBlockVaultValues[block.number][_blockTransactions - 1].blockMaxVaultValue
-                })
-            );
-            require(
-                isMaxVaultValueJumpAllowed(
-                    _abs(
-                        blockToBlockVaultValues[block.number][_blockTransactions].blockMinVaultValue,
-                        blockToBlockVaultValues[block.number][_blockTransactions].blockMaxVaultValue
-                    ),
-                    _vaultValue
-                ),
-                Errors.EMERGENCY_BRAKE
-            );
+    function _emergencyBrake(bool _deposit) private {
+        if (_deposit) {
+            _blockTransaction[block.number] = true;
         } else {
-            blockToBlockVaultValues[block.number].push(
-                DataTypes.BlockVaultValue({
-                    actualVaultValue: _vaultValue,
-                    blockMinVaultValue: _vaultValue,
-                    blockMaxVaultValue: _vaultValue
-                })
-            );
+            require(!_blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
         }
     }
 }

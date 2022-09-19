@@ -168,9 +168,9 @@ describe("StrategyManager Library", () => {
           const outputToken = <ERC20>(
             await ethers.getContractAt(ERC20__factory.abi, steps[steps.length - 1].outputToken)
           );
-          let inititalBalance = await outputToken.balanceOf(this.testStrategyManager.address);
+          const inititalBalance = await outputToken.balanceOf(this.testStrategyManager.address);
           for (let i = 0; i < strategyStepCount; i++) {
-            let strategyConfigParams: StrategyConfigurationParams = {
+            const strategyConfigParams: StrategyConfigurationParams = {
               registryContract: this.registry.address,
               vault: this.testStrategyManager.address,
               underlyingToken: this.tokens[token].address,
@@ -208,7 +208,7 @@ describe("StrategyManager Library", () => {
           const depositAmount = await this.tokens[token].balanceOf(this.testStrategyManager.address);
           const strategyStepCountDeposit = await getDepositInternalTransactionCount(steps, this.registry);
           for (let i = 0; i < strategyStepCountDeposit; i++) {
-            let strategyConfigParams: StrategyConfigurationParams = {
+            const strategyConfigParams: StrategyConfigurationParams = {
               registryContract: this.registry.address,
               vault: this.testStrategyManager.address,
               underlyingToken: this.tokens[token].address,
@@ -227,7 +227,7 @@ describe("StrategyManager Library", () => {
             this.tokens[token],
           );
           for (let i = 0; i < strategyStepCountWithdraw; i++) {
-            let strategyConfigParams: StrategyConfigurationParams = {
+            const strategyConfigParams: StrategyConfigurationParams = {
               registryContract: this.registry.address,
               vault: this.testStrategyManager.address,
               underlyingToken: this.tokens[token].address,
