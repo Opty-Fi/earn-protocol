@@ -125,20 +125,22 @@ describe("Vault Protection", function () {
       expect(balanceAfter).eq(balanceBefore.sub(tokenAmount.div(2)));
     });
 
-    it("User should NOT be able to deposit to the vault twice in the same block, EMERGENCY_BRAKE", async function () {
-      await expect(
-        this.userContract
-          .connect(this.signers.owner)
-          .runTwoTxnUserDepositVault(tokenAmount, "0x", this.accountProof, this.codeProof),
-      ).to.be.revertedWith("16");
+    it("User should be able to deposit to the vault twice in the same block", async function () {
+      const balanceBefore = await this.vault.balanceOf(this.userContract.address);
+      await this.userContract
+        .connect(this.signers.owner)
+        .runTwoTxnUserDepositVault(tokenAmount, "0x", this.accountProof, this.codeProof);
+      const balanceAfter = await this.vault.balanceOf(this.userContract.address);
+      expect(balanceAfter).eq(balanceBefore.add(tokenAmount.mul(2)));
     });
 
-    it("User should NOT be able to withdraw from the vault twice in the same block, EMERGENCY_BRAKE", async function () {
-      await expect(
-        this.userContract
-          .connect(this.signers.owner)
-          .runTwoTxnUserWithdrawVault(tokenAmount.div(2), this.accountProof, this.codeProof),
-      ).to.be.revertedWith("16");
+    it("User should be able to withdraw from the vault twice in the same block, EMERGENCY_BRAKE", async function () {
+      const balanceBefore = await this.vault.balanceOf(this.userContract.address);
+      await this.userContract
+        .connect(this.signers.owner)
+        .runTwoTxnUserWithdrawVault(tokenAmount.div(2), this.accountProof, this.codeProof);
+      const balanceAfter = await this.vault.balanceOf(this.userContract.address);
+      expect(balanceAfter).eq(balanceBefore.sub(tokenAmount));
     });
 
     it("User should NOT be able to deposit and withdraw in the same block, EMERGENCY_BRAKE", async function () {

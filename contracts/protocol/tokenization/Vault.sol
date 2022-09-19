@@ -260,7 +260,7 @@ contract Vault is
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
-        _emergencyBrake();
+        _emergencyBrake(true);
         _permit(_permitParams);
         return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
     }
@@ -274,7 +274,7 @@ contract Vault is
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
-        _emergencyBrake();
+        _emergencyBrake(false);
         return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
     }
 
@@ -1060,8 +1060,11 @@ contract Vault is
     /**
      * @dev Private function to prevent same block deposit-withdrawal
      */
-    function _emergencyBrake() private {
-        require(!_blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
-        _blockTransaction[block.number] = true;
+    function _emergencyBrake(bool _deposit) private {
+        if (_deposit) {
+            _blockTransaction[block.number] = true;
+        } else {
+            require(!_blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
+        }
     }
 }
