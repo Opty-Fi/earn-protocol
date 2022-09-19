@@ -33,7 +33,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin", "USDC.e", "Growth", "grow"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
@@ -56,7 +56,6 @@ const func: DeployFunction = async ({
             MULTI_CHAIN_VAULT_TOKENS[chainId].USDCe.hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "USDC Coin", //string memory _name
             "USDC.e", //string memory _symbol
             "1", //uint256 _riskProfileCode
             "0", //uint256 _vaultConfiguration
@@ -78,7 +77,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opUSDCegrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC.e", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -86,7 +85,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opUSDCegrow",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC.e", "Growth", "grow"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }

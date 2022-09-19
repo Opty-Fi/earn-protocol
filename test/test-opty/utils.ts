@@ -8,7 +8,7 @@ import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, IWETH, Registry, Vault, ERC20Permit } from "../../typechain";
+import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit } from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
