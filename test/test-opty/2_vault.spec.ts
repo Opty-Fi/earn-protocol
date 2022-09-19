@@ -153,7 +153,7 @@ describe("::Vault", function () {
 
   describe("#constructor(address,string,string,string,string)", function () {
     it("name,symbol,decimals as expected", async function () {
-      expect(await this.vault.name()).to.eq("op USD Coin Growth");
+      expect(await this.vault.name()).to.eq("OptyFi USDC Growth Vault");
       expect(await this.vault.symbol()).to.eq("opUSDCgrow");
       expect(await this.vault.decimals()).to.eq(6);
     });
@@ -467,7 +467,7 @@ describe("::Vault", function () {
   });
 
   describe("#adminCall(bytes[])", function () {
-    it("fail adminCall() call by non operator", async function () {
+    it("fail adminCall() call by non governance", async function () {
       const _codes = [];
       const iface = new ethers.utils.Interface(["function approve(address,uint256)"]);
       _codes.push(
@@ -477,7 +477,7 @@ describe("::Vault", function () {
         ),
       );
       await expect(this.vault.connect(this.signers.bob).adminCall(_codes)).to.be.revertedWith(
-        "caller is not the operator",
+        "caller is not having governance",
       );
     });
   });

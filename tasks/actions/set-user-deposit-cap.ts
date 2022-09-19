@@ -7,12 +7,7 @@ import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.NAME, TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)
-  .addParam(
-    "userDepositCap",
-    "maximum amount in underlying token allowed to be deposited by user (in $ETH)",
-    "",
-    types.string,
-  )
+  .addParam("userDepositCap", "maximum amount in underlying token allowed to be deposited by user", "", types.string)
   .setAction(async ({ vault, userDepositCap }, { deployments, ethers }) => {
     if (vault === "") {
       throw new Error("vault address cannot be empty");
@@ -28,7 +23,7 @@ task(TASKS.ACTION_TASKS.SET_USER_DEPOSIT_CAP.NAME, TASKS.ACTION_TASKS.SET_USER_D
       console.log("current:", currentUserDepositCapUT);
       console.log("vault.setUserDepositCapUT()");
       if (currentUserDepositCapUT == BigNumber.from(userDepositCap)) {
-        console.log("userDepositCapUT is upto date on vault");
+        console.log("userDepositCapUT is up to date on vault");
         console.log("\n");
       } else {
         console.log("Updating userDepositCapUT on vault...");

@@ -14,7 +14,7 @@ export async function deployAndUpgradeWETH(): Promise<void> {
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
     },
   });
-  const opWETHgrow = await opWETHgrowFactory.deploy(RegistryProxy, "Wrapped Ether", "WETH", "Growth", "grow");
+  const opWETHgrow = await opWETHgrowFactory.deploy(RegistryProxy);
   const { getAddress } = ethers.utils;
   const opWETHgrowAddress = opWETHgrow.address;
 

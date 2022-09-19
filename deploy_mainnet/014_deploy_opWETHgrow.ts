@@ -4,7 +4,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { BigNumber } from "ethers";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -15,12 +14,12 @@ const func: DeployFunction = async ({
   network,
   tenderly,
   run,
-  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
+  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
   const claimAndHarvest = await deployments.get("ClaimAndHarvest");
@@ -30,57 +29,45 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const apeApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address);
+  const wethApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("only set APE hash");
+  if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+    console.log("only set WETH hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
-  if (!apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("approve APE and set hash");
+  if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+    console.log("approve WETH and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
     console.log("approve token and map hash");
     console.log("\n");
-    const feeData = await ethers.provider.getFeeData();
-    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash);
     await approveTokenAndMapToTokensHashTx.wait(1);
   }
 
   if (onlySetTokensHash.length > 0) {
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
-    const feeData = await ethers.provider.getFeeData();
-    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
+      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash);
     await onlyMapToTokensHashTx.wait(1);
   }
 
   const networkName = network.name;
-  const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAPEaggr", {
+
+  const result = await deploy("opWETHgrow", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -88,44 +75,45 @@ const func: DeployFunction = async ({
       deployedBytecode: artifact.deployedBytecode,
     },
     args: [registryProxyAddress],
-    log: true,
-    skipIfAlreadyDeployed: true,
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
     },
+    log: true,
+    skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
-      proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEaggr_Implementation",
+      proxyContract: {
+        abi: artifactVaultProxyV2.abi,
+        bytecode: artifactVaultProxyV2.bytecode,
+        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
+      },
       execute: {
         init: {
           methodName: "initialize",
           args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash, //bytes32 _underlyingTokensHash
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "APE", //string memory _symbol
-            "2", //uint256 _riskProfileCode
-            "0", //uint256 _vaultConfiguration
-            "0", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "0", //uint256 _totalValueLockedLimitUT
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "WETH",
+            "1",
+            "0",
+            "0",
+            "0",
+            "0",
           ],
         },
       },
     },
-    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAPEaggr");
+      const vault = await deployments.get("opWETHgrow");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAPEaggr",
+          name: "opWETHgrow",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -133,7 +121,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opAPEaggr",
+          name: "opWETHgrow",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -142,5 +130,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["opAPEaggr"];
+func.tags = ["opWETHgrow"];
 func.dependencies = ["Registry"];

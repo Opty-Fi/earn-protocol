@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
 //  libraries
@@ -12,6 +12,20 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  * @notice Contains mix of permissioned and permissionless vault methods
  */
 interface IVault {
+    /**
+     * @notice Set vault name
+     * @dev governance can change the name
+     * @param _name name of vault
+     */
+    function setName(string calldata _name) external;
+
+    /**
+     * @notice Assign vault symbol
+     * @dev governance can change the symbol
+     * @param _symbol symbol of the vault
+     */
+    function setSymbol(string calldata _symbol) external;
+
     /**
      * @notice Assign a risk profile code
      * @dev function to set code of risk profile

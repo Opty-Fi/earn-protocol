@@ -48,6 +48,8 @@ export type STRATEGY = {
   token: string;
   strategy: STRATEGY_DATA[];
   riskProfileCode: number;
+  name?: string;
+  description?: string;
 };
 
 export type STRATEGIES = {
@@ -188,7 +190,10 @@ export type StrategyConfigurationParams = {
 };
 
 export type VaultDetailType = {
+  symbol: string;
   name: string;
+  underlyingToken: string;
+  underlyingTokensHash: string;
   vaultConfig: BigNumberish;
   userDepositCapUT: BigNumberish;
   minimumDepositValueUT: BigNumberish;

@@ -210,5 +210,9 @@ export default {
       NAME: "set-best-strategy-multisig",
       DESCRIPTION: "Set the best strategy for a specific token via multisig",
     },
+    CHANGE_VAULT_PROXY_V2_ADMIN: {
+      NAME: "change-vault-proxy-v2-admin",
+      DESCRIPTION: "Change the vault proxy admin",
+    },
   },
 };

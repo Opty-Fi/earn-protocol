@@ -30,22 +30,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const apeApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address);
+  const crvApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("only set APE hash");
+  if (crvApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash)) {
+    console.log("only set CRV hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address],
     ]);
   }
-  if (!apeApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash)) {
-    console.log("approve APE and set hash");
+  if (!crvApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash)) {
+    console.log("approve CRV and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].APE.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -80,7 +80,7 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opAPEaggr", {
+  const result = await deploy("opCRVaggr", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -88,12 +88,12 @@ const func: DeployFunction = async ({
       deployedBytecode: artifact.deployedBytecode,
     },
     args: [registryProxyAddress],
-    log: true,
-    skipIfAlreadyDeployed: true,
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
       "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
     },
+    log: true,
+    skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: 0,
@@ -103,16 +103,16 @@ const func: DeployFunction = async ({
         init: {
           methodName: "initialize",
           args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].APE.hash, //bytes32 _underlyingTokensHash
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "APE", //string memory _symbol
-            "2", //uint256 _riskProfileCode
-            "0", //uint256 _vaultConfiguration
-            "0", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "0", //uint256 _totalValueLockedLimitUT
+            registryProxyAddress,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "CRV",
+            "2",
+            "0",
+            "0",
+            "0",
+            "0",
           ],
         },
       },
@@ -122,10 +122,10 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opAPEaggr");
+      const vault = await deployments.get("opCRVaggr");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opAPEaggr",
+          name: "opCRVaggr",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -133,7 +133,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opAPEaggr",
+          name: "opCRVaggr",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -142,5 +142,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["opAPEaggr"];
+func.tags = ["opCRVaggr"];
 func.dependencies = ["Registry"];

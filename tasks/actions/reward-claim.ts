@@ -27,7 +27,7 @@ task(TASKS.ACTION_TASKS.REWARD_CLAIM.NAME, TASKS.ACTION_TASKS.REWARD_CLAIM.DESCR
     try {
       const vaultInstance = <Vault>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
       console.log("Claiming rewards...");
-      console.log("Inital reward token balance:", await vaultInstance.balanceClaimedRewardToken(liquidityPool));
+      console.log("Initial reward token balance:", await vaultInstance.balanceClaimedRewardToken(liquidityPool));
       const claimTx = await vaultInstance.claimRewardToken(liquidityPool);
       await claimTx.wait(1);
       console.log("Claimed at tx:", claimTx.blockHash);

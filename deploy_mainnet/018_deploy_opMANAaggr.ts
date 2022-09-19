@@ -21,7 +21,7 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
   const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -52,6 +52,7 @@ const func: DeployFunction = async ({
     console.log("approve token and map hash");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(approveTokenAndMapHash, null, 4));
     const approveTokenAndMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
@@ -66,6 +67,7 @@ const func: DeployFunction = async ({
     console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
+    console.log(JSON.stringify(onlySetTokensHash, null, 4));
     const onlyMapToTokensHashTx = await registryInstance
       .connect(operator)
       ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
@@ -85,7 +87,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
@@ -96,6 +98,7 @@ const func: DeployFunction = async ({
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEaggr_Implementation",
       execute: {
         init: {
           methodName: "initialize",
@@ -104,7 +107,6 @@ const func: DeployFunction = async ({
             MULTI_CHAIN_VAULT_TOKENS[chainId].MANA.hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "Decentraland MANA", //string memory _name
             "MANA", //string memory _symbol
             "2", //uint256 _riskProfileCode
             "0", //uint256 _vaultConfiguration
@@ -125,7 +127,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opMANAaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -133,7 +135,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opMANAaggr",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Decentraland MANA", "MANA", "Aggressive", "aggr"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }
