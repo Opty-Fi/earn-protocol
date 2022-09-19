@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 // helper contracts
 import { ZapInternal } from "./ZapInternal.sol";
-import { Ownable } from "@solidstate/contracts/access/ownable/Ownable.sol";
+import { OwnableInternal } from "@solidstate/contracts/access/ownable/OwnableInternal.sol";
 
 // libraries
 import { DataTypes } from "./lib/DataTypes.sol";
@@ -16,7 +16,7 @@ import { IZap } from "./IZap.sol";
  * @title Zap
  * @author OptyFi
  */
-contract Zap is IZap, ZapInternal, Ownable {
+contract Zap is IZap, ZapInternal, OwnableInternal {
     using ZapStorage for ZapStorage.Layout;
 
     /**
