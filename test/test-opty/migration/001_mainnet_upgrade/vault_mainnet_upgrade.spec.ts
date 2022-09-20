@@ -185,15 +185,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
     // ====================================================
     await deployAndUpgradeUSDC();
     this.opUSDCearn = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCearnProxy.address);
-    expect(await this.opUSDCearn.name()).to.eq("OptyFi USD Coin Earn");
-    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
-    expect(await this.opUSDCearn.decimals()).to.eq(6);
     // ====================================================
     await deployAndUpgradeWETH();
     this.opWETHearn = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opWETHearnProxy.address);
-    expect(await this.opWETHearn.name()).to.eq("OptyFi Wrapped Ether Earn");
-    expect(await this.opWETHearn.symbol()).to.eq("opWETHearn");
-    expect(await this.opWETHearn.decimals()).to.eq(18);
     // =======================================================
     await deployAndUpgradeRegistry(fork);
     await deployAndUpgradeRiskManager();
@@ -211,8 +205,8 @@ describe("Vault Ethereum on-chain upgrade", () => {
     );
     expect(await this.opUSDCearn.underlyingToken()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address);
     expect(await this.opUSDCearn.underlyingTokensHash()).to.eq(ethers.constants.HashZero);
-    expect(await this.opUSDCearn.name()).to.eq("OptyFi USD Coin Earn");
-    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
+    expect(await this.opUSDCearn.name()).to.eq("op USD Coin Growth");
+    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCgrow");
     expect(await this.opUSDCearn.decimals()).to.eq(6);
     expect(await this.opUSDCearn.vaultConfiguration()).to.eq("100");
     expect(await this.opUSDCearn.userDepositCapUT()).to.eq(this.opUSDCearnGasOwedToOperator); //gasOwedToOperator
@@ -228,8 +222,8 @@ describe("Vault Ethereum on-chain upgrade", () => {
     );
     expect(await this.opWETHearn.underlyingToken()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].WETH.address);
     expect(await this.opWETHearn.underlyingTokensHash()).to.eq(ethers.constants.HashZero);
-    expect(await this.opWETHearn.name()).to.eq("OptyFi Wrapped Ether Earn");
-    expect(await this.opWETHearn.symbol()).to.eq("opWETHearn");
+    expect(await this.opWETHearn.name()).to.eq("op Wrapped Ether Growth");
+    expect(await this.opWETHearn.symbol()).to.eq("opWETHgrow");
     expect(await this.opWETHearn.decimals()).to.eq(18);
     expect(await this.opWETHearn.vaultConfiguration()).to.eq("100");
     expect(await this.opWETHearn.userDepositCapUT()).to.eq(this.opWETHearnGasOwedToOperator); //gasOwedToOperator
