@@ -20,7 +20,9 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
+  const strategyManager = await deployments.get("StrategyManager");
+  const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
@@ -72,9 +74,13 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "USD Coin", "USDC", "Save", "save"],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
+    },
     proxy: {
       owner: admin,
       upgradeIndex: 0,
@@ -86,11 +92,23 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USD Coin", "USDC", "0"],
+          args: [
+            registryProxyAddress, //address _registry
+            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
+            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
+            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
+            "USDC", //string memory _symbol
+            "0", //uint256 _riskProfileCode
+            "0", //uint256 _vaultConfiguration
+            "0", //uint256 _userDepositCapUT
+            "0", //uint256 _minimumDepositValueUT
+            "0", //uint256 _totalValueLockedLimitUT
+          ],
         },
       },
     },
   });
+
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       const vault = await deployments.get("opUSDCsave");
@@ -98,7 +116,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "opUSDCsave",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Save", "save"],
+          constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -106,7 +124,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "opUSDCsave",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Save", "save"],
+          constructorArguments: [registryProxyAddress],
         });
       }
     }
