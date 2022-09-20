@@ -209,7 +209,7 @@ export async function deployVault(
   await executeFunc(
     vault,
     owner,
-    "initialize(address,bytes32,bytes32,bytes32,string,string,uint256,uint256,uint256,uint256,uint256)",
+    "initialize(address,bytes32,bytes32,bytes32,string,uint256,uint256,uint256,uint256,uint256)",
     [
       registry,
       underlyingTokenHash,
@@ -296,6 +296,7 @@ export async function deployVaultWithHash(
     },
   });
   const contract = <Contract>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vaultDeployment.address);
+  console.log(await contract.name());
   const hash = vaultDeployment.transactionHash;
   return { contract, hash };
 }
