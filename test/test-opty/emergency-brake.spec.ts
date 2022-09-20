@@ -25,11 +25,11 @@ describe("Vault Protection", function () {
   before(async function () {
     const MAX_AMOUNT = BigNumber.from(1000000000000);
     await deployments.fixture();
-    const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
-    this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
+    this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
-    this.vaultToken = <ERC20>await ethers.getContractAt(ERC20__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
+    this.vaultToken = <ERC20>await ethers.getContractAt(ERC20__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.owner = signers[0];
@@ -65,7 +65,7 @@ describe("Vault Protection", function () {
     );
     const UserContractFactory = await hre.ethers.getContractFactory(TESTING_CONTRACTS.TESTING_EMERGENCY_BRAKE);
     this.userContract = await UserContractFactory.deploy(
-      OPUSDCGROW_VAULT_ADDRESS,
+      OPUSDCEARN_VAULT_ADDRESS,
       MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
     );
 
