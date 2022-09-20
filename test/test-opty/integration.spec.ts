@@ -455,7 +455,7 @@ describe("Integration tests", function () {
         )
       );
 
-      expect(await this.vault.name()).to.equal("op USD Coin Aggressive");
+      expect(await this.vault.name()).to.equal("OptyFi USD Coin Aggressive");
       expect(await this.vault.symbol()).to.equal("opUSDCaggr");
       expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
       const actualRiskProfileCode = getRiskProfileCode(await this.vault.vaultConfiguration());

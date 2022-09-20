@@ -1066,7 +1066,7 @@ Options:
 ```
 yarn hardhat set-value-control-params \
   --network localhost \
-  --vault-symbol opUSDCgrow \
+  --vault-symbol opUSDCearn \
   --user-deposit-cap 10000000000000000000
   --minimum-deposit-value 100000
   --total-value-locked-limit 10000000000000000000
