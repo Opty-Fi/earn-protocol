@@ -6,12 +6,12 @@ import { ERC20, INewoStaking, Registry, Vault } from "../../typechain";
 async function main() {
   const newoLPStaking = ethers.utils.getAddress("0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a");
   const NEWO = ethers.utils.getAddress("0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96");
-  const opNEWOaggrProxyAddress = ethers.utils.getAddress("0xF10aF2cf774B40bd4411fDF91d7C22003B46a130");
+  const opNEWOinvstProxyAddress = ethers.utils.getAddress("0xF10aF2cf774B40bd4411fDF91d7C22003B46a130");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const governanceSigner = await ethers.getSigner(await registryInstance.governance());
   const vaultInstance = <Vault>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOaggrProxyAddress, governanceSigner)
+    await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOinvstProxyAddress, governanceSigner)
   );
   const newoLPStakingInstance = <INewoStaking>await ethers.getContractAt("INewoStaking", newoLPStaking);
   const newoInstance = <ERC20>await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, NEWO);

@@ -9,7 +9,7 @@ on:
 
 
 jobs:
-  lint-compile-test:
+  lint-compile-analyze-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -53,6 +53,12 @@ jobs:
       - name: Optyfi-SDK Mainnet
         run: |
           yarn typechain && yarn optyfi-sdk:mainnet
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.0
+        continue-on-error: true
+        id: slither
+        with:
+          node-version: 16
       - name: Test
         run: |
           yarn test-fast:mainnet

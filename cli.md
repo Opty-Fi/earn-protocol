@@ -378,7 +378,7 @@ Options:
 ```
   yarn hardhat unpause-vault \
   --network localhost \
-  --vault-symbol opUSDCgrow
+  --vault-symbol opUSDCearn
   --state true
 ```
 
@@ -423,7 +423,7 @@ Options:
 ```
   yarn hardhat vault-actions \
   --network localhost \
-  --vault-symbol opUSDCgrow \
+  --vault-symbol opUSDCearn \
   --user 0x0000000000000000000000000000000000000000 \
   --action deposit \
   --beneficiary 0x0000000000000000000000000000000000000000 \
@@ -1044,7 +1044,7 @@ Options:
 ```
 yarn hardhat set-vault-configuration \
   --network localhost \
-  --vault-symbol opUSDCgrow \
+  --vault-symbol opUSDCearn \
   --vault-configuration 2718155043500073612906634403139041842518004532954031278126931986324444413952
 ```
 
@@ -1072,10 +1072,10 @@ yarn hardhat set-value-control-params \
   --total-value-locked-limit 10000000000000000000
 ```
 
-### change-polygon-opusdcgrow-proxy-v2-admin
+### change-polygon-opusdcearn-proxy-v2-admin
 
 ```
-Usage: change polygon opUSDCgrow vault proxy v2 admin
+Usage: change polygon opUSDCearn vault proxy v2 admin
 
 Options:
 --new-admin required <string> address of the new admin
@@ -1085,7 +1085,7 @@ Options:
 - Example:
 
 ```
-yarn hardhat change-polygon-opusdcgrow-proxy-v2-admin
+yarn hardhat change-polygon-opusdcearn-proxy-v2-admin
   --network localhost \
   --new-admin 0x0000000000000000000000000000000000000000
 ```
@@ -1106,7 +1106,7 @@ Options:
 ```
 yarn hardhat change-vault--proxy-v2-admin
   --network localhost \
-  --vault-symbol opAAVEaggr \
+  --vault-symbol opAAVEinvst \
   --new-admin 0x0000000000000000000000000000000000000000
 ```
 
@@ -1127,7 +1127,7 @@ Options:
 ```
 yarn hardhat set-best-strategy-rebalance-multisig
   --network localhost \
-  --vault-symbol opAAVEaggr \
+  --vault-symbol opAAVEinvst \
   --token-symbol AAVE
   --strategy-name aave-DEPOSIT-SushiswapPool-AAVE-WETH-SLP
 ```

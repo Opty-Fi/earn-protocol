@@ -86,8 +86,9 @@ export async function configopUSDCgrow(strategyProviderAddress: string, fork: eE
   );
   const currentBestStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
   const expectedStrategySteps =
-    StrategiesByTokenByChain[fork].USDC["usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"]
-      .strategy;
+    StrategiesByTokenByChain[fork]["Earn"].USDC[
+      "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"
+    ].strategy;
   const expectedStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

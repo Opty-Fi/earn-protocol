@@ -128,7 +128,8 @@ describe("::Vault", function () {
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
-    const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPWETHEARN_VAULT_ADDRESS = (await deployments.get("opWETHearn")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -142,7 +143,8 @@ describe("::Vault", function () {
     this.strategyProvider = <StrategyProvider>(
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
-    this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
+    this.opUSDCearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
+    this.opWETHearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPWETHEARN_VAULT_ADDRESS);
     this.usdc = <IncentivisedERC20>(
       await ethers.getContractAt(IncentivisedERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
