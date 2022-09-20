@@ -90,7 +90,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
           totalValueLockedLimitUt,
           owner,
           admin,
-          name,
           symbol,
           riskProfileCode,
         );
