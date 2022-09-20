@@ -2628,7 +2628,7 @@ const avalancheVaults: VaultType = {
 
     USDCe: {
       symbol: "opUSDC.eearn",
-      name: "OptyFi USDC Earn Vault",
+      name: "OptyFi USDC.e Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
       vaultConfig: vaultConfigRP1,
