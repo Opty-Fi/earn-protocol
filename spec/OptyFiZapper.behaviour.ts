@@ -418,9 +418,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           const expectedReturns = await uniRouter.getAmountsOut(usdcZapOutAmount, [USDC, WETH]);
 
           const deadline = ethers.constants.MaxUint256;
-          const { v, r, s } = await getPermitSignature(maker, usdcVault, instance.address, usdcZapOutAmount, deadline, {
-            name: "OptyFi Vault Name",
-          });
+          const { v, r, s } = await getPermitSignature(maker, usdcVault, instance.address, usdcZapOutAmount, deadline);
           const dataPermit = ethers.utils.defaultAbiCoder.encode(
             ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
             [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
@@ -482,9 +480,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           const expectedReturns = await uniRouter.getAmountsOut(usdcZapOutAmount, [USDC, WETH]);
 
           const deadline = ethers.constants.MaxUint256;
-          const { v, r, s } = await getPermitSignature(maker, usdcVault, instance.address, usdcZapOutAmount, deadline, {
-            name: "OptyFi Vault Name",
-          });
+          const { v, r, s } = await getPermitSignature(maker, usdcVault, instance.address, usdcZapOutAmount, deadline);
           const dataPermit = ethers.utils.defaultAbiCoder.encode(
             ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
             [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
