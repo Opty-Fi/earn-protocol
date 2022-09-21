@@ -72,7 +72,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
         if (!riskProfile.exists) {
           throw new Error("risk profile does not exist");
         }
-        const { name, symbol } = await getTokenInforWithAddress(hre, token);
+        const symbol = (await getTokenInforWithAddress(hre, token)).symbol;
 
         console.log(`Deploying Vault: ${vaultName}...`);
         const vault = await deployVaultWithHash(

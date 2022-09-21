@@ -145,9 +145,6 @@ describe("Vault Ethereum on-chain upgrade", () => {
     // ====================================================
     await deployAndUpgradeUSDC();
     this.opUSDCearn = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCearnProxy.address);
-    expect(await this.opUSDCearn.name()).to.eq("OptyFi USDC Coin (PoS) Earn");
-    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
-    expect(await this.opUSDCearn.decimals()).to.eq(6);
     // =======================================================
     await deployAndUpgradeRegistry(fork);
     await deployAndUpgradeRiskManager();
@@ -169,8 +166,8 @@ describe("Vault Ethereum on-chain upgrade", () => {
     expect(await this.opUSDCearn.underlyingTokensHash()).to.eq(
       "0xc2851064805ec339e3448aa6a11e612938131e6f0637ddf761ae5e5cfeee5996",
     );
-    expect(await this.opUSDCearn.name()).to.eq("OptyFi USDC Coin (PoS) Earn");
-    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
+    expect(await this.opUSDCearn.name()).to.eq("op USDC Coin (PoS) Growth");
+    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCgrow");
     expect(await this.opUSDCearn.decimals()).to.eq(6);
     expect(await this.opUSDCearn.vaultConfiguration()).to.eq(
       BigNumber.from("907136802102229675083754464877550363794833538656521846974622833684986724352"),
