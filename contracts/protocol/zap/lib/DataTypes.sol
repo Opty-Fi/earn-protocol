@@ -16,7 +16,6 @@ library DataTypes {
      * @param permit ERC2612 permit
      * @param deadline timestamp until which swap may be fulfilled
      * @param accountsProof merkle proof for caller
-     * @param codesProof merkle proof for code hash if caller is smart contract
      */
     struct ZapData {
         address vault;
@@ -28,6 +27,5 @@ library DataTypes {
         uint256[] startIndexes;
         uint256[] values;
         bytes32[] accountsProof;
-        bytes32[] codesProof;
     }
 }
