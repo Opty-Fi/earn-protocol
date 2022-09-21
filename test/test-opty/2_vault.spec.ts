@@ -29,8 +29,8 @@ import {
   Vault,
   Vault__factory,
   TestVault,
-  IncentivisedERC20,
-  IncentivisedERC20__factory,
+  ERC20Permit,
+  ERC20Permit__factory,
 } from "../../typechain";
 import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
@@ -141,8 +141,8 @@ describe("::Vault", function () {
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
     this.opUSDCearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
-    this.usdc = <IncentivisedERC20>(
-      await ethers.getContractAt(IncentivisedERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
+    this.usdc = <ERC20Permit>(
+      await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
 
@@ -1316,56 +1316,18 @@ describe("::Vault", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
     it("fail harvestSome() call by non strategyOperator", async function () {
-      await expect(
-        this.opUSDCearn.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000)),
-      ).to.be.revertedWith("caller is not the strategyOperator");
-    });
-
-    it("claimRewardToken(), fails nothing to claim", async function () {
-      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
-      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
-      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
-      const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
-      const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      await expect(this.opUSDCearn.claimRewardToken(_pool)).to.emit(this.opUSDCearn, "RewardTokenClaimed");
-      const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      expect(_balanceRTAfter).to.gt(_balanceRTBefore);
-    });
-  });
-
-  describe("#harvestSome(address,uint256)", function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-
-    it("fail harvestSome() call by non strategyOperator", async function () {
-      await expect(
-        this.opUSDCearn.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000)),
-      ).to.be.revertedWith("caller is not the strategyOperator");
+      await expect(this.opUSDCearn.connect(this.signers.bob).harvest(_pool, BigNumber.from(1000))).to.be.revertedWith(
+        "caller is not the strategyOperator",
+      );
     });
 
     it("harvestSome()", async function () {
       const _balanceClaimed = await this.opUSDCearn.balanceClaimedRewardToken(_pool);
       const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvestSome(_pool, BigNumber.from(_balanceClaimed.div(2)))).to.emit(
+      await expect(this.opUSDCearn.harvest(_pool, BigNumber.from(_balanceClaimed.div(2)))).to.emit(
         this.opUSDCearn,
         "Harvested",
       );
-      const _balanceAfterUT = await this.opUSDCearn.balanceUT();
-      expect(_balanceAfterUT).gt(_balanceBeforeUT);
-    });
-  });
-
-  describe("#harvestAll(address)", function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-
-    it("fail harvestAll() call by non strategyOperator", async function () {
-      await expect(this.opUSDCearn.connect(this.signers.bob).harvestAll(_pool)).to.be.revertedWith(
-        "caller is not the strategyOperator",
-      );
-    });
-
-    it("harvestAll()", async function () {
-      const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvestAll(_pool)).to.emit(this.opUSDCearn, "Harvested");
       const _balanceAfterUT = await this.opUSDCearn.balanceUT();
       expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });
