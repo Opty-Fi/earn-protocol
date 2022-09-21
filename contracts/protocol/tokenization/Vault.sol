@@ -547,7 +547,8 @@ contract Vault is
      */
     function _permit(bytes calldata _permitParams) internal {
         if (_permitParams.length == 32 * 7) {
-            (bool success, ) = underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
+            (bool success, ) =
+                underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
             require(success, Errors.PERMIT_FAILED);
         }
 
@@ -644,11 +645,12 @@ contract Vault is
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
-            uint256 _oraAmountLP = investStrategySteps.getOraSomeValueLP(
-                address(registryContract),
-                underlyingToken,
-                _expectedStratWithdrawUT
-            );
+            uint256 _oraAmountLP =
+                investStrategySteps.getOraSomeValueLP(
+                    address(registryContract),
+                    underlyingToken,
+                    _expectedStratWithdrawUT
+                );
 
             _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
 
@@ -684,9 +686,8 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount = _investStrategySteps.getDepositInternalTransactionCount(
-            address(registryContract)
-        );
+        uint256 _internalTransactionCount = 
+            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -894,13 +895,14 @@ contract Vault is
         uint256 _deductions,
         bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = userDepositPermitted(
-            _user,
-            _addUserDepositUT,
-            _userDepositUTWithDeductions,
-            _deductions,
-            _accountsProof
-        );
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
+            userDepositPermitted(
+                _user,
+                _addUserDepositUT,
+                _userDepositUTWithDeductions,
+                _deductions,
+                _accountsProof
+            );
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -937,11 +939,12 @@ contract Vault is
         uint256 _userWithdrawVT,
         bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) = userWithdrawPermitted(
-            _user,
-            _userWithdrawVT,
-            _accountsProof
-        );
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
+            userWithdrawPermitted(
+                _user,
+                _userWithdrawVT,
+                _accountsProof
+            );
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
