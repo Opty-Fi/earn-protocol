@@ -692,8 +692,11 @@ describe("Integration tests", function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const balanceBeforeUT = await this.vault.balanceUT();
+      const _balanceClaimed = await this.vault.balanceClaimedRewardToken(strategyDetail.strategy[0].contract);
       await expect(
-        await this.vault.connect(this.signers.strategyOperator).harvestAll(strategyDetail.strategy[0].contract),
+        await this.vault
+          .connect(this.signers.strategyOperator)
+          .harvest(strategyDetail.strategy[0].contract, _balanceClaimed),
       ).to.emit(this.vault, "Harvested");
       const balanceAfterUT = await this.vault.balanceUT();
       expect(balanceAfterUT).gt(balanceBeforeUT);

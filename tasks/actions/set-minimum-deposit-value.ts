@@ -17,6 +17,10 @@ task(TASKS.ACTION_TASKS.SET_MINIMUM_DEPOSIT_VALUE.NAME, TASKS.ACTION_TASKS.SET_M
       throw new Error("vault address is invalid");
     }
 
+    if (!BigNumber.from(minimumDepositValue).gte("0")) {
+      throw new Error("invalid amount");
+    }
+
     try {
       const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vault);
       const currMinimumDepositValueUT = await vaultInstance.minimumDepositValueUT();

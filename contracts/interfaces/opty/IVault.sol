@@ -175,17 +175,33 @@ interface IVault {
     function claimRewardToken(address _liquidityPool) external;
 
     /**
-     * @notice function to swap some of claimed _rewardTokenAmount for the vault's underlying tokens
+     * @notice function to swap the claimed _rewardTokenAmount for the vault's underlying tokens
      * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
      * @param _rewardTokenAmount amount of reward token to harvest/swap
      */
-    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external;
+    function harvest(address _liquidityPool, uint256 _rewardTokenAmount) external;
 
     /**
-     * @notice function to swap all claimed _rewardTokenAmount for the vault's underlying tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     * @notice Allow passing a signed message to approve spending
+     * @dev implements the permit function as for
+     * https://github.com/ethereum/EIPs/blob/8a34d644aacf0f9f8f00815307fd7dd5da07655f/EIPS/eip-2612.md
+     * @param _owner The owner of the funds
+     * @param _spender The spender
+     * @param _value The amount
+     * @param _deadline The deadline timestamp, type(uint256).max for max deadline
+     * @param _v Signature param
+     * @param _s Signature param
+     * @param _r Signature param
      */
-    function harvestAll(address _liquidityPool) external;
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external;
 
     /**
      * @notice Retrieve underlying token balance in the vault
