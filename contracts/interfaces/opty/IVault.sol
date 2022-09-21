@@ -175,17 +175,11 @@ interface IVault {
     function claimRewardToken(address _liquidityPool) external;
 
     /**
-     * @notice function to swap some of claimed _rewardTokenAmount for the vault's underlying tokens
+     * @notice function to swap the claimed _rewardTokenAmount for the vault's underlying tokens
      * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
      * @param _rewardTokenAmount amount of reward token to harvest/swap
      */
-    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external;
-
-    /**
-     * @notice function to swap all claimed _rewardTokenAmount for the vault's underlying tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
-     */
-    function harvestAll(address _liquidityPool) external;
+    function harvest(address _liquidityPool, uint256 _rewardTokenAmount) external;
 
     /**
      * @notice Allow passing a signed message to approve spending
