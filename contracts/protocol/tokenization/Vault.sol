@@ -338,7 +338,7 @@ contract Vault is
         //solium-disable-next-line
         require(block.timestamp <= _deadline, Errors.INVALID_EXPIRATION);
         uint256 _currentValidNonce = _nonces[_owner];
-        bytes32 _digest = 
+        bytes32 _digest =
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -591,9 +591,8 @@ contract Vault is
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) = underlyingToken.call(
-                abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams)
-            );
+            (bool success, ) = 
+                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
@@ -933,13 +932,8 @@ contract Vault is
         uint256 _deductions,
         bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = userDepositPermitted(
-            _user,
-            _addUserDepositUT,
-            _userDepositUTWithDeductions,
-            _deductions,
-            _accountsProof
-        );
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
+            userDepositPermitted(_user, _addUserDepositUT, _userDepositUTWithDeductions, _deductions, _accountsProof);
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
