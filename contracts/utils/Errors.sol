@@ -11,7 +11,6 @@ library Errors {
     string public constant NOT_A_CONTRACT = "6";
     string public constant TOKEN_NOT_APPROVED = "7";
     string public constant EOA_NOT_WHITELISTED = "8";
-    string public constant CA_NOT_WHITELISTED = "9";
     string public constant MINIMUM_USER_DEPOSIT_VALUE_UT = "10";
     string public constant TOTAL_VALUE_LOCKED_LIMIT_UT = "11";
     string public constant USER_DEPOSIT_CAP_UT = "12";

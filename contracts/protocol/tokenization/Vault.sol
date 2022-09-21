@@ -76,7 +76,6 @@ contract Vault is
      * @dev Initialize the vault
      * @param _registry The address of registry for helping get the protocol configuration
      * @param _underlyingTokensHash The keccak256 hash of the tokens and chain id
-     * @param _whitelistedCodesRoot Whitelisted codes root hash
      * @param _whitelistedAccountsRoot Whitelisted accounts root hash
      * @param _symbol The symbol of the underlying  asset
      * @param _riskProfileCode Risk profile code of this vault
@@ -88,7 +87,6 @@ contract Vault is
     function initialize(
         address _registry,
         bytes32 _underlyingTokensHash,
-        bytes32 _whitelistedCodesRoot,
         bytes32 _whitelistedAccountsRoot,
         string memory _symbol,
         uint256 _riskProfileCode,
@@ -105,7 +103,6 @@ contract Vault is
         _setName(string(abi.encodePacked("OptyFi ", _symbol, " ", _riskProfile.name, " Vault")));
         _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
         _setDecimals(IncentivisedERC20(underlyingToken).decimals());
-        _setWhitelistedCodesRoot(_whitelistedCodesRoot);
         _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
         _setVaultConfiguration(_vaultConfiguration);
         _setValueControlParams(_userDepositCapUT, _minimumDepositValueUT, _totalValueLockedLimitUT);
@@ -188,13 +185,6 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external override onlyGovernance {
-        _setWhitelistedCodesRoot(_whitelistedCodesRoot);
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
     function setEmergencyShutdown(bool _active) external override onlyGovernance {
         vaultConfiguration = vaultConfiguration & 0xFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         if (_active) {
@@ -260,13 +250,12 @@ contract Vault is
         address _beneficiary,
         uint256 _userDepositUT,
         bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
         _emergencyBrake(true);
         _permit(_permitParams);
-        return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
+        return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof);
     }
 
     /**
@@ -275,11 +264,10 @@ contract Vault is
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _emergencyBrake(false);
-        return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
+        return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof);
     }
 
     /**
@@ -409,15 +397,10 @@ contract Vault is
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) public view override returns (bool, string memory) {
         if ((vaultConfiguration & (1 << 250)) != 0 && !_verifyWhitelistedAccount(_accountLeaf(_user), _accountsProof)) {
             return (false, Errors.EOA_NOT_WHITELISTED);
-        }
-        //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && !_noGreyList(_user, _accountsProof, _codesProof)) {
-            return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUTWithDeductions < minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
@@ -453,15 +436,10 @@ contract Vault is
     function userWithdrawPermitted(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) public view override returns (bool, string memory) {
         if ((vaultConfiguration & (1 << 250)) != 0 && !_verifyWhitelistedAccount(_accountLeaf(_user), _accountsProof)) {
             return (false, Errors.EOA_NOT_WHITELISTED);
-        }
-        //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && !_noGreyList(_user, _accountsProof, _codesProof)) {
-            return (false, Errors.CA_NOT_WHITELISTED);
         }
         // require: 0 < withdrawal amount in vault tokens < user's vault token balance
         if (!(_userWithdrawVT > 0 && _userWithdrawVT <= balanceOf(_user))) {
@@ -574,8 +552,9 @@ contract Vault is
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) =
-                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
+            (bool success, ) = underlyingToken.call(
+                abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams)
+            );
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
@@ -589,14 +568,12 @@ contract Vault is
      *         checking for TVL limit reached.
      * @param _userDepositUT amount to deposit in underlying token
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _depositVaultFor(
         address _beneficiary,
         bool _addUserDepositUT,
         uint256 _userDepositUT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
@@ -606,7 +583,7 @@ contract Vault is
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
-        _checkUserDeposit(msg.sender, _addUserDepositUT, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
+        _checkUserDeposit(msg.sender, _addUserDepositUT, _netUserDepositUT, _depositFeeUT, _accountsProof);
         // add net deposit amount to user's total deposit
         totalDeposits[_beneficiary] = totalDeposits[_beneficiary].add(_netUserDepositUT);
         // transfer deposit fee to vaultFeeCollector
@@ -647,15 +624,13 @@ contract Vault is
      * @param _receiver address of the receiver of the underlying token
      * @param _userWithdrawVT amount in vault token
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _withdrawVaultFor(
         address _receiver,
         uint256 _userWithdrawVT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
-        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
+        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof);
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
@@ -669,12 +644,11 @@ contract Vault is
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
-            uint256 _oraAmountLP =
-                investStrategySteps.getOraSomeValueLP(
-                    address(registryContract),
-                    underlyingToken,
-                    _expectedStratWithdrawUT
-                );
+            uint256 _oraAmountLP = investStrategySteps.getOraSomeValueLP(
+                address(registryContract),
+                underlyingToken,
+                _expectedStratWithdrawUT
+            );
 
             _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
 
@@ -710,8 +684,9 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount =
-            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
+        uint256 _internalTransactionCount = _investStrategySteps.getDepositInternalTransactionCount(
+            address(registryContract)
+        );
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -859,15 +834,6 @@ contract Vault is
     }
 
     /**
-     * @dev Internal function to control the allowance of smart contract interaction
-     *         with vault
-     * @param _whitelistedCodesRoot whitelisted codes root hash
-     */
-    function _setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) internal {
-        whitelistedCodesRoot = _whitelistedCodesRoot;
-    }
-
-    /**
      * @dev Internal function to configure the vault's value control params
      * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
@@ -906,39 +872,8 @@ contract Vault is
                 : 0;
     }
 
-    /**
-     * @dev Internal function to compute the hash of the smart contract code
-     * @param _account account address
-     * @return _hash bytes32 hash of the smart contract code
-     */
-    function _getContractHash(address _account) internal view returns (bytes32 _hash) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            _hash := extcodehash(_account)
-        }
-    }
-
-    /**
-     * @dev Internal function to compute whether smart contract is grey listed or not
-     * @param _account account address
-     * @return false if contract account is allowed to interact, true otherwise
-     */
-    function _noGreyList(
-        address _account,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
-    ) internal view returns (bool) {
-        return
-            _verifyWhitelistedAccount(_accountLeaf(_account), _accountsProof) &&
-            _verifyWhitelistedCode(_codeLeaf(_getContractHash(_account)), _codesProof);
-    }
-
     function _verifyWhitelistedAccount(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
         return MerkleProof.verify(_proof, whitelistedAccountsRoot, _leaf);
-    }
-
-    function _verifyWhitelistedCode(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
-        return MerkleProof.verify(_proof, whitelistedCodesRoot, _leaf);
     }
 
     /**
@@ -951,25 +886,21 @@ contract Vault is
      * @param _deductions amount in underlying token to not consider in as a part of
      *       user deposit amount
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _checkUserDeposit(
         address _user,
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(
-                _user,
-                _addUserDepositUT,
-                _userDepositUTWithDeductions,
-                _deductions,
-                _accountsProof,
-                _codesProof
-            );
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = userDepositPermitted(
+            _user,
+            _addUserDepositUT,
+            _userDepositUTWithDeductions,
+            _deductions,
+            _accountsProof
+        );
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -1000,16 +931,17 @@ contract Vault is
      * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _checkUserWithdraw(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
-            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) = userWithdrawPermitted(
+            _user,
+            _userWithdrawVT,
+            _accountsProof
+        );
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
@@ -1048,15 +980,6 @@ contract Vault is
      */
     function _accountLeaf(address _account) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account));
-    }
-
-    /**
-     * @dev internal helper function to return a merkle tree leaf hash for codes
-     * @param _hash codehash
-     * @return code leaf hash
-     */
-    function _codeLeaf(bytes32 _hash) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_hash));
     }
 
     //===Private functions===//
