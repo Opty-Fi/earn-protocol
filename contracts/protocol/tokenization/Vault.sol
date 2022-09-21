@@ -585,13 +585,12 @@ contract Vault is
      */
     function _permit(bytes calldata _permitParams) internal {
         if (_permitParams.length == 32 * 7) {
-            (bool success, ) =
-                underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
+            (bool success, ) = underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
             require(success, Errors.PERMIT_FAILED);
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) = 
+            (bool success, ) =
                 underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
