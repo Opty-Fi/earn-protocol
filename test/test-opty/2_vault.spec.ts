@@ -9,8 +9,6 @@ import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
   getAccountsMerkleRoot,
-  getCodesMerkleProof,
-  getCodesMerkleRoot,
   getDepositFeePct,
   getDepositFeeUT,
   getSoliditySHA3Hash,
@@ -363,22 +361,6 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setWhitelistedCodesRoot(bytes32)", function () {
-    it("fails setWhitelistedCodesRoot() call by non governance", async function () {
-      await expect(
-        this.opUSDCearn.connect(this.signers.bob).setWhitelistedCodesRoot(ethers.constants.HashZero),
-      ).to.be.revertedWith("caller is not having governance");
-    });
-
-    it("setWhitelistedCodesRoot() call by governance", async function () {
-      const code = await ethers.provider.getCode(this.opUSDCearn.address);
-      const codeHash = ethers.utils.keccak256(code);
-      const _root = getCodesMerkleRoot([codeHash]);
-      await this.opUSDCearn.connect(this.signers.governance).setWhitelistedCodesRoot(_root);
-      expect(await this.opUSDCearn.whitelistedCodesRoot()).to.eq(_root);
-    });
-  });
-
   describe("#setEmergencyShutdown(bool)", function () {
     it("fail setEmergencyShutdown() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setEmergencyShutdown(true)).to.be.revertedWith(
@@ -618,13 +600,7 @@ describe("::Vault", function () {
         true,
       );
       expect(
-        await this.opUSDCearn.userDepositPermitted(this.signers.eve.address, true, "1", "0", _proof, []),
-      ).to.have.members([false, "8"]);
-    });
-
-    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {
-      expect(
-        await this.testVault.testUserDepositPermitted(this.opUSDCearn.address, "1000000000", [], []),
+        await this.opUSDCearn.userDepositPermitted(this.signers.eve.address, true, "1", "0", _proof),
       ).to.have.members([false, "8"]);
     });
 
@@ -636,7 +612,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "100", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "100", "0", _proof),
       ).to.have.members([false, "10"]);
     });
 
@@ -648,7 +624,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "100000000000", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "100000000000", "0", _proof),
       ).to.have.members([false, "11"]);
     });
 
@@ -660,7 +636,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "4000000000", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "4000000000", "0", _proof),
       ).to.have.members([false, "12"]);
     });
 
@@ -672,7 +648,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "1500000000", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "1500000000", "0", _proof),
       ).to.have.members([true, ""]);
     });
 
@@ -683,17 +659,12 @@ describe("::Vault", function () {
         this.testVault.address,
       ]);
       await this.opUSDCearn.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
-      const code = await ethers.provider.getCode(this.testVault.address);
-      const codeHash = ethers.utils.keccak256(code);
-      const _codeRoot = getCodesMerkleRoot([codeHash]);
-      await this.opUSDCearn.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
       const _accountProof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
         this.testVault.address,
       );
-      const _codeProof = getCodesMerkleProof([codeHash], ethers.constants.HashZero);
       expect(
-        await this.testVault.testUserDepositPermitted(this.opUSDCearn.address, "1500000000", _accountProof, _codeProof),
+        await this.testVault.testUserDepositPermitted(this.opUSDCearn.address, "1500000000", _accountProof),
       ).to.have.members([true, ""]);
     });
   });
@@ -797,7 +768,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, dataPermit, _proofs, []),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, dataPermit, _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -830,7 +801,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, usdcDepositAmount, [], [], []),
+          .userDepositVault(this.signers.alice.address, usdcDepositAmount, [], []),
       ).to.be.revertedWith("14");
     });
 
@@ -869,7 +840,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, [], _proofs, []),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, [], _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -913,7 +884,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proofs, []),
+          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proofs),
       ).to.revertedWith("8");
     });
 
@@ -944,7 +915,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _bobProofs, []),
+          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _bobProofs),
       ).to.revertedWith("8");
     });
 
@@ -991,7 +962,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1014,7 +985,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proof),
       ).to.revertedWith("10");
     });
 
@@ -1053,7 +1024,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _proof, []),
+          .userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _proof),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1076,7 +1047,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof),
       ).to.revertedWith("13");
     });
   });
@@ -1109,7 +1080,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userWithdrawPermitted(this.signers.alice.address, _userBalance.add(1), _accountProof, []),
+          .userWithdrawPermitted(this.signers.alice.address, _userBalance.add(1), _accountProof),
       ).to.have.members([false, "1"]);
     });
 
@@ -1122,7 +1093,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userWithdrawPermitted(this.signers.alice.address, _balanceVT, _proofs, []),
+          .userWithdrawPermitted(this.signers.alice.address, _balanceVT, _proofs),
       ).members([true, ""]);
     });
   });
@@ -1432,9 +1403,7 @@ describe("::Vault", function () {
       const _calculatedWithdrawalFee = await this.opUSDCearn.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
       await expect(
-        this.opUSDCearn
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _redeemVT, _proofs, []),
+        this.opUSDCearn.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
@@ -1452,9 +1421,7 @@ describe("::Vault", function () {
       );
       const _redeemVT = (await this.opUSDCearn.balanceOf(this.signers.alice.address)).div("2");
       await expect(
-        this.opUSDCearn
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _redeemVT, _proof, []),
+        this.opUSDCearn.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proof),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);

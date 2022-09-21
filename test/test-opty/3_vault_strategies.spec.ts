@@ -575,7 +575,7 @@ async function deposit(
     const _BalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
     const tx2 = await vaultInstance
       .connect(signers[i])
-      .userDepositVault(signers[i].address, _userDepositInDecimals, "0x", [], []);
+      .userDepositVault(signers[i].address, _userDepositInDecimals, "0x", []);
     await tx2.wait(1);
     const _BalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
     expect(_BalanceBefore).gt(_BalanceAfter);
@@ -688,7 +688,7 @@ async function withdraw(
     }
     const tx = await vaultInstance
       .connect(signers[i])
-      .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), [], []);
+      .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), []);
     await tx.wait();
     const userBalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
     const poolBalanceAfter = await getLastStrategyStepBalanceLP(
