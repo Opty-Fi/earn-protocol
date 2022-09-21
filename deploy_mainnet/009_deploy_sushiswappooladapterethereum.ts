@@ -132,8 +132,8 @@ const func: DeployFunction = async ({
   }
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.AAVE, slippage: "50" },
-    { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
+    { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.AAVE, slippage: "100" },
+    { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "70" },
     { liquidityPool: APE_USDT_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDT, slippage: "50" },
     { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },

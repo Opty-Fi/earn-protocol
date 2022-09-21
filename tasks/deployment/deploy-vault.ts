@@ -13,7 +13,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("strategyManager", "the address of StrategyManager library", "", types.string)
   .addParam("claimAndHarvest", "the address of ClaimAndHarvest library", "", types.string)
-  .addParam("whitelistedCodesRoot", "whitelisted contracts root hash", "", types.string)
   .addParam("whitelistedAccountsRoot", "whitelisted accounts root hash", "", types.string)
   .addParam("vaultConfiguration", "bit banging value for vault config", "", types.string)
   .addParam("userDepositCapUt", "the maximum amount in underlying token allowed to be deposited by user", "", types.int)
@@ -30,7 +29,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
         strategyManager,
         claimAndHarvest,
         unpause,
-        whitelistedCodesRoot,
         whitelistedAccountsRoot,
         vaultConfiguration,
         userDepositCapUt,
@@ -72,7 +70,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
         if (!riskProfile.exists) {
           throw new Error("risk profile does not exist");
         }
-        const { name, symbol } = await getTokenInforWithAddress(hre, token);
+        const symbol = (await getTokenInforWithAddress(hre, token)).symbol;
 
         console.log(`Deploying Vault: ${vaultName}...`);
         const vault = await deployVaultWithHash(
@@ -82,7 +80,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
           strategyManager,
           claimAndHarvest,
           token,
-          whitelistedCodesRoot,
           whitelistedAccountsRoot,
           vaultConfiguration,
           userDepositCapUt,
@@ -90,7 +87,6 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_VAULT.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_VAU
           totalValueLockedLimitUt,
           owner,
           admin,
-          name,
           symbol,
           riskProfileCode,
         );

@@ -21,7 +21,7 @@ import {
   StrategyProvider,
   Vault,
 } from "../../../../typechain";
-import { opUSDCgrow, RegistryProxy as RegistryProxyAddress } from "../../_deployments/polygon.json";
+import { opUSDCearn, RegistryProxy as RegistryProxyAddress } from "../../_deployments/polygon.json";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { getLastStrategyStepBalanceLP, getOraValueUT, setTokenBalanceInStorage } from "../../utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
@@ -37,12 +37,12 @@ import { deployAndUpgradeRegistry } from "./deployAndUpgradeRegistry";
 import { deployAndUpgradeRiskManager } from "./deployAndUpgradeRiskManager";
 import { deployStrategyProvider } from "./deployStrategyProvider";
 import { approveAndMapLiquidityPoolToAdapter } from "./approveAndMapLiquidityPoolToAdapter";
-import { configopUSDCgrow } from "./configopUSDCgrow";
+import { configopUSDCearn } from "./configopUSDCearn";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
-const OPUSDCGROW_VAULT_PROXY_ADDRESS = opUSDCgrow.VaultProxy;
+const OPUSDCEARN_VAULT_PROXY_ADDRESS = opUSDCearn.VaultProxy;
 const REGISTRY_PROXY_ADDRESS = RegistryProxyAddress;
 
 // ================================================================
@@ -135,19 +135,16 @@ describe("Vault Ethereum on-chain upgrade", () => {
     // ==============================================================
     await usdcRebalance();
     // ====================================================
-    this.opUSDCgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
-      await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPUSDCGROW_VAULT_PROXY_ADDRESS)
+    this.opUSDCearnProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
+      await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPUSDCEARN_VAULT_PROXY_ADDRESS)
     );
-    this.opUSDCgrowOld = await ethers.getContractAt(oldAbis.OldVaultV2, OPUSDCGROW_VAULT_PROXY_ADDRESS);
-    this.opUSDCgrowUserDepositCapUT = await this.opUSDCgrowOld.userDepositCapUT();
-    this.opUSDCgrowMinimumDepositValueUT = await this.opUSDCgrowOld.minimumDepositValueUT();
-    this.opUSDCgrowTotalValueLockedLimitUT = await this.opUSDCgrowOld.totalValueLockedLimitUT();
+    this.opUSDCearnOld = await ethers.getContractAt(oldAbis.OldVaultV2, OPUSDCEARN_VAULT_PROXY_ADDRESS);
+    this.opUSDCearnUserDepositCapUT = await this.opUSDCearnOld.userDepositCapUT();
+    this.opUSDCearnMinimumDepositValueUT = await this.opUSDCearnOld.minimumDepositValueUT();
+    this.opUSDCearnTotalValueLockedLimitUT = await this.opUSDCearnOld.totalValueLockedLimitUT();
     // ====================================================
     await deployAndUpgradeUSDC();
-    this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCgrowProxy.address);
-    expect(await this.opUSDCgrow.name()).to.eq("op USDC Coin (PoS) Growth");
-    expect(await this.opUSDCgrow.symbol()).to.eq("opUSDCgrow");
-    expect(await this.opUSDCgrow.decimals()).to.eq(6);
+    this.opUSDCearn = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCearnProxy.address);
     // =======================================================
     await deployAndUpgradeRegistry(fork);
     await deployAndUpgradeRiskManager();
@@ -159,25 +156,25 @@ describe("Vault Ethereum on-chain upgrade", () => {
     );
   });
 
-  it("default values for old opUSDCgrow should be as expected", async function () {
-    expect(await this.opUSDCgrow.opTOKEN_REVISION()).to.eq("0x4");
-    expect(await this.opUSDCgrow.registryContract()).to.eq(getAddress(this.registry.address));
-    expect(await this.opUSDCgrow.whitelistedAccountsRoot()).to.eq(
+  it("default values for old opUSDCearn should be as expected", async function () {
+    expect(await this.opUSDCearn.opTOKEN_REVISION()).to.eq("0x4");
+    expect(await this.opUSDCearn.registryContract()).to.eq(getAddress(this.registry.address));
+    expect(await this.opUSDCearn.whitelistedAccountsRoot()).to.eq(
       "0x4a7e14b2b81abccd2dfd58372f0cbd5b5512749fbafee2e2cda5c56ac0fc947a",
     );
-    expect(await this.opUSDCgrow.underlyingToken()).to.eq(getAddress(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address));
-    expect(await this.opUSDCgrow.underlyingTokensHash()).to.eq(
+    expect(await this.opUSDCearn.underlyingToken()).to.eq(getAddress(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address));
+    expect(await this.opUSDCearn.underlyingTokensHash()).to.eq(
       "0xc2851064805ec339e3448aa6a11e612938131e6f0637ddf761ae5e5cfeee5996",
     );
-    expect(await this.opUSDCgrow.name()).to.eq("op USDC Coin (PoS) Growth");
-    expect(await this.opUSDCgrow.symbol()).to.eq("opUSDCgrow");
-    expect(await this.opUSDCgrow.decimals()).to.eq(6);
-    expect(await this.opUSDCgrow.vaultConfiguration()).to.eq(
+    expect(await this.opUSDCearn.name()).to.eq("op USDC Coin (PoS) Growth");
+    expect(await this.opUSDCearn.symbol()).to.eq("opUSDCgrow");
+    expect(await this.opUSDCearn.decimals()).to.eq(6);
+    expect(await this.opUSDCearn.vaultConfiguration()).to.eq(
       BigNumber.from("907136802102229675083754464877550363794833538656521846974622833684986724352"),
     );
-    expect(await this.opUSDCgrow.userDepositCapUT()).to.eq(this.opUSDCgrowUserDepositCapUT);
-    expect(await this.opUSDCgrow.minimumDepositValueUT()).to.eq(this.opUSDCgrowMinimumDepositValueUT);
-    expect(await this.opUSDCgrow.totalValueLockedLimitUT()).to.eq(this.opUSDCgrowTotalValueLockedLimitUT);
+    expect(await this.opUSDCearn.userDepositCapUT()).to.eq(this.opUSDCearnUserDepositCapUT);
+    expect(await this.opUSDCearn.minimumDepositValueUT()).to.eq(this.opUSDCearnMinimumDepositValueUT);
+    expect(await this.opUSDCearn.totalValueLockedLimitUT()).to.eq(this.opUSDCearnTotalValueLockedLimitUT);
   });
 
   // (0-15) Deposit fee UT = 0 UT = 0000
@@ -197,11 +194,11 @@ describe("Vault Ethereum on-chain upgrade", () => {
   // (255) - 0
   // 0x0401000000000000000000000000000000000000000000640000000000000000
   // 1811018241397843937822879938261491478723170994297509433919320763695890432000
-  it("setVaultConfiguration() for opUSDCgrow new", async function () {
-    await this.opUSDCgrow
+  it("setVaultConfiguration() for opUSDCearn new", async function () {
+    await this.opUSDCearn
       .connect(this.signers.governance)
       .setVaultConfiguration("1811018241397843937822879938261491478723170994297509433919320763695890432000");
-    const vaultConfigurationV2 = await this.opUSDCgrow.vaultConfiguration();
+    const vaultConfigurationV2 = await this.opUSDCearn.vaultConfiguration();
     assertVaultConfiguration(
       vaultConfigurationV2,
       "0",
@@ -218,8 +215,8 @@ describe("Vault Ethereum on-chain upgrade", () => {
   });
 
   it("null strategy for USDC vault", async function () {
-    expect(await this.opUSDCgrow.investStrategyHash()).to.eq(ethers.constants.HashZero);
-    expect((await this.opUSDCgrow.getInvestStrategySteps()).length).to.eq(0);
+    expect(await this.opUSDCearn.investStrategyHash()).to.eq(ethers.constants.HashZero);
+    expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
   });
 
   describe("test aave, curve and beefy strategies", async function () {
@@ -234,14 +231,14 @@ describe("Vault Ethereum on-chain upgrade", () => {
 
       await approveAndMapLiquidityPoolToAdapter();
 
-      await configopUSDCgrow(this.strategyProvider.address, fork);
-      expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
+      await configopUSDCearn(this.strategyProvider.address, fork);
+      expect(await this.opUSDCearn.getNextBestInvestStrategy()).to.deep.eq(
         mooCurveAm3CRVStrategySteps.map(v => Object.values(v)),
       );
-      expect(await this.opUSDCgrow.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
+      expect(await this.opUSDCearn.underlyingTokensHash()).to.eq(MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash);
 
       assertVaultConfiguration(
-        await this.opUSDCgrow.vaultConfiguration(),
+        await this.opUSDCearn.vaultConfiguration(),
         "0",
         "0",
         "0",
@@ -253,9 +250,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
         true,
         true,
       );
-      expect(await this.opUSDCgrow.userDepositCapUT()).to.eq("100000000000");
-      expect(await this.opUSDCgrow.minimumDepositValueUT()).to.eq("0");
-      expect(await this.opUSDCgrow.totalValueLockedLimitUT()).to.eq("10000000000000");
+      expect(await this.opUSDCearn.userDepositCapUT()).to.eq("100000000000");
+      expect(await this.opUSDCearn.minimumDepositValueUT()).to.eq("0");
+      expect(await this.opUSDCearn.totalValueLockedLimitUT()).to.eq("10000000000000");
 
       await network.provider.request({
         method: "hardhat_impersonateAccount",
@@ -277,7 +274,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
         this.signers.bob.address,
         this.signers.eve.address,
       ]);
-      await this.opUSDCgrow.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
+      await this.opUSDCearn.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
       this._aliceMerkleProof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.signers.eve.address],
         this.signers.alice.address,
@@ -288,38 +285,38 @@ describe("Vault Ethereum on-chain upgrade", () => {
       );
     });
 
-    it("lp token balance should be as expected after rebalance of opUSDCgrow to usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-CurveGauge-am3CRV-gauge", async function () {
-      expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
+    it("lp token balance should be as expected after rebalance of opUSDCearn to usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-CurveGauge-am3CRV-gauge", async function () {
+      expect(await this.opUSDCearn.getNextBestInvestStrategy()).to.deep.eq(
         mooCurveAm3CRVStrategySteps.map(v => Object.values(v)),
       );
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, am3CRVStrategySteps);
-      expect(await this.opUSDCgrow.getNextBestInvestStrategy()).to.deep.eq(
+      expect(await this.opUSDCearn.getNextBestInvestStrategy()).to.deep.eq(
         am3CRVStrategySteps.map(v => Object.values(v)),
       );
-      await this.opUSDCgrow.rebalance();
+      await this.opUSDCearn.rebalance();
       // assert invest strategy hash
-      expect(await this.opUSDCgrow.getInvestStrategySteps()).to.deep.eq(am3CRVStrategySteps.map(v => Object.values(v)));
-      expect(await this.opUSDCgrow.investStrategyHash()).to.eq(
+      expect(await this.opUSDCearn.getInvestStrategySteps()).to.deep.eq(am3CRVStrategySteps.map(v => Object.values(v)));
+      expect(await this.opUSDCearn.investStrategyHash()).to.eq(
         generateStrategyHashV2(am3CRVStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash),
       );
-      expect(await this.usdc.balanceOf(this.opUSDCgrow.address)).to.eq("0");
+      expect(await this.usdc.balanceOf(this.opUSDCearn.address)).to.eq("0");
       const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
         am3CRVStrategySteps as StrategyStepType[],
         this.registry,
-        this.opUSDCgrow,
+        this.opUSDCearn,
         this.usdc,
       );
-      const actualLPTokenBalance = await this.opUSDCgrow.getLastStrategyStepBalanceLP(am3CRVStrategySteps);
+      const actualLPTokenBalance = await this.opUSDCearn.getLastStrategyStepBalanceLP(am3CRVStrategySteps);
       expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
     });
 
-    it("underlying token balance of opUSDCgrow should be expected after pausing", async function () {
-      const underlyingTokenBalanceBefore = await this.usdc.balanceOf(this.opUSDCgrow.address);
-      await this.opUSDCgrow.connect(this.signers.governance).setUnpaused(false);
+    it("underlying token balance of opUSDCearn should be expected after pausing", async function () {
+      const underlyingTokenBalanceBefore = await this.usdc.balanceOf(this.opUSDCearn.address);
+      await this.opUSDCearn.connect(this.signers.governance).setUnpaused(false);
       assertVaultConfiguration(
-        await this.opUSDCgrow.vaultConfiguration(),
+        await this.opUSDCearn.vaultConfiguration(),
         "0",
         "0",
         "0",
@@ -331,20 +328,20 @@ describe("Vault Ethereum on-chain upgrade", () => {
         false,
         true,
       );
-      expect((await this.opUSDCgrow.getInvestStrategySteps()).length).to.eq(0);
-      expect(await this.opUSDCgrow.investStrategyHash()).to.eq(ethers.constants.HashZero);
-      const underlyingTokenBalanceAfter = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
+      expect(await this.opUSDCearn.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      const underlyingTokenBalanceAfter = await this.usdc.balanceOf(this.opUSDCearn.address);
       expect(underlyingTokenBalanceAfter).gt(underlyingTokenBalanceBefore);
-      const lpTokenBalance = await this.opUSDCgrow.getLastStrategyStepBalanceLP(mooCurveAm3CRVStrategySteps);
+      const lpTokenBalance = await this.opUSDCearn.getLastStrategyStepBalanceLP(mooCurveAm3CRVStrategySteps);
       expect(lpTokenBalance).to.eq("0");
-      expect(await this.opUSDCgrow.investStrategyHash()).to.eq(ethers.constants.HashZero);
+      expect(await this.opUSDCearn.investStrategyHash()).to.eq(ethers.constants.HashZero);
     });
 
-    it("unpause opUSDCgrow and rebalance to aaveUSDC", async function () {
-      const _beforeRebalance = await this.usdc.balanceOf(this.opUSDCgrow.address);
-      await this.opUSDCgrow.connect(this.signers.governance).setUnpaused(true);
+    it("unpause opUSDCearn and rebalance to aaveUSDC", async function () {
+      const _beforeRebalance = await this.usdc.balanceOf(this.opUSDCearn.address);
+      await this.opUSDCearn.connect(this.signers.governance).setUnpaused(true);
       assertVaultConfiguration(
-        await this.opUSDCgrow.vaultConfiguration(),
+        await this.opUSDCearn.vaultConfiguration(),
         "0",
         "0",
         "0",
@@ -365,126 +362,126 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, aaveUSDCStrategySteps);
-      await this.opUSDCgrow.rebalance();
-      expect(await this.opUSDCgrow.getInvestStrategySteps()).to.deep.eq(amUSDCStrategySteps.map(v => Object.values(v)));
-      expect(await this.opUSDCgrow.investStrategyHash()).to.eq(
+      await this.opUSDCearn.rebalance();
+      expect(await this.opUSDCearn.getInvestStrategySteps()).to.deep.eq(amUSDCStrategySteps.map(v => Object.values(v)));
+      expect(await this.opUSDCearn.investStrategyHash()).to.eq(
         generateStrategyHashV2(amUSDCStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash),
       );
-      const _afterRebalance = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      const _afterRebalance = await this.usdc.balanceOf(this.opUSDCearn.address);
       expect(_beforeRebalance).gt(_afterRebalance);
-      expect(await this.usdc.balanceOf(this.opUSDCgrow.address)).to.eq("0");
+      expect(await this.usdc.balanceOf(this.opUSDCearn.address)).to.eq("0");
       const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
         amUSDCStrategySteps as StrategyStepType[],
         this.registry,
-        this.opUSDCgrow,
+        this.opUSDCearn,
         this.usdc,
       );
-      const actualLPTokenBalance = await this.opUSDCgrow.getLastStrategyStepBalanceLP(amUSDCStrategySteps);
+      const actualLPTokenBalance = await this.opUSDCearn.getLastStrategyStepBalanceLP(amUSDCStrategySteps);
       expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
       expect(expectedLPTokenBalance).to.gt("0");
     });
 
-    it("bob deposit some to opUSDCgrow, calls vault deposit", async function () {
+    it("bob deposit some to opUSDCearn, calls vault deposit", async function () {
       const _userDepositUSDC = BigNumber.from("2000000000");
       await setTokenBalanceInStorage(
         this.usdc,
         this.signers.bob.address,
         new BN(_userDepositUSDC.toString()).div(new BN(to_10powNumber_BN("6").toString())).toString(),
       );
-      const _balanceInopUSDCgrowUT = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      const _balanceInopUSDCearnUT = await this.usdc.balanceOf(this.opUSDCearn.address);
       const _oraStratValueUT = await getOraValueUT(
         amUSDCStrategySteps as StrategyStepType[],
         this.registry,
-        this.opUSDCgrow,
+        this.opUSDCearn,
         this.usdc,
       );
 
-      const totalSupply = await this.opUSDCgrow.totalSupply();
-      const _expectedShares = _userDepositUSDC.mul(totalSupply).div(_balanceInopUSDCgrowUT.add(_oraStratValueUT));
+      const totalSupply = await this.opUSDCearn.totalSupply();
+      const _expectedShares = _userDepositUSDC.mul(totalSupply).div(_balanceInopUSDCearnUT.add(_oraStratValueUT));
       const _expectedTotalSupply = totalSupply.add(_expectedShares);
-      const _userBalanceBeforeVT = await this.opUSDCgrow.balanceOf(this.signers.bob.address);
-      await this.usdc.connect(this.signers.bob).approve(this.opUSDCgrow.address, _userDepositUSDC);
-      await this.opUSDCgrow
+      const _userBalanceBeforeVT = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      await this.usdc.connect(this.signers.bob).approve(this.opUSDCearn.address, _userDepositUSDC);
+      await this.opUSDCearn
         .connect(this.signers.bob)
-        .userDepositVault(this.signers.bob.address, _userDepositUSDC, "0x", this._bobMerkleProof, []);
-      const _balanceBeforeDeposit = await this.usdc.balanceOf(this.opUSDCgrow.address);
-      await this.opUSDCgrow.vaultDepositAllToStrategy();
+        .userDepositVault(this.signers.bob.address, _userDepositUSDC, "0x", this._bobMerkleProof);
+      const _balanceBeforeDeposit = await this.usdc.balanceOf(this.opUSDCearn.address);
+      await this.opUSDCearn.vaultDepositAllToStrategy();
 
-      const _balanceAfterDeposit = await this.usdc.balanceOf(this.opUSDCgrow.address);
-      const _userBalanceAfterVT = await this.opUSDCgrow.balanceOf(this.signers.bob.address);
+      const _balanceAfterDeposit = await this.usdc.balanceOf(this.opUSDCearn.address);
+      const _userBalanceAfterVT = await this.opUSDCearn.balanceOf(this.signers.bob.address);
       expect(_balanceBeforeDeposit).gt(_balanceAfterDeposit);
       const _actualShares = _userBalanceAfterVT.sub(_userBalanceBeforeVT);
       expect(_actualShares).to.eq(_expectedShares);
-      expect(await this.opUSDCgrow.totalSupply()).to.eq(_expectedTotalSupply);
+      expect(await this.opUSDCearn.totalSupply()).to.eq(_expectedTotalSupply);
     });
 
-    it("bob withdraw some to opUSDCgrow", async function () {
-      const _userWithdrawVT = (await this.opUSDCgrow.balanceOf(this.signers.bob.address)).div(2);
-      const _totalSupply = await this.opUSDCgrow.totalSupply();
+    it("bob withdraw some to opUSDCearn", async function () {
+      const _userWithdrawVT = (await this.opUSDCearn.balanceOf(this.signers.bob.address)).div(2);
+      const _totalSupply = await this.opUSDCearn.totalSupply();
       const _expectedTotalSupply = _totalSupply.sub(_userWithdrawVT);
-      const _balanceInopWETHgrowUT = await this.usdc.balanceOf(this.opUSDCgrow.address);
+      const _balanceInopWETHearnUT = await this.usdc.balanceOf(this.opUSDCearn.address);
       const _oraStratValueUT = await getOraValueUT(
         amUSDCStrategySteps as StrategyStepType[],
         this.registry,
-        this.opUSDCgrow,
+        this.opUSDCearn,
         this.usdc,
       );
-      const expectedUT = _userWithdrawVT.mul(_balanceInopWETHgrowUT.add(_oraStratValueUT)).div(_totalSupply);
+      const expectedUT = _userWithdrawVT.mul(_balanceInopWETHearnUT.add(_oraStratValueUT)).div(_totalSupply);
       const _balanceBefore = await this.usdc.balanceOf(this.signers.bob.address);
-      await this.opUSDCgrow
+      await this.opUSDCearn
         .connect(this.signers.bob)
-        .userWithdrawVault(this.signers.bob.address, _userWithdrawVT, this._bobMerkleProof, []);
+        .userWithdrawVault(this.signers.bob.address, _userWithdrawVT, this._bobMerkleProof);
       const _balanceAfter = await this.usdc.balanceOf(this.signers.bob.address);
       expect(_balanceAfter.sub(_balanceBefore)).to.gte(expectedUT.sub(expectedUT.mul(3).div(1000)));
-      expect(await this.opUSDCgrow.totalSupply()).to.eq(_expectedTotalSupply);
+      expect(await this.opUSDCearn.totalSupply()).to.eq(_expectedTotalSupply);
     });
 
-    it("rebalance opUSDCgrow to mooCurveAm3CRV", async function () {
+    it("rebalance opUSDCearn to mooCurveAm3CRV", async function () {
       await this.strategyProvider
         .connect(this.signers.strategyOperator)
         .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, mooCurveAm3CRVStrategySteps);
-      await this.opUSDCgrow.rebalance();
+      await this.opUSDCearn.rebalance();
       // assert invest strategy hash
-      expect(await this.opUSDCgrow.getInvestStrategySteps()).to.deep.eq(
+      expect(await this.opUSDCearn.getInvestStrategySteps()).to.deep.eq(
         mooCurveAm3CRVStrategySteps.map(v => Object.values(v)),
       );
-      expect(await this.opUSDCgrow.investStrategyHash()).to.eq(
+      expect(await this.opUSDCearn.investStrategyHash()).to.eq(
         generateStrategyHashV2(mooCurveAm3CRVStrategyStepsContract, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash),
       );
-      expect(await this.usdc.balanceOf(this.opUSDCgrow.address)).to.eq("0");
+      expect(await this.usdc.balanceOf(this.opUSDCearn.address)).to.eq("0");
       const expectedLPTokenBalance = await getLastStrategyStepBalanceLP(
         mooCurveAm3CRVStrategySteps as StrategyStepType[],
         this.registry,
-        this.opUSDCgrow,
+        this.opUSDCearn,
         this.usdc,
       );
-      const actualLPTokenBalance = await this.opUSDCgrow.getLastStrategyStepBalanceLP(mooCurveAm3CRVStrategySteps);
+      const actualLPTokenBalance = await this.opUSDCearn.getLastStrategyStepBalanceLP(mooCurveAm3CRVStrategySteps);
       expect(actualLPTokenBalance).to.eq(expectedLPTokenBalance);
     });
 
-    it("fail - opUSDCgrow.userDepositVault, MINIMUM_USER_DEPOSIT_VALUE_UT ", async function () {
-      await this.opUSDCgrow
+    it("fail - opUSDCearn.userDepositVault, MINIMUM_USER_DEPOSIT_VALUE_UT ", async function () {
+      await this.opUSDCearn
         .connect(this.signers.financeOperator)
         .setMinimumDepositValueUT(BigNumber.from("10000000000"));
-      const _minimumUserpositUT = await this.opUSDCgrow.minimumDepositValueUT();
+      const _minimumUserpositUT = await this.opUSDCearn.minimumDepositValueUT();
       const _depositUSDC = _minimumUserpositUT.div("2");
       await setTokenBalanceInStorage(
         this.usdc,
         this.signers.alice.address,
         _depositUSDC.div(to_10powNumber_BN("6")).toString(),
       );
-      await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, _depositUSDC);
+      await this.usdc.connect(this.signers.alice).approve(this.opUSDCearn.address, _depositUSDC);
       await expect(
-        this.opUSDCgrow
+        this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof, []),
+          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof),
       ).to.revertedWith("10");
     });
 
-    it("fail - opUSDCgrow.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
+    it("fail - opUSDCearn.userDepositVault, USER_DEPOSIT_CAP_UT", async function () {
       const _balanceUSDC = await this.usdc.balanceOf(this.signers.alice.address);
-      const _totalDeposits = await this.opUSDCgrow.totalDeposits(this.signers.alice.address);
-      const _userDepositCap = await this.opUSDCgrow.userDepositCapUT();
+      const _totalDeposits = await this.opUSDCearn.totalDeposits(this.signers.alice.address);
+      const _userDepositCap = await this.opUSDCearn.userDepositCapUT();
       const _fundAmountUSDC = _userDepositCap.sub(_totalDeposits).sub(_balanceUSDC).add("100000000000");
       await setTokenBalanceInStorage(
         this.usdc,
@@ -492,24 +489,24 @@ describe("Vault Ethereum on-chain upgrade", () => {
         new BN(_fundAmountUSDC.toString()).div(new BN(to_10powNumber_BN("6").toString())).toString(),
       );
       const _depositUSDC = await this.usdc.balanceOf(this.signers.alice.address);
-      await this.usdc.connect(this.signers.alice).approve(this.opUSDCgrow.address, _depositUSDC);
+      await this.usdc.connect(this.signers.alice).approve(this.opUSDCearn.address, _depositUSDC);
       await expect(
-        this.opUSDCgrow
+        this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof, []),
+          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof),
       ).to.revertedWith("12");
     });
 
-    it("fail - opUSDCgrow.userDepositVault, TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
-      await this.opUSDCgrow.connect(this.signers.financeOperator).setValueControlParams(
+    it("fail - opUSDCearn.userDepositVault, TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
+      await this.opUSDCearn.connect(this.signers.financeOperator).setValueControlParams(
         "100000000000", // 100,000 USDC user deposit cap
         "1000000000", // 1000 USDC minimum deposit
         "0", // 0 USDC TVL
       );
       await expect(
-        this.opUSDCgrow
+        this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, "2000000000", "0x", this._aliceMerkleProof, []),
+          .userDepositVault(this.signers.alice.address, "2000000000", "0x", this._aliceMerkleProof),
       ).to.revertedWith("11");
     });
   });

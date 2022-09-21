@@ -203,6 +203,11 @@ const ethereumTokens = {
     pair: false,
     hash: generateTokenHashV2([TypedTokens["CVX"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
   },
+  USD3: {
+    address: TypedTokens["THREE_CRV"],
+    pair: false,
+    hash: generateTokenHashV2([TypedTokens["THREE_CRV"]], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]),
+  },
 };
 
 const polygonTokens = {

@@ -29,27 +29,27 @@ export async function setZeroStrategy(): Promise<void> {
       [PolygonLegos.tokens.USDC],
       NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon],
     );
-    const opUSDCgrowRiskProfileCode = 1;
+    const opUSDCearnRiskProfileCode = 1;
     const usdcBestStrategyHash = await strategyProviderInstance.getRpToTokenToBestStrategy(
-      opUSDCgrowRiskProfileCode,
+      opUSDCearnRiskProfileCode,
       oldUSDCTokensHash,
     );
     const usdcDefaultStrategyHash = await strategyProviderInstance.getRpToTokenToDefaultStrategy(
-      opUSDCgrowRiskProfileCode,
+      opUSDCearnRiskProfileCode,
       oldUSDCTokensHash,
     );
 
     if (usdcBestStrategyHash != ethers.constants.HashZero) {
       const tx1 = await strategyProviderInstance
         .connect(signerStrategyOperator)
-        .setBestStrategy(opUSDCgrowRiskProfileCode, oldUSDCTokensHash, []);
+        .setBestStrategy(opUSDCearnRiskProfileCode, oldUSDCTokensHash, []);
       await tx1.wait(1);
     }
 
     if (usdcDefaultStrategyHash != ethers.constants.HashZero) {
       const tx3 = await strategyProviderInstance
         .connect(signerStrategyOperator)
-        .setBestDefaultStrategy(opUSDCgrowRiskProfileCode, oldUSDCTokensHash, []);
+        .setBestDefaultStrategy(opUSDCearnRiskProfileCode, oldUSDCTokensHash, []);
       await tx3.wait(1);
     }
   }

@@ -18,14 +18,14 @@ async function main() {
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
   const sushiswapRouter = ethers.utils.getAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
-  const opAAVEaggr = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
+  const opAAVEinvst = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
 
   const aaveWethSlpInstance = <IUniswapV2Pair>await ethers.getContractAt(IUniswapV2Pair__factory.abi, aaveWethSlp);
   const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-  const opAAVEaggrInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEaggr);
+  const opAAVEinvstInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEinvst);
   const aaveInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AAVE);
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, WETH);
-  const aaveWethSlpBalance = await aaveWethSlpInstance.balanceOf(opAAVEaggr);
+  const aaveWethSlpBalance = await aaveWethSlpInstance.balanceOf(opAAVEinvst);
   const operatorSigner = await ethers.getSigner(await registryInstance.getOperator());
 
   const abi = [
@@ -77,22 +77,22 @@ async function main() {
           aaveWethSlpBalance,
           aaveMin,
           wethMin,
-          opAAVEaggr,
+          opAAVEinvst,
           blockTimestamp + 300,
         ]),
       ],
     ),
   );
 
-  const aave_balance_before = await aaveInstance.balanceOf(opAAVEaggr);
+  const aave_balance_before = await aaveInstance.balanceOf(opAAVEinvst);
   console.log("AAVE balance before : ", ethers.utils.formatEther(aave_balance_before));
-  const weth_balance_before = await wethInstance.balanceOf(opAAVEaggr);
+  const weth_balance_before = await wethInstance.balanceOf(opAAVEinvst);
   console.log("WETH balance before : ", ethers.utils.formatEther(weth_balance_before));
-  const tx = await opAAVEaggrInstance.connect(operatorSigner).adminCall(codes);
+  const tx = await opAAVEinvstInstance.connect(operatorSigner).adminCall(codes);
   await tx.wait(1);
-  const aave_balance_after = await aaveInstance.balanceOf(opAAVEaggr);
+  const aave_balance_after = await aaveInstance.balanceOf(opAAVEinvst);
   console.log("AAVE balance after : ", ethers.utils.formatEther(aave_balance_after));
-  const weth_balance_after = await wethInstance.balanceOf(opAAVEaggr);
+  const weth_balance_after = await wethInstance.balanceOf(opAAVEinvst);
   console.log("WETH balance after : ", ethers.utils.formatEther(weth_balance_after));
 }
 

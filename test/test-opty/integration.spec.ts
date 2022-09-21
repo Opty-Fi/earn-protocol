@@ -122,7 +122,7 @@ describe("Integration tests", function () {
     });
 
     it("7. Operator should be able to approve tokens", async function () {
-      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
+      for (const token of Object.keys(StrategiesByTokenByChain[fork]["Earn"])) {
         await expect(this.registry.connect(this.signers.operator)["approveToken(address)"](TypedTokens[token]))
           .to.emit(this.registry, "LogToken")
           .withArgs(TypedTokens[token], true, this.signers.operator.address);
@@ -132,7 +132,7 @@ describe("Integration tests", function () {
 
     it("8. Operator should be able to set tokens hash to tokens", async function () {
       let tokenIndex = 0;
-      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
+      for (const token of Object.keys(StrategiesByTokenByChain[fork]["Earn"])) {
         const tokenHash = generateTokenHashV2([TypedTokens[token]], NETWORKS_CHAIN_ID_HEX[fork]);
         await expect(
           this.registry
@@ -150,19 +150,21 @@ describe("Integration tests", function () {
     });
 
     it("9. Operator should be able to approve USDC liquidity pools", async function () {
-      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
-        const tokenPools: string[] = [];
-        for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
-          const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
-          strategyDetail.strategy.map(step => {
-            !tokenPools.includes(step.contract) ? tokenPools.push(step.contract) : null;
-          });
-        }
-        await expect(this.registry.connect(this.signers.operator)["approveLiquidityPool(address[])"](tokenPools))
-          .to.emit(this.registry, "LogLiquidityPool")
-          .withArgs(tokenPools[0], true, this.signers.operator.address);
-        for (const pool of tokenPools) {
-          expect((await this.registry.liquidityPools(pool)).isLiquidityPool).to.be.true;
+      for (const riskProfile of Object.keys(StrategiesByTokenByChain[fork])) {
+        for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
+          const tokenPools: string[] = [];
+          for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
+            const strategyDetail = StrategiesByTokenByChain[fork][riskProfile][token][strategy];
+            strategyDetail.strategy.map(step => {
+              !tokenPools.includes(step.contract) ? tokenPools.push(step.contract) : null;
+            });
+          }
+          await expect(this.registry.connect(this.signers.operator)["approveLiquidityPool(address[])"](tokenPools))
+            .to.emit(this.registry, "LogLiquidityPool")
+            .withArgs(tokenPools[0], true, this.signers.operator.address);
+          for (const pool of tokenPools) {
+            expect((await this.registry.liquidityPools(pool)).isLiquidityPool).to.be.true;
+          }
         }
       }
     });
@@ -172,31 +174,33 @@ describe("Integration tests", function () {
         ESSENTIAL_CONTRACTS.REGISTRY,
         this.registry.address,
       );
-      for (const token of Object.keys(StrategiesByTokenByChain[fork])) {
-        const poolRates: PoolRate[] = [];
-        const tokenPools: string[] = [];
-        let rate = 1;
-        for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
-          const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
-          strategyDetail.strategy.map(step => {
-            if (!tokenPools.includes(step.contract)) {
-              tokenPools.push(step.contract);
-              poolRates.push({ pool: step.contract, rate: rate });
-              rate++;
-            }
-          });
-        }
-        await expect(
-          registryContractInstance
-            .connect(this.signers.riskOperator)
-            ["rateLiquidityPool((address,uint8)[])"](poolRates),
-        )
-          .to.emit(this.registry, "LogRateLiquidityPool")
-          .withArgs(poolRates[0].pool, 1, this.signers.riskOperator.address);
-        let checkRate = 1;
-        for (const poolRate of poolRates) {
-          expect((await this.registry.liquidityPools(poolRate.pool)).rating).to.be.equal(checkRate);
-          checkRate++;
+      for (const riskProfile of Object.keys(StrategiesByTokenByChain[fork])) {
+        for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
+          const poolRates: PoolRate[] = [];
+          const tokenPools: string[] = [];
+          let rate = 1;
+          for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
+            const strategyDetail = StrategiesByTokenByChain[fork][riskProfile][token][strategy];
+            strategyDetail.strategy.map(step => {
+              if (!tokenPools.includes(step.contract)) {
+                tokenPools.push(step.contract);
+                poolRates.push({ pool: step.contract, rate: rate });
+                rate++;
+              }
+            });
+          }
+          await expect(
+            registryContractInstance
+              .connect(this.signers.riskOperator)
+              ["rateLiquidityPool((address,uint8)[])"](poolRates),
+          )
+            .to.emit(this.registry, "LogRateLiquidityPool")
+            .withArgs(poolRates[0].pool, 1, this.signers.riskOperator.address);
+          let checkRate = 1;
+          for (const poolRate of poolRates) {
+            expect((await this.registry.liquidityPools(poolRate.pool)).rating).to.be.equal(checkRate);
+            checkRate++;
+          }
         }
       }
     });
@@ -248,15 +252,22 @@ describe("Integration tests", function () {
     });
 
     it("14. Risk operator deploys AaveV1 Adapter", async function () {
+      this.aaveV1EthGateway = <AaveV1ETHGateway>(
+        await deployContract(hre, "AaveV1ETHGateway", false, this.signers.riskOperator, [
+          TypedTokens.WETH,
+          this.registry.address,
+          TypedTokens.AETH,
+        ])
+      );
       this.aavev1Adapter = <AaveV1Adapter>(
-        await deployContract(hre, "AaveV1Adapter", false, this.signers.riskOperator, [this.registry.address])
+        await deployContract(hre, "AaveV1Adapter", false, this.signers.riskOperator, [
+          this.registry.address,
+          this.aaveV1EthGateway.address,
+        ])
       );
       assert.isDefined(this.aavev1Adapter, "!AaveV1Adapter");
       expect(await this.aavev1Adapter.maxDepositProtocolPct()).to.equal("10000");
       expect(await this.aavev1Adapter.maxDepositProtocolMode()).to.equal(BigNumber.from("1"));
-      this.aaveV1EthGateway = <AaveV1ETHGateway>(
-        await hre.ethers.getContractAt("AaveV1ETHGateway", await this.aavev1Adapter.aaveV1ETHGatewayContract())
-      );
       assert.isDefined(this.aaveV1EthGateway, "!AaveV1ETHGateway");
       expect(await this.aaveV1EthGateway.registryContract()).to.equal(this.registry.address);
       expect(await this.aavev1Adapter.AETH()).to.equal(await this.aaveV1EthGateway.AETH());
@@ -329,6 +340,7 @@ describe("Integration tests", function () {
       const adapterNameToAddress = new Map<string, string>([
         ["AaveV1Adapter", this.aavev1Adapter.address],
         ["AaveV2Adapter", this.aaveV2Adapter.address],
+        ["CompoundAdapter", this.compoundAdapter.address],
         ["CurveSwapPoolAdapter", this.curveSwapPoolAdapter.address],
         ["CurveMetapoolSwapAdapter", this.curveMetapoolSwapAdapter.address],
         ["CurveDepositPoolAdapter", this.curveDepositPoolAdapter.address],
@@ -341,8 +353,8 @@ describe("Integration tests", function () {
       );
       const poolAdapters: { pool: string; adapter: string }[] = [];
       const tokenPools: string[] = [];
-      for (const strategy of Object.keys(StrategiesByTokenByChain[fork]["USDC"])) {
-        const strategyDetail = StrategiesByTokenByChain[fork]["USDC"][strategy];
+      for (const strategy of Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])) {
+        const strategyDetail = StrategiesByTokenByChain[fork]["Earn"]["USDC"][strategy];
         strategyDetail.strategy.map(step => {
           const adapterAddress = step.adapterName !== undefined ? adapterNameToAddress.get(step.adapterName) : "";
           !tokenPools.includes(step.contract)
@@ -439,8 +451,8 @@ describe("Integration tests", function () {
           this.registry.address,
           this.strategyManager.address,
           this.claimAndHarvest.address,
-          StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[0]].token,
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[0]]
+            .token,
           "0x0000000000000000000000000000000000000000000000000000000000000000",
           _vaultConfiguration.toString(),
           0,
@@ -448,14 +460,13 @@ describe("Integration tests", function () {
           0,
           this.signers.operator,
           this.signers.admin,
-          "USD Coin",
           "USDC",
           2,
           true,
         )
       );
 
-      expect(await this.vault.name()).to.equal("op USD Coin Aggressive");
+      expect(await this.vault.name()).to.equal("OptyFi USDC Aggressive Vault");
       expect(await this.vault.symbol()).to.equal("opUSDCaggr");
       expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
       const actualRiskProfileCode = getRiskProfileCode(await this.vault.vaultConfiguration());
@@ -494,7 +505,7 @@ describe("Integration tests", function () {
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", [], []),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", []),
       ).to.revertedWith("8");
     });
 
@@ -521,12 +532,12 @@ describe("Integration tests", function () {
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), "0x", _proof, []),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), "0x", _proof),
       ).to.revertedWith("10");
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", _proof, []),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(hre.ethers.constants.AddressZero, this.signers.alice.address, BigNumber.from("1000000000"));
@@ -554,7 +565,7 @@ describe("Integration tests", function () {
       await expect(
         this.vault
           .connect(this.signers.bob)
-          .userDepositVault(this.signers.bob.address, BigNumber.from("100000000000"), "0x", _proof, []),
+          .userDepositVault(this.signers.bob.address, BigNumber.from("100000000000"), "0x", _proof),
       ).revertedWith("12");
     });
 
@@ -578,7 +589,7 @@ describe("Integration tests", function () {
         this.signers.bob.address,
       );
       await expect(
-        this.vault.connect(this.signers.bob).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof, []),
+        this.vault.connect(this.signers.bob).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(hre.ethers.constants.AddressZero, this.signers.bob.address, depositValue);
@@ -586,7 +597,7 @@ describe("Integration tests", function () {
 
     it("32. Operator can set the next strategy and rebalance", async function () {
       const strategyDetail =
-        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[0]];
+        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[0]];
       const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
       const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
       const steps = strategyDetail.strategy.map(item => ({
@@ -612,15 +623,13 @@ describe("Integration tests", function () {
       await this.erc20.connect(this.signers.alice).approve(this.vault.address, depositValue);
       expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(depositValue);
       await expect(
-        this.vault
-          .connect(this.signers.alice)
-          .userDepositVault(this.signers.bob.address, depositValue, "0x", _proof, []),
+        this.vault.connect(this.signers.alice).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof),
       ).to.revertedWith("11");
     });
 
     it("34. The strategy operator can set the new best strategy", async function () {
       const strategyDetail =
-        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[1]];
+        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
       const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
       const steps = strategyDetail.strategy.map(item => ({
@@ -643,7 +652,7 @@ describe("Integration tests", function () {
         this.signers.alice.address,
       );
       await expect(
-        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, withdrawValue, _proof, []),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, withdrawValue, _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, hre.ethers.constants.AddressZero, withdrawValue);
@@ -656,7 +665,7 @@ describe("Integration tests", function () {
         this.signers.bob.address,
       );
       await expect(
-        this.vault.connect(this.signers.bob).userWithdrawVault(this.signers.bob.address, withdrawValue, _proof, []),
+        this.vault.connect(this.signers.bob).userWithdrawVault(this.signers.bob.address, withdrawValue, _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.bob.address, hre.ethers.constants.AddressZero, withdrawValue);
@@ -664,7 +673,7 @@ describe("Integration tests", function () {
 
     it("37. The strategy operator claims rewards successfully", async function () {
       const strategyDetail =
-        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[1]];
+        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const claimedRewardBefore = await this.vault.balanceClaimedRewardToken(
         strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
       );
@@ -681,7 +690,7 @@ describe("Integration tests", function () {
 
     it("38. The strategy operator harvest rewards successfully", async function () {
       const strategyDetail =
-        StrategiesByTokenByChain[fork]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["USDC"])[1]];
+        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const balanceBeforeUT = await this.vault.balanceUT();
       await expect(
         await this.vault.connect(this.signers.strategyOperator).harvestAll(strategyDetail.strategy[0].contract),

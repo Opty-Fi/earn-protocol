@@ -96,13 +96,6 @@ interface IVault {
     function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external;
 
     /**
-     * @notice function to control the allowance of smart contract interaction
-     *         with vault
-     * @param _whitelistedCodesRoot whitelisted codes root hash
-     */
-    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external;
-
-    /**
      * @notice activates or deactives vault mode where
      *        all strategies go into full withdrawal. During emergency shutdown
      *        - No Users may deposit into the Vault (but may withdraw as usual.)
@@ -142,14 +135,12 @@ interface IVault {
      * @param _userDepositUT Amount in underlying token
      * @param _permitParams permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
         bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external returns (uint256);
 
     /**
@@ -158,13 +149,11 @@ interface IVault {
      * @param _receiver the address which will receive the underlying tokens
      * @param _userWithdrawVT amount in vault token
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external returns (uint256);
 
     /**
@@ -260,7 +249,6 @@ interface IVault {
      * @param _deductions amount in underlying token to not consider in as a part of
      *       user deposit amount
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
@@ -269,8 +257,7 @@ interface IVault {
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external view returns (bool, string memory);
 
     /**
@@ -285,15 +272,13 @@ interface IVault {
      * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
     function userWithdrawPermitted(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) external view returns (bool, string memory);
 
     /**

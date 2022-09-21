@@ -35,6 +35,7 @@ chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 const token: string = "USDC";
+const riskProfile: string = "Earn";
 
 describe("StrategyManager Library", () => {
   before(async function () {
@@ -53,14 +54,14 @@ describe("StrategyManager Library", () => {
     this.strategyManager = <StrategyManager>(
       await ethers.getContractAt(StrategyManager__factory.abi, strategyManager.address)
     );
-    this.vaults = {};
+    this.optyFiVaults = {};
     this.tokens = {};
-    for (const token of Object.keys(MultiChainVaults[fork])) {
-      this.vaults[token] = <Vault>(
+    for (const token of Object.keys(MultiChainVaults[fork][riskProfile])) {
+      this.optyFiVaults[token] = <Vault>(
         await ethers.getContractAt(
           Vault__factory.abi,
           (
-            await deployments.get(MultiChainVaults[fork][token][0].name)
+            await deployments.get(MultiChainVaults[fork][riskProfile][token].symbol)
           ).address,
         )
       );
@@ -75,8 +76,8 @@ describe("StrategyManager Library", () => {
     this.signers.governance = await ethers.getSigner(governanceAddress);
   });
   describe("StrategyManager", () => {
-    for (const strategy of Object.keys(StrategiesByTokenByChain[fork][token])) {
-      const strategyDetail = StrategiesByTokenByChain[fork][token][strategy];
+    for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
+      const strategyDetail = StrategiesByTokenByChain[fork][riskProfile][token][strategy];
       const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
       const steps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
@@ -94,15 +95,15 @@ describe("StrategyManager Library", () => {
             },
           });
           this.testStrategyManager = await testStrategyManagerFactory.deploy();
-          await this.vaults[token]
+          await this.optyFiVaults[token]
             .connect(this.signers.governance)
-            .setVaultConfiguration(MultiChainVaults[fork][token][0].vaultConfig);
+            .setVaultConfiguration(MultiChainVaults[fork][riskProfile][token].vaultConfig);
           await this.strategyProvider
             .connect(this.signers.strategyOperator)
             .setBestStrategy(strategyDetail.riskProfileCode, tokenHash, steps);
-          this.minimumDepositValueUT = BigNumber.from(MultiChainVaults[fork][token][0].minimumDepositValueUT).div(
-            to_10powNumber_BN(await this.vaults[token].decimals()),
-          );
+          this.minimumDepositValueUT = BigNumber.from(
+            MultiChainVaults[fork][riskProfile][token].minimumDepositValueUT,
+          ).div(to_10powNumber_BN(await this.optyFiVaults[token].decimals()));
         });
 
         it("[getDepositInternalTransactionCount] should return the correct number of internal transactions", async function () {
@@ -120,18 +121,18 @@ describe("StrategyManager Library", () => {
         it("[getOraValueUT] should return the correct underlying token value deposited into strategy", async function () {
           await setTokenBalanceInStorage(
             this.tokens[token],
-            this.vaults[token].address,
+            this.optyFiVaults[token].address,
             this.minimumDepositValueUT.toString(),
           );
-          const tx = await this.vaults[token].rebalance();
+          const tx = await this.optyFiVaults[token].rebalance();
           await tx.wait(1);
-          const oraValueUT = await getOraValueUT(steps, this.registry, this.vaults[token], this.tokens[token]);
+          const oraValueUT = await getOraValueUT(steps, this.registry, this.optyFiVaults[token], this.tokens[token]);
           expect(oraValueUT).gt(0);
           expect(
             await this.testStrategyManager.testOraValueUT(
               steps,
               this.registry.address,
-              this.vaults[token].address,
+              this.optyFiVaults[token].address,
               this.tokens[token].address,
               oraValueUT,
             ),
@@ -244,15 +245,15 @@ describe("StrategyManager Library", () => {
         it("[getLastStrategyStepBalanceLP] should return the correct LP Token balance for the last step of the strategy", async function () {
           await setTokenBalanceInStorage(
             this.tokens[token],
-            this.vaults[token].address,
+            this.optyFiVaults[token].address,
             this.minimumDepositValueUT.toString(),
           );
-          const tx = await this.vaults[token].rebalance();
+          const tx = await this.optyFiVaults[token].rebalance();
           await tx.wait(1);
           const lastStrategyStepBalanceLP = await getLastStrategyStepBalanceLP(
             steps,
             this.registry,
-            this.vaults[token],
+            this.optyFiVaults[token],
             this.tokens[token],
           );
           expect(lastStrategyStepBalanceLP).gt(0);
@@ -260,7 +261,7 @@ describe("StrategyManager Library", () => {
             await this.testStrategyManager.testGetLastStrategyStepBalanceLP(
               steps,
               this.registry.address,
-              this.vaults[token].address,
+              this.optyFiVaults[token].address,
               this.tokens[token].address,
               lastStrategyStepBalanceLP,
             ),

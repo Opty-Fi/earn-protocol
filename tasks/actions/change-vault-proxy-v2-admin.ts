@@ -20,6 +20,7 @@ task(TASKS.ACTION_TASKS.CHANGE_VAULT_PROXY_V2_ADMIN.NAME, TASKS.ACTION_TASKS.CHA
       const currentAdmin = getAddress(`0x${storage.slice(-40)}`);
       console.log("currentAdmin ", currentAdmin);
       if (getAddress(newAdmin) != getAddress(currentAdmin)) {
+        console.log("Updating admin to ", newAdmin);
         const feeData = await ethers.provider.getFeeData();
         const tx = await vaultProxyInstance.changeAdmin(newAdmin, {
           type: 2,
@@ -27,6 +28,17 @@ task(TASKS.ACTION_TASKS.CHANGE_VAULT_PROXY_V2_ADMIN.NAME, TASKS.ACTION_TASKS.CHA
           maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
         });
         await tx.wait(1);
+        console.log(
+          "Updated admin to ",
+          getAddress(
+            `0x${(
+              await ethers.provider.getStorageAt(
+                vaultProxyAddress,
+                BigNumber.from("0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103"),
+              )
+            ).slice(-40)}`,
+          ),
+        );
       } else {
         console.log("current admin is upto date");
       }
