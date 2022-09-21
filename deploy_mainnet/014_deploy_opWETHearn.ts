@@ -95,7 +95,6 @@ const func: DeployFunction = async ({
           args: [
             registryProxyAddress, //address _registry
             MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, //bytes32 _underlyingTokensHash
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedCodesRoot
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
             "WETH", //string memory _symbol
             "1", //uint256 _riskProfileCode

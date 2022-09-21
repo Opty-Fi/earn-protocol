@@ -106,7 +106,6 @@ const func: DeployFunction = async ({
             registryProxyAddress,
             MULTI_CHAIN_VAULT_TOKENS[chainId].ENS.hash,
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
             "ENS",
             "2",
             "0",

@@ -106,7 +106,6 @@ const func: DeployFunction = async ({
             registryProxyAddress,
             MULTI_CHAIN_VAULT_TOKENS[chainId].CVX.hash,
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
             "CVX",
             "2",
             "0",

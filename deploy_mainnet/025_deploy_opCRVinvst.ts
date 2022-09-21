@@ -106,7 +106,6 @@ const func: DeployFunction = async ({
             registryProxyAddress,
             MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
             "CRV",
             "2",
             "0",
