@@ -2,6 +2,7 @@ import { task, types } from "hardhat/config";
 import { isAddress } from "../../helpers/helpers";
 import { MAX_DEPOSIT_MODE } from "../../helpers/constants/utils";
 import TASKS from "../task-names";
+import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.SET_MAX_DEPOSIT.NAME, TASKS.ACTION_TASKS.SET_MAX_DEPOSIT.DESCRIPTION)
   .addParam("adapter", "the address of defi adapter", "", types.string)
@@ -19,7 +20,7 @@ task(TASKS.ACTION_TASKS.SET_MAX_DEPOSIT.NAME, TASKS.ACTION_TASKS.SET_MAX_DEPOSIT
       throw new Error("adapter address is invalid");
     }
 
-    if (+amount <= 0) {
+    if (!BigNumber.from(amount).gt("0")) {
       throw new Error("amount is invalid");
     }
 
