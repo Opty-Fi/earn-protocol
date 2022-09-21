@@ -30,7 +30,7 @@ import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/o
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 
 /**
- * @title Vault contract inspired by AAVE V2's AToken.sol
+ * @title Vault contract inspired by AAVE V3's AToken.sol
  * @author opty.fi
  * @notice Implementation of the risk specific interest bearing vault
  */
