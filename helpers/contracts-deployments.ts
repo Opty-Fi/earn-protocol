@@ -178,7 +178,6 @@ export async function deployVault(
   strategyManager: string,
   claimAndHarvest: string,
   underlyingToken: string,
-  whitelistedCodesRoot: string,
   whitelistedAccountsRoot: string,
   vaultConfiguration: string,
   userDepositCapUT: number,
@@ -209,11 +208,10 @@ export async function deployVault(
   await executeFunc(
     vault,
     owner,
-    "initialize(address,bytes32,bytes32,bytes32,string,uint256,uint256,uint256,uint256,uint256)",
+    "initialize(address,bytes32,bytes32,string,uint256,uint256,uint256,uint256,uint256)",
     [
       registry,
       underlyingTokenHash,
-      whitelistedCodesRoot,
       whitelistedAccountsRoot,
       underlyingTokenSymbol,
       riskProfileCode,
@@ -234,7 +232,6 @@ export async function deployVaultWithHash(
   strategyManager: string,
   claimAndHarvest: string,
   underlyingToken: string,
-  whitelistedCodesRoot: string,
   whitelistedAccountsRoot: string,
   vaultConfiguration: string,
   userDepositCapUT: number,
@@ -282,7 +279,6 @@ export async function deployVaultWithHash(
           args: [
             registry,
             underlyingTokenHash,
-            whitelistedCodesRoot,
             whitelistedAccountsRoot,
             underlyingTokenSymbol,
             riskProfileCode,
