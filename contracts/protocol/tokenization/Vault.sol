@@ -547,15 +547,13 @@ contract Vault is
      */
     function _permit(bytes calldata _permitParams) internal {
         if (_permitParams.length == 32 * 7) {
-            (bool success, ) =
-                underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
+            (bool success, ) = underlyingToken.call(abi.encodePacked(IERC20Permit.permit.selector, _permitParams));
             require(success, Errors.PERMIT_FAILED);
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) = underlyingToken.call(
-                abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams)
-            );
+            (bool success, ) =
+                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
@@ -686,7 +684,7 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount = 
+        uint256 _internalTransactionCount =
             _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
@@ -896,13 +894,7 @@ contract Vault is
         bytes32[] memory _accountsProof
     ) internal view {
         (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(
-                _user,
-                _addUserDepositUT,
-                _userDepositUTWithDeductions,
-                _deductions,
-                _accountsProof
-            );
+            userDepositPermitted(_user, _addUserDepositUT, _userDepositUTWithDeductions, _deductions, _accountsProof);
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -940,11 +932,7 @@ contract Vault is
         bytes32[] memory _accountsProof
     ) internal view {
         (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
-            userWithdrawPermitted(
-                _user,
-                _userWithdrawVT,
-                _accountsProof
-            );
+            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
