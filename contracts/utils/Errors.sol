@@ -28,4 +28,7 @@ library Errors {
     string public constant PERMIT_FAILED = "24";
     string public constant PERMIT_LEGACY_FAILED = "25";
     string public constant AMOUNT_EXCEEDS_ALLOWANCE = "26";
+    string public constant ZERO_ADDRESS_NOT_VALID = "27";
+    string public constant INVALID_EXPIRATION = "28";
+    string public constant INVALID_SIGNATURE = "29";
 }

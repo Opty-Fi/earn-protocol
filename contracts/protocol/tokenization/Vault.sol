@@ -11,7 +11,7 @@ import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { VaultStorageV3 } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
+import { EIP712Base } from "../../utils/EIP712Base.sol";
 // libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
@@ -20,7 +20,6 @@ import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
 import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
-import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -43,13 +42,16 @@ contract Vault is
     MultiCall,
     Modifiers,
     ReentrancyGuard,
-    VaultStorageV3
+    VaultStorageV3,
+    EIP712Base
 {
     using SafeERC20 for IERC20;
     using Address for address;
     using ClaimAndHarvest for address;
     using StrategyManager for DataTypes.StrategyStep[];
-    using Counters for Counters.Counter;
+
+    bytes32 public constant PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     /**
      * @dev The version of the Vault business logic
@@ -61,12 +63,12 @@ contract Vault is
     /* solhint-disable no-empty-blocks */
     constructor(address _registry)
         public
-        IncentivisedERC20(
-            string(abi.encodePacked("OptyFi Vault Name")),
-            string(abi.encodePacked("OptyFi Vault Symbol"))
-        )
+        IncentivisedERC20(string(abi.encodePacked("opTOKEN_IMPL")), string(abi.encodePacked("opTOKEN_IMPL")))
+        EIP712Base()
         Modifiers(_registry)
-    {}
+    {
+        // Intentionally left blank
+    }
 
     /* solhint-enable no-empty-blocks */
 
@@ -106,6 +108,7 @@ contract Vault is
         _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
         _setVaultConfiguration(_vaultConfiguration);
         _setValueControlParams(_userDepositCapUT, _minimumDepositValueUT, _totalValueLockedLimitUT);
+        _domainSeparator = _calculateDomainSeparator();
     }
 
     /**
@@ -113,6 +116,7 @@ contract Vault is
      */
     function setName(string calldata _name) external override onlyGovernance {
         _setName(_name);
+        _domainSeparator = _calculateDomainSeparator();
     }
 
     /**
@@ -336,13 +340,62 @@ contract Vault is
         emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
-    //===Public view functions===//
+    /**
+     * @inheritdoc IVault
+     */
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external override {
+        require(_owner != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
+        //solium-disable-next-line
+        require(block.timestamp <= _deadline, Errors.INVALID_EXPIRATION);
+        uint256 _currentValidNonce = _nonces[_owner];
+        bytes32 _digest =
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(PERMIT_TYPEHASH, _owner, _spender, _value, _currentValidNonce, _deadline))
+                )
+            );
+        require(_owner == ecrecover(_digest, _v, _r, _s), Errors.INVALID_SIGNATURE);
+        _nonces[_owner] = _currentValidNonce.add(1);
+        _approve(_owner, _spender, _value);
+    }
+
+    //===Public functions===//
 
     /**
-     * @inheritdoc IncentivisedERC20
+     * @inheritdoc EIP712Base
+     */
+    function DOMAIN_SEPARATOR() public view override returns (bytes32) {
+        uint256 __chainId;
+        assembly {
+            __chainId := chainid()
+        }
+        if (__chainId == _chainId) {
+            return _domainSeparator;
+        }
+        return _calculateDomainSeparator();
+    }
+
+    /**
+     * @inheritdoc EIP712Base
      */
     function nonces(address owner) public view override returns (uint256) {
-        return _nonces[owner].current();
+        return _nonces[owner];
+    }
+
+    //===Public view functions===//
+
+    function _EIP712BaseId() internal view override returns (string memory) {
+        return name();
     }
 
     /**
@@ -934,15 +987,6 @@ contract Vault is
         (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
             userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
-    }
-
-    /**
-     * @inheritdoc IncentivisedERC20
-     */
-    function _useNonce(address owner) internal override returns (uint256 current) {
-        Counters.Counter storage nonce = _nonces[owner];
-        current = nonce.current();
-        nonce.increment();
     }
 
     //===Internal pure functions===//

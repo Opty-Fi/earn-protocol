@@ -3,11 +3,8 @@
 pragma solidity ^0.6.12;
 
 import { Context } from "@openzeppelin/contracts/utils/Context.sol";
-import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-import { EIP712 } from "../../utils/EIP712.sol";
-import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -33,7 +30,7 @@ import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
+abstract contract IncentivisedERC20 is Context, IERC20 {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _balances;
@@ -46,10 +43,6 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
     string private _symbol;
     uint8 private _decimals;
 
-    // solhint-disable-next-line var-name-mixedcase
-    bytes32 private constant _PERMIT_TYPEHASH =
-        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
      * a default value of 18.
@@ -59,7 +52,7 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) public EIP712(name_, "1") {
+    constructor(string memory name_, string memory symbol_) public {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;
@@ -209,76 +202,6 @@ abstract contract IncentivisedERC20 is Context, IERC20, EIP712 {
         );
         return true;
     }
-
-    /**
-     * @dev Sets `value` as the allowance of `spender` over ``owner``'s tokens,
-     * given ``owner``'s signed approval.
-     *
-     * IMPORTANT: The same issues {IERC20-approve} has related to transaction
-     * ordering also apply here.
-     *
-     * Emits an {Approval} event.
-     *
-     * Requirements:
-     *
-     * - `spender` cannot be the zero address.
-     * - `deadline` must be a timestamp in the future.
-     * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
-     * over the EIP712-formatted function arguments.
-     * - the signature must use ``owner``'s current nonce (see {nonces}).
-     *
-     * For more information on the signature format, see the
-     * https://eips.ethereum.org/EIPS/eip-2612#specification[relevant EIP
-     * section].
-     */
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public virtual {
-        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
-
-        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
-
-        bytes32 hash = _hashTypedDataV4(structHash);
-
-        address signer = ECDSA.recover(hash, v, r, s);
-        require(signer == owner, "ERC20Permit: invalid signature");
-
-        _approve(owner, spender, value);
-    }
-
-    /* solhint-disable no-empty-blocks*/
-    /**
-     * @dev Returns the current nonce for `owner`. This value must be
-     * included whenever a signature is generated for {permit}.
-     *
-     * Every successful call to {permit} increases ``owner``'s nonce by one. This
-     * prevents a signature from being used multiple times.
-     */
-    function nonces(address owner) public view virtual returns (uint256) {}
-
-    /* solhint-enable no-empty-blocks*/
-
-    /**
-     * @dev Returns the domain separator used in the encoding of the signature for {permit}, as defined by {EIP712}.
-     */
-    // solhint-disable-next-line func-name-mixedcase
-    function DOMAIN_SEPARATOR() external view returns (bytes32) {
-        return _domainSeparatorV4();
-    }
-
-    /* solhint-disable no-empty-blocks */
-    /**
-     * @dev "Consume a nonce": return the current value and increment
-     */
-    function _useNonce(address owner) internal virtual returns (uint256) {}
-
-    /* solhint-enable no-empty-blocks */
 
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.

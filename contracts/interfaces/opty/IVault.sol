@@ -188,6 +188,28 @@ interface IVault {
     function harvestAll(address _liquidityPool) external;
 
     /**
+     * @notice Allow passing a signed message to approve spending
+     * @dev implements the permit function as for
+     * https://github.com/ethereum/EIPs/blob/8a34d644aacf0f9f8f00815307fd7dd5da07655f/EIPS/eip-2612.md
+     * @param _owner The owner of the funds
+     * @param _spender The spender
+     * @param _value The amount
+     * @param _deadline The deadline timestamp, type(uint256).max for max deadline
+     * @param _v Signature param
+     * @param _s Signature param
+     * @param _r Signature param
+     */
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external;
+
+    /**
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
