@@ -14,7 +14,7 @@ import {
 import { ZapData } from "../helpers/type";
 import { expect } from "chai";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { getAccountsMerkleRoot, getCodesMerkleRoot } from "../helpers/utils";
+import { getAccountsMerkleRoot } from "../helpers/utils";
 import { getPermitSignature } from "../test/test-opty/utils";
 
 export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skips?: string[]) {
@@ -36,8 +36,8 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
 
   let snapshotId: number;
   let usdcZapOutAmount: BigNumber;
-  let OPUSDCGROW_VAULT_ADDRESS: string;
-  let OPWETHGROW_VAULT_ADDRESS: string;
+  let OPUSDCSAVE_VAULT_ADDRESS: string;
+  let OPWETHEARN_VAULT_ADDRESS: string;
   let SWAPPER_ADDRESS: string;
 
   //EOA mainnet
@@ -61,12 +61,12 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
   describe("::Zap", () => {
     before(async () => {
       // USDC Vault
-      OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
-      usdcVault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCGROW_VAULT_ADDRESS);
+      OPUSDCSAVE_VAULT_ADDRESS = (await deployments.get("opUSDCsave")).address;
+      usdcVault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPUSDCSAVE_VAULT_ADDRESS);
 
       // WETH Vault
-      OPWETHGROW_VAULT_ADDRESS = (await deployments.get("opWETHgrow")).address;
-      wethVault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHGROW_VAULT_ADDRESS);
+      OPWETHEARN_VAULT_ADDRESS = (await deployments.get("opWETHearn")).address;
+      wethVault = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, OPWETHEARN_VAULT_ADDRESS);
 
       [owner, maker] = await ethers.getSigners();
 
@@ -109,13 +109,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
       SWAPPER_ADDRESS = await zapView.getSwapper();
       snapshotId = await ethers.provider.send("evm_snapshot", []);
 
-      //whitelist zap code
-      const code = await ethers.provider.getCode(instance.address);
-      const codeHash = ethers.utils.keccak256(code);
-      const _codeRoot = getCodesMerkleRoot([codeHash]);
-      await usdcVault.setWhitelistedCodesRoot(_codeRoot);
-      await wethVault.setWhitelistedCodesRoot(_codeRoot);
-
       //whitelist zap account
       const _accountRoot = getAccountsMerkleRoot([instance.address]);
       await usdcVault.setWhitelistedAccountsRoot(_accountRoot);
@@ -149,7 +142,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
     });
 
     describe("#ZapIn(address,uint256,struct(ZapData))", () => {
-      describe("UNI => opUSDCgrow (using approve)", () => {
+      describe("UNI => opUSDCsave (using approve)", () => {
         beforeEach(async () => {
           await UNIERC20.connect(maker).approve(instance.address, uniSwapAmount);
 
@@ -176,7 +169,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           }
 
           zapData = {
-            vault: OPUSDCGROW_VAULT_ADDRESS,
+            vault: OPUSDCSAVE_VAULT_ADDRESS,
             toAmount: ethers.constants.One,
             deadline: swapDeadline,
             exchangeData: exchangeData,
@@ -185,14 +178,13 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
             accountsProof: [],
-            codesProof: [],
           };
         });
 
         it("vault emits Transfer event", async () => {
           const expectedReturns = await uniRouter.getAmountsOut(uniSwapAmount, [UNI, USDC]);
 
-          //zap UNI -> opUSDCgrow
+          //zap UNI -> opUSDCsave
           await expect(instance.connect(maker).zapIn(UNI, uniSwapAmount, "0x", zapData))
             .to.emit(usdcVault, "Transfer")
             .withArgs(ethers.constants.AddressZero, maker.address, expectedReturns[1]);
@@ -204,7 +196,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           const _previousBalance = await usdcVault.balanceOf(maker.address);
           const _previousVaultBalance = await usdcVault.balanceUT();
 
-          //zap UNI -> opUSDCgrow
+          //zap UNI -> opUSDCsave
           await expect(instance.connect(maker).zapIn(UNI, uniSwapAmount, "0x", zapData))
             .to.emit(usdcVault, "Transfer")
             .withArgs(ethers.constants.AddressZero, maker.address, expectedReturns[1]);
@@ -216,7 +208,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
         });
       });
 
-      describe("USDC => opWETHgrow (using permit)", () => {
+      describe("USDC => opWETHsave (using permit)", () => {
         beforeEach(async () => {
           //calculate call datas for swap
           const uniswapData = uniRouter.interface.encodeFunctionData("swapExactTokensForTokens", [
@@ -241,7 +233,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           }
 
           zapData = {
-            vault: OPWETHGROW_VAULT_ADDRESS,
+            vault: OPWETHEARN_VAULT_ADDRESS,
             toAmount: ethers.constants.One,
             deadline: swapDeadline,
             exchangeData: exchangeData,
@@ -250,7 +242,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
             accountsProof: [],
-            codesProof: [],
           };
         });
 
@@ -265,7 +256,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           );
 
           const expectedReturns = await uniRouter.getAmountsOut(usdcSwapAmount, [USDC, WETH]);
-          //zap UNI -> opUSDCgrow
+          //zap UNI -> opUSDCsave
           await expect(instance.connect(maker).zapIn(USDC, usdcSwapAmount, dataPermit, zapData))
             .to.emit(wethVault, "Transfer")
             .withArgs(ethers.constants.AddressZero, maker.address, expectedReturns[1]);
@@ -284,7 +275,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           const expectedReturns = await uniRouter.getAmountsOut(usdcSwapAmount, [USDC, WETH]);
           const _previousBalance = await wethVault.balanceOf(maker.address);
           const _previousVaultBalance = await wethVault.balanceUT();
-          //zap UNI -> opUSDCgrow
+          //zap UNI -> opUSDCsave
           await instance.connect(maker).zapIn(USDC, usdcSwapAmount, dataPermit, zapData);
           expect(await WETHERC20.balanceOf(wethVault.address)).to.eq(_previousVaultBalance.add(expectedReturns[1]));
           expect(await wethVault.totalSupply()).to.eq(_previousVaultBalance.add(expectedReturns[1]));
@@ -294,7 +285,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
         });
       });
 
-      describe("ETH => opUSDCgrow", () => {
+      describe("ETH => opUSDCsave", () => {
         beforeEach(async () => {
           //calculate call datas for swap
           const uniswapData = uniRouter.interface.encodeFunctionData("swapExactETHForTokens", [
@@ -314,7 +305,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           }
 
           zapData = {
-            vault: OPUSDCGROW_VAULT_ADDRESS,
+            vault: OPUSDCSAVE_VAULT_ADDRESS,
             toAmount: ethers.constants.One,
             deadline: swapDeadline,
             exchangeData: exchangeData,
@@ -323,14 +314,13 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             startIndexes: startIndexes,
             values: [ethSwapAmount],
             accountsProof: [],
-            codesProof: [],
           };
         });
 
         it("vault emits Transfer event", async () => {
           const expectedReturns = await uniRouter.getAmountsOut(ethSwapAmount, [WETH, USDC]);
 
-          //zap ETH -> opUSDCgrow
+          //zap ETH -> opUSDCsave
           await expect(instance.connect(maker).zapIn(ETH, ethSwapAmount, "0x", zapData, { value: ethSwapAmount }))
             .to.emit(usdcVault, "Transfer")
             .withArgs(ethers.constants.AddressZero, maker.address, expectedReturns[1]);
@@ -342,7 +332,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           const _previousBalance = await usdcVault.balanceOf(maker.address);
           const _previousVaultBalance = await usdcVault.balanceUT();
 
-          //zap ETH -> opUSDCgrow
+          //zap ETH -> opUSDCsave
           await instance.connect(maker).zapIn(ETH, ethSwapAmount, "0x", zapData, { value: ethSwapAmount });
           expect(await USDCERC20.balanceOf(usdcVault.address)).to.eq(_previousVaultBalance.add(expectedReturns[1]));
           expect(await usdcVault.totalSupply()).to.eq(_previousVaultBalance.add(expectedReturns[1]));
@@ -372,7 +362,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
         }
 
         zapData = {
-          vault: OPUSDCGROW_VAULT_ADDRESS,
+          vault: OPUSDCSAVE_VAULT_ADDRESS,
           toAmount: ethers.constants.One,
           deadline: swapDeadline,
           exchangeData: exchangeData,
@@ -381,14 +371,13 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           startIndexes: startIndexes,
           values: [ethSwapAmount],
           accountsProof: [],
-          codesProof: [],
         };
 
-        //zap ETH -> opUSDCgrow
+        //zap ETH -> opUSDCsave
         await instance.connect(maker).zapIn(ETH, ethSwapAmount, "0x", zapData, { value: ethSwapAmount });
       });
 
-      describe("opUSDCgrow => ETH", () => {
+      describe("opUSDCsave => ETH", () => {
         beforeEach(async () => {
           usdcZapOutAmount = await usdcVault.balanceOf(maker.address);
 
@@ -413,7 +402,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           }
 
           zapData = {
-            vault: OPUSDCGROW_VAULT_ADDRESS,
+            vault: OPUSDCSAVE_VAULT_ADDRESS,
             toAmount: ethers.constants.One,
             deadline: swapDeadline,
             exchangeData: exchangeData,
@@ -422,7 +411,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
             accountsProof: [],
-            codesProof: [],
           };
         });
 
@@ -437,7 +425,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
             [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
           );
-          //zap UNI -> opUSDCgrow
+          //zap UNI -> opUSDCsave
           await expect(
             await instance.connect(maker).zapOut(ETH, usdcZapOutAmount, dataPermit, zapData),
           ).to.changeEtherBalance(maker, expectedReturns[1]);
@@ -447,14 +435,14 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           const expectedReturns = await uniRouter.getAmountsOut(usdcZapOutAmount, [USDC, WETH]);
 
           await usdcVault.connect(maker).approve(instance.address, usdcZapOutAmount);
-          //zap UNI -> opUSDCgrow
+          //zap UNI -> opUSDCsave
           await expect(
             await instance.connect(maker).zapOut(ETH, usdcZapOutAmount, "0x", zapData),
           ).to.changeEtherBalance(maker, expectedReturns[1]);
         });
       });
 
-      describe("opUSDCgrow => WETH", () => {
+      describe("opUSDCsave => WETH", () => {
         beforeEach(async () => {
           usdcZapOutAmount = await usdcVault.balanceOf(maker.address);
 
@@ -478,7 +466,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
           }
 
           zapData = {
-            vault: OPUSDCGROW_VAULT_ADDRESS,
+            vault: OPUSDCSAVE_VAULT_ADDRESS,
             toAmount: ethers.constants.One,
             deadline: swapDeadline,
             exchangeData: exchangeData,
@@ -487,7 +475,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
             accountsProof: [],
-            codesProof: [],
           };
         });
 
@@ -503,7 +490,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
             [maker.address, instance.address, usdcZapOutAmount, deadline, v, r, s],
           );
 
-          // zap opUSDCgrow => WETH
+          // zap opUSDCsave => WETH
           await expect(() =>
             instance.connect(maker).zapOut(WETH, usdcZapOutAmount, dataPermit, zapData),
           ).to.changeTokenBalance(WETHERC20, maker, expectedReturns[1]);
@@ -514,7 +501,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
 
           await usdcVault.connect(maker).approve(instance.address, usdcZapOutAmount);
 
-          // zap opUSDCgrow => WETH
+          // zap opUSDCsave => WETH
           await expect(() =>
             instance.connect(maker).zapOut(WETH, usdcZapOutAmount, "0x", zapData),
           ).to.changeTokenBalance(WETHERC20, maker, expectedReturns[1]);
