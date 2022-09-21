@@ -95,12 +95,12 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
                 const depositTx = await vaultContract
                   .connect(userSigner)
-                  .userDepositVault(beneficiary, checkedAmount, [], merkleProof.split(","), []);
+                  .userDepositVault(beneficiary, checkedAmount, [], merkleProof.split(","));
                 await depositTx.wait(1);
               } else {
                 const depositTx = await vaultContract
                   .connect(userSigner)
-                  .userDepositVault(beneficiary, checkedAmount, [], [], []);
+                  .userDepositVault(beneficiary, checkedAmount, [], []);
                 await depositTx.wait(1);
               }
               console.log("Block after : ", await ethers.provider.getBlockNumber());
@@ -162,20 +162,20 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
                 const gasLimit = await vaultContract
                   .connect(userSigner)
-                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, merkleProof.split(","), []);
+                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, merkleProof.split(","));
                 const withdrawTx = await vaultContract
                   .connect(userSigner)
-                  .userWithdrawVault(beneficiary, checkedAmount, merkleProof.split(","), [], {
+                  .userWithdrawVault(beneficiary, checkedAmount, merkleProof.split(","), {
                     gasLimit: gasLimit.add("1000000"),
                   });
                 await withdrawTx.wait(1);
               } else {
                 const gasLimit = await vaultContract
                   .connect(userSigner)
-                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, [], []);
+                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, []);
                 const withdrawTx = await vaultContract
                   .connect(userSigner)
-                  .userWithdrawVault(beneficiary, checkedAmount, [], [], { gasLimit: gasLimit.add("1000000") });
+                  .userWithdrawVault(beneficiary, checkedAmount, [], { gasLimit: gasLimit.add("1000000") });
                 await withdrawTx.wait(1);
               }
               console.log("Block after : ", await ethers.provider.getBlockNumber());
