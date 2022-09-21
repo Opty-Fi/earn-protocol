@@ -28,7 +28,9 @@ contract Zap is IZap, ZapInternal, OwnableInternal {
         bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
     ) external payable override returns (uint256 sharesReceived) {
-        sharesReceived = _zapIn(_token, _amount, _permitParams, _zapParams);
+        ZapStorage.Layout storage _l = ZapStorage.layout();
+
+        sharesReceived = _zapIn(_l, _token, _amount, _permitParams, _zapParams);
     }
 
     /**
@@ -40,7 +42,9 @@ contract Zap is IZap, ZapInternal, OwnableInternal {
         bytes memory _permitParams,
         DataTypes.ZapData memory _zapParams
     ) external override returns (uint256 receivedAmount) {
-        receivedAmount = _zapOut(_token, _amount, _permitParams, _zapParams);
+        ZapStorage.Layout storage _l = ZapStorage.layout();
+
+        receivedAmount = _zapOut(_l, _token, _amount, _permitParams, _zapParams);
     }
 
     /**
@@ -50,5 +54,14 @@ contract Zap is IZap, ZapInternal, OwnableInternal {
         ZapStorage.Layout storage _l = ZapStorage.layout();
 
         _setSwapper(_l, _swapper);
+    }
+
+    /**
+     * @inheritdoc IZap
+     */
+    function setMerkleProof(address _vault, bytes32[] memory _merkleProof) external override onlyOwner {
+        ZapStorage.Layout storage _l = ZapStorage.layout();
+
+        _setMerkleProof(_l, _vault, _merkleProof);
     }
 }

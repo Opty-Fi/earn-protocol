@@ -16,4 +16,11 @@ contract ZapView is IZapView, ZapInternal {
     function getSwapper() external view returns (ISwapper) {
         return _getSwapper();
     }
+
+    /**
+     * @inheritdoc IZapView
+     */
+    function getMerkleProof(address _vault) external view returns (bytes32[] memory) {
+        return _getMerkleProof(_vault);
+    }
 }

@@ -12,6 +12,7 @@ library ZapStorage {
 
     struct Layout {
         ISwapper swapper;
+        mapping(address => bytes32[]) merkleProofs;
     }
 
     /**

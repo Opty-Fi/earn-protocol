@@ -27,6 +27,7 @@ abstract contract ZapInternal {
 
     /**
      * @dev performs an arbitrary swap of a given token or ETH to deposit in a OptyFi Vault
+     * @param _l the zap layout struct
      * @param _token the address of the input token
      * @param _amount input token amount to deposit
      * @param _permitParams ERC2612 permit params
@@ -34,6 +35,7 @@ abstract contract ZapInternal {
      * @return sharesReceived shares received from the vault deposit
      */
     function _zapIn(
+        ZapStorage.Layout storage _l,
         address _token,
         uint256 _amount,
         bytes memory _permitParams,
@@ -77,14 +79,14 @@ abstract contract ZapInternal {
             msg.sender,
             receivedAmount,
             _zapParams.permit,
-            _zapParams.accountsProof,
-            _zapParams.codesProof
+            _l.merkleProofs[_zapParams.vault]
         );
     }
 
     /**
      * @dev redeems the vault shares and performs an arbitrary swap
      * from the OptyFi Vault underlying token to any given token
+     * @param _l the zap layout struct
      * @param _token the address of the input token
      * @param _amount input token amount to deposit
      * @param _permitParams ERC2612 permit params
@@ -92,6 +94,7 @@ abstract contract ZapInternal {
      * @return receivedAmount amount of output tokens received
      */
     function _zapOut(
+        ZapStorage.Layout storage _l,
         address _token,
         uint256 _amount,
         bytes memory _permitParams,
@@ -109,8 +112,7 @@ abstract contract ZapInternal {
         uint256 swapAmount = IVault(_zapParams.vault).userWithdrawVault(
             address(this),
             _amount,
-            _zapParams.accountsProof,
-            _zapParams.codesProof
+            _l.merkleProofs[_zapParams.vault]
         );
 
         _approveTokenIfNeeded(vaultUnderlyingToken, swapper.tokenTransferProxy(), swapAmount);
@@ -160,6 +162,20 @@ abstract contract ZapInternal {
     }
 
     /**
+     * @dev set the zap contract merkle proof to deposit and withdraw on vault
+     * @param _l the zap layout struct
+     * @param _vault address of the target vault
+     * @param _merkleProof zapper contract merkle proof
+     */
+    function _setMerkleProof(
+        ZapStorage.Layout storage _l,
+        address _vault,
+        bytes32[] memory _merkleProof
+    ) internal {
+        _l.merkleProofs[_vault] = _merkleProof;
+    }
+
+    /**
      * @dev function to get the underlying token of the OptyFi Vault
      */
     function _underlying(address _vault) internal returns (address) {
@@ -171,6 +187,13 @@ abstract contract ZapInternal {
      */
     function _getSwapper() internal view returns (ISwapper swapper) {
         swapper = ZapStorage.layout().swapper;
+    }
+
+    /**
+     * @dev get merkle proof
+     */
+    function _getMerkleProof(address _vault) internal view returns (bytes32[] memory _merkleProof) {
+        _merkleProof = ZapStorage.layout().merkleProofs[_vault];
     }
 
     /**

@@ -12,4 +12,9 @@ interface IZapView {
      * @notice get swapper address
      */
     function getSwapper() external view returns (ISwapper);
+
+    /**
+     * @notice get merkle proof on a given vault
+     */
+    function getMerkleProof(address _vault) external view returns (bytes32[] memory);
 }

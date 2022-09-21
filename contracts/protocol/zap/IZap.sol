@@ -45,4 +45,11 @@ interface IZap {
      * @param _swapper swapper address
      */
     function setSwapper(address _swapper) external;
+
+    /**
+     * @notice set the zap contract merkle proof to deposit and withdraw on vault
+     * @param _vault address of the target vault
+     * @param _merkleProof zapper contract merkle proof
+     */
+    function setMerkleProof(address _vault, bytes32[] memory _merkleProof) external;
 }
