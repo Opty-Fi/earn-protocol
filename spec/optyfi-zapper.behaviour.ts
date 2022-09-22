@@ -17,7 +17,7 @@ import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-na
 import { getAccountsMerkleRoot } from "../helpers/utils";
 import { getPermitSignature } from "../test/test-opty/utils";
 
-export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skips?: string[]) {
+export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
   const ethers = hre.ethers;
   let owner: SignerWithAddress;
   let maker: SignerWithAddress;
@@ -115,26 +115,26 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>, skip
       await wethVault.setWhitelistedAccountsRoot(_accountRoot);
 
       //provide UNI whale with ETH to make required transactions
-      tx = maker.sendTransaction({
+      tx = await maker.sendTransaction({
         to: UNIWhaleAddress,
         value: ethers.utils.parseEther("0.1"),
         gasLimit: 10000000,
       });
-      (await tx).wait();
+      await tx.wait();
 
-      tx = UNIERC20.connect(UNIWhale).transfer(maker.address, ethers.utils.parseUnits("100000", 18));
-      (await tx).wait();
+      tx = await UNIERC20.connect(UNIWhale).transfer(maker.address, ethers.utils.parseUnits("100000", 18));
+      await tx.wait();
 
       //provide USDC whale with ETH to make required transactions
-      tx = maker.sendTransaction({
+      tx = await maker.sendTransaction({
         to: USDCWhaleAddress,
         value: ethers.utils.parseEther("0.1"),
         gasLimit: 10000000,
       });
-      (await tx).wait();
+      await tx.wait();
 
-      tx = USDCERC20.connect(USDCWhale).transfer(maker.address, ethers.utils.parseUnits("1000000", 6));
-      (await tx).wait();
+      tx = await USDCERC20.connect(USDCWhale).transfer(maker.address, ethers.utils.parseUnits("1000000", 6));
+      await tx.wait();
     });
 
     afterEach(async () => {

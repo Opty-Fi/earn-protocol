@@ -1,5 +1,5 @@
 import hre, { deployments } from "hardhat";
-import { describeBehaviorOfOptyFiZapper } from "../../spec/OptyFiZapper.behaviour";
+import { describeBehaviorOfOptyFiZapper } from "../../spec/optyfi-zapper.behaviour";
 import {
   OptyFiSwapper,
   OptyFiSwapper__factory,
