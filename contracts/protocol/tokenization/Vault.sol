@@ -29,6 +29,9 @@ import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
+import {
+    IInvestStrategyRegistry
+} from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -227,30 +230,6 @@ contract Vault is
                 vaultConfiguration;
         }
         emit LogUnpause((vaultConfiguration & (1 << 249)) != 0, msg.sender);
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
-    function rebalance() external override {
-        _checkVaultDeposit();
-        _setCacheNextInvestStrategySteps(getNextBestInvestStrategy());
-        bytes32 _nextBestInvestStrategyHash = computeInvestStrategyHash(_cacheNextInvestStrategySteps);
-        if (_nextBestInvestStrategyHash != investStrategyHash) {
-            if (investStrategyHash != Constants.ZERO_BYTES32) {
-                _vaultWithdrawAllFromStrategy(investStrategySteps);
-            }
-            // _setInvestStrategySteps
-            delete investStrategySteps;
-            for (uint256 _i; _i < _cacheNextInvestStrategySteps.length; _i++) {
-                investStrategySteps.push(_cacheNextInvestStrategySteps[_i]);
-            }
-            investStrategyHash = _nextBestInvestStrategyHash;
-        }
-        uint256 _balanceUT = balanceUT();
-        if (investStrategyHash != Constants.ZERO_BYTES32 && _balanceUT > 0) {
-            _vaultDepositToStrategy(investStrategySteps, _balanceUT);
-        }
     }
 
     /**
@@ -804,17 +783,6 @@ contract Vault is
     function _setTotalValueLockedLimitUT(uint256 _totalValueLockedLimitUT) internal {
         totalValueLockedLimitUT = _totalValueLockedLimitUT;
         emit LogTotalValueLockedLimitUT(totalValueLockedLimitUT, msg.sender);
-    }
-
-    /**
-     * @dev Internal function for caching the next invest strategy metadata
-     * @param _investStrategySteps list strategy steps
-     */
-    function _setCacheNextInvestStrategySteps(DataTypes.StrategyStep[] memory _investStrategySteps) internal {
-        delete _cacheNextInvestStrategySteps;
-        for (uint256 _i; _i < _investStrategySteps.length; _i++) {
-            _cacheNextInvestStrategySteps.push(_investStrategySteps[_i]);
-        }
     }
 
     /**
