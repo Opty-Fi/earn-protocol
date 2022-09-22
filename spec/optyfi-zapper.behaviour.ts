@@ -14,7 +14,7 @@ import {
 import { ZapData } from "../helpers/type";
 import { expect } from "chai";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { getAccountsMerkleRoot } from "../helpers/utils";
+import { getAccountsMerkleProof, getAccountsMerkleRoot } from "../helpers/utils";
 import { getPermitSignature } from "../test/test-opty/utils";
 
 export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
@@ -70,6 +70,31 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
 
       [owner, maker] = await ethers.getSigners();
 
+      // (0-15) Deposit fee UT = 0 UT = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 UT = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (64-79) Max vault value jump % = 1% = 0064
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
+      // (240-247) risk profile code = 1 = 01
+      // (248) emergency shutdown = false = 0
+      // (249) unpause = true = 1
+      // (250) allow whitelisted state = true = 1
+      // (251) - 0
+      // (252) - 0
+      // (253) - 0
+      // (254) - 0
+      // (255) - 0
+      // 0x0601000000000000000000000000000000000000000000640000000000000000
+      // 1811018241397843937822879938261491478723170994297509433919320763695890432000
+      await usdcVault
+        .connect(owner)
+        .setVaultConfiguration("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+
+      await wethVault
+        .connect(owner)
+        .setVaultConfiguration("2715643938564376714569528258641865758826842749497826340477583138757711757312");
+
       await usdcVault.connect(owner).setUnpaused(true);
       await usdcVault.connect(owner).setValueControlParams(
         "1000000000000", // userDepositCapUT: 1,000,000 USDC
@@ -110,7 +135,7 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
       snapshotId = await ethers.provider.send("evm_snapshot", []);
 
       //whitelist zap account
-      const _accountRoot = getAccountsMerkleRoot([instance.address]);
+      const _accountRoot = getAccountsMerkleRoot([instance.address, owner.address]);
       await usdcVault.setWhitelistedAccountsRoot(_accountRoot);
       await wethVault.setWhitelistedAccountsRoot(_accountRoot);
 
@@ -139,6 +164,24 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
 
     afterEach(async () => {
       await ethers.provider.send("evm_revert", [snapshotId]);
+    });
+
+    describe("#setMerkleProof(address,bytes32[])", () => {
+      it("sets the vault merkle proof correctly", async () => {
+        const _proof = getAccountsMerkleProof([instance.address, owner.address], instance.address);
+
+        await instance.connect(owner).setMerkleProof(usdcVault.address, _proof);
+        expect(await zapView.getMerkleProof(usdcVault.address)).to.eql(_proof);
+        await instance.connect(owner).setMerkleProof(wethVault.address, _proof);
+        expect(await zapView.getMerkleProof(wethVault.address)).to.eql(_proof);
+      });
+    });
+
+    describe("#setSwapper(address)", () => {
+      it("sets swapper correctly", async () => {
+        await instance.connect(owner).setSwapper(SWAPPER_ADDRESS);
+        expect(await zapView.getSwapper()).to.eql(SWAPPER_ADDRESS);
+      });
     });
 
     describe("#ZapIn(address,uint256,struct(ZapData))", () => {
@@ -177,8 +220,10 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
             callees: [UNIERC20.address, uniRouter.address],
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
-            accountsProof: [],
           };
+
+          const _proof = getAccountsMerkleProof([instance.address, owner.address], instance.address);
+          await instance.connect(owner).setMerkleProof(usdcVault.address, _proof);
         });
 
         it("vault emits Transfer event", async () => {
@@ -241,8 +286,10 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
             callees: [USDCERC20.address, uniRouter.address],
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
-            accountsProof: [],
           };
+
+          const _proof = getAccountsMerkleProof([instance.address, owner.address], instance.address);
+          await instance.connect(owner).setMerkleProof(wethVault.address, _proof);
         });
 
         it("vault emits Transfer event", async () => {
@@ -313,8 +360,10 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
             callees: [uniRouter.address],
             startIndexes: startIndexes,
             values: [ethSwapAmount],
-            accountsProof: [],
           };
+
+          const _proof = getAccountsMerkleProof([instance.address, owner.address], instance.address);
+          await instance.connect(owner).setMerkleProof(usdcVault.address, _proof);
         });
 
         it("vault emits Transfer event", async () => {
@@ -370,9 +419,11 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
           callees: [uniRouter.address],
           startIndexes: startIndexes,
           values: [ethSwapAmount],
-          accountsProof: [],
         };
 
+        const _proof = getAccountsMerkleProof([instance.address, owner.address], instance.address);
+        await instance.connect(owner).setMerkleProof(usdcVault.address, _proof);
+        await instance.connect(owner).setMerkleProof(wethVault.address, _proof);
         //zap ETH -> opUSDCsave
         await instance.connect(maker).zapIn(ETH, ethSwapAmount, "0x", zapData, { value: ethSwapAmount });
       });
@@ -410,7 +461,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
             callees: [USDCERC20.address, uniRouter.address],
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
-            accountsProof: [],
           };
         });
 
@@ -472,7 +522,6 @@ export function describeBehaviorOfOptyFiZapper(deploy: () => Promise<IZap>) {
             callees: [USDCERC20.address, uniRouter.address],
             startIndexes: startIndexes,
             values: [ethers.constants.Zero, ethers.constants.Zero],
-            accountsProof: [],
           };
         });
 
