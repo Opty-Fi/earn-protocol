@@ -11,5 +11,6 @@ specification_docs/
 deployments/
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/adapters
+contracts/protocol/optyfi-swapper
 # files
 .solcover.js
