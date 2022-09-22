@@ -230,5 +230,4 @@ export type ZapData = {
   callees: string[];
   startIndexes: BigNumberish[];
   values: BigNumberish[];
-  accountsProof: string[];
 };

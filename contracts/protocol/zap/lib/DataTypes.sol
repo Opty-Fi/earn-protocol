@@ -15,7 +15,6 @@ library DataTypes {
      * @param values array of encoded values for each call in exchangeData
      * @param permit ERC2612 permit
      * @param deadline timestamp until which swap may be fulfilled
-     * @param accountsProof merkle proof for caller
      */
     struct ZapData {
         address vault;
@@ -26,6 +25,5 @@ library DataTypes {
         address[] callees;
         uint256[] startIndexes;
         uint256[] values;
-        bytes32[] accountsProof;
     }
 }
