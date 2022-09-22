@@ -338,13 +338,14 @@ contract Vault is
         //solium-disable-next-line
         require(block.timestamp <= _deadline, Errors.INVALID_EXPIRATION);
         uint256 _currentValidNonce = _nonces[_owner];
-        bytes32 _digest = keccak256(
-            abi.encodePacked(
-                "\x19\x01",
-                DOMAIN_SEPARATOR(),
-                keccak256(abi.encode(PERMIT_TYPEHASH, _owner, _spender, _value, _currentValidNonce, _deadline))
-            )
-        );
+        bytes32 _digest =
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(PERMIT_TYPEHASH, _owner, _spender, _value, _currentValidNonce, _deadline))
+                )
+            );
         require(_owner == ecrecover(_digest, _v, _r, _s), Errors.INVALID_SIGNATURE);
         _nonces[_owner] = _currentValidNonce.add(1);
         _approve(_owner, _spender, _value);
@@ -355,8 +356,10 @@ contract Vault is
     /**
      * @inheritdoc EIP712Base
      */
+    // solhint-disable-next-line func-name-mixedcase
     function DOMAIN_SEPARATOR() public view override returns (bytes32) {
         uint256 __chainId;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             __chainId := chainid()
         }
@@ -375,6 +378,7 @@ contract Vault is
 
     //===Public view functions===//
 
+    /* solhint-disable-next-line func-name-mixedcase */
     function _EIP712BaseId() internal view override returns (string memory) {
         return name();
     }
@@ -586,9 +590,8 @@ contract Vault is
         }
 
         if (_permitParams.length == 32 * 8) {
-            (bool success, ) = underlyingToken.call(
-                abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams)
-            );
+            (bool success, ) =
+                underlyingToken.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitParams));
             require(success, Errors.PERMIT_LEGACY_FAILED);
         }
     }
@@ -678,11 +681,12 @@ contract Vault is
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
-            uint256 _oraAmountLP = investStrategySteps.getOraSomeValueLP(
-                address(registryContract),
-                underlyingToken,
-                _expectedStratWithdrawUT
-            );
+            uint256 _oraAmountLP =
+                investStrategySteps.getOraSomeValueLP(
+                    address(registryContract),
+                    underlyingToken,
+                    _expectedStratWithdrawUT
+                );
 
             _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
 
@@ -718,9 +722,8 @@ contract Vault is
     function _vaultDepositToStrategy(DataTypes.StrategyStep[] memory _investStrategySteps, uint256 _depositValueUT)
         internal
     {
-        uint256 _internalTransactionCount = _investStrategySteps.getDepositInternalTransactionCount(
-            address(registryContract)
-        );
+        uint256 _internalTransactionCount =
+            _investStrategySteps.getDepositInternalTransactionCount(address(registryContract));
         for (uint256 _i; _i < _internalTransactionCount; _i++) {
             executeCodes(
                 (
@@ -928,13 +931,8 @@ contract Vault is
         uint256 _deductions,
         bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userDepositPermitted, string memory _userDepositPermittedReason) = userDepositPermitted(
-            _user,
-            _addUserDepositUT,
-            _userDepositUTWithDeductions,
-            _deductions,
-            _accountsProof
-        );
+        (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
+            userDepositPermitted(_user, _addUserDepositUT, _userDepositUTWithDeductions, _deductions, _accountsProof);
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -971,11 +969,8 @@ contract Vault is
         uint256 _userWithdrawVT,
         bytes32[] memory _accountsProof
     ) internal view {
-        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) = userWithdrawPermitted(
-            _user,
-            _userWithdrawVT,
-            _accountsProof
-        );
+        (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
+            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
