@@ -1008,6 +1008,135 @@ const mainnetStrategiesByToken = {
         description:
           "The OptyFi vault supplies USDC to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
       },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv": {
+        strategyName: "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+            outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+            isBorrow: false,
+            outputTokenSymbol: "cvx3Crv",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "3CRV LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the 3CRV liquidity pool on Curve Finance and obtains the 3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the 3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
+        strategyName:
+          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+            outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+            isBorrow: false,
+            outputTokenSymbol: "FRAX3CRV-f",
+            adapterName: "CurveMetapoolSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+            outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+            isBorrow: false,
+            outputTokenSymbol: "cvxFRAX3CRV-f",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "FRAX3CRV LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
+        strategyName:
+          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+            outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+            isBorrow: false,
+            outputTokenSymbol: "MIM-3LP3CRV-f",
+            adapterName: "CurveMetapoolSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+            outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+            isBorrow: false,
+            outputTokenSymbol: "cvxMIM-3LP3CRV-f",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "MIM3CRV LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv": {
+        strategyName: "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+            outputTokenSymbol: "3Crv",
+          },
+          {
+            contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+            outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+            isBorrow: false,
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+            outputTokenSymbol: "usdn3Crv",
+          },
+          {
+            contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+            outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+            isBorrow: false,
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+            outputTokenSymbol: "cvxusdn3CRV",
+          },
+        ],
+        riskProfileCode: 2,
+        name: null,
+        description: null,
+      },
     },
     WETH: {
       "weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP": {
