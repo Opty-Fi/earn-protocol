@@ -9,3 +9,4 @@ contracts/mocks/
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/adapters
 contracts/protocol/optyfi-swapper
+contracts/protocol/zap
