@@ -79,6 +79,7 @@ const func: DeployFunction = async ({
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
   const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
   const MANA = "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942";
+  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
   const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
   const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
@@ -93,6 +94,8 @@ const func: DeployFunction = async ({
   const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
   const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
   const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
+  const USDC_WETH_LP = "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0";
+  const WBTC_WETH_LP = "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58";
 
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "50" },
@@ -109,6 +112,8 @@ const func: DeployFunction = async ({
     { liquidityPool: CRV_WETH_LP, tolerance: "50" },
     { liquidityPool: CVX_WETH_LP, tolerance: "70" },
     { liquidityPool: YFI_WETH_LP, tolerance: "100" },
+    { liquidityPool: USDC_WETH_LP, tolerance: "50" },
+    { liquidityPool: WBTC_WETH_LP, tolerance: "50" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -158,6 +163,10 @@ const func: DeployFunction = async ({
     { liquidityPool: CVX_WETH_LP, wantToken: CVX, slippage: "90" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "90" },
+    { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
+    { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: WBTC, slippage: "70" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
