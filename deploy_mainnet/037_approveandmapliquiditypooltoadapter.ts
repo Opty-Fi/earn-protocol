@@ -1,9 +1,11 @@
 import { BigNumber } from "ethers";
+import { getNamedAccounts } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
+  const { deployer } = await getNamedAccounts();
   const { getAddress } = ethers.utils;
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -112,54 +114,66 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 
   console.log("==Approve liquidity pool and map to adapter==");
   if (approveLiquidityPoolAndMap.length > 0) {
-    // approve liquidity pool and map adapter
-    console.log(
-      `operator approving and mapping ${approveLiquidityPoolAndMap.length} pools ...`,
-      approveLiquidityPoolAndMap,
-    );
-    const feeData = await ethers.provider.getFeeData();
-    const approveLiquidityPoolAndMapAdapterTx = await registryV2Instance
-      .connect(operatorSigner)
-      ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await approveLiquidityPoolAndMapAdapterTx.wait();
+    console.log(`approve ${approveLiquidityPoolAndMap.length} pools And Map `, approveLiquidityPoolAndMap);
+    if (getAddress(operatorSigner.address) === getAddress(deployer)) {
+      // approve liquidity pool and map adapter
+      console.log(`operator approving and mapping ${approveLiquidityPoolAndMap.length} pools ...`);
+      const feeData = await ethers.provider.getFeeData();
+      const approveLiquidityPoolAndMapAdapterTx = await registryV2Instance
+        .connect(operatorSigner)
+        ["approveLiquidityPoolAndMapToAdapter((address,address)[])"](approveLiquidityPoolAndMap, {
+          type: 2,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
+      await approveLiquidityPoolAndMapAdapterTx.wait();
+    } else {
+      console.log("cannot approve and map pools as signer is not the operator");
+    }
   } else {
     console.log("Already approved liquidity pool and map to adapter");
   }
 
   console.log("==Only map liquidity pool to adapter==");
   if (onlyMapPoolsToAdapters.length > 0) {
+    console.log(`map ${onlyMapPoolsToAdapters.length} pools `, onlyMapPoolsToAdapters);
     // only map pool to adapter
-    console.log(`operator only mapping ${onlyMapPoolsToAdapters.length} pools ...`, onlyMapPoolsToAdapters);
-    const feeData = await ethers.provider.getFeeData();
-    const mapToAdapterTx = await registryV2Instance
-      .connect(operatorSigner)
-      ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await mapToAdapterTx.wait();
+    if (getAddress(operatorSigner.address) === getAddress(deployer)) {
+      console.log(`operator only mapping ${onlyMapPoolsToAdapters.length} pools ...`);
+      const feeData = await ethers.provider.getFeeData();
+      const mapToAdapterTx = await registryV2Instance
+        .connect(operatorSigner)
+        ["setLiquidityPoolToAdapter((address,address)[])"](onlyMapPoolsToAdapters, {
+          type: 2,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
+      await mapToAdapterTx.wait();
+    } else {
+      console.log("cannot map pools as signer is not the operator");
+    }
   } else {
     console.log("Already mapped to adapter");
   }
 
   console.log("==Only rate liquidity pool==");
   if (ratePools.length > 0) {
+    console.log(`${ratePools.length} pools to rate ...`, ratePools);
     // rate pools
-    console.log(`risk operator rating ${ratePools.length} pools ...`, ratePools);
-    const feeData = await ethers.provider.getFeeData();
-    const rateAdapterTx = await registryV2Instance
-      .connect(riskOperatorSigner)
-      ["rateLiquidityPool((address,uint8)[])"](ratePools, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await rateAdapterTx.wait();
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      console.log(`risk operator rating ${ratePools.length} pools ...`, ratePools);
+      const feeData = await ethers.provider.getFeeData();
+      const rateAdapterTx = await registryV2Instance
+        .connect(riskOperatorSigner)
+        ["rateLiquidityPool((address,uint8)[])"](ratePools, {
+          type: 2,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
+      await rateAdapterTx.wait();
+    } else {
+      console.log("cannot rate pools as signer is not the risk operator");
+    }
   } else {
     console.log("Already rate liquidity pool");
   }

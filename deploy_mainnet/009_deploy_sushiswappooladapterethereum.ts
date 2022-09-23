@@ -2,6 +2,7 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import { getAddress } from "ethers/lib/utils";
 import { waitforme } from "../helpers/utils";
 import {
   Registry,
@@ -126,12 +127,16 @@ const func: DeployFunction = async ({
   }
 
   if (pendingLiquidityPoolToTolerances.length > 0) {
-    console.log("updating pending LiquidityPool To Tolerances");
     console.log(JSON.stringify(pendingLiquidityPoolToTolerances, null, 4));
-    const tx = await sushiswapPoolAdapterEthereumInstance
-      .connect(riskOperatorSigner)
-      .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);
-    await tx.wait(1);
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      console.log("updating pending LiquidityPool To Tolerances");
+      const tx = await sushiswapPoolAdapterEthereumInstance
+        .connect(riskOperatorSigner)
+        .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);
+      await tx.wait(1);
+    } else {
+      console.log("cannot update pending LiquidityPool To Tolerances because the signer is not the risk operator");
+    }
   } else {
     console.log("liquidityPoolToTolerances are up to date");
   }
@@ -180,12 +185,18 @@ const func: DeployFunction = async ({
   }
 
   if (pendingLiquidityPoolToWantTokenToSlippages.length > 0) {
-    console.log("updating pending LiquidityPool To Want Token To Slippages ");
     console.log(JSON.stringify(pendingLiquidityPoolToWantTokenToSlippages, null, 4));
-    const tx = await sushiswapPoolAdapterEthereumInstance
-      .connect(riskOperatorSigner)
-      .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
-    await tx.wait(1);
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      console.log("updating pending LiquidityPool To Want Token To Slippages");
+      const tx = await sushiswapPoolAdapterEthereumInstance
+        .connect(riskOperatorSigner)
+        .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
+      await tx.wait(1);
+    } else {
+      console.log(
+        "cannot update pending LiquidityPool To Want Token To Slippages because the signer is not the risk operator",
+      );
+    }
   } else {
     console.log("pendingLiquidityPoolToWantTokenToSlippages are up to date");
   }

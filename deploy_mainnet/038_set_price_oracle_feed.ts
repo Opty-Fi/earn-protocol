@@ -1,11 +1,13 @@
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
-import { OptyFiOracle, OptyFiOracle__factory } from "../typechain";
 import { getAddress } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
+import { getNamedAccounts } from "hardhat";
+import { OptyFiOracle, OptyFiOracle__factory } from "../typechain";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
+  const { deployer } = await getNamedAccounts();
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
   const optyfiOracleInstance = <OptyFiOracle>await ethers.getContractAt(OptyFiOracle__factory.abi, optyfiOracleAddress);
 
@@ -216,9 +218,13 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (pendingFeedToTokens.length > 0) {
     console.log(`Setting ${pendingFeedToTokens.length} price feeds`);
     console.log(JSON.stringify(pendingFeedToTokens, null, 4));
-    console.log("adding chainlink price oracle feed");
-    const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
-    await tx.wait(1);
+    if (getAddress(ownerSigner.address) === getAddress(deployer)) {
+      console.log("adding chainlink price oracle feed");
+      const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
+      await tx.wait(1);
+    } else {
+      console.log("cannot set chainlink price oracle feed because signer is not owner");
+    }
   } else {
     console.log("price feed is upto date");
   }
@@ -275,11 +281,14 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (pendingChainlinkTimeallowances.length > 0) {
     console.log("setting pending Chainlink Time allowances ");
     console.log(JSON.stringify(pendingChainlinkTimeallowances, null, 4));
-
-    const tx = await optyfiOracleInstance
-      .connect(ownerSigner)
-      .setChainlinkTimeAllowance(pendingChainlinkTimeallowances);
-    await tx.wait(1);
+    if (getAddress(ownerSigner.address) === getAddress(deployer)) {
+      const tx = await optyfiOracleInstance
+        .connect(ownerSigner)
+        .setChainlinkTimeAllowance(pendingChainlinkTimeallowances);
+      await tx.wait(1);
+    } else {
+      console.log("cannot set pending chainlink time allowances because signer is not owner");
+    }
   } else {
     console.log("Chainlink Time allowances is up to date");
   }

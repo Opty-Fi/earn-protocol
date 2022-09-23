@@ -1,4 +1,5 @@
 import { BigNumber } from "ethers";
+import { getAddress } from "ethers/lib/utils";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
@@ -67,10 +68,15 @@ const func: DeployFunction = async ({
 
   if (pendingUnderlyingTokenToPids.length > 0) {
     console.log("Pending underlying tokens to pids ", JSON.stringify(pendingUnderlyingTokenToPids, null, 4));
-    const tx = await sushiswapFarmAdapterEthereumInstance
-      .connect(operatorSigner)
-      .setUnderlyingTokenToPid(pendingUnderlyingTokenToPids);
-    await tx.wait(1);
+    if (getAddress(operatorSigner.address) === getAddress(deployer)) {
+      console.log("updating underlying tokens to pids");
+      const tx = await sushiswapFarmAdapterEthereumInstance
+        .connect(operatorSigner)
+        .setUnderlyingTokenToPid(pendingUnderlyingTokenToPids);
+      await tx.wait(1);
+    } else {
+      console.log("cannot update underlying tokens to pids as signer is not the operator");
+    }
   } else {
     console.log("underlying token to pids is up to date");
   }
