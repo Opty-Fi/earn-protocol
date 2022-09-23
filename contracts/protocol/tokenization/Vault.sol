@@ -50,13 +50,16 @@ contract Vault is
     using ClaimAndHarvest for address;
     using StrategyManager for DataTypes.StrategyStep[];
 
-    bytes32 public constant PERMIT_TYPEHASH =
-        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-
     /**
-     * @dev The version of the Vault business logic
+     * @dev The version of the Vault implementation
      */
     uint256 public constant opTOKEN_REVISION = 0x4;
+
+    /**
+     * @dev hash of the permit function
+     */
+    bytes32 public constant PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     //===Constructor===//
 
