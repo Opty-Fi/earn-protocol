@@ -61,6 +61,10 @@ export default {
       NAME: "transfer-operation-ownership",
       DESCRIPTION: "Transfer financeOperator, riskOperator, strategyOperator anf operator one by one",
     },
+    TRANSFER_OPTYFI_ORACLE_OWNER: {
+      NAME: "transfer-optyfi-oracle-owner",
+      DESCRIPTION: "Transfer the ownership of optyfi oracle",
+    },
     SET_PENDING_GOVERNANCE: { NAME: "set-pending-governance", DESCRIPTION: "set pending governance" },
     ACCEPT_GOVERNANCE: { NAME: "accept-governance", DESCRIPTION: "accept governance" },
     CHANGE_POLYGON_OPUSDCEARN_PROXY_V2_ADMIN: {
