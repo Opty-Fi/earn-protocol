@@ -256,13 +256,14 @@ contract Vault is
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
+        uint256 _expectedOutput,
         bytes calldata _permitParams,
         bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
         _emergencyBrake(true);
         _permit(_permitParams);
-        return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof);
+        return _depositVaultFor(_beneficiary, false, _userDepositUT, _expectedOutput, _accountsProof);
     }
 
     /**
@@ -271,10 +272,11 @@ contract Vault is
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
+        uint256 _expectedOutput,
         bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _emergencyBrake(false);
-        return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof);
+        return _withdrawVaultFor(_receiver, _userWithdrawVT, _expectedOutput, _accountsProof);
     }
 
     /**
@@ -613,6 +615,7 @@ contract Vault is
         address _beneficiary,
         bool _addUserDepositUT,
         uint256 _userDepositUT,
+        uint256 _expectedOutput,
         bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
         // check vault + strategy balance (in UT) before user token transfer
@@ -638,11 +641,12 @@ contract Vault is
         uint256 _depositAmount;
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
             _depositAmount = _netUserDepositUT;
-            _mint(_beneficiary, _netUserDepositUT);
         } else {
             _depositAmount = (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT);
-            _mint(_beneficiary, _depositAmount);
         }
+        require(_depositAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
+        _mint(_beneficiary, _depositAmount);
+
         return _depositAmount;
     }
 
@@ -668,6 +672,7 @@ contract Vault is
     function _withdrawVaultFor(
         address _receiver,
         uint256 _userWithdrawVT,
+        uint256 _expectedOutput,
         bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
         _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof);
@@ -713,6 +718,9 @@ contract Vault is
             IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
         }
         uint256 _withdrawAmount = _oraUserWithdrawUT.sub(_withdrawFeeUT);
+
+        require(_withdrawAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
+
         IERC20(underlyingToken).safeTransfer(_receiver, _withdrawAmount);
         return _withdrawAmount;
     }
