@@ -403,7 +403,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await this.usdc.connect(this.signers.bob).approve(this.opUSDCearn.address, _userDepositUSDC);
       await this.opUSDCearn
         .connect(this.signers.bob)
-        .userDepositVault(this.signers.bob.address, _userDepositUSDC, "0x", this._bobMerkleProof);
+        .userDepositVault(this.signers.bob.address, _userDepositUSDC, BigNumber.from(0), "0x", this._bobMerkleProof);
       const _balanceBeforeDeposit = await this.usdc.balanceOf(this.opUSDCearn.address);
       await this.opUSDCearn.vaultDepositAllToStrategy();
 
@@ -430,7 +430,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
       const _balanceBefore = await this.usdc.balanceOf(this.signers.bob.address);
       await this.opUSDCearn
         .connect(this.signers.bob)
-        .userWithdrawVault(this.signers.bob.address, _userWithdrawVT, this._bobMerkleProof);
+        .userWithdrawVault(this.signers.bob.address, _userWithdrawVT, BigNumber.from(0), this._bobMerkleProof);
       const _balanceAfter = await this.usdc.balanceOf(this.signers.bob.address);
       expect(_balanceAfter.sub(_balanceBefore)).to.gte(expectedUT.sub(expectedUT.mul(3).div(1000)));
       expect(await this.opUSDCearn.totalSupply()).to.eq(_expectedTotalSupply);
@@ -474,7 +474,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof),
+          .userDepositVault(this.signers.alice.address, _depositUSDC, BigNumber.from(0), "0x", this._aliceMerkleProof),
       ).to.revertedWith("10");
     });
 
@@ -493,7 +493,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositUSDC, "0x", this._aliceMerkleProof),
+          .userDepositVault(this.signers.alice.address, _depositUSDC, BigNumber.from(0), "0x", this._aliceMerkleProof),
       ).to.revertedWith("12");
     });
 
@@ -506,7 +506,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, "2000000000", "0x", this._aliceMerkleProof),
+          .userDepositVault(this.signers.alice.address, "2000000000", BigNumber.from(0), "0x", this._aliceMerkleProof),
       ).to.revertedWith("11");
     });
   });
