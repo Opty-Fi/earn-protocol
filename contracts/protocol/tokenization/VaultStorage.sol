@@ -83,10 +83,9 @@ contract VaultStorage {
 
 contract VaultStorageV2 is VaultStorage {
     /**
-     * @notice smart contracts allowed to interact with vault if whitelisted
-     * @dev merkle root hash of the whitelisted smart contract codes
+     * @dev domain separator for the vault
      */
-    bytes32 public whitelistedCodesRoot;
+    bytes32 public _domainSeparator;
 
     /**
      * @notice underlying tokens's hash
@@ -103,5 +102,8 @@ contract VaultStorageV2 is VaultStorage {
 
 contract VaultStorageV3 is VaultStorageV2 {
     /**@dev nonce counter*/
-    mapping(address => Counters.Counter) internal _nonces;
+    mapping(address => uint256) internal _nonces;
+
+    /**@dev deposit and withdraw flag*/
+    mapping(uint256 => bool) internal _blockTransaction;
 }

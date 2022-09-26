@@ -11,10 +11,10 @@ export async function approveAndMapLiquidityPoolToAdapter(): Promise<void> {
   const curveMetaPoolSwapAdapter = await curveMetapoolSwapAdapterFactory.deploy(registryProxyAddress);
   const lidoAdapterFactory = await ethers.getContractFactory("LidoAdapter");
   const lidoAdapter = await lidoAdapterFactory.deploy(registryProxyAddress);
-  const aaveV1AdapterAddress = "0x80647b9a016e197dc7adbf14cc2b21b58b830bcc";
-  const aaveV2AdapterAddress = "0x962f0877c2706c513cdc82ec8ee7e1c29fbef5d0";
-  const compoundAdapterAddress = "0x9680624ad6bf5a34ce496a483400585136c575a4";
-  const convexFinanceAdapterAddress = "0xcb612cce8f0ccddfade6ce28774534292da2c970";
+  const aaveV1AdapterAddress = "0x80647B9A016E197dC7adBf14cC2b21B58B830Bcc";
+  const aaveV2AdapterAddress = "0x962F0877C2706c513CDc82eC8eE7e1c29FbeF5D0";
+  const compoundAdapterAddress = "0x9680624aD6BF5a34cE496A483400585136c575A4";
+  const convexFinanceAdapterAddress = "0xCb612ccE8F0ccddFadE6CE28774534292da2C970";
   const operatorAddress = await registryV2Instance.getOperator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const riskOperatorAddress = await registryV2Instance.getRiskOperator();

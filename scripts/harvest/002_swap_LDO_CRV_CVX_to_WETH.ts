@@ -10,9 +10,9 @@ async function main() {
   const CRV = ethers.utils.getAddress("0xD533a949740bb3306d119CC777fa900bA034cd52");
   const LDO = ethers.utils.getAddress("0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32");
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
-  const opWETHgrowProxyAddress = ethers.utils.getAddress("0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8");
-  const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
-  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWETHgrowProxyAddress);
+  const opWETHearnProxyAddress = ethers.utils.getAddress("0xFf2fbd9Fbc6d03BAA77cf97A3D5671bEA183b9a8");
+  const registryProxyAddress = ethers.utils.getAddress("0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3");
+  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWETHearnProxyAddress);
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const uniswapRouterInstance = <IUniswapV2Router02>(
     await ethers.getContractAt("IUniswapV2Router02", uniswapV2Router02Address)
@@ -33,9 +33,9 @@ async function main() {
   const iface = new ethers.utils.Interface(abi);
   const codes = [];
 
-  const cvxBalance = await cvxInstance.balanceOf(opWETHgrowProxyAddress);
-  const crvBalance = await crvInstance.balanceOf(opWETHgrowProxyAddress);
-  const ldoBalance = await ldoInstance.balanceOf(opWETHgrowProxyAddress);
+  const cvxBalance = await cvxInstance.balanceOf(opWETHearnProxyAddress);
+  const crvBalance = await crvInstance.balanceOf(opWETHearnProxyAddress);
+  const ldoBalance = await ldoInstance.balanceOf(opWETHearnProxyAddress);
 
   // const [_u0cvx, cvxToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH]);
   const [_s0cvx, cvxToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(cvxBalance, [CVX, WETH]);
@@ -63,7 +63,7 @@ async function main() {
           cvxBalance,
           cvxToUsdcExpectedS,
           [CVX, WETH],
-          opWETHgrowProxyAddress,
+          opWETHearnProxyAddress,
           timestamp * 2,
         ]),
       ],
@@ -86,7 +86,7 @@ async function main() {
           crvBalance,
           crvToWETHExpectedU,
           [CRV, WETH],
-          opWETHgrowProxyAddress,
+          opWETHearnProxyAddress,
           timestamp * 2,
         ]),
       ],
@@ -109,7 +109,7 @@ async function main() {
           ldoBalance,
           ldoToUsdcExpectedS,
           [LDO, WETH],
-          opWETHgrowProxyAddress,
+          opWETHearnProxyAddress,
           timestamp * 2,
         ]),
       ],
@@ -119,17 +119,17 @@ async function main() {
   codes.push(
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
-      [opWETHgrowProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
+      [opWETHearnProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
     ),
   );
-  const wethBalanceBefore = await wethInstance.balanceOf(opWETHgrowProxyAddress);
+  const wethBalanceBefore = await wethInstance.balanceOf(opWETHearnProxyAddress);
   console.log("WETH balance before ", wethBalanceBefore.toString());
   const tx = await vaultInstance
     .connect(governanceSigner)
     .adminCall(codes, { maxFeePerGas: BigNumber.from("60318936159") });
   const rcpt = await tx.wait(1);
   console.log(await rcpt.events);
-  const WETHBalanceAfter = await wethInstance.balanceOf(opWETHgrowProxyAddress);
+  const WETHBalanceAfter = await wethInstance.balanceOf(opWETHearnProxyAddress);
   console.log("WETH balance after ", WETHBalanceAfter.toString());
 }
 

@@ -48,6 +48,8 @@ export type STRATEGY = {
   token: string;
   strategy: STRATEGY_DATA[];
   riskProfileCode: number;
+  name?: string;
+  description?: string;
 };
 
 export type STRATEGIES = {
@@ -172,6 +174,10 @@ export type StrategiesByTokenByChainType = {
   [key: string]: TokenStrategyType;
 };
 
+export type StrategiesByRiskProfileByTokenByChainType = {
+  [key: string]: StrategiesByTokenByChainType;
+};
+
 export type StrategyStepType = {
   pool: string;
   outputToken: string;
@@ -188,15 +194,22 @@ export type StrategyConfigurationParams = {
 };
 
 export type VaultDetailType = {
+  symbol: string;
   name: string;
+  underlyingToken: string;
+  underlyingTokensHash: string;
   vaultConfig: BigNumberish;
   userDepositCapUT: BigNumberish;
   minimumDepositValueUT: BigNumberish;
   totalValueLockedLimitUT: BigNumberish;
 };
 
+export type VaultRiskProfileType = {
+  [name: string]: VaultDetailType;
+};
+
 export type VaultType = {
-  [name: string]: VaultDetailType[];
+  [name: string]: VaultRiskProfileType;
 };
 
 export type MultiChainVaultsType = {

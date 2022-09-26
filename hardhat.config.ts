@@ -12,6 +12,7 @@ import "hardhat-gas-reporter";
 import "hardhat-docgen";
 import "@typechain/hardhat";
 import "@tenderly/hardhat-tenderly";
+import "hardhat-contract-sizer";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,

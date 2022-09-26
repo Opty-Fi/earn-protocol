@@ -15,14 +15,14 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 
   const implementationAddress = await opAVUSDCintProxyInstance.implementation();
 
-  console.log("opUSDCgrow upgrade");
+  console.log("opUSDCearn upgrade");
   console.log("\n");
   if (getAddress(implementationAddress) != getAddress(opAVUSDCintAddress)) {
-    console.log("Admin upgrading opUSDCgrow..");
+    console.log("Admin upgrading opUSDCearn..");
     console.log("\n");
     await opAVUSDCintProxyInstance.connect(proxyAdminSigner).upgradeTo(opAVUSDCintAddress);
   } else {
-    console.log("opUSDCgrow is upto date..");
+    console.log("opUSDCearn is upto date..");
     console.log("\n");
   }
 };

@@ -84,10 +84,10 @@ declare module "mocha" {
     riskManager: RiskManager;
     vault: Vault;
     vaultProxy: InitializableImmutableAdminUpgradeabilityProxy;
-    opUSDCgrow: Vault;
-    opUSDCgrowProxy: InitializableImmutableAdminUpgradeabilityProxy;
-    opWETHgrow: Vault;
-    opWETHgrowProxy: InitializableImmutableAdminUpgradeabilityProxy;
+    opUSDCearn: Vault;
+    opUSDCearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
+    opWETHearn: Vault;
+    opWETHearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
     vaultArtifact: Artifact;
     vaultProxyV2: AdminUpgradeabilityProxy;
     testVaultArtifact: Artifact;
@@ -96,7 +96,7 @@ declare module "mocha" {
     token: ERC20;
     usdc: ERC20Permit;
     weth: ERC20;
-    vaults: { [key: string]: Vault };
+    vaults: { [key: string]: { [name: string]: Vault } };
     tokens: { [key: string]: ERC20 };
   }
 }
@@ -164,26 +164,13 @@ function hashToken(account: string) {
   return Buffer.from(ethers.utils.solidityKeccak256(["address"], [account]).slice(2), "hex");
 }
 
-function hashCodehash(hash: string) {
-  return Buffer.from(ethers.utils.solidityKeccak256(["bytes32"], [hash]).slice(2), "hex");
-}
-
 export function generateMerkleTree(addresses: string[]): MerkleTree {
   const leaves = addresses.map((addr: string) => hashToken(addr));
   return new MerkleTree(leaves, keccak256, { sortPairs: true });
 }
 
-export function generateMerkleTreeForCodehash(hashes: string[]): MerkleTree {
-  const leaves = hashes.map((hash: string) => hashCodehash(hash));
-  return new MerkleTree(leaves, keccak256, { sortPairs: true });
-}
-
 export const getProof = (tree: MerkleTree, address: string): string[] => {
   return tree.getHexProof(hashToken(address));
-};
-
-export const getProofForCode = (tree: MerkleTree, codeHash: string): string[] => {
-  return tree.getHexProof(hashCodehash(codeHash));
 };
 
 export const getAccountsMerkleRoot = (goodAddresses: string[]): string => {
@@ -194,16 +181,6 @@ export const getAccountsMerkleRoot = (goodAddresses: string[]): string => {
 export const getAccountsMerkleProof = (goodAddresses: string[], address: string): string[] => {
   const tree: MerkleTree = generateMerkleTree(goodAddresses);
   return getProof(tree, address);
-};
-
-export const getCodesMerkleRoot = (goodCodehashes: string[]): string => {
-  const tree: MerkleTree = generateMerkleTreeForCodehash(goodCodehashes);
-  return tree.getHexRoot();
-};
-
-export const getCodesMerkleProof = (goodCodehashes: string[], codehash: string): string[] => {
-  const tree: MerkleTree = generateMerkleTree(goodCodehashes);
-  return getProofForCode(tree, codehash);
 };
 
 export function assertVaultConfiguration(

@@ -6,10 +6,10 @@ async function main() {
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
   const sushiswapRouter = ethers.utils.getAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
-  const opAAVEaggr = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
+  const opAAVEinvst = ethers.utils.getAddress("0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19");
 
   const registryInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-  const opAAVEaggrInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEaggr);
+  const opAAVEinvstInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opAAVEinvst);
   const aaveInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AAVE);
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, WETH);
   const operatorSigner = await ethers.getSigner(await registryInstance.getOperator());
@@ -22,10 +22,10 @@ async function main() {
   const iface = new ethers.utils.Interface(abi);
   const codes = [];
 
-  const wethBalance = await wethInstance.balanceOf(opAAVEaggr);
+  const wethBalance = await wethInstance.balanceOf(opAAVEinvst);
 
   const aave_eth_feed = ethers.utils.getAddress("0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012");
-  const priceFeed = await ethers.getContractAt(aggregatorV3InterfaceABI, aave_eth_feed);
+  const priceFeed = await ethers.getContractAt(invstegatorV3InterfaceABI, aave_eth_feed);
   const wethPerAave = priceFeed.answer;
   const expectedAave = wethBalance.mul(9900).div(wethPerAave.div(10000));
 
@@ -48,26 +48,26 @@ async function main() {
           wethBalance,
           expectedAave,
           [WETH, AAVE],
-          opAAVEaggr,
+          opAAVEinvst,
           timestamp + 300,
         ]),
       ],
     ),
   );
 
-  const WETHBalanceBefore = await wethInstance.balanceOf(opAAVEaggr);
-  const AAVEBalanceBefore = await aaveInstance.balanceOf(opAAVEaggr);
+  const WETHBalanceBefore = await wethInstance.balanceOf(opAAVEinvst);
+  const AAVEBalanceBefore = await aaveInstance.balanceOf(opAAVEinvst);
   console.log("WETH balance before ", WETHBalanceBefore.toString());
   console.log("AAVE balance before ", AAVEBalanceBefore.toString());
-  const tx = await opAAVEaggrInstance.connect(operatorSigner).adminCall(codes);
+  const tx = await opAAVEinvstInstance.connect(operatorSigner).adminCall(codes);
   await tx.wait(1);
-  const WETHBalanceAfter = await wethInstance.balanceOf(opAAVEaggr);
-  const AAVEBalanceAfter = await aaveInstance.balanceOf(opAAVEaggr);
+  const WETHBalanceAfter = await wethInstance.balanceOf(opAAVEinvst);
+  const AAVEBalanceAfter = await aaveInstance.balanceOf(opAAVEinvst);
   console.log("WETH balance After ", WETHBalanceAfter.toString());
   console.log("AAVE balance After ", AAVEBalanceAfter.toString());
 }
 
-const aggregatorV3InterfaceABI = [
+const invstegatorV3InterfaceABI = [
   {
     inputs: [],
     name: "decimals",

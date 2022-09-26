@@ -11,7 +11,8 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts
 task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY_MULTI_SIG.NAME, TASKS.ACTION_TASKS.SET_BEST_STRATEGY_MULTI_SIG.DESCRIPTION)
   .addParam("tokenSymbol", "the token name as adapter-with-strategies", "", types.string)
   .addParam("strategyName", "the strategy name as adapter-with-strategies", "", types.string)
-  .setAction(async ({ tokenSymbol, strategyName }, { ethers, deployments, getChainId }) => {
+  .addParam("riskProfileName", "the risk profile name as adapter-with-strategies", "", types.string)
+  .setAction(async ({ tokenSymbol, strategyName, riskProfileName }, { ethers, deployments, getChainId }) => {
     try {
       const safeOwner = ethers.provider.getSigner(0);
       const chainId = await getChainId();
@@ -32,7 +33,7 @@ task(TASKS.ACTION_TASKS.SET_BEST_STRATEGY_MULTI_SIG.NAME, TASKS.ACTION_TASKS.SET
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, strategyProviderAddress)
       );
 
-      const strategyDetail = StrategiesByTokenByChain[chainId][tokenSymbol][strategyName];
+      const strategyDetail = StrategiesByTokenByChain[chainId][riskProfileName][tokenSymbol][strategyName];
       const strategySteps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
         outputToken: item.outputToken,

@@ -1,4 +1,4 @@
-name: Earn protocol Install, lint and test pipeline
+name: Earn protocol Install, lint, analyze and test pipeline
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  lint-compile-test:
+  lint-compile-analyze-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -54,10 +54,11 @@ jobs:
         continue-on-error: true
         id: slither
         with:
-          node-version: 14
+          node-version: 16
       - name: Test
         run: |
           yarn test-fast:mainnet
+          yarn test-fast:emergency-brake
           yarn test-fast:vaultv2-upgrade-test:mainnet
           yarn test-fast:vaultv2-strategy:mainnet
           yarn test-fast:vaultv2-strategy:polygon

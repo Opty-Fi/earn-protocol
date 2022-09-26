@@ -10,9 +10,9 @@ async function main() {
   const SNX = ethers.utils.getAddress("0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F");
   const USDC = ethers.utils.getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
-  const opUSDCgrowProxyAddress = ethers.utils.getAddress("0x6d8bfdb4c4975bb086fc9027e48d5775f609ff88");
-  const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
-  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCgrowProxyAddress);
+  const opUSDCearnProxyAddress = ethers.utils.getAddress("0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88");
+  const registryProxyAddress = ethers.utils.getAddress("0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3");
+  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCearnProxyAddress);
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const uniswapRouterInstance = <IUniswapV2Router02>(
     await ethers.getContractAt("IUniswapV2Router02", uniswapV2Router02Address)
@@ -33,9 +33,9 @@ async function main() {
   const iface = new ethers.utils.Interface(abi);
   const codes = [];
 
-  const cvxBalance = await cvxInstance.balanceOf(opUSDCgrowProxyAddress);
-  const crvBalance = await crvInstance.balanceOf(opUSDCgrowProxyAddress);
-  const snxBalance = await snxInstance.balanceOf(opUSDCgrowProxyAddress);
+  const cvxBalance = await cvxInstance.balanceOf(opUSDCearnProxyAddress);
+  const crvBalance = await crvInstance.balanceOf(opUSDCearnProxyAddress);
+  const snxBalance = await snxInstance.balanceOf(opUSDCearnProxyAddress);
 
   const [_u0crv, _1crvU, crvToUsdcExpectedU] = await uniswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
   // const [_s0crv, _1crvS, crvToUsdcExpectedS] = await sushiswapRouterInstance.getAmountsOut(crvBalance, [CRV, WETH, USDC]);
@@ -67,7 +67,7 @@ async function main() {
           cvxBalance,
           cvxToUsdcExpectedS.mul(9500).div(10000),
           [CVX, WETH, USDC],
-          opUSDCgrowProxyAddress,
+          opUSDCearnProxyAddress,
           timestamp * 2,
         ]),
       ],
@@ -90,7 +90,7 @@ async function main() {
           crvBalance,
           crvToUsdcExpectedU.mul(9500).div(10000),
           [CRV, WETH, USDC],
-          opUSDCgrowProxyAddress,
+          opUSDCearnProxyAddress,
           timestamp * 2,
         ]),
       ],
@@ -113,7 +113,7 @@ async function main() {
           snxBalance,
           snxToUsdcExpectedU.mul(9500).div(10000),
           [SNX, WETH, USDC],
-          opUSDCgrowProxyAddress,
+          opUSDCearnProxyAddress,
           timestamp * 2,
         ]),
       ],
@@ -123,15 +123,15 @@ async function main() {
   codes.push(
     ethers.utils.defaultAbiCoder.encode(
       ["address", "bytes"],
-      [opUSDCgrowProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
+      [opUSDCearnProxyAddress, iface.encodeFunctionData("vaultDepositAllToStrategy", [])],
     ),
   );
-  const USDCBalanceBefore = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
+  const USDCBalanceBefore = await usdcInstance.balanceOf(opUSDCearnProxyAddress);
   console.log("USDC balance before ", USDCBalanceBefore.toString());
   const tx = await vaultInstance.connect(governanceSigner).adminCall(codes);
   const rcpt = await tx.wait(1);
   console.log(await rcpt.events);
-  const USDCBalanceAfter = await usdcInstance.balanceOf(opUSDCgrowProxyAddress);
+  const USDCBalanceAfter = await usdcInstance.balanceOf(opUSDCearnProxyAddress);
   console.log("USDC balance after ", USDCBalanceAfter.toString());
 }
 
