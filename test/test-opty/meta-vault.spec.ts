@@ -5,14 +5,7 @@ import { BigNumber } from "ethers";
 import { deployments, ethers } from "hardhat";
 import { eEVMNetwork } from "../../helper-hardhat-config";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import {
-  getAccountsMerkleProof,
-  getAccountsMerkleRoot,
-  getCodesMerkleProof,
-  getCodesMerkleRoot,
-  Signers,
-  to_10powNumber_BN,
-} from "../../helpers/utils";
+import { getAccountsMerkleProof, getAccountsMerkleRoot, Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { signMetaTxRequest } from "./utils";
 import {
   ERC20Permit,
@@ -41,7 +34,7 @@ describe("MetaVault", function () {
     this.forwarder = <MinimalForwarder>await deploy("MinimalForwarder");
     this.metaVault = <MetaVault>await deploy("MetaVault", this.forwarder.address);
 
-    const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCgrow")).address;
+    const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
 
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
@@ -68,12 +61,6 @@ describe("MetaVault", function () {
       "1000000000000", // 1,000,000 USDC
     );
 
-    //whitelist accounts and code
-    const code = await ethers.provider.getCode(this.metaVault.address);
-    const codeHash = ethers.utils.keccak256(code);
-    const _codeRoot = getCodesMerkleRoot([codeHash]);
-    await this.vault.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
-
     const _accountsRoot = getAccountsMerkleRoot([this.signers.alice.address, this.metaVault.address]);
     await this.vault.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountsRoot);
 
@@ -87,7 +74,6 @@ describe("MetaVault", function () {
       [this.signers.alice.address, this.metaVault.address],
       this.metaVault.address,
     );
-    this.codeProof = getCodesMerkleProof([codeHash], ethers.constants.HashZero);
 
     this.depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
   });
@@ -115,9 +101,9 @@ describe("MetaVault", function () {
           .deposit(
             this.vault.address,
             this.depositAmountUSDC,
+            BigNumber.from("0"),
             this.dataMetaVaultPermit,
             this.accountsProof,
-            this.codeProof,
           ),
       )
         .to.emit(this.vault, "Transfer")
@@ -130,10 +116,11 @@ describe("MetaVault", function () {
       const dataCall = this.metaVault.interface.encodeFunctionData("deposit", [
         this.vault.address,
         this.depositAmountUSDC,
+        BigNumber.from("0"),
         this.dataMetaVaultPermit,
         this.accountsProof,
-        this.codeProof,
       ]);
+
       const { request, signature } = await signMetaTxRequest(this.signers.alice.provider, forwarder, {
         from: this.signers.alice.address,
         to: this.metaVault.address,
