@@ -21,27 +21,14 @@ interface IERC20PermitLegacy {
 }
 
 interface IVault {
-    /**
-     * @notice Deposit underlying tokens to the vault
-     * @dev Mint the shares right away as per oracle based price per full share value
-     * @param _beneficiary the address of the deposit beneficiary,
-     *        if _beneficiary = address(0) => _beneficiary = msg.sender
-     * @param _userDepositUT Amount in underlying token
-     * @param _permitParams permit parameters: amount, deadline, v, s, r
-     * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
-     */
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
+        uint256 _expectedOutput,
         bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external returns (uint256);
 
-    /**
-     * @dev the vault underlying token contract address
-     */
     function underlyingToken() external returns (address);
 }
 
@@ -55,16 +42,16 @@ contract MetaVault is ERC2771Context {
      * @notice Deposit underlying tokens to the a given OptyFi vault
      * @param _vault the address of the target vault,
      * @param _userDepositUT Amount in underlying token
+     * @param _expectedOutput Minimum amount of vault tokens minted after fees
      * @param _permitParams permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function deposit(
         address _vault,
         uint256 _userDepositUT,
+        uint256 _expectedOutput,
         bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) public returns (uint256) {
         address _underlyingToken = IVault(_vault).underlyingToken();
 
@@ -72,7 +59,7 @@ contract MetaVault is ERC2771Context {
         IERC20(_underlyingToken).safeTransferFrom(_msgSender(), address(this), _userDepositUT);
         IERC20(_underlyingToken).approve(_vault, _userDepositUT);
 
-        return IVault(_vault).userDepositVault(_msgSender(), _userDepositUT, "0x", _accountsProof, _codesProof);
+        return IVault(_vault).userDepositVault(_msgSender(), _userDepositUT, _expectedOutput, "0x", _accountsProof);
     }
 
     /* solhint-disable avoid-low-level-calls*/
