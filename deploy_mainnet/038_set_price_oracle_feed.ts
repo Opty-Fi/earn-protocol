@@ -1,11 +1,13 @@
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
-import { OptyFiOracle, OptyFiOracle__factory } from "../typechain";
 import { getAddress } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
+import { getNamedAccounts } from "hardhat";
+import { OptyFiOracle, OptyFiOracle__factory } from "../typechain";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
+  const { deployer } = await getNamedAccounts();
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
   const optyfiOracleInstance = <OptyFiOracle>await ethers.getContractAt(OptyFiOracle__factory.abi, optyfiOracleAddress);
 
@@ -18,6 +20,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
   const YFI = "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e";
   const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
+  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
   const AAVE_WETH_FEED = "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012";
   const AAVE_USD_FEED = "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9";
   const WETH_USD_FEED = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419";
@@ -44,140 +47,177 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const CRV_USD_FEED = "0xCd627aA160A6fA45Eb793D19Ef54f5062F20f33f";
   const CVX_ETH_FEED = "0xC9CbF687f43176B302F03f5e58470b77D07c61c6";
   const CVX_USD_FEED = "0xd962fC30A72A84cE50161031391756Bf2876Af5D";
+  const USDC_WETH_FEED = "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4";
+  const USDC_USD_FEED = "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6";
+  const WBTC_WETH_FEED = "0xdeb288F737066589598e9214E782fa5A8eD689e8";
+  const WETH_WBTC_FEED = "0xAc559F25B1619171CbC396a50854A3240b6A4e99";
+  const WBTC_USD_FEED = "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c";
 
   const owner = await optyfiOracleInstance.owner();
   const feedToTokens = [
     {
-      priceFeed: AAVE_WETH_FEED,
       tokenA: ethereumTokens.REWARD_TOKENS.AAVE,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: AAVE_WETH_FEED,
     },
     {
-      priceFeed: AAVE_USD_FEED,
       tokenA: ethereumTokens.REWARD_TOKENS.AAVE,
       tokenB: USD,
+      priceFeed: AAVE_USD_FEED,
     },
     {
-      priceFeed: WETH_USD_FEED,
       tokenA: ethereumTokens.WRAPPED_TOKENS.WETH,
       tokenB: USD,
+      priceFeed: WETH_USD_FEED,
     },
     {
-      priceFeed: APE_WETH_FEED,
       tokenA: APE,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: APE_WETH_FEED,
     },
-    { priceFeed: APE_USD_FEED, tokenA: APE, tokenB: USD },
+    { tokenA: APE, tokenB: USD, priceFeed: APE_USD_FEED },
     {
+      tokenA: ethereumTokens.PLAIN_TOKENS.USDT,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
       priceFeed: USDT_WETH_FEED,
-      tokenA: ethereumTokens.PLAIN_TOKENS.USDT,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      tokenA: ethereumTokens.PLAIN_TOKENS.USDT,
+      tokenB: USD,
       priceFeed: USDT_USD_FEED,
-      tokenA: ethereumTokens.PLAIN_TOKENS.USDT,
-      tokenB: USD,
     },
     {
+      tokenA: ethereumTokens.REWARD_TOKENS.SUSHI,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
       priceFeed: SUSHI_WETH_FEED,
-      tokenA: ethereumTokens.REWARD_TOKENS.SUSHI,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      tokenA: ethereumTokens.REWARD_TOKENS.SUSHI,
+      tokenB: USD,
       priceFeed: SUSHI_USD_FEED,
-      tokenA: ethereumTokens.REWARD_TOKENS.SUSHI,
-      tokenB: USD,
     },
     {
+      tokenA: MANA,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
       priceFeed: MANA_WETH_FEED,
-      tokenA: MANA,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      tokenA: MANA,
+      tokenB: USD,
       priceFeed: MANA_USD_FEED,
-      tokenA: MANA,
-      tokenB: USD,
     },
     {
-      priceFeed: LINK_WETH_FEED,
       tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: LINK_WETH_FEED,
     },
     {
-      priceFeed: LINK_USD_FEED,
       tokenA: ethereumTokens.PLAIN_TOKENS.LINK,
       tokenB: USD,
+      priceFeed: LINK_USD_FEED,
     },
     {
-      priceFeed: ENS_USD_FEED,
       tokenA: ENS,
       tokenB: USD,
+      priceFeed: ENS_USD_FEED,
     },
     {
-      priceFeed: COMP_WETH_FEED,
       tokenA: ethereumTokens.REWARD_TOKENS.COMP,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: COMP_WETH_FEED,
     },
     {
-      priceFeed: COMP_USD_FEED,
       tokenA: ethereumTokens.REWARD_TOKENS.COMP,
       tokenB: USD,
+      priceFeed: COMP_USD_FEED,
     },
     {
-      priceFeed: IMX_USD_FEED,
       tokenA: IMX,
       tokenB: USD,
+      priceFeed: IMX_USD_FEED,
     },
     {
-      priceFeed: LDO_WETH_FEED,
       tokenA: LDO,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: LDO_WETH_FEED,
     },
     {
+      tokenA: ALCX,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
       priceFeed: ALCX_WETH_FEED,
-      tokenA: ALCX,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      tokenA: ALCX,
+      tokenB: USD,
       priceFeed: ALCX_USD_FEED,
-      tokenA: ALCX,
-      tokenB: USD,
     },
     {
+      tokenA: YFI,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
       priceFeed: YFI_WETH_FEED,
-      tokenA: YFI,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      tokenA: YFI,
+      tokenB: USD,
       priceFeed: YFI_USD_FEED,
-      tokenA: YFI,
-      tokenB: USD,
     },
     {
+      tokenA: ethereumTokens.REWARD_TOKENS.CRV,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
       priceFeed: CRV_ETH_FEED,
-      tokenA: ethereumTokens.REWARD_TOKENS.CRV,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
     },
     {
+      tokenA: ethereumTokens.REWARD_TOKENS.CRV,
+      tokenB: USD,
       priceFeed: CRV_USD_FEED,
-      tokenA: ethereumTokens.REWARD_TOKENS.CRV,
-      tokenB: USD,
     },
     {
-      priceFeed: CVX_ETH_FEED,
       tokenA: CVX,
       tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: CVX_ETH_FEED,
     },
     {
-      priceFeed: CVX_USD_FEED,
       tokenA: CVX,
       tokenB: USD,
+      priceFeed: CVX_USD_FEED,
+    },
+    {
+      tokenA: ethereumTokens.PLAIN_TOKENS.USDC,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: USDC_WETH_FEED,
+    },
+    {
+      tokenA: ethereumTokens.PLAIN_TOKENS.USDC,
+      tokenB: USD,
+      priceFeed: USDC_USD_FEED,
+    },
+    {
+      tokenA: WBTC,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: WBTC_WETH_FEED,
+    },
+    {
+      tokenA: ethereumTokens.WRAPPED_TOKENS.WETH,
+      tokenB: WBTC,
+      priceFeed: WETH_WBTC_FEED,
+    },
+    {
+      tokenA: WBTC,
+      tokenB: USD,
+      priceFeed: WBTC_USD_FEED,
     },
   ];
   const pendingFeedToTokens = [];
   for (const feedToToken of feedToTokens) {
-    const actualPriceFeed = await optyfiOracleInstance.chainlinkPriceFeed(feedToToken.tokenA, feedToToken.tokenB);
+    const actualPriceFeed = await optyfiOracleInstance.chainlinkPriceFeed(
+      getAddress(feedToToken.tokenA),
+      getAddress(feedToToken.tokenB),
+    );
     if (getAddress(actualPriceFeed) !== getAddress(feedToToken.priceFeed)) {
+      console.log("feedToToken.tokenA ", feedToToken.tokenA);
+      console.log("feedToToken.tokenB ", feedToToken.tokenB);
+      console.log("actualPriceFeed ", actualPriceFeed);
+      console.log("feedToToken.priceFeed ", feedToToken.priceFeed);
       pendingFeedToTokens.push(feedToToken);
     }
   }
@@ -185,9 +225,13 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (pendingFeedToTokens.length > 0) {
     console.log(`Setting ${pendingFeedToTokens.length} price feeds`);
     console.log(JSON.stringify(pendingFeedToTokens, null, 4));
-    console.log("adding chainlink price oracle feed");
-    const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
-    await tx.wait(1);
+    if (getAddress(ownerSigner.address) === getAddress(deployer)) {
+      console.log("adding chainlink price oracle feed");
+      const tx = await optyfiOracleInstance.connect(ownerSigner).setChainlinkPriceFeed(feedToTokens);
+      await tx.wait(1);
+    } else {
+      console.log("cannot set chainlink price oracle feed because signer is not owner");
+    }
   } else {
     console.log("price feed is upto date");
   }
@@ -214,9 +258,19 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     { tokenA: ethereumTokens.REWARD_TOKENS.CRV, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
     { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ethereumTokens.REWARD_TOKENS.CRV, timeAllowance: "24000" },
     { tokenA: ethereumTokens.REWARD_TOKENS.CRV, tokenB: USD, timeAllowance: "24000" },
-    { tokenA: CVX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "24000" },
-    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: CVX, timeAllowance: "24000" },
-    { tokenA: CVX, tokenB: USD, timeAllowance: "24000" },
+    { tokenA: CVX, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: CVX, timeAllowance: "48000" },
+    { tokenA: CVX, tokenB: USD, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.PLAIN_TOKENS.USDC, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ethereumTokens.PLAIN_TOKENS.USDC, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.PLAIN_TOKENS.USDC, tokenB: USD, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: USD, timeAllowance: "48000" },
+    { tokenA: WBTC, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: WBTC, timeAllowance: "48000" },
+    { tokenA: WBTC, tokenB: USD, timeAllowance: "48000" },
+    { tokenA: ethereumTokens.PLAIN_TOKENS.LINK, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "6000" },
+    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ethereumTokens.PLAIN_TOKENS.LINK, timeAllowance: "6000" },
+    { tokenA: ethereumTokens.PLAIN_TOKENS.LINK, tokenB: USD, timeAllowance: "6000" },
   ];
 
   const pendingChainlinkTimeallowances = [];
@@ -234,11 +288,14 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (pendingChainlinkTimeallowances.length > 0) {
     console.log("setting pending Chainlink Time allowances ");
     console.log(JSON.stringify(pendingChainlinkTimeallowances, null, 4));
-
-    const tx = await optyfiOracleInstance
-      .connect(ownerSigner)
-      .setChainlinkTimeAllowance(pendingChainlinkTimeallowances);
-    await tx.wait(1);
+    if (getAddress(ownerSigner.address) === getAddress(deployer)) {
+      const tx = await optyfiOracleInstance
+        .connect(ownerSigner)
+        .setChainlinkTimeAllowance(pendingChainlinkTimeallowances);
+      await tx.wait(1);
+    } else {
+      console.log("cannot set pending chainlink time allowances because signer is not owner");
+    }
   } else {
     console.log("Chainlink Time allowances is up to date");
   }

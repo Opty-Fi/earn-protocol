@@ -1,8 +1,8 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BigNumber } from "ethers";
 import { getAddress } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -29,22 +29,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const alcxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address);
+  const usdcApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("only set ALCX hash");
+  if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
+    console.log("only set USDC hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
-  if (!alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("approve ALCX and set hash");
+  if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
+    console.log("approve USDC and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -87,14 +87,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opALCXinvst", {
+  const result = await deploy("opUSDCinvst", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invst"],
+    args: [registryProxyAddress, "USD Coin", "USDC", "Invest", "invst"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -105,7 +105,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash, "Alchemix", "ALCX", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USD Coin", "USDC", "2"],
         },
       },
     },
@@ -114,25 +114,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opALCXinvst");
+      const vault = await deployments.get("opUSDCinvst");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opALCXinvst",
+          name: "opUSDCinvst",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invst"],
+          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Invest", "invst"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opALCXinvst",
+          name: "opUSDCinvst",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invst"],
+          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Invest", "invst"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opALCXinvst"];
+func.tags = ["opUSDCinvst"];
 func.dependencies = ["Registry"];

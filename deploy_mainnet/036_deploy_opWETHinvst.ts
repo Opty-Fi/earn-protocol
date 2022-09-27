@@ -29,22 +29,22 @@ const func: DeployFunction = async ({
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const alcxApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address);
+  const wethApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("only set ALCX hash");
+  if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+    console.log("only set WETH hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
-  if (!alcxApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash)) {
-    console.log("approve ALCX and set hash");
+  if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
+    console.log("approve WETH and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -87,14 +87,14 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opALCXinvst", {
+  const result = await deploy("opWETHinvst", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invst"],
+    args: [registryProxyAddress, "Wrapped Ether", "WETH", "Invest", "invst"],
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
@@ -105,7 +105,7 @@ const func: DeployFunction = async ({
       execute: {
         init: {
           methodName: "initialize",
-          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].ALCX.hash, "Alchemix", "ALCX", "2"],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, "Wrapped Ether", "WETH", "2"],
         },
       },
     },
@@ -114,25 +114,25 @@ const func: DeployFunction = async ({
   });
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opALCXinvst");
+      const vault = await deployments.get("opWETHinvst");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opALCXinvst",
+          name: "opWETHinvst",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invst"],
+          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Invest", "invst"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opALCXinvst",
+          name: "opWETHinvst",
           address: vault.address,
-          constructorArguments: [registryProxyAddress, "Alchemix", "ALCX", "Invest", "invst"],
+          constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Invest", "invst"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opALCXinvst"];
+func.tags = ["opWETHinvst"];
 func.dependencies = ["Registry"];
