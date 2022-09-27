@@ -28,9 +28,10 @@ contract TestEmergencyBrake {
     function runUserWithdrawVault(
         uint256 _userWithdrawVT,
         bytes32[] calldata _accountProofs,
+        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _codeProofs
     ) external {
-        vaultAddr.userWithdrawVault(address(this), _userWithdrawVT, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(address(this), _userWithdrawVT, _withdrawStrategies, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnUserDepositVault(
@@ -46,24 +47,26 @@ contract TestEmergencyBrake {
 
     function runTwoTxnUserWithdrawVault(
         uint256 _userDepositUT,
+        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountProofs,
         bytes32[] calldata _codeProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), (_userDepositUT + _userDepositUT));
         tokenAddr.transfer(address(vaultAddr), (_userDepositUT + _userDepositUT));
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs, _codeProofs);
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _withdrawStrategies, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _withdrawStrategies, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnDepositAndWithdraw(
         uint256 _userDepositUT,
         bytes calldata _permit,
+        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountProofs,
         bytes32[] calldata _codeProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
         vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _withdrawStrategies, _accountProofs, _codeProofs);
     }
 
     function runTwoTxnDepositAndTransfer(

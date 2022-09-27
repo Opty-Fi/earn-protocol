@@ -3,6 +3,8 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
+//NOTE: Variable Shadowing
+
 // helper contracts
 import { MultiCall } from "../../utils/MultiCall.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -21,6 +23,7 @@ import { StrategyManager } from "../lib/StrategyManager.sol";
 import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 // interfaces
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -53,6 +56,7 @@ contract Vault is
     using ClaimAndHarvest for address;
     using StrategyManager for DataTypes.StrategyStep[];
     using Counters for Counters.Counter;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
 
     /**
      * @dev The version of the Vault business logic
@@ -254,11 +258,12 @@ contract Vault is
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
+        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external override nonReentrant returns (uint256) {
         _emergencyBrake(false);
-        return _withdrawVaultFor(_receiver, _userWithdrawVT, _accountsProof, _codesProof);
+        return _withdrawVaultFor(_receiver, _userWithdrawVT, _withdrawStrategies, _accountsProof, _codesProof);
     }
 
     /**
@@ -269,6 +274,32 @@ contract Vault is
         if (investStrategyHash != Constants.ZERO_BYTES32) {
             _vaultDepositToStrategy(investStrategySteps, balanceUT());
         }
+    }
+
+    function vaultDepositToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) external onlyStrategyOperator {
+        _checkVaultDeposit();
+
+        IInvestStrategyRegistry investStrategyRegistry =
+            IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry());
+
+        require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
+
+        //add check for minimum LP returned
+        //getBalanceBefore and getBalanceAfter => difference larger than MINEXPECTEDAMOUNT (passed in arg)
+
+        _vaultDepositToStrategy(investStrategyRegistry.getStrategySteps(_strategyHash), _depositValueUT);
+    }
+
+    function vaultWithdrawFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) external onlyStrategyOperator {
+        IInvestStrategyRegistry investStrategyRegistry =
+            IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry());
+
+        require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
+
+        //add check for minimum USDC returned
+        //getBalanceBefore and getBalanceAfter => difference larger than MINEXPECTEDAMOUNT (passed in arg)
+
+        _vaultWithdrawSomeFromStrategy(investStrategyRegistry.getStrategySteps(_strategyHash), _withdrawAmountLP);
     }
 
     /**
@@ -510,13 +541,6 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function getInvestStrategySteps() public view override returns (DataTypes.StrategyStep[] memory) {
-        return investStrategySteps;
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
     function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
         public
         view
@@ -625,12 +649,14 @@ contract Vault is
      * @dev internal function withdraw for an user
      * @param _receiver address of the receiver of the underlying token
      * @param _userWithdrawVT amount in vault token
+     * @param _withdrawStrategies strategies to withdraw from
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _withdrawVaultFor(
         address _receiver,
         uint256 _userWithdrawVT,
+        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) internal returns (uint256) {
@@ -647,15 +673,37 @@ contract Vault is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            IInvestStrategyRegistry investStrategyRegistry =
+                IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry());
 
-            uint256 _oraAmountLP =
-                investStrategySteps.getOraSomeValueLP(
-                    address(registryContract),
-                    underlyingToken,
-                    _expectedStratWithdrawUT
-                );
+            for (uint256 i; i < _withdrawStrategies.length; i++) {
+                uint256 _oraAmountLP;
+                uint256 buffer =
+                    investStrategyRegistry.getStrategyWithdrawalBuffer(address(this), _withdrawStrategies[i]);
+                bytes32 withdrawStrategyHash = _withdrawStrategies[i];
+                DataTypes.StrategyStep[] memory _steps = investStrategyRegistry.getStrategySteps(withdrawStrategyHash);
 
-            _vaultWithdrawSomeFromStrategy(investStrategySteps, _oraAmountLP);
+                if (buffer >= _expectedStratWithdrawUT) {
+                    _oraAmountLP = _steps.getOraSomeValueLP(
+                        address(registryContract),
+                        underlyingToken,
+                        _expectedStratWithdrawUT
+                    );
+
+                    _vaultWithdrawSomeFromStrategy(_steps, _oraAmountLP);
+
+                    break;
+                } else {
+                    _expectedStratWithdrawUT -= buffer;
+                    _oraAmountLP = _steps.getOraSomeValueLP(address(registryContract), underlyingToken, buffer);
+
+                    _vaultWithdrawSomeFromStrategy(_steps, _oraAmountLP);
+
+                    if (i == _withdrawStrategies.length - 1 && _expectedStratWithdrawUT != 0) {
+                        revert(Errors.WITHDRAWAL_TOO_LARGE);
+                    }
+                }
+            }
 
             // Identify Slippage
             // UT requested from strategy withdraw  = _expectedStratWithdrawUT
@@ -859,18 +907,27 @@ contract Vault is
      * @return amount in underlying token
      */
     function _oraVaultAndStratValueUT() internal view returns (uint256) {
-        return _oraStratValueUT().add(balanceUT());
+        uint256 _totalValue = balanceUT();
+
+        DataTypes.StrategyStep[][] memory _allSteps = _getAllStrategySteps();
+
+        for (uint256 i; i < _allSteps.length; i++) {
+            _totalValue += _oraStratValueUT(_allSteps[i]); //use SafeMath
+        }
+
+        return _totalValue;
     }
 
     /**
      * @dev Computes the amount in underlying token for the investment made in strategy
+     * @param _steps the strategy steps for the strategy to check
      * @return amount in underlying token
      */
-    function _oraStratValueUT() internal view returns (uint256) {
+    function _oraStratValueUT(DataTypes.StrategyStep[] memory _steps) internal view returns (uint256) {
         // totaldebt
         return
             investStrategyHash != Constants.ZERO_BYTES32
-                ? investStrategySteps.getOraValueUT(address(registryContract), payable(address(this)), underlyingToken)
+                ? _steps.getOraValueUT(address(registryContract), payable(address(this)), underlyingToken)
                 : 0;
     }
 
@@ -988,6 +1045,42 @@ contract Vault is
         Counters.Counter storage nonce = _nonces[owner];
         current = nonce.current();
         nonce.increment();
+    }
+
+    function _getAllStrategySteps() internal view returns (DataTypes.StrategyStep[][] memory) {
+        //perhaps add a check for inactivity of strategy
+        DataTypes.StrategyStep[][] memory allSteps;
+        uint256 numStrategies = strategies.length();
+
+        for (uint256 i; i < numStrategies; i++) {
+            allSteps[i] = IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry())
+                .getStrategySteps(strategies.at(i));
+        }
+
+        return allSteps;
+    }
+
+    /**
+     * @notice adds a strategy hash to vault strategies
+     * @param _strategyHash the hash of the strategy
+     */
+    function _addStrategy(bytes32 _strategyHash) internal {
+        require(!strategies.contains(_strategyHash), "InvestStrategyRegistry: strategy already set");
+
+        strategies.add(_strategyHash);
+
+        emit AddStrategy(_strategyHash);
+    }
+
+    /**
+     * @notice removes a strategy hash to vault strategies
+     * @param _strategyHash the hash of the strategy
+     */
+    function _removeStrategy(bytes32 _strategyHash) internal {
+        require(strategies.contains(_strategyHash), "InvestStrategyRegistry: strategy does not exist");
+        strategies.remove(_strategyHash);
+
+        emit RemoveStrategy(_strategyHash);
     }
 
     //===Internal pure functions===//

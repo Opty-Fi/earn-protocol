@@ -6,6 +6,7 @@ pragma solidity ^0.6.12;
 // library
 import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 /**
  * @title Vault state that can change
@@ -107,4 +108,7 @@ contract VaultStorageV3 is VaultStorageV2 {
 
     /**@dev deposit and withdraw flag*/
     mapping(uint256 => bool) internal _blockTransaction;
+
+    /**@dev set of strategy hashes which the vault may operate on */
+    EnumerableSet.Bytes32Set internal strategies;
 }

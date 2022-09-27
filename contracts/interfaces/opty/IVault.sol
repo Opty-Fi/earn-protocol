@@ -127,15 +127,6 @@ interface IVault {
     function setUnpaused(bool _unpaused) external;
 
     /**
-     * @notice Withdraw the underlying asset of vault from previous strategy if any,
-     *         claims and swaps the reward tokens for the underlying token
-     *         performs batch minting of shares for users deposited previously without rebalance,
-     *         deposits the assets into the new strategy if any or holds the same in the vault
-     * @dev the vault will be charged to compensate gas fees if operator calls this function
-     */
-    function rebalance() external;
-
-    /**
      * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
      * @param _beneficiary the address of the deposit beneficiary
@@ -157,12 +148,14 @@ interface IVault {
      * @dev Burn the shares right away as per oracle based price per full share value
      * @param _receiver the address which will receive the underlying tokens
      * @param _userWithdrawVT amount in vault token
+     * @param _withdrawStrategies array of strategy hashes to identify which strategies to withdraw from
      * @param _accountsProof merkle proof for caller
      * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
+        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountsProof,
         bytes32[] calldata _codesProof
     ) external returns (uint256);
@@ -335,12 +328,6 @@ interface IVault {
         returns (uint256);
 
     /**
-     * @notice retireves current strategy metadata
-     * @return array of strategy steps
-     */
-    function getInvestStrategySteps() external view returns (DataTypes.StrategyStep[] memory);
-
-    /**
      * @dev function to compute the keccak256 hash of the strategy steps
      * @param _investStrategySteps metadata for invest strategy
      * @return keccak256 hash of the invest strategy and underlying tokens hash
@@ -399,4 +386,16 @@ interface IVault {
      * @param rewardTokenAmount Amount of reward token claimed
      */
     event RewardTokenClaimed(address liquidityPool, uint256 rewardTokenAmount);
+
+    /**
+     * @notice Emitted when a strategy is added to the vault
+     * @param _strategyHash the hash of the strategy added
+     */
+    event AddStrategy(bytes32 _strategyHash);
+
+    /**
+     * @notice Emitted when a strategy is removed from the vault
+     * @param _strategyHash the hash of the strategy removed
+     */
+    event RemoveStrategy(bytes32 _strategyHash);
 }

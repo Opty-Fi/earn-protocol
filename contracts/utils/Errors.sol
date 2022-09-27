@@ -29,4 +29,7 @@ library Errors {
     string public constant PERMIT_FAILED = "24";
     string public constant PERMIT_LEGACY_FAILED = "25";
     string public constant AMOUNT_EXCEEDS_ALLOWANCE = "26";
+    string public constant BUFFER_EXCEEDED = "27";
+    string public constant INVALID_STRATEGY = "28";
+    string public constant WITHDRAWAL_TOO_LARGE = "29";
 }
