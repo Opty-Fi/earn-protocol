@@ -118,7 +118,6 @@ async function main() {
   // const STK_AAVE = ethers.utils.getAddress("0x4da27a545c0c5B758a6BA100e3a049001de870f5")
   const opUSDCSaveProxyAddress = ethers.utils.getAddress("0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88");
   const opWETHSaveProxyAddress = ethers.utils.getAddress("0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8");
-  const registryProxyAddress = ethers.utils.getAddress("0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3");
   const opUSDCSavevaultInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opUSDCSaveProxyAddress);
   const opWETHSavevaultInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opWETHSaveProxyAddress);
   const aaveIncentiveControlleInstance = await ethers.getContractAt(
