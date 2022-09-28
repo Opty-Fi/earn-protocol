@@ -1,8 +1,8 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BigNumber } from "ethers";
 import { getAddress } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -22,32 +22,29 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
-  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
-  const strategyManager = await deployments.get("StrategyManager");
-  const claimAndHarvest = await deployments.get("ClaimAndHarvest");
+  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
 
   const onlySetTokensHash = [];
   const approveTokenAndMapHash = [];
-  const usd3Approved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address);
+  const usdcApproved = await registryInstance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address);
   const tokenHashes: string[] = await registryInstance.getTokenHashes();
-  if (usd3Approved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
-    console.log("only set USD3 hash");
+  if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
+    console.log("only set USDC hash");
     console.log("\n");
     onlySetTokensHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
-  if (!usd3Approved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash)) {
-    console.log("approve USD3 and set hash");
+  if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
+    console.log("approve USDC and set hash");
     console.log("\n");
     approveTokenAndMapHash.push([
-      MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash,
-      [MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.address],
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
+      [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
   if (approveTokenAndMapHash.length > 0) {
@@ -89,69 +86,53 @@ const func: DeployFunction = async ({
   }
 
   const networkName = network.name;
-
-  const result = await deploy("opUSD3earn", {
+  const feeData = await ethers.provider.getFeeData();
+  const result = await deploy("opUSDCinvst", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: [registryProxyAddress, "USD Coin", "USDC", "Invest", "invst"],
     log: true,
     skipIfAlreadyDeployed: true,
-    libraries: {
-      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
-      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
-    },
     proxy: {
       owner: admin,
       upgradeIndex: 0,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opAAVEinvst_Implementation",
       execute: {
         init: {
           methodName: "initialize",
-          args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].USD3.hash, //bytes32 _underlyingTokensHash
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "USD3", //string memory _symbol
-            "1", //uint256 _riskProfileCode
-            "0", //uint256 _vaultConfiguration
-            "0", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "0", //uint256 _totalValueLockedLimitUT
-          ],
+          args: [registryProxyAddress, MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, "USD Coin", "USDC", "2"],
         },
       },
     },
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
-
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSD3earn");
+      const vault = await deployments.get("opUSDCinvst");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSD3earn",
+          name: "opUSDCinvst",
           address: vault.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Invest", "invst"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSD3earn",
+          name: "opUSDCinvst",
           address: vault.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, "USD Coin", "USDC", "Invest", "invst"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["opUSD3earn"];
+func.tags = ["opUSDCinvst"];
 func.dependencies = ["Registry"];

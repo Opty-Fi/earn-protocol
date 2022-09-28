@@ -3,6 +3,8 @@ import { deployments, ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import BN from "bignumber.js";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
+import { BigNumber } from "ethers";
+import { formatEther, formatUnits, getAddress } from "ethers/lib/utils";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
@@ -29,9 +31,7 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { formatEther, formatUnits, getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "../../helpers/data";
-import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
