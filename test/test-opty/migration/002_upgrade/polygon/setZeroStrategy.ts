@@ -1,15 +1,15 @@
 import { ethers } from "hardhat";
 import { legos as PolygonLegos } from "@optyfi/defi-legos/polygon";
-import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { generateTokenHashV2 } from "../../../../helpers/helpers";
+import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../../../../helper-hardhat-config";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { generateTokenHashV2 } from "../../../../../helpers/helpers";
 import {
   RegistryProxy as RegistryProxyAddress,
   Registry as OldRegistryImplementationAddress,
   StrategyProvider as StrategyProviderAddress,
-} from "../../_deployments/polygon.json";
-import * as Registry from "../../../../deployments/polygon/Registry.json";
-import * as StrategyProvider from "../../../../deployments/polygon/StrategyProvider.json";
+} from "../../../_deployments/polygon.json";
+import * as Registry from "../../../../../deployments/polygon/Registry.json";
+import * as StrategyProvider from "../../../../../deployments/polygon/StrategyProvider.json";
 
 export async function setZeroStrategy(): Promise<void> {
   const { getAddress } = ethers.utils;

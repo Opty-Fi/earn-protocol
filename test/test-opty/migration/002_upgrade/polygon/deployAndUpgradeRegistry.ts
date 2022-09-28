@@ -1,10 +1,10 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { eEVMNetwork } from "../../../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
-import { RegistryProxy } from "../../../../typechain";
-import { RegistryProxy as registryProxyAddress } from "../../_deployments/polygon.json";
+import { eEVMNetwork } from "../../../../../helper-hardhat-config";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../../helpers/constants/tokens";
+import { RegistryProxy } from "../../../../../typechain";
+import { RegistryProxy as registryProxyAddress } from "../../../_deployments/polygon.json";
 
 export async function deployAndUpgradeRegistry(fork: eEVMNetwork): Promise<void> {
   const registryFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.REGISTRY);

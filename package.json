@@ -105,12 +105,14 @@
     "test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/2_vault.spec.ts",
     "vaultv2-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
     "test-clean": "yarn clean && yarn test",
-    "test-fast:vaultv2-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
+    "test-fast:vaultv3-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
+    "test-fast:vaultv4-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
+    "test-fast:vaultv4-upgrade-test:polygon": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
     "test-fast:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/2_vault.spec.ts --deploy-fixture",
     "test-fast:emergency-brake": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/emergency-brake.spec.ts --deploy-fixture",
-    "test-fast:vaultv2-strategy:polygon": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=polygon NETWORK_NAME=polygon hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
-    "test-fast:vaultv2-strategy:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
-    "test-fast:vaultv2-strategy:avalanche": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=avalanche NETWORK_NAME=avalanche FORK_BLOCK_NUMBER=13936470 hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
+    "test-fast:vault-strategy:polygon": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=polygon NETWORK_NAME=polygon hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
+    "test-fast:vault-strategy:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
+    "test-fast:vault-strategy:avalanche": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=avalanche NETWORK_NAME=avalanche FORK_BLOCK_NUMBER=13936470 hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
     "test-fast": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/*.spec.ts",
     "watch:test": "hardhat --max-memory 4096 watch test",
     "coverage": "cross-env CODE_COVERAGE=true hardhat --max-memory 4096 coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/test-opty/*.spec.ts\"",
@@ -139,6 +141,7 @@
     "@openzeppelin/contracts-0.8.x": "npm:@openzeppelin/contracts@4.4.1",
     "@optyfi/defi-legos": "v0.1.0-rc.38",
     "@uniswap/v2-core": "^1.0.1",
-    "@uniswap/v2-periphery": "^1.1.0-beta.0"
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "hardhat-contract-sizer": "^2.6.1"
   }
 }

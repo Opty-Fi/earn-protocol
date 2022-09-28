@@ -1,11 +1,11 @@
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { oldAbis } from "../../../../helpers/data/oldAbis";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { oldAbis } from "../../../../../helpers/data/oldAbis";
 import {
   RegistryProxy as RegistryProxyAddress,
   Registry as OldRegistryImplementationAddress,
   StrategyProvider as StrategyProviderAddress,
-} from "../../_deployments/mainnet.json";
+} from "../../../_deployments/mainnet.json";
 
 export async function setZeroStrategy(): Promise<void> {
   const { getAddress } = ethers.utils;

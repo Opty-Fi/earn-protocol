@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { RegistryProxy as registryProxyAddress } from "../../_deployments/polygon.json";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { RegistryProxy as registryProxyAddress } from "../../../_deployments/polygon.json";
 
 export async function approveAndMapLiquidityPoolToAdapter(): Promise<void> {
   const { getAddress } = ethers.utils;

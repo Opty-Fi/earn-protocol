@@ -1,11 +1,11 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { Registry, RiskManagerProxy } from "../../../../typechain";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { Registry, RiskManagerProxy } from "../../../../../typechain";
 import {
   RegistryProxy as registryProxyAddress,
   RiskManagerProxy as riskManagerProxyAddress,
-} from "../../_deployments/polygon.json";
+} from "../../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeRiskManager(): Promise<void> {
   const riskManagerFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.RISK_MANAGER);

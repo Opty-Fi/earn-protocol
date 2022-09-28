@@ -1,8 +1,8 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { Registry } from "../../../../typechain";
-import { RegistryProxy as registryProxyAddress } from "../../_deployments/polygon.json";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { Registry } from "../../../../../typechain";
+import { RegistryProxy as registryProxyAddress } from "../../../_deployments/mainnet.json";
 
 export async function deployStrategyProvider(): Promise<string> {
   const strategyProviderFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER);

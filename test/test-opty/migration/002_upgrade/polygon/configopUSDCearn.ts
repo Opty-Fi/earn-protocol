@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
-import { eEVMNetwork } from "../../../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
-import { StrategiesByTokenByChain } from "../../../../helpers/data/adapter-with-strategies";
-import { getRiskProfileCode, getUnpause } from "../../../../helpers/utils";
-import { RegistryProxy as registryProxyAddress, opUSDCearn } from "../../_deployments/mainnet.json";
+import { eEVMNetwork } from "../../../../../helper-hardhat-config";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../../helpers/constants/tokens";
+import { StrategiesByTokenByChain } from "../../../../../helpers/data/adapter-with-strategies";
+import { getRiskProfileCode, getUnpause } from "../../../../../helpers/utils";
+import { RegistryProxy as registryProxyAddress, opUSDCgrow as opUSDCearn } from "../../../_deployments/polygon.json";
 
 export async function configopUSDCearn(strategyProviderAddress: string, fork: eEVMNetwork): Promise<void> {
   const { BigNumber } = ethers;
@@ -43,7 +43,7 @@ export async function configopUSDCearn(strategyProviderAddress: string, fork: eE
   const actualTotalValueLockedLimitUT = await opUSDCearnInstance.totalValueLockedLimitUT();
 
   const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
-  const expectedMinimumDepositValueUT = BigNumber.from("1000000000"); // 1000 USDC
+  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 1000 USDC
   const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
 
   if (
@@ -67,7 +67,7 @@ export async function configopUSDCearn(strategyProviderAddress: string, fork: eE
     await tx5.wait(1);
   }
 
-  const expectedAccountsRoot = "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694";
+  const expectedAccountsRoot = "0x5a67b2194048bd003f63682aaff156c5dd229e09b006150e3dad0736b75dbffc";
   const actualAccountsRoot = await opUSDCearnInstance.whitelistedAccountsRoot();
   if (actualAccountsRoot != expectedAccountsRoot) {
     const tx6 = await opUSDCearnInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot);
@@ -86,9 +86,7 @@ export async function configopUSDCearn(strategyProviderAddress: string, fork: eE
   );
   const currentBestStrategyHash = await opUSDCearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
   const expectedStrategySteps =
-    StrategiesByTokenByChain[fork]["Earn"].USDC[
-      "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"
-    ].strategy;
+    StrategiesByTokenByChain[fork].USDC["usdc-DEPOSIT-CurveStableSwap-am3CRV-DEPOSIT-Beefy-mooCurveAm3CRV"].strategy;
   const expectedStrategyHash = await opUSDCearnInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

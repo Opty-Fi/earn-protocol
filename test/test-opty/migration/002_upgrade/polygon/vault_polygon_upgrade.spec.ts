@@ -11,7 +11,7 @@ import {
   getAccountsMerkleRoot,
   Signers,
   to_10powNumber_BN,
-} from "../../../../helpers/utils";
+} from "../../../../../helpers/utils";
 import {
   ERC20Permit,
   ERC20Permit__factory,
@@ -20,16 +20,16 @@ import {
   RegistryProxy,
   StrategyProvider,
   Vault,
-} from "../../../../typechain";
-import { opUSDCearn, RegistryProxy as RegistryProxyAddress } from "../../_deployments/polygon.json";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { getLastStrategyStepBalanceLP, getOraValueUT, setTokenBalanceInStorage } from "../../utils";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
-import { eEVMNetwork } from "../../../../helper-hardhat-config";
-import { StrategiesByTokenByChain } from "../../../../helpers/data/adapter-with-strategies";
-import { StrategyStepType } from "../../../../helpers/type";
-import { generateStrategyHashV2 } from "../../../../helpers/helpers";
-import { oldAbis } from "../../../../helpers/data/oldAbis";
+} from "../../../../../typechain";
+import { opUSDCgrow as opUSDCearn, RegistryProxy as RegistryProxyAddress } from "../../../_deployments/polygon.json";
+import { ESSENTIAL_CONTRACTS } from "../../../../../helpers/constants/essential-contracts-name";
+import { getLastStrategyStepBalanceLP, getOraValueUT, setTokenBalanceInStorage } from "../../../utils";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../../helpers/constants/tokens";
+import { eEVMNetwork } from "../../../../../helper-hardhat-config";
+import { StrategiesByTokenByChain } from "../../../../../helpers/data/adapter-with-strategies";
+import { StrategyStepType } from "../../../../../helpers/type";
+import { generateStrategyHashV2 } from "../../../../../helpers/helpers";
+import { oldAbis } from "../../../../../helpers/data/oldAbis";
 import { setZeroStrategy } from "./setZeroStrategy";
 import { usdcRebalance } from "./usdcRebalance";
 import { deployAndUpgradeUSDC } from "./deployAndUpgradeUSDC";
@@ -138,7 +138,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     this.opUSDCearnProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPUSDCEARN_VAULT_PROXY_ADDRESS)
     );
-    this.opUSDCearnOld = await ethers.getContractAt(oldAbis.OldVaultV2, OPUSDCEARN_VAULT_PROXY_ADDRESS);
+    this.opUSDCearnOld = await ethers.getContractAt(oldAbis.OldVaultV3, OPUSDCEARN_VAULT_PROXY_ADDRESS);
     this.opUSDCearnUserDepositCapUT = await this.opUSDCearnOld.userDepositCapUT();
     this.opUSDCearnMinimumDepositValueUT = await this.opUSDCearnOld.minimumDepositValueUT();
     this.opUSDCearnTotalValueLockedLimitUT = await this.opUSDCearnOld.totalValueLockedLimitUT();
