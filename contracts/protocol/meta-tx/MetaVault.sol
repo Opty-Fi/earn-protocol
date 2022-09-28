@@ -1,37 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "@openzeppelin/contracts-0.8.x/metatx/ERC2771Context.sol";
-import "@openzeppelin/contracts-0.8.x/metatx/MinimalForwarder.sol";
-import "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/draft-IERC20Permit.sol";
+import { ERC2771Context } from "@openzeppelin/contracts-0.8.x/metatx/ERC2771Context.sol";
+import { MinimalForwarder } from "@openzeppelin/contracts-0.8.x/metatx/MinimalForwarder.sol";
+import { SafeERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
+import { IVault } from "./interfaces/IVault.sol";
+import { IERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
+import { IERC20Permit } from "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/draft-IERC20Permit.sol";
+import { IERC20PermitLegacy } from "./interfaces/IERC20PermitLegacy.sol";
 
-interface IERC20PermitLegacy {
-    function permit(
-        address holder,
-        address spender,
-        uint256 nonce,
-        uint256 expiry,
-        bool allowed,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-}
-
-interface IVault {
-    function userDepositVault(
-        address _beneficiary,
-        uint256 _userDepositUT,
-        uint256 _expectedOutput,
-        bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof
-    ) external returns (uint256);
-
-    function underlyingToken() external returns (address);
-}
-
+/**
+ * @title Vault contract inspired by AAVE V3's AToken.sol
+ * @author opty.fi
+ * @notice Implementation of the risk specific interest bearing vault
+ */
 contract MetaVault is ERC2771Context {
     using SafeERC20 for IERC20;
 
