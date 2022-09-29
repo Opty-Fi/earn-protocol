@@ -111,4 +111,7 @@ contract VaultStorageV3 is VaultStorageV2 {
 
     /**@dev set of strategy hashes which the vault may operate on */
     EnumerableSet.Bytes32Set internal strategies;
+
+    /**@dev mapping of strategy to withdrawal buffer */
+    mapping(bytes32 => uint256) internal withdrawalBuffers;
 }

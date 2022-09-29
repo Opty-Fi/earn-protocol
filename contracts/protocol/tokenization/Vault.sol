@@ -674,9 +674,9 @@ contract Vault is
 
             for (uint256 i; i < _withdrawStrategies.length; i++) {
                 uint256 _oraAmountLP;
-                uint256 buffer =
-                    investStrategyRegistry.getStrategyWithdrawalBuffer(address(this), _withdrawStrategies[i]);
+
                 bytes32 withdrawStrategyHash = _withdrawStrategies[i];
+                uint256 buffer = withdrawalBuffers[withdrawStrategyHash];
                 DataTypes.StrategyStep[] memory _steps = investStrategyRegistry.getStrategySteps(withdrawStrategyHash);
 
                 if (buffer >= _expectedStratWithdrawUT) {
