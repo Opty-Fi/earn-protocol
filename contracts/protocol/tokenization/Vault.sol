@@ -32,9 +32,7 @@ import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
-import {
-    IInvestStrategyRegistry
-} from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
+import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
 
 /**
  * @title Vault contract inspired by AAVE V2's AToken.sol
@@ -279,8 +277,7 @@ contract Vault is
     function vaultDepositToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) external onlyStrategyOperator {
         _checkVaultDeposit();
 
-        IInvestStrategyRegistry investStrategyRegistry =
-            IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry());
+        IStrategyRegistry investStrategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
@@ -291,8 +288,7 @@ contract Vault is
     }
 
     function vaultWithdrawFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) external onlyStrategyOperator {
-        IInvestStrategyRegistry investStrategyRegistry =
-            IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry());
+        IStrategyRegistry investStrategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
@@ -673,8 +669,8 @@ contract Vault is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            IInvestStrategyRegistry investStrategyRegistry =
-                IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry());
+            IStrategyRegistry investStrategyRegistry =
+                IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
             for (uint256 i; i < _withdrawStrategies.length; i++) {
                 uint256 _oraAmountLP;
@@ -1053,8 +1049,9 @@ contract Vault is
         uint256 numStrategies = strategies.length();
 
         for (uint256 i; i < numStrategies; i++) {
-            allSteps[i] = IInvestStrategyRegistry(IRegistry(registryContract).getInvestStrategyRegistry())
-                .getStrategySteps(strategies.at(i));
+            allSteps[i] = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry()).getStrategySteps(
+                strategies.at(i)
+            );
         }
 
         return allSteps;
