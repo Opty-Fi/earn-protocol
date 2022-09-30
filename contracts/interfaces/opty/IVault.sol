@@ -192,6 +192,18 @@ interface IVault {
     function harvestAll(address _liquidityPool) external;
 
     /**
+     * @notice adds a strategy to the vault
+     * @param _strategyHash hash of strategy
+     */
+    function addStrategy(bytes32 _strategyHash) external;
+
+    /**
+     * @notice removes a strategy from the vault
+     * @param _strategyHash hash of strategy
+     */
+    function removeStrategy(bytes32 _strategyHash) external;
+
+    /**
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
@@ -309,12 +321,6 @@ interface IVault {
      * @return _withdrawalFeeUT withdrawal fee in underlying token
      */
     function calcWithdrawalFeeUT(uint256 _userWithdrawUT) external view returns (uint256);
-
-    /**
-     * @notice Returns next best invest strategy that the vault will execute on next rebalance
-     * @return the strategy metadata
-     */
-    function getNextBestInvestStrategy() external view returns (DataTypes.StrategyStep[] memory);
 
     /**
      * @notice function to compute the balance of lptoken of the vault

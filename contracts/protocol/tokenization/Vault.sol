@@ -354,6 +354,20 @@ contract Vault is
         emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
+    /**
+     * @inheritdoc IVault
+     */
+    function addStrategy(bytes32 _strategyHash) external override onlyStrategyOperator {
+        _addStrategy(_strategyHash);
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function removeStrategy(bytes32 _strategyHash) external override onlyStrategyOperator {
+        _removeStrategy(_strategyHash);
+    }
+
     //===Public view functions===//
 
     /**
@@ -503,17 +517,6 @@ contract Vault is
         return
             ((_userWithdrawUT.mul((vaultConfiguration >> 48) & 0xFFFF)).div(10000)).add(
                 ((vaultConfiguration >> 32) & 0xFFFF) * 10**uint256(decimals())
-            );
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
-    function getNextBestInvestStrategy() public view override returns (DataTypes.StrategyStep[] memory) {
-        return
-            IRiskManager(registryContract.getRiskManager()).getBestStrategy(
-                uint256(uint8(vaultConfiguration >> 240)),
-                underlyingTokensHash
             );
     }
 
