@@ -154,7 +154,7 @@ describe("::Vault", function () {
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
   });
 
-  describe.only("#constructor(address,string,string,string,string)", function () {
+  describe("#constructor(address,string,string,string,string)", function () {
     it("name,symbol,decimals, domainSeparator as expected", async function () {
       const expectedName = "OptyFi USDC Earn Vault";
       const expectedSymbol = "opUSDC-Earn";
@@ -1099,6 +1099,135 @@ describe("::Vault", function () {
     });
   });
 
+  describe("#permit(address,address,uint256,uint256,uint8,bytes32,bytes32", function () {
+    it("success, gasless approval and vault token transferfrom", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      const nonceBeforeAlice = await this.opUSDCearn.nonces(this.signers.alice.address);
+      const tx = await this.opUSDCearn
+        .connect(this.signers.operator)
+        .permit(
+          this.signers.alice.address,
+          this.signers.bob.address,
+          vaultTokenBalanceAlice,
+          BigNumber.from(deadline).add(1800),
+          v,
+          r,
+          s,
+        );
+      await tx.wait(1);
+      expect(await this.opUSDCearn.allowance(this.signers.alice.address, this.signers.bob.address)).to.eq(
+        vaultTokenBalanceAlice,
+      );
+      expect(await this.opUSDCearn.nonces(this.signers.alice.address)).to.eq(nonceBeforeAlice.add("1"));
+
+      const vaultTokenBalanceBeforeBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const tx1 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transferFrom(this.signers.alice.address, this.signers.bob.address, vaultTokenBalanceAlice);
+      await tx1.wait(1);
+      const vaultTokenBalanceAfterBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const vaultTokenBalanceAfterAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAfterBob).to.eq(vaultTokenBalanceBeforeBob.add(vaultTokenBalanceAlice));
+      expect(vaultTokenBalanceAfterAlice).to.eq("0");
+      // send vault token back to alice
+      const tx3 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transfer(this.signers.alice.address, vaultTokenBalanceAlice);
+      await tx3.wait(1);
+      expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(vaultTokenBalanceAlice);
+    });
+
+    it("fail, zero address not valid", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            ethers.constants.AddressZero,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("27");
+    });
+    it("fail, expired timestamp", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).sub(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("28");
+    });
+
+    it("fail, invalid signature", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.bob,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("29");
+    });
+  });
+
   describe("#userWithdrawPermitted(address,uint256,uint256,bytes32[])", function () {
     it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
       const _accountProof = getAccountsMerkleProof(
@@ -1461,7 +1590,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe.only("#setName()", function () {
+  describe("#setName()", function () {
     it("success, only governance can change name", async function () {
       const setNameStr = "OptyFi USD Coin Earn Vault";
       const expectedDomainSeparator = ethers.utils.keccak256(
@@ -1482,9 +1611,55 @@ describe("::Vault", function () {
         "caller is not having governance",
       );
     });
+    it("success, gasless approval and vault token transferfrom", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      const nonceBeforeAlice = await this.opUSDCearn.nonces(this.signers.alice.address);
+      const tx = await this.opUSDCearn
+        .connect(this.signers.operator)
+        .permit(
+          this.signers.alice.address,
+          this.signers.bob.address,
+          vaultTokenBalanceAlice,
+          BigNumber.from(deadline).add(1800),
+          v,
+          r,
+          s,
+        );
+      await tx.wait(1);
+      expect(await this.opUSDCearn.allowance(this.signers.alice.address, this.signers.bob.address)).to.eq(
+        vaultTokenBalanceAlice,
+      );
+      expect(await this.opUSDCearn.nonces(this.signers.alice.address)).to.eq(nonceBeforeAlice.add("1"));
+
+      const vaultTokenBalanceBeforeBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const tx1 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transferFrom(this.signers.alice.address, this.signers.bob.address, vaultTokenBalanceAlice);
+      await tx1.wait(1);
+      const vaultTokenBalanceAfterBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const vaultTokenBalanceAfterAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAfterBob).to.eq(vaultTokenBalanceBeforeBob.add(vaultTokenBalanceAlice));
+      expect(vaultTokenBalanceAfterAlice).to.eq("0");
+      // send vault token back to alice
+      const tx3 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transfer(this.signers.alice.address, vaultTokenBalanceAlice);
+      await tx3.wait(1);
+      expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(vaultTokenBalanceAlice);
+    });
   });
 
-  describe.only("#setSymbol", function () {
+  describe("#setSymbol", function () {
     it("success, only governance can change symbol", async function () {
       const setSymbolStr = "opUSDCearn";
       const tx = await this.opUSDCearn.connect(this.signers.governance).setSymbol(setSymbolStr);
