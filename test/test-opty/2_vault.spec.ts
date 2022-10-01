@@ -1,4 +1,4 @@
-import { ethers, deployments, artifacts } from "hardhat";
+import { ethers, deployments, artifacts, getChainId } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
@@ -112,6 +112,11 @@ const testStrategy: {
 
 const strategyKeys = Object.keys(testStrategy[fork]);
 
+const EIP712_DOMAIN = ethers.utils.id(
+  "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
+);
+const EIP712_REVISION = ethers.utils.id("1");
+
 describe("::Vault", function () {
   before(async function () {
     await deployments.fixture();
@@ -126,7 +131,7 @@ describe("::Vault", function () {
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -149,11 +154,21 @@ describe("::Vault", function () {
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
   });
 
-  describe("#constructor(address,string,string,string,string)", function () {
-    it("name,symbol,decimals as expected", async function () {
-      expect(await this.opUSDCearn.name()).to.eq("OptyFi USDC Earn Vault");
-      expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
+  describe.only("#constructor(address,string,string,string,string)", function () {
+    it("name,symbol,decimals, domainSeparator as expected", async function () {
+      const expectedName = "OptyFi USDC Earn Vault";
+      const expectedSymbol = "opUSDC-Earn";
+      const expectedDomainSeparator = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
+          ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+          [EIP712_DOMAIN, ethers.utils.id(expectedName), EIP712_REVISION, await getChainId(), this.opUSDCearn.address],
+        ),
+      );
+      expect(await this.opUSDCearn.name()).to.eq(expectedName);
+      expect(await this.opUSDCearn.symbol()).to.eq(expectedSymbol);
       expect(await this.opUSDCearn.decimals()).to.eq(6);
+      expect(await this.opUSDCearn._domainSeparator()).to.eq(expectedDomainSeparator);
+      expect(await this.opUSDCearn.DOMAIN_SEPARATOR()).to.eq(expectedDomainSeparator);
     });
 
     it("registry as expected", async function () {
@@ -1443,6 +1458,44 @@ describe("::Vault", function () {
     it("fail _beforeTokenTransfer() TRANSFER_TO_THIS_CONTRACT", async function () {
       const _redeemVT = await this.opUSDCearn.balanceOf(this.signers.alice.address);
       await expect(this.opUSDCearn.transfer(this.opUSDCearn.address, _redeemVT)).to.revertedWith("18");
+    });
+  });
+
+  describe.only("#setName()", function () {
+    it("success, only governance can change name", async function () {
+      const setNameStr = "OptyFi USD Coin Earn Vault";
+      const expectedDomainSeparator = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
+          ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+          [EIP712_DOMAIN, ethers.utils.id(setNameStr), EIP712_REVISION, await getChainId(), this.opUSDCearn.address],
+        ),
+      );
+      const tx = await this.opUSDCearn.connect(this.signers.governance).setName(setNameStr);
+      await tx.wait(1);
+      expect(await this.opUSDCearn.name()).to.eq(setNameStr);
+      expect(await this.opUSDCearn._domainSeparator()).to.eq(expectedDomainSeparator);
+      expect(await this.opUSDCearn.DOMAIN_SEPARATOR()).to.eq(expectedDomainSeparator);
+    });
+    it("fail, only governance can change name", async function () {
+      const setNameStr = "OptyFi USD Coin Earn Vault";
+      await expect(this.opUSDCearn.connect(this.signers.bob).setName(setNameStr)).to.be.revertedWith(
+        "caller is not having governance",
+      );
+    });
+  });
+
+  describe.only("#setSymbol", function () {
+    it("success, only governance can change symbol", async function () {
+      const setSymbolStr = "opUSDCearn";
+      const tx = await this.opUSDCearn.connect(this.signers.governance).setSymbol(setSymbolStr);
+      await tx.wait(1);
+      expect(await this.opUSDCearn.symbol()).to.eq(setSymbolStr);
+    });
+    it("fail, only governance can change symbol", async function () {
+      const setSymbolStr = "opUSDCearn";
+      await expect(this.opUSDCearn.connect(this.signers.bob).setSymbol(setSymbolStr)).to.be.revertedWith(
+        "caller is not having governance",
+      );
     });
   });
 });

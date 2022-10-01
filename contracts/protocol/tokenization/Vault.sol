@@ -106,7 +106,7 @@ contract Vault is
         _setRiskProfileCode(_riskProfileCode, _riskProfile.exists);
         _setUnderlyingTokensHash(_underlyingTokensHash);
         _setName(string(abi.encodePacked("OptyFi ", _symbol, " ", _riskProfile.name, " Vault")));
-        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
+        _setSymbol(string(abi.encodePacked("op", _symbol, "-", _riskProfile.symbol)));
         _setDecimals(IncentivisedERC20(underlyingToken).decimals());
         _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
         _setVaultConfiguration(_vaultConfiguration);
@@ -609,7 +609,10 @@ contract Vault is
      * @param _addUserDepositUT whether to add _userDepositUT while
      *         checking for TVL limit reached.
      * @param _userDepositUT amount to deposit in underlying token
+     * @param _expectedOutput The minimum amount of vault tokens that must be
+     *         minted for the transaction not to revert.
      * @param _accountsProof merkle proof for caller
+     *        required only if whitelisted state is true
      */
     function _depositVaultFor(
         address _beneficiary,
@@ -667,6 +670,8 @@ contract Vault is
      * @dev internal function withdraw for an user
      * @param _receiver address of the receiver of the underlying token
      * @param _userWithdrawVT amount in vault token
+     * @param _expectedOutput the minimum amount of underlying tokens that
+     *         must be received to not revert the transaction
      * @param _accountsProof merkle proof for caller
      */
     function _withdrawVaultFor(
