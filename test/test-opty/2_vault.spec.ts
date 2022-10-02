@@ -1200,7 +1200,7 @@ describe("::Vault", function () {
       ).to.be.revertedWith("28");
     });
 
-    it("fail, invalid signature", async function () {
+    it("fail, invalid signature(wrong signer)", async function () {
       const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
       expect(vaultTokenBalanceAlice).to.be.gt("0");
       const deadline = (await ethers.provider.getBlock("latest")).timestamp;
@@ -1211,6 +1211,32 @@ describe("::Vault", function () {
         vaultTokenBalanceAlice,
         BigNumber.from(deadline).add(1800),
         { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("29");
+    });
+    it("fail, invalid signature(reuse nonce)", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.bob,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1", nonce: BigNumber.from("0") },
       );
       await expect(
         this.opUSDCearn
