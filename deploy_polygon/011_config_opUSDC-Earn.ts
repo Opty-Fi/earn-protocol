@@ -35,7 +35,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const opUSDCearnAddress = await (await deployments.get("opUSDCearn")).address; // fetches proxy address
+  const opUSDCearnAddress = await (await deployments.get("opUSDC-Earn")).address; // fetches proxy address
   const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
   const opUSDCearnInstance = await ethers.getContractAt("Vault", opUSDCearnAddress);
@@ -43,7 +43,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
 
-  console.log("set risk profile code for opUSDCearn");
+  console.log("set risk profile code for opUSDC-Earn");
   console.log("\n");
   const _vaultConfiguration_ = await opUSDCearnInstance.vaultConfiguration();
   if (expectedRiskProfileCode.eq(getRiskProfileCode(_vaultConfiguration_))) {
@@ -61,7 +61,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     await tx1.wait(1);
   }
 
-  console.log("vaultConfiguration for opUSDCearn");
+  console.log("vaultConfiguration for opUSDC-Earn");
   console.log("\n");
 
   const _vaultConfiguration = await opUSDCearnInstance.vaultConfiguration();
@@ -116,7 +116,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
     expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
   ) {
-    console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCearn");
+    console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDC-Earn");
     console.log("\n");
   } else {
     console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCearn...");
@@ -132,7 +132,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     await tx4.wait(1);
   }
 
-  console.log("unpause opUSDCearn");
+  console.log("unpause opUSDC-Earn");
   console.log("\n");
   const vaultConfiguration = await opUSDCearnInstance.vaultConfiguration();
   const unpause = getUnpause(vaultConfiguration);
@@ -152,7 +152,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("\n");
   }
 
-  console.log("whitelisting for opUSDCearn");
+  console.log("whitelisting for opUSDC-Earn");
   console.log("\n");
   const actualAccountsRoot = await opUSDCearnInstance.whitelistedAccountsRoot();
   if (actualAccountsRoot != expectedAccountsRoot) {
@@ -219,5 +219,5 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   console.log("Next Best Strategy ", await opUSDCearnInstance.getNextBestInvestStrategy());
 };
 export default func;
-func.tags = ["PolygonConfigopUSDCearn"];
-func.dependencies = ["PolygonopUSDCearn", "PolygonApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];
+func.tags = ["PolygonConfigopUSDC-Earn"];
+func.dependencies = ["PolygonopUSDC-Earn", "PolygonApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];

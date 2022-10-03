@@ -3,22 +3,31 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { ethers, network } from "hardhat";
-import { eEVMNetwork } from "../../../helper-hardhat-config";
-import { VaultV3 } from "../../../helpers/types/vaultv3";
-import { Signers } from "../../../helpers/utils";
+import { ethers, getChainId, network } from "hardhat";
+import { eEVMNetwork } from "../../../../helper-hardhat-config";
+import { VaultV3 } from "../../../../helpers/types/vaultv3";
+import { Signers } from "../../../../helpers/utils";
 import {
   InitializableImmutableAdminUpgradeabilityProxy,
   InitializableImmutableAdminUpgradeabilityProxy__factory,
+  Registry,
+  Registry__factory,
   Vault,
   Vault__factory,
-} from "../../../typechain";
+} from "../../../../typechain";
 import { ethereumTestVaults, polygonTestVaults } from "./test-vaults";
+import { RegistryProxy as MainnetRegistryProxyAddress } from "../../_deployments/mainnet.json";
+import { RegistryProxy as PolygonRegistryProxyAddress } from "../../_deployments/polygon.json";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 const testVaults = fork === eEVMNetwork.mainnet ? ethereumTestVaults : polygonTestVaults;
+
+const EIP712_DOMAIN = ethers.utils.id(
+  "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
+);
+const EIP712_REVISION = ethers.utils.id("1");
 
 describe("Vault rev4 upgrade test", () => {
   before(async function () {
@@ -51,7 +60,21 @@ describe("Vault rev4 upgrade test", () => {
           },
         ],
       });
-      vaultImplementation = await vaultFactory.deploy("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
+      vaultImplementation = await vaultFactory.deploy(MainnetRegistryProxyAddress);
+      this.registry = await ethers.getContractAt(Registry__factory.abi, MainnetRegistryProxyAddress);
+      await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [await this.registry.riskOperator()],
+      });
+      this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
+      await this.signers.admin.sendTransaction({ to: this.signers.riskOperator.address, value: parseEther("1") });
+      this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
+      let tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(2);
+      await tx.wait(1);
+      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(4);
+      await tx.wait(1);
+      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(5);
+      await tx.wait(1);
     }
     if (fork == eEVMNetwork.polygon) {
       await network.provider.request({
@@ -65,8 +88,44 @@ describe("Vault rev4 upgrade test", () => {
           },
         ],
       });
-      vaultImplementation = await vaultFactory.deploy("0x32bd1a6fdaec327b57cdb2cfde0855afb3255d7c");
+      vaultImplementation = await vaultFactory.deploy(PolygonRegistryProxyAddress);
+      this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, PolygonRegistryProxyAddress);
+      await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [await this.registry.riskOperator()],
+      });
+      this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
+      await this.signers.admin.sendTransaction({ to: this.signers.riskOperator.address, value: parseEther("1") });
+      let tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(1);
+      await tx.wait(1);
+      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(2);
+      await tx.wait(1);
+      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(4);
+      await tx.wait(1);
     }
+
+    let tx = await this.registry
+      .connect(this.signers.riskOperator)
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](0, "Save", "Save", false, {
+        lowerLimit: 90,
+        upperLimit: 99,
+      });
+    await tx.wait(1);
+    tx = await this.registry
+      .connect(this.signers.riskOperator)
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](1, "Earn", "Earn", false, {
+        lowerLimit: 80,
+        upperLimit: 99,
+      });
+    await tx.wait(1);
+    tx = await this.registry
+      .connect(this.signers.riskOperator)
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](2, "Invest", "Invst", false, {
+        lowerLimit: 50,
+        upperLimit: 99,
+      });
+    await tx.wait(1);
+
     for (const underlyingToken of Object.keys(testVaults)) {
       this.vaultsV3[underlyingToken] = {};
       this.vaults[underlyingToken] = {};
@@ -158,10 +217,24 @@ describe("Vault rev4 upgrade test", () => {
         const proxyInstance = <InitializableImmutableAdminUpgradeabilityProxy>(
           await ethers.getContractAt(InitializableImmutableAdminUpgradeabilityProxy__factory.abi, testVault)
         );
-        const tx = await proxyInstance.connect(proxySigner).upgradeTo(vaultImplementation?.address as string);
-        await tx.wait(1);
-
         this.vaults[underlyingToken][testVault] = <Vault>await ethers.getContractAt(Vault__factory.abi, testVault);
+        const tx = await proxyInstance
+          .connect(proxySigner)
+          .upgradeToAndCall(
+            vaultImplementation?.address as string,
+            this.vaults[underlyingToken][testVault].interface.encodeFunctionData("initialize", [
+              this.vaultsV3[underlyingToken][testVault].registryContract,
+              this.vaultsV3[underlyingToken][testVault].underlyingTokensHash,
+              this.vaultsV3[underlyingToken][testVault].whitelistedAccountsRoot,
+              testVaults[underlyingToken][testVault].underlyingTokenSymbol,
+              testVaults[underlyingToken][testVault].riskProfileCode,
+              this.vaultsV3[underlyingToken][testVault].vaultConfiguration,
+              this.vaultsV3[underlyingToken][testVault].userDepositCap,
+              this.vaultsV3[underlyingToken][testVault].minimumDepositValueUT,
+              this.vaultsV3[underlyingToken][testVault].totalValueLockedLimitUT,
+            ]),
+          );
+        await tx.wait(1);
       }
     }
   });
@@ -172,6 +245,16 @@ describe("Vault rev4 upgrade test", () => {
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} registryContract as expected`, async function () {
           expect(await this.vaults[testVaultUnderlyingToken][testVault].registryContract()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].registryContract,
+          );
+        });
+        it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} name as expected`, async function () {
+          expect(await this.vaults[testVaultUnderlyingToken][testVault].name()).to.eq(
+            testVaults[testVaultUnderlyingToken][testVault].newName,
+          );
+        });
+        it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} symbol as expected`, async function () {
+          expect(await this.vaults[testVaultUnderlyingToken][testVault].symbol()).to.eq(
+            testVaults[testVaultUnderlyingToken][testVault].newSymbol,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} op_Revision as expected`, async function () {
@@ -212,7 +295,6 @@ describe("Vault rev4 upgrade test", () => {
             this.vaultsV3[testVaultUnderlyingToken][testVault].investStrategyHash,
           );
         });
-
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} userDepositCapUT as expected`, async function () {
           expect(await this.vaults[testVaultUnderlyingToken][testVault].userDepositCapUT()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].userDepositCap,
@@ -244,8 +326,20 @@ describe("Vault rev4 upgrade test", () => {
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} _domainSeparator as expected`, async function () {
+          const expectedDomainSeparator = ethers.utils.keccak256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+              [
+                EIP712_DOMAIN,
+                ethers.utils.id(testVaults[testVaultUnderlyingToken][testVault].newName),
+                EIP712_REVISION,
+                await getChainId(),
+                this.vaults[testVaultUnderlyingToken][testVault].address,
+              ],
+            ),
+          );
           expect(await this.vaults[testVaultUnderlyingToken][testVault]._domainSeparator()).to.eq(
-            this.vaultsV3[testVaultUnderlyingToken][testVault].whitelistedCodesRoot,
+            expectedDomainSeparator,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} underlyingTokensHash as expected`, async function () {

@@ -25,7 +25,7 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opWMATICearn", {
+  const result = await deploy("opWMATIC-Earn", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -70,10 +70,10 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opWMATICearn");
+      const vault = await deployments.get("opWMATIC-Earn");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opWMATICearn",
+          name: "opWMATIC-Earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -81,7 +81,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opWMATICearn",
+          name: "opWMATIC-Earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -90,5 +90,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["PolygonopWMATICearn"];
+func.tags = ["PolygonopWMATIC-Earn"];
 func.dependencies = ["PolygonApproveTokensAndMapTokensHash"];

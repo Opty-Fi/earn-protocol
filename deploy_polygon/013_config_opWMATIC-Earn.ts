@@ -34,7 +34,7 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const opWMATICearnAddress = await (await deployments.get("opWMATICearn")).address; // fetches proxy address
+  const opWMATICearnAddress = await (await deployments.get("opWMATIC-Earn")).address; // fetches proxy address
   const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
   const opWMATICearnInstance = await ethers.getContractAt("Vault", opWMATICearnAddress);
@@ -218,5 +218,5 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   console.log("Next Best Strategy ", await opWMATICearnInstance.getNextBestInvestStrategy());
 };
 export default func;
-func.tags = ["PolygonConfigopWMATICearn"];
-func.dependencies = ["PolygonopWMATICearn", "PolygonApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];
+func.tags = ["PolygonConfigopWMATIC-Earn"];
+func.dependencies = ["PolygonopWMATIC-Earn", "PolygonApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];
