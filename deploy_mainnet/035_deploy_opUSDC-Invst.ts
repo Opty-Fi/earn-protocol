@@ -117,7 +117,7 @@ const func: DeployFunction = async ({
           methodName: "initialize",
           args: [
             registryProxyAddress,
-            MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             "USDC",
             "2",

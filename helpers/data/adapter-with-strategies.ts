@@ -2679,7 +2679,7 @@ const mainnetVaults: VaultType = {
   Invest: {
     USDC: {
       symbol: "opUSDC-Invst",
-      name: "op USD Coin Invest",
+      name: "OptyFi USDC Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP2,
@@ -2689,7 +2689,7 @@ const mainnetVaults: VaultType = {
     },
     WETH: {
       symbol: "opWETH-Invst",
-      name: "op Wrapped Ether Invest",
+      name: "OptyFi WETH Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
       vaultConfig: vaultConfigRP2,
@@ -2764,7 +2764,7 @@ const mainnetVaults: VaultType = {
     },
 
     ENS: {
-      symbol: "opENS_Invst",
+      symbol: "opENS-Invst",
       name: "OptyFi ENS Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,

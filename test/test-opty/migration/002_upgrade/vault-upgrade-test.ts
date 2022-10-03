@@ -10,8 +10,6 @@ import { Signers } from "../../../../helpers/utils";
 import {
   InitializableImmutableAdminUpgradeabilityProxy,
   InitializableImmutableAdminUpgradeabilityProxy__factory,
-  Registry,
-  Registry__factory,
   Vault,
   Vault__factory,
 } from "../../../../typechain";
@@ -55,26 +53,12 @@ describe("Vault rev4 upgrade test", () => {
           {
             forking: {
               jsonRpcUrl: process.env.MAINNET_NODE_URL,
-              blockNumber: 15654509,
+              blockNumber: 15669668,
             },
           },
         ],
       });
       vaultImplementation = await vaultFactory.deploy(MainnetRegistryProxyAddress);
-      this.registry = await ethers.getContractAt(Registry__factory.abi, MainnetRegistryProxyAddress);
-      await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [await this.registry.riskOperator()],
-      });
-      this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
-      await this.signers.admin.sendTransaction({ to: this.signers.riskOperator.address, value: parseEther("1") });
-      this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
-      let tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(2);
-      await tx.wait(1);
-      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(4);
-      await tx.wait(1);
-      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(5);
-      await tx.wait(1);
     }
     if (fork == eEVMNetwork.polygon) {
       await network.provider.request({
@@ -83,49 +67,13 @@ describe("Vault rev4 upgrade test", () => {
           {
             forking: {
               jsonRpcUrl: process.env.POLYGON_NODE_URL,
-              blockNumber: 33802457,
+              blockNumber: 33890234,
             },
           },
         ],
       });
       vaultImplementation = await vaultFactory.deploy(PolygonRegistryProxyAddress);
-      this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, PolygonRegistryProxyAddress);
-      await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [await this.registry.riskOperator()],
-      });
-      this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
-      await this.signers.admin.sendTransaction({ to: this.signers.riskOperator.address, value: parseEther("1") });
-      let tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(1);
-      await tx.wait(1);
-      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(2);
-      await tx.wait(1);
-      tx = await this.registry.connect(this.signers.riskOperator).removeRiskProfile(4);
-      await tx.wait(1);
     }
-
-    let tx = await this.registry
-      .connect(this.signers.riskOperator)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](0, "Save", "Save", false, {
-        lowerLimit: 90,
-        upperLimit: 99,
-      });
-    await tx.wait(1);
-    tx = await this.registry
-      .connect(this.signers.riskOperator)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](1, "Earn", "Earn", false, {
-        lowerLimit: 80,
-        upperLimit: 99,
-      });
-    await tx.wait(1);
-    tx = await this.registry
-      .connect(this.signers.riskOperator)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](2, "Invest", "Invst", false, {
-        lowerLimit: 50,
-        upperLimit: 99,
-      });
-    await tx.wait(1);
-
     for (const underlyingToken of Object.keys(testVaults)) {
       this.vaultsV3[underlyingToken] = {};
       this.vaults[underlyingToken] = {};
