@@ -3,7 +3,7 @@ import polygonTokens from "@optyfi/defi-legos/polygon/tokens/index";
 import { BigNumber } from "ethers";
 import { oldAbis } from "../../../helpers/data/oldAbis";
 
-export const ethereumVaults: {
+export const ethereumTestVaults: {
   [key: string]: {
     [name: string]: {
       oldName: string;
@@ -12,6 +12,7 @@ export const ethereumVaults: {
       proxyAdmin: string;
       testAccount?: string;
       testBlockNumber?: BigNumber;
+      hasStrategy: boolean;
       revision: BigNumber;
       newName: string;
       newSymbol: string;
@@ -26,6 +27,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xF980ea5758f71F418909688b6448B41ACb5522E9",
       testAccount: "0x0604c4190254aa6cb917b0b5f42ac158ee5eaac8",
       testBlockNumber: BigNumber.from("15612652"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi USDC Save Vault",
       newSymbol: "opUSDC-Save",
@@ -35,6 +37,7 @@ export const ethereumVaults: {
       oldSymbol: "opUSDCinvst",
       oldAbi: oldAbis.OldVaultV3,
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      hasStrategy: false,
       revision: BigNumber.from("3"),
       newName: "OptyFi USDC Invest Vault",
       newSymbol: "opUSDC-Invst",
@@ -48,6 +51,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xF980ea5758f71F418909688b6448B41ACb5522E9",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15546162"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi WETH Save Vault",
       newSymbol: "opWETH-Save",
@@ -57,6 +61,7 @@ export const ethereumVaults: {
       oldSymbol: "opWETHinvst",
       oldAbi: oldAbis.OldVaultV3,
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      hasStrategy: false,
       revision: BigNumber.from("3"),
       newName: "OptyFi WETH Invest Vault",
       newSymbol: "opWETH-Invst",
@@ -70,6 +75,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xF980ea5758f71F418909688b6448B41ACb5522E9",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15591505"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi NEWO Invest Vault",
       newSymbol: "opNEWO-Invst",
@@ -83,6 +89,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xF980ea5758f71F418909688b6448B41ACb5522E9",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15591521"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi AAVE Invest Vault",
       newSymbol: "opAAVE-Invst",
@@ -94,6 +101,7 @@ export const ethereumVaults: {
       oldSymbol: "opAPEaggr",
       oldAbi: oldAbis.OldVaultV3,
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      hasStrategy: false,
       revision: BigNumber.from("3"),
       newName: "OptyFi APE Invest Vault",
       newSymbol: "opAPE-Invst",
@@ -105,6 +113,7 @@ export const ethereumVaults: {
       oldSymbol: "opMANAaggr",
       oldAbi: oldAbis.OldVaultV3,
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      hasStrategy: false,
       revision: BigNumber.from("3"),
       newName: "OptyFi MANA Invest Vault",
       newSymbol: "opMANA-Invst",
@@ -116,6 +125,7 @@ export const ethereumVaults: {
       oldSymbol: "opSUSHIaggr",
       oldAbi: oldAbis.OldVaultV3,
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      hasStrategy: false,
       revision: BigNumber.from("3"),
       newName: "OptyFi SUSHI Invest Vault",
       newSymbol: "opSUSHI-Invst",
@@ -127,6 +137,7 @@ export const ethereumVaults: {
       oldSymbol: "opLINKaggr",
       oldAbi: oldAbis.OldVaultV3,
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      hasStrategy: false,
       revision: BigNumber.from("3"),
       newName: "OptyFi LINK Invest Vault",
       newSymbol: "opLINK-Invst",
@@ -140,24 +151,26 @@ export const ethereumVaults: {
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15590247"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi DAI Save Vault",
       newSymbol: "opDAI-Save",
     },
   },
-  // [`${ethereumTokens.PLAIN_TOKENS.USDT}`]: {
-  //   "0xB63cfC06A509C71AE8a198b456eb9b63f4947A8B": {
-  //     oldName: "op Tether USD Save",
-  //     oldSymbol: "opUSDTsave",
-  //     oldAbi: oldAbis.OldVaultV3,
-  //     proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
-  //     testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
-  //     testBlockNumber: BigNumber.from("15658742"),
-  //     revision: BigNumber.from("3"),
-  //     newName: "OptyFi USDT Save Vault",
-  //     newSymbol: "opUSDT-Save",
-  //   },
-  // },
+  [`${ethereumTokens.PLAIN_TOKENS.USDT}`]: {
+    "0xB63cfC06A509C71AE8a198b456eb9b63f4947A8B": {
+      oldName: "op Tether USD Save",
+      oldSymbol: "opUSDTsave",
+      oldAbi: oldAbis.OldVaultV3,
+      proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
+      testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
+      testBlockNumber: BigNumber.from("15586859"),
+      hasStrategy: true,
+      revision: BigNumber.from("3"),
+      newName: "OptyFi USDT Save Vault",
+      newSymbol: "opUSDT-Save",
+    },
+  },
   [`${ethereumTokens.BTC_TOKENS.WBTC}`]: {
     "0x41a909f773A42F7a99F69B9E847056a79caCa159": {
       oldName: "op Wrapped BTC Save",
@@ -166,6 +179,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15586951"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi WBTC Save Vault",
       newSymbol: "opWBTC-Save",
@@ -177,6 +191,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15590271"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi WBTC Earn Vault",
       newSymbol: "opWBTC-Earn",
@@ -190,6 +205,7 @@ export const ethereumVaults: {
       proxyAdmin: "0xAE27743Fa2862976CF9aa0754Fb191F7E8a246d4",
       testAccount: "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
       testBlockNumber: BigNumber.from("15599035"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi USD3 Earn Vault",
       newSymbol: "opUSD3-Earn",
@@ -197,7 +213,7 @@ export const ethereumVaults: {
   },
 };
 
-export const polygonVaults: {
+export const polygonTestVaults: {
   [key: string]: {
     [name: string]: {
       oldName: string;
@@ -206,6 +222,7 @@ export const polygonVaults: {
       proxyAdmin: string;
       testAccount?: string;
       testBlockNumber?: BigNumber;
+      hasStrategy: boolean;
       revision: BigNumber;
       newName: string;
       newSymbol: string;
@@ -220,6 +237,7 @@ export const polygonVaults: {
       proxyAdmin: "0xF980ea5758f71F418909688b6448B41ACb5522E9",
       testAccount: "0xaed88729d6e9f7304eb3b9aa224a597162ded94d",
       testBlockNumber: BigNumber.from("33742647"),
+      hasStrategy: true,
       revision: BigNumber.from("3"),
       newName: "OptyFi USDC Earn Vault",
       newSymbol: "opUSDC-Earn",

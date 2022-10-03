@@ -102,23 +102,23 @@ declare module "mocha" {
       [key: string]: {
         [name: string]: {
           instance: VaultV3;
-          pendingDeposits?: BigNumber;
-          totalDeposits?: BigNumber;
-          blockToBlockVaultValues?: {
+          pendingDeposits: BigNumber;
+          totalDeposits: BigNumber;
+          blockToBlockVaultValues: {
             actualVaultValue: BigNumber;
             blockMinVaultValue: BigNumber;
             blockMaxVaultValue: BigNumber;
           }[];
-          investStrategyHash?: string;
-          userDepositCap?: BigNumber;
-          minimumDepositValueUT?: BigNumber;
-          vaultConfiguration?: BigNumber;
-          underlyingToken?: string;
-          whitelistedAccountsRoot?: string;
-          totalValueLockedLimitUT?: BigNumber;
-          whitelistedCodesRoot?: string;
-          underlyingTokensHash?: string;
-          investStrategySteps?: { pool: string; outputToken: string; isBorrow: boolean }[];
+          investStrategyHash: string;
+          userDepositCap: BigNumber;
+          minimumDepositValueUT: BigNumber;
+          vaultConfiguration: BigNumber;
+          underlyingToken: string;
+          whitelistedAccountsRoot: string;
+          totalValueLockedLimitUT: BigNumber;
+          whitelistedCodesRoot: string;
+          underlyingTokensHash: string;
+          investStrategySteps: { pool: string; outputToken: string; isBorrow: boolean }[];
         };
       };
     };
