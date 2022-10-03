@@ -19,7 +19,7 @@ describe("Vault Protection", function () {
   before(async function () {
     const MAX_AMOUNT = BigNumber.from(1000000000000);
     await deployments.fixture();
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
