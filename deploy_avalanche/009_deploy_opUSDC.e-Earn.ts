@@ -26,7 +26,7 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
 
-  const result = await deploy("opUSDC.eearn", {
+  const result = await deploy("opUSDC.e-Earn", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -53,7 +53,7 @@ const func: DeployFunction = async ({
           methodName: "initialize",
           args: [
             registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].USDCe.hash, //bytes32 _underlyingTokensHash
+            MULTI_CHAIN_VAULT_TOKENS[chainId]["USDC.e"].hash, //bytes32 _underlyingTokensHash
             "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
             "USDC.e", //string memory _symbol
             "1", //uint256 _riskProfileCode
@@ -71,10 +71,10 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSDCeearn");
+      const vault = await deployments.get("opUSDCe-Earn");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opUSDCeearn",
+          name: "opUSDC.e-Earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -82,7 +82,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opUSDCeearn",
+          name: "opUSDC.e-Earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -91,5 +91,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["AvalancheopUSDCeearn"];
+func.tags = ["AvalancheopUSDC.e-Earn"];
 func.dependencies = ["AvalancheApproveTokensAndMapTokensHash"];

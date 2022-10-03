@@ -2475,7 +2475,7 @@ const avalancheStrategiesbyToken = {
         riskProfileCode: 1,
       },
     },
-    USDCe: {
+    "USDC.e": {
       "usdce-DEPOSIT-AaveV2-avUSDC": {
         strategyName: "",
         token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
@@ -2911,11 +2911,11 @@ const avalancheVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
 
-    USDCe: {
+    "USDC.e": {
       symbol: "opUSDC.e-Earn",
       name: "OptyFi USDC.e Earn Vault",
-      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
-      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche["USDC.e"].address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche["USDC.e"].hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit

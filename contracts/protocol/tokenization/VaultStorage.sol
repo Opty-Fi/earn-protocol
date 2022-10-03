@@ -105,5 +105,5 @@ contract VaultStorageV3 is VaultStorageV2 {
     mapping(address => uint256) internal _nonces;
 
     /**@dev deposit and withdraw flag*/
-    mapping(uint256 => bool) internal _blockTransaction;
+    mapping(uint256 => bool) public blockTransaction;
 }

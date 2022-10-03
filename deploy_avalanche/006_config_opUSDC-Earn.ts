@@ -3,11 +3,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { eEVMNetwork } from "../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
 import { getRiskProfileCode, getUnpause } from "../helpers/utils";
+import { StrategiesByTokenByChain } from "../helpers/data/adapter-with-strategies";
 
 const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvironment) => {
   const { BigNumber } = ethers;
+
   const networkName = eEVMNetwork.avalanche;
   // bit 0-15 deposit fee in underlying token without decimals 0000 (no fee)
   // bit 16-31 deposit fee in basis points 0000 (0% or 0 basis points)
@@ -25,33 +26,33 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   // no whitelist state
   // 0x0201000000000000000000000000000000000000000000640000000000000000
   // const expectedConfig = BigNumber.from("906392544231311161076231617881117198619499239097192527361058388634069106688");
-  const expectedUserDepositCapUT = ethers.utils.parseEther("60000"); // 60,000 WAVAX
-  const expectedMinimumDepositValueUT = ethers.utils.parseEther("600"); // 600 WAVAX
-  const expectedTotalValueLockedLimitUT = ethers.utils.parseEther("6000000"); // 6,000,000 WAVAX
-  const expectedAccountsRoot = "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694";
+  const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
+  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDC
+  const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
+  const expectedAccountsRoot = "0x5497616cb86ca51b3788923a239cb626f3593a6395e3c66fe24b452204fbf875";
   const expectedRiskProfileCode = BigNumber.from("1");
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const opWAVAXearnAddress = await (await deployments.get("opWAVAXearn")).address; // fetches proxy address
+  const opUSDCearnAddress = await (await deployments.get("opUSDC-Earn")).address; // fetches proxy address
   const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
-  const opWAVAXearnInstance = await ethers.getContractAt("Vault", opWAVAXearnAddress);
+  const opUSDCearnInstance = await ethers.getContractAt("Vault", opUSDCearnAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
 
-  console.log("set risk profile code for opWAVAXearn");
+  console.log("set risk profile code for opUSDCearn");
   console.log("\n");
-  const _vaultConfiguration_ = await opWAVAXearnInstance.vaultConfiguration();
+  const _vaultConfiguration_ = await opUSDCearnInstance.vaultConfiguration();
   if (expectedRiskProfileCode.eq(getRiskProfileCode(_vaultConfiguration_))) {
     console.log("risk profile code  is as expected");
     console.log("\n");
   } else {
-    console.log("Governance setting risk profile code for opWAVAXearn..");
+    console.log("Governance setting risk profile code for opUSDCearn..");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx1 = await opWAVAXearnInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode, {
+    const tx1 = await opUSDCearnInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -59,18 +60,18 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     await tx1.wait(1);
   }
 
-  console.log("vaultConfiguration for opWAVAXearn");
+  console.log("vaultConfiguration for opUSDCearn");
   console.log("\n");
 
-  const _vaultConfiguration = await opWAVAXearnInstance.vaultConfiguration();
+  const _vaultConfiguration = await opUSDCearnInstance.vaultConfiguration();
   if (expectedConfig.eq(_vaultConfiguration)) {
     console.log("vaultConfiguration is as expected");
     console.log("\n");
   } else {
-    console.log("Governance setting vault configuration for opWAVAXearn..");
+    console.log("Governance setting vault configuration for opUSDCearn..");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx2 = await opWAVAXearnInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig, {
+    const tx2 = await opUSDCearnInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -81,15 +82,15 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   console.log("Operator setting UnderlyingTokensHash...");
   console.log("\n");
 
-  const tokensHash = await opWAVAXearnInstance.underlyingTokensHash();
+  const tokensHash = await opUSDCearnInstance.underlyingTokensHash();
 
-  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash) {
+  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash) {
     console.log("setting tokenshash..");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx3 = await opWAVAXearnInstance
+    const tx3 = await opUSDCearnInstance
       .connect(operatorSigner)
-      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash, {
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash, {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -100,27 +101,27 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("\n");
   }
 
-  console.log("Finance operator setting opWAVAXearn config...");
+  console.log("Finance operator setting opUSDCearn config...");
   console.log("\n");
 
-  const actualUserDepositCapUT = await opWAVAXearnInstance.userDepositCapUT();
-  const actualMinimumDepositValueUT = await opWAVAXearnInstance.minimumDepositValueUT();
-  const actualTotalValueLockedLimitUT = await opWAVAXearnInstance.totalValueLockedLimitUT();
+  const actualUserDepositCapUT = await opUSDCearnInstance.userDepositCapUT();
+  const actualMinimumDepositValueUT = await opUSDCearnInstance.minimumDepositValueUT();
+  const actualTotalValueLockedLimitUT = await opUSDCearnInstance.totalValueLockedLimitUT();
 
-  console.log("opWAVAXearn.setValueControlParams()");
+  console.log("opUSDCearn.setValueControlParams()");
   console.log("\n");
   if (
     expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
     expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
     expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
   ) {
-    console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opWAVAXearn");
+    console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCearn");
     console.log("\n");
   } else {
-    console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opWAVAXearn...");
+    console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCearn...");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx4 = await opWAVAXearnInstance
+    const tx4 = await opUSDCearnInstance
       .connect(financeOperatorSigner)
       .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT, {
         type: 2,
@@ -130,41 +131,41 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     await tx4.wait(1);
   }
 
-  console.log("unpause opWAVAXearn");
+  console.log("unpause opUSDCearn");
   console.log("\n");
-  const vaultConfiguration = await opWAVAXearnInstance.vaultConfiguration();
+  const vaultConfiguration = await opUSDCearnInstance.vaultConfiguration();
   const unpause = getUnpause(vaultConfiguration);
 
   if (!unpause) {
-    console.log("Governance unpausing opWAVAXearn vault...");
+    console.log("Governance unpausing opUSDCearn vault...");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx5 = await opWAVAXearnInstance.connect(governanceSigner).setUnpaused(true, {
+    const tx5 = await opUSDCearnInstance.connect(governanceSigner).setUnpaused(true, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
     });
     await tx5.wait(1);
   } else {
-    console.log("opWAVAXearn is already unpaused...");
+    console.log("opUSDCearn is already unpaused...");
     console.log("\n");
   }
 
-  console.log("whitelisting for opWAVAXearn");
+  console.log("whitelisting for opUSDCearn");
   console.log("\n");
-  const actualAccountsRoot = await opWAVAXearnInstance.whitelistedAccountsRoot();
+  const actualAccountsRoot = await opUSDCearnInstance.whitelistedAccountsRoot();
   if (actualAccountsRoot != expectedAccountsRoot) {
-    console.log("Governance setting whitelisted account root opWAVAXearn vault...");
+    console.log("Governance setting whitelisted account root opUSDCearn vault...");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx6 = await opWAVAXearnInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot, {
+    const tx6 = await opUSDCearnInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
     });
     await tx6.wait(1);
   } else {
-    console.log("whitelisted accounts root for opWAVAXearn is as expected");
+    console.log("whitelisted accounts root for opUSDCearn is as expected");
     console.log("\n");
   }
 
@@ -173,17 +174,17 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     strategyProviderAddress,
   );
   const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
-  const strategyName = "wavax-DEPOSIT-AaveV3-aAvaWAVAX";
-  console.log("Operator setting best strategy for opWAVAXearn...");
+  const strategyName = "usdc-DEPOSIT-AaveV3-aAvaUSDC";
+  console.log("Operator setting best strategy for opUSDCearn...");
   console.log("\n");
 
   const currentBestStrategySteps = await strategyProviderInstance.getRpToTokenToBestStrategy(
     expectedRiskProfileCode,
-    MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash,
+    MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
   );
-  const currentBestStrategyHash = await opWAVAXearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"].WAVAX[strategyName].strategy;
-  const expectedStrategyHash = await opWAVAXearnInstance.computeInvestStrategyHash(
+  const currentBestStrategyHash = await opUSDCearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"].USDC[strategyName].strategy;
+  const expectedStrategyHash = await opUSDCearnInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,
       outputToken: x.outputToken,
@@ -197,14 +198,13 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     const feeData = await ethers.provider.getFeeData();
     const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
       expectedRiskProfileCode,
-      MULTI_CHAIN_VAULT_TOKENS[networkName].WAVAX.hash,
+      MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
       expectedStrategySteps.map(x => ({
         pool: x.contract,
         outputToken: x.outputToken,
         isBorrow: x.isBorrow,
       })),
       {
-        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       },
@@ -214,8 +214,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("best strategy is upto date.");
     console.log("\n");
   }
-  console.log("Next Best Strategy ", await opWAVAXearnInstance.getNextBestInvestStrategy());
+  console.log("Next Best Strategy ", await opUSDCearnInstance.getNextBestInvestStrategy());
 };
 export default func;
-func.tags = ["AvalancheConfigopWAVAXearn"];
-func.dependencies = ["AvalancheopWAVAXearn", "AvalancheApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];
+func.tags = ["AvalancheConfigopUSDC-Earn"];
+func.dependencies = ["AvalancheopUSDC-Earn", "AvalancheApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];

@@ -357,6 +357,19 @@ describe("Vault rev4 upgrade test", () => {
             }).to.deep.eq(this.vaultsV3[testVaultUnderlyingToken][testVault].investStrategySteps[0]);
           }
         });
+        it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} nonces as expected`, async function () {
+          expect(
+            await this.vaults[testVaultUnderlyingToken][testVault].nonces("0x6bd60f089B6E8BA75c409a54CDea34AA511277f6"),
+          ).to.eq(0);
+        });
+        it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} blockTransaction as expected`, async function () {
+          if (fork == eEVMNetwork.polygon) {
+            expect(await this.vaults[testVaultUnderlyingToken][testVault].blockTransaction(33802456)).to.be.false;
+          }
+          if (fork == eEVMNetwork.mainnet) {
+            expect(await this.vaults[testVaultUnderlyingToken][testVault].blockTransaction(15654508)).to.be.false;
+          }
+        });
       });
     }
   }

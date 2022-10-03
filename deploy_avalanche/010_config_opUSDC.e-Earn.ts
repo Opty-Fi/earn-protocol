@@ -26,33 +26,33 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   // no whitelist state
   // 0x0201000000000000000000000000000000000000000000640000000000000000
   // const expectedConfig = BigNumber.from("906392544231311161076231617881117198619499239097192527361058388634069106688");
-  const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDC
-  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDC
+  const expectedUserDepositCapUT = BigNumber.from("100000000000"); // 100,000 USDCe
+  const expectedMinimumDepositValueUT = BigNumber.from("0"); // 0 USDCe
   const expectedTotalValueLockedLimitUT = BigNumber.from("10000000000000"); // 10,000,000
   const expectedAccountsRoot = "0x5497616cb86ca51b3788923a239cb626f3593a6395e3c66fe24b452204fbf875";
   const expectedRiskProfileCode = BigNumber.from("1");
 
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const opUSDCearnAddress = await (await deployments.get("opUSDCearn")).address; // fetches proxy address
+  const opUSDCeearnAddress = await (await deployments.get("opUSDC.e-Earn")).address; // fetches proxy address
   const strategyProviderAddress = await (await deployments.get("StrategyProvider")).address;
 
-  const opUSDCearnInstance = await ethers.getContractAt("Vault", opUSDCearnAddress);
+  const opUSDCeearnInstance = await ethers.getContractAt("Vault", opUSDCeearnAddress);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
 
-  console.log("set risk profile code for opUSDCearn");
+  console.log("set risk profile code for opUSDCeearn");
   console.log("\n");
-  const _vaultConfiguration_ = await opUSDCearnInstance.vaultConfiguration();
+  const _vaultConfiguration_ = await opUSDCeearnInstance.vaultConfiguration();
   if (expectedRiskProfileCode.eq(getRiskProfileCode(_vaultConfiguration_))) {
     console.log("risk profile code  is as expected");
     console.log("\n");
   } else {
-    console.log("Governance setting risk profile code for opUSDCearn..");
+    console.log("Governance setting risk profile code for opUSDCeearn..");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx1 = await opUSDCearnInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode, {
+    const tx1 = await opUSDCeearnInstance.connect(governanceSigner).setRiskProfileCode(expectedRiskProfileCode, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -60,18 +60,18 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     await tx1.wait(1);
   }
 
-  console.log("vaultConfiguration for opUSDCearn");
+  console.log("vaultConfiguration for opUSDCeearn");
   console.log("\n");
 
-  const _vaultConfiguration = await opUSDCearnInstance.vaultConfiguration();
+  const _vaultConfiguration = await opUSDCeearnInstance.vaultConfiguration();
   if (expectedConfig.eq(_vaultConfiguration)) {
     console.log("vaultConfiguration is as expected");
     console.log("\n");
   } else {
-    console.log("Governance setting vault configuration for opUSDCearn..");
+    console.log("Governance setting vault configuration for opUSDCeearn..");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx2 = await opUSDCearnInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig, {
+    const tx2 = await opUSDCeearnInstance.connect(governanceSigner).setVaultConfiguration(expectedConfig, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -82,15 +82,15 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
   console.log("Operator setting UnderlyingTokensHash...");
   console.log("\n");
 
-  const tokensHash = await opUSDCearnInstance.underlyingTokensHash();
+  const tokensHash = await opUSDCeearnInstance.underlyingTokensHash();
 
-  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash) {
+  if (tokensHash != MULTI_CHAIN_VAULT_TOKENS[networkName]["USDC.e"].hash) {
     console.log("setting tokenshash..");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx3 = await opUSDCearnInstance
+    const tx3 = await opUSDCeearnInstance
       .connect(operatorSigner)
-      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash, {
+      .setUnderlyingTokensHash(MULTI_CHAIN_VAULT_TOKENS[networkName]["USDC.e"].hash, {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -101,27 +101,27 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("\n");
   }
 
-  console.log("Finance operator setting opUSDCearn config...");
+  console.log("Finance operator setting opUSDCeearn config...");
   console.log("\n");
 
-  const actualUserDepositCapUT = await opUSDCearnInstance.userDepositCapUT();
-  const actualMinimumDepositValueUT = await opUSDCearnInstance.minimumDepositValueUT();
-  const actualTotalValueLockedLimitUT = await opUSDCearnInstance.totalValueLockedLimitUT();
+  const actualUserDepositCapUT = await opUSDCeearnInstance.userDepositCapUT();
+  const actualMinimumDepositValueUT = await opUSDCeearnInstance.minimumDepositValueUT();
+  const actualTotalValueLockedLimitUT = await opUSDCeearnInstance.totalValueLockedLimitUT();
 
-  console.log("opUSDCearn.setValueControlParams()");
+  console.log("opUSDCeearn.setValueControlParams()");
   console.log("\n");
   if (
     expectedUserDepositCapUT.eq(actualUserDepositCapUT) &&
     expectedMinimumDepositValueUT.eq(actualMinimumDepositValueUT) &&
     expectedTotalValueLockedLimitUT.eq(actualTotalValueLockedLimitUT)
   ) {
-    console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCearn");
+    console.log("userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT is upto date on opUSDCeearn");
     console.log("\n");
   } else {
-    console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCearn...");
+    console.log("Updating userDepositCapUT , minimumDepositValueUT and totalValueLockedLimitUT on opUSDCeearn...");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx4 = await opUSDCearnInstance
+    const tx4 = await opUSDCeearnInstance
       .connect(financeOperatorSigner)
       .setValueControlParams(expectedUserDepositCapUT, expectedMinimumDepositValueUT, expectedTotalValueLockedLimitUT, {
         type: 2,
@@ -131,41 +131,41 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     await tx4.wait(1);
   }
 
-  console.log("unpause opUSDCearn");
+  console.log("unpause opUSDCeearn");
   console.log("\n");
-  const vaultConfiguration = await opUSDCearnInstance.vaultConfiguration();
+  const vaultConfiguration = await opUSDCeearnInstance.vaultConfiguration();
   const unpause = getUnpause(vaultConfiguration);
 
   if (!unpause) {
-    console.log("Governance unpausing opUSDCearn vault...");
+    console.log("Governance unpausing opUSDCeearn vault...");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx5 = await opUSDCearnInstance.connect(governanceSigner).setUnpaused(true, {
+    const tx5 = await opUSDCeearnInstance.connect(governanceSigner).setUnpaused(true, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
     });
     await tx5.wait(1);
   } else {
-    console.log("opUSDCearn is already unpaused...");
+    console.log("opUSDCeearn is already unpaused...");
     console.log("\n");
   }
 
-  console.log("whitelisting for opUSDCearn");
+  console.log("whitelisting for opUSDCeearn");
   console.log("\n");
-  const actualAccountsRoot = await opUSDCearnInstance.whitelistedAccountsRoot();
+  const actualAccountsRoot = await opUSDCeearnInstance.whitelistedAccountsRoot();
   if (actualAccountsRoot != expectedAccountsRoot) {
-    console.log("Governance setting whitelisted account root opUSDCearn vault...");
+    console.log("Governance setting whitelisted account root opUSDCeearn vault...");
     console.log("\n");
     const feeData = await ethers.provider.getFeeData();
-    const tx6 = await opUSDCearnInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot, {
+    const tx6 = await opUSDCeearnInstance.connect(governanceSigner).setWhitelistedAccountsRoot(expectedAccountsRoot, {
       type: 2,
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
     });
     await tx6.wait(1);
   } else {
-    console.log("whitelisted accounts root for opUSDCearn is as expected");
+    console.log("whitelisted accounts root for opUSDCeearn is as expected");
     console.log("\n");
   }
 
@@ -174,17 +174,17 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     strategyProviderAddress,
   );
   const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
-  const strategyName = "usdc-DEPOSIT-AaveV3-aAvaUSDC";
+  const strategyName = "usdce-DEPOSIT-AaveV2-avUSDC";
   console.log("Operator setting best strategy for opUSDCearn...");
   console.log("\n");
 
   const currentBestStrategySteps = await strategyProviderInstance.getRpToTokenToBestStrategy(
     expectedRiskProfileCode,
-    MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
+    MULTI_CHAIN_VAULT_TOKENS[networkName]["USDC.e"].hash,
   );
-  const currentBestStrategyHash = await opUSDCearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"].USDC[strategyName].strategy;
-  const expectedStrategyHash = await opUSDCearnInstance.computeInvestStrategyHash(
+  const currentBestStrategyHash = await opUSDCeearnInstance.computeInvestStrategyHash(currentBestStrategySteps);
+  const expectedStrategySteps = StrategiesByTokenByChain[networkName]["Earn"]["USDC.e"][strategyName].strategy;
+  const expectedStrategyHash = await opUSDCeearnInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,
       outputToken: x.outputToken,
@@ -198,13 +198,14 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     const feeData = await ethers.provider.getFeeData();
     const tx7 = await strategyProviderInstance.connect(strategyOperatorSigner).setBestStrategy(
       expectedRiskProfileCode,
-      MULTI_CHAIN_VAULT_TOKENS[networkName].USDC.hash,
+      MULTI_CHAIN_VAULT_TOKENS[networkName]["USDC.e"].hash,
       expectedStrategySteps.map(x => ({
         pool: x.contract,
         outputToken: x.outputToken,
         isBorrow: x.isBorrow,
       })),
       {
+        type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       },
@@ -214,8 +215,8 @@ const func: DeployFunction = async ({ ethers, deployments }: HardhatRuntimeEnvir
     console.log("best strategy is upto date.");
     console.log("\n");
   }
-  console.log("Next Best Strategy ", await opUSDCearnInstance.getNextBestInvestStrategy());
+  console.log("Next Best Strategy ", await opUSDCeearnInstance.getNextBestInvestStrategy());
 };
 export default func;
-func.tags = ["AvalancheConfigopUSDCearn"];
-func.dependencies = ["AvalancheopUSDCearn", "AvalancheApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];
+func.tags = ["AvalancheConfigopUSDC.e-Earn"];
+func.dependencies = ["AvalancheopUSDC.e-Earn", "AvalancheApproveAndMapLiquidityPoolToAdapter", "StrategyProvider"];

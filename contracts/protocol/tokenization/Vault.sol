@@ -1025,9 +1025,9 @@ contract Vault is
      */
     function _emergencyBrake(bool _deposit) private {
         if (_deposit) {
-            _blockTransaction[block.number] = true;
+            blockTransaction[block.number] = true;
         } else {
-            require(!_blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
+            require(!blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
         }
     }
 }

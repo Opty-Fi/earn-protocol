@@ -25,7 +25,7 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("opWAVAXearn", {
+  const result = await deploy("opWAVAX-Earn", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -70,10 +70,10 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opWAVAXearn");
+      const vault = await deployments.get("opWAVAX-Earn");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "opWAVAXearn",
+          name: "opWAVAX-Earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -81,7 +81,7 @@ const func: DeployFunction = async ({
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "opWAVAXearn",
+          name: "opWAVAX-Earn",
           address: vault.address,
           constructorArguments: [registryProxyAddress],
         });
@@ -90,5 +90,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["AvalancheopWAVAXearn"];
+func.tags = ["AvalancheopWAVAX-Earn"];
 func.dependencies = ["AvalancheApproveTokensAndMapTokensHash"];
