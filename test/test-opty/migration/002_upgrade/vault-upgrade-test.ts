@@ -86,6 +86,7 @@ describe("Vault rev4 upgrade test", () => {
         );
         this.vaultsV3[underlyingToken][testVault] = {
           instance: vaultV3Instance,
+          registryContract: await vaultV3Instance.registryContract(),
           pendingDeposits:
             testVaults[underlyingToken][testVault].testAccount !== undefined
               ? await vaultV3Instance.pendingDeposits(testVaults[underlyingToken][testVault].testAccount as string)
@@ -168,6 +169,11 @@ describe("Vault rev4 upgrade test", () => {
   for (const testVaultUnderlyingToken of Object.keys(testVaults)) {
     for (const testVault of Object.keys(testVaults[testVaultUnderlyingToken])) {
       describe(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} storage test`, () => {
+        it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} registryContract as expected`, async function () {
+          expect(await this.vaults[testVaultUnderlyingToken][testVault].registryContract()).to.eq(
+            this.vaultsV3[testVaultUnderlyingToken][testVault].registryContract,
+          );
+        });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} op_Revision as expected`, async function () {
           expect(await this.vaults[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).to.eq("4");
         });

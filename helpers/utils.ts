@@ -102,6 +102,7 @@ declare module "mocha" {
       [key: string]: {
         [name: string]: {
           instance: VaultV3;
+          registryContract: string;
           pendingDeposits: BigNumber;
           totalDeposits: BigNumber;
           blockToBlockVaultValues: {

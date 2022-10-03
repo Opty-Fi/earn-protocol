@@ -1,7 +1,7 @@
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import polygonTokens from "@optyfi/defi-legos/polygon/tokens/index";
 import { BigNumber } from "ethers";
-import { oldAbis } from "../../../helpers/data/oldAbis";
+import { oldAbis } from "../../../../helpers/data/oldAbis";
 
 export const ethereumTestVaults: {
   [key: string]: {

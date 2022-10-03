@@ -59,6 +59,7 @@ jobs:
         run: |
           yarn test-fast:mainnet
           yarn test-fast:emergency-brake
+          yarn test-fast:vaultv3-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:polygon
           yarn test-fast:vault-strategy:mainnet
