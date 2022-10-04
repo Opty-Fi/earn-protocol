@@ -539,31 +539,6 @@ contract Vault is
             );
     }
 
-    /**
-     * @inheritdoc IVault
-     */
-    function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
-        public
-        view
-        override
-        returns (bytes32)
-    {
-        if (_investStrategySteps.length > 0) {
-            bytes32[] memory hashes = new bytes32[](_investStrategySteps.length);
-            for (uint256 _i; _i < _investStrategySteps.length; _i++) {
-                hashes[_i] = keccak256(
-                    abi.encodePacked(
-                        _investStrategySteps[_i].pool,
-                        _investStrategySteps[_i].outputToken,
-                        _investStrategySteps[_i].isBorrow
-                    )
-                );
-            }
-            return keccak256(abi.encodePacked(underlyingTokensHash, hashes));
-        }
-        return Constants.ZERO_BYTES32;
-    }
-
     //===Internal functions===//
 
     /* solhint-disable avoid-low-level-calls*/
@@ -918,7 +893,7 @@ contract Vault is
         }
 
         for (uint256 i; i < _allSteps.length; i++) {
-            _totalValue += _oraStratValueUT(_allSteps[i]); //use SafeMath
+            _totalValue.add(_oraStratValueUT(_allSteps[i]));
         }
 
         return _totalValue;
