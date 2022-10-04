@@ -277,25 +277,25 @@ contract Vault is
     function vaultDepositToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) external onlyStrategyOperator {
         _checkVaultDeposit();
 
-        IStrategyRegistry investStrategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+        IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
         //add check for minimum LP returned
         //getBalanceBefore and getBalanceAfter => difference larger than MINEXPECTEDAMOUNT (passed in arg)
 
-        _vaultDepositToStrategy(investStrategyRegistry.getStrategySteps(_strategyHash), _depositValueUT);
+        _vaultDepositToStrategy(strategyRegistry.getStrategySteps(_strategyHash), _depositValueUT);
     }
 
     function vaultWithdrawFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) external onlyStrategyOperator {
-        IStrategyRegistry investStrategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+        IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
         //add check for minimum USDC returned
         //getBalanceBefore and getBalanceAfter => difference larger than MINEXPECTEDAMOUNT (passed in arg)
 
-        _vaultWithdrawSomeFromStrategy(investStrategyRegistry.getStrategySteps(_strategyHash), _withdrawAmountLP);
+        _vaultWithdrawSomeFromStrategy(strategyRegistry.getStrategySteps(_strategyHash), _withdrawAmountLP);
     }
 
     /**
@@ -672,15 +672,14 @@ contract Vault is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            IStrategyRegistry investStrategyRegistry =
-                IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+            IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
             for (uint256 i; i < _withdrawStrategies.length; i++) {
                 uint256 _oraAmountLP;
 
                 bytes32 withdrawStrategyHash = _withdrawStrategies[i];
                 uint256 buffer = withdrawalBuffers[withdrawStrategyHash];
-                DataTypes.StrategyStep[] memory _steps = investStrategyRegistry.getStrategySteps(withdrawStrategyHash);
+                DataTypes.StrategyStep[] memory _steps = strategyRegistry.getStrategySteps(withdrawStrategyHash);
 
                 if (buffer >= _expectedStratWithdrawUT) {
                     _oraAmountLP = _steps.getOraSomeValueLP(
@@ -1065,7 +1064,7 @@ contract Vault is
      * @param _strategyHash the hash of the strategy
      */
     function _addStrategy(bytes32 _strategyHash) internal {
-        require(!strategies.contains(_strategyHash), "InvestStrategyRegistry: strategy already set");
+        require(!strategies.contains(_strategyHash), "StrategyRegistry: strategy already set");
 
         strategies.add(_strategyHash);
 
@@ -1077,7 +1076,7 @@ contract Vault is
      * @param _strategyHash the hash of the strategy
      */
     function _removeStrategy(bytes32 _strategyHash) internal {
-        require(strategies.contains(_strategyHash), "InvestStrategyRegistry: strategy does not exist");
+        require(strategies.contains(_strategyHash), "StrategyRegistry: strategy does not exist");
         strategies.remove(_strategyHash);
 
         emit RemoveStrategy(_strategyHash);
