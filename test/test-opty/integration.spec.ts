@@ -44,7 +44,7 @@ chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 
-describe("Integration tests", function () {
+describe(`${fork}-Vault-rev4-Integration tests`, function () {
   before(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
@@ -61,7 +61,7 @@ describe("Integration tests", function () {
     this.signers.eve = signers[10];
   });
 
-  describe("Deployment, config and actions", function () {
+  describe(`${fork}-Deployment, config and actions`, function () {
     it("0. Registry and Registry proxy deployment and connecting", async function () {
       this.registry = <Registry>await deployRegistry(hre, this.signers.admin, false);
       this.registryProxy = <RegistryProxy>(

@@ -105,7 +105,7 @@ const func: DeployFunction = async ({
       owner: admin,
       upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opAAVEinvst_Implementation",
+      implementationName: "opWETH-Earn_Implementation",
       execute: {
         init: {
           methodName: "initialize",

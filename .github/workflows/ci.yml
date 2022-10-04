@@ -58,6 +58,7 @@ jobs:
       - name: Test
         run: |
           yarn test-fast:mainnet
+          yarn test-fast:integration:mainnet
           yarn test-fast:emergency-brake
           yarn test-fast:vaultv3-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:mainnet

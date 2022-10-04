@@ -89,7 +89,7 @@ const func: DeployFunction = async ({
   }
 
   const networkName = network.name;
-
+  const feeData = await ethers.provider.getFeeData();
   const result = await deploy("opUSDC-Earn", {
     from: deployer,
     contract: {
@@ -128,6 +128,8 @@ const func: DeployFunction = async ({
         },
       },
     },
+    maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+    maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
   if (CONTRACTS_VERIFY == "true") {
