@@ -36,13 +36,10 @@ describe("Vault rev4 upgrade test", () => {
     this.signers.admin = signers[1];
     const strategyManagerFactory = await ethers.getContractFactory("StrategyManager");
     const strategyManager = await strategyManagerFactory.deploy();
-    const claimAndHarvestFactory = await ethers.getContractFactory("ClaimAndHarvest");
-    const claimAndHarvest = await claimAndHarvestFactory.deploy();
 
     const vaultFactory = await ethers.getContractFactory("Vault", {
       libraries: {
         "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
-        "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
       },
     });
     let vaultImplementation;
