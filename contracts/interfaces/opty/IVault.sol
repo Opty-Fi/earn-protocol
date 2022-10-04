@@ -166,6 +166,30 @@ interface IVault {
     function vaultDepositAllToStrategy() external;
 
     /**
+     * @notice deposits underlying tokens to a strategy from the vault
+     * @param _strategyHash hash of strategy to deposit to
+     * @param _depositValueUT the amount of underlying token to deposit
+     * @param _minExpectedLP the minimum amount of LP expected in return for deposit
+     */
+    function vaultDepositToStrategy(
+        bytes32 _strategyHash,
+        uint256 _depositValueUT,
+        uint256 _minExpectedLP
+    ) external;
+
+    /**
+     * @notice withdraws LP tokens from a strategy from the vault
+     * @param _strategyHash hash of the strategy to withdraw from
+     * @param _withdrawAmountLP the amount of LP to withdraw
+     * @param _minExpectedUT the minimum amount of underlying tokens expected
+     */
+    function vaultWithdrawFromStrategy(
+        bytes32 _strategyHash,
+        uint256 _withdrawAmountLP,
+        uint256 _minExpectedUT
+    ) external;
+
+    /**
      * @notice A function to be called in case vault needs to claim and harvest tokens in case a strategy
      *         provides multiple reward tokens
      * @param _codes Array of encoded data in bytes which acts as code to execute

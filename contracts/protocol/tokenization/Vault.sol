@@ -274,28 +274,47 @@ contract Vault is
         }
     }
 
-    function vaultDepositToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) external onlyStrategyOperator {
+    /**
+     * @inheritdoc IVault
+     */
+    function vaultDepositToStrategy(
+        bytes32 _strategyHash,
+        uint256 _depositValueUT,
+        uint256 _minExpectedLP
+    ) external override onlyStrategyOperator {
         _checkVaultDeposit();
 
         IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
-        //add check for minimum LP returned
-        //getBalanceBefore and getBalanceAfter => difference larger than MINEXPECTEDAMOUNT (passed in arg)
+        DataTypes.StrategyStep[] memory steps = strategyRegistry.getStrategySteps(_strategyHash);
 
-        _vaultDepositToStrategy(strategyRegistry.getStrategySteps(_strategyHash), _depositValueUT);
+        //CHECK IF THE TOKEN == POOL
+        uint256 initialLP = IERC20(steps[steps.length - 1].pool).balanceOf(address(this));
+        _vaultDepositToStrategy(steps, _depositValueUT);
+        uint256 finalLP = IERC20(steps[steps.length - 1].pool).balanceOf(address(this));
+
+        require(finalLP.sub(initialLP) >= _minExpectedLP, Errors.RETURNED_LP_TOO_FEW);
     }
 
-    function vaultWithdrawFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) external onlyStrategyOperator {
+    /**
+     * @inheritdoc IVault
+     */
+    function vaultWithdrawFromStrategy(
+        bytes32 _strategyHash,
+        uint256 _withdrawAmountLP,
+        uint256 _minExpectedUT
+    ) external override onlyStrategyOperator {
         IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
-        //add check for minimum USDC returned
-        //getBalanceBefore and getBalanceAfter => difference larger than MINEXPECTEDAMOUNT (passed in arg)
-
+        uint256 initialUT = IERC20(underlyingToken).balanceOf(address(this));
         _vaultWithdrawSomeFromStrategy(strategyRegistry.getStrategySteps(_strategyHash), _withdrawAmountLP);
+        uint256 finalUT = IERC20(underlyingToken).balanceOf(address(this));
+
+        require(finalUT.sub(initialUT) >= _minExpectedUT, Errors.RETURNED_UT_TOO_FEW);
     }
 
     /**

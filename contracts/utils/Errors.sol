@@ -32,4 +32,6 @@ library Errors {
     string public constant BUFFER_EXCEEDED = "27";
     string public constant INVALID_STRATEGY = "28";
     string public constant WITHDRAWAL_TOO_LARGE = "29";
+    string public constant RETURNED_UT_TOO_FEW = "30";
+    string public constant RETURNED_LP_TOO_FEW = "31";
 }
