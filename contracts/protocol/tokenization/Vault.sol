@@ -18,7 +18,6 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
-import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 
 // interfaces
@@ -28,6 +27,7 @@ import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
+import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
 
 /**
  * @title Vault contract inspired by AAVE V3's AToken.sol
@@ -47,7 +47,7 @@ contract Vault is
 {
     using SafeERC20 for IERC20;
     using Address for address;
-    using ClaimAndHarvest for address;
+    using StrategyManager for address;
     using StrategyManager for DataTypes.StrategyStep[];
 
     /**
@@ -300,31 +300,30 @@ contract Vault is
      * @inheritdoc IVault
      */
     function claimRewardToken(address _liquidityPool) external override onlyStrategyOperator {
-        uint256 _balanceRTBefore = balanceClaimedRewardToken(_liquidityPool);
         executeCodes(
             _liquidityPool.getClaimRewardTokenCode(address(registryContract), payable(address(this))),
             Errors.CLAIM_REWARD_FAILED
         );
-
-        emit RewardTokenClaimed(_liquidityPool, balanceClaimedRewardToken(_liquidityPool) - _balanceRTBefore);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function harvest(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyStrategyOperator {
+    function harvest(address _rewardToken) external override onlyStrategyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
+        uint256 _rewardTokenAmount = IERC20(_rewardToken).balanceOf(address(this));
+
         executeCodes(
-            _liquidityPool.getStrategyHarvestSomeCodes(
-                address(registryContract),
+            IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).getHarvestCodes(
                 payable(address(this)),
+                _rewardToken,
                 underlyingToken,
                 _rewardTokenAmount
             ),
             Errors.HARVEST_SOME_FAILED
         );
 
-        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_rewardToken, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     /**
@@ -398,8 +397,8 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function balanceClaimedRewardToken(address _liquidityPool) public view override returns (uint256) {
-        return _liquidityPool.getClaimedRewardTokenAmount(address(registryContract), payable(address(this)));
+    function getRewardToken(address _liquidityPool) public view override returns (address) {
+        return _liquidityPool.getRewardToken(address(registryContract));
     }
 
     /**

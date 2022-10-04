@@ -181,11 +181,10 @@ interface IVault {
     function claimRewardToken(address _liquidityPool) external;
 
     /**
-     * @notice function to swap the claimed _rewardTokenAmount for the vault's underlying tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
-     * @param _rewardTokenAmount amount of reward token to harvest/swap
+     * @notice function to swap the vault's entire balance of reward token for the vault's underlying token
+     * @param _rewardToken address of the reward token to harvest
      */
-    function harvest(address _liquidityPool, uint256 _rewardTokenAmount) external;
+    function harvest(address _rewardToken) external;
 
     /**
      * @notice Allow passing a signed message to approve spending
@@ -216,11 +215,11 @@ interface IVault {
     function balanceUT() external view returns (uint256);
 
     /**
-     * @notice Retrieve the vault's balance of the reward token of a given liquidity pool
+     * @notice Retrieve the reward token address of a given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address
-     * @return The vault's balance of claimed reward tokens of a given liquidity pool.
+     * @return The harvest tokens address of a given liquidity pool
      */
-    function balanceClaimedRewardToken(address _liquidityPool) external view returns (uint256);
+    function getRewardToken(address _liquidityPool) external view returns (address);
 
     /**
      * @notice Retrieve reward token unclaimed balance for a given liquidity pool
@@ -399,11 +398,4 @@ interface IVault {
      * @param underlyingTokenAmount Amount of vault's underlying token harvested
      */
     event Harvested(address liquidityPool, uint256 rewardTokenAmount, uint256 underlyingTokenAmount);
-
-    /**
-     * @notice Emitted when claimRewardToken is called
-     * @param liquidityPool Liquidity pool's contract address from where to claim reward tokens
-     * @param rewardTokenAmount Amount of reward token claimed
-     */
-    event RewardTokenClaimed(address liquidityPool, uint256 rewardTokenAmount);
 }
