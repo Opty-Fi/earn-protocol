@@ -358,14 +358,16 @@ contract Vault is
      * @inheritdoc IVault
      */
     function addStrategy(bytes32 _strategyHash) external override onlyStrategyOperator {
-        _addStrategy(_strategyHash);
+        strategies.add(_strategyHash);
+        emit AddStrategy(_strategyHash);
     }
 
     /**
      * @inheritdoc IVault
      */
     function removeStrategy(bytes32 _strategyHash) external override onlyStrategyOperator {
-        _removeStrategy(_strategyHash);
+        strategies.remove(_strategyHash);
+        emit RemoveStrategy(_strategyHash);
     }
 
     //===Public view functions===//
@@ -906,8 +908,14 @@ contract Vault is
      */
     function _oraVaultAndStratValueUT() internal view returns (uint256) {
         uint256 _totalValue = balanceUT();
+        uint256 numStrategies = strategies.length();
+        DataTypes.StrategyStep[][] memory _allSteps;
 
-        DataTypes.StrategyStep[][] memory _allSteps = _getAllStrategySteps();
+        for (uint256 i; i < numStrategies; i++) {
+            _allSteps[i] = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry()).getStrategySteps(
+                strategies.at(i)
+            );
+        }
 
         for (uint256 i; i < _allSteps.length; i++) {
             _totalValue += _oraStratValueUT(_allSteps[i]); //use SafeMath
@@ -1043,43 +1051,6 @@ contract Vault is
         Counters.Counter storage nonce = _nonces[owner];
         current = nonce.current();
         nonce.increment();
-    }
-
-    function _getAllStrategySteps() internal view returns (DataTypes.StrategyStep[][] memory) {
-        //perhaps add a check for inactivity of strategy
-        DataTypes.StrategyStep[][] memory allSteps;
-        uint256 numStrategies = strategies.length();
-
-        for (uint256 i; i < numStrategies; i++) {
-            allSteps[i] = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry()).getStrategySteps(
-                strategies.at(i)
-            );
-        }
-
-        return allSteps;
-    }
-
-    /**
-     * @notice adds a strategy hash to vault strategies
-     * @param _strategyHash the hash of the strategy
-     */
-    function _addStrategy(bytes32 _strategyHash) internal {
-        require(!strategies.contains(_strategyHash), "StrategyRegistry: strategy already set");
-
-        strategies.add(_strategyHash);
-
-        emit AddStrategy(_strategyHash);
-    }
-
-    /**
-     * @notice removes a strategy hash to vault strategies
-     * @param _strategyHash the hash of the strategy
-     */
-    function _removeStrategy(bytes32 _strategyHash) internal {
-        require(strategies.contains(_strategyHash), "StrategyRegistry: strategy does not exist");
-        strategies.remove(_strategyHash);
-
-        emit RemoveStrategy(_strategyHash);
     }
 
     //===Internal pure functions===//
