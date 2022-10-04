@@ -21,7 +21,6 @@ const func: DeployFunction = async ({
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
-  const claimAndHarvest = await deployments.get("ClaimAndHarvest");
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
@@ -38,7 +37,6 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
-      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest.address,
     },
     proxy: {
       owner: admin,
