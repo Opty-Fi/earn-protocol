@@ -11,7 +11,7 @@ library Errors {
     string public constant NOT_A_CONTRACT = "6";
     string public constant TOKEN_NOT_APPROVED = "7";
     string public constant EOA_NOT_WHITELISTED = "8";
-    string public constant CA_NOT_WHITELISTED = "9";
+    string public constant INSUFFICIENT_OUTPUT_AMOUNT = "9";
     string public constant MINIMUM_USER_DEPOSIT_VALUE_UT = "10";
     string public constant TOTAL_VALUE_LOCKED_LIMIT_UT = "11";
     string public constant USER_DEPOSIT_CAP_UT = "12";
@@ -25,13 +25,16 @@ library Errors {
     string public constant CLAIM_REWARD_FAILED = "20";
     string public constant HARVEST_SOME_FAILED = "21";
     string public constant HARVEST_ALL_FAILED = "22";
-    string public constant NOTHING_TO_HARVEST = "23";
+    string public constant NOTHING_TO_CLAIM = "23";
     string public constant PERMIT_FAILED = "24";
     string public constant PERMIT_LEGACY_FAILED = "25";
     string public constant AMOUNT_EXCEEDS_ALLOWANCE = "26";
-    string public constant BUFFER_EXCEEDED = "27";
-    string public constant INVALID_STRATEGY = "28";
-    string public constant WITHDRAWAL_TOO_LARGE = "29";
-    string public constant RETURNED_UT_TOO_FEW = "30";
-    string public constant RETURNED_LP_TOO_FEW = "31";
+    string public constant ZERO_ADDRESS_NOT_VALID = "27";
+    string public constant INVALID_EXPIRATION = "28";
+    string public constant INVALID_SIGNATURE = "29";
+    string public constant BUFFER_EXCEEDED = "29";
+    string public constant INVALID_STRATEGY = "30";
+    string public constant WITHDRAWAL_TOO_LARGE = "31";
+    string public constant RETURNED_UT_TOO_FEW = "32";
+    string public constant RETURNED_LP_TOO_FEW = "33";
 }

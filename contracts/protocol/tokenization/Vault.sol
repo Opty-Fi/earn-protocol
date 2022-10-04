@@ -13,14 +13,13 @@ import { IncentivisedERC20 } from "./IncentivisedERC20.sol";
 import { Modifiers } from "../earn-protocol-configuration/contracts/Modifiers.sol";
 import { VaultStorageV3 } from "./VaultStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
+import { EIP712Base } from "../../utils/EIP712Base.sol";
 // libraries
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
-import { ClaimAndHarvest } from "../lib/ClaimAndHarvest.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/EnumerableSet.sol";
@@ -33,9 +32,10 @@ import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
+import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
 
 /**
- * @title Vault contract inspired by AAVE V2's AToken.sol
+ * @title Vault contract inspired by AAVE V3's AToken.sol
  * @author opty.fi
  * @notice Implementation of the risk specific interest bearing vault
  */
@@ -47,31 +47,38 @@ contract Vault is
     MultiCall,
     Modifiers,
     ReentrancyGuard,
-    VaultStorageV3
+    VaultStorageV3,
+    EIP712Base
 {
     using SafeERC20 for IERC20;
     using Address for address;
-    using ClaimAndHarvest for address;
+    using StrategyManager for address;
     using StrategyManager for DataTypes.StrategyStep[];
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     /**
-     * @dev The version of the Vault business logic
+     * @dev The version of the Vault implementation
      */
     uint256 public constant opTOKEN_REVISION = 0x4;
+
+    /**
+     * @dev hash of the permit function
+     */
+    bytes32 public constant PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     //===Constructor===//
 
     /* solhint-disable no-empty-blocks */
     constructor(address _registry)
         public
-        IncentivisedERC20(
-            string(abi.encodePacked("OptyFi Vault Name")),
-            string(abi.encodePacked("OptyFi Vault Symbol"))
-        )
+        IncentivisedERC20(string(abi.encodePacked("opTOKEN_IMPL")), string(abi.encodePacked("opTOKEN_IMPL")))
+        EIP712Base()
         Modifiers(_registry)
-    {}
+    {
+        // Intentionally left blank
+    }
 
     /* solhint-enable no-empty-blocks */
 
@@ -81,7 +88,6 @@ contract Vault is
      * @dev Initialize the vault
      * @param _registry The address of registry for helping get the protocol configuration
      * @param _underlyingTokensHash The keccak256 hash of the tokens and chain id
-     * @param _whitelistedCodesRoot Whitelisted codes root hash
      * @param _whitelistedAccountsRoot Whitelisted accounts root hash
      * @param _symbol The symbol of the underlying  asset
      * @param _riskProfileCode Risk profile code of this vault
@@ -93,7 +99,6 @@ contract Vault is
     function initialize(
         address _registry,
         bytes32 _underlyingTokensHash,
-        bytes32 _whitelistedCodesRoot,
         bytes32 _whitelistedAccountsRoot,
         string memory _symbol,
         uint256 _riskProfileCode,
@@ -108,12 +113,12 @@ contract Vault is
         _setRiskProfileCode(_riskProfileCode, _riskProfile.exists);
         _setUnderlyingTokensHash(_underlyingTokensHash);
         _setName(string(abi.encodePacked("OptyFi ", _symbol, " ", _riskProfile.name, " Vault")));
-        _setSymbol(string(abi.encodePacked("op", _symbol, _riskProfile.symbol)));
+        _setSymbol(string(abi.encodePacked("op", _symbol, "-", _riskProfile.symbol)));
         _setDecimals(IncentivisedERC20(underlyingToken).decimals());
-        _setWhitelistedCodesRoot(_whitelistedCodesRoot);
         _setWhitelistedAccountsRoot(_whitelistedAccountsRoot);
         _setVaultConfiguration(_vaultConfiguration);
         _setValueControlParams(_userDepositCapUT, _minimumDepositValueUT, _totalValueLockedLimitUT);
+        _domainSeparator = _calculateDomainSeparator();
     }
 
     /**
@@ -121,6 +126,7 @@ contract Vault is
      */
     function setName(string calldata _name) external override onlyGovernance {
         _setName(_name);
+        _domainSeparator = _calculateDomainSeparator();
     }
 
     /**
@@ -193,13 +199,6 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external override onlyGovernance {
-        _setWhitelistedCodesRoot(_whitelistedCodesRoot);
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
     function setEmergencyShutdown(bool _active) external override onlyGovernance {
         vaultConfiguration = vaultConfiguration & 0xFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         if (_active) {
@@ -240,14 +239,14 @@ contract Vault is
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
+        uint256 _expectedOutput,
         bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
         _emergencyBrake(true);
         _permit(_permitParams);
-        return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof, _codesProof);
+        return _depositVaultFor(_beneficiary, false, _userDepositUT, _expectedOutput, _accountsProof);
     }
 
     /**
@@ -256,12 +255,12 @@ contract Vault is
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
+        uint256 _expectedOutput,
         bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _emergencyBrake(false);
-        return _withdrawVaultFor(_receiver, _userWithdrawVT, _withdrawStrategies, _accountsProof, _codesProof);
+        return _withdrawVaultFor(_receiver, _userWithdrawVT, _expectedOutput, _withdrawStrategies, _accountsProof);
     }
 
     /**
@@ -328,49 +327,59 @@ contract Vault is
      * @inheritdoc IVault
      */
     function claimRewardToken(address _liquidityPool) external override onlyStrategyOperator {
-        uint256 _balanceRTBefore = balanceClaimedRewardToken(_liquidityPool);
         executeCodes(
             _liquidityPool.getClaimRewardTokenCode(address(registryContract), payable(address(this))),
             Errors.CLAIM_REWARD_FAILED
         );
-
-        emit RewardTokenClaimed(_liquidityPool, balanceClaimedRewardToken(_liquidityPool) - _balanceRTBefore);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external override onlyStrategyOperator {
+    function harvest(address _rewardToken) external override onlyStrategyOperator {
         uint256 _underlyingTokenOldBalance = balanceUT();
+        uint256 _rewardTokenAmount = IERC20(_rewardToken).balanceOf(address(this));
+
         executeCodes(
-            _liquidityPool.getStrategyHarvestSomeCodes(
-                address(registryContract),
+            IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).getHarvestCodes(
                 payable(address(this)),
+                _rewardToken,
                 underlyingToken,
                 _rewardTokenAmount
             ),
             Errors.HARVEST_SOME_FAILED
         );
 
-        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
+        emit Harvested(_rewardToken, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
     }
 
     /**
      * @inheritdoc IVault
      */
-    function harvestAll(address _liquidityPool) external override onlyStrategyOperator {
-        uint256 _underlyingTokenOldBalance = balanceUT();
-        uint256 _rewardTokenAmount = balanceClaimedRewardToken(_liquidityPool);
-        executeCodes(
-            _liquidityPool.getStrategyHarvestAllCodes(
-                address(registryContract),
-                payable(address(this)),
-                underlyingToken
-            ),
-            Errors.HARVEST_ALL_FAILED
-        );
-
-        emit Harvested(_liquidityPool, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external override {
+        require(_owner != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
+        //solium-disable-next-line
+        require(block.timestamp <= _deadline, Errors.INVALID_EXPIRATION);
+        uint256 _currentValidNonce = _nonces[_owner];
+        bytes32 _digest =
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(PERMIT_TYPEHASH, _owner, _spender, _value, _currentValidNonce, _deadline))
+                )
+            );
+        require(_owner == ecrecover(_digest, _v, _r, _s), Errors.INVALID_SIGNATURE);
+        _nonces[_owner] = _currentValidNonce.add(1);
+        _approve(_owner, _spender, _value);
     }
 
     /**
@@ -392,10 +401,33 @@ contract Vault is
     //===Public view functions===//
 
     /**
-     * @inheritdoc IncentivisedERC20
+     * @inheritdoc EIP712Base
+     */
+    // solhint-disable-next-line func-name-mixedcase
+    function DOMAIN_SEPARATOR() public view override returns (bytes32) {
+        uint256 __chainId;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            __chainId := chainid()
+        }
+        if (__chainId == _chainId) {
+            return _domainSeparator;
+        }
+        return _calculateDomainSeparator();
+    }
+
+    /**
+     * @inheritdoc EIP712Base
      */
     function nonces(address owner) public view override returns (uint256) {
-        return _nonces[owner].current();
+        return _nonces[owner];
+    }
+
+    //===Public view functions===//
+
+    /* solhint-disable-next-line func-name-mixedcase */
+    function _EIP712BaseId() internal view override returns (string memory) {
+        return name();
     }
 
     /**
@@ -408,8 +440,8 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function balanceClaimedRewardToken(address _liquidityPool) public view override returns (uint256) {
-        return _liquidityPool.getClaimedRewardTokenAmount(address(registryContract), payable(address(this)));
+    function getRewardToken(address _liquidityPool) public view override returns (address) {
+        return _liquidityPool.getRewardToken(address(registryContract));
     }
 
     /**
@@ -450,15 +482,10 @@ contract Vault is
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) public view override returns (bool, string memory) {
         if ((vaultConfiguration & (1 << 250)) != 0 && !_verifyWhitelistedAccount(_accountLeaf(_user), _accountsProof)) {
             return (false, Errors.EOA_NOT_WHITELISTED);
-        }
-        //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && !_noGreyList(_user, _accountsProof, _codesProof)) {
-            return (false, Errors.CA_NOT_WHITELISTED);
         }
         if (_userDepositUTWithDeductions < minimumDepositValueUT) {
             return (false, Errors.MINIMUM_USER_DEPOSIT_VALUE_UT);
@@ -494,15 +521,10 @@ contract Vault is
     function userWithdrawPermitted(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) public view override returns (bool, string memory) {
         if ((vaultConfiguration & (1 << 250)) != 0 && !_verifyWhitelistedAccount(_accountLeaf(_user), _accountsProof)) {
             return (false, Errors.EOA_NOT_WHITELISTED);
-        }
-        //solhint-disable-next-line avoid-tx-origin
-        if (_user != tx.origin && !_noGreyList(_user, _accountsProof, _codesProof)) {
-            return (false, Errors.CA_NOT_WHITELISTED);
         }
         // require: 0 < withdrawal amount in vault tokens < user's vault token balance
         if (!(_userWithdrawVT > 0 && _userWithdrawVT <= balanceOf(_user))) {
@@ -586,15 +608,17 @@ contract Vault is
      * @param _addUserDepositUT whether to add _userDepositUT while
      *         checking for TVL limit reached.
      * @param _userDepositUT amount to deposit in underlying token
+     * @param _expectedOutput The minimum amount of vault tokens that must be
+     *         minted for the transaction not to revert.
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
+     *        required only if whitelisted state is true
      */
     function _depositVaultFor(
         address _beneficiary,
         bool _addUserDepositUT,
         uint256 _userDepositUT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        uint256 _expectedOutput,
+        bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
         // check vault + strategy balance (in UT) before user token transfer
         uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
@@ -604,7 +628,7 @@ contract Vault is
         // if deposit is not accepted, the entire transaction should revert
         uint256 _depositFeeUT = calcDepositFeeUT(_actualDepositAmountUT);
         uint256 _netUserDepositUT = _actualDepositAmountUT.sub(_depositFeeUT);
-        _checkUserDeposit(msg.sender, _addUserDepositUT, _netUserDepositUT, _depositFeeUT, _accountsProof, _codesProof);
+        _checkUserDeposit(msg.sender, _addUserDepositUT, _netUserDepositUT, _depositFeeUT, _accountsProof);
         // add net deposit amount to user's total deposit
         totalDeposits[_beneficiary] = totalDeposits[_beneficiary].add(_netUserDepositUT);
         // transfer deposit fee to vaultFeeCollector
@@ -619,11 +643,12 @@ contract Vault is
         uint256 _depositAmount;
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
             _depositAmount = _netUserDepositUT;
-            _mint(_beneficiary, _netUserDepositUT);
         } else {
             _depositAmount = (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT);
-            _mint(_beneficiary, _depositAmount);
         }
+        require(_depositAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
+        _mint(_beneficiary, _depositAmount);
+
         return _depositAmount;
     }
 
@@ -644,18 +669,19 @@ contract Vault is
      * @dev internal function withdraw for an user
      * @param _receiver address of the receiver of the underlying token
      * @param _userWithdrawVT amount in vault token
+     * @param _expectedOutput the minimum amount of underlying tokens that
+     *         must be received to not revert the transaction
      * @param _withdrawStrategies strategies to withdraw from
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _withdrawVaultFor(
         address _receiver,
         uint256 _userWithdrawVT,
+        uint256 _expectedOutput,
         bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
-        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof, _codesProof);
+        _checkUserWithdraw(msg.sender, _userWithdrawVT, _accountsProof);
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
@@ -719,6 +745,9 @@ contract Vault is
             IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
         }
         uint256 _withdrawAmount = _oraUserWithdrawUT.sub(_withdrawFeeUT);
+
+        require(_withdrawAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
+
         IERC20(underlyingToken).safeTransfer(_receiver, _withdrawAmount);
         return _withdrawAmount;
     }
@@ -869,15 +898,6 @@ contract Vault is
     }
 
     /**
-     * @dev Internal function to control the allowance of smart contract interaction
-     *         with vault
-     * @param _whitelistedCodesRoot whitelisted codes root hash
-     */
-    function _setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) internal {
-        whitelistedCodesRoot = _whitelistedCodesRoot;
-    }
-
-    /**
      * @dev Internal function to configure the vault's value control params
      * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
      * @param _minimumDepositValueUT minimum deposit value in underlying token required
@@ -931,39 +951,8 @@ contract Vault is
                 : 0;
     }
 
-    /**
-     * @dev Internal function to compute the hash of the smart contract code
-     * @param _account account address
-     * @return _hash bytes32 hash of the smart contract code
-     */
-    function _getContractHash(address _account) internal view returns (bytes32 _hash) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            _hash := extcodehash(_account)
-        }
-    }
-
-    /**
-     * @dev Internal function to compute whether smart contract is grey listed or not
-     * @param _account account address
-     * @return false if contract account is allowed to interact, true otherwise
-     */
-    function _noGreyList(
-        address _account,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
-    ) internal view returns (bool) {
-        return
-            _verifyWhitelistedAccount(_accountLeaf(_account), _accountsProof) &&
-            _verifyWhitelistedCode(_codeLeaf(_getContractHash(_account)), _codesProof);
-    }
-
     function _verifyWhitelistedAccount(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
         return MerkleProof.verify(_proof, whitelistedAccountsRoot, _leaf);
-    }
-
-    function _verifyWhitelistedCode(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {
-        return MerkleProof.verify(_proof, whitelistedCodesRoot, _leaf);
     }
 
     /**
@@ -976,25 +965,16 @@ contract Vault is
      * @param _deductions amount in underlying token to not consider in as a part of
      *       user deposit amount
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _checkUserDeposit(
         address _user,
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) internal view {
         (bool _userDepositPermitted, string memory _userDepositPermittedReason) =
-            userDepositPermitted(
-                _user,
-                _addUserDepositUT,
-                _userDepositUTWithDeductions,
-                _deductions,
-                _accountsProof,
-                _codesProof
-            );
+            userDepositPermitted(_user, _addUserDepositUT, _userDepositUTWithDeductions, _deductions, _accountsProof);
         require(_userDepositPermitted, _userDepositPermittedReason);
     }
 
@@ -1025,26 +1005,15 @@ contract Vault is
      * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function _checkUserWithdraw(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) internal view {
         (bool _userWithdrawPermitted, string memory _userWithdrawPermittedReason) =
-            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof, _codesProof);
+            userWithdrawPermitted(_user, _userWithdrawVT, _accountsProof);
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
-    }
-
-    /**
-     * @inheritdoc IncentivisedERC20
-     */
-    function _useNonce(address owner) internal override returns (uint256 current) {
-        Counters.Counter storage nonce = _nonces[owner];
-        current = nonce.current();
-        nonce.increment();
     }
 
     //===Internal pure functions===//
@@ -1075,15 +1044,6 @@ contract Vault is
         return keccak256(abi.encodePacked(_account));
     }
 
-    /**
-     * @dev internal helper function to return a merkle tree leaf hash for codes
-     * @param _hash codehash
-     * @return code leaf hash
-     */
-    function _codeLeaf(bytes32 _hash) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_hash));
-    }
-
     //===Private functions===//
 
     /**
@@ -1091,9 +1051,9 @@ contract Vault is
      */
     function _emergencyBrake(bool _deposit) private {
         if (_deposit) {
-            _blockTransaction[block.number] = true;
+            blockTransaction[block.number] = true;
         } else {
-            require(!_blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
+            require(!blockTransaction[block.number], Errors.EMERGENCY_BRAKE);
         }
     }
 }

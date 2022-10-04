@@ -963,6 +963,271 @@ const mainnetStrategiesByToken = {
     },
   },
   Invest: {
+    USDC: {
+      "usdc-DEPOSIT-SushiswapPool-USDC-WETH-SLP": {
+        strategyName: "usdc-DEPOSIT-SushiswapPool-USDC-WETH-SLP",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-WETH-SLP",
+            adapterName: "SushiswapPoolAdapter",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "USDC-WETH LP Farming on Sushi",
+        description:
+          "The OptyFi vault supplies USDC to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token.",
+      },
+      "usdc-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
+        strategyName: "usdc-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-WETH-SLP",
+            adapterName: "SushiswapPoolAdapterEthereum",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+            outputToken: "0x0000000000000000000000000000000000000000",
+            isBorrow: false,
+            outputTokenSymbol: "",
+            adapterName: "SushiswapMasterChefV1Adapter",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "USDC-WETH LP Farming and staking on Sushi",
+        description:
+          "The OptyFi vault supplies USDC to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv": {
+        strategyName: "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+            outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
+            isBorrow: false,
+            outputTokenSymbol: "cvx3Crv",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "3CRV LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the 3CRV liquidity pool on Curve Finance and obtains the 3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the 3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
+        strategyName:
+          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+            outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+            isBorrow: false,
+            outputTokenSymbol: "FRAX3CRV-f",
+            adapterName: "CurveMetapoolSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+            outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+            isBorrow: false,
+            outputTokenSymbol: "cvxFRAX3CRV-f",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "FRAX3CRV LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
+        strategyName:
+          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            outputTokenSymbol: "3Crv",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+            outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
+            isBorrow: false,
+            outputTokenSymbol: "MIM-3LP3CRV-f",
+            adapterName: "CurveMetapoolSwapAdapter",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+            outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
+            isBorrow: false,
+            outputTokenSymbol: "cvxMIM-3LP3CRV-f",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "MIM3CRV LP Staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv": {
+        strategyName: "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+            isBorrow: false,
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+            outputTokenSymbol: "3Crv",
+          },
+          {
+            contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+            outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+            isBorrow: false,
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+            outputTokenSymbol: "usdn3Crv",
+          },
+          {
+            contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+            outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+            isBorrow: false,
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+            outputTokenSymbol: "cvxusdn3CRV",
+          },
+        ],
+        riskProfileCode: 2,
+        name: null,
+        description: null,
+      },
+    },
+    WETH: {
+      "weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP": {
+        strategyName: "weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-WETH-SLP",
+            adapterName: "SushiswapPoolAdapter",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "USDC-WETH LP Farming on Sushi",
+        description:
+          "The OptyFi vault supplies WETH to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token.",
+      },
+      "weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
+        strategyName: "weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            isBorrow: false,
+            outputTokenSymbol: "USDC-WETH-SLP",
+            adapterName: "SushiswapPoolAdapterEthereum",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+            outputToken: "0x0000000000000000000000000000000000000000",
+            isBorrow: false,
+            outputTokenSymbol: "",
+            adapterName: "SushiswapMasterChefV1Adapter",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "USDC-WETH LP Farming and staking on Sushi",
+        description:
+          "The OptyFi vault supplies WETH to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+      },
+      "weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP": {
+        strategyName: "weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
+            outputToken: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
+            isBorrow: false,
+            outputTokenSymbol: "WBTC-WETH-SLP",
+            adapterName: "SushiswapPoolAdapter",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "WBTC-WETH LP Farming on Sushi",
+        description:
+          "The OptyFi vault supplies WETH to the WBTC-WETH liquidity pool on Sushi and obtains the Sushi WBTC-WETH LP token.",
+      },
+      "weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP-DEPOSIT-SushiswapMasterChef": {
+        strategyName: "weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
+            outputToken: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
+            isBorrow: false,
+            outputTokenSymbol: "WBTC-WETH-SLP",
+            adapterName: "SushiswapPoolAdapterEthereum",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
+            outputToken: "0x0000000000000000000000000000000000000000",
+            isBorrow: false,
+            outputTokenSymbol: "",
+            adapterName: "SushiswapMasterChefV1Adapter",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 2,
+        name: "WBTC-WETH LP Farming and staking on Sushi",
+        description:
+          "The OptyFi vault supplies WBTC to the WBTC-WETH liquidity pool on Sushi and obtains the Sushi WBTC-WETH LP token. The vault then stake WBTC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+      },
+    },
     NEWO: {
       "newo-DEPOSIT-NewOrder-stkNEWO": {
         strategyName: "newo-DEPOSIT-NewOrder-stkNEWO",
@@ -2210,7 +2475,7 @@ const avalancheStrategiesbyToken = {
         riskProfileCode: 1,
       },
     },
-    USDCe: {
+    "USDC.e": {
       "usdce-DEPOSIT-AaveV2-avUSDC": {
         strategyName: "",
         token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
@@ -2314,7 +2579,7 @@ const vaultConfigRP2 = ethers.BigNumber.from(
 const mainnetVaults: VaultType = {
   Save: {
     USDC: {
-      symbol: "opUSDCsave",
+      symbol: "opUSDC-Save",
       name: "OptyFi USDC Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
@@ -2324,7 +2589,7 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
     WETH: {
-      symbol: "opWETHsave",
+      symbol: "opWETH-Save",
       name: "OptyFi WETH Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
@@ -2334,7 +2599,7 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
     },
     DAI: {
-      symbol: "opDAIsave",
+      symbol: "opDAI-Save",
       name: "OptyFi DAI Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.hash,
@@ -2345,7 +2610,7 @@ const mainnetVaults: VaultType = {
     },
 
     USDT: {
-      symbol: "opUSDTsave",
+      symbol: "opUSDT-Save",
       name: "OptyFi USDT Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.hash,
@@ -2356,7 +2621,7 @@ const mainnetVaults: VaultType = {
     },
 
     WBTC: {
-      symbol: "opWBTCsave",
+      symbol: "opWBTC-Save",
       name: "OptyFi WBTC Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
@@ -2368,7 +2633,7 @@ const mainnetVaults: VaultType = {
   },
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
+      symbol: "opUSDC-Earn",
       name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
@@ -2379,7 +2644,7 @@ const mainnetVaults: VaultType = {
     },
 
     WETH: {
-      symbol: "opWETHearn",
+      symbol: "opWETH-Earn",
       name: "OptyFi WETH Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
@@ -2390,7 +2655,7 @@ const mainnetVaults: VaultType = {
     },
 
     USD3: {
-      symbol: "opUSD3earn",
+      symbol: "opUSD3-Earn",
       name: "OptyFi USD3 Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
@@ -2401,7 +2666,7 @@ const mainnetVaults: VaultType = {
     },
 
     WBTC: {
-      symbol: "opWBTCearn",
+      symbol: "opWBTC-Earn",
       name: "OptyFi WBTC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
@@ -2412,8 +2677,28 @@ const mainnetVaults: VaultType = {
     },
   },
   Invest: {
+    USDC: {
+      symbol: "opUSDC-Invst",
+      name: "OptyFi USDC Invest Vault",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
+      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
+    },
+    WETH: {
+      symbol: "opWETH-Invst",
+      name: "OptyFi WETH Invest Vault",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
+      vaultConfig: vaultConfigRP2,
+      userDepositCapUT: BigNumber.from("500000000000000000000"), // 500 WETH user deposit cap
+      minimumDepositValueUT: BigNumber.from("0"), // 0 WETH minimum deposit
+      totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
+    },
     NEWO: {
-      symbol: "opNEWOinvst",
+      symbol: "opNEWO-Invst",
       name: "OptyFi NEWO Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.hash,
@@ -2424,7 +2709,7 @@ const mainnetVaults: VaultType = {
     },
 
     AAVE: {
-      symbol: "opAAVEinvst",
+      symbol: "opAAVE-Invst",
       name: "OptyFi AAVE Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.hash,
@@ -2435,7 +2720,7 @@ const mainnetVaults: VaultType = {
     },
 
     APE: {
-      symbol: "opAPEinvst",
+      symbol: "opAPE-Invst",
       name: "OptyFi APE Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.hash,
@@ -2446,7 +2731,7 @@ const mainnetVaults: VaultType = {
     },
 
     SUSHI: {
-      symbol: "opSUSHIinvst",
+      symbol: "opSUSHI-Invst",
       name: "OptyFi SUSHI Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.hash,
@@ -2457,7 +2742,7 @@ const mainnetVaults: VaultType = {
     },
 
     MANA: {
-      symbol: "opMANAinvst",
+      symbol: "opMANA-Invst",
       name: "OptyFi MANA Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.hash,
@@ -2468,7 +2753,7 @@ const mainnetVaults: VaultType = {
     },
 
     LINK: {
-      symbol: "opLINKinvst",
+      symbol: "opLINK-Invst",
       name: "OptyFi LINK Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.hash,
@@ -2479,7 +2764,7 @@ const mainnetVaults: VaultType = {
     },
 
     ENS: {
-      symbol: "opENSinvst",
+      symbol: "opENS-Invst",
       name: "OptyFi ENS Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,
@@ -2490,7 +2775,7 @@ const mainnetVaults: VaultType = {
     },
 
     COMP: {
-      symbol: "opCOMPinvst",
+      symbol: "opCOMP-Invst",
       name: "OptyFi COMP Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.hash,
@@ -2501,7 +2786,7 @@ const mainnetVaults: VaultType = {
     },
 
     IMX: {
-      symbol: "opIMXinvst",
+      symbol: "opIMX-Invst",
       name: "OptyFi IMX Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.hash,
@@ -2512,7 +2797,7 @@ const mainnetVaults: VaultType = {
     },
 
     ALCX: {
-      symbol: "opALCXinvst",
+      symbol: "opALCX-Invst",
       name: "OptyFi ALCX Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.hash,
@@ -2523,7 +2808,7 @@ const mainnetVaults: VaultType = {
     },
 
     CRV: {
-      symbol: "opCRVinvst",
+      symbol: "opCRV-Invst",
       name: "OptyFi CRV Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.hash,
@@ -2534,7 +2819,7 @@ const mainnetVaults: VaultType = {
     },
 
     CVX: {
-      symbol: "opCVXinvst",
+      symbol: "opCVX-Invst",
       name: "OptyFi CVX Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.hash,
@@ -2545,7 +2830,7 @@ const mainnetVaults: VaultType = {
     },
 
     YFI: {
-      symbol: "opYFIinvst",
+      symbol: "opYFI-Invst",
       name: "OptyFi YFI Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.hash,
@@ -2560,8 +2845,8 @@ const mainnetVaults: VaultType = {
 const kovanVaults: VaultType = {
   Intermediate: {
     USDC: {
-      symbol: "opAVUSDCint",
-      name: "OptyFi AVUSDC intermediate Vault",
+      symbol: "opAVUSDC-Int",
+      name: "OptyFi AVUSDC Intermediate Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2575,7 +2860,7 @@ const kovanVaults: VaultType = {
 const polygonVaults: VaultType = {
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
+      symbol: "opUSDC-Earn",
       name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.hash,
@@ -2586,7 +2871,7 @@ const polygonVaults: VaultType = {
     },
 
     WMATIC: {
-      symbol: "opWMATICearn",
+      symbol: "opWMATIC-Earn",
       name: "OptyFi WMATIC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.hash,
@@ -2601,7 +2886,7 @@ const polygonVaults: VaultType = {
 const mumbaiVaults: VaultType = {
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
+      symbol: "opUSDC-Earn",
       name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.hash,
@@ -2616,7 +2901,7 @@ const mumbaiVaults: VaultType = {
 const avalancheVaults: VaultType = {
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
+      symbol: "opUSDC-Earn",
       name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.hash,
@@ -2626,11 +2911,11 @@ const avalancheVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
 
-    USDCe: {
-      symbol: "opUSDC.eearn",
-      name: "OptyFi USDC Earn Vault",
-      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
-      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
+    "USDC.e": {
+      symbol: "opUSDC.e-Earn",
+      name: "OptyFi USDC.e Earn Vault",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche["USDC.e"].address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche["USDC.e"].hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
@@ -2638,7 +2923,7 @@ const avalancheVaults: VaultType = {
     },
 
     WAVAX: {
-      symbol: "opWAVAXearn",
+      symbol: "opWAVAX-Earn",
       name: "OptyFi WAVAX Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.hash,

@@ -18,65 +18,59 @@ contract TestEmergencyBrake {
     function runUserDepositVault(
         uint256 _userDepositUT,
         bytes calldata _permit,
-        bytes32[] calldata _accountProofs,
-        bytes32[] calldata _codeProofs
+        bytes32[] calldata _accountProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
-        vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(address(this), _userDepositUT, uint256(0), _permit, _accountProofs);
     }
 
     function runUserWithdrawVault(
         uint256 _userWithdrawVT,
-        bytes32[] calldata _accountProofs,
         bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _codeProofs
+        bytes32[] calldata _accountProofs
     ) external {
-        vaultAddr.userWithdrawVault(address(this), _userWithdrawVT, _withdrawStrategies, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(address(this), _userWithdrawVT, uint256(0), _withdrawStrategies, _accountProofs);
     }
 
     function runTwoTxnUserDepositVault(
         uint256 _userDepositUT,
         bytes calldata _permit,
-        bytes32[] calldata _accountProofs,
-        bytes32[] calldata _codeProofs
+        bytes32[] calldata _accountProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), (_userDepositUT + _userDepositUT));
-        vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
-        vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(address(this), _userDepositUT, uint256(0), _permit, _accountProofs);
+        vaultAddr.userDepositVault(address(this), _userDepositUT, uint256(0), _permit, _accountProofs);
     }
 
     function runTwoTxnUserWithdrawVault(
         uint256 _userDepositUT,
         bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountProofs,
-        bytes32[] calldata _codeProofs
+        bytes32[] calldata _accountProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), (_userDepositUT + _userDepositUT));
         tokenAddr.transfer(address(vaultAddr), (_userDepositUT + _userDepositUT));
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _withdrawStrategies, _accountProofs, _codeProofs);
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _withdrawStrategies, _accountProofs, _codeProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, uint256(0), _withdrawStrategies, _accountProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, uint256(0), _withdrawStrategies, _accountProofs);
     }
 
     function runTwoTxnDepositAndWithdraw(
         uint256 _userDepositUT,
         bytes calldata _permit,
         bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountProofs,
-        bytes32[] calldata _codeProofs
+        bytes32[] calldata _accountProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
-        vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _withdrawStrategies, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(address(this), _userDepositUT, uint256(0), _permit, _accountProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, uint256(0), _withdrawStrategies, _accountProofs);
     }
 
     function runTwoTxnDepositAndTransfer(
         uint256 _userDepositUT,
         bytes calldata _permit,
-        bytes32[] calldata _accountProofs,
-        bytes32[] calldata _codeProofs
+        bytes32[] calldata _accountProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
-        vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs, _codeProofs);
+        vaultAddr.userDepositVault(address(this), _userDepositUT, uint256(0), _permit, _accountProofs);
         vaultAddr.transfer(msg.sender, _userDepositUT);
     }
 }

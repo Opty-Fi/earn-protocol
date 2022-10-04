@@ -3839,7 +3839,7 @@ export const oldAbis = {
       type: "function",
     },
   ],
-  oldVault: [
+  oldVaultV2: [
     {
       inputs: [
         {
@@ -4752,7 +4752,7 @@ export const oldAbis = {
       type: "function",
     },
   ],
-  OldVaultV2: [
+  OldVaultV3: [
     {
       anonymous: false,
       inputs: [

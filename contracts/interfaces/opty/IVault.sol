@@ -96,13 +96,6 @@ interface IVault {
     function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external;
 
     /**
-     * @notice function to control the allowance of smart contract interaction
-     *         with vault
-     * @param _whitelistedCodesRoot whitelisted codes root hash
-     */
-    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external;
-
-    /**
      * @notice activates or deactives vault mode where
      *        all strategies go into full withdrawal. During emergency shutdown
      *        - No Users may deposit into the Vault (but may withdraw as usual.)
@@ -131,16 +124,17 @@ interface IVault {
      * @dev Mint the shares right away as per oracle based price per full share value
      * @param _beneficiary the address of the deposit beneficiary
      * @param _userDepositUT Amount in underlying token
+     * @param _expectedOutput The minimum amount of vault tokens that must be minted
+     *         for the transaction to not revert
      * @param _permitParams permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
+        uint256 _expectedOutput,
         bytes calldata _permitParams,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external returns (uint256);
 
     /**
@@ -148,16 +142,17 @@ interface IVault {
      * @dev Burn the shares right away as per oracle based price per full share value
      * @param _receiver the address which will receive the underlying tokens
      * @param _userWithdrawVT amount in vault token
+     * @param _expectedOutput minimum amount of underlying tokens that must be received
+     *         to not revert transaction
      * @param _withdrawStrategies array of strategy hashes to identify which strategies to withdraw from
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
+        uint256 _expectedOutput,
         bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external returns (uint256);
 
     /**
@@ -203,17 +198,32 @@ interface IVault {
     function claimRewardToken(address _liquidityPool) external;
 
     /**
-     * @notice function to swap some of claimed _rewardTokenAmount for the vault's underlying tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
-     * @param _rewardTokenAmount amount of reward token to harvest/swap
+     * @notice function to swap the vault's entire balance of reward token for the vault's underlying token
+     * @param _rewardToken address of the reward token to harvest
      */
-    function harvestSome(address _liquidityPool, uint256 _rewardTokenAmount) external;
+    function harvest(address _rewardToken) external;
 
     /**
-     * @notice function to swap all claimed _rewardTokenAmount for the vault's underlying tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     * @notice Allow passing a signed message to approve spending
+     * @dev implements the permit function as for
+     * https://github.com/ethereum/EIPs/blob/8a34d644aacf0f9f8f00815307fd7dd5da07655f/EIPS/eip-2612.md
+     * @param _owner The owner of the funds
+     * @param _spender The spender
+     * @param _value The amount
+     * @param _deadline The deadline timestamp, type(uint256).max for max deadline
+     * @param _v Signature param
+     * @param _s Signature param
+     * @param _r Signature param
      */
-    function harvestAll(address _liquidityPool) external;
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external;
 
     /**
      * @notice adds a strategy to the vault
@@ -234,11 +244,11 @@ interface IVault {
     function balanceUT() external view returns (uint256);
 
     /**
-     * @notice Retrieve the vault's balance of the reward token of a given liquidity pool
+     * @notice Retrieve the reward token address of a given liquidity pool
      * @param _liquidityPool Liquidity pool's contract address
-     * @return The vault's balance of claimed reward tokens of a given liquidity pool.
+     * @return The harvest tokens address of a given liquidity pool
      */
-    function balanceClaimedRewardToken(address _liquidityPool) external view returns (uint256);
+    function getRewardToken(address _liquidityPool) external view returns (address);
 
     /**
      * @notice Retrieve reward token unclaimed balance for a given liquidity pool
@@ -289,7 +299,6 @@ interface IVault {
      * @param _deductions amount in underlying token to not consider in as a part of
      *       user deposit amount
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
@@ -298,8 +307,7 @@ interface IVault {
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external view returns (bool, string memory);
 
     /**
@@ -314,15 +322,13 @@ interface IVault {
      * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
     function userWithdrawPermitted(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) external view returns (bool, string memory);
 
     /**

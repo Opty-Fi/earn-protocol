@@ -36,10 +36,6 @@ export default {
       NAME: "deploy-strategy-manager",
       DESCRIPTION: "Deploy Strategy Manager library",
     },
-    DEPLOY_CLAIM_AND_HARVEST: {
-      NAME: "deploy-claim-and-harvest",
-      DESCRIPTION: "Deploy Claim and Harvest library",
-    },
     DEPLOY_VAULT: {
       NAME: "deploy-vault",
       DESCRIPTION: "Deploy Vault",
@@ -174,13 +170,18 @@ export default {
       NAME: "transfer-operation-ownership",
       DESCRIPTION: "Transfer financeOperator, riskOperator, strategyOperator anf operator one by one",
     },
-    SET_PENDING_GOVERNANCE: {
-      NAME: "set-pending-governance",
-      DESCRIPTION: "set pending governance",
-    },
     ACCEPT_GOVERNANCE: {
       NAME: "accept-pending-governance",
       DESCRIPTION: "accept governance",
+    },
+    TRANSFER_OPTYFI_ORACLE_OWNER: {
+      NAME: "transfer-optyfi-oracle-owner",
+      DESCRIPTION: "Transfer the ownership of optyfi oracle",
+    },
+    SET_PENDING_GOVERNANCE: { NAME: "set-pending-governance", DESCRIPTION: "set pending governance" },
+    CHANGE_POLYGON_OPUSDCEARN_PROXY_V2_ADMIN: {
+      NAME: "change-polygon-opusdcearn-proxy-v2-admin",
+      DESCRIPTION: "change polygon opUSDCearn vault proxy v2 admin",
     },
     SET_WHITELISTED_ACCOUNTS_ROOT: {
       NAME: "set-whitelisted-accounts-root",

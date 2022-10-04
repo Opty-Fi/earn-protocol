@@ -7,13 +7,7 @@ import { TESTING_CONTRACTS } from "../../helpers/constants/test-contracts-name";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import { eEVMNetwork } from "../../helper-hardhat-config";
-import {
-  getAccountsMerkleProof,
-  getAccountsMerkleRoot,
-  getCodesMerkleProof,
-  getCodesMerkleRoot,
-  Signers,
-} from "../../helpers/utils";
+import { getAccountsMerkleProof, getAccountsMerkleRoot, Signers } from "../../helpers/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { ERC20, ERC20__factory, Registry, Registry__factory, Vault, Vault__factory } from "../../typechain";
 
@@ -25,7 +19,7 @@ describe("Vault Protection", function () {
   before(async function () {
     const MAX_AMOUNT = BigNumber.from(1000000000000);
     await deployments.fixture();
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
@@ -78,12 +72,6 @@ describe("Vault Protection", function () {
     );
     await this.ERC20Instance.connect(this.signers.owner).transfer(this.userContract.address, MAX_AMOUNT);
 
-    const code = await ethers.provider.getCode(this.userContract.address);
-    const codeHash = ethers.utils.keccak256(code);
-    const _codeRoot = getCodesMerkleRoot([codeHash]);
-    await this.vault.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
-    this.codeProof = getCodesMerkleProof([codeHash], ethers.constants.HashZero);
-
     const _accountsRoot = getAccountsMerkleRoot([this.signers.owner.address, this.userContract.address]);
     await this.vault.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountsRoot);
     this.accountProof = getAccountsMerkleProof(
@@ -97,9 +85,7 @@ describe("Vault Protection", function () {
 
     it("User should be able to deposit to the vault", async function () {
       const balanceBefore = await this.vault.balanceOf(this.userContract.address);
-      await this.userContract
-        .connect(this.signers.owner)
-        .runUserDepositVault(tokenAmount, "0x", this.accountProof, this.codeProof);
+      await this.userContract.connect(this.signers.owner).runUserDepositVault(tokenAmount, "0x", this.accountProof);
       const balanceAfter = await this.vault.balanceOf(this.userContract.address);
       expect(balanceAfter).eq(balanceBefore.add(tokenAmount));
     });
@@ -109,7 +95,7 @@ describe("Vault Protection", function () {
       const balanceUserBefore = await this.vault.balanceOf(this.signers.owner.address);
       await this.userContract
         .connect(this.signers.owner)
-        .runTwoTxnDepositAndTransfer(tokenAmount, "0x", this.accountProof, this.codeProof);
+        .runTwoTxnDepositAndTransfer(tokenAmount, "0x", this.accountProof);
       const balanceContractAfter = await this.vault.balanceOf(this.userContract.address);
       const balanceUserAfter = await this.vault.balanceOf(this.signers.owner.address);
       expect(balanceContractAfter).eq(balanceContractBefore);
@@ -118,9 +104,7 @@ describe("Vault Protection", function () {
 
     it("User should be able to withdraw from the vault", async function () {
       const balanceBefore = await this.vault.balanceOf(this.userContract.address);
-      await this.userContract
-        .connect(this.signers.owner)
-        .runUserWithdrawVault(tokenAmount.div(2), this.accountProof, this.codeProof);
+      await this.userContract.connect(this.signers.owner).runUserWithdrawVault(tokenAmount.div(2), this.accountProof);
       const balanceAfter = await this.vault.balanceOf(this.userContract.address);
       expect(balanceAfter).eq(balanceBefore.sub(tokenAmount.div(2)));
     });
@@ -129,7 +113,7 @@ describe("Vault Protection", function () {
       const balanceBefore = await this.vault.balanceOf(this.userContract.address);
       await this.userContract
         .connect(this.signers.owner)
-        .runTwoTxnUserDepositVault(tokenAmount, "0x", this.accountProof, this.codeProof);
+        .runTwoTxnUserDepositVault(tokenAmount, "0x", this.accountProof);
       const balanceAfter = await this.vault.balanceOf(this.userContract.address);
       expect(balanceAfter).eq(balanceBefore.add(tokenAmount.mul(2)));
     });
@@ -138,16 +122,14 @@ describe("Vault Protection", function () {
       const balanceBefore = await this.vault.balanceOf(this.userContract.address);
       await this.userContract
         .connect(this.signers.owner)
-        .runTwoTxnUserWithdrawVault(tokenAmount.div(2), this.accountProof, this.codeProof);
+        .runTwoTxnUserWithdrawVault(tokenAmount.div(2), this.accountProof);
       const balanceAfter = await this.vault.balanceOf(this.userContract.address);
       expect(balanceAfter).eq(balanceBefore.sub(tokenAmount));
     });
 
     it("User should NOT be able to deposit and withdraw in the same block, EMERGENCY_BRAKE", async function () {
       await expect(
-        this.userContract
-          .connect(this.signers.owner)
-          .runTwoTxnDepositAndWithdraw(tokenAmount, "0x", this.accountProof, this.codeProof),
+        this.userContract.connect(this.signers.owner).runTwoTxnDepositAndWithdraw(tokenAmount, "0x", this.accountProof),
       ).to.be.revertedWith("16");
     });
   });

@@ -1,16 +1,14 @@
-import { ethers, deployments, artifacts } from "hardhat";
+import { ethers, deployments, artifacts, getChainId } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { BigNumber, ContractReceipt, Event } from "ethers";
 import BN from "bignumber.js";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseUnits } from "ethers/lib/utils";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
   getAccountsMerkleRoot,
-  getCodesMerkleProof,
-  getCodesMerkleRoot,
   getDepositFeePct,
   getDepositFeeUT,
   getSoliditySHA3Hash,
@@ -31,10 +29,10 @@ import {
   Vault,
   Vault__factory,
   TestVault,
-  IncentivisedERC20,
-  IncentivisedERC20__factory,
+  ERC20Permit,
+  ERC20Permit__factory,
 } from "../../typechain";
-import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
+import { getPermitSignature, getPermitLegacySignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
@@ -114,6 +112,11 @@ const testStrategy: {
 
 const strategyKeys = Object.keys(testStrategy[fork]);
 
+const EIP712_DOMAIN = ethers.utils.id(
+  "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
+);
+const EIP712_REVISION = ethers.utils.id("1");
+
 describe("::Vault", function () {
   before(async function () {
     await deployments.fixture();
@@ -128,7 +131,8 @@ describe("::Vault", function () {
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
+    const DAISAVE_VAULT_ADDRESS = (await deployments.get("opDAI-Save")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -143,19 +147,36 @@ describe("::Vault", function () {
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
     this.opUSDCearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
-    this.usdc = <IncentivisedERC20>(
-      await ethers.getContractAt(IncentivisedERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
+    this.opDAIsave = <Vault>await ethers.getContractAt(Vault__factory.abi, DAISAVE_VAULT_ADDRESS);
+
+    this.usdc = <ERC20Permit>(
+      await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
+
+    this.dai = <ERC20Permit>(
+      await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].DAI.address)
+    );
+    await setTokenBalanceInStorage(this.dai, this.signers.admin.address, "20000");
 
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
   });
 
   describe("#constructor(address,string,string,string,string)", function () {
-    it("name,symbol,decimals as expected", async function () {
-      expect(await this.opUSDCearn.name()).to.eq("OptyFi USDC Earn Vault");
-      expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
+    it("name,symbol,decimals, domainSeparator as expected", async function () {
+      const expectedName = "OptyFi USDC Earn Vault";
+      const expectedSymbol = "opUSDC-Earn";
+      const expectedDomainSeparator = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
+          ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+          [EIP712_DOMAIN, ethers.utils.id(expectedName), EIP712_REVISION, await getChainId(), this.opUSDCearn.address],
+        ),
+      );
+      expect(await this.opUSDCearn.name()).to.eq(expectedName);
+      expect(await this.opUSDCearn.symbol()).to.eq(expectedSymbol);
       expect(await this.opUSDCearn.decimals()).to.eq(6);
+      expect(await this.opUSDCearn._domainSeparator()).to.eq(expectedDomainSeparator);
+      expect(await this.opUSDCearn.DOMAIN_SEPARATOR()).to.eq(expectedDomainSeparator);
     });
 
     it("registry as expected", async function () {
@@ -360,22 +381,6 @@ describe("::Vault", function () {
       const _root = getAccountsMerkleRoot([this.signers.alice.address, this.signers.bob.address]);
       await this.opUSDCearn.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
       expect(await this.opUSDCearn.whitelistedAccountsRoot()).to.eq(_root);
-    });
-  });
-
-  describe("#setWhitelistedCodesRoot(bytes32)", function () {
-    it("fails setWhitelistedCodesRoot() call by non governance", async function () {
-      await expect(
-        this.opUSDCearn.connect(this.signers.bob).setWhitelistedCodesRoot(ethers.constants.HashZero),
-      ).to.be.revertedWith("caller is not having governance");
-    });
-
-    it("setWhitelistedCodesRoot() call by governance", async function () {
-      const code = await ethers.provider.getCode(this.opUSDCearn.address);
-      const codeHash = ethers.utils.keccak256(code);
-      const _root = getCodesMerkleRoot([codeHash]);
-      await this.opUSDCearn.connect(this.signers.governance).setWhitelistedCodesRoot(_root);
-      expect(await this.opUSDCearn.whitelistedCodesRoot()).to.eq(_root);
     });
   });
 
@@ -618,13 +623,7 @@ describe("::Vault", function () {
         true,
       );
       expect(
-        await this.opUSDCearn.userDepositPermitted(this.signers.eve.address, true, "1", "0", _proof, []),
-      ).to.have.members([false, "8"]);
-    });
-
-    it("userDepositPermitted() return false,CA_NOT_WHITELISTED", async function () {
-      expect(
-        await this.testVault.testUserDepositPermitted(this.opUSDCearn.address, "1000000000", [], []),
+        await this.opUSDCearn.userDepositPermitted(this.signers.eve.address, true, "1", "0", _proof),
       ).to.have.members([false, "8"]);
     });
 
@@ -636,7 +635,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "100", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "100", "0", _proof),
       ).to.have.members([false, "10"]);
     });
 
@@ -648,7 +647,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "100000000000", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "100000000000", "0", _proof),
       ).to.have.members([false, "11"]);
     });
 
@@ -660,7 +659,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "4000000000", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "4000000000", "0", _proof),
       ).to.have.members([false, "12"]);
     });
 
@@ -672,7 +671,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositPermitted(this.signers.alice.address, true, "1500000000", "0", _proof, []),
+          .userDepositPermitted(this.signers.alice.address, true, "1500000000", "0", _proof),
       ).to.have.members([true, ""]);
     });
 
@@ -683,17 +682,12 @@ describe("::Vault", function () {
         this.testVault.address,
       ]);
       await this.opUSDCearn.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountRoot);
-      const code = await ethers.provider.getCode(this.testVault.address);
-      const codeHash = ethers.utils.keccak256(code);
-      const _codeRoot = getCodesMerkleRoot([codeHash]);
-      await this.opUSDCearn.connect(this.signers.governance).setWhitelistedCodesRoot(_codeRoot);
       const _accountProof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
         this.testVault.address,
       );
-      const _codeProof = getCodesMerkleProof([codeHash], ethers.constants.HashZero);
       expect(
-        await this.testVault.testUserDepositPermitted(this.opUSDCearn.address, "1500000000", _accountProof, _codeProof),
+        await this.testVault.testUserDepositPermitted(this.opUSDCearn.address, "1500000000", _accountProof),
       ).to.have.members([true, ""]);
     });
   });
@@ -747,7 +741,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#userDepositVault(uint256,bytes,bytes32[],bytes32[])", function () {
+  describe("#userDepositVault(address,uint256,uint256,bytes,bytes32[])", function () {
     it("userDepositVault() using permit", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -797,7 +791,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, dataPermit, _proofs, []),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, _depositAmountUSDC, dataPermit, _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -811,6 +805,75 @@ describe("::Vault", function () {
       // the vault shares VT will be same as total supply is zero
       expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(
         _previousBalance.add(_depositAmountUSDCWithFee),
+      );
+    });
+
+    it("userDepositVault() using permit legacy", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
+        this.signers.alice.address,
+      );
+      // (0-15) Deposit fee UT = 0 USDC = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 USDC = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
+      await this.opDAIsave
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+      assertVaultConfiguration(
+        await this.opDAIsave.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      await this.opDAIsave.connect(this.signers.financeOperator).setValueControlParams(
+        parseUnits("10000", BigNumber.from(18)), // 10,000
+        parseUnits("10000", BigNumber.from(18)), // 1,000
+        parseUnits("1000000000000", BigNumber.from(18)), // 1,000,000
+      );
+      const _depositAmountDAI = BigNumber.from("1000").mul(to_10powNumber_BN("18"));
+      const _depositFee = await this.opDAIsave.calcDepositFeeUT(_depositAmountDAI);
+      const _depositAmountDAIWithFee = _depositAmountDAI.sub(_depositFee);
+      const _previousBalance = await this.opDAIsave.balanceOf(this.signers.alice.address);
+      const _previousVaultBalance = await this.opDAIsave.balanceUT();
+      await this.opDAIsave.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountDAI);
+      const deadline = ethers.constants.MaxUint256;
+      const { v, r, s } = await getPermitLegacySignature(
+        this.signers.alice,
+        this.dai,
+        this.opDAIsave.address,
+        deadline,
+      );
+      const dataPermit = ethers.utils.defaultAbiCoder.encode(
+        ["address", "address", "uint256", "uint256", "bool", "uint8", "bytes32", "bytes32"],
+        [this.signers.alice.address, this.opDAIsave.address, 0, deadline, true, v, r, s],
+      );
+      await this.dai.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountDAI);
+      await expect(
+        this.opDAIsave
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, _depositAmountDAI, _depositAmountDAI, dataPermit, _proofs),
+      )
+        .to.emit(this.opDAIsave, "Transfer")
+        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountDAIWithFee);
+      expect(await this.dai.balanceOf(this.opDAIsave.address)).to.eq(
+        _previousVaultBalance.add(_depositAmountDAIWithFee),
+      );
+      expect(await this.opDAIsave.totalSupply()).to.eq(_previousVaultBalance.add(_depositAmountDAIWithFee));
+      expect(await this.opDAIsave.totalDeposits(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountDAIWithFee),
+      );
+      // the vault shares VT will be same as total supply is zero
+      expect(await this.opDAIsave.balanceOf(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountDAIWithFee),
       );
     });
 
@@ -830,7 +893,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, usdcDepositAmount, [], [], []),
+          .userDepositVault(this.signers.alice.address, usdcDepositAmount, usdcDepositAmount, [], []),
       ).to.be.revertedWith("14");
     });
 
@@ -869,7 +932,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, [], _proofs, []),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, _depositAmountUSDC, [], _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -886,7 +949,7 @@ describe("::Vault", function () {
       );
     });
 
-    it("fail userDepositVault() for non-whitelisted,EOA_NOT_WHITELISTED", async function () {
+    it("fail userDepositVault() for non-whitelisted, EOA_NOT_WHITELISTED", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
         this.signers.eve.address,
@@ -913,7 +976,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proofs, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC, [], _proofs),
       ).to.revertedWith("8");
     });
 
@@ -944,15 +1007,46 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _bobProofs, []),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, _depositAmountUSDC, [], _bobProofs),
       ).to.revertedWith("8");
     });
 
-    it("userDepositVault, deposit fees", async function () {
+    it("fail userDepositVault() expected output amount not reached, INSUFFICIENT_OUTPUT_AMOUNT", async function () {
       // lift emergency shutdown
       await expect(this.opUSDCearn.connect(this.signers.governance).setEmergencyShutdown(false))
         .to.emit(this.opUSDCearn, "LogEmergencyShutdown")
         .withArgs(false, this.signers.governance.address);
+      const _proof = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
+        this.signers.eve.address,
+      );
+      await this.opUSDCearn
+        .connect(this.signers.governance)
+        .setVaultConfiguration("2715822034072518811744046181093660912122076772552892442457464397795247259658");
+      assertVaultConfiguration(
+        await this.opUSDCearn.vaultConfiguration(),
+        BigNumber.from("10"),
+        BigNumber.from("500"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
+        BigNumber.from("1"),
+        false,
+        true,
+        true,
+      );
+      const _depositAmountUSDC = BigNumber.from("1100000000");
+      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
+      await this.usdc.connect(this.signers.eve).approve(this.opUSDCearn.address, _depositAmountUSDC);
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.eve)
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC.add(1), [], _proof),
+      ).to.revertedWith("9");
+    });
+
+    it("userDepositVault, deposit fees", async function () {
       // set 5% deposit fee, 10 UT flat fee, set vaultFeeCollector address = 0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5
       // 0x060119cDeDF678aBE15a921a2AB26C9Bc8867fc35cE500640000000001f4000A
       // 2715822034072518811744046181093660912122076772552892442457464397795247259658
@@ -991,7 +1085,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _expectedShares, [], _proof),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1014,7 +1108,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(ethers.constants.AddressZero, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC, [], _proof),
       ).to.revertedWith("10");
     });
 
@@ -1049,11 +1143,12 @@ describe("::Vault", function () {
       const _expectedWithdrawalFee = new BN(new BN(_expectedUT.toString()).multipliedBy("0.05")).plus(
         new BN("10000000"),
       );
+      const _expectedWithdrawAmount = _expectedUT.sub(BigNumber.from(Math.floor(_expectedWithdrawalFee.toNumber())));
       const _balanceBeforeUT = await this.usdc.balanceOf(this.signers.eve.address);
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _proof, []),
+          .userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _expectedWithdrawAmount, _proof),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1076,12 +1171,167 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof, []),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC, [], _proof),
       ).to.revertedWith("13");
     });
   });
 
-  describe("#userWithdrawPermitted(address,uint256,bytes32[],bytes32[])", function () {
+  describe("#permit(address,address,uint256,uint256,uint8,bytes32,bytes32", function () {
+    it("success, gasless approval and vault token transferfrom", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      const nonceBeforeAlice = await this.opUSDCearn.nonces(this.signers.alice.address);
+      const tx = await this.opUSDCearn
+        .connect(this.signers.operator)
+        .permit(
+          this.signers.alice.address,
+          this.signers.bob.address,
+          vaultTokenBalanceAlice,
+          BigNumber.from(deadline).add(1800),
+          v,
+          r,
+          s,
+        );
+      await tx.wait(1);
+      expect(await this.opUSDCearn.allowance(this.signers.alice.address, this.signers.bob.address)).to.eq(
+        vaultTokenBalanceAlice,
+      );
+      expect(await this.opUSDCearn.nonces(this.signers.alice.address)).to.eq(nonceBeforeAlice.add("1"));
+
+      const vaultTokenBalanceBeforeBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const tx1 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transferFrom(this.signers.alice.address, this.signers.bob.address, vaultTokenBalanceAlice);
+      await tx1.wait(1);
+      const vaultTokenBalanceAfterBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const vaultTokenBalanceAfterAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAfterBob).to.eq(vaultTokenBalanceBeforeBob.add(vaultTokenBalanceAlice));
+      expect(vaultTokenBalanceAfterAlice).to.eq("0");
+      // send vault token back to alice
+      const tx3 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transfer(this.signers.alice.address, vaultTokenBalanceAlice);
+      await tx3.wait(1);
+      expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(vaultTokenBalanceAlice);
+    });
+
+    it("fail, zero address not valid", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            ethers.constants.AddressZero,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("27");
+    });
+    it("fail, expired timestamp", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).sub(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("28");
+    });
+
+    it("fail, invalid signature(wrong signer)", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.bob,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("29");
+    });
+    it("fail, invalid signature(reuse nonce)", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.bob,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1", nonce: BigNumber.from("0") },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("29");
+    });
+  });
+
+  describe("#userWithdrawPermitted(address,uint256,uint256,bytes32[])", function () {
     it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
       const _accountProof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -1109,7 +1359,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userWithdrawPermitted(this.signers.alice.address, _userBalance.add(1), _accountProof, []),
+          .userWithdrawPermitted(this.signers.alice.address, _userBalance.add(1), _accountProof),
       ).to.have.members([false, "1"]);
     });
 
@@ -1122,7 +1372,7 @@ describe("::Vault", function () {
       expect(
         await this.opUSDCearn
           .connect(this.signers.alice)
-          .userWithdrawPermitted(this.signers.alice.address, _balanceVT, _proofs, []),
+          .userWithdrawPermitted(this.signers.alice.address, _balanceVT, _proofs),
       ).members([true, ""]);
     });
   });
@@ -1335,72 +1585,49 @@ describe("::Vault", function () {
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
       const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      await expect(this.opUSDCearn.claimRewardToken(_pool)).to.emit(this.opUSDCearn, "RewardTokenClaimed");
+      await this.opUSDCearn.claimRewardToken(_pool);
       const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
       expect(_balanceRTAfter).to.gt(_balanceRTBefore);
     });
   });
 
-  describe("#harvestSome(address,uint256)", function () {
+  describe("#harvest(address)", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail harvestSome() call by non strategyOperator", async function () {
-      await expect(
-        this.opUSDCearn.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000)),
-      ).to.be.revertedWith("caller is not the strategyOperator");
-    });
-
-    it("claimRewardToken(), fails nothing to claim", async function () {
+    it("fail harvest() call by non strategyOperator", async function () {
       const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
       const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
-      const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
-      const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      await expect(this.opUSDCearn.claimRewardToken(_pool)).to.emit(this.opUSDCearn, "RewardTokenClaimed");
-      const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      expect(_balanceRTAfter).to.gt(_balanceRTBefore);
-    });
-  });
-
-  describe("#harvestSome(address,uint256)", function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-
-    it("fail harvestSome() call by non strategyOperator", async function () {
-      await expect(
-        this.opUSDCearn.connect(this.signers.bob).harvestSome(_pool, BigNumber.from(1000)),
-      ).to.be.revertedWith("caller is not the strategyOperator");
-    });
-
-    it("harvestSome()", async function () {
-      const _balanceClaimed = await this.opUSDCearn.balanceClaimedRewardToken(_pool);
-      const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvestSome(_pool, BigNumber.from(_balanceClaimed.div(2)))).to.emit(
-        this.opUSDCearn,
-        "Harvested",
-      );
-      const _balanceAfterUT = await this.opUSDCearn.balanceUT();
-      expect(_balanceAfterUT).gt(_balanceBeforeUT);
-    });
-  });
-
-  describe("#harvestAll(address)", function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-
-    it("fail harvestAll() call by non strategyOperator", async function () {
-      await expect(this.opUSDCearn.connect(this.signers.bob).harvestAll(_pool)).to.be.revertedWith(
+      await expect(this.opUSDCearn.connect(this.signers.bob).harvest(_rewardToken)).to.be.revertedWith(
         "caller is not the strategyOperator",
       );
     });
 
-    it("harvestAll()", async function () {
+    it("harvest()", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvestAll(_pool)).to.emit(this.opUSDCearn, "Harvested");
+      await expect(this.opUSDCearn.harvest(_rewardToken)).to.emit(this.opUSDCearn, "Harvested");
       const _balanceAfterUT = await this.opUSDCearn.balanceUT();
       expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });
   });
 
   describe("#userWithdrawVault(uint256,bytes32[],bytes32[])", function () {
+    it("fail userWithdrawVault() expected output amount not reached, INSUFFICIENT_OUTPUT_AMOUNT", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
+        this.signers.alice.address,
+      );
+      const _balanceVT = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.alice)
+          .userWithdrawVault(this.signers.alice.address, _balanceVT, _balanceVT.mul(2), _proofs),
+      ).to.be.revertedWith("9");
+    });
+
     it("userWithdrawVault()", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -1434,7 +1661,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _redeemVT, _proofs, []),
+          .userWithdrawVault(this.signers.alice.address, _redeemVT, _redeemVT, _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
@@ -1454,7 +1681,7 @@ describe("::Vault", function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _redeemVT, _proof, []),
+          .userWithdrawVault(this.signers.alice.address, _redeemVT, _redeemVT, _proof),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
@@ -1465,6 +1692,90 @@ describe("::Vault", function () {
     it("fail _beforeTokenTransfer() TRANSFER_TO_THIS_CONTRACT", async function () {
       const _redeemVT = await this.opUSDCearn.balanceOf(this.signers.alice.address);
       await expect(this.opUSDCearn.transfer(this.opUSDCearn.address, _redeemVT)).to.revertedWith("18");
+    });
+  });
+
+  describe("#setName()", function () {
+    it("success, only governance can change name", async function () {
+      const setNameStr = "OptyFi USD Coin Earn Vault";
+      const expectedDomainSeparator = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
+          ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+          [EIP712_DOMAIN, ethers.utils.id(setNameStr), EIP712_REVISION, await getChainId(), this.opUSDCearn.address],
+        ),
+      );
+      const tx = await this.opUSDCearn.connect(this.signers.governance).setName(setNameStr);
+      await tx.wait(1);
+      expect(await this.opUSDCearn.name()).to.eq(setNameStr);
+      expect(await this.opUSDCearn._domainSeparator()).to.eq(expectedDomainSeparator);
+      expect(await this.opUSDCearn.DOMAIN_SEPARATOR()).to.eq(expectedDomainSeparator);
+    });
+    it("fail, only governance can change name", async function () {
+      const setNameStr = "OptyFi USD Coin Earn Vault";
+      await expect(this.opUSDCearn.connect(this.signers.bob).setName(setNameStr)).to.be.revertedWith(
+        "caller is not having governance",
+      );
+    });
+    it("success, gasless approval and vault token transferfrom", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      const nonceBeforeAlice = await this.opUSDCearn.nonces(this.signers.alice.address);
+      const tx = await this.opUSDCearn
+        .connect(this.signers.operator)
+        .permit(
+          this.signers.alice.address,
+          this.signers.bob.address,
+          vaultTokenBalanceAlice,
+          BigNumber.from(deadline).add(1800),
+          v,
+          r,
+          s,
+        );
+      await tx.wait(1);
+      expect(await this.opUSDCearn.allowance(this.signers.alice.address, this.signers.bob.address)).to.eq(
+        vaultTokenBalanceAlice,
+      );
+      expect(await this.opUSDCearn.nonces(this.signers.alice.address)).to.eq(nonceBeforeAlice.add("1"));
+
+      const vaultTokenBalanceBeforeBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const tx1 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transferFrom(this.signers.alice.address, this.signers.bob.address, vaultTokenBalanceAlice);
+      await tx1.wait(1);
+      const vaultTokenBalanceAfterBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const vaultTokenBalanceAfterAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAfterBob).to.eq(vaultTokenBalanceBeforeBob.add(vaultTokenBalanceAlice));
+      expect(vaultTokenBalanceAfterAlice).to.eq("0");
+      // send vault token back to alice
+      const tx3 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transfer(this.signers.alice.address, vaultTokenBalanceAlice);
+      await tx3.wait(1);
+      expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(vaultTokenBalanceAlice);
+    });
+  });
+
+  describe("#setSymbol", function () {
+    it("success, only governance can change symbol", async function () {
+      const setSymbolStr = "opUSDCearn";
+      const tx = await this.opUSDCearn.connect(this.signers.governance).setSymbol(setSymbolStr);
+      await tx.wait(1);
+      expect(await this.opUSDCearn.symbol()).to.eq(setSymbolStr);
+    });
+    it("fail, only governance can change symbol", async function () {
+      const setSymbolStr = "opUSDCearn";
+      await expect(this.opUSDCearn.connect(this.signers.bob).setSymbol(setSymbolStr)).to.be.revertedWith(
+        "caller is not having governance",
+      );
     });
   });
 });
