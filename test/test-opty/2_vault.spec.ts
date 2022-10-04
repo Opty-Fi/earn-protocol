@@ -1508,28 +1508,30 @@ describe("::Vault", function () {
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
       const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      await expect(this.opUSDCearn.claimRewardToken(_pool)).to.emit(this.opUSDCearn, "RewardTokenClaimed");
+      await this.opUSDCearn.claimRewardToken(_pool);
       const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
       expect(_balanceRTAfter).to.gt(_balanceRTBefore);
     });
   });
 
-  describe("#harvestSome(address,uint256)", function () {
+  describe("#harvest(address,uint256)", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail harvestSome() call by non strategyOperator", async function () {
-      await expect(this.opUSDCearn.connect(this.signers.bob).harvest(_pool, BigNumber.from(1000))).to.be.revertedWith(
+    it("fail harvest() call by non strategyOperator", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
+      await expect(this.opUSDCearn.connect(this.signers.bob).harvest(_rewardToken)).to.be.revertedWith(
         "caller is not the strategyOperator",
       );
     });
 
-    it("harvestSome()", async function () {
-      const _balanceClaimed = await this.opUSDCearn.balanceClaimedRewardToken(_pool);
+    it("harvest()", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvest(_pool, BigNumber.from(_balanceClaimed.div(2)))).to.emit(
-        this.opUSDCearn,
-        "Harvested",
-      );
+      await expect(this.opUSDCearn.harvest(_rewardToken)).to.emit(this.opUSDCearn, "Harvested");
       const _balanceAfterUT = await this.opUSDCearn.balanceUT();
       expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });

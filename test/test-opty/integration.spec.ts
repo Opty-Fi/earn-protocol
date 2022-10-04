@@ -413,16 +413,11 @@ describe("Integration tests", function () {
       expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
     });
 
-    it("23. Deployer can deploy StrategyManager and ClaimAndHarvest ", async function () {
+    it("23. Deployer can deploy StrategyManager ", async function () {
       this.strategyManager = <StrategyManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER, false, this.signers.deployer, [])
       );
       assert.isDefined(this.strategyManager, "!StrategyManager");
-
-      this.claimAndHarvest = <RiskManagerProxy>(
-        await deployContract(hre, ESSENTIAL_CONTRACTS.CLAIM_AND_HARVEST, false, this.signers.deployer, [])
-      );
-      assert.isDefined(this.claimAndHarvest, "!ClaimAndHarvest");
     });
 
     it("24. Operator can deploy vault and admin can upgrade", async function () {
@@ -450,7 +445,6 @@ describe("Integration tests", function () {
           hre,
           this.registry.address,
           this.strategyManager.address,
-          this.claimAndHarvest.address,
           StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[0]]
             .token,
           "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -467,7 +461,7 @@ describe("Integration tests", function () {
       );
 
       expect(await this.vault.name()).to.equal("OptyFi USDC Aggressive Vault");
-      expect(await this.vault.symbol()).to.equal("opUSDCaggr");
+      expect(await this.vault.symbol()).to.equal("opUSDC-aggr");
       expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
       const actualRiskProfileCode = getRiskProfileCode(await this.vault.vaultConfiguration());
       expect(actualRiskProfileCode).to.equal("2");
@@ -694,17 +688,12 @@ describe("Integration tests", function () {
     it("37. The strategy operator claims rewards successfully", async function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
-      const claimedRewardBefore = await this.vault.balanceClaimedRewardToken(
-        strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
-      );
-      await expect(
-        await this.vault
-          .connect(this.signers.strategyOperator)
-          .claimRewardToken(strategyDetail.strategy[strategyDetail.strategy.length - 1].contract),
-      ).to.emit(this.vault, "RewardTokenClaimed");
-      const claimedRewardAfter = await this.vault.balanceClaimedRewardToken(
-        strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
-      );
+      this.crv = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.CRV);
+      const claimedRewardBefore = await this.crv.balanceOf(this.vault.address);
+      await this.vault
+        .connect(this.signers.strategyOperator)
+        .claimRewardToken(strategyDetail.strategy[strategyDetail.strategy.length - 1].contract);
+      const claimedRewardAfter = await this.crv.balanceOf(this.vault.address);
       expect(claimedRewardAfter).gt(claimedRewardBefore);
     });
 
@@ -712,12 +701,10 @@ describe("Integration tests", function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const balanceBeforeUT = await this.vault.balanceUT();
-      const _balanceClaimed = await this.vault.balanceClaimedRewardToken(strategyDetail.strategy[0].contract);
-      await expect(
-        await this.vault
-          .connect(this.signers.strategyOperator)
-          .harvest(strategyDetail.strategy[0].contract, _balanceClaimed),
-      ).to.emit(this.vault, "Harvested");
+      await expect(await this.vault.connect(this.signers.strategyOperator).harvest(TypedTokens.CRV)).to.emit(
+        this.vault,
+        "Harvested",
+      );
       const balanceAfterUT = await this.vault.balanceUT();
       expect(balanceAfterUT).gt(balanceBeforeUT);
     });
