@@ -3,7 +3,6 @@ import { isAddress } from "../../helpers/helpers";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 import TASKS from "../task-names";
 import { Vault } from "../../typechain";
-import { BigNumber } from "ethers";
 
 task(TASKS.ACTION_TASKS.REWARD_HARVEST.NAME, TASKS.ACTION_TASKS.REWARD_HARVEST.DESCRIPTION)
   .addParam("vault", "the address of vault", "", types.string)

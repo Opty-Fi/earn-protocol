@@ -698,8 +698,6 @@ describe("Integration tests", function () {
     });
 
     it("38. The strategy operator harvest rewards successfully", async function () {
-      const strategyDetail =
-        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const balanceBeforeUT = await this.vault.balanceUT();
       await expect(await this.vault.connect(this.signers.strategyOperator).harvest(TypedTokens.CRV)).to.emit(
         this.vault,
