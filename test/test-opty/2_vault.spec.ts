@@ -1514,7 +1514,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#harvest(address,uint256)", function () {
+  describe("#harvest(address)", function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
     it("fail harvest() call by non strategyOperator", async function () {
