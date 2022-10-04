@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { BigNumber, ContractReceipt, Event } from "ethers";
 import BN from "bignumber.js";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseUnits } from "ethers/lib/utils";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -32,7 +32,7 @@ import {
   ERC20Permit,
   ERC20Permit__factory,
 } from "../../typechain";
-import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
+import { getPermitSignature, getPermitLegacySignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
@@ -132,6 +132,7 @@ describe("::Vault", function () {
     const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
     const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
+    const DAISAVE_VAULT_ADDRESS = (await deployments.get("opDAI-Save")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -146,10 +147,17 @@ describe("::Vault", function () {
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
     this.opUSDCearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
+    this.opDAIsave = <Vault>await ethers.getContractAt(Vault__factory.abi, DAISAVE_VAULT_ADDRESS);
+
     this.usdc = <ERC20Permit>(
       await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
+
+    this.dai = <ERC20Permit>(
+      await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].DAI.address)
+    );
+    await setTokenBalanceInStorage(this.dai, this.signers.admin.address, "20000");
 
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
   });
@@ -797,6 +805,75 @@ describe("::Vault", function () {
       // the vault shares VT will be same as total supply is zero
       expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(
         _previousBalance.add(_depositAmountUSDCWithFee),
+      );
+    });
+
+    it("userDepositVault() using permit legacy", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
+        this.signers.alice.address,
+      );
+      // (0-15) Deposit fee UT = 0 USDC = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 USDC = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
+      await this.opDAIsave
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+      assertVaultConfiguration(
+        await this.opDAIsave.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      await this.opDAIsave.connect(this.signers.financeOperator).setValueControlParams(
+        parseUnits("10000", BigNumber.from(18)), // 10,000
+        parseUnits("10000", BigNumber.from(18)), // 1,000
+        parseUnits("1000000000000", BigNumber.from(18)), // 1,000,000
+      );
+      const _depositAmountDAI = BigNumber.from("1000").mul(to_10powNumber_BN("18"));
+      const _depositFee = await this.opDAIsave.calcDepositFeeUT(_depositAmountDAI);
+      const _depositAmountDAIWithFee = _depositAmountDAI.sub(_depositFee);
+      const _previousBalance = await this.opDAIsave.balanceOf(this.signers.alice.address);
+      const _previousVaultBalance = await this.opDAIsave.balanceUT();
+      await this.opDAIsave.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountDAI);
+      const deadline = ethers.constants.MaxUint256;
+      const { v, r, s } = await getPermitLegacySignature(
+        this.signers.alice,
+        this.dai,
+        this.opDAIsave.address,
+        deadline,
+      );
+      const dataPermit = ethers.utils.defaultAbiCoder.encode(
+        ["address", "address", "uint256", "uint256", "bool", "uint8", "bytes32", "bytes32"],
+        [this.signers.alice.address, this.opDAIsave.address, 0, deadline, true, v, r, s],
+      );
+      await this.dai.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountDAI);
+      await expect(
+        this.opDAIsave
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, _depositAmountDAI, _depositAmountDAI, dataPermit, _proofs),
+      )
+        .to.emit(this.opDAIsave, "Transfer")
+        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountDAIWithFee);
+      expect(await this.dai.balanceOf(this.opDAIsave.address)).to.eq(
+        _previousVaultBalance.add(_depositAmountDAIWithFee),
+      );
+      expect(await this.opDAIsave.totalSupply()).to.eq(_previousVaultBalance.add(_depositAmountDAIWithFee));
+      expect(await this.opDAIsave.totalDeposits(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountDAIWithFee),
+      );
+      // the vault shares VT will be same as total supply is zero
+      expect(await this.opDAIsave.balanceOf(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountDAIWithFee),
       );
     });
 
