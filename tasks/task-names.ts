@@ -36,10 +36,6 @@ export default {
       NAME: "deploy-strategy-manager",
       DESCRIPTION: "Deploy Strategy Manager library",
     },
-    DEPLOY_CLAIM_AND_HARVEST: {
-      NAME: "deploy-claim-and-harvest",
-      DESCRIPTION: "Deploy Claim and Harvest library",
-    },
     DEPLOY_VAULT: {
       NAME: "deploy-vault",
       DESCRIPTION: "Deploy Vault",
