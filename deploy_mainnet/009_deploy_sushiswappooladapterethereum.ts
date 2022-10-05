@@ -2,6 +2,7 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import { getAddress } from "ethers/lib/utils";
 import { waitforme } from "../helpers/utils";
 import {
   Registry,
@@ -79,6 +80,7 @@ const func: DeployFunction = async ({
   const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
   const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
   const MANA = "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942";
+  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
   const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
   const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
   const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
@@ -93,22 +95,26 @@ const func: DeployFunction = async ({
   const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
   const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
   const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
+  const USDC_WETH_LP = "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0";
+  const WBTC_WETH_LP = "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58";
 
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "50" },
-    { liquidityPool: APE_USDT_LP, tolerance: "50" },
+    { liquidityPool: APE_USDT_LP, tolerance: "150" },
     { liquidityPool: SUSHI_WETH_LP, tolerance: "100" },
     { liquidityPool: MANA_WETH_LP, tolerance: "150" },
     { liquidityPool: LINK_WETH_LP, tolerance: "50" },
     { liquidityPool: ENS_WETH_LP, tolerance: "200" },
-    { liquidityPool: COMP_WETH_LP, tolerance: "70" },
-    { liquidityPool: IMX_WETH_LP, tolerance: "100" },
+    { liquidityPool: COMP_WETH_LP, tolerance: "150" },
+    { liquidityPool: IMX_WETH_LP, tolerance: "150" },
     { liquidityPool: LDO_WETH_LP, tolerance: "100" },
     { liquidityPool: YGG_WETH_LP, tolerance: "100" },
     { liquidityPool: ALCX_WETH_LP, tolerance: "90" },
     { liquidityPool: CRV_WETH_LP, tolerance: "50" },
-    { liquidityPool: CVX_WETH_LP, tolerance: "70" },
-    { liquidityPool: YFI_WETH_LP, tolerance: "100" },
+    { liquidityPool: CVX_WETH_LP, tolerance: "200" },
+    { liquidityPool: YFI_WETH_LP, tolerance: "150" },
+    { liquidityPool: USDC_WETH_LP, tolerance: "50" },
+    { liquidityPool: WBTC_WETH_LP, tolerance: "50" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -121,12 +127,16 @@ const func: DeployFunction = async ({
   }
 
   if (pendingLiquidityPoolToTolerances.length > 0) {
-    console.log("updating pending LiquidityPool To Tolerances");
     console.log(JSON.stringify(pendingLiquidityPoolToTolerances, null, 4));
-    const tx = await sushiswapPoolAdapterEthereumInstance
-      .connect(riskOperatorSigner)
-      .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);
-    await tx.wait(1);
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      console.log("updating pending LiquidityPool To Tolerances");
+      const tx = await sushiswapPoolAdapterEthereumInstance
+        .connect(riskOperatorSigner)
+        .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);
+      await tx.wait(1);
+    } else {
+      console.log("cannot update pending LiquidityPool To Tolerances because the signer is not the risk operator");
+    }
   } else {
     console.log("liquidityPoolToTolerances are up to date");
   }
@@ -134,7 +144,7 @@ const func: DeployFunction = async ({
   const liquidityPoolToWantTokenToSlippages = [
     { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.AAVE, slippage: "100" },
     { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
-    { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "70" },
+    { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" },
     { liquidityPool: APE_USDT_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDT, slippage: "50" },
     { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
     { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SUSHI, slippage: "150" },
@@ -145,19 +155,23 @@ const func: DeployFunction = async ({
     { liquidityPool: ENS_WETH_LP, wantToken: ENS, slippage: "200" },
     { liquidityPool: ENS_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
     { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.COMP, slippage: "100" },
+    { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.COMP, slippage: "150" },
     { liquidityPool: IMX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
-    { liquidityPool: IMX_WETH_LP, wantToken: IMX, slippage: "50" },
+    { liquidityPool: IMX_WETH_LP, wantToken: IMX, slippage: "150" },
     { liquidityPool: YGG_WETH_LP, wantToken: YGG, slippage: "100" },
     { liquidityPool: YGG_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: ALCX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
     { liquidityPool: ALCX_WETH_LP, wantToken: ALCX, slippage: "90" },
     { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.CRV, slippage: "70" },
+    { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.CRV, slippage: "150" },
     { liquidityPool: CVX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
     { liquidityPool: CVX_WETH_LP, wantToken: CVX, slippage: "90" },
     { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
-    { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "90" },
+    { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "150" },
+    { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
+    { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: WBTC, slippage: "70" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
@@ -171,12 +185,18 @@ const func: DeployFunction = async ({
   }
 
   if (pendingLiquidityPoolToWantTokenToSlippages.length > 0) {
-    console.log("updating pending LiquidityPool To Want Token To Slippages ");
     console.log(JSON.stringify(pendingLiquidityPoolToWantTokenToSlippages, null, 4));
-    const tx = await sushiswapPoolAdapterEthereumInstance
-      .connect(riskOperatorSigner)
-      .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
-    await tx.wait(1);
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      console.log("updating pending LiquidityPool To Want Token To Slippages");
+      const tx = await sushiswapPoolAdapterEthereumInstance
+        .connect(riskOperatorSigner)
+        .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
+      await tx.wait(1);
+    } else {
+      console.log(
+        "cannot update pending LiquidityPool To Want Token To Slippages because the signer is not the risk operator",
+      );
+    }
   } else {
     console.log("pendingLiquidityPoolToWantTokenToSlippages are up to date");
   }

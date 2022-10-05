@@ -43,7 +43,3 @@
 [submodule "contracts/protocol/earn-protocol-configuration"]
 	path = contracts/protocol/earn-protocol-configuration
 	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
-	branch = code-size-fix
-[submodule "contracts/protocol/optyfi-oracle"]
-	path = contracts/protocol/optyfi-oracle
-	url = https://github.com/Opty-Fi/optyfi-oracle.git

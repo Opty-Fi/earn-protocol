@@ -15,11 +15,11 @@ chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 
-describe("Vault Protection", function () {
+describe(`${fork}-Vault-rev4 Protection`, function () {
   before(async function () {
     const MAX_AMOUNT = BigNumber.from(1000000000000);
     await deployments.fixture();
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     this.vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
@@ -80,7 +80,7 @@ describe("Vault Protection", function () {
     );
   });
 
-  describe("Vault Deposit Protection", () => {
+  describe(`${fork}-Vault Deposit Protection`, () => {
     const tokenAmount = BigNumber.from("2000000000");
 
     it("User should be able to deposit to the vault", async function () {

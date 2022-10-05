@@ -37,26 +37,6 @@ export async function deployStrategyManager(
   return strategyManager;
 }
 
-export async function deployClaimAndHarvest(
-  hre: HardhatRuntimeEnvironment,
-  owner: Signer,
-  isDeployedOnce: boolean,
-): Promise<Contract> {
-  let claimAndHarvest = await deployContract(
-    hre,
-    ESSENTIAL_CONTRACTS_DATA.CLAIM_AND_HARVEST,
-    isDeployedOnce,
-    owner,
-    [],
-  );
-  claimAndHarvest = await hre.ethers.getContractAt(
-    ESSENTIAL_CONTRACTS_DATA.CLAIM_AND_HARVEST,
-    claimAndHarvest.address,
-    owner,
-  );
-  return claimAndHarvest;
-}
-
 export async function deployRiskManager(
   hre: HardhatRuntimeEnvironment,
   owner: Signer,
@@ -176,7 +156,6 @@ export async function deployVault(
   hre: HardhatRuntimeEnvironment,
   registry: string,
   strategyManager: string,
-  claimAndHarvest: string,
   underlyingToken: string,
   whitelistedAccountsRoot: string,
   vaultConfiguration: string,
@@ -193,7 +172,6 @@ export async function deployVault(
   const vaultFactory = await hre.ethers.getContractFactory(ESSENTIAL_CONTRACTS_DATA.VAULT, {
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager,
-      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest,
     },
     signer: admin,
   });
@@ -230,7 +208,6 @@ export async function deployVaultWithHash(
   vaultName: string,
   registry: string,
   strategyManager: string,
-  claimAndHarvest: string,
   underlyingToken: string,
   whitelistedAccountsRoot: string,
   vaultConfiguration: string,
@@ -263,7 +240,6 @@ export async function deployVaultWithHash(
     skipIfAlreadyDeployed: false,
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager,
-      "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest": claimAndHarvest,
     },
     proxy: {
       owner: adminAddress,

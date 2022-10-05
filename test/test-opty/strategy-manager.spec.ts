@@ -37,7 +37,7 @@ const fork = process.env.FORK as eEVMNetwork;
 const token: string = "USDC";
 const riskProfile: string = "Earn";
 
-describe("StrategyManager Library", () => {
+describe(`${fork}-Vault-rev4 StrategyManager Library`, () => {
   before(async function () {
     await deployments.fixture();
     this.signers = {} as Signers;
@@ -75,7 +75,7 @@ describe("StrategyManager Library", () => {
     const governanceAddress = await this.registry.getGovernance();
     this.signers.governance = await ethers.getSigner(governanceAddress);
   });
-  describe("StrategyManager", () => {
+  describe(`${fork}-StrategyManager`, () => {
     for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
       const strategyDetail = StrategiesByTokenByChain[fork][riskProfile][token][strategy];
       const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
@@ -85,7 +85,7 @@ describe("StrategyManager Library", () => {
         isBorrow: item.isBorrow,
       }));
 
-      describe(`${strategy}`, () => {
+      describe(`${fork}-${strategy}`, () => {
         beforeEach(async function () {
           this.testStrategyManagerArtifact = <Artifact>await artifacts.readArtifact("TestStrategyManager");
           const testStrategyManagerFactory = await ethers.getContractFactory("TestStrategyManager", {

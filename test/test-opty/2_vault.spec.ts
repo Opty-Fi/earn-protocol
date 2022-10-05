@@ -1,10 +1,11 @@
-import { ethers, deployments, artifacts } from "hardhat";
+import { ethers, deployments, artifacts, getChainId } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
 import { BigNumber, ContractReceipt, Event } from "ethers";
 import BN from "bignumber.js";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseUnits } from "ethers/lib/utils";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -32,7 +33,7 @@ import {
   ERC20Permit,
   ERC20Permit__factory,
 } from "../../typechain";
-import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
+import { getPermitSignature, getPermitLegacySignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
 import { generateStrategyHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
@@ -42,6 +43,7 @@ import { Artifact } from "hardhat/types";
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
+const UniswapV3RouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; //mainnet
 
 const testStrategy: {
   [key: string]: {
@@ -112,7 +114,12 @@ const testStrategy: {
 
 const strategyKeys = Object.keys(testStrategy[fork]);
 
-describe("::Vault", function () {
+const EIP712_DOMAIN = ethers.utils.id(
+  "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
+);
+const EIP712_REVISION = ethers.utils.id("1");
+
+describe(`::${fork}-Vault-rev4`, function () {
   before(async function () {
     await deployments.fixture();
     this.testVaultArtifact = <Artifact>await artifacts.readArtifact("TestVault");
@@ -126,7 +133,8 @@ describe("::Vault", function () {
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
     const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDCearn")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
+    const DAISAVE_VAULT_ADDRESS = (await deployments.get("opDAI-Save")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -141,27 +149,44 @@ describe("::Vault", function () {
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );
     this.opUSDCearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
+    this.opDAIsave = <Vault>await ethers.getContractAt(Vault__factory.abi, DAISAVE_VAULT_ADDRESS);
+
     this.usdc = <ERC20Permit>(
       await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
 
+    this.dai = <ERC20Permit>(
+      await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].DAI.address)
+    );
+    await setTokenBalanceInStorage(this.dai, this.signers.admin.address, "20000");
+
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
   });
 
-  describe("#constructor(address,string,string,string,string)", function () {
-    it("name,symbol,decimals as expected", async function () {
-      expect(await this.opUSDCearn.name()).to.eq("OptyFi USDC Earn Vault");
-      expect(await this.opUSDCearn.symbol()).to.eq("opUSDCearn");
+  describe(`${fork}-#constructor(address,string,string,string,string)`, function () {
+    it(`name,symbol,decimals, domainSeparator as expected`, async function () {
+      const expectedName = "OptyFi USDC Earn Vault";
+      const expectedSymbol = "opUSDC-Earn";
+      const expectedDomainSeparator = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
+          ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+          [EIP712_DOMAIN, ethers.utils.id(expectedName), EIP712_REVISION, await getChainId(), this.opUSDCearn.address],
+        ),
+      );
+      expect(await this.opUSDCearn.name()).to.eq(expectedName);
+      expect(await this.opUSDCearn.symbol()).to.eq(expectedSymbol);
       expect(await this.opUSDCearn.decimals()).to.eq(6);
+      expect(await this.opUSDCearn._domainSeparator()).to.eq(expectedDomainSeparator);
+      expect(await this.opUSDCearn.DOMAIN_SEPARATOR()).to.eq(expectedDomainSeparator);
     });
 
-    it("registry as expected", async function () {
+    it(`registry as expected`, async function () {
       expect(await this.opUSDCearn.registryContract()).to.eq((await deployments.get("RegistryProxy")).address);
     });
   });
 
-  describe("#setValueControlParams(uint256,uint256,uint256)", function () {
+  describe(`${fork}-#setValueControlParams(uint256,uint256,uint256)`, function () {
     it("fail setValueControlParams() by non Finance operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setValueControlParams("10000000000", "1000000000", "1000000000000"),
@@ -203,7 +228,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setVaultConfiguration(uint256)", function () {
+  describe(`${fork}-#setVaultConfiguration(uint256)`, function () {
     it("fail setVaultConfiguration() by non governance", async function () {
       const _vaultConfiguration = BigNumber.from(
         "3533694129556768659166595001485837031654967793751237934691363855473639425",
@@ -292,7 +317,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setUserDepositCapUT(uint256)", function () {
+  describe(`${fork}-#setUserDepositCapUT(uint256)`, function () {
     it("fails setUserDepositCapUT() call by non finance operator", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setUserDepositCapUT("4000")).to.be.revertedWith(
         "caller is not the financeOperator",
@@ -307,7 +332,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setMinimumDepositValueUT(uint256)", function () {
+  describe(`${fork}-#setMinimumDepositValueUT(uint256)`, function () {
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setMinimumDepositValueUT("1000")).to.be.revertedWith(
         "caller is not the financeOperator",
@@ -326,7 +351,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setTotalValueLockedLimitUT(uint256)", function () {
+  describe(`${fork}-#setTotalValueLockedLimitUT(uint256)`, function () {
     it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setTotalValueLockedLimitUT("100000000"),
@@ -347,7 +372,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setWhitelistedAccountsRoot(bytes32)", function () {
+  describe(`${fork}-#setWhitelistedAccountsRoot(bytes32)`, function () {
     it("fails setWhitelistedAccountsRoot() call by non governance", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setWhitelistedAccountsRoot(ethers.constants.HashZero),
@@ -361,7 +386,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setEmergencyShutdown(bool)", function () {
+  describe(`${fork}-#setEmergencyShutdown(bool)`, function () {
     it("fail setEmergencyShutdown() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setEmergencyShutdown(true)).to.be.revertedWith(
         "caller is not having governance",
@@ -390,7 +415,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setUnpaused(bool)", function () {
+  describe(`${fork}-#setUnpaused(bool)`, function () {
     it("fail setUnpaused() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setUnpaused(false)).to.be.revertedWith(
         "caller is not having governance",
@@ -419,7 +444,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setRiskProfileCode(uint256)", function () {
+  describe(`${fork}-#setRiskProfileCode(uint256)`, function () {
     it("fail setRiskProfileCode() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setRiskProfileCode(1)).to.be.revertedWith(
         "caller is not having governance",
@@ -450,7 +475,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#adminCall(bytes[])", function () {
+  describe(`${fork}-#adminCall(bytes[])`, function () {
     it("fail adminCall() call by non governance", async function () {
       const _codes = [];
       const iface = new ethers.utils.Interface(["function approve(address,uint256)"]);
@@ -466,7 +491,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#getNextBestInvestStrategy()", function () {
+  describe(`${fork}-#getNextBestInvestStrategy()`, function () {
     it("getNextBestInvestStrategy()", async function () {
       expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
       await this.strategyProvider
@@ -478,13 +503,13 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#getLastStrategyStepBalanceLP(DataTypes.StrategyStep[])", function () {
+  describe(`${fork}-#getLastStrategyStepBalanceLP(DataTypes.StrategyStep[])`, function () {
     it("getLastStrategyStepBalanceLP() return 0", async function () {
       expect(await this.opUSDCearn.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
     });
   });
 
-  describe("#rebalance()", function () {
+  describe(`${fork}-#rebalance()`, function () {
     it("fail rebalance() call, vault is paused", async function () {
       // (249) unpause = false = 0
       await expect(this.opUSDCearn.connect(this.signers.governance).setUnpaused(false))
@@ -556,7 +581,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#getInvestStrategySteps(DataTypes.StrategyStep[])", function () {
+  describe(`${fork}-#getInvestStrategySteps(DataTypes.StrategyStep[])`, function () {
     it("getInvestStrategySteps(), return the strategy steps correctly", async function () {
       expect(await this.opUSDCearn.getInvestStrategySteps()).to.deep.eq([
         Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
@@ -564,19 +589,19 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#balanceUT()", function () {
+  describe(`${fork}-#balanceUT()`, function () {
     it("balanceUT() return 0", async function () {
       expect(await this.opUSDCearn.balanceUT()).to.eq("0");
     });
   });
 
-  describe("#getPricePerFullShare()", function () {
+  describe(`${fork}-#getPricePerFullShare()`, function () {
     it("getPricePerFullShare() return 0", async function () {
       expect(await this.opUSDCearn.getPricePerFullShare()).to.eq("0");
     });
   });
 
-  describe("#userDepositPermitted(address,bool,uint256,uint256,bytes32[],bytes32[])", function () {
+  describe(`${fork}-#userDepositPermitted(address,bool,uint256,uint256,bytes32[],bytes32[])`, function () {
     it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
@@ -669,7 +694,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#vaultDepositPermitted()", function () {
+  describe(`${fork}-#vaultDepositPermitted()`, function () {
     it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {
       expect(await this.opUSDCearn.vaultDepositPermitted()).to.have.members([false, "14"]);
     });
@@ -718,7 +743,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#userDepositVault(address,uint256,uint256,bytes,bytes32[])", function () {
+  describe(`${fork}-#userDepositVault(address,uint256,uint256,bytes,bytes32[])`, function () {
     it("userDepositVault() using permit", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -782,6 +807,75 @@ describe("::Vault", function () {
       // the vault shares VT will be same as total supply is zero
       expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(
         _previousBalance.add(_depositAmountUSDCWithFee),
+      );
+    });
+
+    it("userDepositVault() using permit legacy", async function () {
+      const _proofs = getAccountsMerkleProof(
+        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
+        this.signers.alice.address,
+      );
+      // (0-15) Deposit fee UT = 0 USDC = 0000
+      // (16-31) Deposit fee % = 0% = 0000
+      // (32-47) Withdrawal fee UT = 0 USDC = 0000
+      // (48-63) Withdrawal fee % = 0% = 0000
+      // (80-239) vault fee address = 0000000000000000000000000000000000000000
+      await this.opDAIsave
+        .connect(this.signers.governance)
+        .setVaultConfiguration("906392544231311161076231617881117198619499239097192527361058388634069106688");
+      assertVaultConfiguration(
+        await this.opDAIsave.vaultConfiguration(),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("0"),
+        BigNumber.from("100"),
+        "0x0000000000000000000000000000000000000000",
+        BigNumber.from("1"),
+        false,
+        true,
+        false,
+      );
+      await this.opDAIsave.connect(this.signers.financeOperator).setValueControlParams(
+        parseUnits("10000", BigNumber.from(18)), // 10,000
+        parseUnits("10000", BigNumber.from(18)), // 1,000
+        parseUnits("1000000000000", BigNumber.from(18)), // 1,000,000
+      );
+      const _depositAmountDAI = BigNumber.from("1000").mul(to_10powNumber_BN("18"));
+      const _depositFee = await this.opDAIsave.calcDepositFeeUT(_depositAmountDAI);
+      const _depositAmountDAIWithFee = _depositAmountDAI.sub(_depositFee);
+      const _previousBalance = await this.opDAIsave.balanceOf(this.signers.alice.address);
+      const _previousVaultBalance = await this.opDAIsave.balanceUT();
+      await this.opDAIsave.connect(this.signers.financeOperator).setMinimumDepositValueUT(_depositAmountDAI);
+      const deadline = ethers.constants.MaxUint256;
+      const { v, r, s } = await getPermitLegacySignature(
+        this.signers.alice,
+        this.dai,
+        this.opDAIsave.address,
+        deadline,
+      );
+      const dataPermit = ethers.utils.defaultAbiCoder.encode(
+        ["address", "address", "uint256", "uint256", "bool", "uint8", "bytes32", "bytes32"],
+        [this.signers.alice.address, this.opDAIsave.address, 0, deadline, true, v, r, s],
+      );
+      await this.dai.connect(this.signers.admin).transfer(this.signers.alice.address, _depositAmountDAI);
+      await expect(
+        this.opDAIsave
+          .connect(this.signers.alice)
+          .userDepositVault(this.signers.alice.address, _depositAmountDAI, _depositAmountDAI, dataPermit, _proofs),
+      )
+        .to.emit(this.opDAIsave, "Transfer")
+        .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountDAIWithFee);
+      expect(await this.dai.balanceOf(this.opDAIsave.address)).to.eq(
+        _previousVaultBalance.add(_depositAmountDAIWithFee),
+      );
+      expect(await this.opDAIsave.totalSupply()).to.eq(_previousVaultBalance.add(_depositAmountDAIWithFee));
+      expect(await this.opDAIsave.totalDeposits(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountDAIWithFee),
+      );
+      // the vault shares VT will be same as total supply is zero
+      expect(await this.opDAIsave.balanceOf(this.signers.alice.address)).to.eq(
+        _previousBalance.add(_depositAmountDAIWithFee),
       );
     });
 
@@ -1084,7 +1178,162 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#userWithdrawPermitted(address,uint256,uint256,bytes32[])", function () {
+  describe(`${fork}-#permit(address,address,uint256,uint256,uint8,bytes32,bytes32`, function () {
+    it("success, gasless approval and vault token transferfrom", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      const nonceBeforeAlice = await this.opUSDCearn.nonces(this.signers.alice.address);
+      const tx = await this.opUSDCearn
+        .connect(this.signers.operator)
+        .permit(
+          this.signers.alice.address,
+          this.signers.bob.address,
+          vaultTokenBalanceAlice,
+          BigNumber.from(deadline).add(1800),
+          v,
+          r,
+          s,
+        );
+      await tx.wait(1);
+      expect(await this.opUSDCearn.allowance(this.signers.alice.address, this.signers.bob.address)).to.eq(
+        vaultTokenBalanceAlice,
+      );
+      expect(await this.opUSDCearn.nonces(this.signers.alice.address)).to.eq(nonceBeforeAlice.add("1"));
+
+      const vaultTokenBalanceBeforeBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const tx1 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transferFrom(this.signers.alice.address, this.signers.bob.address, vaultTokenBalanceAlice);
+      await tx1.wait(1);
+      const vaultTokenBalanceAfterBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const vaultTokenBalanceAfterAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAfterBob).to.eq(vaultTokenBalanceBeforeBob.add(vaultTokenBalanceAlice));
+      expect(vaultTokenBalanceAfterAlice).to.eq("0");
+      // send vault token back to alice
+      const tx3 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transfer(this.signers.alice.address, vaultTokenBalanceAlice);
+      await tx3.wait(1);
+      expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(vaultTokenBalanceAlice);
+    });
+
+    it("fail, zero address not valid", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            ethers.constants.AddressZero,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("25");
+    });
+    it("fail, expired timestamp", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).sub(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("26");
+    });
+
+    it("fail, invalid signature(wrong signer)", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.bob,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("27");
+    });
+    it("fail, invalid signature(reuse nonce)", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.bob,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1", nonce: BigNumber.from("0") },
+      );
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.operator)
+          .permit(
+            this.signers.alice.address,
+            this.signers.bob.address,
+            vaultTokenBalanceAlice,
+            BigNumber.from(deadline).add(1800),
+            v,
+            r,
+            s,
+          ),
+      ).to.be.revertedWith("27");
+    });
+  });
+
+  describe(`${fork}-#userWithdrawPermitted(address,uint256,uint256,bytes32[])`, function () {
     it("userWithdrawPermitted() return false,USER_WITHDRAW_INSUFFICIENT_VT", async function () {
       const _accountProof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -1130,7 +1379,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#vaultWithdrawPermitted()", function () {
+  describe(`${fork}-#vaultWithdrawPermitted()`, function () {
     it("vaultWithdrawPermitted() return false,VAULT_PAUSED", async function () {
       await expect(this.opUSDCearn.connect(this.signers.governance).setUnpaused(false))
         .to.emit(this.opUSDCearn, "LogUnpause")
@@ -1174,7 +1423,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#vaultDepositAllToStrategy()", function () {
+  describe(`${fork}-#vaultDepositAllToStrategy()`, function () {
     it("fail vaultDepositAllToStrategy() call, vault is paused", async function () {
       await this.opUSDCearn.connect(this.signers.governance).setUnpaused(false);
       await expect(this.opUSDCearn.vaultDepositAllToStrategy()).to.be.revertedWith("14");
@@ -1242,7 +1491,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#setUnderlyingTokensHash(bytes32)", function () {
+  describe(`${fork}-#setUnderlyingTokensHash(bytes32)`, function () {
     it("fail setUnderlyingTokensHash() call by non operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setUnderlyingTokensHash(ethers.constants.HashZero),
@@ -1268,17 +1517,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#isMaxVaultValueJumpAllowed(uint256,uint256)", function () {
-    it("isMaxVaultValueJumpAllowed() return true", async function () {
-      expect(await this.opUSDCearn.isMaxVaultValueJumpAllowed("1", "10000")).to.be.true;
-    });
-
-    it("isMaxVaultValueJumpAllowed() return false", async function () {
-      expect(await this.opUSDCearn.isMaxVaultValueJumpAllowed("10000", "1")).to.be.false;
-    });
-  });
-
-  describe("#calcDepositFeeUT(uint256)", function () {
+  describe(`${fork}-#calcDepositFeeUT(uint256)`, function () {
     it("calcDepositFeeUT()", async function () {
       const vaultConfiguration = await this.opUSDCearn.vaultConfiguration();
       const amount = BigNumber.from("10000000");
@@ -1290,7 +1529,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#calcWithdrawalFeeUT(uint256)", function () {
+  describe(`${fork}-#calcWithdrawalFeeUT(uint256)`, function () {
     it("calcWithdrawalFeeUT()", async function () {
       const vaultConfiguration = await this.opUSDCearn.vaultConfiguration();
       const amount = BigNumber.from("10000000");
@@ -1302,7 +1541,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#computeInvestStrategyHash(DataTypes.StrategyStep[])", function () {
+  describe(`${fork}-#computeInvestStrategyHash(DataTypes.StrategyStep[])`, function () {
     it("computeInvestStrategyHash()", async function () {
       expect(await this.opUSDCearn.computeInvestStrategyHash(testStrategy[fork][strategyKeys[0]].steps)).to.eq(
         testStrategy[fork][strategyKeys[0]].hash,
@@ -1310,20 +1549,7 @@ describe("::Vault", function () {
     });
   });
 
-  describe("#balanceUnclaimedRewardToken()", function () {
-    it("balanceUnclaimedRewardToken() return 0", async function () {
-      // CompoundAdapter: Requires write call to get unclaimed COMP tokens
-      await this.opUSDCearn.connect(this.signers.governance).setEmergencyShutdown(false);
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
-      await this.opUSDCearn.rebalance();
-      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-      expect(await this.opUSDCearn.balanceUnclaimedRewardToken(_pool)).to.eq(0);
-    });
-  });
-
-  describe("#claimRewardToken(address)", function () {
+  describe(`${fork}-#claimRewardToken(address)`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
     it("fail claimRewardToken() call by non strategyOperator", async function () {
@@ -1338,34 +1564,108 @@ describe("::Vault", function () {
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _rewardTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
       const _balanceRTBefore = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
-      await expect(this.opUSDCearn.claimRewardToken(_pool)).to.emit(this.opUSDCearn, "RewardTokenClaimed");
+      await this.opUSDCearn.claimRewardToken(_pool);
       const _balanceRTAfter = await _rewardTokenInstance.balanceOf(this.opUSDCearn.address);
       expect(_balanceRTAfter).to.gt(_balanceRTBefore);
     });
   });
 
-  describe("#harvestSome(address,uint256)", function () {
+  describe(`${fork}-#giveAllowances()`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail harvestSome() call by non strategyOperator", async function () {
-      await expect(this.opUSDCearn.connect(this.signers.bob).harvest(_pool, BigNumber.from(1000))).to.be.revertedWith(
-        "caller is not the strategyOperator",
-      );
+    it("fail giveAllowances by non governance", async function () {
+      await expect(
+        this.opUSDCearn.connect(this.signers.bob).giveAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      ).to.be.revertedWith("caller is not having governance");
+    });
+    it("fail giveAllowances mismatch length", async function () {
+      await expect(
+        this.opUSDCearn.connect(this.signers.governance).giveAllowances([await this.opUSDCearn.underlyingToken()], []),
+      ).to.be.revertedWith("28");
+    });
+    it("success giveAllowances", async function () {
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.governance)
+          .giveAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      )
+        .to.emit(this.usdc, "Approval")
+        .withArgs(this.opUSDCearn.address, getAddress(_pool), ethers.constants.MaxUint256);
+    });
+  });
+  describe(`${fork}-#removesAllowance()`, function () {
+    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+
+    it("fail removeAllowances by non governance", async function () {
+      await expect(
+        this.opUSDCearn.connect(this.signers.bob).removeAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      ).to.be.revertedWith("caller is not having governance");
+    });
+    it("fail removeAllowances mismatch length", async function () {
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.governance)
+          .removeAllowances([await this.opUSDCearn.underlyingToken()], []),
+      ).to.be.revertedWith("28");
+    });
+    it("success removeAllowances", async function () {
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.governance)
+          .removeAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      )
+        .to.emit(this.usdc, "Approval")
+        .withArgs(this.opUSDCearn.address, getAddress(_pool), 0);
+    });
+  });
+
+  describe(`${fork}-#harvest(address)`, function () {
+    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+
+    it("fail harvest() call by non strategyOperator", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
+      await expect(
+        this.opUSDCearn.connect(this.signers.bob).harvest(_rewardToken, UniswapV3RouterAddress, true, 0, 0, [], "0x"),
+      ).to.be.revertedWith("caller is not the strategyOperator");
     });
 
-    it("harvestSome()", async function () {
-      const _balanceClaimed = await this.opUSDCearn.balanceClaimedRewardToken(_pool);
+    it("harvest()", async function () {
+      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
+      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvest(_pool, BigNumber.from(_balanceClaimed.div(2)))).to.emit(
-        this.opUSDCearn,
-        "Harvested",
+      const _rewardTokenInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
+      await expect(
+        this.opUSDCearn.connect(this.signers.governance).giveAllowances([_rewardToken], [UniswapV3RouterAddress]),
+      )
+        .to.emit(_rewardTokenInstance, "Approval")
+        .withArgs(
+          this.opUSDCearn.address,
+          getAddress(UniswapV3RouterAddress),
+          BigNumber.from("0xffffffffffffffffffffffff"),
+        ); // in COMP uint96 is used
+      const uniV3SwapPath = ethers.utils.solidityPack(
+        ["address", "uint24", "address", "uint24", "address"],
+        [_rewardToken, 3000, ethereumTokens.WRAPPED_TOKENS.WETH, 500, await this.opUSDCearn.underlyingToken()],
       );
+      const tx = await this.opUSDCearn.harvest(
+        _rewardToken,
+        UniswapV3RouterAddress,
+        true,
+        0,
+        9999999999,
+        [],
+        uniV3SwapPath,
+      );
+      await tx.wait(1);
       const _balanceAfterUT = await this.opUSDCearn.balanceUT();
       expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });
   });
 
-  describe("#userWithdrawVault(uint256,bytes32[],bytes32[])", function () {
+  describe(`${fork}-#userWithdrawVault(uint256,bytes32[],bytes32[])`, function () {
     it("fail userWithdrawVault() expected output amount not reached, INSUFFICIENT_OUTPUT_AMOUNT", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -1439,10 +1739,94 @@ describe("::Vault", function () {
     });
   });
 
-  describe("_beforeTokenTransfer()", function () {
+  describe(`${fork}-_beforeTokenTransfer()`, function () {
     it("fail _beforeTokenTransfer() TRANSFER_TO_THIS_CONTRACT", async function () {
       const _redeemVT = await this.opUSDCearn.balanceOf(this.signers.alice.address);
       await expect(this.opUSDCearn.transfer(this.opUSDCearn.address, _redeemVT)).to.revertedWith("18");
+    });
+  });
+
+  describe(`${fork}-#setName()`, function () {
+    it("success, only governance can change name", async function () {
+      const setNameStr = "OptyFi USD Coin Earn Vault";
+      const expectedDomainSeparator = ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
+          ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+          [EIP712_DOMAIN, ethers.utils.id(setNameStr), EIP712_REVISION, await getChainId(), this.opUSDCearn.address],
+        ),
+      );
+      const tx = await this.opUSDCearn.connect(this.signers.governance).setName(setNameStr);
+      await tx.wait(1);
+      expect(await this.opUSDCearn.name()).to.eq(setNameStr);
+      expect(await this.opUSDCearn._domainSeparator()).to.eq(expectedDomainSeparator);
+      expect(await this.opUSDCearn.DOMAIN_SEPARATOR()).to.eq(expectedDomainSeparator);
+    });
+    it("fail, only governance can change name", async function () {
+      const setNameStr = "OptyFi USD Coin Earn Vault";
+      await expect(this.opUSDCearn.connect(this.signers.bob).setName(setNameStr)).to.be.revertedWith(
+        "caller is not having governance",
+      );
+    });
+    it("success, gasless approval and vault token transferfrom", async function () {
+      const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAlice).to.be.gt("0");
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp;
+      const { v, r, s } = await getPermitSignature(
+        this.signers.alice,
+        this.opUSDCearn,
+        this.signers.bob.address,
+        vaultTokenBalanceAlice,
+        BigNumber.from(deadline).add(1800),
+        { version: "1" },
+      );
+      const nonceBeforeAlice = await this.opUSDCearn.nonces(this.signers.alice.address);
+      const tx = await this.opUSDCearn
+        .connect(this.signers.operator)
+        .permit(
+          this.signers.alice.address,
+          this.signers.bob.address,
+          vaultTokenBalanceAlice,
+          BigNumber.from(deadline).add(1800),
+          v,
+          r,
+          s,
+        );
+      await tx.wait(1);
+      expect(await this.opUSDCearn.allowance(this.signers.alice.address, this.signers.bob.address)).to.eq(
+        vaultTokenBalanceAlice,
+      );
+      expect(await this.opUSDCearn.nonces(this.signers.alice.address)).to.eq(nonceBeforeAlice.add("1"));
+
+      const vaultTokenBalanceBeforeBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const tx1 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transferFrom(this.signers.alice.address, this.signers.bob.address, vaultTokenBalanceAlice);
+      await tx1.wait(1);
+      const vaultTokenBalanceAfterBob = await this.opUSDCearn.balanceOf(this.signers.bob.address);
+      const vaultTokenBalanceAfterAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
+      expect(vaultTokenBalanceAfterBob).to.eq(vaultTokenBalanceBeforeBob.add(vaultTokenBalanceAlice));
+      expect(vaultTokenBalanceAfterAlice).to.eq("0");
+      // send vault token back to alice
+      const tx3 = await this.opUSDCearn
+        .connect(this.signers.bob)
+        .transfer(this.signers.alice.address, vaultTokenBalanceAlice);
+      await tx3.wait(1);
+      expect(await this.opUSDCearn.balanceOf(this.signers.alice.address)).to.eq(vaultTokenBalanceAlice);
+    });
+  });
+
+  describe(`${fork}-#setSymbol`, function () {
+    it("success, only governance can change symbol", async function () {
+      const setSymbolStr = "opUSDCearn";
+      const tx = await this.opUSDCearn.connect(this.signers.governance).setSymbol(setSymbolStr);
+      await tx.wait(1);
+      expect(await this.opUSDCearn.symbol()).to.eq(setSymbolStr);
+    });
+    it("fail, only governance can change symbol", async function () {
+      const setSymbolStr = "opUSDCearn";
+      await expect(this.opUSDCearn.connect(this.signers.bob).setSymbol(setSymbolStr)).to.be.revertedWith(
+        "caller is not having governance",
+      );
     });
   });
 });

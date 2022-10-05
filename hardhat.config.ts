@@ -182,7 +182,7 @@ const config: HardhatUserConfig = {
       NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
     ),
     hardhat: {
-      hardfork: "london",
+      hardfork: "merge",
       initialBaseFeePerGas: 1_00_000_000,
       gasPrice: "auto",
       forking: buildForkConfig(FORK as eEVMNetwork, FORK_BLOCK_NUMBER),

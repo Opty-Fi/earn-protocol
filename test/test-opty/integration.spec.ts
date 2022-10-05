@@ -1,8 +1,10 @@
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -23,6 +25,7 @@ import {
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
   ERC20,
+  ERC20__factory,
   HarvestCodeProvider,
   Registry,
   RegistryProxy,
@@ -39,12 +42,13 @@ import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-acti
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { PoolRate } from "../../helpers/type";
+import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
-
-describe("Integration tests", function () {
+const sushiswapRouterAddress = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"; //mainnet
+describe(`${fork}-Vault-rev4-Integration tests`, function () {
   before(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
@@ -61,7 +65,7 @@ describe("Integration tests", function () {
     this.signers.eve = signers[10];
   });
 
-  describe("Deployment, config and actions", function () {
+  describe(`${fork}-Deployment, config and actions`, function () {
     it("0. Registry and Registry proxy deployment and connecting", async function () {
       this.registry = <Registry>await deployRegistry(hre, this.signers.admin, false);
       this.registryProxy = <RegistryProxy>(
@@ -413,16 +417,11 @@ describe("Integration tests", function () {
       expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
     });
 
-    it("23. Deployer can deploy StrategyManager and ClaimAndHarvest ", async function () {
+    it("23. Deployer can deploy StrategyManager ", async function () {
       this.strategyManager = <StrategyManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER, false, this.signers.deployer, [])
       );
       assert.isDefined(this.strategyManager, "!StrategyManager");
-
-      this.claimAndHarvest = <RiskManagerProxy>(
-        await deployContract(hre, ESSENTIAL_CONTRACTS.CLAIM_AND_HARVEST, false, this.signers.deployer, [])
-      );
-      assert.isDefined(this.claimAndHarvest, "!ClaimAndHarvest");
     });
 
     it("24. Operator can deploy vault and admin can upgrade", async function () {
@@ -450,7 +449,6 @@ describe("Integration tests", function () {
           hre,
           this.registry.address,
           this.strategyManager.address,
-          this.claimAndHarvest.address,
           StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[0]]
             .token,
           "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -467,7 +465,7 @@ describe("Integration tests", function () {
       );
 
       expect(await this.vault.name()).to.equal("OptyFi USDC Aggressive Vault");
-      expect(await this.vault.symbol()).to.equal("opUSDCaggr");
+      expect(await this.vault.symbol()).to.equal("opUSDC-aggr");
       expect(await this.vault.decimals()).to.equal(BigNumber.from("6"));
       const actualRiskProfileCode = getRiskProfileCode(await this.vault.vaultConfiguration());
       expect(actualRiskProfileCode).to.equal("2");
@@ -694,30 +692,40 @@ describe("Integration tests", function () {
     it("37. The strategy operator claims rewards successfully", async function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
-      const claimedRewardBefore = await this.vault.balanceClaimedRewardToken(
-        strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
-      );
-      await expect(
-        await this.vault
-          .connect(this.signers.strategyOperator)
-          .claimRewardToken(strategyDetail.strategy[strategyDetail.strategy.length - 1].contract),
-      ).to.emit(this.vault, "RewardTokenClaimed");
-      const claimedRewardAfter = await this.vault.balanceClaimedRewardToken(
-        strategyDetail.strategy[strategyDetail.strategy.length - 1].contract,
-      );
+      this.crv = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.CRV);
+      const claimedRewardBefore = await this.crv.balanceOf(this.vault.address);
+      await this.vault
+        .connect(this.signers.strategyOperator)
+        .claimRewardToken(strategyDetail.strategy[strategyDetail.strategy.length - 1].contract);
+      const claimedRewardAfter = await this.crv.balanceOf(this.vault.address);
       expect(claimedRewardAfter).gt(claimedRewardBefore);
     });
 
     it("38. The strategy operator harvest rewards successfully", async function () {
-      const strategyDetail =
-        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
-      const balanceBeforeUT = await this.vault.balanceUT();
-      const _balanceClaimed = await this.vault.balanceClaimedRewardToken(strategyDetail.strategy[0].contract);
+      const _rewardTokenInstance = <ERC20>(
+        await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.REWARD_TOKENS.CRV)
+      );
       await expect(
-        await this.vault
-          .connect(this.signers.strategyOperator)
-          .harvest(strategyDetail.strategy[0].contract, _balanceClaimed),
-      ).to.emit(this.vault, "Harvested");
+        this.vault
+          .connect(this.signers.governance)
+          .giveAllowances([ethereumTokens.REWARD_TOKENS.CRV], [sushiswapRouterAddress]),
+      )
+        .to.emit(_rewardTokenInstance, "Approval")
+        .withArgs(this.vault.address, getAddress(sushiswapRouterAddress), ethers.constants.MaxUint256);
+      const balanceBeforeUT = await this.vault.balanceUT();
+      // use uniswapV2 for swapping
+      const tx = await this.vault
+        .connect(this.signers.strategyOperator)
+        .harvest(
+          ethereumTokens.REWARD_TOKENS.CRV,
+          sushiswapRouterAddress,
+          false,
+          0,
+          9999999999,
+          [ethereumTokens.REWARD_TOKENS.CRV, ethereumTokens.WRAPPED_TOKENS.WETH, await this.vault.underlyingToken()],
+          "0x",
+        );
+      await tx.wait(1);
       const balanceAfterUT = await this.vault.balanceUT();
       expect(balanceAfterUT).gt(balanceBeforeUT);
     });

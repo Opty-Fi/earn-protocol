@@ -3,6 +3,8 @@ import { deployments, ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import BN from "bignumber.js";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
+import { BigNumber } from "ethers";
+import { formatEther, formatUnits, getAddress } from "ethers/lib/utils";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
@@ -29,16 +31,14 @@ import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpe
 import { StrategyStepType } from "../../helpers/type";
 import { setTokenBalanceInStorage, getLastStrategyStepBalanceLP } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { formatEther, formatUnits, getAddress } from "ethers/lib/utils";
 import { TypedTokens } from "../../helpers/data";
-import { BigNumber } from "ethers";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
 
-describe("VaultV2", () => {
+describe(`${fork}-Vault-rev4`, () => {
   before(async function () {
     await deployments.fixture();
     const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
@@ -126,7 +126,7 @@ describe("VaultV2", () => {
       this.tokens["WETH"] = <ERC20>await ethers.getContractAt(ERC20__factory.abi, TypedTokens["WETH"]);
     }
   });
-  describe("VaultV2 strategies", () => {
+  describe(`${fork}-Vault-rev4 strategies`, () => {
     for (const riskProfile of Object.keys(StrategiesByTokenByChain[fork])) {
       for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
         for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
@@ -140,7 +140,7 @@ describe("VaultV2", () => {
             isBorrow: item.isBorrow,
           }));
 
-          describe(`${riskProfile}-${token}-${strategy}`, () => {
+          describe(`${fork}-${riskProfile}-${token}-${strategy}`, () => {
             before(async function () {
               const strategyOperatorAddress = await this.registry.getStrategyOperator();
               const strategyOperator = await ethers.getSigner(strategyOperatorAddress);

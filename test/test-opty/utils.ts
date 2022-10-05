@@ -355,3 +355,60 @@ export async function signMetaTxRequest(signer: any, forwarder: Contract, input:
   const signature = signTypedData(signer, input.from, toSign);
   return { signature, request };
 }
+
+export async function getPermitLegacySignature(
+  signer: SignerWithAddress,
+  token: ERC20Permit,
+  spender: string,
+  expiry: BigNumber,
+  permitConfig?: { nonce?: BigNumber; name?: string; chainId?: number; version?: string },
+): Promise<Signature> {
+  const [nonce, name, version, chainId] = await Promise.all([
+    permitConfig?.nonce ?? token.nonces(signer.address),
+    permitConfig?.name ?? token.name(),
+    permitConfig?.version ?? "1",
+    permitConfig?.chainId ?? signer.getChainId(),
+  ]);
+
+  return splitSignature(
+    await signer._signTypedData(
+      {
+        name,
+        version,
+        chainId,
+        verifyingContract: token.address,
+      },
+      {
+        Permit: [
+          {
+            name: "holder",
+            type: "address",
+          },
+          {
+            name: "spender",
+            type: "address",
+          },
+          {
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            name: "expiry",
+            type: "uint256",
+          },
+          {
+            name: "allowed",
+            type: "bool",
+          },
+        ],
+      },
+      {
+        holder: signer.address,
+        spender,
+        nonce,
+        expiry,
+        allowed: true,
+      },
+    ),
+  );
+}

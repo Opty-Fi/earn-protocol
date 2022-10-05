@@ -182,7 +182,7 @@ const func: DeployFunction = async ({
     feeData = await ethers.provider.getFeeData();
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("0", "Save", "save", false, [90, 99], {
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("0", "Save", "Save", false, [90, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -203,7 +203,7 @@ const func: DeployFunction = async ({
     feeData = await ethers.provider.getFeeData();
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Earn", "earn", false, [80, 99], {
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Earn", "Earn", false, [80, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -224,7 +224,7 @@ const func: DeployFunction = async ({
     feeData = await ethers.provider.getFeeData();
     const addRiskProfileTx = await registryV2Instance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Invest", "invst", false, [50, 99], {
+      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Invest", "Invst", false, [50, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),

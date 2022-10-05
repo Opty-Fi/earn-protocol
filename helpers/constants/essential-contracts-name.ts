@@ -17,5 +17,4 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   ERC20: "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol:ERC20",
   ADAPTER: "IAdapterFull",
   STRATEGY_MANAGER: "contracts/protocol/lib/StrategyManager.sol:StrategyManager",
-  CLAIM_AND_HARVEST: "contracts/protocol/lib/ClaimAndHarvest.sol:ClaimAndHarvest",
 };
