@@ -5,6 +5,7 @@ import { deployContract, solidity } from "ethereum-waffle";
 import { BigNumber, ContractReceipt, Event } from "ethers";
 import BN from "bignumber.js";
 import { getAddress, parseUnits } from "ethers/lib/utils";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -42,6 +43,7 @@ import { Artifact } from "hardhat/types";
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
+const UniswapV3RouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; //mainnet
 
 const testStrategy: {
   [key: string]: {
@@ -1248,7 +1250,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("27");
+      ).to.be.revertedWith("25");
     });
     it("fail, expired timestamp", async function () {
       const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
@@ -1274,7 +1276,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("28");
+      ).to.be.revertedWith("26");
     });
 
     it("fail, invalid signature(wrong signer)", async function () {
@@ -1301,7 +1303,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("29");
+      ).to.be.revertedWith("27");
     });
     it("fail, invalid signature(reuse nonce)", async function () {
       const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
@@ -1327,7 +1329,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("29");
+      ).to.be.revertedWith("27");
     });
   });
 
@@ -1515,16 +1517,6 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#isMaxVaultValueJumpAllowed(uint256,uint256)`, function () {
-    it("isMaxVaultValueJumpAllowed() return true", async function () {
-      expect(await this.opUSDCearn.isMaxVaultValueJumpAllowed("1", "10000")).to.be.true;
-    });
-
-    it("isMaxVaultValueJumpAllowed() return false", async function () {
-      expect(await this.opUSDCearn.isMaxVaultValueJumpAllowed("10000", "1")).to.be.false;
-    });
-  });
-
   describe(`${fork}-#calcDepositFeeUT(uint256)`, function () {
     it("calcDepositFeeUT()", async function () {
       const vaultConfiguration = await this.opUSDCearn.vaultConfiguration();
@@ -1557,19 +1549,6 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#balanceUnclaimedRewardToken()`, function () {
-    it("balanceUnclaimedRewardToken() return 0", async function () {
-      // CompoundAdapter: Requires write call to get unclaimed COMP tokens
-      await this.opUSDCearn.connect(this.signers.governance).setEmergencyShutdown(false);
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
-      await this.opUSDCearn.rebalance();
-      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-      expect(await this.opUSDCearn.balanceUnclaimedRewardToken(_pool)).to.eq(0);
-    });
-  });
-
   describe(`${fork}-#claimRewardToken(address)`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
@@ -1591,6 +1570,55 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
+  describe(`${fork}-#setAllowances()`, function () {
+    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+
+    it("fail setAllowances by non governance", async function () {
+      await expect(
+        this.opUSDCearn.connect(this.signers.bob).setAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      ).to.be.revertedWith("caller is not having governance");
+    });
+    it("fail setAllowances mismatch length", async function () {
+      await expect(
+        this.opUSDCearn.connect(this.signers.governance).setAllowances([await this.opUSDCearn.underlyingToken()], []),
+      ).to.be.revertedWith("28");
+    });
+    it("success setAllowances", async function () {
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.governance)
+          .setAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      )
+        .to.emit(this.usdc, "Approval")
+        .withArgs(this.opUSDCearn.address, getAddress(_pool), ethers.constants.MaxUint256);
+    });
+  });
+  describe(`${fork}-#removesAllowance()`, function () {
+    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+
+    it("fail removeAllowances by non governance", async function () {
+      await expect(
+        this.opUSDCearn.connect(this.signers.bob).removeAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      ).to.be.revertedWith("caller is not having governance");
+    });
+    it("fail removeAllowances mismatch length", async function () {
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.governance)
+          .removeAllowances([await this.opUSDCearn.underlyingToken()], []),
+      ).to.be.revertedWith("28");
+    });
+    it("success removeAllowances", async function () {
+      await expect(
+        this.opUSDCearn
+          .connect(this.signers.governance)
+          .removeAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+      )
+        .to.emit(this.usdc, "Approval")
+        .withArgs(this.opUSDCearn.address, getAddress(_pool), 0);
+    });
+  });
+
   describe(`${fork}-#harvest(address)`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
@@ -1598,9 +1626,9 @@ describe(`::${fork}-Vault-rev4`, function () {
       const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
       const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
-      await expect(this.opUSDCearn.connect(this.signers.bob).harvest(_rewardToken)).to.be.revertedWith(
-        "caller is not the strategyOperator",
-      );
+      await expect(
+        this.opUSDCearn.connect(this.signers.bob).harvest(_rewardToken, UniswapV3RouterAddress, true, 0, 0, [], "0x"),
+      ).to.be.revertedWith("caller is not the strategyOperator");
     });
 
     it("harvest()", async function () {
@@ -1608,7 +1636,30 @@ describe(`::${fork}-Vault-rev4`, function () {
       const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
       const _rewardToken = await _adapterInstance.getRewardToken(_pool);
       const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
-      await expect(this.opUSDCearn.harvest(_rewardToken)).to.emit(this.opUSDCearn, "Harvested");
+      const _rewardTokenInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
+      await expect(
+        this.opUSDCearn.connect(this.signers.governance).setAllowances([_rewardToken], [UniswapV3RouterAddress]),
+      )
+        .to.emit(_rewardTokenInstance, "Approval")
+        .withArgs(
+          this.opUSDCearn.address,
+          getAddress(UniswapV3RouterAddress),
+          BigNumber.from("0xffffffffffffffffffffffff"),
+        ); // in COMP uint96 is used
+      const uniV3SwapPath = ethers.utils.solidityPack(
+        ["address", "uint24", "address", "uint24", "address"],
+        [_rewardToken, 3000, ethereumTokens.WRAPPED_TOKENS.WETH, 500, await this.opUSDCearn.underlyingToken()],
+      );
+      const tx = await this.opUSDCearn.harvest(
+        _rewardToken,
+        UniswapV3RouterAddress,
+        true,
+        0,
+        9999999999,
+        [],
+        uniV3SwapPath,
+      );
+      await tx.wait(1);
       const _balanceAfterUT = await this.opUSDCearn.balanceUT();
       expect(_balanceAfterUT).gt(_balanceBeforeUT);
     });
