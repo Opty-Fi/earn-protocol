@@ -76,27 +76,6 @@ Options:
   --network localhost
 ```
 
-### deploy-claim-and-harvest
-
-```
-Usage : deploy Claim and Harvest library
-
-Options:
---registry      required <address> the address of registry
---deployed-once optional <bool>    allow checking whether contracts were deployed previously (default: true)
---network       optional <string>  name of the network provider (default: hardhat)
-```
-
-- Example:
-
-```
-  yarn hardhat deploy-claim-and-harvest \
-  --network localhost \
-  --registry 0x0000000000000000000000000000000000000000 \
-  --deployed-once false \
-  --network localhost
-```
-
 ### deploy-strategy-manager
 
 ```
@@ -434,14 +413,19 @@ Options:
 ### reward-harvest
 
 ```
-Usage: execute harvestSome() or harvestAll(): (SOME || All)
+Usage: execute harvest()
 
 Options:
---vault               required <address> the address of vault
---harvest-type        required <string>  harvest SOME or ALL reward tokens "SOME" || "ALL"
---liquidity-pool      required <string>  the address of the liquidity pool to harvest
---reward-token-amount optional <number>  amount of token (default: 0)
---network             optional <string>  name of the network provider (default: hardhat)
+--vault                           required <address> the address of vault
+--reward-token                    required <string>  the address of the reward token to harvest
+--dex                             required <string>  swap router
+--is-uni-v3                       required <bool>    whether router is uniswapV3 or not
+--minimum-underlying-token-amount required <string>  minimum underlying after swap that must be received for the transaction to not revert
+--deadline                        required <string>  swap deadline
+--path                            required <string>  token path for uniswapV2 and its forks
+--path-uni-v3                     required <string>  path for uniswapV3
+--liquidity-pool                  required <string>  the address of the liquidity pool to harvest
+--network                         optional <string>  name of the network provider (default: hardhat)
 ```
 
 - Example:
