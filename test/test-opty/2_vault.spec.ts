@@ -1570,24 +1570,24 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setAllowances()`, function () {
+  describe(`${fork}-#giveAllowances()`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail setAllowances by non governance", async function () {
+    it("fail giveAllowances by non governance", async function () {
       await expect(
-        this.opUSDCearn.connect(this.signers.bob).setAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+        this.opUSDCearn.connect(this.signers.bob).giveAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
       ).to.be.revertedWith("caller is not having governance");
     });
-    it("fail setAllowances mismatch length", async function () {
+    it("fail giveAllowances mismatch length", async function () {
       await expect(
-        this.opUSDCearn.connect(this.signers.governance).setAllowances([await this.opUSDCearn.underlyingToken()], []),
+        this.opUSDCearn.connect(this.signers.governance).giveAllowances([await this.opUSDCearn.underlyingToken()], []),
       ).to.be.revertedWith("28");
     });
-    it("success setAllowances", async function () {
+    it("success giveAllowances", async function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.governance)
-          .setAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
+          .giveAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
       )
         .to.emit(this.usdc, "Approval")
         .withArgs(this.opUSDCearn.address, getAddress(_pool), ethers.constants.MaxUint256);
@@ -1638,7 +1638,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       const _balanceBeforeUT = await this.opUSDCearn.balanceUT();
       const _rewardTokenInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _rewardToken);
       await expect(
-        this.opUSDCearn.connect(this.signers.governance).setAllowances([_rewardToken], [UniswapV3RouterAddress]),
+        this.opUSDCearn.connect(this.signers.governance).giveAllowances([_rewardToken], [UniswapV3RouterAddress]),
       )
         .to.emit(_rewardTokenInstance, "Approval")
         .withArgs(

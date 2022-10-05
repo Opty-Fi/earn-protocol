@@ -708,7 +708,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.governance)
-          .setAllowances([ethereumTokens.REWARD_TOKENS.CRV], [sushiswapRouterAddress]),
+          .giveAllowances([ethereumTokens.REWARD_TOKENS.CRV], [sushiswapRouterAddress]),
       )
         .to.emit(_rewardTokenInstance, "Approval")
         .withArgs(this.vault.address, getAddress(sushiswapRouterAddress), ethers.constants.MaxUint256);

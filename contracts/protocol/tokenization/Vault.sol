@@ -230,7 +230,7 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function setAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external override onlyGovernance {
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external override onlyGovernance {
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
         for (uint256 _i; _i < _tokens.length; _i++) {

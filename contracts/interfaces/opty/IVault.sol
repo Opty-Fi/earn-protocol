@@ -226,12 +226,12 @@ interface IVault {
     ) external;
 
     /**
-     * @notice Set the allowances for the spenders to spent vault owned tokens
+     * @notice Provide the allowances for the spenders to spent vault owned tokens
      * @dev the length of tokens and spenders should be same
      * @param _tokens list of ERC20 tokens
      * @param _spenders list of spender addresses
      */
-    function setAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
 
     /**
      * @notice Reset the allowances for the spenders to spent vault owned tokens
