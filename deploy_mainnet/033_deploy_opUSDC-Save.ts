@@ -88,6 +88,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress, //address _registry
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
+      "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694", //bytes32 _whitelistedAccountsRoot
+      "USDC", //string memory _symbol
+      "0", //uint256 _riskProfileCode
+      "905369955037451290754171167376807445279006054759646228016501227483694104576", //uint256 _vaultConfiguration
+      "100000000000", //uint256 _userDepositCapUT
+      "0", //uint256 _minimumDepositValueUT
+      "10000000000000", //uint256 _totalValueLockedLimitUT
+    ],
+  };
   const result = await deploy("opUSDC-Save", {
     from: deployer,
     contract: {
@@ -107,20 +121,8 @@ const func: DeployFunction = async ({
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Earn_Implementation",
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
-            "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694", //bytes32 _whitelistedAccountsRoot
-            "USDC", //string memory _symbol
-            "0", //uint256 _riskProfileCode
-            "905369955037451290754171167376807445279006054759646228016501227483694104576", //uint256 _vaultConfiguration
-            "100000000000", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "10000000000000", //uint256 _totalValueLockedLimitUT
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas

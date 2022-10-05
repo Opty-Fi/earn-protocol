@@ -88,6 +88,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress,
+      MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "CRV",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+    ],
+  };
   const result = await deploy("opCRV-Invst", {
     from: deployer,
     contract: {
@@ -107,20 +121,8 @@ const func: DeployFunction = async ({
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Earn_Implementation",
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress,
-            MULTI_CHAIN_VAULT_TOKENS[chainId].CRV.hash,
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "CRV",
-            "2",
-            "0",
-            "0",
-            "0",
-            "0",
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas

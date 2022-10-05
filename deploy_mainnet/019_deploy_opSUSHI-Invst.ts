@@ -88,6 +88,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress, //address _registry
+      MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash, //bytes32 _underlyingTokensHash
+      "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783", //bytes32 _whitelistedAccountsRoot
+      "SUSHI", //string memory _symbol
+      "2", //uint256 _riskProfileCode
+      "2718155043500073612906634403139041842518004532954031278126931986324444413952", //uint256 _vaultConfiguration
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935", //uint256 _userDepositCapUT
+      "0", //uint256 _minimumDepositValueUT
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935", //uint256 _totalValueLockedLimitUT
+    ],
+  };
   const result = await deploy("opSUSHI-Invst", {
     from: deployer,
     contract: {
@@ -107,20 +121,8 @@ const func: DeployFunction = async ({
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Earn_Implementation",
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].SUSHI.hash, //bytes32 _underlyingTokensHash
-            "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783", //bytes32 _whitelistedAccountsRoot
-            "SUSHI", //string memory _symbol
-            "2", //uint256 _riskProfileCode
-            "2718155043500073612906634403139041842518004532954031278126931986324444413952", //uint256 _vaultConfiguration
-            "115792089237316195423570985008687907853269984665640564039457584007913129639935", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "115792089237316195423570985008687907853269984665640564039457584007913129639935", //uint256 _totalValueLockedLimitUT
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
