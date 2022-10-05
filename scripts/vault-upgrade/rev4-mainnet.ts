@@ -14,7 +14,7 @@ import {
 import { getRiskProfileCode } from "../../helpers/utils";
 
 async function main() {
-  const implementation = "";
+  const implementation = (await deployments.get("opWETH-Earn")).implementation;
   const vaults: { [name: string]: string } = {
     // "opAAVE-Invst": (await deployments.get("opAAVE-Invst")).address,
     "opAPE-Invst": (await deployments.get("opAPE-Invst")).address,
@@ -57,7 +57,7 @@ async function main() {
       to: oldVaultProxyInstance.address,
       value: "0",
       data: proxyInstance.interface.encodeFunctionData("upgradeToAndCall", [
-        implementation,
+        implementation as string,
         newVaultInstance.interface.encodeFunctionData("initialize", [
           _registry,
           _underlyingTokensHash,
