@@ -6,9 +6,8 @@ import TASKS from "../task-names";
 
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
-  .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .addParam("insertindb", "allow inserting to database", false, types.boolean)
-  .setAction(async ({ deployedonce, registry }, hre) => {
+  .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
+  .setAction(async ({ deployedOnce, registry }, hre) => {
     if (registry === "") {
       throw new Error("registry cannot be empty");
     }
@@ -20,7 +19,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_RISK_MANAGER.NAME, TASKS.DEPLOYMENT_TASKS.DEP
     try {
       const [owner] = await hre.ethers.getSigners();
       console.log("Deploying RiskManager...");
-      const riskManagerContract = await deployRiskManager(hre, owner, deployedonce, registry);
+      const riskManagerContract = await deployRiskManager(hre, owner, deployedOnce, registry);
       console.log("Finished deploying RiskManager");
       console.log(`Contract RiskManager : ${riskManagerContract.address}`);
       console.log("Registering RiskManager...");

@@ -8,7 +8,7 @@ export async function usdcRebalance(): Promise<void> {
   const opUSDCgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCgrow.VaultProxy);
   const actualopUSDCgrowImplementation = await opUSDCgrowProxyInstance.implementation();
   if (getAddress(opUSDCgrow.Vault) == getAddress(actualopUSDCgrowImplementation)) {
-    const opUSDCgrowInstance = await ethers.getContractAt(oldAbis.oldVault, opUSDCgrow.VaultProxy);
+    const opUSDCgrowInstance = await ethers.getContractAt(oldAbis.oldVaultV2, opUSDCgrow.VaultProxy);
 
     const usdcCurrentStrategyHash = await opUSDCgrowInstance.investStrategyHash();
 

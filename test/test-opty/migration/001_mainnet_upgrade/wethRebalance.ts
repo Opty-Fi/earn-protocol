@@ -8,7 +8,7 @@ export async function wethRebalance(): Promise<void> {
   const opWETHgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opWETHgrow.VaultProxy);
   const actualopWETHgrowImplementation = await opWETHgrowProxyInstance.implementation();
   if (getAddress(opWETHgrow.Vault) == getAddress(actualopWETHgrowImplementation)) {
-    const opWETHgrowInstance = await ethers.getContractAt(oldAbis.oldVault, opWETHgrow.VaultProxy);
+    const opWETHgrowInstance = await ethers.getContractAt(oldAbis.oldVaultV2, opWETHgrow.VaultProxy);
 
     const wethCurrentStrategyHash = await opWETHgrowInstance.investStrategyHash();
     if (wethCurrentStrategyHash != ethers.constants.HashZero) {

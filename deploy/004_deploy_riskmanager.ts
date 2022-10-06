@@ -23,7 +23,7 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const { getAddress } = ethers.utils;
 
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   let feeData = await ethers.provider.getFeeData();
   const result = await deploy("RiskManager", {
     from: deployer,
@@ -41,7 +41,7 @@ const func: DeployFunction = async ({
 
   const riskManagerV2 = await deployments.get("RiskManager");
   const riskManagerV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerV2.address);
-  const riskManagerProxyAddress = await (await deployments.get("RiskManagerProxy")).address;
+  const riskManagerProxyAddress = (await deployments.get("RiskManagerProxy")).address;
   const riskManagerInstance = <RiskManagerProxy>(
     await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, riskManagerProxyAddress)
   );

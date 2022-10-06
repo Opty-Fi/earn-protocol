@@ -1,9 +1,10 @@
 import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
+import { VaultV3__factory } from "../../../../helpers/types/vaultv3";
 import { RegistryProxy, opWETHgrow as opWETHgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeWETH(): Promise<void> {
-  const opWETHgrowFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.VAULT);
+  const opWETHgrowFactory = await ethers.getContractFactory(VaultV3__factory.abi, VaultV3__factory.bytecode);
   const opWETHgrow = await opWETHgrowFactory.deploy(RegistryProxy, "Wrapped Ether", "WETH", "Growth", "grow");
   const { getAddress } = ethers.utils;
   const opWETHgrowAddress = opWETHgrow.address;

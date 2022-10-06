@@ -1,13 +1,14 @@
 // !! Important !!
 // Please do not keep this file under helpers/utils as it imports hre from hardhat
-import { BigNumber, BigNumberish } from "ethers";
-import { getAddress, parseEther } from "ethers/lib/utils";
+import { BigNumber, BigNumberish, Contract, Signature } from "ethers";
+import { getAddress, parseEther, splitSignature } from "ethers/lib/utils";
 import hre, { ethers } from "hardhat";
 import ethTokens from "@optyfi/defi-legos/ethereum/tokens/wrapped_tokens";
 import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, IWETH, Registry, Vault } from "../../typechain";
+import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit } from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
@@ -131,7 +132,7 @@ export async function getDepositInternalTransactionCount(
 export async function getOraValueUT(
   investStrategySteps: StrategyStepType[],
   registryContract: Registry,
-  vault: Vault,
+  vault: Contract,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   let outputTokenAmount = BigNumber.from("0");
@@ -193,7 +194,7 @@ export async function getOraSomeValueUT(
 export async function getLastStrategyStepBalanceLP(
   investStrategySteps: StrategyStepType[],
   registryContract: Registry,
-  vault: Vault,
+  vault: Contract,
   underlyingToken: ERC20,
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
@@ -239,4 +240,119 @@ export async function getOraSomeValueLP(
     index++;
   }
   return amountLP;
+}
+
+export async function getPermitSignature(
+  signer: SignerWithAddress,
+  token: ERC20Permit,
+  spender: string,
+  value: BigNumber,
+  deadline: BigNumber,
+  permitConfig?: { nonce?: BigNumber; name?: string; chainId?: number; version?: string },
+): Promise<Signature> {
+  const [nonce, name, version, chainId] = await Promise.all([
+    permitConfig?.nonce ?? token.nonces(signer.address),
+    permitConfig?.name ?? token.name(),
+    permitConfig?.version ?? "1",
+    permitConfig?.chainId ?? signer.getChainId(),
+  ]);
+
+  return splitSignature(
+    await signer._signTypedData(
+      {
+        name,
+        version,
+        chainId,
+        verifyingContract: token.address,
+      },
+      {
+        Permit: [
+          {
+            name: "owner",
+            type: "address",
+          },
+          {
+            name: "spender",
+            type: "address",
+          },
+          {
+            name: "value",
+            type: "uint256",
+          },
+          {
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+      },
+      {
+        owner: signer.address,
+        spender,
+        value,
+        nonce,
+        deadline,
+      },
+    ),
+  );
+}
+
+export async function getPermitLegacySignature(
+  signer: SignerWithAddress,
+  token: ERC20Permit,
+  spender: string,
+  expiry: BigNumber,
+  permitConfig?: { nonce?: BigNumber; name?: string; chainId?: number; version?: string },
+): Promise<Signature> {
+  const [nonce, name, version, chainId] = await Promise.all([
+    permitConfig?.nonce ?? token.nonces(signer.address),
+    permitConfig?.name ?? token.name(),
+    permitConfig?.version ?? "1",
+    permitConfig?.chainId ?? signer.getChainId(),
+  ]);
+
+  return splitSignature(
+    await signer._signTypedData(
+      {
+        name,
+        version,
+        chainId,
+        verifyingContract: token.address,
+      },
+      {
+        Permit: [
+          {
+            name: "holder",
+            type: "address",
+          },
+          {
+            name: "spender",
+            type: "address",
+          },
+          {
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            name: "expiry",
+            type: "uint256",
+          },
+          {
+            name: "allowed",
+            type: "bool",
+          },
+        ],
+      },
+      {
+        holder: signer.address,
+        spender,
+        nonce,
+        expiry,
+        allowed: true,
+      },
+    ),
+  );
 }

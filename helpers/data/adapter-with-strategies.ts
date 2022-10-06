@@ -2475,7 +2475,7 @@ const avalancheStrategiesbyToken = {
         riskProfileCode: 1,
       },
     },
-    USDCe: {
+    "USDC.e": {
       "usdce-DEPOSIT-AaveV2-avUSDC": {
         strategyName: "",
         token: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
@@ -2579,8 +2579,8 @@ const vaultConfigRP2 = ethers.BigNumber.from(
 const mainnetVaults: VaultType = {
   Save: {
     USDC: {
-      symbol: "opUSDCsave",
-      name: "op USD Coin Save",
+      symbol: "opUSDC-Save",
+      name: "OptyFi USDC Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP0,
@@ -2589,8 +2589,8 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
     WETH: {
-      symbol: "opWETHsave",
-      name: "op Wrapped Ether Save",
+      symbol: "opWETH-Save",
+      name: "OptyFi WETH Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
       vaultConfig: vaultConfigRP0,
@@ -2599,8 +2599,8 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
     },
     DAI: {
-      symbol: "opDAIsave",
-      name: "op Dai Stablecoin Save",
+      symbol: "opDAI-Save",
+      name: "OptyFi DAI Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.DAI.hash,
       vaultConfig: vaultConfigRP0,
@@ -2610,8 +2610,8 @@ const mainnetVaults: VaultType = {
     },
 
     USDT: {
-      symbol: "opUSDTsave",
-      name: "op Tether USD Save",
+      symbol: "opUSDT-Save",
+      name: "OptyFi USDT Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDT.hash,
       vaultConfig: vaultConfigRP0,
@@ -2621,8 +2621,8 @@ const mainnetVaults: VaultType = {
     },
 
     WBTC: {
-      symbol: "opWBTCsave",
-      name: "op Wrapped BTC Save",
+      symbol: "opWBTC-Save",
+      name: "OptyFi WBTC Save Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
       vaultConfig: vaultConfigRP0,
@@ -2633,8 +2633,8 @@ const mainnetVaults: VaultType = {
   },
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
-      name: "op USD Coin Earn",
+      symbol: "opUSDC-Earn",
+      name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2644,8 +2644,8 @@ const mainnetVaults: VaultType = {
     },
 
     WETH: {
-      symbol: "opWETHearn",
-      name: "op Wrapped Ether Earn",
+      symbol: "opWETH-Earn",
+      name: "OptyFi WETH Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
       vaultConfig: vaultConfigRP1,
@@ -2655,8 +2655,8 @@ const mainnetVaults: VaultType = {
     },
 
     USD3: {
-      symbol: "opUSD3earn",
-      name: "op Curve.fi DAI/USDC/USDT Earn",
+      symbol: "opUSD3-Earn",
+      name: "OptyFi USD3 Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USD3.hash,
       vaultConfig: vaultConfigRP1,
@@ -2666,8 +2666,8 @@ const mainnetVaults: VaultType = {
     },
 
     WBTC: {
-      symbol: "opWBTCearn",
-      name: "op Wrapped BTC Earn",
+      symbol: "opWBTC-Earn",
+      name: "OptyFi WBTC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2678,8 +2678,8 @@ const mainnetVaults: VaultType = {
   },
   Invest: {
     USDC: {
-      symbol: "opUSDCinvst",
-      name: "op USD Coin Invest",
+      symbol: "opUSDC-Invst",
+      name: "OptyFi USDC Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP2,
@@ -2688,8 +2688,8 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
     WETH: {
-      symbol: "opWETHinvst",
-      name: "op Wrapped Ether Invest",
+      symbol: "opWETH-Invst",
+      name: "OptyFi WETH Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WETH.hash,
       vaultConfig: vaultConfigRP2,
@@ -2698,8 +2698,8 @@ const mainnetVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("5000000000000000000000"), // 5000 WETH TVL limit
     },
     NEWO: {
-      symbol: "opNEWOinvst",
-      name: "op New Order Invest",
+      symbol: "opNEWO-Invst",
+      name: "OptyFi NEWO Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.NEWO.hash,
       vaultConfig: vaultConfigRP2,
@@ -2709,8 +2709,8 @@ const mainnetVaults: VaultType = {
     },
 
     AAVE: {
-      symbol: "opAAVEinvst",
-      name: "op Aave Token Invest",
+      symbol: "opAAVE-Invst",
+      name: "OptyFi AAVE Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.AAVE.hash,
       vaultConfig: vaultConfigRP2,
@@ -2720,8 +2720,8 @@ const mainnetVaults: VaultType = {
     },
 
     APE: {
-      symbol: "opAPEinvst",
-      name: "op ApeCoin Invest",
+      symbol: "opAPE-Invst",
+      name: "OptyFi APE Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.APE.hash,
       vaultConfig: vaultConfigRP2,
@@ -2731,8 +2731,8 @@ const mainnetVaults: VaultType = {
     },
 
     SUSHI: {
-      symbol: "opSUSHIinvst",
-      name: "op SushiToken Invest",
+      symbol: "opSUSHI-Invst",
+      name: "OptyFi SUSHI Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.SUSHI.hash,
       vaultConfig: vaultConfigRP2,
@@ -2742,8 +2742,8 @@ const mainnetVaults: VaultType = {
     },
 
     MANA: {
-      symbol: "opMANAinvst",
-      name: "op Decentraland MANA Invest",
+      symbol: "opMANA-Invst",
+      name: "OptyFi MANA Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.MANA.hash,
       vaultConfig: vaultConfigRP2,
@@ -2753,8 +2753,8 @@ const mainnetVaults: VaultType = {
     },
 
     LINK: {
-      symbol: "opLINKinvst",
-      name: "op ChainLink Token Invest",
+      symbol: "opLINK-Invst",
+      name: "OptyFi LINK Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.LINK.hash,
       vaultConfig: vaultConfigRP2,
@@ -2764,8 +2764,8 @@ const mainnetVaults: VaultType = {
     },
 
     ENS: {
-      symbol: "opENSinvst",
-      name: "op Ethereum Name Service Invest",
+      symbol: "opENS-Invst",
+      name: "OptyFi ENS Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ENS.hash,
       vaultConfig: vaultConfigRP2,
@@ -2775,8 +2775,8 @@ const mainnetVaults: VaultType = {
     },
 
     COMP: {
-      symbol: "opCOMPinvst",
-      name: "op Compound Invest",
+      symbol: "opCOMP-Invst",
+      name: "OptyFi COMP Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.COMP.hash,
       vaultConfig: vaultConfigRP2,
@@ -2786,8 +2786,8 @@ const mainnetVaults: VaultType = {
     },
 
     IMX: {
-      symbol: "opIMXinvst",
-      name: "op Immutable X Invest",
+      symbol: "opIMX-Invst",
+      name: "OptyFi IMX Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.IMX.hash,
       vaultConfig: vaultConfigRP2,
@@ -2797,8 +2797,8 @@ const mainnetVaults: VaultType = {
     },
 
     ALCX: {
-      symbol: "opALCXinvst",
-      name: "op Alchemix Invest",
+      symbol: "opALCX-Invst",
+      name: "OptyFi ALCX Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.ALCX.hash,
       vaultConfig: vaultConfigRP2,
@@ -2808,8 +2808,8 @@ const mainnetVaults: VaultType = {
     },
 
     CRV: {
-      symbol: "opCRVinvst",
-      name: "op Curve DAO Token Invest",
+      symbol: "opCRV-Invst",
+      name: "OptyFi CRV Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CRV.hash,
       vaultConfig: vaultConfigRP2,
@@ -2819,8 +2819,8 @@ const mainnetVaults: VaultType = {
     },
 
     CVX: {
-      symbol: "opCVXinvst",
-      name: "op Convex Token Invest",
+      symbol: "opCVX-Invst",
+      name: "OptyFi CVX Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.CVX.hash,
       vaultConfig: vaultConfigRP2,
@@ -2830,8 +2830,8 @@ const mainnetVaults: VaultType = {
     },
 
     YFI: {
-      symbol: "opYFIinvst",
-      name: "op yearn.finance Invest",
+      symbol: "opYFI-Invst",
+      name: "OptyFi YFI Invest Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.YFI.hash,
       vaultConfig: vaultConfigRP2,
@@ -2845,8 +2845,8 @@ const mainnetVaults: VaultType = {
 const kovanVaults: VaultType = {
   Intermediate: {
     USDC: {
-      symbol: "opAVUSDCint",
-      name: "op Aave USD Coin intermediate",
+      symbol: "opAVUSDC-Int",
+      name: "OptyFi AVUSDC Intermediate Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2860,8 +2860,8 @@ const kovanVaults: VaultType = {
 const polygonVaults: VaultType = {
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
-      name: "op USD Coin (PoS) Earn",
+      symbol: "opUSDC-Earn",
+      name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2871,8 +2871,8 @@ const polygonVaults: VaultType = {
     },
 
     WMATIC: {
-      symbol: "opWMATICearn",
-      name: "op Wrapped Matic Earn",
+      symbol: "opWMATIC-Earn",
+      name: "OptyFi WMATIC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.polygon.WMATIC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2886,8 +2886,8 @@ const polygonVaults: VaultType = {
 const mumbaiVaults: VaultType = {
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
-      name: "op USD Coin (PoS) Earn",
+      symbol: "opUSDC-Earn",
+      name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mumbai.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2901,8 +2901,8 @@ const mumbaiVaults: VaultType = {
 const avalancheVaults: VaultType = {
   Earn: {
     USDC: {
-      symbol: "opUSDCearn",
-      name: "op USD Coin Earn",
+      symbol: "opUSDC-Earn",
+      name: "OptyFi USDC Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDC.hash,
       vaultConfig: vaultConfigRP1,
@@ -2911,11 +2911,11 @@ const avalancheVaults: VaultType = {
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
 
-    USDCe: {
-      symbol: "opUSDC.eearn",
-      name: "op USD Coin Earn",
-      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.address,
-      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.USDCe.hash,
+    "USDC.e": {
+      symbol: "opUSDC.e-Earn",
+      name: "OptyFi USDC.e Earn Vault",
+      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche["USDC.e"].address,
+      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche["USDC.e"].hash,
       vaultConfig: vaultConfigRP1,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDCe user deposit cap
       minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDCe minimum deposit
@@ -2923,8 +2923,8 @@ const avalancheVaults: VaultType = {
     },
 
     WAVAX: {
-      symbol: "opWAVAXearn",
-      name: "op Wrapped AVAX Earn",
+      symbol: "opWAVAX-Earn",
+      name: "OptyFi WAVAX Earn Vault",
       underlyingToken: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.address,
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.avalanche.WAVAX.hash,
       vaultConfig: vaultConfigRP1,

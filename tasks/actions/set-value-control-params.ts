@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import { BigNumber } from "ethers";
 import TASKS from "../task-names";
-import { Vault, Vault__factory } from "../../typechain";
+import { Vault } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
 
 task(TASKS.ACTION_TASKS.SET_VALUE_CONTROL_PARAMS.NAME, TASKS.ACTION_TASKS.SET_VALUE_CONTROL_PARAMS.DESCRIPTION)
@@ -15,9 +15,8 @@ task(TASKS.ACTION_TASKS.SET_VALUE_CONTROL_PARAMS.NAME, TASKS.ACTION_TASKS.SET_VA
       { deployments, ethers },
     ) => {
       try {
-        const vaultInstance = <Vault>(
-          await ethers.getContractAt(Vault__factory.abi, await (await deployments.get(vaultSymbol)).address)
-        );
+        const vaultAddress = (await deployments.get(`${vaultSymbol}_Proxy`)).address;
+        const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, vaultAddress);
         const actualUserDepositCapUT = await vaultInstance.userDepositCapUT();
         const actualMinimumDepositValueUT = await vaultInstance.minimumDepositValueUT();
         const actualTotalValueLockedLimitUT = await vaultInstance.totalValueLockedLimitUT();
@@ -38,7 +37,7 @@ task(TASKS.ACTION_TASKS.SET_VALUE_CONTROL_PARAMS.NAME, TASKS.ACTION_TASKS.SET_VA
           console.log("\n");
           const registryInstance = await ethers.getContractAt(
             ESSENTIAL_CONTRACTS.REGISTRY,
-            await (
+            (
               await deployments.get("RegistryProxy")
             ).address,
           );

@@ -12,6 +12,7 @@ import "hardhat-gas-reporter";
 import "hardhat-docgen";
 import "@typechain/hardhat";
 import "@tenderly/hardhat-tenderly";
+import "hardhat-contract-sizer";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,
@@ -90,6 +91,22 @@ const config: HardhatUserConfig = {
       },
       {
         version: "0.8.11",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/solidity-template/issues/31
+            bytecodeHash: "none",
+          },
+          // Disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
+        version: "0.8.15",
         settings: {
           metadata: {
             // Not including the metadata hash

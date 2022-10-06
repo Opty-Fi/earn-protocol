@@ -18,12 +18,12 @@ export async function setZeroStrategy(): Promise<void> {
     const strategyProviderInstance = await ethers.getContractAt(oldAbis.oldStrategyProvider, StrategyProviderAddress);
     const oldUSDCTokensHash = "0x987a96a91381a62e90a58f1c68177b52aa669f3bd7798e321819de5f870d4ddd";
     const oldWETHTokensHash = "0x23a659933d87059bc00a17f29f4d98c03eb8986a90c1bec799741278c741576d";
-    const opUSDCearnProxyAddress = "0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88";
-    const opUSDCearnInstance = await ethers.getContractAt(oldAbis.oldVault, opUSDCearnProxyAddress);
-    const opWETHearnProxyAddress = "0xFf2fbd9Fbc6d03BAA77cf97A3D5671bEA183b9a8";
-    const opWETHearnInstance = await ethers.getContractAt(oldAbis.oldVault, opWETHearnProxyAddress);
-    const opUSDCearnRiskProfileCode = await opUSDCearnInstance.riskProfileCode();
-    const opWETHearnRiskProfileCode = await opWETHearnInstance.riskProfileCode();
+    const opUSDCgrowProxyAddress = "0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88";
+    const opUSDCgrowInstance = await ethers.getContractAt(oldAbis.oldVaultV2, opUSDCgrowProxyAddress);
+    const opWETHgrowProxyAddress = "0xFf2fbd9Fbc6d03BAA77cf97A3D5671bEA183b9a8";
+    const opWETHgrowInstance = await ethers.getContractAt(oldAbis.oldVaultV2, opWETHgrowProxyAddress);
+    const opUSDCearnRiskProfileCode = await opUSDCgrowInstance.riskProfileCode();
+    const opWETHearnRiskProfileCode = await opWETHgrowInstance.riskProfileCode();
     const usdcBestStrategyHash = await strategyProviderInstance.rpToTokenToBestStrategy(
       opUSDCearnRiskProfileCode,
       oldUSDCTokensHash,

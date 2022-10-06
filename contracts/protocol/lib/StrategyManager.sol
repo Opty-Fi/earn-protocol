@@ -4,28 +4,26 @@ pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
 //  libraries
+import { Errors } from "../../utils/Errors.sol";
 import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 
 // interfaces
 import { IAdapterFull } from "@optyfi/defi-legos/interfaces/defiAdapters/contracts/IAdapterFull.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
-import {
-    IInvestStrategyRegistry
-} from "../earn-protocol-configuration/contracts/interfaces/opty/IInvestStrategyRegistry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title StrategyBuilder Library
+ * @title StrategyManager Library
  * @author Opty.fi
  * @notice Central processing unit of the earn protocol
- * @dev Contains the functionality for getting the codes to deposit/withdraw tokens,
+ * @dev Contains the functionality for getting the codes to deposit/withdraw/claim tokens,
  * from the adapters and pass it onto vault contract
  */
 library StrategyManager {
     function getDepositInternalTransactionCount(
         DataTypes.StrategyStep[] memory _strategySteps,
         address _registryContract
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         uint256 _strategyStepCount = _strategySteps.length;
         address _lastStepLiquidityPool = _strategySteps[_strategyStepCount - 1].pool;
         if (
@@ -43,7 +41,7 @@ library StrategyManager {
         address _registryContract,
         address payable _vault,
         address _underlyingToken
-    ) internal view returns (uint256 _amountUT) {
+    ) public view returns (uint256 _amountUT) {
         uint256 _nStrategySteps = _strategySteps.length;
         uint256 _outputTokenAmount;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
@@ -73,7 +71,7 @@ library StrategyManager {
         address _registryContract,
         address _underlyingToken,
         uint256 _wantAmountUT
-    ) internal view returns (uint256 _amountLP) {
+    ) public view returns (uint256 _amountLP) {
         uint256 _nStrategySteps = _strategySteps.length;
         for (uint256 _i; _i < _nStrategySteps; _i++) {
             address _liquidityPool = _strategySteps[_i].pool;
@@ -95,7 +93,7 @@ library StrategyManager {
     function getPoolDepositCodes(
         DataTypes.StrategyStep[] memory _strategySteps,
         DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
-    ) internal view returns (bytes[] memory _codes) {
+    ) public view returns (bytes[] memory _codes) {
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
         address _underlyingToken = _strategyConfigurationParams.underlyingToken;
         uint256 _depositAmountUT = _strategyConfigurationParams.initialStepInputAmount;
@@ -132,7 +130,7 @@ library StrategyManager {
     function getPoolWithdrawCodes(
         DataTypes.StrategyStep[] memory _strategySteps,
         DataTypes.StrategyConfigurationParams memory _strategyConfigurationParams
-    ) internal view returns (bytes[] memory _codes) {
+    ) public view returns (bytes[] memory _codes) {
         address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].pool;
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
         IAdapterFull _adapter = IAdapterFull(_registryContract.getLiquidityPoolToAdapter(_liquidityPool));
@@ -170,7 +168,7 @@ library StrategyManager {
         address _registryContract,
         address payable _vault,
         address _underlyingToken
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         uint256 _strategyStepsLen = _strategySteps.length;
         address _liquidityPool = _strategySteps[_strategySteps.length - 1].pool;
         IAdapterFull _adapter = IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
@@ -182,5 +180,42 @@ library StrategyManager {
             _adapter.canStake(_liquidityPool)
                 ? _adapter.getLiquidityPoolTokenBalanceStake(_vault, _liquidityPool)
                 : _adapter.getLiquidityPoolTokenBalance(_vault, _underlyingToken, _liquidityPool);
+    }
+
+    function getClaimRewardTokenCode(
+        address _liquidityPool,
+        address _registryContract,
+        address payable _vault
+    ) public view returns (bytes[] memory _codes) {
+        IAdapterFull _adapter = _getAdapter(_registryContract, _liquidityPool);
+        _checkRewardToken(_adapter, _liquidityPool);
+        _codes = _adapter.getClaimRewardTokenCode(_vault, _liquidityPool);
+    }
+
+    function getUnclaimedRewardTokenAmount(
+        address _liquidityPool,
+        address _registryContract,
+        address payable _vault,
+        address _underlyingToken
+    ) public view returns (uint256) {
+        IAdapterFull _adapter = _getAdapter(_registryContract, _liquidityPool);
+        return
+            _adapter.getRewardToken(_liquidityPool) == address(0)
+                ? uint256(0)
+                : _adapter.getUnclaimedRewardTokenAmount(_vault, _liquidityPool, _underlyingToken);
+    }
+
+    function getRewardToken(address _liquidityPool, address _registryContract) public view returns (address) {
+        IAdapterFull _adapter = _getAdapter(_registryContract, _liquidityPool);
+        return _adapter.getRewardToken(_liquidityPool);
+    }
+
+    function _getAdapter(address _registryContract, address _liquidityPool) private view returns (IAdapterFull) {
+        IAdapterFull _adapter = IAdapterFull(IRegistry(_registryContract).getLiquidityPoolToAdapter(_liquidityPool));
+        return _adapter;
+    }
+
+    function _checkRewardToken(IAdapterFull _adapter, address _liquidityPool) private view {
+        require(_adapter.getRewardToken(_liquidityPool) != address(0), Errors.NOTHING_TO_CLAIM);
     }
 }

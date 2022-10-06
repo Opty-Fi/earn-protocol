@@ -23,7 +23,7 @@ const func: DeployFunction = async ({
   const networkName = network.name;
   const { getAddress } = ethers.utils;
 
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   let feeData = await ethers.provider.getFeeData();
   const result = await deploy("StrategyProvider", {
     from: deployer,
