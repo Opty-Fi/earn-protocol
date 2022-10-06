@@ -2226,6 +2226,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidstate/contracts@npm:^0.0.35":
+  version: 0.0.35
+  resolution: "@solidstate/contracts@npm:0.0.35"
+  checksum: db0a88d6c01dd99f40cc8074d3df429d8485fa997eb38171c18464253a4d7512b2f04c925efd0ef2373691a875c063c52cc7f382232995f67984fd4fc7cb9974
+  languageName: node
+  linkType: hard
+
 "@szmarczak/http-timer@npm:^1.1.2":
   version: 1.1.2
   resolution: "@szmarczak/http-timer@npm:1.1.2"
@@ -6602,6 +6609,7 @@ __metadata:
     "@openzeppelin/contracts": 3.4.0
     "@openzeppelin/contracts-0.8.x": "npm:@openzeppelin/contracts@4.4.1"
     "@optyfi/defi-legos": v0.1.0-rc.38
+    "@solidstate/contracts": ^0.0.35
     "@tenderly/hardhat-tenderly": 1.1.0-beta.6
     "@typechain/ethers-v5": ^7.1.2
     "@typechain/hardhat": ^2.3.0
