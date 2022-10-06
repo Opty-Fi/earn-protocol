@@ -156,9 +156,10 @@ interface IVault {
     ) external returns (uint256);
 
     /**
-     * @notice function to deposit whole balance of underlying token to current strategy
+     * @notice function to deposit whole balance of underlying token to strategy
+     * @param _strategyHash hash of strategy
      */
-    function vaultDepositAllToStrategy() external;
+    function vaultDepositAllToStrategy(bytes32 _strategyHash) external;
 
     /**
      * @notice deposits underlying tokens to a strategy from the vault

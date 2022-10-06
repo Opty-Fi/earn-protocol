@@ -21,7 +21,6 @@ import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
 import { StrategyManager } from "../lib/StrategyManager.sol";
 import { MerkleProof } from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
-import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 // interfaces
@@ -54,7 +53,6 @@ contract Vault is
     using Address for address;
     using StrategyManager for address;
     using StrategyManager for DataTypes.StrategyStep[];
-    using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     /**
@@ -275,14 +273,16 @@ contract Vault is
         return _withdrawVaultFor(_receiver, _userWithdrawVT, _expectedOutput, _withdrawStrategies, _accountsProof);
     }
 
-    //NOTE: CHANGE THIS FUNC
     /**
      * @inheritdoc IVault
      */
-    function vaultDepositAllToStrategy() external override {
+    function vaultDepositAllToStrategy(bytes32 _strategyHash) external override {
         _checkVaultDeposit();
         if (investStrategyHash != Constants.ZERO_BYTES32) {
-            _vaultDepositToStrategy(investStrategySteps, balanceUT());
+            _vaultDepositToStrategy(
+                IStrategyRegistry(registryContract.getStrategyRegistry()).getStrategySteps(_strategyHash),
+                balanceUT()
+            );
         }
     }
 
@@ -297,7 +297,7 @@ contract Vault is
         _onlyStrategyOperator();
         _checkVaultDeposit();
 
-        IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+        IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
@@ -320,7 +320,7 @@ contract Vault is
         uint256 _minExpectedUT
     ) external override {
         _onlyStrategyOperator();
-        IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+        IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
 
         require(strategies.contains(_strategyHash), Errors.INVALID_STRATEGY);
 
@@ -405,6 +405,10 @@ contract Vault is
      */
     function addStrategy(bytes32 _strategyHash) external override {
         _onlyStrategyOperator();
+        IRiskManager(registryContract.getRiskManager()).isValidStrategy(
+            _strategyHash,
+            (vaultConfiguration >> 240) & 0xFF
+        );
         strategies.add(_strategyHash);
         emit AddStrategy(_strategyHash);
     }
@@ -714,7 +718,7 @@ contract Vault is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+            IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
 
             for (uint256 i; i < _withdrawStrategies.length; i++) {
                 uint256 _oraAmountLP;
@@ -805,7 +809,7 @@ contract Vault is
      * @dev Internal function to withdraw all investments
      */
     function _vaultWithdrawAll() internal {
-        IStrategyRegistry strategyRegistry = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry());
+        IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
         for (uint256 i; i < strategies.length(); i++) {
             _vaultWithdrawSomeFromStrategy(
                 strategyRegistry.getStrategySteps(strategies.at(i)),
@@ -947,16 +951,11 @@ contract Vault is
      */
     function _oraVaultAndStratValueUT() internal view returns (uint256) {
         uint256 _totalValue = balanceUT();
-        DataTypes.StrategyStep[][] memory _allSteps;
 
         for (uint256 i; i < strategies.length(); i++) {
-            _allSteps[i] = IStrategyRegistry(IRegistry(registryContract).getStrategyRegistry()).getStrategySteps(
-                strategies.at(i)
+            _totalValue += _oraStratValueUT(
+                IStrategyRegistry(registryContract.getStrategyRegistry()).getStrategySteps(strategies.at(i))
             );
-        }
-
-        for (uint256 i; i < _allSteps.length; i++) {
-            _totalValue.add(_oraStratValueUT(_allSteps[i]));
         }
 
         return _totalValue;
