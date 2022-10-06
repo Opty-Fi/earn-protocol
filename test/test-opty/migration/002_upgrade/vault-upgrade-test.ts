@@ -210,7 +210,7 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
             "op_Revision ",
             await (await this.vaults[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).toString(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).to.eq("4");
+          expect(await this.vaults[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).to.eq("5");
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} pendingDeposits as expected`, async function () {
           if (testVaults[testVaultUnderlyingToken][testVault].testAccount !== undefined) {

@@ -76,8 +76,10 @@ const abi = [
 
 async function main() {
   // const provider = new ethers.providers.JsonRpcProvider({ url: "https://nd-328-007-530.p2pify.com/", user: "zen-mcclintock", password: "sleek-bulk-chrome-statue-groggy-thread",timeout:1200000000 },1)
-  const provider = new ethers.providers.AlchemyProvider("mainnet", "k-rwPAw5_h5AKFyJ9Dx8zaHwMSpMhpbb");
-  // const provider = new ethers.providers.JsonRpcProvider("https://nd-328-007-530.p2pify.com/17dfcd4517081ae1e066c2bd4d815e1a")
+  // const provider = new ethers.providers.AlchemyProvider("mainnet", "k-rwPAw5_h5AKFyJ9Dx8zaHwMSpMhpbb");
+  const provider = new ethers.providers.JsonRpcProvider(
+    "https://nd-328-007-530.p2pify.com/17dfcd4517081ae1e066c2bd4d815e1a",
+  );
   const instance = new ethers.Contract("0x7Ce7D9ED62B9A6c5aCe1c6Ec9aeb115FA3064757", abi, provider);
   const x = instance.filters.LogBorrow(null, null, null, null);
   const y = instance.filters.LogAddCollateral(null, null, null);

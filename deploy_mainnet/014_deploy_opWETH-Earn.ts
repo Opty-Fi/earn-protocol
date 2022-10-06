@@ -118,7 +118,7 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 1,
+      upgradeIndex: networkName == "hardhat" ? 0 : 2,
       proxyContract: {
         abi: artifactVaultProxyV2.abi,
         bytecode: artifactVaultProxyV2.bytecode,

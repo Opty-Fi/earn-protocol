@@ -16,12 +16,12 @@ import { getRiskProfileCode } from "../../helpers/utils";
 async function main() {
   const implementation = (await deployments.get("opWETH-Earn")).implementation;
   const vaults: { [name: string]: string } = {
-    // "opAAVE-Invst": (await deployments.get("opAAVE-Invst")).address,
+    "opAAVE-Invst": (await deployments.get("opAAVE-Invst")).address,
     "opAPE-Invst": (await deployments.get("opAPE-Invst")).address,
     "opDAI-Save": (await deployments.get("opDAI-Save")).address,
     "opLINK-Invst": (await deployments.get("opLINK-Invst")).address,
     "opMANA-Invst": (await deployments.get("opMANA-Invst")).address,
-    // "opNEWO-Invst": (await deployments.get("opNEWO-Invst")).address,
+    "opNEWO-Invst": (await deployments.get("opNEWO-Invst")).address,
     "opSUSHI-Invst": (await deployments.get("opSUSHI-Invst")).address,
     "opUSD3-Earn": (await deployments.get("opUSD3-Earn")).address,
     "opUSDC-Invst": (await deployments.get("opUSDC-Invst")).address,

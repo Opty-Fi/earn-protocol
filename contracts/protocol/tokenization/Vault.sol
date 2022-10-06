@@ -54,7 +54,7 @@ contract Vault is
     /**
      * @dev The version of the Vault implementation
      */
-    uint256 public constant opTOKEN_REVISION = 0x4;
+    uint256 public constant opTOKEN_REVISION = 0x5;
 
     /**
      * @dev hash of the permit function
