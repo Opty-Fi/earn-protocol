@@ -1,67 +1,66 @@
-# OptyFi Stop-Loss Contract Suite
+[![Earn protocol Install, lint and test pipeline](https://github.com/Opty-Fi/earn-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/Opty-Fi/earn-protocol/actions/workflows/ci.yml)
 
-This project is built with [SolidState](https://github.com/solidstate-network). See the [solidstate-solidity](https://github.com/solidstate-network/solidstate-solidity) documentation for information about contract integration and testing.
+# Earn protocol
 
-## Development
+Core smart contract of OptyFi's Earn protocol
 
-Install dependencies via Yarn:
+## Prerequisite
 
-```bash
-yarn install
-```
+To run the project :
 
-Setup Husky to format code on commit:
+- <a href="https://nodejs.org/en/" target="_blank">Node.js</a> - >v8
+- <a href="https://yarnpkg.com/lang/en/docs/install/" target="_blank">Yarn</a>
+- Local env variables following [format](.env.example)
+- API keys from Ethereum node Providers like <a href="https://chainstack.com" target="_blank">chainstack.com</a>
 
-```bash
-yarn prepare
-```
+## Installation
 
-Compile contracts via Hardhat:
-
-```bash
-yarn run hardhat compile
-```
-
-The Hardhat environment relies on the following environment variables. The `dotenv` package will attempt to read them from the `.env` and `.env.secret` files, if they are present.
-
-| Key                 | Description                                                              |
-| ------------------- | ------------------------------------------------------------------------ |
-| `API_KEY_ETHERSCAN` | [Etherscan](https://etherscan.io//) API key for source code verification |
-| `NODE_URL_MAINNET`  | JSON-RPC node URL for `mainnet` network                                  |
-| `NODE_URL_TESTNET`  | JSON-RPC node URL for `testnet` network                                  |
-| `NODE_URL_TENDERLY` | JSON-RPC node URL for `tenderly` network                                 |
-| `PKEY_TESTNET`      | private key for test/development use on `testnet` network                |
-| `PKEY_MAINNET`      | private key for production use on `mainnet` network                      |
-| `REPORT_GAS`        | if `true`, a gas report will be generated after running tests            |
-
-### Networks
-
-By default, Hardhat uses the Hardhat Network in-process. Two additional networks, `mainnet` and `testnet` are available, and their behavior is determined by the configuration of environment variables.
-
-### Testing
-
-Test contracts via Hardhat:
+Clone earn-protocol
 
 ```bash
-yarn run hardhat test
+git clone https://github.com/Opty-Fi/earn-protocol.git
 ```
 
-Activate gas usage reporting by setting the `REPORT_GAS` environment variable to `"true"`:
+Run `yarn install` to install necessary dependencies.
+
+Run `yarn run` to view all available tasks.
+
+## Compile and Test
+
+Compile all contracts
 
 ```bash
-REPORT_GAS=true yarn run hardhat test
+yarn compile
 ```
 
-Generate a code coverage report using `solidity-coverage`:
+Test all contracts
 
 ```bash
-yarn run hardhat coverage
+yarn test
 ```
 
-### Documentation
+## Setup and Deployments
 
-A static documentation site can be generated using `hardhat-docgen`:
+For setting up all essential actions (deploying contracts, executing functions).
 
-```bash
-yarn run hardhat docgen
 ```
+# hardhat
+    yarn setup
+# localhost
+    yarn setup:local
+# staging
+    yarn setup:staging
+```
+
+For deploying infrastructure contracts in Optyfi protocol.
+
+```
+# hardhat
+    yarn deploy-infra
+# localhost
+    yarn deploy-infra:local
+# staging
+    yarn deploy-infra:staging
+```
+
+[View more tasks](cli.md)

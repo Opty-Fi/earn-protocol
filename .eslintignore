@@ -1,0 +1,15 @@
+# folders
+artifacts/
+build/
+cache/
+coverage/
+dist/
+lib/
+node_modules/
+typechain/
+specification_docs/
+deployments/
+contracts/protocol/earn-protocol-configuration
+contracts/protocol/adapters
+# files
+.solcover.js
