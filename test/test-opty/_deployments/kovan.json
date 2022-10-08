@@ -1,0 +1,17 @@
+{
+  "RegistryProxy": "0xf710F75418353B36F2624784c290B80e7a5C892A",
+  "Registry": "0x50d6EdeA9890Ff5bdef46FEB34F1c9AEdfC388E3",
+  "HarvestCodeProvider": "0x1d6bbe912b1c30a98386b68855f6bf28cebfb41c",
+  "AaveV1Adapter": "0x900053C7e41283C3b44AB521e8AB5Bc42c2571d3",
+  "AaveV2Adapter": "0x29988009C6BFC87D46F190E553f99822f9b3a775",
+  "CompoundAdapter": "0x13c2bbf68f2abe87134a76c283229346e4746959",
+  "InvestStrategyRegistry": "0x20f49c729c50854296e1e344400ca1db03529c4e",
+  "StrategyProvider": "0x70519737cc146cd2378b62e93d8105aab9a1964d",
+  "RiskManagerProxy": "0xe61ec00d34a93330775e8a8af0b16b03799b377d",
+  "RiskManager": "0x32af1697b14cb5a3df490790e8f5c8c160020342",
+  "StrategyManager": "0x99a8e7c0afe58f3313c938aecce96d333ce39299",
+  "opAVUSDCint": {
+    "Vault": "0xea873417E24012A662801bEBbdc2DAC34A31bc94",
+    "VaultProxy": "0x118194e96b2d4b08957ba9a05508fb6d14a37a0d"
+  }
+}

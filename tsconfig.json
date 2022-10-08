@@ -23,9 +23,13 @@
     "helpers/**/*.ts",
     "tasks/**/*.ts",
     "test/**/*.ts",
-    "typechain-types/**/*.d.ts",
-    "typechain-types/**/*.ts",
     "scripts/**/*.ts",
-    "deploy/**/*.ts"
+    "deploy/**/*.ts",
+    "typechain/**/*.d.ts",
+    "typechain/**/*.ts",
+    "optyfi-sdk/**/*.ts",
+    "scripts/**/*.ts",
+    "deploy/**/*.ts",
+    "deploy_*/**/*.ts"
   ]
 }

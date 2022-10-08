@@ -1,0 +1,702 @@
+{
+  "uni_eth_dpi": {
+    "address": "0x4d5ef58aAc27d99935E5b6B4A6778ff292059991"
+  },
+  "uni_ust_maaple": {
+    "address": "0xB022e08aDc8bA2dE6bA4fECb59C6D502f66e953B",
+    "path1": ["UST"]
+  },
+  "uni_ust_mamzn": {
+    "address": "0x0Ae8cB1f57e3b1b7f4f5048743710084AA69E796",
+    "path0": ["UST"]
+  },
+  "uni_ust_mgoogl": {
+    "address": "0x4b70ccD1Cf9905BE1FaEd025EADbD3Ab124efe9a",
+    "path0": ["UST"]
+  },
+  "uni_ust_mtsla": {
+    "address": "0x5233349957586A8207c52693A959483F9aeAA50C",
+    "path0": ["UST"]
+  },
+  "uni_ust_mnflx": {
+    "address": "0xC99A74145682C4b4A6e9fa55d559eb49A6884F75",
+    "path1": ["UST"]
+  },
+  "uni_ust_mtwtr": {
+    "address": "0x34856be886A2dBa5F7c38c4df7FD86869aB08040",
+    "path1": ["UST"]
+  },
+  "sushi_weth_usdt": {
+    "address": "0x06da0fd433C1A5d7a4faa01111c044910A184553"
+  },
+  "sushi_usdc_weth": {
+    "address": "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0"
+  },
+  "sushi_dai_weth": {
+    "address": "0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f"
+  },
+  "sushi_susd_weth": {
+    "address": "0xF1F85b2C54a2bD284B1cf4141D64fD171Bd85539"
+  },
+  "sushi_comp_weth": {
+    "address": "0x31503dcb60119A812feE820bb7042752019F2355"
+  },
+  "sushi_lend_weth": {
+    "address": "0x5E63360E891BD60C69445970256C260b0A6A54c6"
+  },
+  "sushi_snx_weth": {
+    "address": "0xA1d7b2d891e3A1f9ef4bBC5be20630C2FEB1c470"
+  },
+  "sushi_uma_weth": {
+    "address": "0x001b6450083E531A5a7Bf310BD2c1Af4247E23D4"
+  },
+  "sushi_link_weth": {
+    "address": "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967"
+  },
+  "sushi_band_weth": {
+    "address": "0xA75F7c2F025f470355515482BdE9EFA8153536A8"
+  },
+  "sushi_weth_ampl": {
+    "address": "0xCb2286d9471cc185281c4f763d34A962ED212962"
+  },
+  "sushi_yfi_weth": {
+    "address": "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C"
+  },
+  "sushi_sushi_weth": {
+    "address": "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0"
+  },
+  "sushi_ren_weth": {
+    "address": "0x611CDe65deA90918c0078ac0400A72B0D25B9bb1"
+  },
+  "sushi_susd_$based": {
+    "address": "0xaAD22f5543FCDaA694B68f94Be177B561836AE57"
+  },
+  "sushi_srm_weth": {
+    "address": "0x117d4288B3635021a3D612FE05a3Cbf5C717fEf2"
+  },
+  "sushi_yamv2_weth": {
+    "address": "0x95b54C8Da12BB23F7A5F6E26C38D04aCC6F81820"
+  },
+  "sushi_weth_crv": {
+    "address": "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009"
+  },
+  "sushi_uni_weth": {
+    "address": "0xDafd66636E2561b0284EDdE37e42d192F2844D40"
+  },
+  "sushi_xsushi_weth": {
+    "address": "0x36e2FCCCc59e5747Ff63a03ea2e5C0c2C14911e7"
+  },
+  "sushi_cdai_dai": {
+    "address": "0x0Cfe7968e7c34A51217a7C9b9dc1690F416E027e",
+    "path0": ["DAI"]
+  },
+  "sushi_wbtc_weth": {
+    "address": "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58"
+  },
+  "sushi_cream_weth": {
+    "address": "0xf169CeA51EB51774cF107c88309717ddA20be167"
+  },
+  "sushi_weth_meme": {
+    "address": "0x17b3C19Bd640a59E832AB73eCcF716CB47419846"
+  },
+  "sushi_wnxm_weth": {
+    "address": "0xFcff3b04C499A57778ae2CF05584ab24278A7FCb"
+  },
+  "sushi_yydai+yusdc+yusdt+ytusd_weth": {
+    "address": "0x382c4a5147Fd4090F7BE3A9Ff398F95638F5D39E"
+  },
+  "sushi_wbtc_yydai+yusdc+yusdt+ytusd": {
+    "address": "0x2024324a99231509a3715172d4F4f4E751b38d4d"
+  },
+  "sushi_cro_weth": {
+    "address": "0x0be88ac4b5C81700acF3a606a52a31C261a24A35"
+  },
+  "sushi_wbtc_renbtc": {
+    "address": "0x518d6CE2D7A689A591Bf46433443C31615b206C5"
+  },
+  "sushi_hegic_weth": {
+    "address": "0x6463Bd6026A2E7bFab5851b62969A92f7cca0eB6"
+  },
+  "sushi_wbtc_tbtc": {
+    "address": "0x2Dbc7dD86C6cd87b525BD54Ea73EBeeBbc307F68"
+  },
+  "sushi_core_weth": {
+    "address": "0x68C6d02D44E16F1c20088731Ab032f849100D70f"
+  },
+  "sushi_pickle_weth": {
+    "address": "0x269Db91Fc3c7fCC275C2E6f22e5552504512811c"
+  },
+  "sushi_weth_omg": {
+    "address": "0x742c15d71eA7444964BC39b0eD729B3729ADc361"
+  },
+  "sushi_aave_weth": {
+    "address": "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4"
+  },
+  "sushi_weth_amp": {
+    "address": "0x15e86E6f65EF7EA1dbb72A5E51a07926fB1c82E3"
+  },
+  "sushi_xsushi_usdc": {
+    "address": "0xd597924b16Cc1904d808285bC9044fd51CEEEaD7"
+  },
+  "sushi_ghst_weth": {
+    "address": "0x5a2943B25ce0678Dc0b351928D2DB331A55D94eA"
+  },
+  "sushi_weth_rari": {
+    "address": "0x53aaBCcAE8C1713a6a150D9981D2ee867D0720e8"
+  },
+  "sushi_dpi_weth": {
+    "address": "0x34b13F8CD184F55d0Bd4Dd1fe6C07D46f245c7eD"
+  },
+  "sushi_tbtc_vbtc": {
+    "address": "0xbcEdc25CbB0EA44E03E41dC2d00D54Fe6d4646Db"
+  },
+  "sushi_yam_weth": {
+    "address": "0x0F82E57804D0B1F6FAb2370A43dcFAd3c7cB239c"
+  },
+  "sushi_farm_weth": {
+    "address": "0x69b39B89f9274a16e8A19B78E5eB47a4d91dAc9E"
+  },
+  "sushi_weth_renbtc": {
+    "address": "0x0289B9CD5859476Ce325aCa04309D36adDCEbDAA"
+  },
+  "sushi_dough_weth": {
+    "address": "0x97f34c8E5992EB985c5F740e7EE8c7e48a1de76a"
+  },
+  "sushi_stake_weth": {
+    "address": "0x9Fc5b87b74B9BD239879491056752EB90188106D"
+  },
+  "sushi_rsr_weth": {
+    "address": "0x6f58A1Aa0248A9F794d13Dc78E74Fc75140956D7"
+  },
+  "sushi_tbtc_weth": {
+    "address": "0xEe6d78755e06C31AE7A5EA2b29b35C073dfc00A9"
+  },
+  "sushi_audio_weth": {
+    "address": "0x4F871F310AD0E8a170db0021c0ce066859d37469"
+  },
+  "sushi_akro_weth": {
+    "address": "0x364248b2f1f57C5402d244b2D469A35B4C0e9dAB"
+  },
+  "sushi_weth_hez": {
+    "address": "0xD7c2A4aa31E1bF08dc7Ff44C9980fa8573E10C1B"
+  },
+  "sushi_yax_weth": {
+    "address": "0x033ecD066376aFec5E6383BC9F1F15bE4C62dc89"
+  },
+  "sushi_ousd_usdt": {
+    "address": "0xe4455FdEc181561e9Ffe909Dde46AAEaeDC55283"
+  },
+  "sushi_weth_surf": {
+    "address": "0x0bff31d8179Da718A7ee3669853cF9978c90a24a"
+  },
+  "sushi_kp3r_weth": {
+    "address": "0xaf988afF99d3d0cb870812C325C588D8D8CB7De8"
+  },
+  "sushi_weth_seen": {
+    "address": "0xC5Fa164247d2F8D68804139457146eFBde8370F6"
+  },
+  "sushi_weth_axs": {
+    "address": "0x35a0d9579B1E886702375364Fe9c540f97E4517B"
+  },
+  "sushi_esd_weth": {
+    "address": "0xDFf71165a646BE71fCfbaa6206342FAa503AeD5D"
+  },
+  "sushi_ant_weth": {
+    "address": "0x201e6a9E75df132a8598720433Af35fe8d73e94D"
+  },
+  "sushi_pnk_weth": {
+    "address": "0xEF4F1D5007B4FF88c1A56261fec00264AF6001Fb"
+  },
+  "sushi_cvp_weth": {
+    "address": "0x1C580CC549d03171B13b55074Dc1658F60641C73"
+  },
+  "sushi_yeti_weth": {
+    "address": "0xf45D97F9D457661783146D63DD13DA20ce9bf847"
+  },
+  "sushi_arch_weth": {
+    "address": "0x4441eb3076f828D5176f4Fe74d7c775542daE106"
+  },
+  "sushi_weth_inj": {
+    "address": "0xFb3cD0B8A5371fe93ef92E3988D30Df7931E2820"
+  },
+  "sushi_bor_weth": {
+    "address": "0x44D34985826578e5ba24ec78c93bE968549BB918"
+  },
+  "sushi_sfi_weth": {
+    "address": "0x23a9292830Fc80dB7f563eDb28D2fe6fB47f8624"
+  },
+  "sushi_dfd_weth": {
+    "address": "0xb12aa722a3A4566645F079B6F10c89A3205b6c2c"
+  },
+  "sushi_wbtc_badger": {
+    "address": "0x110492b31c59716AC47337E616804E3E3AdC0b4a"
+  },
+  "sushi_zlot_weth": {
+    "address": "0x9360b76f8f5F932AC33D46A3CE82ad6C52A713E5"
+  },
+  "sushi_index_weth": {
+    "address": "0xA73DF646512C82550C2b3C0324c4EEdEE53b400C"
+  },
+  "sushi_swag_weth": {
+    "address": "0xadeAa96A81eBBa4e3A5525A008Ee107385d588C3"
+  },
+  "sushi_jrt_weth": {
+    "address": "0xF1360C4ae1cead17B588ec1111983d2791B760d3"
+  },
+  "sushi_weth_uwl": {
+    "address": "0x0040a2CEBc65894BC2cFb57565f9ACfa33Fab137"
+  },
+  "sushi_ichi_weth": {
+    "address": "0x9cD028B1287803250B1e226F0180EB725428d069"
+  },
+  "sushi_$rope_weth": {
+    "address": "0x67e475577B4036EE4f0F12fa2d538Ed18CEF48e3"
+  },
+  "sushi_obtc_weth": {
+    "address": "0x53E9fB796b2feb4B3184AFDf601C2A2797548d88"
+  },
+  "sushi_mbbased_weth": {
+    "address": "0xE5f06db4F3473E7E35490F1F98017728496fe81E"
+  },
+  "sushi_usdc_dsd": {
+    "address": "0x26d8151e631608570F3c28bec769C3AfEE0d73a3"
+  },
+  "sushi_ntrump_dai": {
+    "address": "0xaB3F8E0214D862Bf7965d3CeC7431d7C1A85cb34"
+  },
+  "sushi_ust_weth": {
+    "address": "0x8B00eE8606CC70c2dce68dea0CEfe632CCA0fB7b"
+  },
+  "sushi_weth_fnx": {
+    "address": "0xaa500101C73065f755Ba9b902d643705EF2523E3"
+  },
+  "sushi_weth_bcp": {
+    "address": "0xeB1B57D4f7d4557B032B66c422bc94a8E4Af859e"
+  },
+  "sushi_ypie_weth": {
+    "address": "0x5F30aAc9A472F6c33D5284f9D340C0d57eF33697"
+  },
+  "sushi_defi+l_weth": {
+    "address": "0x83E5e791F4aB29d1B0941Bc4D00f3D6027d1dae5"
+  },
+  "sushi_base_weth": {
+    "address": "0xD8B8B575c943f3d63638c9563B464D204ED8B710"
+  },
+  "sushi_ddx_usdc": {
+    "address": "0xc2B0F2A7F736d3b908BdDE8608177c8Fc28C1690"
+  },
+  "sushi_mph_weth": {
+    "address": "0xB2C29e311916a346304f83AA44527092D5bd4f0F"
+  },
+  "sushi_usdt_front": {
+    "address": "0x98c2f9D752e044DC2e1F1743bF0b76A7096eCeb2"
+  },
+  "sushi_weth_uop": {
+    "address": "0x8C2e6A4af15C94cF4a86Cd3C067159F08571d780"
+  },
+  "sushi_tru_weth": {
+    "address": "0xfCEAAf9792139BF714a694f868A215493461446D"
+  },
+  "sushi_alpha_weth": {
+    "address": "0xf55C33D94150d93c2cfb833bcCA30bE388b14964"
+  },
+  "sushi_alpa_weth": {
+    "address": "0xcA658217CE94dFB2156a49a8fAd0Ff752CaC39C2"
+  },
+  "sushi_weth_creth2": {
+    "address": "0x71817445D11f42506F2D7F54417c935be90Ca731"
+  },
+  "sushi_dusd_weth": {
+    "address": "0xb1D38026062Ac10FEDA072CA0E9b7E35f1f5795a"
+  },
+  "sushi_cover_weth": {
+    "address": "0x66Ae32178640813F3c32a9929520BFE4Fef5D167"
+  },
+  "sushi_wbtc_digg": {
+    "address": "0x9a13867048e01c663ce8Ce2fE0cDAE69Ff9F35E3"
+  },
+  "sushi_nftx_weth": {
+    "address": "0x31d64f9403E82243e71C2af9D8F56C7DBe10C178"
+  },
+  "sushi_api3_weth": {
+    "address": "0xA8AEC03d5Cf2824fD984ee249493d6D4D6740E61"
+  },
+  "sushi_weth_combo": {
+    "address": "0x8Cd7DADc8E11c8706763E0DE7332f5Ea91E04E35"
+  },
+  "sushi_hbtc_cream": {
+    "address": "0x51F5953659e7d63CF0EF60B8674eF819c225169e"
+  },
+  "sushi_mars_usdt": {
+    "address": "0x54bcf4948e32A8706C286416e3ced37284F17fc9"
+  },
+  "sushi_ldo_weth": {
+    "address": "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a"
+  },
+  "sushi_bac_bab": {
+    "address": "0x87bF6386f7611aFa452c642C2835a305a692607d"
+  },
+  "sushi_weth_pwing": {
+    "address": "0xBE1E98685fB293144325440C16f69954Ffcb790C"
+  },
+  "sushi_tusd_weth": {
+    "address": "0x760166FA4f227dA29ecAC3BeC348f5fA853a1f3C"
+  },
+  "sushi_aleph_weth": {
+    "address": "0x7B98e476De2c50b6fa284DBd410Dd516f9a72b30"
+  },
+  "sushi_spank_weth": {
+    "address": "0x02C6260cE42Ea5cD055911ed0D4857eCD4583740"
+  },
+  "sushi_mta_weth": {
+    "address": "0x663242D053057f317A773D7c262B700616d0b9A0"
+  },
+  "sushi_bao_weth": {
+    "address": "0x0Eee7f7319013df1f24F5eaF83004fCf9cF49245"
+  },
+  "sushi_weth_rgt": {
+    "address": "0x18A797C7C70c1Bf22fDee1c09062aBA709caCf04"
+  },
+  "sushi_idle_weth": {
+    "address": "0xA7f11E026a0Af768D285360a855F2BDEd3047530"
+  },
+  "sushi_usdt_aeth": {
+    "address": "0x2ee59d346e41478B9DC2762527fACF2082022A29"
+  },
+  "sushi_sdt_weth": {
+    "address": "0x22DEF8cF4E481417cb014D9dc64975BA12E3a184"
+  },
+  "sushi_gno_weth": {
+    "address": "0x41328fdBA556c8C969418ccCcB077B7B8D932aA5"
+  },
+  "sushi_bac_weth": {
+    "address": "0xFa8C3F98dEBF3d0a192e2EdF9182352332Def35c"
+  },
+  "sushi_weth_aeth": {
+    "address": "0xfa5bc40c3BD5aFA8bC2fe6b84562fEE16FB2Df5F"
+  },
+  "sushi_armor_weth": {
+    "address": "0x17A2194D55f52Fd0C711e0e42B41975494bb109B"
+  },
+  "sushi_weth_assy": {
+    "address": "0x46ACb1187a6d83e26c0bB46A57Ffeaf23Ad7851E"
+  },
+  "sushi_alpha_ibethv2": {
+    "address": "0xf79a07cd3488BBaFB86dF1bAd09a6168D935c017"
+  },
+  "sushi_rendoge_weth": {
+    "address": "0xb46736888247C68C995B156CA86426ff32e27Cc9"
+  },
+  "sushi_nct_weth": {
+    "address": "0x0C48aE092A7D35bE0e8AD0e122A02351BA51FeDd"
+  },
+  "sushi_weth_yvecrv_dao": {
+    "address": "0x10B47177E92Ef9D5C6059055d92DdF6290848991"
+  },
+  "sushi_torn_weth": {
+    "address": "0xb270176bA6075196dF88B855c3Ec7776871Fdb33"
+  },
+  "sushi_mbtc_weth": {
+    "address": "0xf5A434FbAA1C00b33Ea141122603C43dE86cc9FE"
+  },
+  "sushi_vsp_weth": {
+    "address": "0x132eEb05d5CB6829Bd34F552cDe0b6b708eF5014"
+  },
+  "sushi_weth_yld": {
+    "address": "0x662511a91734AEa8b06EF770D6Ed51cC539772d0"
+  },
+  "sushi_weth_steth": {
+    "address": "0x1C615074c281c5d88ACc6914D408d7E71Eb894EE"
+  },
+  "sushi_dao_weth": {
+    "address": "0x96F5b7C2bE10dC7dE02Fa8858A8f1Bd19C2fA72A"
+  },
+  "sushi_weth_grt": {
+    "address": "0x7B504a15ef05F4EED1C07208C5815c49022A0C19"
+  },
+  "sushi_ftm_weth": {
+    "address": "0x0E26A21013f2F8C0362cFae608b4e69a249D5EFc"
+  },
+  "sushi_weth_any": {
+    "address": "0xEc78bD3b23aC867FcC028f2db405A1d9A0A2f712"
+  },
+  "sushi_punk_weth": {
+    "address": "0x092493a22375DE1B17583D924aBf9e8bf884491C"
+  },
+  "sushi_mask_weth": {
+    "address": "0xfd38565Ef22299D491055F0c508F62DD9a669F0F"
+  },
+  "sushi_punk_basic_weth": {
+    "address": "0x0267BD35789a5ce247Fff6CB1D597597e003cc43"
+  },
+  "sushi_punk_female_weth": {
+    "address": "0xCA2Ae9C5C491F497DC5625fEaef4572076C946C5"
+  },
+  "sushi_punk_attr_4_weth": {
+    "address": "0x608f8af5fd49b5a5421f53f79920C45b96bdA83F"
+  },
+  "sushi_punk_attr_5_weth": {
+    "address": "0xd54A895623552853F8D673981CC32EB8f3929dFB"
+  },
+  "sushi_weth_punk_zombie": {
+    "address": "0x0E7E8Dde18e4016ccc15F12301a47eF7B87Bdafa"
+  },
+  "sushi_xft_weth": {
+    "address": "0xF39fF863730268C9bb867b3a69d031d1C1614b31"
+  },
+  "sushi_weth_zrx": {
+    "address": "0x0BC5AE46c32D99C434b7383183ACa16DD6E9BdC8"
+  },
+  "sushi_usdn_weth": {
+    "address": "0x3cf1Cf47Bc87C23cD9410549BD8a75E82C1c73cF"
+  },
+  "sushi_deri_usdt": {
+    "address": "0xA3DfbF2933FF3d96177bde4928D0F5840eE55600"
+  },
+  "sushi_premia_weth": {
+    "address": "0x93E2F3a8277E0360081547D711446e4a1F83546D"
+  },
+  "sushi_bank_weth": {
+    "address": "0x938625591ADb4e865b882377e2c965F9f9b85E34"
+  },
+  "sushi_lina_weth": {
+    "address": "0x38A0469520534fC70c9C0b9DE4B8649e36A2aE3E"
+  },
+  "sushi_perp_weth": {
+    "address": "0x8486c538DcBD6A707c5b3f730B6413286FE8c854"
+  },
+  "sushi_wscrt_weth": {
+    "address": "0x9c86BC3C72Ab97c2234CBA8c6c7069009465AE86"
+  },
+  "sushi_usdp_weth": {
+    "address": "0xB0484fB3aC155AaF7d024b20f1a569ddD6332c32"
+  },
+  "sushi_usdp_duck": {
+    "address": "0xFe308FE2Eb938F772807AEc2E87Fc762d47c40E0"
+  },
+  "sushi_dextf_weth": {
+    "address": "0xD3c41c080a73181e108E0526475a690F3616a859"
+  },
+  "sushi_onevbtc_weth": {
+    "address": "0x1803a3386d44f65746403060aB0137682F554484"
+  },
+  "sushi_$trdl_weth": {
+    "address": "0x05Cc2e064e0B48e46015EAd9961F1391d74E5F83"
+  },
+  "sushi_rlc_weth": {
+    "address": "0x75382c52b6F90B3f8014BfcadAC2386513F1e3bC"
+  },
+  "sushi_bdigg_weth": {
+    "address": "0xF9440fEDC72A0B8030861DcDac39A75b544E7A3c"
+  },
+  "sushi_bbadger_weth": {
+    "address": "0x0a54d4b378C8dBfC7bC93BE50C85DebAFdb87439"
+  },
+  "sushi_yla_usdc": {
+    "address": "0x87B6f3A2DC6E541A9ce40E58f517953782Ae614E"
+  },
+  "sushi_punk_basic_nftx": {
+    "address": "0x90825ADd1AD30d7DCeFEa12c6704A192be6eE94E"
+  },
+  "sushi_mask_usdc": {
+    "address": "0x31fa985bB0C282a814E7f3f0Dce88B2A44197F60"
+  },
+  "sushi_weth_rook": {
+    "address": "0xf13eEF1C6485348B9C9FA0d5Df2d89AccC5b0147"
+  },
+  "sushi_sx_weth": {
+    "address": "0x5e496B7D72362ADd1EEA7D4903Ee2732cD00587d"
+  },
+  "sushi_dfx_weth": {
+    "address": "0xBE71372995E8e920E4E72a29a51463677A302E8d"
+  },
+  "sushi_inv_weth": {
+    "address": "0x328dFd0139e26cB0FEF7B0742B49b0fe4325F821"
+  },
+  "sushi_stfiro_steth": {
+    "address": "0xB5c40E038c997c2946B24dC179F7CdcD279d8847"
+  },
+  "sushi_ocean_weth": {
+    "address": "0xeE35E548C7457FcDd51aE95eD09108be660Ea374"
+  },
+  "sushi_woo_usdc": {
+    "address": "0xf5ca27927Ffb16BD8C870Dcb49750146CCe8217c"
+  },
+  "sushi_pont_pwing": {
+    "address": "0x91A48c69Ec3f3cE855FE5054F82D2bef8Fd66C43"
+  },
+  "sushi_dnt_weth": {
+    "address": "0xa1f967F25AE32bD3435E45EA8657De16Ce5A4Ae6"
+  },
+  "sushi_aergo_weth": {
+    "address": "0x9E48FaDf799E0513d2EF4631478ea186741fA617"
+  },
+  "sushi_wbtc_poly": {
+    "address": "0x7835cB043e8d53a5b361D489956d6c30808349da"
+  },
+  "sushi_egt_weth": {
+    "address": "0xc7FF546c6CbC87Ad9f6F557db5A0df5c742cA440"
+  },
+  "sushi_stzen_steth": {
+    "address": "0x033f4A33823595A6dD9dF0672Fd94DE32C65c415"
+  },
+  "sushi_must_weth": {
+    "address": "0xA872D244B8948DFD6Cb7Bd19f79E7C1bfb7DB4a0"
+  },
+  "sushi_mark_weth": {
+    "address": "0x750d711277Fd27D1EC5256F13f5110E097713a95"
+  },
+  "sushi_ohm_dai": {
+    "address": "0x34d7d7Aaf50AD4944B70B320aCB24C95fa2def7c"
+  },
+  "sushi_pool_weth": {
+    "address": "0x577959C519c24eE6ADd28AD96D3531bC6878BA34"
+  },
+  "sushi_bzrx_weth": {
+    "address": "0xa30911e072A0C88D55B5D0A0984B66b0D04569d0"
+  },
+  "sushi-yvboost-weth": {
+    "address": "0x9461173740D27311b176476FA27e94C681b1Ea6b"
+  },
+  "sushi-axs-weth": {
+    "address": "0x0C365789DbBb94A29F8720dc465554c587e897dB"
+  },
+  "sushi-bdi-weth": {
+    "address": "0x8d782C5806607E9AAFB2AC38c1DA3838Edf8BD03"
+  },
+  "sushi-bask-weth": {
+    "address": "0x34D25a4749867eF8b62A0CD1e2d7B4F7aF167E01"
+  },
+  "sushi-btc2x-fli-wbtc": {
+    "address": "0x164FE0239d703379Bddde3c80e4d4800A1cd452B"
+  },
+  "sushi-wbtc-ibbtc": {
+    "address": "0x18d98D452072Ac2EB7b74ce3DB723374360539f1"
+  },
+  "sushi-zig-weth": {
+    "address": "0x4Fb3CAe84a1264b8BB1911e8915F56660eC8178E"
+  },
+  "sushi-mm-weth": {
+    "address": "0x41848373dec2867ef3924E47B2eBD0EE645a54F9"
+  },
+  "sushi-pendle-weth": {
+    "address": "0x37922C69b08BABcCEaE735A31235c81f1d1e8E43"
+  },
+  "sushi-pmon-weth": {
+    "address": "0x69ab811953499Eb253c5a69aE06275A42b97c9aE"
+  },
+  "sushi-mana-weth": {
+    "address": "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97"
+  },
+  "sushi-wasabi-weth": {
+    "address": "0x8F9ef75CD6E610Dd8Acf8611c344573032fB9c3d"
+  },
+  "sushi-drc-weth": {
+    "address": "0xC79FAEed130816B38E5996b79B1b3b6568cc599F"
+  },
+  "sushi-weth-$dg": {
+    "address": "0xd3dA6236aEcb6b55F571249c011B8EEC340a418E"
+  },
+  "sushi-ilv-weth": {
+    "address": "0x6a091a3406E0073C3CD6340122143009aDac0EDa"
+  },
+  "sushi-blo-weth": {
+    "address": "0x804Be24f625C7E23eDd9Fa68e4582590c57ad2B3"
+  },
+  "sushi-ldn-weth": {
+    "address": "0x3bFcA4FB8054fA42DA3E77749b21450a1290beED"
+  },
+  "sushi-weth-woofy": {
+    "address": "0x9AC60b8B33092C2c0B4CA5Af0DEC2bcb84657E12"
+  },
+  "sushi-yfi-woofy": {
+    "address": "0x0780B42B3c4cAF41933CFC0040d2853363De20A7"
+  },
+  "sushi-naos-weth": {
+    "address": "0x82EbCD936C9E938704b65027850E42393F8BC4d4"
+  },
+  "sushi-umb-weth": {
+    "address": "0x7229d526d5fD693720B88Eb7129058dB5D497BCe"
+  },
+  "sushi-move-weth": {
+    "address": "0x87b918e76c92818DB0c76a4E174447aeE6E6D23f"
+  },
+  "sushi-lev-weth": {
+    "address": "0xe73ad09925201F21b607ccADA9A371C12A2f49C3"
+  },
+  "sushi-weth-mln": {
+    "address": "0x2F8AC927aa94293461C75406e90Ec0cCFb2748d9"
+  },
+  "sushi-ruler-weth": {
+    "address": "0xb1EECFea192907fC4bF9c4CE99aC07186075FC51"
+  },
+  "sushi-bpt-weth": {
+    "address": "0x57024267e8272618f9c5037D373043a8646507e5"
+  },
+  "sushi-near-weth": {
+    "address": "0x6469B34a2a4723163C4902dbBdEa728D20693C12"
+  },
+  "sushi-bank-weth": {
+    "address": "0x2c51eaa1BCc7b013C3f1D5985cDcB3c56DC3fbc1"
+  },
+  "sushi-alusd-weth": {
+    "address": "0x0589e281D35ee1Acf6D4fd32f1fbA60EFfb5281B"
+  },
+  "sushi-usdc-sak3": {
+    "address": "0xD45Afa3649e57a961C001b935deD1c79D81A9d23"
+  },
+  "sushi-bond-weth": {
+    "address": "0x613C836DF6695c10f0f4900528B6931441Ac5d5a"
+  },
+  "sushi-bb_cdai-dai": {
+    "address": "0x0BB6e2a9858A089437EC678dA05E559Ffe0Af5b2"
+  },
+  "sushi-weth-fold": {
+    "address": "0xA914a9b9E03b6aF84F9c6bd2e0e8d27D405695Db"
+  },
+  "sushi-ndx-weth": {
+    "address": "0x8911fce375a8414B1b578BE66eE691A8D2D4DBf7"
+  },
+  "sushi-degen-weth": {
+    "address": "0xe8eB0f7B866A85DA49401D04FfFcfC1aBbF24Dfd"
+  },
+  "sushi-weth-1one": {
+    "address": "0x986627dB5E4AAE987f580feB63D475992e5aC0AE"
+  },
+  "sushi-usdc-cqt": {
+    "address": "0x17890DeB188F2dE6C3e966e053dA1C9a111Ed4A5"
+  },
+  "sushi-usdt-dvf": {
+    "address": "0xe93b1b5E1dAdCE8152A69470C1b31463aF260296"
+  },
+  "sushi-ankr-weth": {
+    "address": "0x1241F4a348162d99379A23E73926Cf0bfCBf131e"
+  },
+  "sushi-weth-onx": {
+    "address": "0x0652687E87a4b8b5370b05bc298Ff00d205D9B5f"
+  },
+  "sushi-ibeur-weth": {
+    "address": "0xa2D81bEdf22201A77044CDF3Ab4d9dC1FfBc391B"
+  },
+  "sushi-eden-weth": {
+    "address": "0x82DBc2673e9640343D263a3c55DE49021AD39aE2"
+  },
+  "sushi-tower-weth": {
+    "address": "0xdBaa04796CB5C05D02B8A41B702d9b67c13c9fa9"
+  },
+  "sushi-dpi-fei": {
+    "address": "0x8775aE5e83BC5D926b6277579c2B0d40c7D9b528"
+  },
+  "sushi-xyz-usdc": {
+    "address": "0xBBBdB106A806173d1eEa1640961533fF3114d69A"
+  },
+  "sushi-vusd-weth": {
+    "address": "0xb90047676cC13e68632c55cB5b7cBd8A4C5A0A8E"
+  },
+  "sushi-pixel-weth": {
+    "address": "0xada8B1613ce6Fe75f3549Fa4eB2A993ca1220A7c"
+  },
+  "sushi-weth-slp": {
+    "address": "0x8597fa0773888107E2867D36dd87Fe5bAFeAb328"
+  }
+}
