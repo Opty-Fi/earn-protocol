@@ -79,22 +79,4 @@ library DataTypes {
         bytes uniV3Path;
         address[] uniV2Path;
     }
-
-    /**
-     * @notice encapsulate all parameters necessary to create SwapData struct for OptyFiSwapper
-     * @param deadline timestamp until which swap may be fulfilled
-     * @param startIndexes the index of the beginning of each call in exchangeData
-     * @param values array of encoded values for each call in exchangeData
-     * @param callees array of addresses to call (DEX addresses)
-     * @param exchangeData calldata to execute on callees
-     * @param permit ERC2612 permit
-     */
-    struct SwapParams {
-        uint256 deadline;
-        uint256[] startIndexes;
-        uint256[] values;
-        address[] callees;
-        bytes exchangeData;
-        bytes permit;
-    }
 }

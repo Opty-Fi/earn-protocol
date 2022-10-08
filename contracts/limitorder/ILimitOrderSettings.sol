@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
+
 /**
  * @title Interface for LimitOrderSettings facet
  * @author OptyFi
@@ -32,12 +34,6 @@ interface ILimitOrderSettings {
      * @param _vault the target vault
      */
     function setVaultLiquidationFee(uint256 _fee, address _vault) external;
-
-    /**
-     * @notice sets the address of the OptyFiSwapper diamond
-     * @param _swapDiamond the address of the OptyFiSwapper
-     */
-    function setSwapDiamond(address _swapDiamond) external;
 
     /**
      * @notice sets the address of the OptyFiOracle to read prices from
@@ -74,4 +70,26 @@ interface ILimitOrderSettings {
      * @param _ops the address of the operation contract
      */
     function setOps(address _ops) external;
+
+    /**
+     * @notice provides allowances to target contract to spend this contract owned tokens
+     * @dev the length of tokens and spenders should be same
+     * @param _tokens the array of token addresses
+     * @param _spenders the array of spender contract
+     */
+    function giveAllowances(
+        IERC20[] calldata _tokens,
+        address[] calldata _spenders
+    ) external;
+
+    /**
+     * @notice resets allowances to target contract to spend this contract owned tokens
+     * @dev the length of tokens and spenders should be same
+     * @param _tokens the array of token addresses
+     * @param _spenders the array of spender contract
+     */
+    function removeAllowances(
+        IERC20[] calldata _tokens,
+        address[] calldata _spenders
+    ) external;
 }

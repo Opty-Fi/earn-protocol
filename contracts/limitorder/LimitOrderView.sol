@@ -4,19 +4,17 @@ pragma solidity ^0.8.15;
 import { DataTypes } from './DataTypes.sol';
 import { ILimitOrderView } from './ILimitOrderView.sol';
 import { ILimitOrderActions } from './ILimitOrderActions.sol';
-import { LimitOrderInternal } from './LimitOrderInternal.sol';
+import { LimitOrderSettings } from './LimitOrderSettings.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { IVault } from '../earn-interfaces/IVault.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 
 /**
- * @title LimitOrderView facet for LimitOrderDiamond
+ * @title LimitOrderView
  * @author OptyFi
  * @dev contains all viewing actions
  */
-contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
-    constructor(address _usd) LimitOrderInternal(_usd) {}
-
+abstract contract LimitOrderView is LimitOrderSettings, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
@@ -77,13 +75,6 @@ contract LimitOrderView is LimitOrderInternal, ILimitOrderView {
         returns (bytes32[] memory proof)
     {
         proof = _accountProof(LimitOrderStorage.layout(), _vault);
-    }
-
-    /**
-     * @inheritdoc ILimitOrderView
-     */
-    function swapDiamond() external view returns (address swapDiamondAddress) {
-        swapDiamondAddress = _swapDiamond(LimitOrderStorage.layout());
     }
 
     /**

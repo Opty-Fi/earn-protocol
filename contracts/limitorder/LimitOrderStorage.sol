@@ -20,7 +20,6 @@ library LimitOrderStorage {
      * @param stableVaults a whitelist of opVaults which have stable coins as underlying tokens
      * @param returnLimitBP maximum limit on returned tokens from swap in BASIS
      * @param treasury the treasury to send liquidation fees to
-     * @param swapDiamond the address of the OptyFi swapDiamond
      * @param oracle the addres of the OptyFi Oracle
      * @param ops address of contract that helps automate limit order
      */
@@ -33,7 +32,6 @@ library LimitOrderStorage {
         mapping(address => bool) stableVaults;
         uint256 returnLimitBP;
         address treasury;
-        address swapDiamond;
         address oracle;
         address ops;
     }

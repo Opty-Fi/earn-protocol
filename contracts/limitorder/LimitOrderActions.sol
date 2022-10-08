@@ -3,17 +3,15 @@ pragma solidity ^0.8.15;
 
 import { DataTypes } from './DataTypes.sol';
 import { ILimitOrderActions } from './ILimitOrderActions.sol';
-import { LimitOrderInternal } from './LimitOrderInternal.sol';
+import { LimitOrderView } from './LimitOrderView.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 
 /**
- * @title LimitOrderActions facet for LimitOrderDiamond
+ * @title LimitOrderActions
  * @author OptyFi
  * @dev contains all user-facing actions
  */
-contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
-    constructor(address _usd) LimitOrderInternal(_usd) {}
-
+abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
@@ -34,12 +32,8 @@ contract LimitOrderActions is LimitOrderInternal, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function execute(
-        address _maker,
-        address _vault,
-        DataTypes.SwapParams calldata _swapParams
-    ) external {
-        _execute(LimitOrderStorage.layout(), _maker, _vault, _swapParams);
+    function execute(address _maker, address _vault) external {
+        _execute(LimitOrderStorage.layout(), _maker, _vault);
     }
 
     /**

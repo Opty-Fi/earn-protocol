@@ -66,12 +66,6 @@ interface ILimitOrderView {
         returns (bytes32[] memory proof);
 
     /**
-     * @notice returns address of the OptyFiSwapper diamond
-     * @return swapDiamond address
-     */
-    function swapDiamond() external view returns (address swapDiamond);
-
-    /**
      * @notice returns address of the OptyFi Oracle
      * @return oracle address
      */

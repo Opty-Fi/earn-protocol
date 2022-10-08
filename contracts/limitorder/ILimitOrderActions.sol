@@ -27,13 +27,8 @@ interface ILimitOrderActions {
      * @notice executes a limit order
      * @param _maker address of order maker
      * @param _vault address of vault that order pertains to
-     * @param _swapParams params for swap data
      */
-    function execute(
-        address _maker,
-        address _vault,
-        DataTypes.SwapParams memory _swapParams
-    ) external;
+    function execute(address _maker, address _vault) external;
 
     /**
      * @notice modifies an existing order

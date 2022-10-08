@@ -4,20 +4,19 @@ pragma solidity ^0.8.15;
 import { ILimitOrderSettings } from './ILimitOrderSettings.sol';
 import { LimitOrderInternal } from './LimitOrderInternal.sol';
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
-import { OwnableInternal } from '@solidstate/contracts/access/ownable/OwnableInternal.sol';
+import { SafeOwnable } from '@solidstate/contracts/access/ownable/SafeOwnable.sol';
+import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 
 /**
- * @title LimitOrderSettings facet for LimitOrderDiamond
+ * @title LimitOrderSettings
  * @author OptyFi
  * @dev contains all governance-facing actions
  */
-contract LimitOrderSettings is
+abstract contract LimitOrderSettings is
     LimitOrderInternal,
-    OwnableInternal,
+    SafeOwnable,
     ILimitOrderSettings
 {
-    constructor(address _usd) LimitOrderInternal(_usd) {}
-
     /**
      * @inheritdoc ILimitOrderSettings
      */
@@ -53,13 +52,6 @@ contract LimitOrderSettings is
         onlyOwner
     {
         _setVaultLiquidationFee(LimitOrderStorage.layout(), _fee, _vault);
-    }
-
-    /**
-     * @inheritdoc ILimitOrderSettings
-     */
-    function setSwapDiamond(address _swapDiamond) external onlyOwner {
-        _setSwapDiamond(LimitOrderStorage.layout(), _swapDiamond);
     }
 
     /**
@@ -118,5 +110,25 @@ contract LimitOrderSettings is
      */
     function setOps(address _ops) external onlyOwner {
         _setOps(LimitOrderStorage.layout(), _ops);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function giveAllowances(
+        IERC20[] calldata _tokens,
+        address[] calldata _spenders
+    ) external onlyOwner {
+        _giveAllowances(_tokens, _spenders);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function removeAllowances(
+        IERC20[] calldata _tokens,
+        address[] calldata _spenders
+    ) external onlyOwner {
+        _removeAllowances(_tokens, _spenders);
     }
 }
