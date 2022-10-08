@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
+import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Interface for LimitOrderSettings facet
@@ -77,10 +77,7 @@ interface ILimitOrderSettings {
      * @param _tokens the array of token addresses
      * @param _spenders the array of spender contract
      */
-    function giveAllowances(
-        IERC20[] calldata _tokens,
-        address[] calldata _spenders
-    ) external;
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
 
     /**
      * @notice resets allowances to target contract to spend this contract owned tokens
@@ -88,8 +85,5 @@ interface ILimitOrderSettings {
      * @param _tokens the array of token addresses
      * @param _spenders the array of spender contract
      */
-    function removeAllowances(
-        IERC20[] calldata _tokens,
-        address[] calldata _spenders
-    ) external;
+    function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
 }

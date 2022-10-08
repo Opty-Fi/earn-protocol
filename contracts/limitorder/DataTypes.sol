@@ -11,10 +11,7 @@ library DataTypes {
      * @param Out indicates that price must lie outwith the bounds
      * @param In indicates that price must lie within the bounds
      */
-    enum BoundDirection {
-        Out,
-        In
-    }
+    enum BoundDirection { Out, In }
 
     /**
      * @notice encapsulate a limit order

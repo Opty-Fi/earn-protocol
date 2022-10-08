@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
-import { DataTypes } from './DataTypes.sol';
+import { DataTypes } from "./DataTypes.sol";
 
 /**
  * @title Storage layout for Limit Orders
  * @author OptyFi
  */
 library LimitOrderStorage {
-    bytes32 internal constant STORAGE_SLOT =
-        keccak256('optyfi.contracts.storage.LimitOrder');
+    bytes32 internal constant STORAGE_SLOT = keccak256("optyfi.contracts.storage.LimitOrder");
 
     /**
      * @notice information container on user limit orders

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { DataTypes } from './DataTypes.sol';
+import { DataTypes } from "./DataTypes.sol";
 
 /**
  * @title Interface for LimitOrderActions facet
@@ -19,9 +19,7 @@ interface ILimitOrderActions {
      * @param _orderParams the parameters to create the order with
      * @return order the created limit order
      */
-    function createOrder(DataTypes.OrderParams memory _orderParams)
-        external
-        returns (DataTypes.Order memory order);
+    function createOrder(DataTypes.OrderParams memory _orderParams) external returns (DataTypes.Order memory order);
 
     /**
      * @notice executes a limit order
@@ -35,8 +33,5 @@ interface ILimitOrderActions {
      * @param _vault the address of the vault the order pertains to
      * @param _orderParams the parameters to modify the existing order with
      */
-    function modifyOrder(
-        address _vault,
-        DataTypes.OrderParams memory _orderParams
-    ) external;
+    function modifyOrder(address _vault, DataTypes.OrderParams memory _orderParams) external;
 }

@@ -1,12 +1,9 @@
-import { BigNumber, ethers } from 'ethers';
-import { Order, OrderParams } from './types';
+import { BigNumber, ethers } from "ethers";
+import { Order, OrderParams } from "./types";
 
-const BASIS = ethers.utils.parseEther('1.0');
+const BASIS = ethers.utils.parseEther("1.0");
 
-export function convertOrderParamsToOrder(
-  _orderParams: OrderParams,
-  _maker: string,
-): Order {
+export function convertOrderParamsToOrder(_orderParams: OrderParams, _maker: string): Order {
   let order: Order = <Order>{};
 
   order.expiration = _orderParams.expiration;

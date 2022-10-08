@@ -102,8 +102,7 @@ interface IVault {
      *         only when vault's whitelistedstate is enabled
      * @param _whitelistedAccountsRoot whitelisted accounts root hash
      */
-    function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot)
-        external;
+    function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external;
 
     /**
      * @notice function to set minimum amount in underlying token required

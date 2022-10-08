@@ -3,10 +3,7 @@ pragma solidity ^0.8.15;
 
 library OptyFiOracleDataTypes {
     /** @notice Named constants for defining the main oracle of a tokens pair */
-    enum MainOracle {
-        Chainlink,
-        OptyFi
-    }
+    enum MainOracle { Chainlink, OptyFi }
 
     /**
      * @dev data structure for storing token pair exchange price time allowance

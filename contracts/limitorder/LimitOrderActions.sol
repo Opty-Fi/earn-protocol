@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { DataTypes } from './DataTypes.sol';
-import { ILimitOrderActions } from './ILimitOrderActions.sol';
-import { LimitOrderView } from './LimitOrderView.sol';
-import { LimitOrderStorage } from './LimitOrderStorage.sol';
+import { DataTypes } from "./DataTypes.sol";
+import { ILimitOrderActions } from "./ILimitOrderActions.sol";
+import { LimitOrderView } from "./LimitOrderView.sol";
+import { LimitOrderStorage } from "./LimitOrderStorage.sol";
 
 /**
  * @title LimitOrderActions
@@ -22,10 +22,7 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function createOrder(DataTypes.OrderParams memory _orderParams)
-        external
-        returns (DataTypes.Order memory order)
-    {
+    function createOrder(DataTypes.OrderParams memory _orderParams) external returns (DataTypes.Order memory order) {
         order = _createOrder(LimitOrderStorage.layout(), _orderParams);
     }
 
@@ -39,10 +36,7 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function modifyOrder(
-        address _vault,
-        DataTypes.OrderParams memory _orderParams
-    ) external {
+    function modifyOrder(address _vault, DataTypes.OrderParams memory _orderParams) external {
         _modifyOrder(LimitOrderStorage.layout(), _vault, _orderParams);
     }
 }

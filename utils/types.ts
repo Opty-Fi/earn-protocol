@@ -1,4 +1,4 @@
-import { BigNumber, BytesLike } from 'ethers';
+import { BigNumber, BytesLike } from "ethers";
 
 export interface Order {
   liquidationAmount: BigNumber;

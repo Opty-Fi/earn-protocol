@@ -1,19 +1,13 @@
-import { MerkleTree } from 'merkletreejs';
-import keccak256 from 'keccak256';
-import { ethers } from 'ethers';
+import { MerkleTree } from "merkletreejs";
+import keccak256 from "keccak256";
+import { ethers } from "ethers";
 
 function hashToken(account: string) {
-  return Buffer.from(
-    ethers.utils.solidityKeccak256(['address'], [account]).slice(2),
-    'hex',
-  );
+  return Buffer.from(ethers.utils.solidityKeccak256(["address"], [account]).slice(2), "hex");
 }
 
 export function hashCodehash(hash: string) {
-  return Buffer.from(
-    ethers.utils.solidityKeccak256(['bytes32'], [hash]).slice(2),
-    'hex',
-  );
+  return Buffer.from(ethers.utils.solidityKeccak256(["bytes32"], [hash]).slice(2), "hex");
 }
 
 export function generateMerkleTree(addresses: string[]): MerkleTree {
@@ -30,10 +24,7 @@ export const getProof = (tree: MerkleTree, address: string): string[] => {
   return tree.getHexProof(hashToken(address));
 };
 
-export const getProofForCode = (
-  tree: MerkleTree,
-  codeHash: string,
-): string[] => {
+export const getProofForCode = (tree: MerkleTree, codeHash: string): string[] => {
   return tree.getHexProof(hashCodehash(codeHash));
 };
 
@@ -42,10 +33,7 @@ export const getAccountsMerkleRoot = (goodAddresses: string[]): string => {
   return tree.getHexRoot();
 };
 
-export const getAccountsMerkleProof = (
-  goodAddresses: string[],
-  address: string,
-): string[] => {
+export const getAccountsMerkleProof = (goodAddresses: string[], address: string): string[] => {
   const tree: MerkleTree = generateMerkleTree(goodAddresses);
   return getProof(tree, address);
 };
@@ -55,10 +43,7 @@ export const getCodesMerkleRoot = (goodCodehashes: string[]): string => {
   return tree.getHexRoot();
 };
 
-export const getCodesMerkleProof = (
-  goodCodehashes: string[],
-  codehash: string,
-): string[] => {
+export const getCodesMerkleProof = (goodCodehashes: string[], codehash: string): string[] => {
   const tree: MerkleTree = generateMerkleTree(goodCodehashes);
   return getProofForCode(tree, codehash);
 };

@@ -1,1 +1,1 @@
-declare module 'abi-decoder';
+declare module "abi-decoder";
