@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { DataTypes } from "./DataTypes.sol";
+import { DataTypes } from "../../limitOrder/DataTypes.sol";
 
 /**
  * @title Interface for LimitOrderView facet
@@ -36,14 +36,6 @@ interface ILimitOrderView {
      * @return treasury address
      */
     function treasury() external view returns (address treasury);
-
-    /**
-     * @notice returns LimitOrderDiamond code merkle proof
-     * @dev required for deposits/withdrawals in OptyFi Vaults
-     * @return proof LimitOrder code merkle proof
-     * @param _vault address of OptyFi vault to get codeProof for
-     */
-    function codeProof(address _vault) external view returns (bytes32[] memory proof);
 
     /**
      * @notice returns LimitOrderDiamond account merkle proof

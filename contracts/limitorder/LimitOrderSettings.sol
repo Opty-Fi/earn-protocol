@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { ILimitOrderSettings } from "./ILimitOrderSettings.sol";
+import { ILimitOrderSettings } from "../interfaces/limitOrder/ILimitOrderSettings.sol";
 import { LimitOrderInternal } from "./LimitOrderInternal.sol";
 import { LimitOrderStorage } from "./LimitOrderStorage.sol";
 import { SafeOwnable } from "@solidstate/contracts/access/ownable/SafeOwnable.sol";
@@ -18,13 +18,6 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
      */
     function setTreasury(address _treasury) external onlyOwner {
         _setTreasury(LimitOrderStorage.layout(), _treasury);
-    }
-
-    /**
-     * @inheritdoc ILimitOrderSettings
-     */
-    function setCodeProof(bytes32[] memory _proof, address _vault) external onlyOwner {
-        _setCodeProof(LimitOrderStorage.layout(), _proof, _vault);
     }
 
     /**

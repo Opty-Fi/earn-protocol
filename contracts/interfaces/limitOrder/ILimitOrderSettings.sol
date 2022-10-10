@@ -15,13 +15,6 @@ interface ILimitOrderSettings {
     function setTreasury(address _treasury) external;
 
     /**
-     * @notice sets the code merkle proof required for the contract to make withdrawals/deposits from the vault
-     * @param _proof the code merkle proof
-     * @param _vault address of OptyFi vault to set codeProof
-     */
-    function setCodeProof(bytes32[] memory _proof, address _vault) external;
-
-    /**
      * @notice sets the account merkle proof required for the contract to make withdrawals/deposits from the vault
      * @param _proof the account merkle proof
      * @param _vault address of OptyFi vault to set accountProof

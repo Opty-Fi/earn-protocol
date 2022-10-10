@@ -4,18 +4,17 @@ pragma solidity ^0.8.15;
 import { LimitOrderStorage } from './LimitOrderStorage.sol';
 import { DataTypes } from './DataTypes.sol';
 import { Errors } from './Errors.sol';
-import { ILimitOrderInternal } from './ILimitOrderInternal.sol';
-import { ILimitOrderActions } from './ILimitOrderActions.sol';
-import { ILimitOrderView } from './ILimitOrderView.sol';
+import { ILimitOrderInternal } from '../interfaces/limitOrder/ILimitOrderInternal.sol';
+import { ILimitOrderActions } from '../interfaces/limitOrder/ILimitOrderActions.sol';
+import { ILimitOrderView } from '../interfaces/limitOrder/ILimitOrderView.sol';
 import { IOptyFiOracle } from '../optyfi-oracle/contracts/interfaces/IOptyFiOracle.sol';
-import { IVault } from '../earn-interfaces/IVault.sol';
+import { IVault } from '../interfaces/limitOrder/IVault.sol';
 import { IERC20 } from '@solidstate/contracts/token/ERC20/IERC20.sol';
 import { OwnableStorage } from '@solidstate/contracts/access/ownable/OwnableStorage.sol';
 import { ISolidStateERC20 } from '@solidstate/contracts/token/ERC20/ISolidStateERC20.sol';
 import { SafeERC20 } from '@solidstate/contracts/utils/SafeERC20.sol';
 import { IOps } from '../vendor/gelato/IOps.sol';
 import { IUniswapV2Router01 } from '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol';
-
 import { ISwapRouter } from '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
 /**
@@ -95,7 +94,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         order.lowerBound = _lowerBound;
         order.upperBound = _upperBound;
         order.direction = _orderParams.direction;
-        order.returnLimitBP = _orderParams.returnLimitBP;
+        order.returnLimit = _orderParams.returnLimit;
         order.vault = _vault;
         order.stablecoinVault = _stablecoinVault;
         order.maker = payable(msg.sender);
@@ -162,8 +161,8 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.direction != order.direction) {
             order.direction = _orderParams.direction;
         }
-        if (_orderParams.returnLimitBP != order.returnLimitBP) {
-            order.returnLimitBP = _orderParams.returnLimitBP;
+        if (_orderParams.returnLimit != order.returnLimit) {
+            order.returnLimit = _orderParams.returnLimit;
         }
         if (_orderParams.swapOnUniV3 != order.swapOnUniV3) {
             order.swapOnUniV3 = _orderParams.swapOnUniV3;
@@ -179,7 +178,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         } else {
             if (_orderParams.uniV2Path.length != 0) {
                 order.uniV2Path = _orderParams.uniV2Path;
-                order.uniV3Path = bytes('');
+                order.uniV3Path = bytes("");
             }
         }
 
@@ -216,21 +215,17 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             IOps(_l.ops).cancelTask(_order.taskId);
         }
 
-        (uint256 _vaultUnderlyingTokenAmount, uint256 _limit) = _liquidate(
+        uint256 _vaultUnderlyingTokenAmount = _liquidate(
             _l,
             _vault,
             _maker,
-            _vaultUnderlyingToken,
-            _stablecoinVaultUnderlyingToken,
-            _l.oracle,
-            _order.liquidationAmount,
-            _order.returnLimitBP
+            _order.liquidationAmount
         );
 
         uint256 _numOfCoins = _exchange(
             _order,
             _vaultUnderlyingTokenAmount,
-            _limit
+            _order.returnLimit
         );
 
         uint256 coinsAfterFee = _collectFee(
@@ -248,33 +243,22 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l LimitOrderStorage Layout struct
      * @param _vault address of opVault
      * @param _maker address providing shares to liquidate - Limit Order maker
-     * @param _amount amount of shares to liquidate
-     * @param _token the address of the underlying token of the _vault
-     * @return tokens amount of underlying tokens provided by opVault withdrawal
+     * @param _withdrawAmountVT amount of shares to liquidate
+     * @return _withdrawAmountUT amount of underlying tokens provided by opVault withdrawal
      */
     function _liquidate(
         LimitOrderStorage.Layout storage _l,
         address _vault,
         address _maker,
-        address _token,
-        address _coin,
-        address _oracleAddress,
-        uint256 _amount,
-        uint256 _limitBP
-    ) internal returns (uint256 tokens, uint256 limit) {
-        IERC20(_vault).safeTransferFrom(_maker, address(this), _amount);
+        uint256 _withdrawAmountVT
+    ) internal returns (uint256 _withdrawAmountUT) {
+        IERC20(_vault).safeTransferFrom(_maker, address(this), _withdrawAmountVT);
 
-        tokens = IVault(_vault).userWithdrawVault(
+        _withdrawAmountUT = IVault(_vault).userWithdrawVault(
             address(this),
-            _amount,
-            _l.accountProofs[_vault],
-            _l.codeProofs[_vault]
-        );
-
-        limit = _returnLimit(
-            tokens,
-            _priceStablecoin(_oracleAddress, _token, _coin),
-            _limitBP
+            _withdrawAmountVT,
+            0,
+            _l.accountProofs[_vault]
         );
     }
 
@@ -340,22 +324,22 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     /**
      * @notice either deposits USDC into opUSDC and sends shares to _maker, or sends USDC directly to maker
      * @param _l LimitOrderStorage Layout struct
-     * @param _amount amount of stable coin to deposit
+     * @param _depositAmountUT amount of stable coin to deposit
      * @param _vault address of stable coin vault
      * @param _maker address to deliver final shares or USDC to
      */
     function _deliver(
         LimitOrderStorage.Layout storage _l,
-        uint256 _amount,
+        uint256 _depositAmountUT,
         address _vault,
         address _maker
     ) internal {
         IVault(_vault).userDepositVault(
             _maker,
-            _amount,
-            '0x',
-            _l.accountProofs[_vault],
-            _l.codeProofs[_vault]
+            _depositAmountUT,
+            0,
+            "0x",
+            _l.accountProofs[_vault]
         );
 
         emit DeliverShares(_maker);
@@ -373,20 +357,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         address _vault
     ) internal {
         _l.vaultFee[_vault] = _fee;
-    }
-
-    /**
-     * @notice sets code merkle proof required for the contract to make withdrawals/deposits from the vault
-     * @param _l the layout of the limit order contract
-     * @param _proof the merkle proof
-     * @param _vault address of OptyFi vault to get codeProof for
-     */
-    function _setCodeProof(
-        LimitOrderStorage.Layout storage _l,
-        bytes32[] memory _proof,
-        address _vault
-    ) internal {
-        _l.codeProofs[_vault] = _proof;
     }
 
     /**
@@ -642,20 +612,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice returns LimitOrderDiamond code merkle proof
-     * @param _l the layout of the limit order contract
-     * @param _vault address of OptyFi vault to get codeProof for
-     * @return proof LimitOrder code merkle proof for target vault
-     */
-    function _codeProof(LimitOrderStorage.Layout storage _l, address _vault)
-        internal
-        view
-        returns (bytes32[] memory proof)
-    {
-        proof = _l.codeProofs[_vault];
-    }
-
-    /**
      * @notice returns LimitOrderDiamond account merkle proof
      * @param _l the layout of the limit order contract
      * @param _vault address of OptyFi vault to get accountProof for
@@ -803,13 +759,5 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             true,
             abi.encodeCall(ILimitOrderActions.execute, (_maker, _vault))
         );
-    }
-
-    function _returnLimit(
-        uint256 _amount,
-        uint256 _priceInUSDC,
-        uint256 _limitBP
-    ) internal pure returns (uint256 limit) {
-        limit = (_limitBP * _priceInUSDC * _amount) / (BASIS * BASIS * 10**12);
     }
 }

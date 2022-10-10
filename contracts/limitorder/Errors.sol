@@ -19,11 +19,7 @@ library Errors {
      * @param _lowerBound lower bound to check against
      * @param _upperBound upper bound to check against
      */
-    error PriceOutwithBounds(
-        uint256 _price,
-        uint256 _lowerBound,
-        uint256 _upperBound
-    );
+    error PriceOutwithBounds(uint256 _price, uint256 _lowerBound, uint256 _upperBound);
 
     /**
      * @notice thrown when a given price is within upper/lower bounds when direction of
@@ -32,11 +28,7 @@ library Errors {
      * @param _lowerBound lower bound to check against
      * @param _upperBound upper bound to check against
      */
-    error PriceWithinBounds(
-        uint256 _price,
-        uint256 _lowerBound,
-        uint256 _upperBound
-    );
+    error PriceWithinBounds(uint256 _price, uint256 _lowerBound, uint256 _upperBound);
 
     /**
      * @notice thrown when lowerBound >= upperBound

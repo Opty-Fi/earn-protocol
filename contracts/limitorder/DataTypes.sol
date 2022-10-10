@@ -19,7 +19,7 @@ library DataTypes {
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound of the limit order in USD price of the underlying token
      * @param upperBound the upper bound of the limit order in USD price of the underlying token
-     * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
+     * @param returnLimit the minimum amount of stablecoins to be returned after swap
      * @param taskId unique identifier of the limit order
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
@@ -35,7 +35,7 @@ library DataTypes {
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;
-        uint256 returnLimitBP;
+        uint256 returnLimit;
         bytes32 taskId;
         address payable maker;
         address vault;
@@ -53,7 +53,7 @@ library DataTypes {
      * @param expiration the expiration timestamp of the order
      * @param lowerBound the lower bound in basis points of the limit order's priceTarget
      * @param upperBound the upper bound in basis points of the limit order's priceTarget
-     * @param returnLimitBP the minimum acceptable percentage of returns from the swap in basis points
+     * @param returnLimit the minimum amount of stablecoins to be returned after swap
      * @param vault the vault the order pertains to
      * @param stablecoinVault the opVault with stable coins as underlying to send liquidated shares to
      * @param dexRouter address of dex to swap on
@@ -67,7 +67,7 @@ library DataTypes {
         uint256 expiration;
         uint256 lowerBound;
         uint256 upperBound;
-        uint256 returnLimitBP;
+        uint256 returnLimit;
         address vault;
         address stablecoinVault;
         address dexRouter;

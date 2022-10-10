@@ -2,11 +2,11 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from "./DataTypes.sol";
-import { ILimitOrderView } from "./ILimitOrderView.sol";
-import { ILimitOrderActions } from "./ILimitOrderActions.sol";
+import { ILimitOrderView } from "../interfaces/limitOrder/ILimitOrderView.sol";
+import { ILimitOrderActions } from "../interfaces/limitOrder/ILimitOrderActions.sol";
 import { LimitOrderSettings } from "./LimitOrderSettings.sol";
 import { LimitOrderStorage } from "./LimitOrderStorage.sol";
-import { IVault } from "../earn-interfaces/IVault.sol";
+import { IVault } from "../interfaces/limitOrder/IVault.sol";
 import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -41,13 +41,6 @@ abstract contract LimitOrderView is LimitOrderSettings, ILimitOrderView {
      */
     function treasury() external view returns (address treasuryAddress) {
         treasuryAddress = _treasury(LimitOrderStorage.layout());
-    }
-
-    /**
-     * @inheritdoc ILimitOrderView
-     */
-    function codeProof(address _vault) external view returns (bytes32[] memory proof) {
-        proof = _codeProof(LimitOrderStorage.layout(), _vault);
     }
 
     /**
