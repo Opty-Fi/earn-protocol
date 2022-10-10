@@ -48,6 +48,7 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
         _setVault(LimitOrderStorage.layout(), _vault);
     }
 
+    /*solhint-disable  use-forbidden-name*/
     /**
      * @inheritdoc ILimitOrderSettings
      */
@@ -63,6 +64,8 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
         }
     }
 
+    /*solhint-enable  use-forbidden-name*/
+
     /**
      * @inheritdoc ILimitOrderSettings
      */
@@ -70,6 +73,7 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
         _unsetVault(LimitOrderStorage.layout(), _vault);
     }
 
+    /*solhint-disable  use-forbidden-name*/
     /**
      * @inheritdoc ILimitOrderSettings
      */
@@ -84,6 +88,8 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
             }
         }
     }
+
+    /*solhint-enable  use-forbidden-name*/
 
     /**
      * @inheritdoc ILimitOrderSettings

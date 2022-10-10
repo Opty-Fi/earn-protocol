@@ -10,6 +10,8 @@ import { ILimitOrderInternal } from "./ILimitOrderInternal.sol";
  * @title Core interface for LimitOrder contract suite
  * @author OptyFi
  */
+/* solhint-disable no-empty-blocks*/
 interface ILimitOrder is ILimitOrderActions, ILimitOrderSettings, ILimitOrderView, ILimitOrderInternal {
 
 }
+/* solhint-enable no-empty-blocks*/

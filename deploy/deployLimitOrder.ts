@@ -57,7 +57,7 @@ const deployLimitOrder: DeployFunction = async (hre: HardhatRuntimeEnvironment) 
   console.log("\nPerforming diamond cut...");
 
   try {
-    let tx = await LimitOrderDiamond.diamondCut(limitOrderFacetCuts, ethers.constants.AddressZero, "0x");
+    const tx = await LimitOrderDiamond.diamondCut(limitOrderFacetCuts, ethers.constants.AddressZero, "0x");
 
     await tx.wait();
 

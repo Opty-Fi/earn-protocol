@@ -10,6 +10,7 @@ import { LimitOrderActions } from "./LimitOrderActions.sol";
  * @author OptyFi
  */
 contract LimitOrder is LimitOrderActions {
+    /*solhint-disable  use-forbidden-name*/
     constructor(
         address _treasury,
         address _optyFiOracle,
@@ -20,4 +21,5 @@ contract LimitOrder is LimitOrderActions {
         l.oracle = _optyFiOracle;
         l.ops = _ops;
     }
+    /*solhint-enable  use-forbidden-name*/
 }

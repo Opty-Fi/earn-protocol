@@ -35,13 +35,15 @@ interface ILimitOrderSettings {
     function setOracle(address _oracle) external;
 
     /**
-     * @notice whitelists an OptyFi stable coin vault in the storage mapping, and whitelists its underlying stablecoin
+     * @notice whitelists an OptyFi stable coin vault in the storage mapping,
+     *         and whitelists its underlying stablecoin
      * @param _vault the address of the OptyFi stable coin vault
      */
     function setVault(address _vault) external;
 
     /**
-     * @notice whitelists multiple OptyFi stable coin vaulst in the storage mapping, and whitelists their underlying stablecoins
+     * @notice whitelists multiple OptyFi stable coin vaulst in the storage mapping,
+     *         and whitelists their underlying stablecoins
      * @param _vaults array of the addresses of the OptyFi stable coin vaults
      */
     function setVaults(address[] memory _vaults) external;

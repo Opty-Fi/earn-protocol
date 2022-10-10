@@ -14,7 +14,8 @@ library LimitOrderStorage {
      * @param userVaultOrder user => vault => Order
      * @param userVaultOrderActive user => vault => bool
      * @param vaultFee vault address => fee
-     * @param accountProofs mapping of OptyFi vault address => code merkle proof for Limit Order contract (required for OptyFi Vault withdraw/deposit)
+     * @param accountProofs mapping of OptyFi vault address => code merkle proof
+     *        for Limit Order contract (required for OptyFi Vault withdraw/deposit)
      * @param stableVaults a whitelist of opVaults which have stable coins as underlying tokens
      * @param treasury the treasury to send liquidation fees to
      * @param oracle the addres of the OptyFi Oracle
@@ -31,6 +32,8 @@ library LimitOrderStorage {
         address ops;
     }
 
+    /*solhint-disable  use-forbidden-name*/
+    /*solhint-disable  no-inline-assembly*/
     /**
      * @notice return the layout struct stored at STORAGE_SLOT
      * @return l the layout struct
@@ -41,4 +44,6 @@ library LimitOrderStorage {
             l.slot := slot
         }
     }
+    /*solhint-enable  use-forbidden-name*/
+    /*solhint-enable  no-inline-assembly*/
 }
