@@ -74,6 +74,13 @@ abstract contract LimitOrderView is LimitOrderSettings, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
+    function stablecoinVaultWhitelisted(address _vault) external view returns (bool) {
+        return _stablecoinVaultWhitelisted(LimitOrderStorage.layout(), _vault);
+    }
+
+    /**
+     * @inheritdoc ILimitOrderView
+     */
     function vaultWhitelisted(address _vault) external view returns (bool) {
         return _vaultWhitelisted(LimitOrderStorage.layout(), _vault);
     }

@@ -85,12 +85,14 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
                 abi.encodeWithSelector(ILimitOrderView.canExecuteOrder.selector, msg.sender, _vault)
             );
 
-        order.liquidationAmount = _orderParams.liquidationAmount;
+        order.liquidationAmountVT = _orderParams.liquidationAmountVT;
+        order.expectedOutputUT = _orderParams.expectedOutputUT;
         order.expiration = _orderParams.expiration;
         order.lowerBound = _lowerBound;
         order.upperBound = _upperBound;
         order.direction = _orderParams.direction;
-        order.returnLimit = _orderParams.returnLimit;
+        order.returnLimitUT = _orderParams.returnLimitUT;
+        order.expectedOutputVT = _orderParams.expectedOutputVT;
         order.vault = _vault;
         order.stablecoinVault = _stablecoinVault;
         order.maker = payable(msg.sender);
@@ -131,8 +133,11 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         if (_orderParams.lowerBound >= _orderParams.upperBound) {
             revert Errors.ReverseBounds();
         }
+        if (!_stablecoinVaultWhitelisted(_l, _orderParams.stablecoinVault)) {
+            revert Errors.ForbiddenStablecoinVault();
+        }
         if (!_vaultWhitelisted(_l, _orderParams.stablecoinVault)) {
-            revert Errors.ForbiddenDestination();
+            revert Errors.ForbiddenVault();
         }
 
         DataTypes.Order memory order = _l.userVaultOrder[sender][_vault];
@@ -141,29 +146,17 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             order.vault = _orderParams.vault;
         }
 
-        order.liquidationAmount = _orderParams.liquidationAmount;
+        order.liquidationAmountVT = _orderParams.liquidationAmountVT;
+        order.expectedOutputUT = _orderParams.expectedOutputUT;
+        order.expiration = _orderParams.expiration;
+        order.lowerBound = _orderParams.lowerBound;
+        order.upperBound = _orderParams.upperBound;
+        order.direction = _orderParams.direction;
+        order.returnLimitUT = _orderParams.returnLimitUT;
+        order.expectedOutputVT = _orderParams.expectedOutputVT;
+        order.swapOnUniV3 = _orderParams.swapOnUniV3;
+        order.dexRouter = _orderParams.dexRouter;
 
-        if (_orderParams.expiration != order.expiration) {
-            order.expiration = _orderParams.expiration;
-        }
-        if (_orderParams.lowerBound != order.lowerBound) {
-            order.lowerBound = _orderParams.lowerBound;
-        }
-        if (_orderParams.upperBound != order.upperBound) {
-            order.upperBound = _orderParams.upperBound;
-        }
-        if (_orderParams.direction != order.direction) {
-            order.direction = _orderParams.direction;
-        }
-        if (_orderParams.returnLimit != order.returnLimit) {
-            order.returnLimit = _orderParams.returnLimit;
-        }
-        if (_orderParams.swapOnUniV3 != order.swapOnUniV3) {
-            order.swapOnUniV3 = _orderParams.swapOnUniV3;
-        }
-        if (_orderParams.dexRouter != order.dexRouter) {
-            order.dexRouter = _orderParams.dexRouter;
-        }
         if (_orderParams.swapOnUniV3) {
             if (_orderParams.uniV3Path.length != 0) {
                 order.uniV3Path = _orderParams.uniV3Path;
@@ -206,13 +199,14 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             IOps(_l.ops).cancelTask(_order.taskId);
         }
 
-        uint256 _vaultUnderlyingTokenAmount = _liquidate(_l, _vault, _maker, _order.liquidationAmount);
+        uint256 _vaultUnderlyingTokenAmount =
+            _liquidate(_l, _vault, _maker, _order.liquidationAmountVT, _order.expectedOutputUT);
 
-        uint256 _numOfCoins = _exchange(_order, _vaultUnderlyingTokenAmount, _order.returnLimit);
+        uint256 _numOfCoins = _exchange(_order, _vaultUnderlyingTokenAmount, _order.returnLimitUT);
 
         uint256 coinsAfterFee = _collectFee(_l, _stablecoinVaultUnderlyingToken, _numOfCoins, _l.vaultFee[_vault]);
 
-        _deliver(_l, coinsAfterFee, _order.stablecoinVault, _maker);
+        _deliver(_l, coinsAfterFee, _order.expectedOutputVT, _order.stablecoinVault, _maker);
     }
 
     /**
@@ -221,20 +215,23 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _vault address of opVault
      * @param _maker address providing shares to liquidate - Limit Order maker
      * @param _withdrawAmountVT amount of shares to liquidate
+     * @param _expectedOutputUT minimum amount of underlying tokens that must be received
+     *         to not revert transaction
      * @return _withdrawAmountUT amount of underlying tokens provided by opVault withdrawal
      */
     function _liquidate(
         LimitOrderStorage.Layout storage _l,
         address _vault,
         address _maker,
-        uint256 _withdrawAmountVT
+        uint256 _withdrawAmountVT,
+        uint256 _expectedOutputUT
     ) internal returns (uint256 _withdrawAmountUT) {
         IERC20(_vault).safeTransferFrom(_maker, address(this), _withdrawAmountVT);
 
         _withdrawAmountUT = IVault(_vault).userWithdrawVault(
             address(this),
             _withdrawAmountVT,
-            0,
+            _expectedOutputUT,
             _l.accountProofs[_vault]
         );
     }
@@ -298,16 +295,19 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @notice either deposits USDC into opUSDC and sends shares to _maker, or sends USDC directly to maker
      * @param _l LimitOrderStorage Layout struct
      * @param _depositAmountUT amount of stable coin to deposit
+     * @param _expectedOutputVT the minimum amount of vault tokens that must be minted
+     *         for the transaction to not revert
      * @param _vault address of stable coin vault
      * @param _maker address to deliver final shares or USDC to
      */
     function _deliver(
         LimitOrderStorage.Layout storage _l,
         uint256 _depositAmountUT,
+        uint256 _expectedOutputVT,
         address _vault,
         address _maker
     ) internal {
-        IVault(_vault).userDepositVault(_maker, _depositAmountUT, 0, "0x", _l.accountProofs[_vault]);
+        IVault(_vault).userDepositVault(_maker, _depositAmountUT, _expectedOutputVT, "0x", _l.accountProofs[_vault]);
 
         emit DeliverShares(_maker);
     }
@@ -368,12 +368,30 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
+     * @notice whitelists a new non-stable coin vault
+     * @param _l the LimitOrderStorage Layout struct
+     * @param _vault the address of the non-stable coin opVault
+     */
+    function _setVault(LimitOrderStorage.Layout storage _l, address _vault) internal {
+        _l.vaults[_vault] = true;
+    }
+
+    /**
+     * @notice removes a vault from whitelist
+     * @param _l the LimitOrderStorage Layout struct
+     * @param _vault the address of the non-stable coin opVault
+     */
+    function _unsetVault(LimitOrderStorage.Layout storage _l, address _vault) internal {
+        _l.vaults[_vault] = false;
+    }
+
+    /**
      * @notice whitelists a new vault
      * @param _l the LimitOrderStorage Layout struct
      * @param _vault the address of the opVault
      */
-    function _setVault(LimitOrderStorage.Layout storage _l, address _vault) internal {
-        _l.stableVaults[_vault] = true;
+    function _setStablecoinVault(LimitOrderStorage.Layout storage _l, address _vault) internal {
+        _l.stablecoinVaults[_vault] = true;
     }
 
     /**
@@ -381,8 +399,8 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l the LimitOrderStorage Layout struct
      * @param _vault the address of the opVault
      */
-    function _unsetVault(LimitOrderStorage.Layout storage _l, address _vault) internal {
-        _l.stableVaults[_vault] = false;
+    function _unsetStablecoinVault(LimitOrderStorage.Layout storage _l, address _vault) internal {
+        _l.stablecoinVaults[_vault] = false;
     }
 
     /**
@@ -482,6 +500,10 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _lowerBound,
         uint256 _upperBound
     ) internal view {
+        if (_l.vaults[_vault] == false) {
+            revert Errors.ForbiddenVault();
+        }
+
         if (_l.userVaultOrderActive[_user][_vault]) {
             revert Errors.ActiveOrder(_user, _vault);
         }
@@ -491,8 +513,8 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         if (_lowerBound >= _upperBound) {
             revert Errors.ReverseBounds();
         }
-        if (_l.stableVaults[_destination] == false) {
-            revert Errors.ForbiddenDestination();
+        if (_l.stablecoinVaults[_destination] == false) {
+            revert Errors.ForbiddenStablecoinVault();
         }
     }
 
@@ -586,9 +608,23 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     }
 
     /**
-     * @notice returns the whitelisted state of a target vault
+     * @notice returns the whitelisted state of a stablecoin vault
      * @param _l LimitOrderStorage layout struct
-     * @param _vault address of target vault
+     * @param _vault address of stable coin vault
+     */
+    function _stablecoinVaultWhitelisted(LimitOrderStorage.Layout storage _l, address _vault)
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        return _l.stablecoinVaults[_vault];
+    }
+
+    /**
+     * @notice returns the whitelisted state of a non-stable coin vault
+     * @param _l LimitOrderStorage layout struct
+     * @param _vault address of non-stable coin vault
      */
     function _vaultWhitelisted(LimitOrderStorage.Layout storage _l, address _vault)
         internal
@@ -596,7 +632,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         virtual
         returns (bool)
     {
-        return _l.stableVaults[_vault];
+        return _l.vaults[_vault];
     }
 
     /**
@@ -659,7 +695,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         DataTypes.Order memory _order = LimitOrderStorage.layout().userVaultOrder[_maker][_vault];
         address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
 
-        if (IERC20(_vault).balanceOf(_maker) < _order.liquidationAmount) {
+        if (IERC20(_vault).balanceOf(_maker) < _order.liquidationAmountVT) {
             return (false, bytes("Not enough shares"));
         }
 

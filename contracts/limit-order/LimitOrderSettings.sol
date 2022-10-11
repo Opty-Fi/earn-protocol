@@ -89,6 +89,54 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
         }
     }
 
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setStablecoinVault(address _vault) external onlyOwner {
+        _setStablecoinVault(LimitOrderStorage.layout(), _vault);
+    }
+
+    /*solhint-disable  use-forbidden-name*/
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function setStablecoinVaults(address[] memory _vaults) external onlyOwner {
+        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
+        uint256 length = _vaults.length;
+
+        unchecked {
+            for (uint256 i; i < length; ) {
+                _setStablecoinVault(l, _vaults[i]);
+                ++i;
+            }
+        }
+    }
+
+    /*solhint-enable  use-forbidden-name*/
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function unsetStablecoinVault(address _vault) external onlyOwner {
+        _unsetStablecoinVault(LimitOrderStorage.layout(), _vault);
+    }
+
+    /*solhint-disable  use-forbidden-name*/
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function unsetStablecoinVaults(address[] memory _vaults) external onlyOwner {
+        LimitOrderStorage.Layout storage l = LimitOrderStorage.layout();
+        uint256 length = _vaults.length;
+
+        unchecked {
+            for (uint256 i; i < length; ) {
+                _unsetStablecoinVault(l, _vaults[i]);
+                ++i;
+            }
+        }
+    }
+
     /*solhint-enable  use-forbidden-name*/
 
     /**

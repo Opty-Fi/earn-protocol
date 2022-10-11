@@ -69,7 +69,12 @@ library Errors {
     /**
      * @notice thrown when destination of share/asset delivery is not whitelisted
      */
-    error ForbiddenDestination();
+    error ForbiddenVault();
+
+    /**
+     * @notice thrown when stablecoin vault of share/asset delivery is not whitelisted
+     */
+    error ForbiddenStablecoinVault();
 
     /**
      * @notice thrown when length of arrays are not same

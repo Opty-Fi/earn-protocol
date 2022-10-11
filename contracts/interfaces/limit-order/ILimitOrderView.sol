@@ -70,8 +70,14 @@ interface ILimitOrderView {
         returns (bool canExec, bytes memory execPayload);
 
     /**
-     * @notice returns the whitelisted state of a target vault
-     * @param _vault address of target vault
+     * @notice returns the whitelisted state of a stablecoin vault
+     * @param _vault address of stablecoin vault
+     */
+    function stablecoinVaultWhitelisted(address _vault) external view returns (bool);
+
+    /**
+     * @notice returns the whitelisted state of a non-stablecoin vault
+     * @param _vault address of non-stablecoin vault
      */
     function vaultWhitelisted(address _vault) external view returns (bool);
 }
