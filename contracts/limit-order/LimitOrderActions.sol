@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from "./DataTypes.sol";
-import { ILimitOrderActions } from "../interfaces/limitOrder/ILimitOrderActions.sol";
+import { ILimitOrderActions } from "../interfaces/limit-order/ILimitOrderActions.sol";
 import { LimitOrderView } from "./LimitOrderView.sol";
 import { LimitOrderStorage } from "./LimitOrderStorage.sol";
 

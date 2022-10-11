@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { ILimitOrderSettings } from "../interfaces/limitOrder/ILimitOrderSettings.sol";
+import { ILimitOrderSettings } from "../interfaces/limit-order/ILimitOrderSettings.sol";
 import { LimitOrderInternal } from "./LimitOrderInternal.sol";
 import { LimitOrderStorage } from "./LimitOrderStorage.sol";
 import { SafeOwnable } from "@solidstate/contracts/access/ownable/SafeOwnable.sol";

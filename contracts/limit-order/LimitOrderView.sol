@@ -2,11 +2,11 @@
 pragma solidity ^0.8.15;
 
 import { DataTypes } from "./DataTypes.sol";
-import { ILimitOrderView } from "../interfaces/limitOrder/ILimitOrderView.sol";
-import { ILimitOrderActions } from "../interfaces/limitOrder/ILimitOrderActions.sol";
+import { ILimitOrderView } from "../interfaces/limit-order/ILimitOrderView.sol";
+import { ILimitOrderActions } from "../interfaces/limit-order/ILimitOrderActions.sol";
 import { LimitOrderSettings } from "./LimitOrderSettings.sol";
 import { LimitOrderStorage } from "./LimitOrderStorage.sol";
-import { IVault } from "../interfaces/limitOrder/IVault.sol";
+import { IVault } from "../interfaces/limit-order/IVault.sol";
 import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
 
 /**
