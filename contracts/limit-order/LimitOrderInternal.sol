@@ -249,6 +249,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _limit
     ) internal returns (uint256) {
         address _toToken = IVault(_order.stablecoinVault).underlyingToken();
+        address _fromToken = IVault(_order.vault).underlyingToken();
         uint256 _toAmountBalanceBeforeSwap = IERC20(_toToken).balanceOf(address(this));
         if (_order.swapOnUniV3) {
             ISwapRouter(_order.dexRouter).exactInput(
@@ -268,6 +269,11 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
                 address(this),
                 _timestamp() + 10 minutes
             );
+        }
+        uint256 _fromAmountBalanceAfterSwap = IERC20(_fromToken).balanceOf(address(this));
+        uint256 _leftOverFromAmountUT = _vaultUnderlyingTokenAmount - _fromAmountBalanceAfterSwap;
+        if (_leftOverFromAmountUT > 0) {
+            IERC20(_fromToken).transfer(_order.maker, _leftOverFromAmountUT);
         }
         uint256 _toAmountBalanceAfterSwap = IERC20(_toToken).balanceOf(address(this));
         return _toAmountBalanceAfterSwap - _toAmountBalanceBeforeSwap;
@@ -712,5 +718,23 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         }
 
         return (true, abi.encodeCall(ILimitOrderActions.execute, (_maker, _vault)));
+    }
+
+    /**
+     * @notice transfer tokens to beneficiary incase it get stuck in this contract
+     * @param _token the token address
+     * @param _recipient beneficiary address to receive tokens
+     * @param _amount amount of tokens to transfer
+     */
+    function _inCaseTokensGetStuck(
+        IERC20 _token,
+        address _recipient,
+        uint256 _amount
+    ) internal {
+        if (address(_token) == address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
+            payable(_recipient).transfer(_amount);
+        } else {
+            _token.transfer(_recipient, _amount);
+        }
     }
 }

@@ -159,4 +159,15 @@ abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitO
     function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external onlyOwner {
         _removeAllowances(_tokens, _spenders);
     }
+
+    /**
+     * @inheritdoc ILimitOrderSettings
+     */
+    function inCaseTokensGetStuck(
+        IERC20 _token,
+        address _recipient,
+        uint256 _amount
+    ) external onlyOwner {
+        _inCaseTokensGetStuck(_token, _recipient, _amount);
+    }
 }

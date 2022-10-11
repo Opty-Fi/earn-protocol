@@ -107,4 +107,16 @@ interface ILimitOrderSettings {
      * @param _spenders the array of spender contract
      */
     function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
+
+    /**
+     * @notice transfer tokens to beneficiary incase it get stuck in this contract
+     * @param _token the token address
+     * @param _recipient beneficiary address to receive tokens
+     * @param _amount amount of tokens to transfer
+     */
+    function inCaseTokensGetStuck(
+        IERC20 _token,
+        address _recipient,
+        uint256 _amount
+    ) external;
 }
