@@ -4,8 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
 
-import "../../protocol/meta-tx/RelayHub.sol";
-import "../../protocol/meta-tx/BasePaymaster.sol";
+import "../../protocol/meta-tx/GSN/RelayHub.sol";
+import "../../protocol/meta-tx/GSN/BasePaymaster.sol";
 import "./AllEvents.sol";
 
 /**

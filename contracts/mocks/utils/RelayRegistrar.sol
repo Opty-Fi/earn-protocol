@@ -10,9 +10,9 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts-0.8.x/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts-0.8.x/access/Ownable.sol";
 
-import "../../protocol/meta-tx/libraries/MinLibBytes.sol";
-import "../../protocol/meta-tx/interfaces/IRelayHub.sol";
-import "../../protocol/meta-tx/interfaces/IRelayRegistrar.sol";
+import "../../protocol/meta-tx/GSN/libraries/MinLibBytes.sol";
+import "../../protocol/meta-tx/GSN/interfaces/IRelayHub.sol";
+import "../../protocol/meta-tx/GSN/interfaces/IRelayRegistrar.sol";
 
 /**
  * @title The RelayRegistrar Implementation

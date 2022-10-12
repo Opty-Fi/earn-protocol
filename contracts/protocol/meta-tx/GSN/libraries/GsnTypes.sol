@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/IForwarder.sol";
+import "../../interfaces/IForwarder.sol";
 
 library GsnTypes {
     struct RelayData {

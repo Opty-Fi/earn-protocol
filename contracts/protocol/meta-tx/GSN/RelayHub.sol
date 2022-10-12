@@ -25,7 +25,7 @@ import "./libraries/RelayHubValidator.sol";
 import "./libraries/GsnTypes.sol";
 import "./interfaces/IRelayHub.sol";
 import "./interfaces/IPaymaster.sol";
-import "./interfaces/IForwarder.sol";
+import "../interfaces/IForwarder.sol";
 import "./interfaces/IStakeManager.sol";
 import "./interfaces/IRelayRegistrar.sol";
 import "./interfaces/IStakeManager.sol";
@@ -511,11 +511,6 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
             (success, retData) = relayRequest.relayData.paymaster.call{ gas: gasAndDataLimits.preRelayedCallGasLimit }(
                 vars.data
             );
-            console.log("back to relay hub");
-            console.log("success", success);
-            console.logBytes(retData);
-            console.log("****PreRelayed Call gas limit:", gasAndDataLimits.preRelayedCallGasLimit);
-            console.log("****Paymaster preRelayedCall Call:", success);
             if (!success) {
                 GsnEip712Library.truncateInPlace(retData);
                 revertWithStatus(RelayCallStatus.RejectedByPreRelayed, retData);
@@ -532,8 +527,6 @@ contract RelayHub is IRelayHub, Ownable, ERC165 {
                 relayRequest,
                 signature
             );
-            console.log("forwarderSuccess", forwarderSuccess);
-            console.log("relayedCallSuccess", vars.relayedCallSuccess);
             if (!forwarderSuccess) {
                 revertWithStatus(RelayCallStatus.RejectedByForwarder, vars.relayedCallReturnValue);
             }

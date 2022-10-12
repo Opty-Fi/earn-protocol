@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-0.8.x/access/Ownable.sol";
 import "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-0.8.x/utils/introspection/ERC165.sol";
 
-import "../../protocol/meta-tx/interfaces/IStakeManager.sol";
+import "../../protocol/meta-tx/GSN/interfaces/IStakeManager.sol";
 
 /**
  * @title The StakeManager implementation

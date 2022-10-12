@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../../protocol/meta-tx/libraries/GsnTypes.sol";
-import "../../protocol/meta-tx/interfaces/IPaymaster.sol";
+import "../../protocol/meta-tx/GSN/libraries/GsnTypes.sol";
+import "../../protocol/meta-tx/GSN/interfaces/IPaymaster.sol";
 
-import "../../protocol/meta-tx/RelayHub.sol";
+import "../../protocol/meta-tx/GSN/RelayHub.sol";
 
 import "../utils/AllEvents.sol";
 
