@@ -88,6 +88,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress,
+      MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash,
+      "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783",
+      "AAVE",
+      "2",
+      "2718155043500073612906634403139041842518004532954031278126931986324444413952",
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "0",
+      "3000000000000000000000000",
+    ],
+  };
   const result = await deploy("opAAVE-Invst", {
     from: deployer,
     contract: {
@@ -103,24 +117,12 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 1,
+      upgradeIndex: networkName == "hardhat" ? 0 : 2,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Earn_Implementation",
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress,
-            MULTI_CHAIN_VAULT_TOKENS[chainId].AAVE.hash,
-            "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783",
-            "AAVE",
-            "2",
-            "2718155043500073612906634403139041842518004532954031278126931986324444413952",
-            "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-            "0",
-            "3000000000000000000000000",
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas

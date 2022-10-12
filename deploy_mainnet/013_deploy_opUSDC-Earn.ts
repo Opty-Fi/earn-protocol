@@ -90,6 +90,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress, //address _registry
+      MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
+      "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
+      "USDC", //string memory _symbol
+      "1", //uint256 _riskProfileCode
+      "0", //uint256 _vaultConfiguration
+      "0", //uint256 _userDepositCapUT
+      "0", //uint256 _minimumDepositValueUT
+      "0", //uint256 _totalValueLockedLimitUT
+    ],
+  };
   const result = await deploy("opUSDC-Earn", {
     from: deployer,
     contract: {
@@ -112,20 +126,8 @@ const func: DeployFunction = async ({
         deployedBytecode: artifactVaultProxyV2.deployedBytecode,
       },
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress, //address _registry
-            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
-            "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
-            "USDC", //string memory _symbol
-            "1", //uint256 _riskProfileCode
-            "0", //uint256 _vaultConfiguration
-            "0", //uint256 _userDepositCapUT
-            "0", //uint256 _minimumDepositValueUT
-            "0", //uint256 _totalValueLockedLimitUT
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas

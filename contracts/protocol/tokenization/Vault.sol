@@ -54,7 +54,7 @@ contract Vault is
     /**
      * @dev The version of the Vault implementation
      */
-    uint256 public constant opTOKEN_REVISION = 0x4;
+    uint256 public constant opTOKEN_REVISION = 0x5;
 
     /**
      * @dev hash of the permit function
@@ -230,7 +230,11 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external override onlyGovernance {
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders)
+        external
+        override
+        onlyRiskOperator
+    {
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
         for (uint256 _i; _i < _tokens.length; _i++) {
@@ -244,7 +248,7 @@ contract Vault is
     function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders)
         external
         override
-        onlyGovernance
+        onlyRiskOperator
     {
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);

@@ -144,6 +144,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     this.signers.financeOperator = await ethers.getSigner(financeOperatorAddress);
     this.signers.governance = await ethers.getSigner(governanceAddress);
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
+    this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
     this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, RISKMANAGER_PROXY_ADDRESS);
     this.strategyProvider = <StrategyProvider>(
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
@@ -1573,20 +1574,22 @@ describe(`::${fork}-Vault-rev4`, function () {
   describe(`${fork}-#giveAllowances()`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail giveAllowances by non governance", async function () {
+    it("fail giveAllowances by non risk operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).giveAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
-      ).to.be.revertedWith("caller is not having governance");
+      ).to.be.revertedWith("caller is not the riskOperator");
     });
     it("fail giveAllowances mismatch length", async function () {
       await expect(
-        this.opUSDCearn.connect(this.signers.governance).giveAllowances([await this.opUSDCearn.underlyingToken()], []),
+        this.opUSDCearn
+          .connect(this.signers.riskOperator)
+          .giveAllowances([await this.opUSDCearn.underlyingToken()], []),
       ).to.be.revertedWith("28");
     });
     it("success giveAllowances", async function () {
       await expect(
         this.opUSDCearn
-          .connect(this.signers.governance)
+          .connect(this.signers.riskOperator)
           .giveAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
       )
         .to.emit(this.usdc, "Approval")
@@ -1596,22 +1599,22 @@ describe(`::${fork}-Vault-rev4`, function () {
   describe(`${fork}-#removesAllowance()`, function () {
     const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
 
-    it("fail removeAllowances by non governance", async function () {
+    it("fail removeAllowances by non risk operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).removeAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
-      ).to.be.revertedWith("caller is not having governance");
+      ).to.be.revertedWith("caller is not the riskOperator");
     });
     it("fail removeAllowances mismatch length", async function () {
       await expect(
         this.opUSDCearn
-          .connect(this.signers.governance)
+          .connect(this.signers.riskOperator)
           .removeAllowances([await this.opUSDCearn.underlyingToken()], []),
       ).to.be.revertedWith("28");
     });
     it("success removeAllowances", async function () {
       await expect(
         this.opUSDCearn
-          .connect(this.signers.governance)
+          .connect(this.signers.riskOperator)
           .removeAllowances([await this.opUSDCearn.underlyingToken()], [_pool]),
       )
         .to.emit(this.usdc, "Approval")

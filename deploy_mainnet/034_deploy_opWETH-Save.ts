@@ -88,6 +88,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress,
+      MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
+      "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694",
+      "WETH",
+      "0",
+      "905369955037451290754171167376807445279006054759646228016501227483694104576",
+      "60000000000000000000",
+      "0",
+      "6000000000000000000000",
+    ],
+  };
   const result = await deploy("opWETH-Save", {
     from: deployer,
     contract: {
@@ -103,24 +117,12 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 1,
+      upgradeIndex: networkName == "hardhat" ? 0 : 2,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Earn_Implementation",
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress,
-            MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
-            "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694",
-            "WETH",
-            "0",
-            "905369955037451290754171167376807445279006054759646228016501227483694104576",
-            "60000000000000000000",
-            "0",
-            "6000000000000000000000",
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
