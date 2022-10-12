@@ -5,19 +5,21 @@ pragma experimental ABIEncoderV2;
 //contracts
 import { Ownable } from "@openzeppelin/contracts-0.8.x/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol";
-import { BasePaymaster } from "./BasePaymaster.sol";
+import { BasePaymaster } from "./GSN/BasePaymaster.sol";
 
 //libraries
 import { SafeMath } from "@openzeppelin/contracts-0.8.x/utils/math/SafeMath.sol";
 import { SafeERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
-import { GsnTypes } from "./libraries/GsnTypes.sol";
-import { DataTypes as SwapTypes } from "../optyfi-swapper/contracts/swap/DataTypes.sol";
+import { GsnTypes } from "./GSN/libraries/GsnTypes.sol";
 
 //interfaces
-import { ISwapper } from "../optyfi-swapper/contracts/swap/ISwapper.sol";
 import { IOptyFiOracle } from "../optyfi-oracle/contracts/interfaces/IOptyFiOracle.sol";
 import { IERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
+import { IERC20Permit } from "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/draft-IERC20Permit.sol";
+import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy-0.8.x.sol";
 import { IForwarder } from "./interfaces/IForwarder.sol";
+import { IUniswapV2Router01 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import { ISwapRouter } from "../../interfaces/uniswap/ISwapRouter.sol";
 
 /**
  * @title A Token-based paymaster
@@ -27,7 +29,7 @@ import { IForwarder } from "./interfaces/IForwarder.sol";
  *         - postRelayedCall - refund the caller for the unused gas
  */
 contract TokenPaymaster is BasePaymaster {
-    using SafeERC20 for IERC20;
+    // using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     /** @dev ETH address */
@@ -36,13 +38,22 @@ contract TokenPaymaster is BasePaymaster {
     /** WETH ERC20 token address */
     address public constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
-    ISwapper optyFiSwapper;
+    struct PaymasterData {
+        address token;
+        address dex;
+        bool isUniV3;
+        bytes permit;
+        bytes approve;
+        bytes pathUniv3;
+        address[] pathUniV2;
+        uint256 deadline;
+    }
+
     IOptyFiOracle optyFiOracle;
     uint256 public gasUsedByPost;
 
-    constructor(address _optyFiswapper, address _optyFiOracle) {
+    constructor(address _optyFiOracle) {
         optyFiOracle = IOptyFiOracle(_optyFiOracle);
-        optyFiSwapper = ISwapper(_optyFiswapper);
     }
 
     function versionPaymaster() external view virtual override returns (string memory) {
@@ -68,19 +79,11 @@ contract TokenPaymaster is BasePaymaster {
     }
 
     /**
-     * @notice Sets the OptyFi Swapper contract
-     * @param _optyFiSwapper OptyFi Swapper contract address
-     */
-    function setOptyFiSwapper(address _optyFiSwapper) external onlyOwner {
-        optyFiSwapper = ISwapper(_optyFiSwapper);
-    }
-
-    /**
      * @notice return the payer of a given RelayRequest
      * @param _relayRequest GSN RelayRequest
      */
     function getPayer(GsnTypes.RelayRequest calldata _relayRequest) public view virtual returns (address) {
-        return _relayRequest.request.to;
+        return _relayRequest.request.from;
     }
 
     /**
@@ -88,32 +91,16 @@ contract TokenPaymaster is BasePaymaster {
      * @param _paymasterData paymaster data containing the swap data
      */
     function _getToken(bytes memory _paymasterData) internal view returns (IERC20 token) {
-        (address _token, , , , , , ) =
-            abi.decode(_paymasterData, (address, address[], bytes, uint256[], uint256[], bytes, uint256));
-        token = IERC20(token);
+        PaymasterData memory paymasterData = abi.decode(_paymasterData, (PaymasterData));
+        token = IERC20(paymasterData.token);
     }
 
     /**
      * @dev decode paymasterData
      * @param _paymasterData swap data (token, callees, exchangeData, startIndexes, values, permit, deadline)
      */
-    function _getSwapData(bytes memory _paymasterData)
-        internal
-        view
-        returns (
-            address token,
-            address[] memory callees,
-            bytes memory exchangeData,
-            uint256[] memory startIndexes,
-            uint256[] memory values,
-            bytes memory permit,
-            uint256 deadline
-        )
-    {
-        (token, callees, exchangeData, startIndexes, values, permit, deadline) = abi.decode(
-            _paymasterData,
-            (address, address[], bytes, uint256[], uint256[], bytes, uint256)
-        );
+    function _getPaymasterData(bytes memory _paymasterData) internal view returns (PaymasterData memory paymasterData) {
+        paymasterData = abi.decode(_paymasterData, (PaymasterData));
     }
 
     /**
@@ -147,10 +134,10 @@ contract TokenPaymaster is BasePaymaster {
         uint256 _maxPossibleGas
     ) internal virtual override returns (bytes memory context, bool revertOnRecipientRevert) {
         (_signature, _approvalData);
-
         IERC20 token = _getToken(_relayRequest.relayData.paymasterData);
         (address payer, uint256 tokenPrecharge) = _calculatePreCharge(address(token), _relayRequest, _maxPossibleGas);
-        token.safeTransferFrom(payer, address(this), tokenPrecharge);
+        bool success = token.transferFrom(payer, address(this), tokenPrecharge);
+        uint256 x = 10;
         return (abi.encode(payer, tokenPrecharge, token), false);
     }
 
@@ -189,9 +176,10 @@ contract TokenPaymaster is BasePaymaster {
     ) internal {
         uint256 ethActualCharge = relayHub.calculateCharge(_gasUseWithoutPost.add(gasUsedByPost), _relayData);
         uint256 tokenActualCharge = _getETHInToken(address(_token), _valueRequested.add(ethActualCharge));
+
         uint256 tokenRefund = _tokenPrecharge.sub(tokenActualCharge);
         _refundPayer(_payer, _token, tokenRefund);
-        _depositProceedsToHub(ethActualCharge, _relayData.paymasterData);
+        _depositProceedsToHub(_payer, ethActualCharge, _relayData.paymasterData);
         emit TokensCharged(_gasUseWithoutPost, gasUsedByPost, ethActualCharge, tokenActualCharge);
     }
 
@@ -214,49 +202,48 @@ contract TokenPaymaster is BasePaymaster {
      * @param _ethActualCharge gas cost paid by the relayer
      * @param _paymasterData swap data (token, callees, exchangeData, startIndexes, values, permit, deadline)
      */
-    function _depositProceedsToHub(uint256 _ethActualCharge, bytes calldata _paymasterData) private {
-        uint256 receivedAmount = _swapToETH(_ethActualCharge, _paymasterData);
+    function _depositProceedsToHub(
+        address _payer,
+        uint256 _ethActualCharge,
+        bytes calldata _paymasterData
+    ) private {
+        uint256 receivedAmount = _swapToETH(_payer, _ethActualCharge, _paymasterData);
         relayHub.depositFor{ value: receivedAmount }(address(this));
     }
 
     /**
      * @dev swap token for ETH
      * @param _ethActualCharge gas cost paid by the relayer
-     * @param _paymasterData swap data (token, callees, exchangeData, startIndexes, values, permit, deadline)
+     * @param _paymasterData swap data (token, router, permit)
      * @return receivedAmount amount received from the swap
      */
-    function _swapToETH(uint256 _ethActualCharge, bytes calldata _paymasterData)
-        private
-        returns (uint256 receivedAmount)
-    {
-        (
-            address token,
-            address[] memory callees,
-            bytes memory exchangeData,
-            uint256[] memory startIndexes,
-            uint256[] memory values,
-            bytes memory permit,
-            uint256 deadline
-        ) = _getSwapData(_paymasterData);
-        uint256 tokenAmount = _getETHInToken(token, _ethActualCharge);
-        SwapTypes.SwapData memory swapData =
-            SwapTypes.SwapData(
-                token,
-                ETH,
-                tokenAmount,
-                _ethActualCharge,
-                callees,
-                exchangeData,
-                startIndexes,
-                values,
-                payable(address(this)),
-                permit,
-                deadline
+    function _swapToETH(
+        address _payer,
+        uint256 _ethActualCharge,
+        bytes calldata _paymasterData
+    ) private returns (uint256 receivedAmount) {
+        PaymasterData memory pd = _getPaymasterData(_paymasterData);
+        _approve(pd.token, pd.approve);
+        _permit(pd.token, pd.permit);
+        uint256[] memory amounts;
+        if (pd.isUniV3) {
+            ISwapRouter(pd.dex).exactInput(
+                ISwapRouter.ExactInputParams({
+                    path: pd.pathUniv3,
+                    recipient: address(this),
+                    deadline: pd.deadline,
+                    amountIn: _getETHInToken(pd.token, _ethActualCharge).mul(101).div(100),
+                    amountOutMinimum: 0 //_ethActualCharge
+                })
             );
-        uint256 unused;
-        (receivedAmount, unused) = optyFiSwapper.swap(swapData);
-        if (unused > 0) {
-            IERC20(token).safeTransfer(msg.sender, unused);
+        } else {
+            amounts = IUniswapV2Router01(pd.dex).swapExactTokensForETH(
+                _getETHInToken(pd.token, _ethActualCharge).mul(101).div(100),
+                0, //_ethActualCharge,
+                pd.pathUniV2,
+                address(this),
+                pd.deadline
+            );
         }
     }
 
@@ -274,8 +261,9 @@ contract TokenPaymaster is BasePaymaster {
     ) internal view returns (uint256 _swapOutAmount) {
         uint256 price = optyFiOracle.getTokenPrice(_token0, _token1);
         require(price > uint256(0), "!price");
-        uint256 decimals0 = uint256(ERC20(_token0).decimals());
-        uint256 decimals1 = uint256(ERC20(_token1).decimals());
+        uint256 decimals0 = ERC20(_token0).decimals();
+        uint256 decimals1 = ERC20(_token1).decimals();
+
         _swapOutAmount = ((_swapInAmount * price * 10**decimals1) / 10**(18 + decimals0));
     }
 
@@ -287,6 +275,38 @@ contract TokenPaymaster is BasePaymaster {
      */
     function _getETHInToken(address _token, uint256 _amount) internal view returns (uint256 amount) {
         _token == WETH ? amount = _amount : amount = _calculateSwapOutAmount(_amount, WETH, _token);
+    }
+
+    /* solhint-disable avoid-low-level-calls*/
+    /**
+     * @dev execute the permit according to the permit data
+     * @param _permitData data
+     */
+    function _permit(address _token, bytes memory _permitData) internal {
+        if (_permitData.length == 32 * 7) {
+            (bool success, ) = _token.call(abi.encodePacked(IERC20Permit.permit.selector, _permitData));
+            require(success, "PERMIT_FAILED");
+        }
+
+        if (_permitData.length == 32 * 8) {
+            (bool success, ) = _token.call(abi.encodePacked(IERC20PermitLegacy.permit.selector, _permitData));
+            require(success, "PERMIT_LEGACY_FAILED");
+        }
+    }
+
+    /**
+     * @dev execute the approve according to the approve data
+     * @param _approveData data
+     */
+    function _approve(address _token, bytes memory _approveData) internal {
+        if (_approveData.length < 32 * 7) {
+            (bool success, ) = _token.call(abi.encodePacked(IERC20.approve.selector, _approveData));
+            require(success, "APPROVE_FAILED");
+        }
+    }
+
+    function _verifyPaymasterData(GsnTypes.RelayRequest calldata relayRequest) internal view override {
+        require(relayRequest.relayData.paymasterData.length == 544, "invalid paymasterData");
     }
 
     receive() external payable override {
