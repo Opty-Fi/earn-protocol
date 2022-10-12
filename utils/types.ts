@@ -1,63 +1,41 @@
 import { BigNumber, BytesLike } from "ethers";
 
 export interface Order {
-  liquidationAmount: BigNumber;
+  liquidationAmountVT: BigNumber;
+  expectedOutputUT: BigNumber;
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
-  returnLimitBP: BigNumber;
+  returnLimitUT: BigNumber;
+  expectedOutputVT: BigNumber;
+  taskId: string;
   maker: string;
   vault: string;
   stablecoinVault: string;
   dexRouter: string;
   swapOnUniV3: boolean;
-  direction: BigNumber;
-  uniV3Path: BytesLike;
+  direction: number;
+  uniV3Path: string;
+  permitParams: string;
   uniV2Path: string[];
 }
 
 export interface OrderParams {
-  liquidationAmount: BigNumber;
+  liquidationAmountVT: BigNumber;
+  expectedOutputUT: BigNumber;
   expiration: BigNumber;
   lowerBound: BigNumber;
   upperBound: BigNumber;
-  returnLimitBP: BigNumber;
+  returnLimitUT: BigNumber;
+  expectedOutputVT: BigNumber;
   vault: string;
   stablecoinVault: string;
   dexRouter: string;
   swapOnUniV3: boolean;
   direction: BigNumber;
   uniV3Path: BytesLike;
+  permitParams: BytesLike;
   uniV2Path: string[];
-}
-
-export interface SwapData {
-  fromToken: string;
-  toToken: string;
-  fromAmount: BigNumber;
-  toAmount: BigNumber;
-  callees: string[];
-  exchangeData: BytesLike;
-  startIndexes: BigNumber[];
-  values: BigNumber[];
-  beneficiary: string;
-  permit: BytesLike;
-  deadline: BigNumber;
-}
-
-export interface SwapParams {
-  deadline: BigNumber;
-  startIndexes: BigNumber[];
-  values: BigNumber[];
-  callees: string[];
-  exchangeData: BytesLike;
-  permit: BytesLike;
-}
-
-export interface TokenPairPriceFeed {
-  tokenA: string;
-  tokenB: string;
-  priceFeed: string;
 }
 
 export type EventParamType = {

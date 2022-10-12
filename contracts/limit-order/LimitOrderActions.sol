@@ -22,7 +22,7 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function createOrder(DataTypes.OrderParams memory _orderParams) external returns (DataTypes.Order memory order) {
+    function createOrder(DataTypes.OrderParams calldata _orderParams) external returns (DataTypes.Order memory order) {
         order = _createOrder(LimitOrderStorage.layout(), _orderParams);
     }
 
@@ -36,7 +36,7 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function modifyOrder(address _vault, DataTypes.OrderParams memory _orderParams) external {
+    function modifyOrder(address _vault, DataTypes.OrderParams calldata _orderParams) external {
         _modifyOrder(LimitOrderStorage.layout(), _vault, _orderParams);
     }
 }

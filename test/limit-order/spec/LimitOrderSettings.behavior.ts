@@ -1,25 +1,16 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 import hre from "hardhat";
-import { ILimitOrder } from "../../typechain-types";
+import { ILimitOrder } from "../";
 
-export function describeBehaviorOfLimitOrderSettings(deploy: () => Promise<ILimitOrder>, skips?: string[]) {
+export function describeBehaviorOfLimitOrderSettings(_skips?: string[]): void {
   const ethers = hre.ethers;
 
   let owner: SignerWithAddress;
   let nonOwner: SignerWithAddress;
   let instance: ILimitOrder;
 
-  const AaveVaultProxy = "0xd610c0CcE9792321BfEd3c2f31dceA6784c84F19";
-  const UsdcVaultProxy = "0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88";
-
   before(async () => {
     [owner, nonOwner] = await ethers.getSigners();
-  });
-
-  beforeEach(async () => {
-    instance = await deploy();
   });
 
   describe(":LimitOrderSettings", () => {

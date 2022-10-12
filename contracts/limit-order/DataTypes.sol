@@ -32,6 +32,7 @@ library DataTypes {
      * @param direction the direction of the bounds
      * @param swapOnUniV3 boolean indicating whether the swap should be done via UniV3 router
      * @param uniV3Path token swap path for uniV3
+     * @param permitParams permit parameters for liquidationAmountVT
      * @param uniV2Path token swap path for uniV2
      */
     struct Order {
@@ -50,6 +51,7 @@ library DataTypes {
         bool swapOnUniV3;
         BoundDirection direction;
         bytes uniV3Path;
+        bytes permitParams;
         address[] uniV2Path;
     }
 
@@ -70,6 +72,7 @@ library DataTypes {
      * @param direction the direction of the bounds
      * @param swapOnUniV3 boolean indicating whether the swap should be done via UniV3 router
      * @param uniV3Path token swap path for uniV3
+     * @param permitParams permit parameters for liquidationAmountVT
      * @param uniV2Path token swap path for uniV2
      */
     struct OrderParams {
@@ -86,6 +89,7 @@ library DataTypes {
         bool swapOnUniV3;
         BoundDirection direction;
         bytes uniV3Path;
+        bytes permitParams;
         address[] uniV2Path;
     }
 }

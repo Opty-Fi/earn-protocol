@@ -1,49 +1,30 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
-import hre from "hardhat";
+import { ethers } from "hardhat";
 import { addABI } from "abi-decoder";
-import { generateMerkleTree, generateMerkleTreeForCodehash, getProof, getProofForCode } from "../../scripts/utils";
+import {
+  generateMerkleTree,
+  generateMerkleTreeForCodehash,
+  getProof,
+  getProofForCode,
+} from "../../../../scripts/utils";
 import {
   IERC20,
-  ILimitOrder,
   ILimitOrder__factory,
   IOps__factory,
-  ISwapper,
   ISwapRouter,
   IUniswapV2Router02,
   IUniswapV2Router02__factory,
   OptyFiOracle,
-  UniswapV2Router02,
-  Vault,
-} from "../../typechain-types";
-import { ISwapRouter__factory } from "../../typechain-types/factories/ISwapRouter__factory";
-import { convertOrderParamsToOrder } from "../../utils/converters";
-import { Order, OrderParams, SwapParams } from "../../utils/types";
+} from "../../../typechain";
+import { ISwapRouter__factory } from "../../../typechain/factories/ISwapRouter__factory";
+import { convertOrderParamsToOrder } from "../../../utils/converters";
+import { Order, OrderParams, SwapParams } from "../../../utils/types";
 
 addABI(ILimitOrder__factory.abi);
 addABI(IOps__factory.abi);
 
-export function describeBehaviorOfLimitOrderView(
-  deploy: () => Promise<ILimitOrder>,
-  deploySwapper: () => Promise<ISwapper>,
-  skips?: string[],
-) {
-  const ethers = hre.ethers;
-  let instance: ILimitOrder;
-  let swapper: ISwapper;
-  let owner: SignerWithAddress;
-  let maker: SignerWithAddress;
-  let optyFiVaultOperator: SignerWithAddress;
-  let AaveWhale: SignerWithAddress;
-  let USDCWhale: SignerWithAddress;
-  let AaveERC20: IERC20;
-  let USDCERC20: IERC20;
-  let opAaveToken: IERC20;
-  let AaveVaultInstance: Vault;
-  let uniRouter: UniswapV2Router02;
-  let uniV3Router: ISwapRouter;
-
+export function describeBehaviorOfLimitOrderView(_skips?: string[]): void {
   //EOA
   const AaveWhaleAddress = "0x80845058350b8c3df5c3015d8a717d64b3bf9267";
   const USDCWhaleAddress = "0x4da085ef29a25af96e3a53a53e6ba899f1766a71";

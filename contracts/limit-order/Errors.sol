@@ -80,4 +80,9 @@ library Errors {
      * @notice thrown when length of arrays are not same
      */
     error LengthMismatch();
+
+    /**
+     * @notice thrown when length of arrays are not same
+     */
+    error InvalidPermit();
 }

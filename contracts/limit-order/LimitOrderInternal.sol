@@ -12,6 +12,7 @@ import { IVault } from "../interfaces/limit-order/IVault.sol";
 import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
 import { OwnableStorage } from "@solidstate/contracts/access/ownable/OwnableStorage.sol";
 import { ISolidStateERC20 } from "@solidstate/contracts/token/ERC20/ISolidStateERC20.sol";
+import { IERC2612 } from "@solidstate/contracts/token/ERC20/permit/IERC2612.sol";
 import { SafeERC20 } from "@solidstate/contracts/utils/SafeERC20.sol";
 import { IOps } from "../vendor/gelato/IOps.sol";
 import { IUniswapV2Router01 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
@@ -99,6 +100,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         order.taskId = _taskId;
         order.dexRouter = _orderParams.dexRouter;
         order.swapOnUniV3 = _orderParams.swapOnUniV3;
+        order.permitParams = _orderParams.permitParams;
         if (order.swapOnUniV3) {
             order.uniV3Path = _orderParams.uniV3Path;
         } else {
@@ -156,6 +158,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         order.expectedOutputVT = _orderParams.expectedOutputVT;
         order.swapOnUniV3 = _orderParams.swapOnUniV3;
         order.dexRouter = _orderParams.dexRouter;
+        order.permitParams = _orderParams.permitParams;
 
         if (_orderParams.swapOnUniV3) {
             if (_orderParams.uniV3Path.length != 0) {
@@ -200,7 +203,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         }
 
         uint256 _vaultUnderlyingTokenAmount =
-            _liquidate(_l, _vault, _maker, _order.liquidationAmountVT, _order.expectedOutputUT);
+            _liquidate(_l, _vault, _maker, _order.liquidationAmountVT, _order.expectedOutputUT, _order.permitParams);
 
         uint256 _numOfCoins = _exchange(_order, _vaultUnderlyingTokenAmount, _order.returnLimitUT);
 
@@ -217,6 +220,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _withdrawAmountVT amount of shares to liquidate
      * @param _expectedOutputUT minimum amount of underlying tokens that must be received
      *         to not revert transaction
+     * @param _permitParams permit parameters for vault token
      * @return _withdrawAmountUT amount of underlying tokens provided by opVault withdrawal
      */
     function _liquidate(
@@ -224,10 +228,16 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         address _vault,
         address _maker,
         uint256 _withdrawAmountVT,
-        uint256 _expectedOutputUT
+        uint256 _expectedOutputUT,
+        bytes memory _permitParams
     ) internal returns (uint256 _withdrawAmountUT) {
+        if (IERC20(_vault).allowance(_maker, address(this)) < _withdrawAmountVT) {
+            (bool success, ) = _vault.call(abi.encodePacked(IERC2612.permit.selector, _permitParams));
+            if (!success) {
+                revert Errors.InvalidPermit();
+            }
+        }
         IERC20(_vault).safeTransferFrom(_maker, address(this), _withdrawAmountVT);
-
         _withdrawAmountUT = IVault(_vault).userWithdrawVault(
             address(this),
             _withdrawAmountVT,
