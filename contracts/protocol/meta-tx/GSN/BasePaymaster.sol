@@ -11,6 +11,7 @@ import "./interfaces/IPaymaster.sol";
 import "./interfaces/IRelayHub.sol";
 import "./libraries/GsnEip712Library.sol";
 import "./interfaces/IForwarder.sol";
+import "hardhat/console.sol";
 
 /**
  * @notice An abstract base class to be inherited by a concrete Paymaster.
@@ -129,11 +130,17 @@ abstract contract BasePaymaster is IPaymaster, Ownable, ERC165 {
         bytes calldata approvalData,
         uint256 maxPossibleGas
     ) external override returns (bytes memory, bool) {
+        console.log("_verifyRelayHubOnly");
         _verifyRelayHubOnly();
+        console.log("_verifyForwarder");
         _verifyForwarder(relayRequest);
+        console.log("_verifyValue");
         _verifyValue(relayRequest);
+        console.log("_verifyPaymasterData");
         _verifyPaymasterData(relayRequest);
+        console.log("_verifyApprovalData");
         _verifyApprovalData(approvalData);
+        console.log("_preRelayedCall");
         return _preRelayedCall(relayRequest, signature, approvalData, maxPossibleGas);
     }
 

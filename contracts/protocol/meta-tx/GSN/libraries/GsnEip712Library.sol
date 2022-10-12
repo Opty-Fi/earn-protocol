@@ -7,6 +7,7 @@ import "../interfaces/IERC2771Recipient.sol";
 import "../interfaces/IForwarder.sol";
 
 import "./GsnUtils.sol";
+import "hardhat/console.sol";
 
 /**
  * @title The ERC-712 Library for GSN
@@ -90,6 +91,7 @@ library GsnEip712Library {
             bytes memory ret
         )
     {
+        console.log("EXECUTE!");
         bytes memory suffixData = splitRequest(relayRequest);
         bytes32 _domainSeparator = domainSeparator(domainSeparatorName, relayRequest.relayData.forwarder);
         /* solhint-disable-next-line avoid-low-level-calls */
