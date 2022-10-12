@@ -18,7 +18,7 @@ import {
   Vault__factory,
 } from "../../typechain";
 import { getPermitSignature, setTokenBalanceInStorage } from "./utils";
-import { GsnDomainSeparatorType } from "@opengsn/common";
+import { GsnDomainSeparatorType, GsnRequestType } from "@opengsn/common";
 import { defaultGsnConfig } from "@opengsn/provider";
 import { SignTypedDataVersion, TypedDataUtils } from "@metamask/eth-sig-util";
 import keccak256 from "keccak256";
@@ -36,9 +36,10 @@ describe("MetaVault", function () {
     //deploy contracts
     await deployments.fixture();
     this.forwarder = <Forwarder>await deploy("Forwarder");
-    await this.forwarder.registerRequestType("RelayRequest", "");
+    await this.forwarder.registerRequestType(GsnRequestType.typeName, "");
+    console.log(GsnRequestType.typeName);
     await this.forwarder.registerDomainSeparator(defaultGsnConfig.domainSeparatorName, GsnDomainSeparatorType.version);
-    this.metaVault = <MetaVault>await deploy("MetaVault", this.forwarder.address);
+    this.metaVault = <MetaVault>await deploy("VaultGateway", this.forwarder.address);
 
     const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get("opUSDC-Save")).address;
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
@@ -166,12 +167,6 @@ describe("MetaVault", function () {
       //   forwarder.address,
       //   relayRequest
       // );
-      const domain = {
-        name: "GSN Relayed Transaction",
-        version: 3,
-        chainId,
-        verifyingContract: forwarder.address,
-      };
 
       const dataToSign = await buildTypedData(forwarder, relayRequest.request);
       const signature = await signTypedData(this.signers.alice.provider, this.signers.alice.address, dataToSign);
@@ -193,18 +188,36 @@ describe("MetaVault", function () {
         { name: "validUntilTime", type: "uint256" },
       ];
 
-      const types = {
-        EIP712Domain,
-        RelayRequest,
+      const data = {
+        domain: {
+          name: "GSN Relayed Transaction",
+          version: "3",
+          chainId,
+          verifyingContract: forwarder.address,
+        },
+        primaryType: "ForwardRequest",
+        types: {
+          EIP712Domain: EIP712Domain,
+          ForwardRequest: RelayRequest,
+        },
+        message: {},
       };
+
       // console.log(typeData);
       const GENERIC_PARAMS =
         "address from,address to,uint256 value,uint256 gas,uint256 nonce,bytes data,uint256 validUntilTime";
-      const typeName =
-        "RelayRequest(address from,address to,uint256 value,uint256 gas,uint256 nonce,bytes data,uint256 validUntilTime,RelayData(uint256 maxFeePerGas,uint256 maxPriorityFeePerGas,uint256 transactionCalldataGasUsed,address relayWorker,address paymaster,address forwarder,bytes paymasterData,uint256 clientId)";
+      // const typeName =
+      //   "RelayRequest(address from,address to,uint256 value,uint256 gas,uint256 nonce,bytes data,uint256 validUntilTime,RelayData(uint256 maxFeePerGas,uint256 maxPriorityFeePerGas,uint256 transactionCalldataGasUsed,address relayWorker,address paymaster,address forwarder,bytes paymasterData,uint256 clientId)";
+      // const typeHash = keccak256(typeName);
+      const typeName = `ForwardRequest(${GENERIC_PARAMS})`;
       const typeHash = keccak256(typeName);
-      // const domain: any = typeData.domain;
-      const domainSeparator = TypedDataUtils.hashStruct("EIP712Domain", domain, types, SignTypedDataVersion.V4);
+
+      const domainSeparator = TypedDataUtils.hashStruct(
+        "EIP712Domain",
+        data.domain,
+        data.types,
+        SignTypedDataVersion.V4,
+      );
 
       await expect(forwarder.execute(relayRequest.request, domainSeparator, typeHash, "0x", signature))
         .to.emit(this.vault, "Transfer")
