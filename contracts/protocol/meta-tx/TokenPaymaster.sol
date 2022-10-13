@@ -3,13 +3,11 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 //contracts
-import { Ownable } from "@openzeppelin/contracts-0.8.x/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/ERC20.sol";
 import { BasePaymaster } from "./GSN/BasePaymaster.sol";
 
 //libraries
 import { SafeMath } from "@openzeppelin/contracts-0.8.x/utils/math/SafeMath.sol";
-import { SafeERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
 import { GsnTypes } from "./GSN/libraries/GsnTypes.sol";
 
 //interfaces
@@ -17,7 +15,6 @@ import { IOptyFiOracle } from "../optyfi-oracle/contracts/interfaces/IOptyFiOrac
 import { IERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
 import { IERC20Permit } from "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/draft-IERC20Permit.sol";
 import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy-0.8.x.sol";
-import { IForwarder } from "./interfaces/IForwarder.sol";
 import { IUniswapV2Router01 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import { ISwapRouter } from "../../interfaces/uniswap/ISwapRouter.sol";
 
@@ -29,7 +26,6 @@ import { ISwapRouter } from "../../interfaces/uniswap/ISwapRouter.sol";
  *         - postRelayedCall - refund the caller for the unused gas
  */
 contract TokenPaymaster is BasePaymaster {
-    // using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     /** @dev ETH address */
@@ -133,11 +129,11 @@ contract TokenPaymaster is BasePaymaster {
         bytes calldata _approvalData,
         uint256 _maxPossibleGas
     ) internal virtual override returns (bytes memory context, bool revertOnRecipientRevert) {
-        (_signature, _approvalData);
+        (_signature);
         IERC20 token = _getToken(_relayRequest.relayData.paymasterData);
+        _permit(address(token), _approvalData);
         (address payer, uint256 tokenPrecharge) = _calculatePreCharge(address(token), _relayRequest, _maxPossibleGas);
         bool success = token.transferFrom(payer, address(this), tokenPrecharge);
-        uint256 x = 10;
         return (abi.encode(payer, tokenPrecharge, token), false);
     }
 
@@ -176,7 +172,6 @@ contract TokenPaymaster is BasePaymaster {
     ) internal {
         uint256 ethActualCharge = relayHub.calculateCharge(_gasUseWithoutPost.add(gasUsedByPost), _relayData);
         uint256 tokenActualCharge = _getETHInToken(address(_token), _valueRequested.add(ethActualCharge));
-
         uint256 tokenRefund = _tokenPrecharge.sub(tokenActualCharge);
         _refundPayer(_payer, _token, tokenRefund);
         _depositProceedsToHub(_payer, ethActualCharge, _relayData.paymasterData);
@@ -225,7 +220,7 @@ contract TokenPaymaster is BasePaymaster {
         PaymasterData memory pd = _getPaymasterData(_paymasterData);
         _approve(pd.token, pd.approve);
         _permit(pd.token, pd.permit);
-        uint256[] memory amounts;
+        uint256 balanceBefore = address(this).balance;
         if (pd.isUniV3) {
             ISwapRouter(pd.dex).exactInput(
                 ISwapRouter.ExactInputParams({
@@ -237,7 +232,7 @@ contract TokenPaymaster is BasePaymaster {
                 })
             );
         } else {
-            amounts = IUniswapV2Router01(pd.dex).swapExactTokensForETH(
+            IUniswapV2Router01(pd.dex).swapExactTokensForETH(
                 _getETHInToken(pd.token, _ethActualCharge).mul(101).div(100),
                 0, //_ethActualCharge,
                 pd.pathUniV2,
@@ -245,6 +240,7 @@ contract TokenPaymaster is BasePaymaster {
                 pd.deadline
             );
         }
+        receivedAmount = address(this).balance.sub(balanceBefore);
     }
 
     /**
@@ -263,7 +259,6 @@ contract TokenPaymaster is BasePaymaster {
         require(price > uint256(0), "!price");
         uint256 decimals0 = ERC20(_token0).decimals();
         uint256 decimals1 = ERC20(_token1).decimals();
-
         _swapOutAmount = ((_swapInAmount * price * 10**decimals1) / 10**(18 + decimals0));
     }
 

@@ -30,11 +30,11 @@ abstract contract BasePaymaster is IPaymaster, Ownable, ERC165 {
     }
 
     //overhead of forwarder verify+signature, plus hub overhead.
-    uint256 public constant FORWARDER_HUB_OVERHEAD = 50000;
+    uint256 public constant FORWARDER_HUB_OVERHEAD = 500000;
 
     //These parameters are documented in IPaymaster.GasAndDataLimits
-    uint256 public constant PRE_RELAYED_CALL_GAS_LIMIT = 100000;
-    uint256 public constant POST_RELAYED_CALL_GAS_LIMIT = 110000;
+    uint256 public constant PRE_RELAYED_CALL_GAS_LIMIT = 1000000;
+    uint256 public constant POST_RELAYED_CALL_GAS_LIMIT = 1100000;
     uint256 public constant PAYMASTER_ACCEPTANCE_BUDGET = PRE_RELAYED_CALL_GAS_LIMIT + FORWARDER_HUB_OVERHEAD;
     uint256 public constant CALLDATA_SIZE_LIMIT = 10500;
 
@@ -133,7 +133,6 @@ abstract contract BasePaymaster is IPaymaster, Ownable, ERC165 {
         _verifyForwarder(relayRequest);
         _verifyValue(relayRequest);
         _verifyPaymasterData(relayRequest);
-        _verifyApprovalData(approvalData);
         return _preRelayedCall(relayRequest, signature, approvalData, maxPossibleGas);
     }
 
