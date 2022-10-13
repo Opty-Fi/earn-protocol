@@ -358,6 +358,7 @@ function getMetaTxTypeData(chainId: number, verifyingContract: string) {
     types: {
       EIP712Domain,
       RelayRequest,
+      RelayData,
     },
     domain: {
       name: "GSN Relayed Transaction",
@@ -467,23 +468,16 @@ export async function registerAsRelayServer(
   stake: string,
   hub: RelayHub,
 ): Promise<void> {
-  console.log("1.1");
   await stakeManager.connect(relay).setRelayManagerOwner(relayOwner.address);
-  console.log("1.2");
   await stakeManager
     .connect(relayOwner)
     .stakeForRelayManager(token.address, relay.address, 7 * 24 * 3600, stake.toString());
-  console.log("1.3");
   await stakeManager.connect(relayOwner).authorizeHubByOwner(relay.address, hub.address);
-  console.log("1.4");
   await hub.setMinimumStakes([token.address], [stake]);
-  console.log("1.5");
   await hub.connect(relay).addRelayWorkers([relay.address]);
-  console.log("1.6");
   const relayRegistrar = <RelayRegistrar>(
     await hre.ethers.getContractAt("RelayRegistrar", await hub.getRelayRegistrar())
   );
-  console.log("1.7");
   await relayRegistrar.connect(relay).registerRelayServer(hub.address, splitRelayUrlForRegistrar("url"));
 }
 
