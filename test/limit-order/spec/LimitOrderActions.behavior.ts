@@ -5,14 +5,11 @@ import { decodeLogs, addABI } from "abi-decoder";
 import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
-import { DecodedLogType, Order, OrderParams } from "../../../utils/types";
+import { DecodedLogType, Order, OrderParams } from "../../../helpers/type";
 import {
-  IERC20,
-  ILimitOrder,
   Vault,
   OptyFiOracle,
   IOps__factory,
-  IOps,
   ITaskTreasury,
   ITaskTreasury__factory,
   ILimitOrder__factory,
@@ -35,8 +32,7 @@ import {
 } from "../../../typechain";
 import { Signers } from "../../../helpers/utils";
 import { eEVMNetwork, NETWORKS_CHAIN_ID, NETWORKS_CHAIN_ID_HEX } from "../../../helper-hardhat-config";
-import { convertOrderParamsToOrder } from "../../../utils/converters";
-import { generateMerkleTree, generateMerkleTreeForCodehash, getProof, getProofForCode } from "../../../scripts/utils";
+import { convertOrderParamsToOrder } from "../../../helpers/utils";
 import { generateTokenHashV2 } from "../../../helpers/helpers";
 import { StrategiesByTokenByChain, vaultConfigRP2 } from "../../../helpers/data/adapter-with-strategies";
 import { getPermitSignature, setTokenBalanceInStorage } from "../../test-opty/utils";
@@ -45,13 +41,9 @@ addABI(ILimitOrder__factory.abi);
 addABI(IOps__factory.abi);
 
 const fork = process.env.FORK as eEVMNetwork;
-const DEBUG = process.env.DEBUG === "true" ? true : false;
 
 export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
-  let liquidationAmount: BigNumber;
-
   //Tokens
-  const USD = "0x0000000000000000000000000000000000000348";
   const ETH = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
   //Contracts
@@ -65,9 +57,6 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
   let expirationNum = 1657190461 + 120; //unix timestamp of block 15095000 + 120s
   let expiration = BigNumber.from(expirationNum.toString());
   let newExpiration = expiration.add(BigNumber.from("120"));
-
-  const priceTarget = ethers.utils.parseEther("100"); //always high enough to execute order for testing
-  const newPriceTarget = ethers.utils.parseEther("1");
 
   const uniV3SwapPath = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
@@ -87,8 +76,6 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
 
   const liquidationFeeBP = ethers.utils.parseEther("0.02");
   const BASIS = ethers.utils.parseEther("1.0");
-
-  const aaveDepositAmount = ethers.utils.parseEther("0.1");
 
   before(async function () {
     this.signers = {} as Signers;
@@ -182,12 +169,17 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
     expiration = BigNumber.from(expirationNum.toString());
     newExpiration = expiration.add(BigNumber.from("120"));
 
+    this.optyfiOracle = <OptyFiOracle>(
+      await ethers.getContractAt(OptyFiOracle__factory.abi, (await deployments.get("OptyFiOracle")).address)
+    );
+    const aavePriceInUSD = await this.optyfiOracle.getTokenPrice(this.aave.address, await this.limitOrder.USD());
+
     orderParams = {
       liquidationAmountVT: ethers.BigNumber.from("0"),
       expectedOutputUT: BigNumber.from("0"),
       expiration: expiration,
-      upperBound: ethers.utils.parseEther("80"),
-      lowerBound: ethers.utils.parseEther("74"),
+      upperBound: aavePriceInUSD.add(parseEther("7")),
+      lowerBound: aavePriceInUSD.sub(parseEther("1")),
       direction: ethers.constants.One,
       returnLimitUT: ethers.utils.parseEther("99"),
       expectedOutputVT: BigNumber.from("0"),
@@ -204,8 +196,8 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       liquidationAmountVT: ethers.BigNumber.from("0"),
       expectedOutputUT: BigNumber.from("0"),
       expiration: expiration,
-      upperBound: ethers.utils.parseEther("150"),
-      lowerBound: ethers.utils.parseEther("50"),
+      upperBound: aavePriceInUSD.add(parseEther("70")),
+      lowerBound: aavePriceInUSD.sub(parseEther("20")),
       direction: ethers.constants.One,
       returnLimitUT: BigNumber.from("0"),
       // ethers.utils.parseEther("99"),
@@ -223,8 +215,8 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       liquidationAmountVT: ethers.BigNumber.from("0"),
       expectedOutputUT: BigNumber.from("0"),
       expiration: expiration.sub(BigNumber.from("1000")),
-      upperBound: ethers.utils.parseEther("150"),
-      lowerBound: ethers.utils.parseEther("50"),
+      upperBound: aavePriceInUSD.add(parseEther("70")),
+      lowerBound: aavePriceInUSD.sub(parseEther("20")),
       direction: ethers.constants.Zero,
       returnLimitUT: ethers.utils.parseEther("99"),
       stablecoinVault: this.opUSDCSave.address,
@@ -241,14 +233,14 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       liquidationAmountVT: ethers.BigNumber.from("0"),
       expectedOutputUT: BigNumber.from("0"),
       expiration: newExpiration,
-      upperBound: ethers.utils.parseEther("250"),
-      lowerBound: ethers.utils.parseEther("150"),
+      upperBound: aavePriceInUSD.add(parseEther("140")),
+      lowerBound: aavePriceInUSD.add(parseEther("70")),
       direction: ethers.constants.Zero,
       returnLimitUT: ethers.utils.parseEther("9"),
       stablecoinVault: this.opUSDCSave.address,
       vault: this.opAAVEInvst.address,
       expectedOutputVT: BigNumber.from("0"),
-      permitParams: "",
+      permitParams: "0x",
       dexRouter: UniswapV3RouterAddress,
       uniV3Path: uniV3SwapPath,
       uniV2Path: [ethers.constants.AddressZero],
@@ -494,11 +486,10 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       });
     });
 
-    describe("#execute(struct(Order),struct(SwapData))", () => {
+    describe("#execute(struct(Order))", () => {
       let snapshotId: any;
       let USDCAmount: BigNumber;
       let fee: BigNumber;
-      let aaveRedeemed: BigNumber;
 
       beforeEach(async function () {
         snapshotId = await ethers.provider.send("evm_snapshot", []);
@@ -518,7 +509,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         await tx.wait(1);
         const swapDeadline = expiration.add(BigNumber.from("1000000000000000000000000000000000000"));
 
-        [aaveRedeemed, USDCAmount] = await this.uniV2Router
+        [, USDCAmount] = await this.uniV2Router
           .connect(this.signers.alice)
           .callStatic.swapExactTokensForTokens(
             expectedAaveRedeemed,
@@ -538,7 +529,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           });
       });
 
-      afterEach(async () => {
+      afterEach(async function () {
         await ethers.provider.send("evm_revert", [snapshotId]);
       });
       it("sends liquidation fee to treasury", async function () {
@@ -739,9 +730,6 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
 
         const opAAVEInvstPPS = await this.opAAVEInvst.getPricePerFullShare();
         const expectedAaveRedeemed = orderParamsUniV3.liquidationAmountVT.mul(opAAVEInvstPPS).div(BASIS);
-
-        console.log("expectedAaveRedeemed ", expectedAaveRedeemed.toString());
-
         const [, , expectedUSDC] = await this.uniV2Router.getAmountsOut(expectedAaveRedeemed, [
           ethereumTokens.REWARD_TOKENS.AAVE,
           ethereumTokens.WRAPPED_TOKENS.WETH,
@@ -835,7 +823,10 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
 
       describe("reverts if", () => {
         it("user does not have an enough shares", async function () {
-          console.log((await this.opAAVEInvst.balanceOf(this.signers.bob.address)).toString());
+          orderParams.liquidationAmountVT = parseEther("1");
+          orderParams.expiration = BigNumber.from((await ethers.provider.getBlock("latest")).timestamp).add("600");
+          const tx = await this.limitOrder.connect(this.signers.bob).createOrder(orderParams);
+          await tx.wait(1);
           const [_canExec, execPayload] = await this.limitOrder.canExecuteOrder(
             this.signers.bob.address,
             this.opAAVEInvst.address,
@@ -848,7 +839,10 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           ).to.be.revertedWith("Not enough shares");
         });
 
-        it("user does not have an active order shares", async function () {
+        it("user does not have an active order", async function () {
+          orderParams.liquidationAmountVT = parseEther("1");
+          orderParams.expiration = BigNumber.from((await ethers.provider.getBlock("latest")).timestamp).add("600");
+
           await setTokenBalanceInStorage(this.aave, this.signers.bob.address, "100");
           let tx = await this.aave
             .connect(this.signers.bob)
@@ -857,6 +851,10 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           tx = await this.opAAVEInvst
             .connect(this.signers.bob)
             .userDepositVault(this.signers.bob.address, parseEther("100"), 0, "0x", []);
+          await tx.wait(1);
+          tx = await this.limitOrder.connect(this.signers.bob).createOrder(orderParams);
+          await tx.wait(1);
+          tx = await this.limitOrder.connect(this.signers.bob).cancelOrder(this.opAAVEInvst.address);
           await tx.wait(1);
           const [_canExec, execPayload] = await this.limitOrder.canExecuteOrder(
             this.signers.bob.address,
@@ -908,213 +906,150 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           ).to.be.revertedWith("expired");
         });
 
-        //     it("price is outwith bounds when set to be within bounds", async () => {
-        //       const userShares = await opAaveToken.balanceOf(maker.address);
-        //       modifyOrderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(3);
-        //       modifyOrderParams.direction = ethers.constants.One;
-        //       await instance.connect(maker).createOrder(modifyOrderParams);
+        it("price is outwith bounds when set to be within bounds", async function () {
+          const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
+          modifyOrderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(3);
+          modifyOrderParams.direction = ethers.constants.One;
+          await this.limitOrder.connect(this.signers.alice).createOrder(modifyOrderParams);
 
-        //       const oracle: OptyFiOracle = await ethers.getContractAt("OptyFiOracle", await instance.oracle());
-        //       const price = await oracle.getTokenPrice(AaveERC20.address, USD);
+          const [_canExec, execPayload] = await this.limitOrder.canExecuteOrder(
+            this.signers.alice.address,
+            this.opAAVEInvst.address,
+          );
+          expect(_canExec).to.be.false;
+          expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("price out with bounds")));
 
-        //       const [_canExec, execPayload] = await instance.canExecuteOrder(maker.address, AaveVaultProxy);
-        //       expect(_canExec).to.be.false;
-        //       expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("price out with bounds")));
+          await expect(
+            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+          ).to.be.revertedWith("price out with bounds");
+        });
 
-        //       await expect(instance.connect(maker).execute(maker.address, AaveVaultProxy, swapParams)).to.be.revertedWith(
-        //         "price out with bounds",
-        //       );
-        //     });
+        it("price is within bounds when set to be outwith bounds", async function () {
+          const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
+          modifyOrderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(3);
+          modifyOrderParams.direction = ethers.constants.Zero;
+          const aavePriceInUSD = await this.optyfiOracle.getTokenPrice(this.aave.address, await this.limitOrder.USD());
+          modifyOrderParams.lowerBound = aavePriceInUSD.sub(parseEther("20"));
+          modifyOrderParams.upperBound = aavePriceInUSD.add(parseEther("10"));
 
-        //     it("price is within bounds when set to be outwith bounds", async () => {
-        //       const userShares = await opAaveToken.balanceOf(maker.address);
-        //       modifyOrderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(3);
-        //       modifyOrderParams.direction = ethers.constants.Zero;
-        //       modifyOrderParams.lowerBound = ethers.utils.parseEther("50.0");
-        //       modifyOrderParams.upperBound = ethers.utils.parseEther("70.0");
+          await this.limitOrder.connect(this.signers.alice).createOrder(modifyOrderParams);
 
-        //       await instance.connect(maker).createOrder(modifyOrderParams);
+          const [_canExec, execPayload] = await this.limitOrder.canExecuteOrder(
+            this.signers.alice.address,
+            this.opAAVEInvst.address,
+          );
+          expect(_canExec).to.be.false;
+          expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("price within bounds")));
 
-        //       const oracle: OptyFiOracle = await ethers.getContractAt("OptyFiOracle", await instance.oracle());
-        //       const price = await oracle.getTokenPrice(AaveERC20.address, USD);
+          await expect(
+            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+          ).to.be.revertedWith("price within bounds");
+        });
 
-        //       const [_canExec, execPayload] = await instance.canExecuteOrder(maker.address, AaveVaultProxy);
-        //       expect(_canExec).to.be.false;
-        //       expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("price within bounds")));
+        it("return limit > swap output", async function () {
+          const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
+          orderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
+          //set return limi to be 3x what is swapped so will always fail
+          orderParams.returnLimitUT = ethers.utils.parseEther("3.0");
+          //create order from maker
+          await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
-        //       await expect(instance.connect(maker).execute(maker.address, AaveVaultProxy, swapParams)).to.be.revertedWith(
-        //         "price within bounds",
-        //       );
-        //     });
-
-        //     it("return limit > swap output", async () => {
-        //       const userShares = await opAaveToken.balanceOf(maker.address);
-        //       orderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(2);
-        //       //set return limi to be 3x what is swapped so will always fail
-        //       orderParams.returnLimitBP = ethers.utils.parseEther("3.0");
-        //       //create order from maker
-        //       await instance.connect(maker).createOrder(orderParams);
-
-        //       await expect(instance.connect(maker).execute(maker.address, AaveVaultProxy, swapParams)).to.be.revertedWith(
-        //         `InsufficientReturn()`,
-        //       );
-        //     });
-
-        //     it("user does not have enough share balance", async () => {
-        //       const userShares = await opAaveToken.balanceOf(maker.address);
-        //       orderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(2);
-
-        //       await instance.connect(maker).createOrder(orderParams);
-
-        //       await opAaveToken.connect(maker).transfer(nonMaker.address, userShares);
-
-        //       const [_canExec, execPayload] = await instance.canExecuteOrder(maker.address, AaveVaultProxy);
-        //       expect(_canExec).to.be.false;
-        //       expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Not enough shares")));
-
-        //       await opAaveToken.connect(nonMaker).transfer(maker.address, userShares);
-        //     });
+          await expect(
+            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+          ).to.be.revertedWith(`UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT`);
+        });
       });
 
-      //   describe("prevent malicious swap data attack vectors", () => {
-      //     it("prevents false beneficiary attack via internal setting beneficiary == LimitOrderDiamond.address", async () => {
-      //       const userShares = await opAaveToken.balanceOf(maker.address);
-      //       orderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(2);
-      //       //create order from maker
-      //       await instance.connect(maker).createOrder(orderParams);
+      describe("#modifyOrder(address,struct(OrderParams))", () => {
+        it("modifies an existing order", async function () {
+          const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
+          orderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
+          await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
-      //       //calculate user shares
-      //       const userSharesLiquidated = orderParams.liquidationAmount;
+          modifyOrderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(3);
 
-      //       //approve LO contract
-      //       await opAaveToken.connect(maker).approve(instance.address, userSharesLiquidated);
+          await this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams);
 
-      //       //no fees in opAAVEvault so should be precise
-      //       const expectedAaveRedeemed = userSharesLiquidated
-      //         .mul(await AaveVaultInstance.getPricePerFullShare())
-      //         .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
+          const makerOrder = await this.limitOrder.userVaultOrder(this.signers.alice.address, this.opAAVEInvst.address);
+          const modifiedOrder: Order = {
+            liquidationAmountVT: BigNumber.from(makerOrder.liquidationAmountVT),
+            expectedOutputUT: BigNumber.from(makerOrder.expectedOutputUT),
+            expectedOutputVT: BigNumber.from(makerOrder.expectedOutputVT),
+            expiration: BigNumber.from(makerOrder.expiration),
+            lowerBound: BigNumber.from(makerOrder.lowerBound),
+            upperBound: BigNumber.from(makerOrder.upperBound),
+            direction: BigNumber.from(makerOrder.direction).toNumber(),
+            returnLimitUT: BigNumber.from(makerOrder.returnLimitUT),
+            stablecoinVault: this.opUSDCSave.address,
+            maker: makerOrder.maker,
+            vault: makerOrder.vault,
+            swapOnUniV3: makerOrder.swapOnUniV3,
+            dexRouter: makerOrder.dexRouter,
+            uniV2Path: makerOrder.uniV2Path,
+            uniV3Path: makerOrder.uniV3Path,
+            permitParams: makerOrder.permitParams,
+            taskId: makerOrder.taskId,
+          };
 
-      //       //calculate call datas for approve + swap
-      //       const aaveERC20Interface = AaveERC20.interface;
-      //       const approveData = aaveERC20Interface.encodeFunctionData("approve", [
-      //         uniRouter.address,
-      //         ethers.utils.parseEther("10000"),
-      //       ]);
+          const order = convertOrderParamsToOrder(modifyOrderParams, this.signers.alice.address, modifiedOrder.taskId);
 
-      //       const swapDeadline = expiration.add(BigNumber.from("1000000000000000000000000000000000000"));
+          expect(order).to.deep.eq(modifiedOrder);
+        });
 
-      //       //ENCODE MALICIOUS SWAP DATA
-      //       const uniswapData = uniRouter.interface.encodeFunctionData("swapExactTokensForTokens", [
-      //         expectedAaveRedeemed,
-      //         ethers.constants.Zero,
-      //         [AaveERC20Address, USDC],
-      //         attacker.address,
-      //         swapDeadline,
-      //       ]);
+        describe("reverts if", () => {
+          it("user does not have an active order to modify", async function () {
+            const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
+            modifyOrderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(3);
+            await expect(
+              this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams),
+            ).to.be.revertedWith(`NoActiveOrder("${this.signers.alice.address}")`);
+          });
 
-      //       //construct swapData
-      //       const calls: string[] = [approveData, uniswapData];
-      //       let startIndexes: any[] = ["0"];
-      //       let exchangeData = `0x`;
-      //       for (const i in calls) {
-      //         startIndexes.push(parseInt(startIndexes[i]) + calls[i].substring(2).length / 2);
-      //         exchangeData = exchangeData.concat(calls[i].substring(2));
-      //       }
+          it("expiration is before current block timestamp", async function () {
+            await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
-      //       startIndexes = startIndexes.map(i => BigNumber.from(i));
+            await network.provider.send("evm_setNextBlockTimestamp", [orderParams.expiration.toNumber()]);
 
-      //       swapParams = {
-      //         callees: [AaveERC20Address, UniswapV2Router02Address],
-      //         exchangeData,
-      //         startIndexes,
-      //         values: [BigNumber.from("0"), BigNumber.from("0")],
-      //         permit: "0x",
-      //         deadline: swapDeadline,
-      //       };
+            modifyOrderParams.expiration = ethers.constants.Zero;
 
-      //       //attacker attempts to send liquidated + swapped tokens to themselves, however
-      //       //OptyFiSwapper has received no tokens, therefore reverts
-      //       await expect(
-      //         instance.connect(attacker).execute(maker.address, AaveVaultProxy, swapParams),
-      //       ).to.be.revertedWith("InsufficientReturn()");
-      //     });
-      //   });
-      // });
+            await expect(
+              this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams),
+            ).to.be.revertedWith(`PastExpiration(${orderParams.expiration}, ${modifyOrderParams.expiration})`);
+          });
 
-      // describe("#modifyOrder(address,struct(OrderParams))", () => {
-      //   it("modifies an existing order", async () => {
-      //     const userShares = await opAaveToken.balanceOf(maker.address);
-      //     orderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(2);
-      //     await instance.connect(maker).createOrder(orderParams);
+          it("lower bound is larger than upper bound", async function () {
+            await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
-      //     modifyOrderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(3);
+            modifyOrderParams.upperBound = ethers.constants.Zero;
+            modifyOrderParams.expiration = orderParams.expiration.add(BigNumber.from("10000"));
+            await expect(
+              this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams),
+            ).to.be.revertedWith(`ReverseBounds()`);
+          });
 
-      //     await instance.connect(maker).modifyOrder(AaveVaultProxy, modifyOrderParams);
+          it("vault is not whitelisted", async function () {
+            await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
-      //     const makerOrder = await instance.userVaultOrder(maker.address, AaveVaultProxy);
-      //     const modifiedOrder: Order = {
-      //       liquidationAmount: makerOrder.liquidationAmount,
-      //       expiration: makerOrder.expiration,
-      //       lowerBound: makerOrder.lowerBound,
-      //       upperBound: makerOrder.upperBound,
-      //       direction: BigNumber.from(makerOrder.direction.toString()),
-      //       returnLimitBP: makerOrder.returnLimitBP,
-      //       stablecoinVault: UsdcVaultProxy,
-      //       maker: makerOrder.maker,
-      //       vault: makerOrder.vault,
-      //       swapOnUniV3: makerOrder.swapOnUniV3,
-      //       dexRouter: makerOrder.dexRouter,
-      //       uniV2Path: makerOrder.uniV2Path,
-      //       uniV3Path: makerOrder.uniV3Path,
-      //     };
+            modifyOrderParams.lowerBound = orderParams.lowerBound;
+            modifyOrderParams.upperBound = orderParams.upperBound;
+            modifyOrderParams.vault = this.signers.alice.address;
+            await expect(
+              this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams),
+            ).to.be.revertedWith(`ForbiddenVault()`);
+          });
 
-      //     const order = convertOrderParamsToOrder(modifyOrderParams, maker.address);
+          it("stablecoin vault is not whitelisted", async function () {
+            await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
-      //     expect(order).to.deep.eq(modifiedOrder);
-      //   });
-
-      //   describe("reverts if", () => {
-      //     it("user does not have an active order to modify", async () => {
-      //       const userShares = await opAaveToken.balanceOf(maker.address);
-      //       modifyOrderParams.liquidationAmount = ethers.BigNumber.from(userShares).div(3);
-      //       await expect(instance.connect(maker).modifyOrder(AaveVaultProxy, modifyOrderParams)).to.be.revertedWith(
-      //         `NoActiveOrder("${maker.address}")`,
-      //       );
-      //     });
-
-      //     it("expiration is before current block timestamp", async () => {
-      //       await instance.connect(maker).createOrder(orderParams);
-
-      //       await hre.network.provider.send("evm_setNextBlockTimestamp", [orderParams.expiration.toNumber()]);
-
-      //       modifyOrderParams.expiration = ethers.constants.Zero;
-
-      //       await expect(instance.connect(maker).modifyOrder(AaveVaultProxy, modifyOrderParams)).to.be.revertedWith(
-      //         `PastExpiration(${orderParams.expiration}, ${modifyOrderParams.expiration})`,
-      //       );
-      //     });
-
-      //     it("lower bound is larger than upper bound", async () => {
-      //       await instance.connect(maker).createOrder(orderParams);
-
-      //       modifyOrderParams.upperBound = ethers.constants.Zero;
-      //       modifyOrderParams.expiration = orderParams.expiration.add(BigNumber.from("10000"));
-      //       await expect(instance.connect(maker).modifyOrder(AaveVaultProxy, modifyOrderParams)).to.be.revertedWith(
-      //         `ReverseBounds()`,
-      //       );
-      //     });
-
-      //     it("destination is not whitelisted", async () => {
-      //       await instance.connect(maker).createOrder(orderParams);
-
-      //       modifyOrderParams.lowerBound = orderParams.lowerBound;
-      //       modifyOrderParams.upperBound = orderParams.upperBound;
-      //       modifyOrderParams.stablecoinVault = maker.address;
-      //       await expect(instance.connect(maker).modifyOrder(AaveVaultProxy, modifyOrderParams)).to.be.revertedWith(
-      //         `ForbiddenDestination()`,
-      //       );
-      //     });
-      //   });
+            modifyOrderParams.lowerBound = orderParams.lowerBound;
+            modifyOrderParams.upperBound = orderParams.upperBound;
+            modifyOrderParams.stablecoinVault = this.signers.alice.address;
+            await expect(
+              this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams),
+            ).to.be.revertedWith(`ForbiddenStablecoinVault()`);
+          });
+        });
+      });
     });
   });
 }

@@ -136,7 +136,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         if (!_stablecoinVaultWhitelisted(_l, _orderParams.stablecoinVault)) {
             revert Errors.ForbiddenStablecoinVault();
         }
-        if (!_vaultWhitelisted(_l, _orderParams.stablecoinVault)) {
+        if (!_vaultWhitelisted(_l, _orderParams.vault)) {
             revert Errors.ForbiddenVault();
         }
 
@@ -467,6 +467,11 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         if (_order.expiration <= _timestamp()) {
             return (false, "expired");
         }
+
+        if (IERC20(_order.vault).balanceOf(_order.maker) < _order.liquidationAmountVT) {
+            return (false, "Not enough shares");
+        }
+
         return _areBoundsSatisfied(_price(_oracleAddress, _token), _order);
     }
 
@@ -647,15 +652,15 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         pure
         returns (bool, string memory)
     {
-        uint256 lowerBound = _order.lowerBound;
-        uint256 upperBound = _order.upperBound;
+        uint256 _lowerBound = _order.lowerBound;
+        uint256 _upperBound = _order.upperBound;
 
         if (_order.direction == DataTypes.BoundDirection.Out) {
-            if (!(lowerBound >= _latestPrice || _latestPrice >= upperBound)) {
+            if (!(_lowerBound >= _latestPrice || _latestPrice >= _upperBound)) {
                 return (false, "price within bounds");
             }
         } else {
-            if (!(lowerBound <= _latestPrice && _latestPrice <= upperBound)) {
+            if (!(_lowerBound <= _latestPrice && _latestPrice <= _upperBound)) {
                 return (false, "price out with bounds");
             }
         }
@@ -682,10 +687,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
     function _canExecuteOrder(address _maker, address _vault) internal view returns (bool, bytes memory) {
         DataTypes.Order memory _order = LimitOrderStorage.layout().userVaultOrder[_maker][_vault];
         address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
-
-        if (IERC20(_vault).balanceOf(_maker) < _order.liquidationAmountVT) {
-            return (false, bytes("Not enough shares"));
-        }
 
         (bool _isExecutable, string memory _reason) =
             _canExecute(

@@ -18,7 +18,7 @@ import {
   OptyFiOracle,
 } from "../../../typechain";
 import { ISwapRouter__factory } from "../../../typechain/factories/ISwapRouter__factory";
-import { convertOrderParamsToOrder } from "../../../utils/converters";
+import { convertOrderParamsToOrder } from "../../../helpers/converters";
 import { Order, OrderParams, SwapParams } from "../../../utils/types";
 
 addABI(ILimitOrder__factory.abi);
