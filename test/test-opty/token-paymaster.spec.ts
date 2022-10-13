@@ -9,7 +9,7 @@ import { signTypedData } from "./utils";
 import {
   ERC20Permit,
   ERC20Permit__factory,
-  MetaVault,
+  VaultGateway,
   Registry,
   Registry__factory,
   Vault,
@@ -45,15 +45,15 @@ describe("TokenPaymaster", function () {
   let relayHub: RelayHub;
   let forwarder: IForwarder;
   let usdc: ERC20Permit;
-  let metaVault: MetaVault;
+  let vaultGateway: VaultGateway;
   let vault: Vault;
   let registry: Registry;
-
   let stakeManager: StakeManager;
   let penalizer: Penalizer;
   let relayRequest: RelayRequest;
   let paymasterData: string;
   let metaTxSignature: BytesLike;
+  let depositAmountUSDC: BigNumber;
 
   before(async function () {
     await deployments.fixture();
@@ -92,25 +92,7 @@ describe("TokenPaymaster", function () {
       [maker.address, 5000000, usdc.address],
     );
 
-    // const USDCWhaleAddress = "0xee5b5b923ffce93a870b3104b7ca09c3db80047a";
-    // await network.provider.request({
-    //   method: "hardhat_impersonateAccount",
-    //   params: [USDCWhaleAddress],
-    // });
-    // const USDCWhale = await ethers.getSigner(ethers.utils.getAddress(USDCWhaleAddress));
-
-    // //provide USDC whale with ETH to make required transactions
-    // let tx = maker.sendTransaction({
-    //   to: USDCWhaleAddress,
-    //   value: ethers.utils.parseEther("1.0"),
-    //   gasLimit: 10000000,
-    // });
-    // (await tx).wait();
-
     await setTokenBalanceInStorage(usdc, owner.address, "20000");
-
-    // tx = usdc.connect(USDCWhale).transfer(owner.address, ethers.utils.parseUnits("1000000", 6));
-    // (await tx).wait();
 
     const UniswapV2Router02Address = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
     uniRouter = await ethers.getContractAt("IUniswapV2Router02", UniswapV2Router02Address);
@@ -132,7 +114,7 @@ describe("TokenPaymaster", function () {
 
     console.log("paymaster post with precharge=", (await paymaster.gasUsedByPost()).toString());
     forwarder = <IForwarder>await deploy("Forwarder");
-    metaVault = <MetaVault>await deploy("MetaVault", forwarder.address);
+    vaultGateway = <VaultGateway>await deploy("VaultGateway", forwarder.address);
     await paymaster.setTrustedForwarder(forwarder.address);
     await forwarder.registerRequestType(GsnRequestType.typeName, GsnRequestType.typeSuffix);
     await forwarder.registerDomainSeparator(defaultGsnConfig.domainSeparatorName, GsnDomainSeparatorType.version);
@@ -165,24 +147,28 @@ describe("TokenPaymaster", function () {
       "1000000000000", // 1,000,000 USDC
     );
 
-    const _accountsRoot = getAccountsMerkleRoot([this.signers.alice.address, metaVault.address]);
+    const _accountsRoot = getAccountsMerkleRoot([this.signers.alice.address, vaultGateway.address]);
     await vault.connect(this.signers.governance).setWhitelistedAccountsRoot(_accountsRoot);
 
-    let accountsProof = getAccountsMerkleProof([this.signers.alice.address, metaVault.address], metaVault.address);
+    let accountsProof = getAccountsMerkleProof(
+      [this.signers.alice.address, vaultGateway.address],
+      vaultGateway.address,
+    );
 
-    let depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
+    depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
 
     const deadline = ethers.constants.MaxUint256;
-    const sig = await getPermitSignature(this.signers.alice, usdc, metaVault.address, depositAmountUSDC, deadline, {
+    const sig = await getPermitSignature(this.signers.alice, usdc, vaultGateway.address, depositAmountUSDC, deadline, {
       version: "2",
+      nonce: BigNumber.from("1"),
     });
 
     let dataMetaVaultPermit = ethers.utils.defaultAbiCoder.encode(
       ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
-      [this.signers.alice.address, metaVault.address, depositAmountUSDC, deadline, sig.v, sig.r, sig.s],
+      [this.signers.alice.address, vaultGateway.address, depositAmountUSDC, deadline, sig.v, sig.r, sig.s],
     );
 
-    const dataCall = metaVault.interface.encodeFunctionData("deposit", [
+    const dataCall = vaultGateway.interface.encodeFunctionData("deposit", [
       vault.address,
       depositAmountUSDC,
       BigNumber.from("0"),
@@ -197,7 +183,7 @@ describe("TokenPaymaster", function () {
     relayRequest = {
       request: {
         from: this.signers.alice.address,
-        to: metaVault.address,
+        to: vaultGateway.address,
         value: "0",
         gas: "1000000",
         nonce: (await forwarder.getNonce(this.signers.alice.address)).toString(),
@@ -225,61 +211,6 @@ describe("TokenPaymaster", function () {
     );
 
     metaTxSignature = await signTypedData(this.signers.alice.provider, this.signers.alice.address, dataToSign);
-    // metaTxSignature = await this.signers.alice._signTypedData(
-    //   {
-    //     name: 'GSN Relayed Transaction',
-    //     version: '3',
-    //     chainId: 1,
-    //     verifyingContract: '0x1E49A8FC74EDfB7a0dc7F156B5415C2dE9eF9e98'
-    //   },
-    //   {
-    //     RelayRequest: [
-    //       { name: "from", type: "address" },
-    //       { name: "to", type: "address" },
-    //       { name: "value", type: "uint256" },
-    //       { name: "gas", type: "uint256" },
-    //       { name: "nonce", type: "uint256" },
-    //       { name: "data", type: "bytes" },
-    //       { name: "validUntilTime", type: "uint256" },
-    //     ],
-    //     RelayData: [
-    //       { name: "maxFeePerGas", type: "uint256" },
-    //       { name: "maxPriorityFeePerGas", type: "uint256" },
-    //       { name: "transactionCalldataGasUsed", type: "uint256" },
-    //       { name: "relayWorker", type: "address" },
-    //       { name: "paymaster", type: "address" },
-    //       { name: "forwarder", type: "address" },
-    //       { name: "paymasterData", type: "bytes" },
-    //       { name: "clientId", type: "uint256" }
-    //     ]
-    //   },
-    //   {
-    //     RelayRequest: {
-    //       from: this.signers.alice.address,
-    //       to: metaVault.address,
-    //       value: "0",
-    //       gas: "1000000",
-    //       nonce: (await forwarder.getNonce(this.signers.alice.address)).toString(),
-    //       data: dataCall,
-    //       validUntilTime: ethers.constants.MaxUint256.toString(),
-    //     },
-    //     RelayData: {
-    //       maxFeePerGas: gasPrice,
-    //       maxPriorityFeePerGas: gasPrice,
-    //       transactionCalldataGasUsed: "0",
-    //       relayWorker: maker.address,
-    //       paymaster: paymaster.address,
-    //       forwarder: forwarder.address,
-    //       paymasterData,
-    //       clientId: "1",
-    //     }
-    //   },
-    // );
-    //await signTypedData(this.signers.alice.provider, this.signers.alice.address, dataToSign);
-    // const signature = await signTypedData(this.signers.alice.provider, this.signers.alice.address, dataToSign);
-    // const { signature } = await signMetaTxRequest(this.signers.alice.provider, forwarder, relayRequest.request);
-
-    // metaTxSignature = await signature;
   });
 
   after(async function () {
@@ -385,12 +316,12 @@ describe("TokenPaymaster", function () {
     // })
 
     it("should pay with token to make a call", async function () {
-      const _relayRequest: any = cloneRelayRequest(relayRequest);
-      _relayRequest.request.nonce = (await forwarder.getNonce(maker.address)).toString();
-      _relayRequest.relayData.maxFeePerGas = (1e9).toString();
-      _relayRequest.relayData.maxPriorityFeePerGas = (1e9).toString();
-      _relayRequest.request.value = BigNumber.from("0").toString();
-      _relayRequest.request.gas = BigNumber.from("1000000").toString();
+      // const _relayRequest: any = cloneRelayRequest(relayRequest);
+      // _relayRequest.request.nonce = (await forwarder.getNonce(maker.address)).toString();
+      // _relayRequest.relayData.maxFeePerGas = (1e9).toString();
+      // _relayRequest.relayData.maxPriorityFeePerGas = (1e9).toString();
+      // _relayRequest.request.value = BigNumber.from("0").toString();
+      // _relayRequest.request.gas = BigNumber.from("1000000").toString();
 
       // _relayRequest.relayData.paymasterData = web3.eth.abi.encodeParameter('address', uniswap.address)
 
@@ -409,19 +340,34 @@ describe("TokenPaymaster", function () {
       //   dataToSign
       // )
       const preBalance = await relayHub.balanceOf(paymaster.address);
+      const deadline = ethers.constants.MaxUint256;
+      const sig = await getPermitSignature(this.signers.alice, usdc, paymaster.address, depositAmountUSDC, deadline, {
+        version: "2",
+      });
 
-      await usdc.connect(this.signers.alice).approve(paymaster.address, ethers.constants.MaxUint256);
+      let permitData = ethers.utils.defaultAbiCoder.encode(
+        ["address", "address", "uint256", "uint256", "uint8", "bytes32", "bytes32"],
+        [this.signers.alice.address, paymaster.address, depositAmountUSDC, deadline, sig.v, sig.r, sig.s],
+      );
+
+      // await usdc.connect(this.signers.alice).approve(paymaster.address, ethers.constants.MaxUint256);
       // console.log(defaultGsnConfig.domainSeparatorName);
       // console.log(10e6.toString());
       // console.log(await _relayRequest);
       // console.log(metaTxSignature);
+      console.log("maker pre balance", await maker.getBalance());
+      console.log("alice pre balance", await vault.balanceOf(this.signers.alice.address));
 
-      // const externalGasLimit = 5e6.toString();
+      const externalGasLimit = (5e6).toString();
       const relayCall = await relayHub
         .connect(maker)
-        .relayCall(defaultGsnConfig.domainSeparatorName, (10e6).toString(), await _relayRequest, metaTxSignature, "0x");
+        .relayCall(defaultGsnConfig.domainSeparatorName, (10e6).toString(), relayRequest, metaTxSignature, permitData, {
+          gasLimit: externalGasLimit,
+        });
 
       const ret = await relayCall.wait();
+      console.log("maker post balance", await maker.getBalance());
+      console.log("alice post balance", await vault.balanceOf(this.signers.alice.address));
 
       const rejected = ret.events?.find(log => log.event === "TransactionRejectedByPaymaster");
       // @ts-ignore
