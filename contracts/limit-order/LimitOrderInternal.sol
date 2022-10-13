@@ -109,8 +109,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
 
         _l.userVaultOrder[msg.sender][_vault] = order;
         _l.userVaultOrderActive[msg.sender][_vault] = true;
-
-        emit LimitOrderCreated(order);
     }
 
     /*solhint-disable code-complexity*/
@@ -261,6 +259,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         address _toToken = IVault(_order.stablecoinVault).underlyingToken();
         address _fromToken = IVault(_order.vault).underlyingToken();
         uint256 _toAmountBalanceBeforeSwap = IERC20(_toToken).balanceOf(address(this));
+        uint256 _fromAmountBalanceBeforeSwap = IERC20(_fromToken).balanceOf(address(this));
         if (_order.swapOnUniV3) {
             ISwapRouter(_order.dexRouter).exactInput(
                 ISwapRouter.ExactInputParams({
@@ -281,7 +280,8 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             );
         }
         uint256 _fromAmountBalanceAfterSwap = IERC20(_fromToken).balanceOf(address(this));
-        uint256 _leftOverFromAmountUT = _vaultUnderlyingTokenAmount - _fromAmountBalanceAfterSwap;
+        uint256 _leftOverFromAmountUT =
+            _fromAmountBalanceBeforeSwap - _vaultUnderlyingTokenAmount - _fromAmountBalanceAfterSwap;
         if (_leftOverFromAmountUT > 0) {
             IERC20(_fromToken).transfer(_order.maker, _leftOverFromAmountUT);
         }
@@ -480,23 +480,9 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      */
     function _price(address _oracleAddress, address _token) internal view returns (uint256 price) {
         price = IOptyFiOracle(_oracleAddress).getTokenPrice(_token, USD);
-    }
-
-    /**
-     * @notice returns price of a token in stablecoin
-     * @dev fetched from OptyFiOracle which uses Chainlink as a default source of truth. A fallback oracle
-     * is used in case Chainlink does not provide one.
-     * @param _oracleAddress address of the OptyFiOracle
-     * @param _token address of the underlying vault token of the made LimitOrder
-     * @param _stablecoin address of underlying vault stable coin
-     * @return price the price of the token in _coin stablecoins
-     */
-    function _priceStablecoin(
-        address _oracleAddress,
-        address _token,
-        address _stablecoin
-    ) internal view returns (uint256 price) {
-        price = IOptyFiOracle(_oracleAddress).getTokenPrice(_token, _stablecoin);
+        if (price == 0) {
+            revert Errors.OracleZeroPrice();
+        }
     }
 
     /**
@@ -674,20 +660,6 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             }
         }
         return (true, "");
-    }
-
-    /**
-     * @notice returns the total liquidation amount
-     * @param _total the total amount to calculate the liquidation amount from
-     * @param _liquidationShare the liquidation percentage in basis points
-     * @return liquidationAmount the total amount of vault shares to be liquidated
-     */
-    function _liquidationAmount(uint256 _total, uint256 _liquidationShare)
-        internal
-        pure
-        returns (uint256 liquidationAmount)
-    {
-        liquidationAmount = (_total * _liquidationShare) / BASIS;
     }
 
     /**

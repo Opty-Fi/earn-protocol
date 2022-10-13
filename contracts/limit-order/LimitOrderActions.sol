@@ -24,6 +24,22 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
      */
     function createOrder(DataTypes.OrderParams calldata _orderParams) external returns (DataTypes.Order memory order) {
         order = _createOrder(LimitOrderStorage.layout(), _orderParams);
+        emit LimitOrderCreated(
+            order.liquidationAmountVT,
+            order.expectedOutputUT,
+            order.expiration,
+            order.lowerBound,
+            order.upperBound,
+            order.returnLimitUT,
+            order.expectedOutputVT,
+            order.taskId,
+            order.maker,
+            order.vault,
+            order.stablecoinVault,
+            order.dexRouter,
+            order.swapOnUniV3,
+            uint8(order.direction)
+        );
     }
 
     /**

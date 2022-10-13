@@ -85,4 +85,9 @@ library Errors {
      * @notice thrown when length of arrays are not same
      */
     error InvalidPermit();
+
+    /**
+     * @notice thrown when oracle returns zero
+     */
+    error OracleZeroPrice();
 }
