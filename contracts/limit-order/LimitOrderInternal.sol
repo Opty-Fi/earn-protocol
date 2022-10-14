@@ -94,6 +94,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         order.direction = _orderParams.direction;
         order.returnLimitUT = _orderParams.returnLimitUT;
         order.expectedOutputVT = _orderParams.expectedOutputVT;
+        order.swapDeadlineAdjustment = _orderParams.swapDeadlineAdjustment;
         order.vault = _vault;
         order.stablecoinVault = _stablecoinVault;
         order.maker = payable(msg.sender);
@@ -123,9 +124,10 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         address _vault,
         DataTypes.OrderParams memory _orderParams
     ) internal {
-        address sender = msg.sender;
-        if (!_l.userVaultOrderActive[sender][_vault]) {
-            revert Errors.NoActiveOrder(sender);
+        address _sender = msg.sender;
+
+        if (!_l.userVaultOrderActive[_sender][_vault]) {
+            revert Errors.NoActiveOrder(_sender);
         }
         if (_timestamp() > _orderParams.expiration) {
             revert Errors.PastExpiration(_timestamp(), _orderParams.expiration);
@@ -140,37 +142,34 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             revert Errors.ForbiddenVault();
         }
 
-        DataTypes.Order memory order = _l.userVaultOrder[sender][_vault];
+        DataTypes.Order memory _order = _l.userVaultOrder[_sender][_vault];
 
-        if (_orderParams.vault != address(0) && _orderParams.vault != order.vault) {
-            order.vault = _orderParams.vault;
-        }
-
-        order.liquidationAmountVT = _orderParams.liquidationAmountVT;
-        order.expectedOutputUT = _orderParams.expectedOutputUT;
-        order.expiration = _orderParams.expiration;
-        order.lowerBound = _orderParams.lowerBound;
-        order.upperBound = _orderParams.upperBound;
-        order.direction = _orderParams.direction;
-        order.returnLimitUT = _orderParams.returnLimitUT;
-        order.expectedOutputVT = _orderParams.expectedOutputVT;
-        order.swapOnUniV3 = _orderParams.swapOnUniV3;
-        order.dexRouter = _orderParams.dexRouter;
-        order.permitParams = _orderParams.permitParams;
+        _order.liquidationAmountVT = _orderParams.liquidationAmountVT;
+        _order.expectedOutputUT = _orderParams.expectedOutputUT;
+        _order.expiration = _orderParams.expiration;
+        _order.lowerBound = _orderParams.lowerBound;
+        _order.upperBound = _orderParams.upperBound;
+        _order.direction = _orderParams.direction;
+        _order.returnLimitUT = _orderParams.returnLimitUT;
+        _order.expectedOutputVT = _orderParams.expectedOutputVT;
+        _order.swapDeadlineAdjustment = _orderParams.swapDeadlineAdjustment;
+        _order.swapOnUniV3 = _orderParams.swapOnUniV3;
+        _order.dexRouter = _orderParams.dexRouter;
+        _order.permitParams = _orderParams.permitParams;
 
         if (_orderParams.swapOnUniV3) {
             if (_orderParams.uniV3Path.length != 0) {
-                order.uniV3Path = _orderParams.uniV3Path;
-                order.uniV2Path = new address[](1);
+                _order.uniV3Path = _orderParams.uniV3Path;
+                _order.uniV2Path = new address[](1);
             }
         } else {
             if (_orderParams.uniV2Path.length != 0) {
-                order.uniV2Path = _orderParams.uniV2Path;
-                order.uniV3Path = bytes("");
+                _order.uniV2Path = _orderParams.uniV2Path;
+                _order.uniV3Path = bytes("");
             }
         }
 
-        _l.userVaultOrder[sender][order.vault] = order;
+        _l.userVaultOrder[_sender][_order.vault] = _order;
     }
 
     /*solhint-enable code-complexity*/
@@ -180,11 +179,13 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _l the layout of the limit order contract
      * @param _maker address of order maker
      * @param _vault address of vault that order pertains to
+     * @param _deadline deadline for the swap
      */
     function _execute(
         LimitOrderStorage.Layout storage _l,
         address _maker,
-        address _vault
+        address _vault,
+        uint256 _deadline
     ) internal {
         DataTypes.Order memory _order = _l.userVaultOrder[_maker][_vault];
         address _vaultUnderlyingToken = IVault(_vault).underlyingToken();
@@ -203,9 +204,10 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _vaultUnderlyingTokenAmount =
             _liquidate(_l, _vault, _maker, _order.liquidationAmountVT, _order.expectedOutputUT, _order.permitParams);
 
-        uint256 _numOfCoins = _exchange(_order, _vaultUnderlyingTokenAmount, _order.returnLimitUT);
+        uint256 _numOfCoins = _exchange(_order, _vaultUnderlyingTokenAmount, _order.returnLimitUT, _deadline);
 
-        uint256 coinsAfterFee = _collectFee(_l, _stablecoinVaultUnderlyingToken, _numOfCoins, _l.vaultFee[_vault]);
+        uint256 coinsAfterFee =
+            _collectFee(_l, _stablecoinVaultUnderlyingToken, _numOfCoins, _l.vaultLiquidationFee[_vault]);
 
         _deliver(_l, coinsAfterFee, _order.expectedOutputVT, _order.stablecoinVault, _maker);
     }
@@ -249,12 +251,14 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _order the order to swap
      * @param _vaultUnderlyingTokenAmount token received on liquidation
      * @param _limit the minimum amount of tokens returned as output of the swap
+     * @param _deadline deadline for the swap
      * @return stablecoin amount
      */
     function _exchange(
         DataTypes.Order memory _order,
         uint256 _vaultUnderlyingTokenAmount,
-        uint256 _limit
+        uint256 _limit,
+        uint256 _deadline
     ) internal returns (uint256) {
         address _toToken = IVault(_order.stablecoinVault).underlyingToken();
         address _fromToken = IVault(_order.vault).underlyingToken();
@@ -265,7 +269,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
                 ISwapRouter.ExactInputParams({
                     path: _order.uniV3Path,
                     recipient: address(this),
-                    deadline: _timestamp() + 10 minutes,
+                    deadline: _deadline,
                     amountIn: _vaultUnderlyingTokenAmount,
                     amountOutMinimum: _limit
                 })
@@ -276,7 +280,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
                 _limit,
                 _order.uniV2Path,
                 address(this),
-                _timestamp() + 10 minutes
+                _deadline
             );
         }
         uint256 _fromAmountBalanceAfterSwap = IERC20(_fromToken).balanceOf(address(this));
@@ -339,7 +343,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
         uint256 _fee,
         address _vault
     ) internal {
-        _l.vaultFee[_vault] = _fee;
+        _l.vaultLiquidationFee[_vault] = _fee;
     }
 
     /**
@@ -561,8 +565,12 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
      * @param _vault address of the vault
      * @return fee in basis points
      */
-    function _vaultFee(LimitOrderStorage.Layout storage _l, address _vault) internal view returns (uint256 fee) {
-        fee = _l.vaultFee[_vault];
+    function _vaultLiquidationFee(LimitOrderStorage.Layout storage _l, address _vault)
+        internal
+        view
+        returns (uint256 fee)
+    {
+        fee = _l.vaultLiquidationFee[_vault];
     }
 
     /**
@@ -700,7 +708,10 @@ abstract contract LimitOrderInternal is ILimitOrderInternal {
             return (false, bytes(_reason));
         }
 
-        return (true, abi.encodeCall(ILimitOrderActions.execute, (_maker, _vault)));
+        return (
+            true,
+            abi.encodeCall(ILimitOrderActions.execute, (_maker, _vault, _timestamp() + _order.swapDeadlineAdjustment))
+        );
     }
 
     /**

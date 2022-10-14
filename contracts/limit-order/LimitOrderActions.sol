@@ -45,8 +45,12 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function execute(address _maker, address _vault) external {
-        _execute(LimitOrderStorage.layout(), _maker, _vault);
+    function execute(
+        address _maker,
+        address _vault,
+        uint256 _deadline
+    ) external {
+        _execute(LimitOrderStorage.layout(), _maker, _vault, _deadline);
     }
 
     /**

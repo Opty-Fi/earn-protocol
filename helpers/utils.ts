@@ -325,6 +325,7 @@ export function convertOrderParamsToOrder(_orderParams: OrderParams, _maker: str
   order.uniV3Path = _orderParams.uniV3Path.toString();
   order.permitParams = _orderParams.permitParams as string;
   order.expectedOutputVT = _orderParams.expectedOutputVT;
+  order.swapDeadlineAdjustment = _orderParams.swapDeadlineAdjustment;
   order.taskId = _taskId;
 
   return order;

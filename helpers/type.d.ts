@@ -1,5 +1,6 @@
 import { BigNumberish, Contract } from "ethers";
 import { MockContract } from "@defi-wonderland/smock";
+import { BigNumber, BytesLike } from "ethers";
 
 export type ESSENTIAL_CONTRACTS = {
   registry: Contract;
@@ -221,8 +222,6 @@ export type PoolRate = {
   rate: number;
 };
 
-import { BigNumber, BytesLike } from "ethers";
-
 export interface Order {
   liquidationAmountVT: BigNumber;
   expectedOutputUT: BigNumber;
@@ -231,6 +230,7 @@ export interface Order {
   upperBound: BigNumber;
   returnLimitUT: BigNumber;
   expectedOutputVT: BigNumber;
+  swapDeadlineAdjustment: BigNumber;
   taskId: string;
   maker: string;
   vault: string;
@@ -251,6 +251,7 @@ export interface OrderParams {
   upperBound: BigNumber;
   returnLimitUT: BigNumber;
   expectedOutputVT: BigNumber;
+  swapDeadlineAdjustment: BigNumber;
   vault: string;
   stablecoinVault: string;
   dexRouter: string;

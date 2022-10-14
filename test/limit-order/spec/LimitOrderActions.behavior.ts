@@ -183,6 +183,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       direction: ethers.constants.One,
       returnLimitUT: ethers.utils.parseEther("99"),
       expectedOutputVT: BigNumber.from("0"),
+      swapDeadlineAdjustment: BigNumber.from("1200"), // 20 minutes
       stablecoinVault: this.opUSDCSave.address,
       vault: this.opAAVEInvst.address,
       dexRouter: UniswapV2Router02Address,
@@ -200,7 +201,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       lowerBound: aavePriceInUSD.sub(parseEther("20")),
       direction: ethers.constants.One,
       returnLimitUT: BigNumber.from("0"),
-      // ethers.utils.parseEther("99"),
+      swapDeadlineAdjustment: BigNumber.from("1200"), // 20 minutes
       stablecoinVault: this.opUSDCSave.address,
       vault: this.opAAVEInvst.address,
       expectedOutputVT: BigNumber.from("0"),
@@ -219,6 +220,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       lowerBound: aavePriceInUSD.sub(parseEther("20")),
       direction: ethers.constants.Zero,
       returnLimitUT: ethers.utils.parseEther("99"),
+      swapDeadlineAdjustment: BigNumber.from("1200"), // 20 minutes
       stablecoinVault: this.opUSDCSave.address,
       vault: this.opAAVEInvst.address,
       expectedOutputVT: BigNumber.from("0"),
@@ -240,6 +242,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       stablecoinVault: this.opUSDCSave.address,
       vault: this.opAAVEInvst.address,
       expectedOutputVT: BigNumber.from("0"),
+      swapDeadlineAdjustment: BigNumber.from("1200"), // 20 minutes
       permitParams: "0x",
       dexRouter: UniswapV3RouterAddress,
       uniV3Path: uniV3SwapPath,
@@ -296,7 +299,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         const _taskId = await this.gelatoOps.getTaskId(
           this.limitOrder.address,
           this.limitOrder.address,
-          await this.gelatoOps.getSelector("execute(address,address)"),
+          await this.gelatoOps.getSelector("execute(address,address,uint256)"),
           true,
           ethers.constants.AddressZero,
           resolverHash,
@@ -340,6 +343,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           uniV3Path: makerOrder.uniV3Path,
           permitParams: makerOrder.permitParams,
           expectedOutputVT: BigNumber.from(makerOrder.expectedOutputVT),
+          swapDeadlineAdjustment: BigNumber.from(makerOrder.swapDeadlineAdjustment),
           taskId: makerOrder.taskId,
         };
         const order = convertOrderParamsToOrder(orderParams, this.signers.alice.address, _taskId);
@@ -366,7 +370,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         const _taskId = await this.gelatoOps.getTaskId(
           this.limitOrder.address,
           this.limitOrder.address,
-          await this.gelatoOps.getSelector("execute(address,address)"),
+          await this.gelatoOps.getSelector("execute(address,address,uint256)"),
           true,
           ethers.constants.AddressZero,
           resolverHash,
@@ -382,7 +386,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           .withArgs(
             this.limitOrder.address,
             this.limitOrder.address,
-            await this.gelatoOps.getSelector("execute(address,address)"),
+            await this.gelatoOps.getSelector("execute(address,address,uint256)"),
             this.limitOrder.address,
             _taskId,
             _resolverData,
@@ -565,7 +569,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         const treasuryAddress = await this.limitOrder.treasury();
         const treasury = await ethers.getSigner(treasuryAddress);
         await expect(() =>
-          this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+          this.limitOrder
+            .connect(this.signers.alice)
+            .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
         ).to.changeTokenBalance(this.usdc, treasury, fee);
       });
 
@@ -581,7 +587,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
         await expect(() =>
-          this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+          this.limitOrder
+            .connect(this.signers.alice)
+            .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
         ).to.changeTokenBalance(this.opUSDCSave, this.signers.alice, expectedOPUSDCShares);
       });
 
@@ -593,7 +601,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
         await expect(
-          this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+          this.limitOrder
+            .connect(this.signers.alice)
+            .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
         )
           .to.emit(this.limitOrder, "DeliverShares")
           .withArgs(this.signers.alice.address);
@@ -609,7 +619,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         const makeropUSDCBalanceBefore = await this.opUSDCSave.balanceOf(this.signers.alice.address);
         const tx = await this.limitOrder
           .connect(this.signers.bob)
-          .execute(this.signers.alice.address, this.opAAVEInvst.address);
+          .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration);
         const { logs } = await tx.wait(1);
         const [TaskCancelledEventData, DeliverSharesEventData]: DecodedLogType[] = decodeLogs(logs);
 
@@ -644,7 +654,8 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       it("UniV2: Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault", async function () {
         const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
         orderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
-        orderParams.expiration = BigNumber.from((await ethers.provider.getBlock("latest")).timestamp).add("600");
+        let _currentTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        orderParams.expiration = BigNumber.from(_currentTimestamp).add("600");
         const resolverHash = ethers.utils.keccak256(
           new ethers.utils.AbiCoder().encode(
             ["address", "bytes"],
@@ -661,7 +672,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         const _taskId = await this.gelatoOps.getTaskId(
           this.limitOrder.address,
           this.limitOrder.address,
-          await this.gelatoOps.getSelector("execute(address,address)"),
+          await this.gelatoOps.getSelector("execute(address,address,uint256)"),
           true,
           ethers.constants.AddressZero,
           resolverHash,
@@ -678,7 +689,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           .withArgs(
             this.limitOrder.address,
             this.limitOrder.address,
-            await this.gelatoOps.getSelector("execute(address,address)"),
+            await this.gelatoOps.getSelector("execute(address,address,uint256)"),
             this.limitOrder.address,
             _taskId,
             _resolverData,
@@ -687,9 +698,11 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
             resolverHash,
           );
 
+        _currentTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
         const expectedPayload = this.limitOrder.interface.encodeFunctionData("execute", [
           this.signers.alice.address,
           this.opAAVEInvst.address,
+          BigNumber.from(_currentTimestamp).add("1200"),
         ]);
 
         const [canExec, execPayload] = ethers.utils.defaultAbiCoder.decode(
@@ -726,7 +739,8 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
       it("UniV3: Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault", async function () {
         const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
         orderParamsUniV3.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
-        orderParamsUniV3.expiration = BigNumber.from((await ethers.provider.getBlock("latest")).timestamp).add("600");
+        let _currentTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        orderParamsUniV3.expiration = BigNumber.from(_currentTimestamp).add("600");
 
         const opAAVEInvstPPS = await this.opAAVEInvst.getPricePerFullShare();
         const expectedAaveRedeemed = orderParamsUniV3.liquidationAmountVT.mul(opAAVEInvstPPS).div(BASIS);
@@ -759,7 +773,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         const _taskId = await this.gelatoOps.getTaskId(
           this.limitOrder.address,
           this.limitOrder.address,
-          await this.gelatoOps.getSelector("execute(address,address)"),
+          await this.gelatoOps.getSelector("execute(address,address,uint256)"),
           true,
           ethers.constants.AddressZero,
           resolverHash,
@@ -776,7 +790,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           .withArgs(
             this.limitOrder.address,
             this.limitOrder.address,
-            await this.gelatoOps.getSelector("execute(address,address)"),
+            await this.gelatoOps.getSelector("execute(address,address,uint256)"),
             this.limitOrder.address,
             _taskId,
             _resolverData,
@@ -784,10 +798,11 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
             ethers.constants.AddressZero,
             resolverHash,
           );
-
+        _currentTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
         const expectedPayload = this.limitOrder.interface.encodeFunctionData("execute", [
           this.signers.alice.address,
           this.opAAVEInvst.address,
+          BigNumber.from(_currentTimestamp).add("1200"),
         ]);
 
         const [canExec, execPayload] = ethers.utils.defaultAbiCoder.decode(
@@ -835,7 +850,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Not enough shares")));
 
           await expect(
-            this.limitOrder.connect(this.signers.bob).execute(this.signers.bob.address, this.opAAVEInvst.address),
+            this.limitOrder
+              .connect(this.signers.bob)
+              .execute(this.signers.bob.address, this.opAAVEInvst.address, orderParams.expiration),
           ).to.be.revertedWith("Not enough shares");
         });
 
@@ -864,7 +881,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("no active order")));
 
           await expect(
-            this.limitOrder.connect(this.signers.bob).execute(this.signers.bob.address, this.opAAVEInvst.address),
+            this.limitOrder
+              .connect(this.signers.bob)
+              .execute(this.signers.bob.address, this.opAAVEInvst.address, orderParams.expiration),
           ).to.be.revertedWith("no active order");
         });
 
@@ -876,6 +895,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
             liquidationAmountVT: ethers.BigNumber.from("0"),
             expectedOutputUT: BigNumber.from("0"),
             expectedOutputVT: BigNumber.from("0"),
+            swapDeadlineAdjustment: BigNumber.from("100"),
             expiration: (await (await ethers.provider.getBlock("latest")).timestamp) + 1,
             upperBound: ethers.utils.parseEther("150"),
             lowerBound: ethers.utils.parseEther("50"),
@@ -902,7 +922,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("expired")));
 
           await expect(
-            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+            this.limitOrder
+              .connect(this.signers.alice)
+              .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
           ).to.be.revertedWith("expired");
         });
 
@@ -920,7 +942,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("price out with bounds")));
 
           await expect(
-            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+            this.limitOrder
+              .connect(this.signers.alice)
+              .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
           ).to.be.revertedWith("price out with bounds");
         });
 
@@ -942,7 +966,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           expect(execPayload).to.eq(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("price within bounds")));
 
           await expect(
-            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+            this.limitOrder
+              .connect(this.signers.alice)
+              .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
           ).to.be.revertedWith("price within bounds");
         });
 
@@ -955,7 +981,9 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
           await expect(
-            this.limitOrder.connect(this.signers.alice).execute(this.signers.alice.address, this.opAAVEInvst.address),
+            this.limitOrder
+              .connect(this.signers.alice)
+              .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
           ).to.be.revertedWith(`UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT`);
         });
       });
@@ -974,6 +1002,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           const modifiedOrder: Order = {
             liquidationAmountVT: BigNumber.from(makerOrder.liquidationAmountVT),
             expectedOutputUT: BigNumber.from(makerOrder.expectedOutputUT),
+            swapDeadlineAdjustment: BigNumber.from(makerOrder.swapDeadlineAdjustment),
             expectedOutputVT: BigNumber.from(makerOrder.expectedOutputVT),
             expiration: BigNumber.from(makerOrder.expiration),
             lowerBound: BigNumber.from(makerOrder.lowerBound),

@@ -18,50 +18,50 @@ abstract contract LimitOrderView is LimitOrderSettings, ILimitOrderView {
     /**
      * @inheritdoc ILimitOrderView
      */
-    function userVaultOrder(address _user, address _vault) external view returns (DataTypes.Order memory order) {
-        order = _userVaultOrder(LimitOrderStorage.layout(), _user, _vault);
+    function userVaultOrder(address _user, address _vault) external view returns (DataTypes.Order memory) {
+        return _userVaultOrder(LimitOrderStorage.layout(), _user, _vault);
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function userVaultOrderActive(address _user, address _vault) external view returns (bool hasActiveOrder) {
-        hasActiveOrder = _userVaultOrderActive(LimitOrderStorage.layout(), _user, _vault);
+    function userVaultOrderActive(address _user, address _vault) external view returns (bool) {
+        return _userVaultOrderActive(LimitOrderStorage.layout(), _user, _vault);
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function vaultFee(address _vault) external view returns (uint256 fee) {
-        fee = _vaultFee(LimitOrderStorage.layout(), _vault);
+    function liquidationFee(address _vault) external view returns (uint256) {
+        return _vaultLiquidationFee(LimitOrderStorage.layout(), _vault);
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function treasury() external view returns (address treasuryAddress) {
-        treasuryAddress = _treasury(LimitOrderStorage.layout());
+    function treasury() external view returns (address) {
+        return _treasury(LimitOrderStorage.layout());
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function accountProof(address _vault) external view returns (bytes32[] memory proof) {
-        proof = _accountProof(LimitOrderStorage.layout(), _vault);
+    function accountProof(address _vault) external view returns (bytes32[] memory) {
+        return _accountProof(LimitOrderStorage.layout(), _vault);
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function oracle() external view returns (address oracleAddress) {
-        oracleAddress = _oracle(LimitOrderStorage.layout());
+    function oracle() external view returns (address) {
+        return _oracle(LimitOrderStorage.layout());
     }
 
     /**
      * @inheritdoc ILimitOrderView
      */
-    function ops() external view returns (address opsAddress) {
-        opsAddress = _ops(LimitOrderStorage.layout());
+    function ops() external view returns (address) {
+        return _ops(LimitOrderStorage.layout());
     }
 
     /**

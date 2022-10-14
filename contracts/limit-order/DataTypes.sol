@@ -24,6 +24,7 @@ library DataTypes {
      * @param returnLimitUT the minimum amount of stablecoins to be returned after swap
      * @param expectedOutputVT the minimum amount of vault tokens that must be minted
      *        for the transaction to not revert
+     * @param swapDeadlineAdjustment swap deadline adjustment parameter
      * @param taskId unique identifier of the limit order
      * @param maker the address which made the order
      * @param vault the vault the order pertains to
@@ -43,6 +44,7 @@ library DataTypes {
         uint256 upperBound;
         uint256 returnLimitUT;
         uint256 expectedOutputVT;
+        uint256 swapDeadlineAdjustment;
         bytes32 taskId;
         address payable maker;
         address vault;
@@ -66,6 +68,7 @@ library DataTypes {
      * @param returnLimitUT the minimum amount of stablecoins to be returned after swap
      * @param expectedOutputVT the minimum amount of vault tokens that must be minted
      *        for the transaction to not revert
+     * @param swapDeadlineAdjustment swap deadline adjustment parameter
      * @param vault the vault the order pertains to
      * @param stablecoinVault the opVault with stable coins as underlying to send liquidated shares to
      * @param dexRouter address of dex to swap on
@@ -83,6 +86,7 @@ library DataTypes {
         uint256 upperBound;
         uint256 returnLimitUT;
         uint256 expectedOutputVT;
+        uint256 swapDeadlineAdjustment;
         address vault;
         address stablecoinVault;
         address dexRouter;

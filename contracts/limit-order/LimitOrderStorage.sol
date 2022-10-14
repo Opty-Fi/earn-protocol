@@ -13,7 +13,7 @@ library LimitOrderStorage {
      * @notice information container on user limit orders
      * @param userVaultOrder user => vault => Order
      * @param userVaultOrderActive user => vault => bool
-     * @param vaultFee vault address => fee
+     * @param vaultLiquidationFee vault address => liquidation fee
      * @param accountProofs mapping of OptyFi vault address => code merkle proof
      *        for Limit Order contract (required for OptyFi Vault withdraw/deposit)
      * @param vaults a whitelist of opVaults for which limit order can be created
@@ -25,7 +25,7 @@ library LimitOrderStorage {
     struct Layout {
         mapping(address => mapping(address => DataTypes.Order)) userVaultOrder;
         mapping(address => mapping(address => bool)) userVaultOrderActive;
-        mapping(address => uint256) vaultFee;
+        mapping(address => uint256) vaultLiquidationFee;
         mapping(address => bytes32[]) accountProofs;
         mapping(address => bool) vaults;
         mapping(address => bool) stablecoinVaults;

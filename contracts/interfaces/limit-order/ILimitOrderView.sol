@@ -29,7 +29,7 @@ interface ILimitOrderView {
      * @param _vault address of the vault
      * @return fee in basis points
      */
-    function vaultFee(address _vault) external view returns (uint256 fee);
+    function liquidationFee(address _vault) external view returns (uint256 fee);
 
     /**
      * @notice returns address of the treasury
