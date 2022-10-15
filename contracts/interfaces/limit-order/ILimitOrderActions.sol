@@ -16,10 +16,9 @@ interface ILimitOrderActions {
 
     /**
      * @notice creates a limit order
-     * @param _orderParams the parameters to create the order with
-     * @return order the created limit order
+     * @param _orderParams the parameters to create the order
      */
-    function createOrder(DataTypes.OrderParams memory _orderParams) external returns (DataTypes.Order memory order);
+    function createOrder(DataTypes.OrderParams memory _orderParams) external;
 
     /**
      * @notice executes a limit order
@@ -36,7 +35,7 @@ interface ILimitOrderActions {
     /**
      * @notice modifies an existing order
      * @param _vault the address of the vault the order pertains to
-     * @param _orderParams the parameters to modify the existing order with
+     * @param _orderParams the parameters to modify the existing order
      */
     function modifyOrder(address _vault, DataTypes.OrderParams memory _orderParams) external;
 }

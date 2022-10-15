@@ -16,29 +16,31 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
      * @inheritdoc ILimitOrderActions
      */
     function cancelOrder(address _vault) external {
-        _cancelOrder(LimitOrderStorage.layout(), msg.sender, _vault);
+        bytes32 _taskId = _cancelOrder(LimitOrderStorage.layout(), msg.sender, _vault);
+
+        emit LimitOrderCancelled(_taskId, msg.sender, _vault);
     }
 
     /**
      * @inheritdoc ILimitOrderActions
      */
-    function createOrder(DataTypes.OrderParams calldata _orderParams) external returns (DataTypes.Order memory order) {
-        order = _createOrder(LimitOrderStorage.layout(), _orderParams);
+    function createOrder(DataTypes.OrderParams calldata _orderParams) external {
+        DataTypes.Order memory _order = _createOrder(LimitOrderStorage.layout(), _orderParams);
         emit LimitOrderCreated(
-            order.liquidationAmountVT,
-            order.expectedOutputUT,
-            order.expiration,
-            order.lowerBound,
-            order.upperBound,
-            order.returnLimitUT,
-            order.expectedOutputVT,
-            order.taskId,
-            order.maker,
-            order.vault,
-            order.stablecoinVault,
-            order.dexRouter,
-            order.swapOnUniV3,
-            uint8(order.direction)
+            _order.liquidationAmountVT,
+            _order.expectedOutputUT,
+            _order.expiration,
+            _order.lowerBound,
+            _order.upperBound,
+            _order.returnLimitUT,
+            _order.expectedOutputVT,
+            _order.taskId,
+            _order.maker,
+            _order.vault,
+            _order.stablecoinVault,
+            _order.dexRouter,
+            _order.swapOnUniV3,
+            uint8(_order.direction)
         );
     }
 
@@ -50,13 +52,47 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
         address _vault,
         uint256 _deadline
     ) external {
-        _execute(LimitOrderStorage.layout(), _maker, _vault, _deadline);
+        (
+            bytes32 _taskId,
+            uint256 _liquidationAmountVT,
+            uint256 _fee,
+            uint256 _stablecoinDepositAmountUT,
+            uint256 _stablecoinAmountVT,
+            address _stablecoinVault
+        ) = _execute(LimitOrderStorage.layout(), _maker, _vault, _deadline);
+
+        emit LimitOrderFulFilled(
+            _taskId,
+            _maker,
+            _vault,
+            _liquidationAmountVT,
+            _fee,
+            _stablecoinDepositAmountUT,
+            _stablecoinAmountVT,
+            _stablecoinVault
+        );
     }
 
     /**
      * @inheritdoc ILimitOrderActions
      */
     function modifyOrder(address _vault, DataTypes.OrderParams calldata _orderParams) external {
-        _modifyOrder(LimitOrderStorage.layout(), _vault, _orderParams);
+        DataTypes.Order memory _order = _modifyOrder(LimitOrderStorage.layout(), _vault, _orderParams);
+        emit LimitOrderModified(
+            _order.liquidationAmountVT,
+            _order.expectedOutputUT,
+            _order.expiration,
+            _order.lowerBound,
+            _order.upperBound,
+            _order.returnLimitUT,
+            _order.expectedOutputVT,
+            _order.taskId,
+            _order.maker,
+            _order.vault,
+            _order.stablecoinVault,
+            _order.dexRouter,
+            _order.swapOnUniV3,
+            uint8(_order.direction)
+        );
     }
 }

@@ -23,8 +23,8 @@ interface ILimitOrderSettings {
 
     /**
      * @notice sets the liquidation fee for a target vault
-     * @param _fee the fee in basis point
-     * @param _vault the target vault
+     * @param _fee the fee in basis point (1e18)
+     * @param _vault the non-stable coin vault address
      */
     function setVaultLiquidationFee(uint256 _fee, address _vault) external;
 
