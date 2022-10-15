@@ -4,7 +4,6 @@ pragma solidity ^0.8.15;
 import { ILimitOrderSettings } from "../interfaces/limit-order/ILimitOrderSettings.sol";
 import { LimitOrderInternal } from "./LimitOrderInternal.sol";
 import { LimitOrderStorage } from "./LimitOrderStorage.sol";
-import { SafeOwnable } from "@solidstate/contracts/access/ownable/SafeOwnable.sol";
 import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -12,7 +11,7 @@ import { IERC20 } from "@solidstate/contracts/token/ERC20/IERC20.sol";
  * @author OptyFi
  * @dev contains all governance-facing actions
  */
-abstract contract LimitOrderSettings is LimitOrderInternal, SafeOwnable, ILimitOrderSettings {
+abstract contract LimitOrderSettings is LimitOrderInternal, ILimitOrderSettings {
     /**
      * @inheritdoc ILimitOrderSettings
      */

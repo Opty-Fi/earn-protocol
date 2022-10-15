@@ -1,32 +1,21 @@
 import { expect } from "chai";
-import hre from "hardhat";
-import { ILimitOrder } from "../";
+import { ethers } from "hardhat";
 
 export function describeBehaviorOfLimitOrderSettings(_skips?: string[]): void {
-  const ethers = hre.ethers;
-
-  let owner: SignerWithAddress;
-  let nonOwner: SignerWithAddress;
-  let instance: ILimitOrder;
-
-  before(async () => {
-    [owner, nonOwner] = await ethers.getSigners();
-  });
-
   describe(":LimitOrderSettings", () => {
     describe("#setTreasury(address)", () => {
-      it("sets a new address for the treasury", async () => {
+      it("sets a new address for the treasury", async function () {
         const newTreasury = ethers.constants.AddressZero;
 
-        await instance.connect(owner).setTreasury(newTreasury);
+        await this.limitOrder.connect(this.signers.deployer).setTreasury(newTreasury);
 
-        expect(await instance.treasury()).to.eq(newTreasury);
+        expect(await this.limitOrder.treasury()).to.eq(newTreasury);
       });
 
       describe("reverts if", () => {
-        it("called by nonOwner", async () => {
+        it("called by nonOwner", async function () {
           const newTreasury = ethers.constants.AddressZero;
-          await expect(instance.connect(nonOwner).setTreasury(newTreasury)).to.be.revertedWith(
+          await expect(this.limitOrder.connect(this.signers.eve).setTreasury(newTreasury)).to.be.revertedWith(
             "Ownable: sender must be owner",
           );
         });
@@ -34,90 +23,55 @@ export function describeBehaviorOfLimitOrderSettings(_skips?: string[]): void {
     });
 
     describe("#setVaultLiquidationFee(uint256,address)", () => {
-      it("sets the fee for the given vault", async () => {
+      it("sets the fee for the given vault", async function () {
         const newFee = ethers.utils.parseEther("0.1");
 
-        await instance.connect(owner).setVaultLiquidationFee(newFee, AaveVaultProxy);
+        await this.limitOrder.connect(this.signers.deployer).setVaultLiquidationFee(newFee, this.opAAVEInvst.address);
 
-        expect(await instance.vaultFee(AaveVaultProxy)).to.eq(newFee);
+        expect(await this.limitOrder.liquidationFee(this.opAAVEInvst.address)).to.eq(newFee);
       });
 
       describe("reverts if", () => {
-        it("called by nonOwner", async () => {
+        it("called by nonOwner", async function () {
           const newFee = ethers.utils.parseEther("0.1");
-          await expect(instance.connect(nonOwner).setVaultLiquidationFee(newFee, AaveVaultProxy)).to.be.revertedWith(
-            "Ownable: sender must be owner",
-          );
+          await expect(
+            this.limitOrder.connect(this.signers.eve).setVaultLiquidationFee(newFee, this.opAAVEInvst.address),
+          ).to.be.revertedWith("Ownable: sender must be owner");
         });
       });
     });
 
-    describe("#setCodeProof(bytes32[])", async () => {
-      it("sets the code proof", async () => {
+    describe("#setAccountProof(bytes32[])", async function () {
+      it("sets the account proof", async function () {
         const newProof = [ethers.utils.formatBytes32String("0xNeWPro0Ff")];
 
-        await instance.connect(owner).setCodeProof(newProof, AaveVaultProxy);
+        await this.limitOrder.connect(this.signers.deployer).setAccountProof(newProof, this.opAAVEInvst.address);
 
-        expect(await instance.codeProof(AaveVaultProxy)).to.deep.eq(newProof);
+        expect(await this.limitOrder.accountProof(this.opAAVEInvst.address)).to.deep.eq(newProof);
       });
       describe("reverts if", () => {
-        it("called by nonOwner", async () => {
+        it("called by nonOwner", async function () {
           const newProof = [ethers.utils.hexZeroPad("0x", 32)];
-          await expect(instance.connect(nonOwner).setCodeProof(newProof, AaveVaultProxy)).to.be.revertedWith(
-            "Ownable: sender must be owner",
-          );
-        });
-      });
-    });
-
-    describe("#setAccountProof(bytes32[])", async () => {
-      it("sets the account proof", async () => {
-        const newProof = [ethers.utils.formatBytes32String("0xNeWPro0Ff")];
-
-        await instance.connect(owner).setAccountProof(newProof, AaveVaultProxy);
-
-        expect(await instance.accountProof(AaveVaultProxy)).to.deep.eq(newProof);
-      });
-      describe("reverts if", () => {
-        it("called by nonOwner", async () => {
-          const newProof = [ethers.utils.hexZeroPad("0x", 32)];
-          await expect(instance.connect(nonOwner).setAccountProof(newProof, AaveVaultProxy)).to.be.revertedWith(
-            "Ownable: sender must be owner",
-          );
-        });
-      });
-    });
-
-    describe("#setSwapDiamond(address)", () => {
-      it("sets the new swapDiamond address", async () => {
-        const newSwapDiamond = owner.address;
-        await instance.connect(owner).setSwapDiamond(newSwapDiamond);
-        expect(await instance.swapDiamond()).to.eq(newSwapDiamond);
-      });
-
-      describe("reverts if", () => {
-        it("called by nonOwner", async () => {
-          const newSwapDiamond = nonOwner.address;
-          await expect(instance.connect(nonOwner).setSwapDiamond(newSwapDiamond)).to.be.revertedWith(
-            "Ownable: sender must be owner",
-          );
+          await expect(
+            this.limitOrder.connect(this.signers.eve).setAccountProof(newProof, this.opAAVEInvst.address),
+          ).to.be.revertedWith("Ownable: sender must be owner");
         });
       });
     });
 
     describe("#setOracle(address)", () => {
-      it("sets the new oracle address", async () => {
-        const newOracle = owner.address;
+      it("sets the new oracle address", async function () {
+        const newOracle = this.signers.deployer.address;
 
-        await instance.connect(owner).setOracle(newOracle);
+        await this.limitOrder.connect(this.signers.deployer).setOracle(newOracle);
 
-        expect(await instance.oracle()).to.eq(newOracle);
+        expect(await this.limitOrder.oracle()).to.eq(newOracle);
       });
 
       describe("reverts if", () => {
-        it("called by nonOwner", async () => {
-          const newOracle = nonOwner.address;
-          await expect(instance.connect(nonOwner).setOracle(newOracle)).to.be.revertedWith(
+        it("called by nonOwner", async function () {
+          const newOracle = this.signers.eve.address;
+          await expect(this.limitOrder.connect(this.signers.eve).setOracle(newOracle)).to.be.revertedWith(
             "Ownable: sender must be owner",
           );
         });
@@ -125,15 +79,15 @@ export function describeBehaviorOfLimitOrderSettings(_skips?: string[]): void {
     });
 
     describe("#setVault(address)", () => {
-      it("sets vault whitelist to true", async () => {
-        await instance.setVault(AaveVaultProxy);
+      it("sets vault whitelist to true", async function () {
+        await this.limitOrder.setVault(this.opAAVEInvst.address);
 
-        expect(await instance.vaultWhitelisted(AaveVaultProxy)).to.eq(true);
+        expect(await this.limitOrder.vaultWhitelisted(this.opAAVEInvst.address)).to.eq(true);
       });
 
       describe("reverts if", () => {
-        it("called by nonOwner", async () => {
-          await expect(instance.connect(nonOwner).setVault(AaveVaultProxy)).to.be.revertedWith(
+        it("called by nonOwner", async function () {
+          await expect(this.limitOrder.connect(this.signers.eve).setVault(this.opAAVEInvst.address)).to.be.revertedWith(
             "Ownable: sender must be owner",
           );
         });
@@ -141,18 +95,165 @@ export function describeBehaviorOfLimitOrderSettings(_skips?: string[]): void {
     });
 
     describe("#unsetVault(address)", () => {
-      it("sets vault whitelist to false", async () => {
-        await instance.setVault(AaveVaultProxy);
-        await instance.unsetVault(AaveVaultProxy);
-        expect(await instance.vaultWhitelisted(AaveVaultProxy)).to.eq(false);
+      it("sets vault whitelist to false", async function () {
+        await this.limitOrder.setVault(this.opAAVEInvst.address);
+        await this.limitOrder.unsetVault(this.opAAVEInvst.address);
+        expect(await this.limitOrder.vaultWhitelisted(this.opAAVEInvst.address)).to.eq(false);
       });
 
       describe("reverts if", () => {
-        it("called by nonOwner", async () => {
-          await expect(instance.connect(nonOwner).unsetVault(AaveVaultProxy)).to.be.revertedWith(
-            "Ownable: sender must be owner",
-          );
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).unsetVault(this.opAAVEInvst.address),
+          ).to.be.revertedWith("Ownable: sender must be owner");
         });
+      });
+    });
+
+    describe("#setStablecoinVault(address)", () => {
+      it("sets stable coin vault whitelist to true", async function () {
+        await this.limitOrder.setStablecoinVault(this.opUSDCSave.address);
+
+        expect(await this.limitOrder.stablecoinVaultWhitelisted(this.opUSDCSave.address)).to.eq(true);
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).setStablecoinVault(this.opUSDCSave.address),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#unsetStablecoinVault(address)", () => {
+      it("sets stablecoin vault whitelist to false", async function () {
+        await this.limitOrder.setStablecoinVault(this.opUSDCSave.address);
+        await this.limitOrder.unsetStablecoinVault(this.opUSDCSave.address);
+        expect(await this.limitOrder.stablecoinVaultWhitelisted(this.opUSDCSave.address)).to.eq(false);
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).unsetStablecoinVault(this.opUSDCSave.address),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#setVault(address[])", () => {
+      it("set vaults whitelist to true", async function () {
+        await this.limitOrder.setVaults([this.opAAVEInvst.address]);
+
+        expect(await this.limitOrder.vaultWhitelisted(this.opAAVEInvst.address)).to.eq(true);
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).setVaults([this.opAAVEInvst.address]),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#unsetVaults(address[])", () => {
+      it("sets vaults whitelist to false", async function () {
+        await this.limitOrder.setVaults([this.opAAVEInvst.address]);
+        await this.limitOrder.unsetVaults([this.opAAVEInvst.address]);
+        expect(await this.limitOrder.vaultWhitelisted(this.opAAVEInvst.address)).to.eq(false);
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).unsetVaults([this.opAAVEInvst.address]),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#setStablecoinVault(address[])", () => {
+      it("sets stable coin vault whitelist to true", async function () {
+        await this.limitOrder.setStablecoinVaults([this.opUSDCSave.address]);
+
+        expect(await this.limitOrder.stablecoinVaultWhitelisted(this.opUSDCSave.address)).to.eq(true);
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).setStablecoinVaults([this.opUSDCSave.address]),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#unsetStablecoinVault(address[])", () => {
+      it("sets stablecoin vault whitelist to false", async function () {
+        await this.limitOrder.setStablecoinVaults([this.opUSDCSave.address]);
+        await this.limitOrder.unsetStablecoinVaults([this.opUSDCSave.address]);
+        expect(await this.limitOrder.stablecoinVaultWhitelisted(this.opUSDCSave.address)).to.eq(false);
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).unsetStablecoinVaults([this.opUSDCSave.address]),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#giveAllowances(address[],address[])", () => {
+      it("sets allowances", async function () {
+        await this.limitOrder.giveAllowances([this.aave.address], [this.uniV2Router.address]);
+
+        expect(await this.aave.allowance(this.limitOrder.address, this.uniV2Router.address)).to.eq(
+          ethers.constants.MaxUint256,
+        );
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).giveAllowances([this.aave.address], [this.uniV2Router.address]),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#removeAllowances(address[],address[])", () => {
+      it("remove allowances", async function () {
+        await this.limitOrder.removeAllowances([this.aave.address], [this.uniV2Router.address]);
+
+        expect(await this.aave.allowance(this.limitOrder.address, this.uniV2Router.address)).to.eq("0");
+      });
+
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).removeAllowances([this.aave.address], [this.uniV2Router.address]),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+    });
+
+    describe("#transferOwnership(address)", () => {
+      describe("reverts if", () => {
+        it("called by nonOwner", async function () {
+          await expect(
+            this.limitOrder.connect(this.signers.eve).transferOwnership(this.signers.eve.address),
+          ).to.be.revertedWith("Ownable: sender must be owner");
+        });
+      });
+      it("owner can safely transfer ownership", async function () {
+        await this.limitOrder.transferOwnership(this.signers.eve.address);
+
+        await this.limitOrder.connect(this.signers.eve).acceptOwnership();
+
+        expect(await this.limitOrder.owner()).to.eq(this.signers.eve.address);
       });
     });
   });

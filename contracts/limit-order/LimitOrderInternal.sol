@@ -14,6 +14,7 @@ import { OwnableStorage } from "@solidstate/contracts/access/ownable/OwnableStor
 import { ISolidStateERC20 } from "@solidstate/contracts/token/ERC20/ISolidStateERC20.sol";
 import { IERC2612 } from "@solidstate/contracts/token/ERC20/permit/IERC2612.sol";
 import { SafeERC20 } from "@solidstate/contracts/utils/SafeERC20.sol";
+import { SafeOwnable } from "@solidstate/contracts/access/ownable/SafeOwnable.sol";
 import { IOps } from "../vendor/gelato/IOps.sol";
 import { IUniswapV2Router01 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
@@ -22,7 +23,7 @@ import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRou
  * @title Contract for writing limit orders
  * @author OptyFi
  */
-abstract contract LimitOrderInternal is ILimitOrderInternal {
+abstract contract LimitOrderInternal is ILimitOrderInternal, SafeOwnable {
     using LimitOrderStorage for LimitOrderStorage.Layout;
     using OwnableStorage for OwnableStorage.Layout;
     using SafeERC20 for IERC20;
