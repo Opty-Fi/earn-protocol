@@ -593,20 +593,79 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         ).to.changeTokenBalance(this.opUSDCSave, this.signers.alice, expectedOPUSDCShares);
       });
 
-      it("emits DeliverShares event after deposit to opUSDC vault", async function () {
+      it("emits LimitOrderCreated event after deposit to opUSDC vault", async function () {
         const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
         orderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
         orderParams.expiration = BigNumber.from((await ethers.provider.getBlock("latest")).timestamp).add("600");
         //create order from maker
         await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
+        const resolverHash = ethers.utils.keccak256(
+          new ethers.utils.AbiCoder().encode(
+            ["address", "bytes"],
+            [
+              this.limitOrder.address,
+              this.limitOrder.interface.encodeFunctionData("canExecuteOrder", [
+                this.signers.alice.address,
+                this.opAAVEInvst.address,
+              ]),
+            ],
+          ),
+        );
+
+        const _taskId = await this.gelatoOps.getTaskId(
+          this.limitOrder.address,
+          this.limitOrder.address,
+          await this.gelatoOps.getSelector("execute(address,address,uint256)"),
+          true,
+          ethers.constants.AddressZero,
+          resolverHash,
+        );
+        //no fees in opAAVEvault so should be precise
+        const expectedAaveRedeemed = orderParams.liquidationAmountVT
+          .mul(await this.opAAVEInvst.getPricePerFullShare())
+          .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
+
+        //simulate swap call for test values
+        const tx = await this.aave
+          .connect(this.signers.alice)
+          .approve(this.uniV2Router.address, ethers.utils.parseEther("1000000"));
+        await tx.wait(1);
+        const swapDeadline = expiration.add(BigNumber.from("1000000000000000000000000000000000000"));
+
+        const [, _USDCAmount] = await this.uniV2Router
+          .connect(this.signers.alice)
+          .callStatic.swapExactTokensForTokens(
+            expectedAaveRedeemed,
+            ethers.constants.Zero,
+            [this.aave.address, this.usdc.address],
+            this.signers.alice.address,
+            swapDeadline,
+          );
+
+        const _fee = _USDCAmount.mul(liquidationFeeBP).div(BASIS);
+
+        const _expectedopUSDCSave = _USDCAmount
+          .sub(_fee)
+          .mul(BASIS)
+          .div(await this.opUSDCSave.getPricePerFullShare());
+
         await expect(
           this.limitOrder
             .connect(this.signers.alice)
             .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration),
         )
-          .to.emit(this.limitOrder, "DeliverShares")
-          .withArgs(this.signers.alice.address);
+          .to.emit(this.limitOrder, "LimitOrderFulfilled")
+          .withArgs(
+            _taskId,
+            this.signers.alice.address,
+            this.opAAVEInvst.address,
+            orderParams.liquidationAmountVT,
+            _fee,
+            _USDCAmount.sub(_fee),
+            _expectedopUSDCSave,
+            this.opUSDCSave.address,
+          );
       });
 
       it("Gelato network emits TaskCancelled if non-gelato network signer fulfills limit order", async function () {
@@ -617,11 +676,61 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         await this.limitOrder.connect(this.signers.alice).createOrder(orderParams);
 
         const makeropUSDCBalanceBefore = await this.opUSDCSave.balanceOf(this.signers.alice.address);
-        const tx = await this.limitOrder
+
+        const resolverHash = ethers.utils.keccak256(
+          new ethers.utils.AbiCoder().encode(
+            ["address", "bytes"],
+            [
+              this.limitOrder.address,
+              this.limitOrder.interface.encodeFunctionData("canExecuteOrder", [
+                this.signers.alice.address,
+                this.opAAVEInvst.address,
+              ]),
+            ],
+          ),
+        );
+
+        const _taskId = await this.gelatoOps.getTaskId(
+          this.limitOrder.address,
+          this.limitOrder.address,
+          await this.gelatoOps.getSelector("execute(address,address,uint256)"),
+          true,
+          ethers.constants.AddressZero,
+          resolverHash,
+        );
+        //no fees in opAAVEvault so should be precise
+        const expectedAaveRedeemed = orderParams.liquidationAmountVT
+          .mul(await this.opAAVEInvst.getPricePerFullShare())
+          .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
+
+        //simulate swap call for test values
+        let tx = await this.aave
+          .connect(this.signers.alice)
+          .approve(this.uniV2Router.address, ethers.utils.parseEther("1000000"));
+        await tx.wait(1);
+        const swapDeadline = expiration.add(BigNumber.from("1000000000000000000000000000000000000"));
+
+        const [, _USDCAmount] = await this.uniV2Router
+          .connect(this.signers.alice)
+          .callStatic.swapExactTokensForTokens(
+            expectedAaveRedeemed,
+            ethers.constants.Zero,
+            [this.aave.address, this.usdc.address],
+            this.signers.alice.address,
+            swapDeadline,
+          );
+
+        const _fee = _USDCAmount.mul(liquidationFeeBP).div(BASIS);
+
+        const _expectedopUSDCSave = _USDCAmount
+          .sub(_fee)
+          .mul(BASIS)
+          .div(await this.opUSDCSave.getPricePerFullShare());
+        tx = await this.limitOrder
           .connect(this.signers.bob)
           .execute(this.signers.alice.address, this.opAAVEInvst.address, orderParams.expiration);
         const { logs } = await tx.wait(1);
-        const [TaskCancelledEventData, DeliverSharesEventData]: DecodedLogType[] = decodeLogs(logs);
+        const [TaskCancelledEventData, LimitOrderFulfilled]: DecodedLogType[] = decodeLogs(logs);
 
         expect(TaskCancelledEventData.name).eq("TaskCancelled");
         expect(TaskCancelledEventData.events[0].name).to.eq("taskId");
@@ -636,11 +745,41 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         expect(getAddress(TaskCancelledEventData.events[1].value)).to.eq(getAddress(this.limitOrder.address));
         expect(ethers.utils.getAddress(TaskCancelledEventData.address)).to.eq(ethers.utils.getAddress(Gelato_Pokeme));
 
-        expect(DeliverSharesEventData.name).to.eq("DeliverShares");
-        expect(DeliverSharesEventData.events[0].name).to.eq("_maker");
-        expect(DeliverSharesEventData.events[0].type).to.eq("address");
-        expect(getAddress(DeliverSharesEventData.events[0].value)).to.eq(getAddress(this.signers.alice.address));
-        expect(getAddress(DeliverSharesEventData.address)).to.eq(getAddress(this.limitOrder.address));
+        expect(LimitOrderFulfilled.name).to.eq("LimitOrderFulfilled");
+
+        expect(LimitOrderFulfilled.events[0].name).to.eq("taskId");
+        expect(LimitOrderFulfilled.events[0].type).to.eq("bytes32");
+        expect(LimitOrderFulfilled.events[0].value).to.eq(_taskId);
+
+        expect(LimitOrderFulfilled.events[1].name).to.eq("maker");
+        expect(LimitOrderFulfilled.events[1].type).to.eq("address");
+        expect(getAddress(LimitOrderFulfilled.events[1].value)).to.eq(getAddress(this.signers.alice.address));
+
+        expect(LimitOrderFulfilled.events[2].name).to.eq("vault");
+        expect(LimitOrderFulfilled.events[2].type).to.eq("address");
+        expect(getAddress(LimitOrderFulfilled.events[2].value)).to.eq(getAddress(this.opAAVEInvst.address));
+
+        expect(LimitOrderFulfilled.events[3].name).to.eq("liquidationAmountVT");
+        expect(LimitOrderFulfilled.events[3].type).to.eq("uint256");
+        expect(LimitOrderFulfilled.events[3].value).to.eq(orderParams.liquidationAmountVT.toString());
+
+        expect(LimitOrderFulfilled.events[4].name).to.eq("fee");
+        expect(LimitOrderFulfilled.events[4].type).to.eq("uint256");
+        expect(LimitOrderFulfilled.events[4].value).to.eq(_fee.toString());
+
+        expect(LimitOrderFulfilled.events[5].name).to.eq("stablecoinDepositAmountUT");
+        expect(LimitOrderFulfilled.events[5].type).to.eq("uint256");
+        expect(LimitOrderFulfilled.events[5].value).to.eq(_USDCAmount.sub(_fee).toString());
+
+        expect(LimitOrderFulfilled.events[6].name).to.eq("stablecoinAmountVT");
+        expect(LimitOrderFulfilled.events[6].type).to.eq("uint256");
+        expect(LimitOrderFulfilled.events[6].value).to.eq(_expectedopUSDCSave.toString());
+
+        expect(LimitOrderFulfilled.events[7].name).to.eq("stablecoinVault");
+        expect(LimitOrderFulfilled.events[7].type).to.eq("address");
+        expect(getAddress(LimitOrderFulfilled.events[7].value)).to.eq(this.opUSDCSave.address);
+
+        expect(getAddress(LimitOrderFulfilled.address)).to.eq(getAddress(this.limitOrder.address));
 
         const opUSDCSharesReceived = USDCAmount.sub(fee)
           .mul(ethers.utils.parseEther("1"))
@@ -651,7 +790,7 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
         );
       });
 
-      it("UniV2: Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault", async function () {
+      it("UniV2: Gelato resolves the order, limit order emits LimitOrderFulfilled event after deposit to opUSDC vault", async function () {
         const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
         orderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
         let _currentTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
@@ -718,6 +857,35 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
 
         expect(canExec).to.be.true;
 
+        //no fees in opAAVEvault so should be precise
+        const expectedAaveRedeemed = orderParams.liquidationAmountVT
+          .mul(await this.opAAVEInvst.getPricePerFullShare())
+          .div(BASIS); //must divide by basis as getPricePerFullShare returns 10**18
+
+        //simulate swap call for test values
+        const tx = await this.aave
+          .connect(this.signers.alice)
+          .approve(this.uniV2Router.address, ethers.utils.parseEther("1000000"));
+        await tx.wait(1);
+        const swapDeadline = expiration.add(BigNumber.from("1000000000000000000000000000000000000"));
+
+        const [, _USDCAmount] = await this.uniV2Router
+          .connect(this.signers.alice)
+          .callStatic.swapExactTokensForTokens(
+            expectedAaveRedeemed,
+            ethers.constants.Zero,
+            [this.aave.address, this.usdc.address],
+            this.signers.alice.address,
+            swapDeadline,
+          );
+
+        const _fee = _USDCAmount.mul(liquidationFeeBP).div(BASIS);
+
+        const _expectedopUSDCSave = _USDCAmount
+          .sub(_fee)
+          .mul(BASIS)
+          .div(await this.opUSDCSave.getPricePerFullShare());
+
         await expect(
           this.gelatoOps
             .connect(this.signers.gelatoNetworkSigner)
@@ -732,27 +900,47 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
               execPayload,
             ),
         )
-          .to.emit(this.limitOrder, "DeliverShares")
-          .withArgs(this.signers.alice.address);
+          .to.emit(this.limitOrder, "LimitOrderFulfilled")
+          .withArgs(
+            _taskId,
+            this.signers.alice.address,
+            this.opAAVEInvst.address,
+            orderParams.liquidationAmountVT,
+            _fee,
+            _USDCAmount.sub(_fee),
+            _expectedopUSDCSave,
+            this.opUSDCSave.address,
+          );
       });
 
-      it("UniV3: Gelato resolves the order, limit order emits DeliverShares event after deposit to opUSDC vault", async function () {
+      it("UniV3: Gelato resolves the order, limit order emits LimitOrderFulfilled event after deposit to opUSDC vault", async function () {
         const userShares = await this.opAAVEInvst.balanceOf(this.signers.alice.address);
         orderParamsUniV3.liquidationAmountVT = ethers.BigNumber.from(userShares).div(2);
         let _currentTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
         orderParamsUniV3.expiration = BigNumber.from(_currentTimestamp).add("600");
 
         const opAAVEInvstPPS = await this.opAAVEInvst.getPricePerFullShare();
+        //simulate swap call for test values
+        let tx = await this.aave
+          .connect(this.signers.alice)
+          .approve(this.uniV3Router.address, ethers.utils.parseEther("1000000"));
+        await tx.wait(1);
         const expectedAaveRedeemed = orderParamsUniV3.liquidationAmountVT.mul(opAAVEInvstPPS).div(BASIS);
-        const [, , expectedUSDC] = await this.uniV2Router.getAmountsOut(expectedAaveRedeemed, [
-          ethereumTokens.REWARD_TOKENS.AAVE,
-          ethereumTokens.WRAPPED_TOKENS.WETH,
-          ethereumTokens.PLAIN_TOKENS.USDC,
-        ]);
+        const swapDeadline = expiration.add(BigNumber.from("1000000000000000000000000000000000000"));
+
+        const expectedUSDC = await this.uniV3Router.connect(this.signers.alice).callStatic.exactInput({
+          path: uniV3SwapPath,
+          recipient: this.signers.alice.address,
+          deadline: swapDeadline,
+          amountIn: expectedAaveRedeemed,
+          amountOutMinimum: 0,
+        });
 
         orderParamsUniV3.returnLimitUT = expectedUSDC;
 
-        const tx = await this.opAAVEInvst
+        console.log("expectedUSDC ", expectedUSDC.toString());
+
+        tx = await this.opAAVEInvst
           .connect(this.signers.alice)
           .approve(this.limitOrder.address, ethers.constants.MaxUint256);
         await tx.wait(1);
@@ -818,6 +1006,13 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
 
         expect(canExec).to.be.true;
 
+        const _fee = expectedUSDC.mul(liquidationFeeBP).div(BASIS);
+
+        const _expectedopUSDCSave = expectedUSDC
+          .sub(_fee)
+          .mul(BASIS)
+          .div(await this.opUSDCSave.getPricePerFullShare());
+
         await expect(
           this.gelatoOps
             .connect(this.signers.gelatoNetworkSigner)
@@ -832,8 +1027,17 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
               execPayload,
             ),
         )
-          .to.emit(this.limitOrder, "DeliverShares")
-          .withArgs(this.signers.alice.address);
+          .to.emit(this.limitOrder, "LimitOrderFulfilled")
+          .withArgs(
+            _taskId,
+            this.signers.alice.address,
+            this.opAAVEInvst.address,
+            orderParams.liquidationAmountVT,
+            _fee,
+            expectedUSDC.sub(_fee),
+            _expectedopUSDCSave,
+            this.opUSDCSave.address,
+          );
       });
 
       describe("reverts if", () => {
@@ -871,8 +1075,33 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
           await tx.wait(1);
           tx = await this.limitOrder.connect(this.signers.bob).createOrder(orderParams);
           await tx.wait(1);
-          tx = await this.limitOrder.connect(this.signers.bob).cancelOrder(this.opAAVEInvst.address);
-          await tx.wait(1);
+
+          const resolverHash = ethers.utils.keccak256(
+            new ethers.utils.AbiCoder().encode(
+              ["address", "bytes"],
+              [
+                this.limitOrder.address,
+                this.limitOrder.interface.encodeFunctionData("canExecuteOrder", [
+                  this.signers.bob.address,
+                  this.opAAVEInvst.address,
+                ]),
+              ],
+            ),
+          );
+
+          const _taskId = await this.gelatoOps.getTaskId(
+            this.limitOrder.address,
+            this.limitOrder.address,
+            await this.gelatoOps.getSelector("execute(address,address,uint256)"),
+            true,
+            ethers.constants.AddressZero,
+            resolverHash,
+          );
+
+          await expect(this.limitOrder.connect(this.signers.bob).cancelOrder(this.opAAVEInvst.address))
+            .to.emit(this.limitOrder, "LimitOrderCancelled")
+            .withArgs(_taskId, this.signers.bob.address, this.opAAVEInvst.address);
+
           const [_canExec, execPayload] = await this.limitOrder.canExecuteOrder(
             this.signers.bob.address,
             this.opAAVEInvst.address,
@@ -996,7 +1225,48 @@ export function describeBehaviorOfLimitOrderActions(_skips?: string[]): void {
 
           modifyOrderParams.liquidationAmountVT = ethers.BigNumber.from(userShares).div(3);
 
-          await this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams);
+          const resolverHash = ethers.utils.keccak256(
+            new ethers.utils.AbiCoder().encode(
+              ["address", "bytes"],
+              [
+                this.limitOrder.address,
+                this.limitOrder.interface.encodeFunctionData("canExecuteOrder", [
+                  this.signers.alice.address,
+                  this.opAAVEInvst.address,
+                ]),
+              ],
+            ),
+          );
+
+          const _taskId = await this.gelatoOps.getTaskId(
+            this.limitOrder.address,
+            this.limitOrder.address,
+            await this.gelatoOps.getSelector("execute(address,address,uint256)"),
+            true,
+            ethers.constants.AddressZero,
+            resolverHash,
+          );
+
+          await expect(
+            this.limitOrder.connect(this.signers.alice).modifyOrder(this.opAAVEInvst.address, modifyOrderParams),
+          )
+            .to.emit(this.limitOrder, "LimitOrderModified")
+            .withArgs(
+              modifyOrderParams.liquidationAmountVT,
+              modifyOrderParams.expectedOutputUT,
+              modifyOrderParams.expiration,
+              modifyOrderParams.lowerBound,
+              modifyOrderParams.upperBound,
+              modifyOrderParams.returnLimitUT,
+              modifyOrderParams.expectedOutputVT,
+              _taskId,
+              this.signers.alice.address,
+              modifyOrderParams.vault,
+              modifyOrderParams.stablecoinVault,
+              modifyOrderParams.dexRouter,
+              modifyOrderParams.swapOnUniV3,
+              modifyOrderParams.direction,
+            );
 
           const makerOrder = await this.limitOrder.userVaultOrder(this.signers.alice.address, this.opAAVEInvst.address);
           const modifiedOrder: Order = {

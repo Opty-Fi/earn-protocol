@@ -91,7 +91,7 @@ interface ILimitOrderInternal {
      * @param stablecoinAmountVT amount in vault token minted by stablecoin vault
      * @param stablecoinVault the opVault with stable coins as underlying to send liquidated shares to
      */
-    event LimitOrderFulFilled(
+    event LimitOrderFulfilled(
         bytes32 taskId,
         address maker,
         address vault,

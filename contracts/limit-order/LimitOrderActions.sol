@@ -61,7 +61,7 @@ abstract contract LimitOrderActions is LimitOrderView, ILimitOrderActions {
             address _stablecoinVault
         ) = _execute(LimitOrderStorage.layout(), _maker, _vault, _deadline);
 
-        emit LimitOrderFulFilled(
+        emit LimitOrderFulfilled(
             _taskId,
             _maker,
             _vault,
