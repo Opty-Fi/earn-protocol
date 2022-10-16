@@ -1,14 +1,13 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { task, types } from "hardhat/config";
-//@ts-ignore
-import { ILimitOrder } from "../../typechain-types";
+import { ILimitOrder } from "../../typechain";
 
-task("setTreasury", "sets the treasury for the LimitOrderDiamond contract")
-  .addParam("limitorderdiamond", "the address of the LimitOrderDiamond", "", types.string)
+task("setTreasury", "sets the treasury for the LimitOrder contract")
+  .addParam("limitorder", "the address of the LimitOrder", "", types.string)
   .addParam("treasury", "the address of the new treasury", "", types.string)
-  .setAction(async ({ limitorderdiamond, treasury }, hre) => {
+  .setAction(async ({ limitorder, treasury }, hre) => {
     const ethers = hre.ethers;
-    if (limitorderdiamond == "") {
+    if (limitorder == "") {
       throw new Error("limit order diamond address required");
     }
 
@@ -16,16 +15,15 @@ task("setTreasury", "sets the treasury for the LimitOrderDiamond contract")
       throw new Error("treasury address required");
     }
 
-    const instance = await ethers.getContractAt("LimitOrderDiamond", ethers.utils.getAddress(limitorderdiamond));
+    const instance = await ethers.getContractAt("LimitOrder", ethers.utils.getAddress(limitorder));
 
     const owner: SignerWithAddress = await ethers.getSigner(await instance.owner());
-    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorderdiamond));
+    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorder));
 
-    console.log(`Setting the treasury to ${treasury} for contract ${limitorderdiamond}...`);
+    console.log(`Setting the treasury to ${treasury} for contract ${limitorder}...`);
 
     try {
-      //@ts-ignore
-      let tx = await settings.connect(owner)["setTreasury(address)"](ethers.utils.getAddress(treasury));
+      const tx = await settings.connect(owner).setTreasury(ethers.utils.getAddress(treasury));
 
       await tx.wait();
     } catch (err) {

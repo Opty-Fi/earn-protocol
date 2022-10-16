@@ -254,6 +254,7 @@ abstract contract LimitOrderInternal is ILimitOrderInternal, SafeOwnable {
         require(_isExecutable, _reason);
     }
 
+    /*solhint-disable  avoid-low-level-calls*/
     /**
      * @notice liquidates an amount of shares in the target opVault
      * @param _l LimitOrderStorage Layout struct
@@ -278,6 +279,8 @@ abstract contract LimitOrderInternal is ILimitOrderInternal, SafeOwnable {
             _l.accountProofs[_order.vault]
         );
     }
+
+    /*solhint-enable  avoid-low-level-calls*/
 
     /**
      * @notice exchanges tokens for USDC via swap diamond

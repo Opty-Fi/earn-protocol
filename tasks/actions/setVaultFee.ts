@@ -1,16 +1,15 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { task, types } from "hardhat/config";
-//@ts-ignore
-import { ILimitOrder } from "../../typechain-types";
+import { ILimitOrder } from "../../typechain";
 
 task("setVaultFee", "sets the liquidation fee of an opVault")
-  .addParam("limitorderdiamond", "the address of the LimitOrderDiamond", "", types.string)
+  .addParam("limitorder", "the address of the LimitOrder", "", types.string)
   .addParam("vault", "the address of the opVault", "", types.string)
   .addParam("fee", "the liquidation fee as a string", "", types.string)
-  .setAction(async ({ limitorderdiamond, vault, fee }, hre) => {
+  .setAction(async ({ limitorder, vault, fee }, hre) => {
     const ethers = hre.ethers;
 
-    if (limitorderdiamond == "") {
+    if (limitorder == "") {
       throw new Error("limit order diamond address required");
     }
 
@@ -22,18 +21,17 @@ task("setVaultFee", "sets the liquidation fee of an opVault")
       throw new Error("fee out of bounds");
     }
 
-    const instance = await ethers.getContractAt("LimitOrderDiamond", ethers.utils.getAddress(limitorderdiamond));
+    const instance = await ethers.getContractAt("LimitOrder", ethers.utils.getAddress(limitorder));
 
     const owner: SignerWithAddress = await ethers.getSigner(await instance.owner());
-    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorderdiamond));
+    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorder));
 
     console.log(`Setting the liquidation fee of ${vault} to ${fee} ETH...`);
 
     try {
-      //@ts-ignore
-      let tx = await settings
+      const tx = await settings
         .connect(owner)
-        ["setVaultLiquidationFee(uint256,address)"](ethers.utils.parseEther(fee), ethers.utils.getAddress(vault));
+        .setVaultLiquidationFee(ethers.utils.parseEther(fee), ethers.utils.getAddress(vault));
 
       await tx.wait();
     } catch (err) {

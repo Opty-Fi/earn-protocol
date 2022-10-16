@@ -3,7 +3,7 @@ import { describeBehaviorOfLimitOrderSettings } from "./LimitOrderSettings.behav
 import { describeBehaviorOfLimitOrderView } from "./LimitOrderView.behavior";
 
 export function describeBehaviorOfLimitOrder(skips?: string[]): void {
-  describeBehaviorOfLimitOrderActions(skips), describeBehaviorOfLimitOrderSettings(skips);
-  // ,
-  // describeBehaviorOfLimitOrderView(skips);
+  describeBehaviorOfLimitOrderActions(skips),
+    describeBehaviorOfLimitOrderSettings(skips),
+    describeBehaviorOfLimitOrderView(skips);
 }

@@ -1,15 +1,14 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { task, types } from "hardhat/config";
-//@ts-ignore
-import { ILimitOrder } from "../../typechain-types";
+import { ILimitOrder } from "../../typechain";
 
 task("setOracle", "sets the address of the OptyFiOracle contract")
-  .addParam("limitorderdiamond", "the address of the LimitOrderDiamond", "", types.string)
+  .addParam("limitorder", "the address of the LimitOrder", "", types.string)
   .addParam("oracle", "the address of the new OptyFiOracle", "", types.string)
-  .setAction(async ({ oracle, limitorderdiamond }, hre) => {
+  .setAction(async ({ oracle, limitorder }, hre) => {
     const ethers = hre.ethers;
 
-    if (limitorderdiamond == "") {
+    if (limitorder == "") {
       throw new Error("limit order diamond address required");
     }
 
@@ -17,16 +16,15 @@ task("setOracle", "sets the address of the OptyFiOracle contract")
       throw new Error("oracle address required");
     }
 
-    const instance = await ethers.getContractAt("LimitOrderDiamond", ethers.utils.getAddress(limitorderdiamond));
+    const instance = await ethers.getContractAt("LimitOrder", ethers.utils.getAddress(limitorder));
 
     const owner: SignerWithAddress = await ethers.getSigner(await instance.owner());
-    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorderdiamond));
+    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorder));
 
-    console.log(`Setting the oracle to ${oracle} for contract ${limitorderdiamond}...`);
+    console.log(`Setting the oracle to ${oracle} for contract ${limitorder}...`);
 
     try {
-      //@ts-ignore
-      let tx = await settings.connect(owner)["setOracle(address)"](ethers.utils.getAddress(oracle));
+      const tx = await settings.connect(owner).setOracle(ethers.utils.getAddress(oracle));
 
       await tx.wait();
     } catch (err) {

@@ -1,10 +1,9 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { task, types } from "hardhat/config";
-//@ts-ignore
-import { ILimitOrder } from "../../typechain-types";
+import { ILimitOrder } from "../../typechain";
 
-task("setAccountProof", "sets the account merkle proof for a given opVault in LimitOrderDiamond contract")
-  .addParam("limitorderdiamond", "the address of the limitOrderDiamond", "", types.string)
+task("setAccountProof", "sets the account merkle proof for a given opVault in LimitOrder contract")
+  .addParam("limitorder", "the address of the limitOrder", "", types.string)
   .addParam("vault", "the address of the opVault the account proof is for", "", types.string)
   .addParam(
     "proofstring",
@@ -12,10 +11,10 @@ task("setAccountProof", "sets the account merkle proof for a given opVault in Li
     "",
     types.string,
   )
-  .setAction(async ({ limitorderdiamond, vault, proofstring }, hre) => {
+  .setAction(async ({ limitorder, vault, proofstring }, hre) => {
     const ethers = hre.ethers;
 
-    if (limitorderdiamond == "") {
+    if (limitorder == "") {
       throw new Error("limit order diamond address required");
     }
 
@@ -29,18 +28,15 @@ task("setAccountProof", "sets the account merkle proof for a given opVault in Li
       throw new Error("opVault does not match account that proof is for");
     }
 
-    const instance = await ethers.getContractAt("LimitOrderDiamond", ethers.utils.getAddress(limitorderdiamond));
+    const instance = await ethers.getContractAt("LimitOrder", ethers.utils.getAddress(limitorder));
 
     const owner: SignerWithAddress = await ethers.getSigner(await instance.owner());
-    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorderdiamond));
+    const settings: ILimitOrder = await ethers.getContractAt("ILimitOrder", ethers.utils.getAddress(limitorder));
 
     console.log(`Setting the account proof for ${vault}...`);
 
     try {
-      //@ts-ignore
-      let tx = await settings
-        .connect(owner)
-        ["setAccountProof(bytes32[],address)"](proof.proof, ethers.utils.getAddress(vault));
+      const tx = await settings.connect(owner).setAccountProof(proof.proof, ethers.utils.getAddress(vault));
 
       await tx.wait();
     } catch (err) {
