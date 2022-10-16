@@ -2,7 +2,7 @@
 // Please do not keep this file under helpers/utils as it imports hre from hardhat
 import { BigNumber, BigNumberish, Contract, Signature, Signer } from "ethers";
 import { getAddress, parseEther, splitSignature } from "ethers/lib/utils";
-import hre, { ethers } from "hardhat";
+import hre, { deployments, ethers } from "hardhat";
 import ethTokens from "@optyfi/defi-legos/ethereum/tokens/wrapped_tokens";
 import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
@@ -16,9 +16,11 @@ import {
   ERC20Permit,
   RelayHub__factory,
   RelayRegistrar__factory,
+  Vault,
+  Vault__factory,
 } from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
-import { StakeManager, TokenGasCalculator, RelayHub, TestToken, RelayRegistrar } from "../../typechain";
+import { StakeManager, TokenGasCalculator, RelayHub, RelayRegistrar } from "../../typechain";
 import { deployContract } from "../../helpers/helpers";
 import { PrefixedHexString } from "ethereumjs-util";
 import { GasUsedEvent } from "../../typechain/TokenGasCalculator";
@@ -32,9 +34,7 @@ import {
   RelayRequest,
   defaultEnvironment,
   splitRelayUrlForRegistrar,
-  TypedRequestData,
 } from "@opengsn/common";
-import { defaultGsnConfig } from "@opengsn/provider";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -549,4 +549,25 @@ export async function deployHub(
   // @ts-ignore
   hub._secretRegistrarInstance = relayRegistrar;
   return hub;
+}
+
+export async function getVaultDeploymentAndConfigure(
+  vaultName: string,
+  vaultConfiguration: string,
+  maxUserdepoist: string,
+  minUserDeposit: string,
+  maxVaultTVL: string,
+): Promise<Vault> {
+  const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get(vaultName)).address;
+  let vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
+  //set vault config
+  const _vaultConfiguration = BigNumber.from(vaultConfiguration);
+  await vault.setVaultConfiguration(_vaultConfiguration);
+  await vault.setValueControlParams(
+    maxUserdepoist, // 10,000 USDC
+    minUserDeposit, // 1000 USDC
+    maxVaultTVL, // 1,000,000 USDC
+  );
+
+  return vault;
 }
