@@ -271,6 +271,13 @@ describe(`${fork}-Vault-rev4`, () => {
                   ),
                 );
                 console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
+                console.log(
+                  "TotalSupply ",
+                  formatUnits(
+                    await this.vaults[riskProfile][token].totalSupply(),
+                    await this.vaults[riskProfile][token].decimals(),
+                  ),
+                );
               }
 
               const tx = await this.vaults[riskProfile][token].rebalance();
@@ -327,6 +334,13 @@ describe(`${fork}-Vault-rev4`, () => {
                   ),
                 );
                 console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
+                console.log(
+                  "TotalSupply ",
+                  formatUnits(
+                    await this.vaults[riskProfile][token].totalSupply(),
+                    await this.vaults[riskProfile][token].decimals(),
+                  ),
+                );
               }
             });
             it(`${riskProfile}-${token}-${strategy}-(first) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
@@ -418,6 +432,13 @@ describe(`${fork}-Vault-rev4`, () => {
                   ),
                 );
                 console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
+                console.log(
+                  "TotalSupply ",
+                  formatUnits(
+                    await this.vaults[riskProfile][token].totalSupply(),
+                    await this.vaults[riskProfile][token].decimals(),
+                  ),
+                );
               }
               const tx = await this.vaults[riskProfile][token]
                 .connect(this.signers.financeOperator)
@@ -481,6 +502,13 @@ describe(`${fork}-Vault-rev4`, () => {
                   ),
                 );
                 console.log("PPS ", formatUnits(await this.vaults[riskProfile][token].getPricePerFullShare(), 18));
+                console.log(
+                  "TotalSupply ",
+                  formatUnits(
+                    await this.vaults[riskProfile][token].totalSupply(),
+                    await this.vaults[riskProfile][token].decimals(),
+                  ),
+                );
               }
             });
             it(`${riskProfile}-${token}-${strategy}-(second) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
@@ -566,6 +594,7 @@ async function deposit(
       formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
     );
     console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+    console.log("TotalSupply ", formatUnits(await vaultInstance.totalSupply(), await vaultInstance.decimals()));
   }
   for (let i = 0; i < signers.length; i++) {
     const tx1 = await underlyingTokenInstance
@@ -620,6 +649,7 @@ async function deposit(
         formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
       );
       console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+      console.log("TotalSupply ", formatUnits(await vaultInstance.totalSupply(), await vaultInstance.decimals()));
     }
   }
 }
@@ -685,6 +715,7 @@ async function withdraw(
         formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
       );
       console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+      console.log("TotalSupply ", formatUnits(await vaultInstance.totalSupply(), await vaultInstance.decimals()));
     }
     const tx = await vaultInstance
       .connect(signers[i])
@@ -741,6 +772,7 @@ async function withdraw(
         formatUnits(await vaultInstance.balanceOf(signers[1].address), await vaultInstance.decimals()),
       );
       console.log("PPS ", formatUnits(await vaultInstance.getPricePerFullShare(), 18));
+      console.log("TotalSupply ", formatUnits(await vaultInstance.totalSupply(), await vaultInstance.decimals()));
     }
   }
 }
