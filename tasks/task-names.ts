@@ -215,6 +215,10 @@ export default {
       NAME: "change-vault-proxy-v2-admin",
       DESCRIPTION: "Change the vault proxy admin",
     },
+    SIGN_EIP712_PERMIT: {
+      NAME: "sign-eip712-permit",
+      DESCRIPTION: "sign eip712 permit",
+    },
     UPGRADE_TO_AND_CALL: {
       NAME: "upgrade-to-and-call",
       DESCRIPTION: "Upgrade proxy and call",
