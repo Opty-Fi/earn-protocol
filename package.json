@@ -104,7 +104,7 @@
     "optyfi-sdk:mainnet": "hardhat run scripts/optyfi-sdk.ts --network mainnet",
     "optyfi-sdk:polygon": "hardhat run scripts/optyfi-sdk.ts --network polygon",
     "test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/2_vault.spec.ts",
-    "test:limit-order:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/limit-order/limitOrder.ts --deploy-fixture",
+    "test:limit-order:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/limit-order/LimitOrder.ts --deploy-fixture",
     "vaultv2-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
     "test-clean": "yarn clean && yarn test",
     "test-fast:vaultv3-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
