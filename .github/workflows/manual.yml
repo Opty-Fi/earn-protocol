@@ -70,7 +70,7 @@ jobs:
           yarn test-fast:vault-strategy:mainnet
           yarn test-fast:vault-strategy:polygon
           yarn test-fast:vault-strategy:avalanche
-          test:limit-order:mainnet
+          yarn test:limit-order:mainnet
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.18.0
