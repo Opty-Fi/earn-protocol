@@ -8,8 +8,8 @@ import TASKS from "../task-names";
 task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.DESCRIPTION)
   .addParam("registry", "the address of registry", "", types.string)
   .addParam("name", "the name of adapter", "", types.string)
-  .addParam("deployedonce", "allow checking whether contracts were deployed previously", true, types.boolean)
-  .setAction(async ({ registry, name, deployedonce }, hre) => {
+  .addParam("deployedOnce", "allow checking whether contracts were deployed previously", true, types.boolean)
+  .setAction(async ({ registry, name, deployedOnce }, hre) => {
     if (name === "") {
       throw new Error("name cannot be empty");
     }
@@ -28,7 +28,7 @@ task(TASKS.DEPLOYMENT_TASKS.DEPLOY_ADAPTER.NAME, TASKS.DEPLOYMENT_TASKS.DEPLOY_A
 
     try {
       const [owner] = await hre.ethers.getSigners();
-      const adaptersContract: Contract = await deployAdapter(hre, owner, name, registry, deployedonce);
+      const adaptersContract: Contract = await deployAdapter(hre, owner, name, registry, deployedOnce);
       console.log("Finished deploying adapter");
       console.log(`${name} address : ${adaptersContract.address}`);
     } catch (error) {

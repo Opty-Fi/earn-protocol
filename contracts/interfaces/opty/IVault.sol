@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity >=0.6.12;
 pragma experimental ABIEncoderV2;
 
 //  libraries
 import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
+// interfaces
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Interface for opty.fi's interest bearing vault
@@ -12,6 +14,20 @@ import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/
  * @notice Contains mix of permissioned and permissionless vault methods
  */
 interface IVault {
+    /**
+     * @notice Set vault name
+     * @dev governance can change the name
+     * @param _name name of vault
+     */
+    function setName(string calldata _name) external;
+
+    /**
+     * @notice Assign vault symbol
+     * @dev governance can change the symbol
+     * @param _symbol symbol of the vault
+     */
+    function setSymbol(string calldata _symbol) external;
+
     /**
      * @notice Assign a risk profile code
      * @dev function to set code of risk profile
@@ -82,13 +98,6 @@ interface IVault {
     function setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) external;
 
     /**
-     * @notice function to control the allowance of smart contract interaction
-     *         with vault
-     * @param _whitelistedCodesRoot whitelisted codes root hash
-     */
-    function setWhitelistedCodesRoot(bytes32 _whitelistedCodesRoot) external;
-
-    /**
      * @notice activates or deactives vault mode where
      *        all strategies go into full withdrawal. During emergency shutdown
      *        - No Users may deposit into the Vault (but may withdraw as usual.)
@@ -124,28 +133,36 @@ interface IVault {
     /**
      * @notice Deposit underlying tokens to the vault
      * @dev Mint the shares right away as per oracle based price per full share value
+     * @param _beneficiary the address of the deposit beneficiary
      * @param _userDepositUT Amount in underlying token
+     * @param _expectedOutput The minimum amount of vault tokens that must be minted
+     *         for the transaction to not revert
+     * @param _permitParams permit parameters: amount, deadline, v, s, r
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userDepositVault(
+        address _beneficiary,
         uint256 _userDepositUT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external;
+        uint256 _expectedOutput,
+        bytes calldata _permitParams,
+        bytes32[] calldata _accountsProof
+    ) external returns (uint256);
 
     /**
-     * @notice redeems the vault shares and transfers underlying token to the withdrawer
+     * @notice redeems the vault shares and transfers underlying token to `_beneficiary`
      * @dev Burn the shares right away as per oracle based price per full share value
+     * @param _receiver the address which will receive the underlying tokens
      * @param _userWithdrawVT amount in vault token
+     * @param _expectedOutput minimum amount of underlying tokens that must be received
+     *         to not revert transaction
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      */
     function userWithdrawVault(
+        address _receiver,
         uint256 _userWithdrawVT,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
-    ) external;
+        uint256 _expectedOutput,
+        bytes32[] calldata _accountsProof
+    ) external returns (uint256);
 
     /**
      * @notice function to deposit whole balance of underlying token to current strategy
@@ -160,19 +177,75 @@ interface IVault {
     function adminCall(bytes[] memory _codes) external;
 
     /**
+     * @notice function to claim the whole balance of reward tokens
+     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     */
+    function claimRewardToken(address _liquidityPool) external;
+
+    /**
+     * @notice function to swap the vault's entire balance of reward token for the vault's underlying token
+     * @param _rewardToken address of the reward token to harvest
+     * @param _dex swap router
+     * @param _isUniV3 whether router is uniswapV3 or not
+     * @param _minimumUnderlyingTokenAmount minimum underlying after swap that must be received
+     *         for the transaction to not revert
+     * @param _deadline swap deadline
+     * @param _path token path for uniswapV2 and its forks
+     * @param _pathUniV3 path for uniswapV3
+     */
+    function harvest(
+        address _rewardToken,
+        address _dex,
+        bool _isUniV3,
+        uint256 _minimumUnderlyingTokenAmount,
+        uint256 _deadline,
+        address[] memory _path,
+        bytes memory _pathUniV3
+    ) external;
+
+    /**
+     * @notice Allow passing a signed message to approve spending
+     * @dev implements the permit function as for
+     * https://github.com/ethereum/EIPs/blob/8a34d644aacf0f9f8f00815307fd7dd5da07655f/EIPS/eip-2612.md
+     * @param _owner The owner of the funds
+     * @param _spender The spender
+     * @param _value The amount
+     * @param _deadline The deadline timestamp, type(uint256).max for max deadline
+     * @param _v Signature param
+     * @param _s Signature param
+     * @param _r Signature param
+     */
+    function permit(
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) external;
+
+    /**
+     * @notice Provide the allowances for the spenders to spent vault owned tokens
+     * @dev the length of tokens and spenders should be same
+     * @param _tokens list of ERC20 tokens
+     * @param _spenders list of spender addresses
+     */
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
+
+    /**
+     * @notice Reset the allowances for the spenders to spent vault owned tokens
+     * @dev the length of tokens and spenders should be same
+     * @param _tokens list of ERC20 tokens
+     * @param _spenders list of spender addresses
+     */
+    function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
+
+    /**
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
     function balanceUT() external view returns (uint256);
-
-    /**
-     * @dev A helper function to validate the vault value will not surpass max or min vault value
-     *      within the same block
-     * @param _diff absolute difference between minimum and maximum vault value within a block
-     * @param _currentVaultValue the underlying token balance of the vault
-     * @return bool returns true if vault value jump is within permissible limits
-     */
-    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) external view returns (bool);
 
     /**
      * @notice Calculate the value of a vault share in underlying token
@@ -206,7 +279,6 @@ interface IVault {
      * @param _deductions amount in underlying token to not consider in as a part of
      *       user deposit amount
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
@@ -215,8 +287,7 @@ interface IVault {
         bool _addUserDepositUT,
         uint256 _userDepositUTWithDeductions,
         uint256 _deductions,
-        bytes32[] calldata _accountsProof,
-        bytes32[] calldata _codesProof
+        bytes32[] calldata _accountsProof
     ) external view returns (bool, string memory);
 
     /**
@@ -231,15 +302,13 @@ interface IVault {
      * @param _user account address of the user
      * @param _userWithdrawVT amount of vault tokens to burn
      * @param _accountsProof merkle proof for caller
-     * @param _codesProof merkle proof for code hash if caller is smart contract
      * @return true if permitted, false otherwise
      * @return reason string if return false, empty otherwise
      */
     function userWithdrawPermitted(
         address _user,
         uint256 _userWithdrawVT,
-        bytes32[] memory _accountsProof,
-        bytes32[] memory _codesProof
+        bytes32[] memory _accountsProof
     ) external view returns (bool, string memory);
 
     /**
@@ -285,6 +354,16 @@ interface IVault {
      * @return array of strategy steps
      */
     function getInvestStrategySteps() external view returns (DataTypes.StrategyStep[] memory);
+
+    /**
+     * @dev function to compute the keccak256 hash of the strategy steps
+     * @param _investStrategySteps metadata for invest strategy
+     * @return keccak256 hash of the invest strategy and underlying tokens hash
+     */
+    function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
+        external
+        view
+        returns (bytes32);
 
     /**
      * @dev Emitted when emergency shutdown over vault is changed

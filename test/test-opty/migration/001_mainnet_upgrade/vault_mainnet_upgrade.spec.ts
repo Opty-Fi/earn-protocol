@@ -8,11 +8,11 @@ import { getAddress } from "ethers/lib/utils";
 import { assertVaultConfiguration, Signers, to_10powNumber_BN } from "../../../../helpers/utils";
 import {
   ERC20,
+  ERC20Permit,
   InitializableImmutableAdminUpgradeabilityProxy,
   Registry,
   RegistryProxy,
   StrategyProvider,
-  Vault,
 } from "../../../../typechain";
 import { opUSDCgrow, opWETHgrow, RegistryProxy as RegistryProxyAddress } from "../../_deployments/mainnet.json";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
@@ -34,6 +34,7 @@ import { deployStrategyProvider } from "./deployStrategyProvider";
 import { approveAndMapLiquidityPoolToAdapter } from "./approveAndMapLiquidityPoolToAdapter";
 import { configopUSDCgrow } from "./configopUSDCgrow";
 import { configopWETHgrow } from "./configopWETHgrow";
+import { VaultV3, VaultV3__factory } from "../../../../helpers/types/vaultv3";
 
 chai.use(solidity);
 
@@ -101,7 +102,7 @@ const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
   outputToken: strategy.outputToken,
   isBorrow: false,
 }));
-describe("Vault Ethereum on-chain upgrade", () => {
+describe(`${fork}-Vault-rev3 Ethereum on-chain upgrade`, () => {
   before(async function () {
     await network.provider.request({
       method: "hardhat_reset",
@@ -144,7 +145,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
     this.signers.riskOperator = await ethers.getSigner(riskOperatorAddress);
     await setZeroStrategy();
-    this.usdc = <ERC20>(
+    this.usdc = <ERC20Permit>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
     );
     await setTokenBalanceInStorage(this.usdc, this.signers.admin.address, "20000");
@@ -155,7 +156,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     this.opUSDCgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPUSDCGROW_VAULT_PROXY_ADDRESS)
     );
-    this.opUSDCgrowOld = await ethers.getContractAt(oldAbis.oldVault, OPUSDCGROW_VAULT_PROXY_ADDRESS);
+    this.opUSDCgrowOld = await ethers.getContractAt(oldAbis.oldVaultV2, OPUSDCGROW_VAULT_PROXY_ADDRESS);
     this.opUSDCgrowGasOwedToOperator = await this.opUSDCgrowOld.gasOwedToOperator();
     this.opUSDCgrowDepositQueue = await this.opUSDCgrowOld.depositQueue();
     this.opUSDCgrowPricePerShareWrite = await this.opUSDCgrowOld.pricePerShareWrite();
@@ -170,7 +171,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     this.opWETHgrowProxy = <InitializableImmutableAdminUpgradeabilityProxy>(
       await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, OPWETHGROW_VAULT_PROXY_ADDRESS)
     );
-    this.opWETHgrowOld = await ethers.getContractAt(oldAbis.oldVault, OPWETHGROW_VAULT_PROXY_ADDRESS);
+    this.opWETHgrowOld = await ethers.getContractAt(oldAbis.oldVaultV2, OPWETHGROW_VAULT_PROXY_ADDRESS);
     this.opWETHgrowGasOwedToOperator = await this.opWETHgrowOld.gasOwedToOperator();
     this.opWETHgrowDepositQueue = await this.opWETHgrowOld.depositQueue();
     this.opWETHgrowPricePerShareWrite = await this.opWETHgrowOld.pricePerShareWrite();
@@ -182,13 +183,13 @@ describe("Vault Ethereum on-chain upgrade", () => {
     });
     // ====================================================
     await deployAndUpgradeUSDC();
-    this.opUSDCgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opUSDCgrowProxy.address);
+    this.opUSDCgrow = <VaultV3>await ethers.getContractAt(VaultV3__factory.abi, this.opUSDCgrowProxy.address);
     expect(await this.opUSDCgrow.name()).to.eq("op USD Coin Growth");
     expect(await this.opUSDCgrow.symbol()).to.eq("opUSDCgrow");
     expect(await this.opUSDCgrow.decimals()).to.eq(6);
     // ====================================================
     await deployAndUpgradeWETH();
-    this.opWETHgrow = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, this.opWETHgrowProxy.address);
+    this.opWETHgrow = <VaultV3>await ethers.getContractAt(VaultV3__factory.abi, this.opWETHgrowProxy.address);
     expect(await this.opWETHgrow.name()).to.eq("op Wrapped Ether Growth");
     expect(await this.opWETHgrow.symbol()).to.eq("opWETHgrow");
     expect(await this.opWETHgrow.decimals()).to.eq(18);
@@ -302,9 +303,9 @@ describe("Vault Ethereum on-chain upgrade", () => {
     expect(await (await this.opWETHgrow.getInvestStrategySteps()).length).to.eq(0);
   });
 
-  describe("test frax, usdn3Crv and steth strategy", async function () {
+  describe(`${fork}-test frax, usdn3Crv and steth strategy`, async function () {
     before(async function () {
-      this.usdc = <ERC20>(
+      this.usdc = <ERC20Permit>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
       );
       this.weth = <ERC20>(

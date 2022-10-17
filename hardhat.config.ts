@@ -12,6 +12,7 @@ import "hardhat-gas-reporter";
 import "hardhat-docgen";
 import "@typechain/hardhat";
 import "@tenderly/hardhat-tenderly";
+import "hardhat-contract-sizer";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,
@@ -104,6 +105,22 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: "0.8.15",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/solidity-template/issues/31
+            bytecodeHash: "none",
+          },
+          // Disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   etherscan: {
@@ -165,7 +182,7 @@ const config: HardhatUserConfig = {
       NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
     ),
     hardhat: {
-      hardfork: "london",
+      hardfork: "merge",
       initialBaseFeePerGas: 1_00_000_000,
       gasPrice: "auto",
       forking: buildForkConfig(FORK as eEVMNetwork, FORK_BLOCK_NUMBER),

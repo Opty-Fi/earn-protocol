@@ -3,6 +3,7 @@ import { eEVMNetwork } from "../../../../helper-hardhat-config";
 import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
 import { StrategiesByTokenByChain } from "../../../../helpers/data/adapter-with-strategies";
+import { VaultV3__factory } from "../../../../helpers/types/vaultv3";
 import { getRiskProfileCode, getUnpause } from "../../../../helpers/utils";
 import { RegistryProxy as registryProxyAddress, opWETHgrow } from "../../_deployments/mainnet.json";
 
@@ -10,7 +11,7 @@ export async function configopWETHgrow(strategyProviderAddress: string, fork: eE
   const { BigNumber } = ethers;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
 
-  const opWETHgrowInstance = await ethers.getContractAt("Vault", opWETHgrow.VaultProxy);
+  const opWETHgrowInstance = await ethers.getContractAt(VaultV3__factory.abi, opWETHgrow.VaultProxy);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
