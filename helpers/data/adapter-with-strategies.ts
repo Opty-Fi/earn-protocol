@@ -2530,7 +2530,7 @@ export const StrategiesByTokenByChain: StrategiesByRiskProfileByTokenByChainType
 // (255) - 0
 // 0x02006bd60f089B6E8BA75c409a54CDea34AA511277f600050000000000000000
 // 905369955037451290754171167376807445279006054759646226264060540481286701056
-const vaultConfigRP0 = ethers.BigNumber.from(
+export const vaultConfigRP0 = ethers.BigNumber.from(
   "905369955037451290754171167376807445279006054759646226264060540481286701056",
 );
 
@@ -2551,7 +2551,7 @@ const vaultConfigRP0 = ethers.BigNumber.from(
 // (255) - 0
 // 0x0201000000000000000000000000000000000000000000640000000000000000
 // 906392544231311161076231617881117198619499239097192527361058388634069106688
-const vaultConfigRP1 = ethers.BigNumber.from(
+export const vaultConfigRP1 = ethers.BigNumber.from(
   "906392544231311161076231617881117198619499239097192527361058388634069106688",
 );
 
@@ -2572,7 +2572,7 @@ const vaultConfigRP1 = ethers.BigNumber.from(
 // (255) - 0
 // 0x0202000000000000000000000000000000000000000000640000000000000000
 // 908159391296089545405814915381860117135326722994068146319179994835361726464
-const vaultConfigRP2 = ethers.BigNumber.from(
+export const vaultConfigRP2 = ethers.BigNumber.from(
   "908159391296089545405814915381860117135326722994068146319179994835361726464",
 );
 
@@ -2707,7 +2707,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("100000000000000000000000"), // 100,000 NEWO minimum deposit
       totalValueLockedLimitUT: BigNumber.from("3000000000000000000000000"), // 3,000,000 NEWO TVL limit
     },
-
     AAVE: {
       symbol: "opAAVE-Invst",
       name: "OptyFi AAVE Invest Vault",
@@ -2718,7 +2717,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 AAVE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 AAVE TVL limit
     },
-
     APE: {
       symbol: "opAPE-Invst",
       name: "OptyFi APE Invest Vault",
@@ -2729,7 +2727,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 APE minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 APE TVL limit
     },
-
     SUSHI: {
       symbol: "opSUSHI-Invst",
       name: "OptyFi SUSHI Invest Vault",
@@ -2740,7 +2737,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 SUSHI minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 SUSHI TVL limit
     },
-
     MANA: {
       symbol: "opMANA-Invst",
       name: "OptyFi MANA Invest Vault",
@@ -2751,7 +2747,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 MANA minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 MANA TVL limit
     },
-
     LINK: {
       symbol: "opLINK-Invst",
       name: "OptyFi LINK Invest Vault",
@@ -2762,7 +2757,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 LINK minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 LINK TVL limit
     },
-
     ENS: {
       symbol: "opENS-Invst",
       name: "OptyFi ENS Invest Vault",
@@ -2773,7 +2767,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ENS minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ENS TVL limit
     },
-
     COMP: {
       symbol: "opCOMP-Invst",
       name: "OptyFi COMP Invest Vault",
@@ -2784,7 +2777,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 COMP minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 COMP TVL limit
     },
-
     IMX: {
       symbol: "opIMX-Invst",
       name: "OptyFi IMX Invest Vault",
@@ -2795,7 +2787,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 IMX minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 IMX TVL limit
     },
-
     ALCX: {
       symbol: "opALCX-Invst",
       name: "OptyFi ALCX Invest Vault",
@@ -2806,7 +2797,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 ALCX minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 ALCX TVL limit
     },
-
     CRV: {
       symbol: "opCRV-Invst",
       name: "OptyFi CRV Invest Vault",
@@ -2817,7 +2807,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CRV minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 CRV TVL limit
     },
-
     CVX: {
       symbol: "opCVX-Invst",
       name: "OptyFi CVX Invest Vault",
@@ -2828,7 +2817,6 @@ const mainnetVaults: VaultType = {
       minimumDepositValueUT: BigNumber.from("10000000000000000000"), // 10 CVX minimum deposit
       totalValueLockedLimitUT: BigNumber.from("30000000000000000000000"), // 30,000 CVX TVL limit
     },
-
     YFI: {
       symbol: "opYFI-Invst",
       name: "OptyFi YFI Invest Vault",

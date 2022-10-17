@@ -13,6 +13,7 @@
 **/specification_docs
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/adapters
+contracts/optyfi-oracle
 
 # files
 *.env
