@@ -1,8 +1,10 @@
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -23,6 +25,7 @@ import {
   CurveSwapETHGateway,
   CurveSwapPoolAdapter,
   ERC20,
+  ERC20__factory,
   HarvestCodeProvider,
   Registry,
   RegistryProxy,
@@ -39,12 +42,13 @@ import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-acti
 import { StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { PoolRate } from "../../helpers/type";
+import { getAddress } from "ethers/lib/utils";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
-
-describe("Integration tests", function () {
+const sushiswapRouterAddress = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"; //mainnet
+describe(`${fork}-Vault-rev4-Integration tests`, function () {
   before(async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await hre.ethers.getSigners();
@@ -61,7 +65,7 @@ describe("Integration tests", function () {
     this.signers.eve = signers[10];
   });
 
-  describe("Deployment, config and actions", function () {
+  describe(`${fork}-Deployment, config and actions`, function () {
     it("0. Registry and Registry proxy deployment and connecting", async function () {
       this.registry = <Registry>await deployRegistry(hre, this.signers.admin, false);
       this.registryProxy = <RegistryProxy>(
@@ -698,11 +702,30 @@ describe("Integration tests", function () {
     });
 
     it("38. The strategy operator harvest rewards successfully", async function () {
-      const balanceBeforeUT = await this.vault.balanceUT();
-      await expect(await this.vault.connect(this.signers.strategyOperator).harvest(TypedTokens.CRV)).to.emit(
-        this.vault,
-        "Harvested",
+      const _rewardTokenInstance = <ERC20>(
+        await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.REWARD_TOKENS.CRV)
       );
+      await expect(
+        this.vault
+          .connect(this.signers.riskOperator)
+          .giveAllowances([ethereumTokens.REWARD_TOKENS.CRV], [sushiswapRouterAddress]),
+      )
+        .to.emit(_rewardTokenInstance, "Approval")
+        .withArgs(this.vault.address, getAddress(sushiswapRouterAddress), ethers.constants.MaxUint256);
+      const balanceBeforeUT = await this.vault.balanceUT();
+      // use uniswapV2 for swapping
+      const tx = await this.vault
+        .connect(this.signers.strategyOperator)
+        .harvest(
+          ethereumTokens.REWARD_TOKENS.CRV,
+          sushiswapRouterAddress,
+          false,
+          0,
+          9999999999,
+          [ethereumTokens.REWARD_TOKENS.CRV, ethereumTokens.WRAPPED_TOKENS.WETH, await this.vault.underlyingToken()],
+          "0x",
+        );
+      await tx.wait(1);
       const balanceAfterUT = await this.vault.balanceUT();
       expect(balanceAfterUT).gt(balanceBeforeUT);
     });

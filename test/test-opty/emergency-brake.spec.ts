@@ -15,7 +15,7 @@ chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 
-describe("Vault Protection", function () {
+describe(`${fork}-Vault-rev4 Protection`, function () {
   before(async function () {
     const MAX_AMOUNT = BigNumber.from(1000000000000);
     await deployments.fixture();
@@ -80,7 +80,7 @@ describe("Vault Protection", function () {
     );
   });
 
-  describe("Vault Deposit Protection", () => {
+  describe(`${fork}-Vault Deposit Protection`, () => {
     const tokenAmount = BigNumber.from("2000000000");
 
     it("User should be able to deposit to the vault", async function () {

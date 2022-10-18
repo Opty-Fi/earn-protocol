@@ -102,7 +102,7 @@ const cvxusdn3CrvStrategySteps = cvxusdn3Crv.map(strategy => ({
   outputToken: strategy.outputToken,
   isBorrow: false,
 }));
-describe("Vault Ethereum on-chain upgrade", () => {
+describe(`${fork}-Vault-rev3 Ethereum on-chain upgrade`, () => {
   before(async function () {
     await network.provider.request({
       method: "hardhat_reset",
@@ -303,7 +303,7 @@ describe("Vault Ethereum on-chain upgrade", () => {
     expect(await (await this.opWETHgrow.getInvestStrategySteps()).length).to.eq(0);
   });
 
-  describe("test frax, usdn3Crv and steth strategy", async function () {
+  describe(`${fork}-test frax, usdn3Crv and steth strategy`, async function () {
     before(async function () {
       this.usdc = <ERC20Permit>(
         await ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)

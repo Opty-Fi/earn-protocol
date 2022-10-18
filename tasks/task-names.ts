@@ -215,5 +215,9 @@ export default {
       NAME: "change-vault-proxy-v2-admin",
       DESCRIPTION: "Change the vault proxy admin",
     },
+    UPGRADE_TO_AND_CALL: {
+      NAME: "upgrade-to-and-call",
+      DESCRIPTION: "Upgrade proxy and call",
+    },
   },
 };

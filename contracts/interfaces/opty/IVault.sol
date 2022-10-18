@@ -5,6 +5,8 @@ pragma experimental ABIEncoderV2;
 
 //  libraries
 import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
+// interfaces
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Interface for opty.fi's interest bearing vault
@@ -201,8 +203,23 @@ interface IVault {
     /**
      * @notice function to swap the vault's entire balance of reward token for the vault's underlying token
      * @param _rewardToken address of the reward token to harvest
+     * @param _dex swap router
+     * @param _isUniV3 whether router is uniswapV3 or not
+     * @param _minimumUnderlyingTokenAmount minimum underlying after swap that must be received
+     *         for the transaction to not revert
+     * @param _deadline swap deadline
+     * @param _path token path for uniswapV2 and its forks
+     * @param _pathUniV3 path for uniswapV3
      */
-    function harvest(address _rewardToken) external;
+    function harvest(
+        address _rewardToken,
+        address _dex,
+        bool _isUniV3,
+        uint256 _minimumUnderlyingTokenAmount,
+        uint256 _deadline,
+        address[] memory _path,
+        bytes memory _pathUniV3
+    ) external;
 
     /**
      * @notice Allow passing a signed message to approve spending
@@ -239,34 +256,26 @@ interface IVault {
     function removeStrategy(bytes32 _strategyHash) external;
 
     /**
+     * @notice Provide the allowances for the spenders to spent vault owned tokens
+     * @dev the length of tokens and spenders should be same
+     * @param _tokens list of ERC20 tokens
+     * @param _spenders list of spender addresses
+     */
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
+
+    /**
+     * @notice Reset the allowances for the spenders to spent vault owned tokens
+     * @dev the length of tokens and spenders should be same
+     * @param _tokens list of ERC20 tokens
+     * @param _spenders list of spender addresses
+     */
+    function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external;
+
+    /**
      * @notice Retrieve underlying token balance in the vault
      * @return The balance of underlying token in the vault
      */
     function balanceUT() external view returns (uint256);
-
-    /**
-     * @notice Retrieve the reward token address of a given liquidity pool
-     * @param _liquidityPool Liquidity pool's contract address
-     * @return The harvest tokens address of a given liquidity pool
-     */
-    function getRewardToken(address _liquidityPool) external view returns (address);
-
-    /**
-     * @notice Retrieve reward token unclaimed balance for a given liquidity pool
-     *         Some protocols might not have a view function to return the unclaimed reward tokens
-     * @param _liquidityPool Liquidity pool's contract address
-     * @return The unclaimed balance of reward token for a given liquidity pool
-     */
-    function balanceUnclaimedRewardToken(address _liquidityPool) external view returns (uint256);
-
-    /**
-     * @dev A helper function to validate the vault value will not surpass max or min vault value
-     *      within the same block
-     * @param _diff absolute difference between minimum and maximum vault value within a block
-     * @param _currentVaultValue the underlying token balance of the vault
-     * @return bool returns true if vault value jump is within permissible limits
-     */
-    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) external view returns (bool);
 
     /**
      * @notice Calculate the value of a vault share in underlying token
@@ -398,21 +407,6 @@ interface IVault {
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
-
-    /**
-     * @notice Emitted when harvestAll or harvestSome are called
-     * @param liquidityPool Liquidity pool's contract address from where to claim reward tokens
-     * @param rewardTokenAmount Amount of reward token claimed
-     * @param underlyingTokenAmount Amount of vault's underlying token harvested
-     */
-    event Harvested(address liquidityPool, uint256 rewardTokenAmount, uint256 underlyingTokenAmount);
-
-    /**
-     * @notice Emitted when claimRewardToken is called
-     * @param liquidityPool Liquidity pool's contract address from where to claim reward tokens
-     * @param rewardTokenAmount Amount of reward token claimed
-     */
-    event RewardTokenClaimed(address liquidityPool, uint256 rewardTokenAmount);
 
     /**
      * @notice Emitted when a strategy is added to the vault

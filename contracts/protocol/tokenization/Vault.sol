@@ -31,7 +31,8 @@ import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
-import { IHarvestCodeProvider } from "../../interfaces/opty/IHarvestCodeProvider.sol";
+import { IUniswapV2Router01 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import { ISwapRouter } from "../../interfaces/uniswap/ISwapRouter.sol";
 
 /**
  * @title Vault contract inspired by AAVE V3's AToken.sol
@@ -58,7 +59,7 @@ contract Vault is
     /**
      * @dev The version of the Vault implementation
      */
-    uint256 public constant opTOKEN_REVISION = 0x4;
+    uint256 public constant opTOKEN_REVISION = 0x5;
 
     /**
      * @dev hash of the permit function
@@ -246,6 +247,36 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders)
+        external
+        override
+        onlyRiskOperator
+    {
+        uint256 _tokensLen = _tokens.length;
+        require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
+        for (uint256 _i; _i < _tokens.length; _i++) {
+            _tokens[_i].approve(_spenders[_i], uint256(-1));
+        }
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
+    function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders)
+        external
+        override
+        onlyRiskOperator
+    {
+        uint256 _tokensLen = _tokens.length;
+        require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
+        for (uint256 _i; _i < _tokens.length; _i++) {
+            _tokens[_i].approve(_spenders[_i], 0);
+        }
+    }
+
+    /**
+     * @inheritdoc IVault
+     */
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
@@ -353,22 +384,36 @@ contract Vault is
     /**
      * @inheritdoc IVault
      */
-    function harvest(address _rewardToken) external override {
+    function harvest(
+        address _rewardToken,
+        address _dex,
+        bool _isUniV3,
+        uint256 _minimumUnderlyingTokenAmount,
+        uint256 _deadline,
+        address[] memory _path,
+        bytes memory _pathUniV3
+    ) external override {
         _onlyStrategyOperator();
-        uint256 _underlyingTokenOldBalance = balanceUT();
         uint256 _rewardTokenAmount = IERC20(_rewardToken).balanceOf(address(this));
-
-        executeCodes(
-            IHarvestCodeProvider(registryContract.getHarvestCodeProvider()).getHarvestCodes(
-                payable(address(this)),
-                _rewardToken,
-                underlyingToken,
-                _rewardTokenAmount
-            ),
-            Errors.HARVEST_SOME_FAILED
-        );
-
-        emit Harvested(_rewardToken, _rewardTokenAmount, balanceUT() - _underlyingTokenOldBalance);
+        if (_isUniV3) {
+            ISwapRouter(_dex).exactInput(
+                ISwapRouter.ExactInputParams({
+                    path: _pathUniV3,
+                    recipient: address(this),
+                    deadline: _deadline,
+                    amountIn: _rewardTokenAmount,
+                    amountOutMinimum: _minimumUnderlyingTokenAmount
+                })
+            );
+        } else {
+            IUniswapV2Router01(_dex).swapExactTokensForTokens(
+                _rewardTokenAmount,
+                _minimumUnderlyingTokenAmount,
+                _path,
+                address(this),
+                _deadline
+            );
+        }
     }
 
     /**
@@ -449,42 +494,11 @@ contract Vault is
 
     //===Public view functions===//
 
-    /* solhint-disable-next-line func-name-mixedcase */
-    function _EIP712BaseId() internal view override returns (string memory) {
-        return name();
-    }
-
     /**
      * @inheritdoc IVault
      */
     function balanceUT() public view override returns (uint256) {
         return IERC20(underlyingToken).balanceOf(address(this));
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
-    function getRewardToken(address _liquidityPool) public view override returns (address) {
-        return _liquidityPool.getRewardToken(address(registryContract));
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
-    function balanceUnclaimedRewardToken(address _liquidityPool) public view override returns (uint256) {
-        return
-            _liquidityPool.getUnclaimedRewardTokenAmount(
-                address(registryContract),
-                payable(address(this)),
-                underlyingToken
-            );
-    }
-
-    /**
-     * @inheritdoc IVault
-     */
-    function isMaxVaultValueJumpAllowed(uint256 _diff, uint256 _currentVaultValue) public view override returns (bool) {
-        return (_diff.mul(10000)).div(_currentVaultValue) < ((vaultConfiguration >> 64) & 0xFFFF);
     }
 
     /**
@@ -664,16 +678,16 @@ contract Vault is
         // else, mint vault tokens at constant pre deposit price
         // e.g. if pre deposit price > 1, minted vault tokens < deposited underlying tokens
         //      if pre deposit price < 1, minted vault tokens > deposited underlying tokens
-        uint256 _depositAmount;
+        uint256 _mintAmount;
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
-            _depositAmount = _netUserDepositUT;
+            _mintAmount = _netUserDepositUT;
         } else {
-            _depositAmount = (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT);
+            _mintAmount = (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT);
         }
-        require(_depositAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
-        _mint(_beneficiary, _depositAmount);
+        require(_mintAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
+        _mint(_beneficiary, _mintAmount);
 
-        return _depositAmount;
+        return _mintAmount;
     }
 
     /**
@@ -756,7 +770,7 @@ contract Vault is
             // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
             // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
             uint256 _vaultValuePostStratWithdrawUT = balanceUT();
-            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT); // 440
+            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
             if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
@@ -1039,6 +1053,13 @@ contract Vault is
         require(_userWithdrawPermitted, _userWithdrawPermittedReason);
     }
 
+    /* solhint-disable-next-line func-name-mixedcase */
+    function _EIP712BaseId() internal view override returns (string memory) {
+        return name();
+    }
+
+    /* solhint-enable-next-line func-name-mixedcase */
+
     //===Internal pure functions===//
 
     /**
@@ -1046,16 +1067,6 @@ contract Vault is
      */
     function getRevision() internal pure virtual override returns (uint256) {
         return opTOKEN_REVISION;
-    }
-
-    /**
-     * @dev A helper function to calculate the absolute difference
-     * @param _a value
-     * @param _b value
-     * @return _result absolute difference between _a and _b
-     */
-    function _abs(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a > _b ? _a.sub(_b) : _b.sub(_a);
     }
 
     /**

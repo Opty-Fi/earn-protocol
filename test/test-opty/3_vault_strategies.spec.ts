@@ -38,7 +38,7 @@ chai.use(solidity);
 const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
 
-describe("VaultV2", () => {
+describe(`${fork}-Vault-rev4`, () => {
   before(async function () {
     await deployments.fixture();
     const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
@@ -126,7 +126,7 @@ describe("VaultV2", () => {
       this.tokens["WETH"] = <ERC20>await ethers.getContractAt(ERC20__factory.abi, TypedTokens["WETH"]);
     }
   });
-  describe("VaultV2 strategies", () => {
+  describe(`${fork}-Vault-rev4 strategies`, () => {
     for (const riskProfile of Object.keys(StrategiesByTokenByChain[fork])) {
       for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
         for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
@@ -140,7 +140,7 @@ describe("VaultV2", () => {
             isBorrow: item.isBorrow,
           }));
 
-          describe(`${riskProfile}-${token}-${strategy}`, () => {
+          describe(`${fork}-${riskProfile}-${token}-${strategy}`, () => {
             before(async function () {
               const strategyOperatorAddress = await this.registry.getStrategyOperator();
               const strategyOperator = await ethers.getSigner(strategyOperatorAddress);

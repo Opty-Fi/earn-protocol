@@ -24,7 +24,6 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   let chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -92,6 +91,20 @@ const func: DeployFunction = async ({
 
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
+  const proxyArgs: { methodName: string; args: any[] } = {
+    methodName: "initialize",
+    args: [
+      registryProxyAddress,
+      MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
+      "0x800adf36e93f6ae878edc063a6053734453e35bbb5b9279c4cde50f5d3379c0f",
+      "NEWO",
+      "2",
+      "2718155043500073612906634403139041842518004532954031278126931986324444413952",
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "0",
+      "3000000000000000000000000",
+    ],
+  };
   const result = await deploy("opNEWO-Invst", {
     from: deployer,
     contract: {
@@ -107,27 +120,12 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
-      upgradeIndex: 0,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      upgradeIndex: networkName == "hardhat" ? 0 : 2,
+      proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opWETH-Earn_Implementation",
       execute: {
-        init: {
-          methodName: "initialize",
-          args: [
-            registryProxyAddress,
-            MULTI_CHAIN_VAULT_TOKENS[chainId].NEWO.hash,
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "NEWO",
-            "2",
-            "0",
-            "0",
-            "0",
-            "0",
-          ],
-        },
+        init: proxyArgs,
+        onUpgrade: proxyArgs,
       },
     },
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
