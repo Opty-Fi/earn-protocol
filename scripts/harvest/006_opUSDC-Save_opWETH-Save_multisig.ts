@@ -9,8 +9,8 @@ import {
   ERC20__factory,
   ICompound,
   ICompound__factory,
-  IUniswapV2Factory,
-  IUniswapV2Factory__factory,
+  // IUniswapV2Factory,
+  // IUniswapV2Factory__factory,
   IUniswapV2Router02,
   IUniswapV2Router02__factory,
   Registry,
@@ -21,7 +21,7 @@ import {
 import { BigNumber } from "ethers";
 import { hexlify, parseEther, parseUnits } from "ethers/lib/utils";
 
-const uniswapV2Router02Address = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
+// const uniswapV2Router02Address = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
 const sushiswapRouterAddress = ethers.utils.getAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F");
 const uniswapV3Router = ethers.utils.getAddress("0xE592427A0AEce92De3Edee1F18E0157C05861564");
 const STK_AAVE = ethers.utils.getAddress("0x4da27a545c0c5B758a6BA100e3a049001de870f5");
@@ -68,18 +68,18 @@ async function main() {
   const comp = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.REWARD_TOKENS.COMP);
   const stkAAVE = <ERC20>await ethers.getContractAt(ERC20__factory.abi, STK_AAVE);
 
-  const uniswapV2 = <IUniswapV2Router02>(
-    await ethers.getContractAt(IUniswapV2Router02__factory.abi, uniswapV2Router02Address)
-  );
+  // const uniswapV2 = <IUniswapV2Router02>(
+  //   await ethers.getContractAt(IUniswapV2Router02__factory.abi, uniswapV2Router02Address)
+  // );
   const sushiswap = <IUniswapV2Router02>(
     await ethers.getContractAt(IUniswapV2Router02__factory.abi, sushiswapRouterAddress)
   );
-  const uniswapFactory = <IUniswapV2Factory>(
-    await ethers.getContractAt(IUniswapV2Factory__factory.abi, await uniswapV2.factory())
-  );
-  const sushiswapFactory = <IUniswapV2Factory>(
-    await ethers.getContractAt(IUniswapV2Factory__factory.abi, await sushiswap.factory())
-  );
+  // const uniswapFactory = <IUniswapV2Factory>(
+  //   await ethers.getContractAt(IUniswapV2Factory__factory.abi, await uniswapV2.factory())
+  // );
+  // const sushiswapFactory = <IUniswapV2Factory>(
+  //   await ethers.getContractAt(IUniswapV2Factory__factory.abi, await sushiswap.factory())
+  // );
   const cUSDC = <ICompound>await ethers.getContractAt(ICompound__factory.abi, Compound.cUSDC.address);
   const compoundComptrolleropUSDCSave = await cUSDC.comptroller();
   const compoundComptrollerInstance = await ethers.getContractAt(comptrollerABI, compoundComptrolleropUSDCSave);
