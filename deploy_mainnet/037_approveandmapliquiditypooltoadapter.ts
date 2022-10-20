@@ -92,6 +92,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x74b79021Ea6De3f0D1731fb8BdfF6eE7DF10b8Ae": { rate: 80, adapter: convexFinanceAdapter.address }, // cvxcrvRenWBTC
     "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-USDC-WETH
     "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58": { rate: 50, adapter: sushiswapPoolAdapterEthereum.address }, // SUSHI-WBTC-WETH
+    "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dUSDC
+    "0x118823514681353634FF95837939E783D85B18AF": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dWETH
+    "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dWBTC
   };
 
   const onlyMapPoolsToAdapters = [];
