@@ -56,10 +56,10 @@ const comptrollerABI = [
 
 async function main() {
   const opUSDCSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Save_Proxy")).address)
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
   const opWETHSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Save_Proxy")).address)
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
   );
   const registry = <Registry>(
     await ethers.getContractAt(Registry__factory.abi, (await deployments.get("RegistryProxy")).address)
