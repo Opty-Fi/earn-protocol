@@ -592,6 +592,24 @@ const mainnetStrategiesByToken = {
         name: null,
         description: null,
       },
+      "usdc-DEPOSIT-dAMM-dUSDC": {
+        strategyName: "usdc-DEPOSIT-dAMM-cUSDC",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
+            outputToken: "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
+            isBorrow: false,
+            outputTokenSymbol: "dUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDC Lending on dAMM",
+        description:
+          "The OptyFi vault supplies USDC to the lending pool on dAMM finance Protocol to earn interest in USDC and, potentially, additional rewards in BDAMM tokens. The earned USDC tokens and any harvested BDAMM rewards are reinvested into the vault.",
+      },
     },
     WETH: {
       "weth-DEPOSIT-AaveV2-aWETH": {
@@ -743,6 +761,24 @@ const mainnetStrategiesByToken = {
         name: "stETH LP Staking on Convex",
         description:
           "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+      },
+      "weth-DEPOSIT-dAMM-cWETH": {
+        strategyName: "weth-DEPOSIT-dAMM-cWETH",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0x118823514681353634FF95837939E783D85B18AF",
+            outputToken: "0x118823514681353634FF95837939E783D85B18AF",
+            isBorrow: false,
+            outputTokenSymbol: "cWETH",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "WETH Lending on dAMM",
+        description:
+          "The OptyFi vault WETH to the lending pool on dAMM finance Protocol to earn interest in WETH and, potentially, additional rewards in BDAMM tokens. The earned BDAMM tokens are harvested to WETH and reinvested into the vault.",
       },
     },
     USD3: {
@@ -959,6 +995,24 @@ const mainnetStrategiesByToken = {
         name: "crvRenWBTC LP on Curve",
         description:
           "The OptyFi vault supplies WBTC to the crvRenWBTC liquidity pool on Curve Finance and obtains the crvRenWBTC LP token which accrues yield from the pool’s trading fees and rewards.",
+      },
+      "wbtc-DEPOSIT-dAMM-cWBTC": {
+        strategyName: "wbtc-DEPOSIT-dAMM-cWBTC",
+        token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        strategy: [
+          {
+            contract: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            outputToken: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            isBorrow: false,
+            outputTokenSymbol: "cWBTC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "WBTC Lending on dAMM",
+        description:
+          "The OptyFi vault supplies WBTC to the lending pool on dAMM finance Protocol to earn interest in WBTC and, potentially, additional rewards in BDAMM tokens. The earned WBTC tokens and any harvested BDAMM rewards are reinvested into the vault.",
       },
     },
   },

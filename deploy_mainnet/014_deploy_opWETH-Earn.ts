@@ -1,8 +1,8 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BigNumber } from "ethers";
 import { getAddress } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -22,7 +22,6 @@ const func: DeployFunction = async ({
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -111,19 +110,16 @@ const func: DeployFunction = async ({
       deployedBytecode: artifact.deployedBytecode,
     },
     args: [registryProxyAddress],
-    log: true,
-    skipIfAlreadyDeployed: true,
     libraries: {
       "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
     },
+    log: true,
+    skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
       upgradeIndex: networkName == "hardhat" ? 0 : 2,
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      proxyContract: "AdminUpgradeabilityProxy",
+      implementationName: "opWETH-Save_Implementation",
       execute: {
         init: proxyArgs,
         onUpgrade: proxyArgs,
@@ -132,7 +128,6 @@ const func: DeployFunction = async ({
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
-
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       const vault = await deployments.get("opWETH-Earn");

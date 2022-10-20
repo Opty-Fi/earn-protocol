@@ -48,6 +48,7 @@ const func: DeployFunction = async ({
       [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
     ]);
   }
+
   if (approveTokenAndMapHash.length > 0) {
     console.log("approveTokenAndMapHash ", JSON.stringify(approveTokenAndMapHash, null, 4));
     if (getAddress(deployer) === getAddress(operatorAddress)) {
@@ -93,13 +94,13 @@ const func: DeployFunction = async ({
     args: [
       registryProxyAddress, //address _registry
       MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
-      "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694", //bytes32 _whitelistedAccountsRoot
+      "0x0000000000000000000000000000000000000000000000000000000000000000", //bytes32 _whitelistedAccountsRoot
       "USDC", //string memory _symbol
       "0", //uint256 _riskProfileCode
-      "905369955037451290754171167376807445279006054759646228016501227483694104576", //uint256 _vaultConfiguration
-      "100000000000", //uint256 _userDepositCapUT
+      "0", //uint256 _vaultConfiguration
+      "0", //uint256 _userDepositCapUT
       "0", //uint256 _minimumDepositValueUT
-      "10000000000000", //uint256 _totalValueLockedLimitUT
+      "0", //uint256 _totalValueLockedLimitUT
     ],
   };
   const result = await deploy("opUSDC-Save", {
@@ -117,9 +118,9 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 2,
+      upgradeIndex: 0,
       proxyContract: "AdminUpgradeabilityProxy",
-      implementationName: "opWETH-Earn_Implementation",
+      implementationName: "opWETH-Save_Implementation",
       execute: {
         init: proxyArgs,
         onUpgrade: proxyArgs,
