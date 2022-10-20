@@ -691,7 +691,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
 
     it("37. The strategy operator claims rewards successfully", async function () {
       const strategyDetail =
-        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
+        StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[4]];
       this.crv = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.CRV);
       const claimedRewardBefore = await this.crv.balanceOf(this.vault.address);
       await this.vault
