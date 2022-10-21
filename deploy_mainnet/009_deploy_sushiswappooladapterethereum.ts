@@ -113,7 +113,7 @@ const func: DeployFunction = async ({
     { liquidityPool: CRV_WETH_LP, tolerance: "50" },
     { liquidityPool: CVX_WETH_LP, tolerance: "200" },
     { liquidityPool: YFI_WETH_LP, tolerance: "150" },
-    { liquidityPool: USDC_WETH_LP, tolerance: "50" },
+    { liquidityPool: USDC_WETH_LP, tolerance: "100" },
     { liquidityPool: WBTC_WETH_LP, tolerance: "50" },
   ];
   const pendingLiquidityPoolToTolerances = [];
