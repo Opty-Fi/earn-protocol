@@ -95,6 +95,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dUSDC
     "0x118823514681353634FF95837939E783D85B18AF": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dWETH
     "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dWBTC
+    "0x5714EB15A226059202CdfA1bF304167e36752862": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dCUSDC
+    "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dCWETH
   };
 
   const onlyMapPoolsToAdapters = [];
