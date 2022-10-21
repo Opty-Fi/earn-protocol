@@ -1,15 +1,40 @@
 // !! Important !!
 // Please do not keep this file under helpers/utils as it imports hre from hardhat
-import { BigNumber, BigNumberish, Contract, Signature } from "ethers";
+import { BigNumber, BigNumberish, Contract, Signature, Signer } from "ethers";
 import { getAddress, parseEther, splitSignature } from "ethers/lib/utils";
-import hre, { ethers } from "hardhat";
+import hre, { deployments, ethers } from "hardhat";
 import ethTokens from "@optyfi/defi-legos/ethereum/tokens/wrapped_tokens";
 import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit } from "../../typechain";
+import {
+  ERC20,
+  IAdapterFull,
+  IWETH,
+  Registry,
+  ERC20Permit,
+  RelayHub__factory,
+  RelayRegistrar__factory,
+  Vault,
+  Vault__factory,
+} from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
+import { StakeManager, TokenGasCalculator, RelayHub, RelayRegistrar } from "../../typechain";
+import { deployContract } from "../../helpers/helpers";
+import { PrefixedHexString } from "ethereumjs-util";
+import { GasUsedEvent } from "../../typechain/TokenGasCalculator";
+import {
+  Environment,
+  IntString,
+  RelayHubConfiguration,
+  constants,
+  ForwardRequest,
+  RelayData,
+  RelayRequest,
+  defaultEnvironment,
+  splitRelayUrlForRegistrar,
+} from "@opengsn/common";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -300,6 +325,75 @@ export async function getPermitSignature(
   );
 }
 
+const EIP712Domain = [
+  { name: "name", type: "string" },
+  { name: "version", type: "string" },
+  { name: "chainId", type: "uint256" },
+  { name: "verifyingContract", type: "address" },
+];
+
+const RelayRequest = [
+  { name: "from", type: "address" },
+  { name: "to", type: "address" },
+  { name: "value", type: "uint256" },
+  { name: "gas", type: "uint256" },
+  { name: "nonce", type: "uint256" },
+  { name: "data", type: "bytes" },
+  { name: "validUntilTime", type: "uint256" },
+];
+
+const RelayData = [
+  { name: "maxFeePerGas", type: "uint256" },
+  { name: "maxPriorityFeePerGas", type: "uint256" },
+  { name: "transactionCalldataGasUsed", type: "uint256" },
+  { name: "relayWorker", type: "address" },
+  { name: "paymaster", type: "address" },
+  { name: "forwarder", type: "address" },
+  { name: "paymasterData", type: "bytes" },
+  { name: "clientId", type: "uint256" },
+];
+
+function getMetaTxTypeData(chainId: number, verifyingContract: string) {
+  return {
+    types: {
+      EIP712Domain,
+      RelayRequest,
+      RelayData,
+    },
+    domain: {
+      name: "GSN Relayed Transaction",
+      version: 3,
+      chainId,
+      verifyingContract,
+    },
+    primaryType: "RelayRequest",
+  };
+}
+
+export async function signTypedData(signer: any, from: string, data: any) {
+  const isHardhat = data.domain.chainId == 31337;
+  const [method, argData] = isHardhat ? ["eth_signTypedData", data] : ["eth_signTypedData_v4", JSON.stringify(data)];
+  return await signer.send(method, [from, argData]);
+}
+
+export async function buildRequest(forwarder: Contract, input: any) {
+  const nonce = (await forwarder.getNonce(input.from)).toString();
+  return { value: 0, gas: 1e6, nonce, validUntilTime: ethers.constants.MaxUint256, ...input };
+}
+
+export async function buildTypedData(forwarder: Contract, request: any) {
+  const chainId = (await forwarder.provider.getNetwork()).chainId;
+  const typeData = getMetaTxTypeData(chainId, forwarder.address);
+  return { ...typeData, message: request };
+}
+
+export async function signMetaTxRequest(signer: any, forwarder: Contract, input: any) {
+  const request = await buildRequest(forwarder, input);
+  const toSign = await buildTypedData(forwarder, request);
+  const signature = signTypedData(signer, input.from, toSign);
+  return { signature, request };
+}
+
 export async function getPermitLegacySignature(
   signer: SignerWithAddress,
   token: ERC20Permit,
@@ -355,4 +449,125 @@ export async function getPermitLegacySignature(
       },
     ),
   );
+}
+
+export async function revertReason(func: Promise<any>): Promise<string> {
+  try {
+    await func;
+    return "ok"; // no revert
+  } catch (e: any) {
+    return e.message.replace(/.*reverted with reason string /, "");
+  }
+}
+
+export async function registerAsRelayServer(
+  token: ERC20Permit,
+  stakeManager: StakeManager,
+  relay: SignerWithAddress,
+  relayOwner: SignerWithAddress,
+  stake: string,
+  hub: RelayHub,
+): Promise<void> {
+  await stakeManager.connect(relay).setRelayManagerOwner(relayOwner.address);
+  await stakeManager
+    .connect(relayOwner)
+    .stakeForRelayManager(token.address, relay.address, 7 * 24 * 3600, stake.toString());
+  await stakeManager.connect(relayOwner).authorizeHubByOwner(relay.address, hub.address);
+  await hub.setMinimumStakes([token.address], [stake]);
+  await hub.connect(relay).addRelayWorkers([relay.address]);
+  const relayRegistrar = <RelayRegistrar>(
+    await hre.ethers.getContractAt("RelayRegistrar", await hub.getRelayRegistrar())
+  );
+  await relayRegistrar.connect(relay).registerRelayServer(hub.address, splitRelayUrlForRegistrar("url"));
+}
+
+export async function deployTestHub(calculator: boolean = false, signer: Signer): Promise<Contract> {
+  const contract = calculator ? "TokenGasCalculator" : "TestHub";
+  return deployContract(hre, contract, false, signer, [
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
+    defaultEnvironment.relayHubConfiguration,
+  ]);
+}
+
+export function mergeRelayRequest(
+  req: RelayRequest,
+  overrideData: Partial<RelayData>,
+  overrideRequest: Partial<ForwardRequest> = {},
+): RelayRequest {
+  return {
+    relayData: { ...req.relayData, ...overrideData },
+    request: { ...req.request, ...overrideRequest },
+  };
+}
+
+export async function calculatePostGas(
+  token: any,
+  paymaster: any,
+  paymasterData: string,
+  account: Signer,
+  tokenAmount: BigNumber,
+  context: PrefixedHexString,
+): Promise<BigNumber> {
+  const calc = (await deployTestHub(true, account)) as TokenGasCalculator;
+  await paymaster.connect(account).setRelayHub(calc.address);
+  await token.connect(account).transfer(paymaster.address, tokenAmount);
+  const res = await calc.calculatePostGas(paymaster.address, context, paymasterData);
+  const receipt = await res.wait();
+  const event = receipt.events?.find(it => it.event === "GasUsed") as unknown as GasUsedEvent;
+  return event.args.gasUsedByPost;
+}
+
+export async function deployHub(
+  stakeManager: string,
+  penalizer: string,
+  batchGateway: string,
+  testToken: string,
+  testTokenMinimumStake: IntString,
+  signer: Signer,
+  configOverride: Partial<RelayHubConfiguration> = {},
+  environment: Environment = defaultEnvironment,
+  relayRegistrationMaxAge = constants.yearInSec,
+): Promise<RelayHub> {
+  const relayHubConfiguration: RelayHubConfiguration = {
+    ...environment.relayHubConfiguration,
+    ...configOverride,
+  };
+  const relayRegistrar = await new RelayRegistrar__factory(signer).deploy(relayRegistrationMaxAge);
+  const hub: RelayHub = await new RelayHub__factory(signer).deploy(
+    stakeManager,
+    penalizer,
+    batchGateway,
+    relayRegistrar.address,
+    relayHubConfiguration,
+  );
+
+  await hub.connect(signer).setMinimumStakes([testToken], [testTokenMinimumStake]);
+
+  // @ts-ignore
+  hub._secretRegistrarInstance = relayRegistrar;
+  return hub;
+}
+
+export async function getVaultDeploymentAndConfigure(
+  vaultName: string,
+  vaultConfiguration: string,
+  maxUserdepoist: string,
+  minUserDeposit: string,
+  maxVaultTVL: string,
+): Promise<Vault> {
+  const OPUSDCGROW_VAULT_ADDRESS = (await deployments.get(vaultName)).address;
+  let vault = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCGROW_VAULT_ADDRESS);
+  //set vault config
+  const _vaultConfiguration = BigNumber.from(vaultConfiguration);
+  await vault.setVaultConfiguration(_vaultConfiguration);
+  await vault.setValueControlParams(
+    maxUserdepoist, // 10,000 USDC
+    minUserDeposit, // 1000 USDC
+    maxVaultTVL, // 1,000,000 USDC
+  );
+
+  return vault;
 }
