@@ -101,7 +101,7 @@ const func: DeployFunction = async ({
   const liquidityPoolToTolerances = [
     { liquidityPool: AAVE_WETH_LP, tolerance: "50" },
     { liquidityPool: APE_USDT_LP, tolerance: "150" },
-    { liquidityPool: SUSHI_WETH_LP, tolerance: "100" },
+    { liquidityPool: SUSHI_WETH_LP, tolerance: "200" },
     { liquidityPool: MANA_WETH_LP, tolerance: "150" },
     { liquidityPool: LINK_WETH_LP, tolerance: "50" },
     { liquidityPool: ENS_WETH_LP, tolerance: "200" },
