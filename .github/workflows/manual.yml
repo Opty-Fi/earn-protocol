@@ -26,7 +26,7 @@ jobs:
       STRATEGY_DIVISOR: 2
       MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
       MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
-      IGNORED_VAULTS: "opNEWO-Invst,opAAVE-Invst,opAPE-Invst,opLINK-Invst,opMANA-Invst,opSUSHI-Invst,opENS-Invst,opCOMP-Invst,opIMX-Invst,opALCX-Invst,opCRV-Invst,opCVX-Invst,opYFI-Invst"
+      IGNORED_VAULTS: opNEWO-Invst,opAAVE-Invst,opAPE-Invst,opLINK-Invst,opMANA-Invst,opSUSHI-Invst,opENS-Invst,opCOMP-Invst,opIMX-Invst,opALCX-Invst,opCRV-Invst,opCVX-Invst,opYFI-Invst
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
