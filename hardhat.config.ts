@@ -44,6 +44,8 @@ if (!SKIP_LOAD) {
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
+console.log("process.env.IGNORE_VAULTS ", process.env.IGNORE_VAULTS?.split(","));
+
 // Ensure that we have all the environment variables we need.
 let mnemonic: string;
 if (!process.env.MNEMONIC) {
