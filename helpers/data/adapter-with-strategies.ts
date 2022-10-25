@@ -592,6 +592,32 @@ const mainnetStrategiesByToken = {
         name: null,
         description: null,
       },
+      "usdc-DEPOSIT-Compound-cUSDC-dAMM-dCUSDC": {
+        strategyName: "usdc-DEPOSIT-Compound-cUSDC-dAMM-dcUSDC",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            isBorrow: false,
+            outputTokenSymbol: "cUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+          {
+            contract: "0x5714EB15A226059202CdfA1bF304167e36752862",
+            outputToken: "0x5714EB15A226059202CdfA1bF304167e36752862",
+            isBorrow: false,
+            outputTokenSymbol: "dCUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "cUSDC Lending on dAMM",
+        description:
+          "The OptyFi vault supplies USDC to the lending pool on Compound finance. Then it lends cUSDC to cUSDC pool on dAMM finance. The earned USDC tokens and any harvested BDAMM rewards are reinvested into the vault.",
+      },
       "usdc-DEPOSIT-dAMM-dUSDC": {
         strategyName: "usdc-DEPOSIT-dAMM-cUSDC",
         token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -761,6 +787,32 @@ const mainnetStrategiesByToken = {
         name: "stETH LP Staking on Convex",
         description:
           "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
+      },
+      "weth-DEPOSIT-Compound-cETH-DEPOSIT-dAMM-dCWETH": {
+        strategyName: "weth-DEPOSIT-Compound-cETH-DEPOSIT-dAMM-dCWETH",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            isBorrow: false,
+            outputTokenSymbol: "cETH",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+          {
+            contract: "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc",
+            outputToken: "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc",
+            isBorrow: false,
+            outputTokenSymbol: "dCWETH",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "cETH Lending on dAMM",
+        description:
+          "The OptyFi vault supplies WETH to the lending pool on Compound finance the lends cETH to cETH lending pool on dAMM finance to earn interest in WETH and, potentially, additional rewards in BDAMM tokens. The earned BDAMM tokens are harvested to WETH and reinvested into the vault.",
       },
       "weth-DEPOSIT-dAMM-cWETH": {
         strategyName: "weth-DEPOSIT-dAMM-cWETH",
