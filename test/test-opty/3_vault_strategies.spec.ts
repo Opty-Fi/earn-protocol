@@ -37,7 +37,7 @@ chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
-const IGNORED_VAULTS = process.env.IGNORE_VAULTS;
+const IGNORE_VAULTS = process.env.IGNORE_VAULTS;
 
 describe(`${fork}-Vault-rev4`, () => {
   before(async function () {
@@ -72,7 +72,7 @@ describe(`${fork}-Vault-rev4`, () => {
     for (const riskProfile of Object.keys(MultiChainVaults[fork])) {
       this.vaults[riskProfile] = {};
       for (const token of Object.keys(MultiChainVaults[fork][riskProfile])) {
-        if (IGNORED_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
+        if (IGNORE_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
           continue;
         }
         this.vaults[riskProfile][token] = <Vault>(
@@ -133,7 +133,7 @@ describe(`${fork}-Vault-rev4`, () => {
   describe(`${fork}-Vault-rev4 strategies`, () => {
     for (const riskProfile of Object.keys(StrategiesByTokenByChain[fork])) {
       for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
-        if (IGNORED_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
+        if (IGNORE_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
           continue;
         }
         for (const strategy of Object.keys(StrategiesByTokenByChain[fork][riskProfile][token])) {
