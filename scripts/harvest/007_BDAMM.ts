@@ -3,27 +3,11 @@ import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
 import Safe from "@gnosis.pm/safe-core-sdk";
 import { MetaTransactionData, EthAdapter } from "@gnosis.pm/safe-core-sdk-types";
-import { ICompound, ICompound__factory, Vault, Vault__factory } from "../../typechain";
+import { ERC20, ERC20__factory, ICompound, ICompound__factory, Vault, Vault__factory } from "../../typechain";
 import { BigNumber } from "ethers";
-import { parseEther, parseUnits } from "ethers/lib/utils";
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
 
 const comptrollerABI = [
-  //   {
-  //     constant: false,
-  //     inputs: [
-  //       { internalType: "address", name: "holder", type: "address" },
-  //       {
-  //         internalType: "contract CToken[]",
-  //         name: "cTokens",
-  //         type: "address[]",
-  //       },
-  //     ],
-  //     name: "claimComp",
-  //     outputs: [],
-  //     payable: false,
-  //     stateMutability: "nonpayable",
-  //     type: "function",
-  //   },
   {
     constant: true,
     inputs: [{ internalType: "address", name: "", type: "address" }],
@@ -63,6 +47,62 @@ const comptrollerABI = [
   },
 ];
 
+const compoundLensABI = [
+  {
+    constant: true,
+    inputs: [
+      {
+        internalType: "contract Comp",
+        name: "comp",
+        type: "address",
+      },
+      {
+        internalType: "contract ComptrollerLensInterface",
+        name: "comptroller",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "getCompBalanceMetadataExt",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "balance",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "votes",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "delegate",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "allocated",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct CompoundLens.CompBalanceMetadataExt",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
 const uniswapV3Router = ethers.utils.getAddress("0xE592427A0AEce92De3Edee1F18E0157C05861564");
 const bdamm = ethers.utils.getAddress("0xfa372fF1547fa1a283B5112a4685F1358CE5574d");
 
@@ -82,17 +122,50 @@ async function main() {
 
   const compoundComptroller = await cUSDCInstanceopUSDCEarn.comptroller();
   const compoundComptrollerInstance = await ethers.getContractAt(comptrollerABI, compoundComptroller);
+  const compoundLens = await ethers.getContractAt(compoundLensABI, "0xd513d22422a3062bd342ae374b4b9c20e0a9a074");
+  const bdammInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, bdamm);
 
-  //   const unclaimedCompopUSDCEarn = await compoundComptrollerInstance.compAccrued(opUSDCEarn.address);
-  //   const unclaimedCompopWETHEarn = await compoundComptrollerInstance.compAccrued(opWETHEarn.address);
-  //   const unclaimedCompopWBTCEarn = await compoundComptrollerInstance.compAccrued(opWBTCEarn.address);
+  const { allocated: unclaimedCompopUSDCEarn } = await compoundLens.getCompBalanceMetadataExt(
+    bdamm,
+    compoundComptrollerInstance.address,
+    opUSDCEarn.address,
+  );
+  const { allocated: unclaimedCompopWETHEarn } = await compoundLens.getCompBalanceMetadataExt(
+    bdamm,
+    compoundComptrollerInstance.address,
+    opWETHEarn.address,
+  );
+  const { allocated: unclaimedCompopWBTCEarn } = await compoundLens.getCompBalanceMetadataExt(
+    bdamm,
+    compoundComptrollerInstance.address,
+    opWBTCEarn.address,
+  );
+
+  const compBalanceopUSDCEarn = await bdammInstance.balanceOf(opUSDCEarn.address);
+  const compBalanceopWETHEarn = await bdammInstance.balanceOf(opWETHEarn.address);
+  const compBalanceopWBTCEarn = await bdammInstance.balanceOf(opWBTCEarn.address);
+
+  console.log("opUSDCEarn ", formatEther(unclaimedCompopUSDCEarn));
+  console.log("opWETHEarn ", formatEther(unclaimedCompopWETHEarn));
+  console.log("opWBTCEarn ", formatEther(unclaimedCompopWBTCEarn));
+
+  console.log("accrue opUSDCEarn", formatEther(compBalanceopUSDCEarn));
+  console.log("accrue opWETHEarn ", formatEther(compBalanceopWETHEarn));
+  console.log("accrue opWBTCEarn ", formatEther(compBalanceopWBTCEarn));
 
   const timestamp = await (await ethers.provider.getBlock("latest")).timestamp;
 
-  // ================================================
-  //   console.log("unclaimedCompopWETHEarn ", formatEther(unclaimedCompopWETHEarn));
-  //   console.log("unclaimedCompopUSDCEarn ", formatEther(unclaimedCompopUSDCEarn));
-  //   console.log("unclaimedCompopWBTCEarn ", formatEther(unclaimedCompopWBTCEarn));
+  const totalUnharvestedBDAMMopUSDCEarn = BigNumber.from(unclaimedCompopUSDCEarn).add(compBalanceopUSDCEarn);
+  const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
+  const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
+
+  const oneBDAMMToUSDC = parseUnits("0.195", "6");
+  const oneBDAMMToWETH = parseEther("0.00014");
+  const oneBDAMMToWBTC = parseUnits("0.00001", "8");
+
+  const expectedMinUSDC = totalUnharvestedBDAMMopUSDCEarn.mul(oneBDAMMToUSDC).div(parseEther("1"));
+  const expectedMinETH = totalUnharvestedBDAMMopWETHEarn.mul(oneBDAMMToWETH).div(parseEther("1"));
+  const expectedMinWBTC = totalUnharvestedBDAMMopWBTCEarn.mul(oneBDAMMToWBTC).div(parseEther("1"));
 
   const uniV3SwapPathForBDAMMtoUSDC = ethers.utils.solidityPack(
     ["address", "uint24", "address"],
@@ -113,8 +186,8 @@ async function main() {
       data: compoundComptrollerInstance.interface.encodeFunctionData("claimComp", [
         [opUSDCEarn.address, opWETHEarn.address, opWBTCEarn.address],
         [
-          "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
-          "0x118823514681353634FF95837939E783D85B18AF",
+          // "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
+          // "0x118823514681353634FF95837939E783D85B18AF",
           "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
           "0x5714EB15A226059202CdfA1bF304167e36752862",
           "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc",
@@ -130,7 +203,7 @@ async function main() {
         bdamm,
         uniswapV3Router,
         true,
-        parseUnits("0", "6"),
+        expectedMinUSDC.mul("9900").div("10000"),
         BigNumber.from(timestamp).add("600"),
         [],
         uniV3SwapPathForBDAMMtoUSDC,
@@ -148,7 +221,7 @@ async function main() {
         bdamm,
         uniswapV3Router,
         true,
-        parseEther("0"),
+        expectedMinETH.mul("9700").div("10000"),
         BigNumber.from(timestamp).add("600"),
         [],
         uniV3SwapPathForBDAMMtoWETH,
@@ -166,7 +239,7 @@ async function main() {
         bdamm,
         uniswapV3Router,
         true,
-        parseUnits("0", "8"),
+        expectedMinWBTC.mul("9900").div("10000"),
         BigNumber.from(timestamp).add("600"),
         [],
         uniV3SwapPathForBDAMMtoWBTC,
