@@ -706,7 +706,10 @@ async function withdraw(
     );
     expect(userBalanceBefore).lt(userBalanceAfter);
     if (
-      !["0xdf3f8ef63f05db6e4b04c3b5a8198d128b61faee8075aed893d76832a0deed6f"] //wbtc-DEPOSIT-dAMM-cWBTC has 0% supply APY at fork block
+      ![
+        "0xdf3f8ef63f05db6e4b04c3b5a8198d128b61faee8075aed893d76832a0deed6f", //wbtc-DEPOSIT-dAMM-cWBTC has 0% supply APY at fork block
+        "0x44216c2a6ff5f35d0b24f54cfddb2f39f8ab9a7a998bfa4683aa6083dceb9a9a",
+      ] //wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC has 0% supply APY at fork block
         .includes(await vaultInstance.investStrategyHash())
     ) {
       expect(poolBalanceBefore).gt(poolBalanceAfter);
