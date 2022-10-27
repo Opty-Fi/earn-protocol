@@ -11,6 +11,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const curveSwapPoolAdapter = await deployments.get("CurveSwapPoolAdapter");
   const curveMetaPoolSwapAdapter = await deployments.get("CurveMetapoolSwapAdapter");
+  const curveCryptoPoolAdapter = await deployments.get("CurveCryptoPoolAdapter");
+  const curveMetapoolGaugeAdapter = await deployments.get("CurveMetapoolGaugeAdapter");
   const sushiswapPoolAdapterEthereum = await deployments.get("SushiswapPoolAdapterEthereum");
   const newoStakingAdapter = await deployments.get("NewoStakingAdapter");
   const aaveV1Adapter = await deployments.get("AaveV1Adapter");
@@ -97,6 +99,9 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dWBTC
     "0x5714EB15A226059202CdfA1bF304167e36752862": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dCUSDC
     "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dCWETH
+    "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA": { rate: 80, adapter: curveMetaPoolSwapAdapter.address }, // curve swap pool LUSD3CRV-f
+    "0x74ED5d42203806c8CDCf2F04Ca5F60DC777b901c": { rate: 80, adapter: curveCryptoPoolAdapter.address }, // curve crypto pool bLUSDLUSD3-f
+    "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4": { rate: 80, adapter: curveMetapoolGaugeAdapter.address }, // curve gauge for bLUSDLUSD3-f
   };
 
   const onlyMapPoolsToAdapters = [];
@@ -197,4 +202,6 @@ func.dependencies = [
   "AaveV2Adapter",
   "CompoundAdapter",
   "ConvexFinanceAdapter",
+  "CurveCryptoPoolAdapter",
+  "CurveMetapoolGaugeAdapter",
 ];

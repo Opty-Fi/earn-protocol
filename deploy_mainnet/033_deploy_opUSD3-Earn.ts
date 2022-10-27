@@ -3,9 +3,10 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
 import { getAddress } from "ethers/lib/utils";
+import { default as CurveExports } from "@optyfi/defi-legos/ethereum/curve/contracts";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
-import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { ERC20, ERC20__factory, Registry__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -24,7 +25,7 @@ const func: DeployFunction = async ({
   const artifact = await deployments.getArtifact("Vault");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const strategyManager = await deployments.get("StrategyManager");
-  const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  const registryInstance = await hre.ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
 
@@ -129,13 +130,15 @@ const func: DeployFunction = async ({
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
+  const vaultInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSD3-Earn")).address)
+  );
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vault = await deployments.get("opUSD3-Earn");
       if (networkName === "tenderly") {
         await tenderly.verify({
           name: "opUSD3-Earn",
-          address: vault.address,
+          address: vaultInstance.address,
           constructorArguments: [registryProxyAddress],
         });
       } else if (!["31337"].includes(chainId)) {
@@ -143,13 +146,70 @@ const func: DeployFunction = async ({
 
         await run("verify:verify", {
           name: "opUSD3-Earn",
-          address: vault.address,
+          address: vaultInstance.address,
           constructorArguments: [registryProxyAddress],
         });
       }
     }
   }
+
+  const approvalTokens: string[] = [];
+  const approvalSpender: string[] = [];
+
+  const tokenInstanceUT = <ERC20>(
+    await ethers.getContractAt(
+      ERC20__factory.abi,
+      CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].tokens[0],
+    )
+  );
+  const allowanceUT = await tokenInstanceUT.allowance(
+    vaultInstance.address,
+    CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool,
+  );
+  if (!allowanceUT.gt("0")) {
+    approvalTokens.push(tokenInstanceUT.address);
+    approvalSpender.push(CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool);
+  }
+  const tokenInstanceLP = <ERC20>(
+    await ethers.getContractAt(
+      ERC20__factory.abi,
+      CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].lpToken,
+    )
+  );
+  const allowanceLP = await tokenInstanceLP.allowance(
+    vaultInstance.address,
+    CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool,
+  );
+  if (!allowanceLP.gt("0")) {
+    approvalTokens.push(tokenInstanceLP.address);
+    approvalSpender.push(CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool);
+  }
+
+  const allowanceGauge = await tokenInstanceLP.allowance(
+    vaultInstance.address,
+    CurveExports.CurveCryptoPoolGauge.pools["bLUSDLUSD3-f"].pool,
+  );
+  if (!allowanceGauge.gt("0")) {
+    approvalTokens.push(tokenInstanceLP.address);
+    approvalSpender.push(CurveExports.CurveCryptoPoolGauge.pools["bLUSDLUSD3-f"].pool);
+  }
+
+  if (approvalTokens.length > 0) {
+    console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
+    console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);
+    const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+    if (getAddress(governanceSigner.address) === getAddress(deployer)) {
+      const tx = await vaultInstance.connect(governanceSigner).giveAllowances(approvalTokens, approvalSpender, {
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
+      await tx.wait(1);
+    } else {
+      console.log("cannot approve pools as signer is not the governance");
+    }
+  }
 };
+
 export default func;
 func.tags = ["opUSD3-Earn"];
 func.dependencies = ["Registry"];

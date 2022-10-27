@@ -43,3 +43,6 @@
 [submodule "contracts/protocol/earn-protocol-configuration"]
 	path = contracts/protocol/earn-protocol-configuration
 	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
+[submodule "contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter"]
+	path = contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter
+	url = git@github.com:Opty-Fi/curve-crypto-pool-adapter.git
