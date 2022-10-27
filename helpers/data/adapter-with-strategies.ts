@@ -1103,6 +1103,32 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         description:
           "The OptyFi vault supplies WBTC to the lending pool on dAMM finance Protocol to earn interest in WBTC and, potentially, additional rewards in BDAMM tokens. The earned WBTC tokens and any harvested BDAMM rewards are reinvested into the vault.",
       },
+      "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC": {
+        strategyName: "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC",
+        token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        strategy: [
+          {
+            contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+            outputToken: "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
+            isBorrow: false,
+            outputTokenSymbol: "aWBTC",
+            adapterName: "AaveV2Adapter",
+            protocol: "AaveV2",
+          },
+          {
+            contract: "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1",
+            outputToken: "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1",
+            isBorrow: false,
+            outputTokenSymbol: "dAWBTC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "dAWBTC Lending on Damm",
+        description:
+          "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol then lends aWBTC to dAWBTC pool on Damm. The interest is earned on WBTC and BDAMM rewards are harvested and re-invested to the vault.",
+      },
     },
   },
   Invest: {
