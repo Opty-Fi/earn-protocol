@@ -159,9 +159,9 @@ async function main() {
   const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
   const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
 
-  const oneBDAMMToUSDC = parseUnits("0.27", "6");
-  const oneBDAMMToWETH = parseEther("0.00018");
-  const oneBDAMMToWBTC = parseUnits("0.00001", "8");
+  const oneBDAMMToUSDC = parseUnits("1.28", "6");
+  const oneBDAMMToWETH = parseEther("0.00083");
+  const oneBDAMMToWBTC = parseUnits("0.00006", "8");
 
   const expectedMinUSDC = totalUnharvestedBDAMMopUSDCEarn.mul(oneBDAMMToUSDC).div(parseEther("1"));
   const expectedMinETH = totalUnharvestedBDAMMopWETHEarn.mul(oneBDAMMToWETH).div(parseEther("1"));
