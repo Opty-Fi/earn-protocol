@@ -280,11 +280,11 @@ async function main() {
   const oneLUSDTo3CRV = parseEther("1");
   const oneCRVTo3CRV = parseEther("0.92");
   const oneCVXTo3CRV = parseEther("5.58");
-  const oneCRVToWETH = parseEther("0.0006");
+  const oneCRVToWETH = parseEther("0.0005");
   const oneCVXToWETH = parseEther("0.003");
   const oneLDOToWETH = parseEther("0.001");
-  const oneCRVToWBTC = parseUnits("0.00005", "8");
-  const oneCVXToWBTC = parseUnits("0.00028", "8");
+  const oneCRVToWBTC = parseUnits("0.00003", "8");
+  const oneCVXToWBTC = parseUnits("0.00023", "8");
   const oneSUSHIToUSDC = parseUnits("1.69", "6");
   const oneSUSHIToWETH = parseEther("0.001");
 
@@ -614,24 +614,20 @@ async function main() {
     data: opUSD3Earn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
   });
 
-  //   opWBTCEarn (did not worked)
+  // opWBTCEarn
   // harvest crv for opWBTCEarn
-  const uniV3SwapPathForCRVtoWBTC = ethers.utils.solidityPack(
-    ["address", "uint24", "address", "uint24", "address"],
-    [crv.address, 3000, ethereumTokens.PLAIN_TOKENS.USDC, 3000, ethereumTokens.BTC_TOKENS.WBTC],
-  );
   const expectedWBTCForopWBTCEarnFromCRV = crvBalanceInopWBTCEarn.mul(oneCRVToWBTC).div(parseEther("1"));
   transactions.push({
     to: opWBTCEarn.address,
     value: "0",
     data: opWBTCEarn.interface.encodeFunctionData("harvest", [
       crv.address,
-      uniswapV3RouterAddress,
-      true,
+      sushiswapRouterAddress,
+      false,
       expectedWBTCForopWBTCEarnFromCRV.mul("9900").div("10000"),
       BigNumber.from(timestamp).add("600"),
-      [],
-      uniV3SwapPathForCRVtoWBTC,
+      [crv.address, ethereumTokens.PLAIN_TOKENS.DAI, ethereumTokens.PLAIN_TOKENS.USDT, ethereumTokens.BTC_TOKENS.WBTC],
+      "0x",
     ]),
   });
   // harvest cvx for opWBTCEarn
@@ -660,7 +656,7 @@ async function main() {
     data: opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
   });
 
-  // opUSDCInvst (did not worked)
+  // opUSDCInvst
   // harvest SUSHI for opUSDCInvst
   const expectedUSDCInopUSDCInvstFromSUSHI = sushiBalanceInopUSDCInvst.mul(oneSUSHIToUSDC).div(parseEther("1"));
   transactions.push({
