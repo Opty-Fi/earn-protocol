@@ -525,7 +525,7 @@ async function main() {
     data: bLUSDLUSD3FactoryGauge.interface.encodeFunctionData("claim_rewards", [opUSD3Earn.address]),
   });
 
-  // harvest for LUSD opUSD3Earn (did not worked)
+  // harvest for LUSD opUSD3Earn
   const uniV3SwapPathForLUSDto3CRV = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
     [
@@ -614,7 +614,7 @@ async function main() {
     data: opUSD3Earn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
   });
 
-  // opWBTCEarn (did not worked)
+  //   opWBTCEarn (did not worked)
   // harvest crv for opWBTCEarn
   const uniV3SwapPathForCRVtoWBTC = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
