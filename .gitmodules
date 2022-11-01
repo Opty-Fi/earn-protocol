@@ -16,9 +16,6 @@
 [submodule "contracts/protocol/adapters/polygon/quickswap-pool-polygon"]
 	path = contracts/protocol/adapters/polygon/quickswap-pool-polygon
 	url = git@github.com:Opty-Fi/quickswap-pool-polygon.git
-[submodule "contracts/protocol/adapters/polygon/apeswap-pool-polygon"]
-	path = contracts/protocol/adapters/polygon/apeswap-pool-polygon
-	url = git@github.com:Opty-Fi/apeswap-pool-polygon.git
 [submodule "contracts/protocol/adapters/ethereum/newo-staking-adapter"]
 	path = contracts/protocol/adapters/ethereum/newo-staking-adapter
 	url = git@github.com:Opty-Fi/newo-staking-adapter
