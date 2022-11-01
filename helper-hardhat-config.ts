@@ -90,7 +90,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
 };
 
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
-  [eEVMNetwork.mainnet]: 15799047,
+  [eEVMNetwork.mainnet]: 15876273,
   [eEVMNetwork.kovan]: 29962003,
   [eEVMNetwork.ropsten]: undefined,
   [eEVMNetwork.hardhat]: undefined,
