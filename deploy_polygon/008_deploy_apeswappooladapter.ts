@@ -24,7 +24,7 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("UniswapV2PoolAdapter", {
+  const result = await deploy("ApeSwapPoolAdapter", {
     from: operatorAddress,
     contract: {
       abi: artifact.abi,
