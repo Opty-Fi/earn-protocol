@@ -159,9 +159,9 @@ async function main() {
   const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
   const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
 
-  const oneBDAMMToUSDC = parseUnits("0.195", "6");
-  const oneBDAMMToWETH = parseEther("0.00014");
-  const oneBDAMMToWBTC = parseUnits("0.00001", "8");
+  const oneBDAMMToUSDC = parseUnits("1.28", "6");
+  const oneBDAMMToWETH = parseEther("0.00083");
+  const oneBDAMMToWBTC = parseUnits("0.00006", "8");
 
   const expectedMinUSDC = totalUnharvestedBDAMMopUSDCEarn.mul(oneBDAMMToUSDC).div(parseEther("1"));
   const expectedMinETH = totalUnharvestedBDAMMopWETHEarn.mul(oneBDAMMToWETH).div(parseEther("1"));
@@ -186,11 +186,12 @@ async function main() {
       data: compoundComptrollerInstance.interface.encodeFunctionData("claimComp", [
         [opUSDCEarn.address, opWETHEarn.address, opWBTCEarn.address],
         [
-          // "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
-          // "0x118823514681353634FF95837939E783D85B18AF",
-          "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
-          "0x5714EB15A226059202CdfA1bF304167e36752862",
-          "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc",
+          // "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5", // dAMM finance - dUSDC
+          // "0x118823514681353634FF95837939E783D85B18AF", // dAMM finance - dWETH
+          // "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80", // dAMM finance - dWBTC
+          "0x5714EB15A226059202CdfA1bF304167e36752862", // dAMM finance - dCUSDC
+          "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc", // dAMM finance - dCWETH
+          "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1", //dAMM finance - dAWBTC
         ],
         false,
         true,

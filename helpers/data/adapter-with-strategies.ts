@@ -7,6 +7,7 @@ import {
   ADAPTER_WITH_STRATEGIES_DATA,
   MultiChainVaultsType,
   StrategiesByRiskProfileByTokenByChainType,
+  StrategiesByTokenByChainType,
   VaultType,
 } from "../type";
 import {
@@ -214,7 +215,7 @@ export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
   ],
 };
 
-const mainnetStrategiesByToken = {
+const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
   Save: {
     DAI: {
       "dai-DEPOSIT-AaveV2-aDAI": {
@@ -904,6 +905,42 @@ const mainnetStrategiesByToken = {
         description:
           "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
       },
+      "3Crv-DEPOSIT-CurveMetapoolSwapPool-LUSD3CRV-f-CurveCryptoPool-bLUSDLUSD3-f-CurveCryptoGauge-bLUSDLUSD3-f-gauge":
+        {
+          strategyName:
+            "3Crv-DEPOSIT-CurveMetapoolSwapPool-LUSD3CRV-f-CurveCryptoPool-bLUSDLUSD3-f-CurveCryptoGauge-bLUSDLUSD3-f-gauge",
+          token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          strategy: [
+            {
+              contract: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
+              outputToken: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
+              isBorrow: false,
+              outputTokenSymbol: "LUSD3CRV-f",
+              protocol: "Curve",
+              adapterName: "CurveMetapoolSwapAdapter",
+            },
+            {
+              contract: "0x74ED5d42203806c8CDCf2F04Ca5F60DC777b901c",
+              outputToken: "0x5ca0313D44551e32e0d7a298EC024321c4BC59B4",
+              isBorrow: false,
+              outputTokenSymbol: "bLUSDLUSD3-f",
+              protocol: "Curve",
+              adapterName: "CurveCryptoPoolAdapter",
+            },
+            {
+              contract: "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4",
+              outputToken: "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4",
+              isBorrow: false,
+              outputTokenSymbol: "bLUSDLUSD3-f-gauge",
+              protocol: "Curve",
+              adapterName: "CurveMetapoolGaugeAdapter",
+            },
+          ],
+          riskProfileCode: 1,
+          name: "LUSD3CRV staking on Curve",
+          description:
+            "OptyFi vault supplies 3CRV to LUSD3CRV-f factory pool on Curve finance and obtains LUSD3CRV-f lp token which further deposited into bLUSDLUSD3-f and the lp token obtained is staked to bLUSDLUSD3 gauge. The vault earns interest from trading fees and rewards which are harvested to 3CRV are re-invested to the vault",
+        },
       "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV": {
         strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV",
         token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
@@ -1065,6 +1102,32 @@ const mainnetStrategiesByToken = {
         name: "WBTC Lending on dAMM",
         description:
           "The OptyFi vault supplies WBTC to the lending pool on dAMM finance Protocol to earn interest in WBTC and, potentially, additional rewards in BDAMM tokens. The earned WBTC tokens and any harvested BDAMM rewards are reinvested into the vault.",
+      },
+      "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC": {
+        strategyName: "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC",
+        token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        strategy: [
+          {
+            contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+            outputToken: "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
+            isBorrow: false,
+            outputTokenSymbol: "aWBTC",
+            adapterName: "AaveV2Adapter",
+            protocol: "AaveV2",
+          },
+          {
+            contract: "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1",
+            outputToken: "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1",
+            isBorrow: false,
+            outputTokenSymbol: "dAWBTC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "dAWBTC Lending on Damm",
+        description:
+          "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol then lends aWBTC to dAWBTC pool on Damm. The interest is earned on WBTC and BDAMM rewards are harvested and re-invested to the vault.",
       },
     },
   },

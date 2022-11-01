@@ -43,3 +43,6 @@
 [submodule "contracts/protocol/adapters/uniswapV2PoolAdapter"]
 	path = contracts/protocol/adapters/uniswapV2PoolAdapter
 	url = git@github.com:Opty-Fi/uniswapV2PoolAdapter.git
+[submodule "contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter"]
+	path = contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter
+	url = git@github.com:Opty-Fi/curve-crypto-pool-adapter.git
