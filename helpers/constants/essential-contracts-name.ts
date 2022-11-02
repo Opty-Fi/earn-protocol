@@ -6,7 +6,7 @@ export const ESSENTIAL_CONTRACTS: DATA_OBJECT = {
   RISK_MANAGER: "contracts/protocol/earn-protocol-configuration/contracts/RiskManager.sol:RiskManager",
   STRATEGY_PROVIDER: "contracts/protocol/earn-protocol-configuration/contracts/StrategyProvider.sol:StrategyProvider",
   OPTYFI_ORACLE:
-    "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum/contracts/utils/optyfi-oracle/contracts/OptyFiOracle.sol:OptyFiOracle",
+    "contracts/protocol/adapters/uniswapV2PoolAdapter/contracts/utils/optyfi-oracle/contracts/OptyFiOracle.sol:OptyFiOracle",
   HARVEST_CODE_PROVIDER: "HarvestCodeProvider",
   VAULT_PROXY: "InitializableImmutableAdminUpgradeabilityProxy",
   VAULT: "Vault",

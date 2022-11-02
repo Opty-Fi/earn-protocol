@@ -3,9 +3,12 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
 import { getAddress } from "ethers/lib/utils";
+import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import sushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -146,6 +149,66 @@ const func: DeployFunction = async ({
           constructorArguments: [registryProxyAddress, "Wrapped Ether", "WETH", "Invest", "invst"],
         });
       }
+    }
+  }
+  const vaultInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Invst")).address)
+  );
+  const approvalTokens: string[] = [];
+  const approvalSpender: string[] = [];
+
+  const usdc = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.PLAIN_TOKENS.USDC);
+  const usdcAllowance = await usdc.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
+  if (!usdcAllowance.gt("0")) {
+    approvalTokens.push(usdc.address);
+    approvalSpender.push(sushiswap.SushiswapRouter.address);
+  }
+
+  const weth = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.WRAPPED_TOKENS.WETH);
+  const wethAllowance = await weth.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
+  if (!wethAllowance.gt("0")) {
+    approvalTokens.push(weth.address);
+    approvalSpender.push(sushiswap.SushiswapRouter.address);
+  }
+
+  const wbtc = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.BTC_TOKENS.WBTC);
+  const wbtcAllowance = await wbtc.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
+  if (!wbtcAllowance.gt("0")) {
+    approvalTokens.push(wbtc.address);
+    approvalSpender.push(sushiswap.SushiswapRouter.address);
+  }
+
+  const usdcWethSLP = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0")
+  );
+  const wbtcWethSLP = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58")
+  );
+
+  const usdcWethSLPAllowance = await usdcWethSLP.allowance(vaultInstance.address, usdcWethSLP.address);
+  const wbtcWethSLPAllowance = await wbtcWethSLP.allowance(vaultInstance.address, wbtcWethSLP.address);
+
+  if (!usdcWethSLPAllowance.gt("0")) {
+    approvalTokens.push(usdcWethSLP.address);
+    approvalSpender.push(sushiswap.SushiswapRouter.address);
+  }
+  if (!wbtcWethSLPAllowance.gt("0")) {
+    approvalTokens.push(wbtcWethSLP.address);
+    approvalSpender.push(sushiswap.SushiswapRouter.address);
+  }
+
+  if (approvalTokens.length > 0) {
+    console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
+    console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);
+    const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+    if (getAddress(governanceSigner.address) === getAddress(deployer)) {
+      const tx = await vaultInstance.connect(governanceSigner).giveAllowances(approvalTokens, approvalSpender, {
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
+      await tx.wait(1);
+    } else {
+      console.log("cannot approve pools as signer is not the governance");
     }
   }
 };

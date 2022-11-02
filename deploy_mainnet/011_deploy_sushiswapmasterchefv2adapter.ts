@@ -81,6 +81,22 @@ const func: DeployFunction = async ({
     console.log("underlying token to pids is up to date");
   }
 
+  const currentOptyFiOracle = await sushiswapFarmAdapterEthereumInstance.optyFiOracle();
+  const newOptyFiOracle = (await deployments.get("OptyFiOracle")).address;
+
+  if (getAddress(currentOptyFiOracle) !== getAddress(newOptyFiOracle)) {
+    console.log("Modifying OptyFiOracle ", newOptyFiOracle);
+    if (getAddress(operatorSigner.address) === getAddress(deployer)) {
+      console.log("updating OptyFiOracle");
+      const tx = await sushiswapFarmAdapterEthereumInstance.connect(operatorSigner).setOptyFiOracle(newOptyFiOracle);
+      await tx.wait(1);
+    } else {
+      console.log("cannot update underlying tokens to pids as signer is not the operator");
+    }
+  } else {
+    console.log("OptyFiOracle is up to date");
+  }
+
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
       if (networkName === "tenderly") {
