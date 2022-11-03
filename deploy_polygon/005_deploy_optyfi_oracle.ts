@@ -58,4 +58,4 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["OptyFiOracle"];
+func.tags = ["PolygonOptyFiOracle"];
