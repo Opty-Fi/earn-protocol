@@ -91,7 +91,7 @@ const func: DeployFunction = async ({
       const tx = await sushiswapFarmAdapterEthereumInstance.connect(operatorSigner).setOptyFiOracle(newOptyFiOracle);
       await tx.wait(1);
     } else {
-      console.log("cannot update underlying tokens to pids as signer is not the operator");
+      console.log("cannot update OptyFiOracle as signer is not the operator");
     }
   } else {
     console.log("OptyFiOracle is up to date");
