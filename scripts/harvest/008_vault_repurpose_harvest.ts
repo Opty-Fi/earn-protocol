@@ -158,8 +158,6 @@ const bLUSDLUSD3FactoryGaugeAddress = "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB
 const cvxAddress = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
 const ldoAddress = "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32";
 
-ethereumTokens.PLAIN_TOKENS.LUSD;
-
 async function main() {
   // registry
   const registry = <Registry>(

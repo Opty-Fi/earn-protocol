@@ -1,36 +1,42 @@
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import polygonTokens from "@optyfi/defi-legos/polygon/tokens/index";
 import { getAddress } from "ethers/lib/utils";
-import { BigNumber } from "ethers";
 import { getNamedAccounts } from "hardhat";
 import { OptyFiOracle, OptyFiOracle__factory } from "../typechain";
+import { BigNumber } from "ethers";
 
 const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
   const { deployer } = await getNamedAccounts();
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
   const optyfiOracleInstance = <OptyFiOracle>await ethers.getContractAt(OptyFiOracle__factory.abi, optyfiOracleAddress);
 
-  const USDC_WETH_FEED = "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4";
-  const WBTC_WETH_FEED = "0xdeb288F737066589598e9214E782fa5A8eD689e8";
-  const WETH_WBTC_FEED = "0xAc559F25B1619171CbC396a50854A3240b6A4e99";
+  const USDC_USD_FEED = "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7";
+  const USDT_USD_FEED = "0x0A6513e40db6EB1b165753AD52E80663aeA50545";
+  const DAI_USD_FEED = "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D";
+  const MAI_USD_FEED = "0xd8d483d813547CfB624b8Dc33a00F2fcbCd2D428";
 
   const owner = await optyfiOracleInstance.owner();
   const feedToTokens = [
     {
-      tokenA: ethereumTokens.PLAIN_TOKENS.USDC,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
-      priceFeed: USDC_WETH_FEED,
+      tokenA: polygonTokens.USDC,
+      tokenB: polygonTokens.USD,
+      priceFeed: USDC_USD_FEED,
     },
     {
-      tokenA: ethereumTokens.BTC_TOKENS.WBTC,
-      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
-      priceFeed: WBTC_WETH_FEED,
+      tokenA: polygonTokens.USDT,
+      tokenB: polygonTokens.USD,
+      priceFeed: USDT_USD_FEED,
     },
     {
-      tokenA: ethereumTokens.WRAPPED_TOKENS.WETH,
-      tokenB: ethereumTokens.BTC_TOKENS.WBTC,
-      priceFeed: WETH_WBTC_FEED,
+      tokenA: polygonTokens.DAI,
+      tokenB: polygonTokens.USD,
+      priceFeed: DAI_USD_FEED,
+    },
+    {
+      tokenA: polygonTokens.MIMATIC,
+      tokenB: polygonTokens.USD,
+      priceFeed: MAI_USD_FEED,
     },
   ];
   const pendingFeedToTokens = [];
@@ -63,9 +69,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   }
 
   const chainlinkTimeallowances = [
-    { tokenA: ethereumTokens.PLAIN_TOKENS.USDC, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "86400" },
-    { tokenA: ethereumTokens.BTC_TOKENS.WBTC, tokenB: ethereumTokens.WRAPPED_TOKENS.WETH, timeAllowance: "48000" },
-    { tokenA: ethereumTokens.WRAPPED_TOKENS.WETH, tokenB: ethereumTokens.BTC_TOKENS.WBTC, timeAllowance: "48000" },
+    { tokenA: polygonTokens.USDC, tokenB: polygonTokens.MIMATIC, timeAllowance: "55000" },
+    { tokenA: polygonTokens.MIMATIC, tokenB: polygonTokens.USDC, timeAllowance: "55000" },
   ];
 
   const pendingChainlinkTimeallowances = [];
@@ -97,5 +102,5 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
 };
 
 export default func;
-func.tags = ["SetPriceFeedOracle"];
+func.tags = ["PolygonSetPriceFeedOracle"];
 func.dependencies = ["OptyFiOracle"];

@@ -1085,15 +1085,15 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         description:
           "The OptyFi vault supplies WBTC to the crvRenWBTC liquidity pool on Curve Finance and obtains the crvRenWBTC LP token which accrues yield from the pool’s trading fees and rewards.",
       },
-      "wbtc-DEPOSIT-dAMM-cWBTC": {
-        strategyName: "wbtc-DEPOSIT-dAMM-cWBTC",
+      "wbtc-DEPOSIT-dAMM-dWBTC": {
+        strategyName: "wbtc-DEPOSIT-dAMM-dWBTC",
         token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
         strategy: [
           {
             contract: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
             outputToken: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
             isBorrow: false,
-            outputTokenSymbol: "cWBTC",
+            outputTokenSymbol: "dWBTC",
             adapterName: "CompoundAdapter",
             protocol: "dAMM",
           },

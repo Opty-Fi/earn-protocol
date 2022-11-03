@@ -3,34 +3,33 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 import { waitforme } from "../helpers/utils";
-import { Registry } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
 const func: DeployFunction = async ({
   deployments,
+  getNamedAccounts,
   getChainId,
-  ethers,
   network,
   tenderly,
   run,
+  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
-  const artifact = await deployments.getArtifact("ApeSwapPoolAdapter");
-  const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
-  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-  const operatorAddress = await registryV2Instance.getOperator();
+  const { deployer } = await getNamedAccounts();
+  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.OPTYFI_ORACLE);
+
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("ApeSwapPoolAdapter", {
-    from: operatorAddress,
+  const result = await deploy("OptyFiOracle", {
+    from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: ["3600", "3600"],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -39,25 +38,24 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const apeSwapPoolAdapter = await deployments.get("ApeSwapPoolAdapter");
+      const OptyFiOracle = await deployments.get("OptyFiOracle");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "ApeSwapPoolAdapter",
-          address: apeSwapPoolAdapter.address,
-          constructorArguments: [registryProxyAddress],
+          name: "OptyFiOracle",
+          address: OptyFiOracle.address,
+          constructorArguments: ["3600", "3600"],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "ApeSwapPoolAdapter",
-          address: apeSwapPoolAdapter.address,
-          constructorArguments: [registryProxyAddress],
+          name: "OptyFiOracle",
+          address: OptyFiOracle.address,
+          constructorArguments: ["3600", "3600"],
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["PolygonApeSwapPoolAdapter"];
-func.dependencies = ["Registry"];
+func.tags = ["PolygonOptyFiOracle"];

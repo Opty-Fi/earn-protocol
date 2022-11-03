@@ -1,33 +1,32 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
-import sushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
-import { getAddress } from "ethers/lib/utils";
+import { default as QuickswapPolygon } from "@optyfi/defi-legos/polygon/quickswap";
+import polygonTokens from "@optyfi/defi-legos/polygon/tokens/index";
 import { waitforme } from "../helpers/utils";
 import { Registry, Registry__factory, UniswapV2PoolAdapter, UniswapV2PoolAdapter__factory } from "../typechain";
+import { getAddress } from "ethers/lib/utils";
+import { getNamedAccounts } from "hardhat";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
 const func: DeployFunction = async ({
   deployments,
-  getNamedAccounts,
   getChainId,
+  ethers,
   network,
   tenderly,
   run,
-  ethers,
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("UniswapV2PoolAdapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
-
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("SushiswapPoolAdapterEthereum", {
+  const result = await deploy("QuickSwapPoolAdapter", {
     from: deployer,
     contract: {
       abi: artifact.abi,
@@ -37,9 +36,9 @@ const func: DeployFunction = async ({
     args: [
       registryProxyAddress,
       optyfiOracleAddress,
-      sushiswap.SushiswapRouter.address,
-      sushiswap.SushiswapFactory.address,
-      sushiswap.rootKFactor,
+      QuickswapPolygon.QuickswapRouter.address,
+      QuickswapPolygon.QuickswapFactory.address,
+      QuickswapPolygon.rootKFactor,
     ],
     log: true,
     skipIfAlreadyDeployed: true,
@@ -49,54 +48,57 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const sushiswapPoolAdapterEthereum = await deployments.get("SushiswapPoolAdapterEthereum");
+      const quickSwapPoolAdapter = await deployments.get("QuickSwapPoolAdapter");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "SushiswapPoolAdapterEthereum",
-          address: sushiswapPoolAdapterEthereum.address,
+          name: "QuickSwapPoolAdapter",
+          address: quickSwapPoolAdapter.address,
           constructorArguments: [
             registryProxyAddress,
             optyfiOracleAddress,
-            sushiswap.SushiswapRouter.address,
-            sushiswap.SushiswapFactory.address,
-            sushiswap.rootKFactor,
+            QuickswapPolygon.QuickswapRouter.address,
+            QuickswapPolygon.QuickswapFactory.address,
+            QuickswapPolygon.rootKFactor,
           ],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "SushiswapPoolAdapterEthereum",
-          address: sushiswapPoolAdapterEthereum.address,
+          name: "QuickSwapPoolAdapter",
+          address: quickSwapPoolAdapter.address,
           constructorArguments: [
             registryProxyAddress,
             optyfiOracleAddress,
-            sushiswap.SushiswapRouter.address,
-            sushiswap.SushiswapFactory.address,
-            sushiswap.rootKFactor,
+            QuickswapPolygon.QuickswapRouter.address,
+            QuickswapPolygon.QuickswapFactory.address,
+            QuickswapPolygon.rootKFactor,
           ],
         });
       }
     }
   }
-  const sushiswapPoolAdapterEthereumAddress = await (await deployments.get("SushiswapPoolAdapterEthereum")).address;
-  const sushiswapPoolAdapterEthereumInstance = <UniswapV2PoolAdapter>(
-    await ethers.getContractAt(UniswapV2PoolAdapter__factory.abi, sushiswapPoolAdapterEthereumAddress)
+
+  const quickswapPoolAdapterAddress = await (await deployments.get("QuickSwapPoolAdapter")).address;
+  const quickswapPoolAdapterInstance = <UniswapV2PoolAdapter>(
+    await ethers.getContractAt(UniswapV2PoolAdapter__factory.abi, quickswapPoolAdapterAddress)
   );
   const registryProxyInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
   const riskOperator = await registryProxyInstance.riskOperator();
   const riskOperatorSigner = await ethers.getSigner(riskOperator);
 
-  const USDC_WETH_LP = "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0";
-  const WBTC_WETH_LP = "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58";
+  const USDC_USDT_LP = "0x2cF7252e74036d1Da831d11089D326296e64a728";
+  const USDC_DAI_LP = "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd";
+  const USDC_MAI_LP = "0x160532D2536175d65C03B97b0630A9802c274daD";
 
   const liquidityPoolToTolerances = [
-    { liquidityPool: USDC_WETH_LP, tolerance: "100" },
-    { liquidityPool: WBTC_WETH_LP, tolerance: "50" },
+    { liquidityPool: USDC_USDT_LP, tolerance: "70" },
+    { liquidityPool: USDC_DAI_LP, tolerance: "70" },
+    { liquidityPool: USDC_MAI_LP, tolerance: "70" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
-    const tolerance = await sushiswapPoolAdapterEthereumInstance.liquidityPoolToTolerance(
+    const tolerance = await quickswapPoolAdapterInstance.liquidityPoolToTolerance(
       liquidityPoolToTolerance.liquidityPool,
     );
     if (!BigNumber.from(tolerance).eq(BigNumber.from(liquidityPoolToTolerance.tolerance))) {
@@ -108,7 +110,7 @@ const func: DeployFunction = async ({
     console.log(JSON.stringify(pendingLiquidityPoolToTolerances, null, 4));
     if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
       console.log("updating pending LiquidityPool To Tolerances");
-      const tx = await sushiswapPoolAdapterEthereumInstance
+      const tx = await quickswapPoolAdapterInstance
         .connect(riskOperatorSigner)
         .setLiquidityPoolToTolerance(pendingLiquidityPoolToTolerances);
       await tx.wait(1);
@@ -120,14 +122,16 @@ const func: DeployFunction = async ({
   }
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
-    { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
-    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
-    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.BTC_TOKENS.WBTC, slippage: "70" },
+    { liquidityPool: USDC_USDT_LP, wantToken: polygonTokens.USDT, slippage: "100" },
+    { liquidityPool: USDC_USDT_LP, wantToken: polygonTokens.USDC, slippage: "100" },
+    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.USDC, slippage: "100" },
+    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.DAI, slippage: "100" },
+    { liquidityPool: USDC_MAI_LP, wantToken: polygonTokens.USDC, slippage: "100" },
+    { liquidityPool: USDC_MAI_LP, wantToken: polygonTokens.MIMATIC, slippage: "100" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
-    const slippage = await sushiswapPoolAdapterEthereumInstance.liquidityPoolToWantTokenToSlippage(
+    const slippage = await quickswapPoolAdapterInstance.liquidityPoolToWantTokenToSlippage(
       liquidityPoolToWantTokenToSlippage.liquidityPool,
       liquidityPoolToWantTokenToSlippage.wantToken,
     );
@@ -140,7 +144,7 @@ const func: DeployFunction = async ({
     console.log(JSON.stringify(pendingLiquidityPoolToWantTokenToSlippages, null, 4));
     if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
       console.log("updating pending LiquidityPool To Want Token To Slippages");
-      const tx = await sushiswapPoolAdapterEthereumInstance
+      const tx = await quickswapPoolAdapterInstance
         .connect(riskOperatorSigner)
         .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
       await tx.wait(1);
@@ -154,5 +158,5 @@ const func: DeployFunction = async ({
   }
 };
 export default func;
-func.tags = ["SushiswapPoolAdapterEthereum"];
-func.dependencies = ["Registry", "OptyFiOracle"];
+func.tags = ["PolygonQuickSwapPoolAdapter"];
+func.dependencies = ["Registry"];
