@@ -204,7 +204,7 @@ const func: DeployFunction = async ({
   const usdcDaiALP = <ERC20>(
     await ethers.getContractAt(ERC20__factory.abi, "0x5b13B583D4317aB15186Ed660A1E4C65C10da659")
   );
-  const usdcDaiALPAllowance = await usdcMaiQLP.allowance(vaultInstance.address, apeswap.ApeswapRouter.address);
+  const usdcDaiALPAllowance = await usdcDaiALP.allowance(vaultInstance.address, apeswap.ApeswapRouter.address);
   if (!usdcDaiALPAllowance.gt("0")) {
     approvalTokens.push(usdcDaiALP.address);
     approvalSpender.push(apeswap.ApeswapRouter.address);
