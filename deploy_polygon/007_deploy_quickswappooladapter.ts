@@ -23,13 +23,11 @@ const func: DeployFunction = async ({
   const artifact = await deployments.getArtifact("UniswapV2PoolAdapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
-  const registryV2Instance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
-  const operatorAddress = await registryV2Instance.getOperator();
   const chainId = await getChainId();
   const networkName = network.name;
   const feeData = await ethers.provider.getFeeData();
   const result = await deploy("QuickSwapPoolAdapter", {
-    from: operatorAddress,
+    from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,

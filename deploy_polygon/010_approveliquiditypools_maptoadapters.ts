@@ -121,4 +121,5 @@ func.dependencies = [
   "PolygonAaveAdapter",
   "PolygonSushiswapPoolAdapter",
   "PolygonApeSwapPoolAdapter",
+  "PolygonQuickSwapPoolAdapter",
 ];
