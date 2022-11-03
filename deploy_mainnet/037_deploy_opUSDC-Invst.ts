@@ -176,7 +176,7 @@ const func: DeployFunction = async ({
     await ethers.getContractAt(ERC20__factory.abi, "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0")
   );
 
-  const usdcWethSLPAllowance = await usdcWethSLP.allowance(vaultInstance.address, usdcWethSLP.address);
+  const usdcWethSLPAllowance = await usdcWethSLP.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
 
   if (!usdcWethSLPAllowance.gt("0")) {
     approvalTokens.push(usdcWethSLP.address);
