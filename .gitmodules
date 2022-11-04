@@ -28,9 +28,6 @@
 [submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
 	path = contracts/protocol/adapters/ethereum/team-defi-adapters
 	url = git@github.com:Opty-Fi/team-defi-adapters.git
-[submodule "contracts/protocol/earn-protocol-configuration"]
-	path = contracts/protocol/earn-protocol-configuration
-	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
 [submodule "contracts/protocol/adapters/uniswapV2PoolAdapter"]
 	path = contracts/protocol/adapters/uniswapV2PoolAdapter
 	url = git@github.com:Opty-Fi/uniswapV2PoolAdapter.git
@@ -40,3 +37,7 @@
 [submodule "contracts/protocol/adapters/polygon/quickswap-farm-polygon"]
 	path = contracts/protocol/adapters/polygon/quickswap-farm-polygon
 	url = git@github.com:Opty-Fi/quickswap-farm-polygon.git
+[submodule "contracts/protocol/earn-protocol-configuration"]
+	path = contracts/protocol/earn-protocol-configuration
+	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
+	branch = swap-step

@@ -219,7 +219,7 @@ async function main() {
   const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
   const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
 
-  const oneBDAMMToUSDC = parseUnits("0.26", "6");
+  const oneBDAMMToUSDC = parseUnits("0.28", "6");
   const oneBDAMMToWETH = parseEther("0.0001");
   const oneBDAMMToWBTC = parseUnits("0.00001", "8");
   const oneLUSDTo3CRV = parseEther("1");
@@ -242,16 +242,8 @@ async function main() {
     [bdamm, 10000, ethereumTokens.PLAIN_TOKENS.USDC, 500, ethereumTokens.BTC_TOKENS.WBTC],
   );
   const uniV3SwapPathForLUSDto3CRV = ethers.utils.solidityPack(
-    ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
-    [
-      lusd.address,
-      10000,
-      ethereumTokens.WRAPPED_TOKENS.WETH,
-      3000,
-      ethereumTokens.PLAIN_TOKENS.USDC,
-      3000,
-      ethereumTokens.WRAPPED_TOKENS.THREE_CRV,
-    ],
+    ["address", "uint24", "address", "uint24", "address"],
+    [lusd.address, 500, ethereumTokens.PLAIN_TOKENS.USDC, 3000, ethereumTokens.WRAPPED_TOKENS.THREE_CRV],
   );
   const transactions: MetaTransactionData[] = [
     {
@@ -303,24 +295,24 @@ async function main() {
       ]),
     },
     {
-      to: opWETHEarn.address,
-      value: "0",
-      data: opWETHEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
-    },
-    {
       to: strategyProvider.address,
       value: "0",
       data: strategyProvider.interface.encodeFunctionData("setBestStrategy", [
         "1",
-        await opWBTCEarn.underlyingTokensHash(),
+        await opWETHEarn.underlyingTokensHash(),
         [
           {
-            pool: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
-            outputToken: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            pool: "0x118823514681353634FF95837939E783D85B18AF",
+            outputToken: "0x118823514681353634FF95837939E783D85B18AF",
             isBorrow: false,
           },
         ],
       ]),
+    },
+    {
+      to: opWETHEarn.address,
+      value: "0",
+      data: opWETHEarn.interface.encodeFunctionData("rebalance"),
     },
     {
       to: opWBTCEarn.address,
@@ -338,7 +330,7 @@ async function main() {
     {
       to: opWBTCEarn.address,
       value: "0",
-      data: opWBTCEarn.interface.encodeFunctionData("rebalance"),
+      data: opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
     },
     {
       to: bLUSDLUSD3FactoryGauge.address,
