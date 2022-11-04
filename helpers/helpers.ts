@@ -72,7 +72,7 @@ export function generateStrategyHash(strategy: STRATEGY_DATA[], tokenAddress: st
   for (let index = 0; index < strategy.length; index++) {
     strategyStepsHash[index] = getSoliditySHA3Hash(
       ["address", "address", "bool"],
-      [strategy[index].contract, strategy[index].outputToken, strategy[index].isBorrow],
+      [strategy[index].contract, strategy[index].outputToken, strategy[index].isSwap],
     );
   }
   return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
@@ -83,7 +83,7 @@ export function generateStrategyHashV2(strategy: STRATEGY_DATA[], tokensHash: st
   for (let index = 0; index < strategy.length; index++) {
     strategyStepsHash[index] = getSoliditySHA3Hash(
       ["address", "address", "bool"],
-      [strategy[index].contract, strategy[index].outputToken, strategy[index].isBorrow],
+      [strategy[index].contract, strategy[index].outputToken, strategy[index].isSwap],
     );
   }
   return getSoliditySHA3Hash(["bytes32", "bytes32[]"], [tokensHash, strategyStepsHash]);
@@ -100,7 +100,7 @@ export function generateStrategyStep(strategy: STRATEGY_DATA[]): [string, string
     const tempArr: [string, string, boolean] = [
       strategy[index].contract,
       strategy[index].outputToken,
-      strategy[index].isBorrow,
+      strategy[index].isSwap,
     ];
     strategySteps.push(tempArr);
   }

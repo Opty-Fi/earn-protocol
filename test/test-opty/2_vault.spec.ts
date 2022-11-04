@@ -47,7 +47,7 @@ const UniswapV3RouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; //m
 
 const testStrategy: {
   [key: string]: {
-    [name: string]: { steps: { pool: string; outputToken: string; isBorrow: boolean }[]; hash: string };
+    [name: string]: { steps: { pool: string; outputToken: string; isSwap: boolean }[]; hash: string };
   };
 } = {
   [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
@@ -56,7 +56,7 @@ const testStrategy: {
         {
           pool: TypedDefiPools.CompoundAdapter.usdc.pool,
           outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-          isBorrow: false,
+          isSwap: false,
         },
       ],
       hash: generateStrategyHashV2(
@@ -64,7 +64,7 @@ const testStrategy: {
           {
             contract: TypedDefiPools.CompoundAdapter.usdc.pool,
             outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-            isBorrow: false,
+            isSwap: false,
           },
         ],
         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
@@ -75,7 +75,7 @@ const testStrategy: {
         {
           pool: TypedDefiPools.AaveV1Adapter.usdc.pool,
           outputToken: TypedDefiPools.AaveV1Adapter.usdc.lpToken,
-          isBorrow: false,
+          isSwap: false,
         },
       ],
       hash: generateStrategyHashV2(
@@ -83,7 +83,7 @@ const testStrategy: {
           {
             contract: TypedDefiPools.AaveV2Adapter.usdc.pool,
             outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
-            isBorrow: false,
+            isSwap: false,
           },
         ],
         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
@@ -94,7 +94,7 @@ const testStrategy: {
         {
           pool: TypedDefiPools.AaveV2Adapter.usdc.pool,
           outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
-          isBorrow: false,
+          isSwap: false,
         },
       ],
       hash: generateStrategyHashV2(
@@ -102,7 +102,7 @@ const testStrategy: {
           {
             contract: TypedDefiPools.CompoundAdapter.usdc.pool,
             outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-            isBorrow: false,
+            isSwap: false,
           },
         ],
         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,

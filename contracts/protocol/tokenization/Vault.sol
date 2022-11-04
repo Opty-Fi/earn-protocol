@@ -585,7 +585,7 @@ contract Vault is
                     abi.encodePacked(
                         _investStrategySteps[_i].pool,
                         _investStrategySteps[_i].outputToken,
-                        _investStrategySteps[_i].isBorrow
+                        _investStrategySteps[_i].isSwap
                     )
                 );
             }

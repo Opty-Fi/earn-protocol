@@ -233,14 +233,6 @@ const polygonTokens = {
   },
 };
 
-const kovanTokens = {
-  USDC: {
-    address: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-    pair: false,
-    hash: generateTokenHashV2(["0xe22da380ee6b445bb8273c81944adeb6e8450422"], NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]),
-  },
-};
-
 const mumbaiTokens = {
   USDC: {
     address: "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e",
@@ -289,9 +281,6 @@ export const MULTI_CHAIN_VAULT_TOKENS: MULTI_CHAIN_TOKENS_DATA = {
   [eEVMNetwork.mumbai]: mumbaiTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mumbai]]: mumbaiTokens,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mumbai]]: mumbaiTokens,
-  [eEVMNetwork.kovan]: kovanTokens,
-  [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanTokens,
-  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanTokens,
   [eEVMNetwork.avalanche]: avalancheTokens,
   [NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: avalancheTokens,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche]]: avalancheTokens,
