@@ -19,10 +19,6 @@ jobs:
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       REPORT_GAS: true
       MNEMONIC: ${{ secrets.MNEMONIC}}
-      STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
-      STRATEGY_DIVISOR: 2
-      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
-      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
       IGNORE_VAULTS: "opNEWO-Invst,opAAVE-Invst,opAPE-Invst,opLINK-Invst,opMANA-Invst,opSUSHI-Invst,opENS-Invst,opCOMP-Invst,opIMX-Invst,opALCX-Invst,opCRV-Invst,opCVX-Invst,opYFI-Invst"
 
     steps:
@@ -47,9 +43,9 @@ jobs:
       - name: Compile
         run: |
           yarn compile
-      - name: Optyfi-SDK Mainnet
+      - name: Typechain
         run: |
-          yarn typechain && yarn optyfi-sdk:mainnet
+          yarn typechain
       - name: Run Slither
         uses: crytic/slither-action@v0.1.0
         continue-on-error: true

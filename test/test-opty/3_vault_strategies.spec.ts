@@ -55,10 +55,10 @@ describe(`${fork}-Vault-rev4`, () => {
     this.signers.strategyOperator = signers[7];
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
     const registryProxy = await deployments.get("RegistryProxy");
-    const riskManagerProxy = await deployments.get("RiskManagerProxy");
+    const riskManagerAddress = (await deployments.get("RiskManager")).address;
     const strategyProvider = await deployments.get("StrategyProvider");
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxy.address);
-    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, riskManagerProxy.address);
+    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, riskManagerAddress);
     this.strategyProvider = <StrategyProvider>(
       await ethers.getContractAt(StrategyProvider__factory.abi, strategyProvider.address)
     );
@@ -144,7 +144,7 @@ describe(`${fork}-Vault-rev4`, () => {
           const steps = strategyDetail.strategy.map(item => ({
             pool: item.contract,
             outputToken: item.outputToken,
-            isBorrow: item.isBorrow,
+            isSwap: item.isSwap,
           }));
 
           describe(`${fork}-${riskProfile}-${token}-${strategy}`, () => {

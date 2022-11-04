@@ -82,7 +82,7 @@ describe(`${fork}-Vault-rev4 StrategyManager Library`, () => {
       const steps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
         outputToken: item.outputToken,
-        isBorrow: item.isBorrow,
+        isSwap: item.isSwap,
       }));
 
       describe(`${fork}-${strategy}`, () => {

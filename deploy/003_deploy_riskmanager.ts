@@ -19,7 +19,7 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY);
+  const artifact = await deployments.getArtifact(ESSENTIAL_CONTRACTS.RISK_MANAGER);
   const registryProxy = await deployments.get("RegistryProxy");
   const chainId = await getChainId();
   const networkName = network.name;
@@ -40,11 +40,11 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const riskManagerProxy = await deployments.get("RiskManagerProxy");
+      const riskManager = await deployments.get("RiskManager");
       if (networkName === "tenderly") {
         await tenderly.verify({
           name: "RiskManager",
-          address: riskManagerProxy.address,
+          address: riskManager.address,
           constructorArguments: [registryProxy.address],
           contract: "contracts/protocol/earn-protocol-configuration/contracts/RiskManager.sol:RiskManager",
         });
@@ -53,7 +53,7 @@ const func: DeployFunction = async ({
 
         await run("verify:verify", {
           name: "RiskManager",
-          address: riskManagerProxy.address,
+          address: riskManager.address,
           constructorArguments: [registryProxy.address],
           contract: "contracts/protocol/earn-protocol-configuration/contracts/RiskManager.sol:RiskManager",
         });
