@@ -131,7 +131,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     this.signers.bob = signers[4];
     this.signers.eve = signers[10];
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
-    const RISKMANAGER_PROXY_ADDRESS = (await deployments.get("RiskManagerProxy")).address;
+    const RISKMANAGER_ADDRESS = (await deployments.get("RiskManager")).address;
     const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
     const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
     const DAISAVE_VAULT_ADDRESS = (await deployments.get("opDAI-Save")).address;
@@ -145,7 +145,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     this.signers.governance = await ethers.getSigner(governanceAddress);
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
     this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
-    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, RISKMANAGER_PROXY_ADDRESS);
+    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, RISKMANAGER_ADDRESS);
     this.strategyProvider = <StrategyProvider>(
       await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
     );

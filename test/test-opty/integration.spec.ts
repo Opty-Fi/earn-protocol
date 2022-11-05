@@ -30,7 +30,6 @@ import {
   Registry,
   RegistryProxy,
   RiskManager,
-  RiskManagerProxy,
   StrategyManager,
   StrategyProvider,
   Vault,
@@ -213,7 +212,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.registry
           .connect(this.signers.riskOperator)
-          ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggressive", "aggr", false, {
+          ["addRiskProfile(uint256,string,string,(uint8,uint8))"]("2", "Aggressive", "aggr", {
             lowerLimit: "1",
             upperLimit: "20",
           }),
@@ -222,7 +221,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         .withArgs("0", true, false, this.signers.riskOperator.address);
       const riskProfile = await this.registry.getRiskProfile("2");
       expect(riskProfile.index).to.be.equal("0");
-      expect(riskProfile.canBorrow).to.be.false;
+      expect(riskProfile.var0).to.be.false;
       expect(riskProfile.poolRatingsRange.lowerLimit).to.be.equal(BigNumber.from("1"));
       expect(riskProfile.poolRatingsRange.upperLimit).to.be.equal(BigNumber.from("20"));
       expect(riskProfile.exists).to.be.true;
@@ -401,16 +400,8 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         ])
       );
       assert.isDefined(this.riskManager, "!RiskManager");
-      this.riskManagerProxy = <RiskManagerProxy>(
-        await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, false, this.signers.deployer, [
-          this.registry.address,
-        ])
-      );
-      assert.isDefined(this.riskManagerProxy, "!RiskManagerProxy");
-      await this.riskManagerProxy.connect(this.signers.operator).setPendingImplementation(this.riskManager.address);
-      await this.riskManager.connect(this.signers.governance).become(this.riskManagerProxy.address);
       this.riskManager = <RiskManager>(
-        await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, this.riskManagerProxy.address)
+        await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, this.riskManager.address)
       );
       expect(await this.riskManager.registryContract()).to.equal(this.registry.address);
       await this.registry.connect(this.signers.operator).setRiskManager(this.riskManager.address);
@@ -615,7 +606,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       const steps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
         outputToken: item.outputToken,
-        isBorrow: item.isBorrow,
+        isSwap: item.isSwap,
       }));
       expect((await this.vault.getInvestStrategySteps()).length).to.eq(0);
       await this.strategyProvider.connect(this.signers.strategyOperator).setBestStrategy("2", tokenHash, steps);
@@ -649,7 +640,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       const steps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
         outputToken: item.outputToken,
-        isBorrow: item.isBorrow,
+        isSwap: item.isSwap,
       }));
       await this.strategyProvider.connect(this.signers.strategyOperator).setBestStrategy("2", tokenHash, steps);
       expect(await this.vault.getNextBestInvestStrategy()).to.deep.eq(steps.map(item => Object.values(item)));
