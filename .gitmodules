@@ -42,3 +42,6 @@
 	path = contracts/protocol/adapters/ethereum/team-defi-adapters
 	url = git@github.com:Opty-Fi/team-defi-adapters.git
 	branch = swap-step
+[submodule "contracts/protocol/adapters/swap-adapters"]
+	path = contracts/protocol/adapters/swap-adapters
+	url = git@github.com:Opty-Fi/swap-adapters.git
