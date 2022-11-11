@@ -32,6 +32,7 @@ import {
   TestVault,
   ERC20Permit,
   ERC20Permit__factory,
+  IAdapterFull,
 } from "../../typechain";
 import { getPermitSignature, getPermitLegacySignature, setTokenBalanceInStorage } from "./utils";
 import { TypedDefiPools } from "../../helpers/data/defiPools";
@@ -540,7 +541,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
       const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
       const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
-      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _adapterInstance = <IAdapterFull>await ethers.getContractAt("IAdapterFull", _adapterAddress);
       await this.opUSDCearn.rebalance();
       const _expectedVaultUsdcBalance = BigNumber.from("0");
       expect(await this.usdc.balanceOf(this.opUSDCearn.address)).to.eq(_expectedVaultUsdcBalance);
@@ -552,7 +553,7 @@ describe(`::${fork}-Vault-rev4`, function () {
           _pool,
         );
       }
-      expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalance(
+      expectedlpTokenBalance = await _adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
         this.opUSDCearn.address,
         MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
         _pool,
@@ -569,7 +570,7 @@ describe(`::${fork}-Vault-rev4`, function () {
           _pool,
         );
       } else {
-        _allAmountInToken = await _adapterInstance.getAllAmountInToken(
+        _allAmountInToken = await _adapterInstance["getAllAmountInToken(address,address,address)"](
           this.opUSDCearn.address,
           MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
           _pool,
@@ -794,7 +795,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, _depositAmountUSDC, dataPermit, _proofs),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, dataPermit, _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -863,7 +864,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opDAIsave
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountDAI, _depositAmountDAI, dataPermit, _proofs),
+          .userDepositVault(this.signers.alice.address, _depositAmountDAI, dataPermit, _proofs),
       )
         .to.emit(this.opDAIsave, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountDAIWithFee);
@@ -896,7 +897,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, usdcDepositAmount, usdcDepositAmount, [], []),
+          .userDepositVault(this.signers.alice.address, usdcDepositAmount, [], []),
       ).to.be.revertedWith("14");
     });
 
@@ -935,7 +936,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, _depositAmountUSDC, [], _proofs),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, [], _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(ethers.constants.AddressZero, this.signers.alice.address, _depositAmountUSDCWithFee);
@@ -979,7 +980,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC, [], _proofs),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proofs),
       ).to.revertedWith("8");
     });
 
@@ -1010,43 +1011,8 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, _depositAmountUSDC, [], _bobProofs),
+          .userDepositVault(this.signers.alice.address, _depositAmountUSDC, [], _bobProofs),
       ).to.revertedWith("8");
-    });
-
-    it("fail userDepositVault() expected output amount not reached, INSUFFICIENT_OUTPUT_AMOUNT", async function () {
-      // lift emergency shutdown
-      await expect(this.opUSDCearn.connect(this.signers.governance).setEmergencyShutdown(false))
-        .to.emit(this.opUSDCearn, "LogEmergencyShutdown")
-        .withArgs(false, this.signers.governance.address);
-      const _proof = getAccountsMerkleProof(
-        [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
-        this.signers.eve.address,
-      );
-      await this.opUSDCearn
-        .connect(this.signers.governance)
-        .setVaultConfiguration("2715822034072518811744046181093660912122076772552892442457464397795247259658");
-      assertVaultConfiguration(
-        await this.opUSDCearn.vaultConfiguration(),
-        BigNumber.from("10"),
-        BigNumber.from("500"),
-        BigNumber.from("0"),
-        BigNumber.from("0"),
-        BigNumber.from("100"),
-        "0x19cDeDF678aBE15a921a2AB26C9Bc8867fc35cE5",
-        BigNumber.from("1"),
-        false,
-        true,
-        true,
-      );
-      const _depositAmountUSDC = BigNumber.from("1100000000");
-      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
-      await this.usdc.connect(this.signers.eve).approve(this.opUSDCearn.address, _depositAmountUSDC);
-      await expect(
-        this.opUSDCearn
-          .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC.add(1), [], _proof),
-      ).to.revertedWith("9");
     });
 
     it("userDepositVault, deposit fees", async function () {
@@ -1088,7 +1054,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _expectedShares, [], _proof),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1098,21 +1064,6 @@ describe(`::${fork}-Vault-rev4`, function () {
         );
       const _balanceAfterVT = await this.opUSDCearn.balanceOf(this.signers.eve.address);
       expect(_balanceAfterVT.sub(_balanceBeforeVT)).to.eq(_expectedShares);
-    });
-
-    it("fail userDepositVault, deposit fees, MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
-      const _proof = getAccountsMerkleProof(
-        [this.signers.alice.address, this.signers.bob.address, this.testVault.address, this.signers.eve.address],
-        this.signers.eve.address,
-      );
-      const _depositAmountUSDC = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
-      await this.usdc.connect(this.signers.admin).transfer(this.signers.eve.address, _depositAmountUSDC);
-      await this.usdc.connect(this.signers.eve).approve(this.opUSDCearn.address, _depositAmountUSDC);
-      await expect(
-        this.opUSDCearn
-          .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC, [], _proof),
-      ).to.revertedWith("10");
     });
 
     it("userDepositVault, withdrawal fees", async function () {
@@ -1151,7 +1102,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _expectedWithdrawAmount, _proof),
+          .userWithdrawVault(this.signers.eve.address, _withdrawAmountVT, _proof),
       )
         .to.emit(this.usdc, "Transfer")
         .withArgs(
@@ -1174,7 +1125,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       await expect(
         this.opUSDCearn
           .connect(this.signers.eve)
-          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, _depositAmountUSDC, [], _proof),
+          .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof),
       ).to.revertedWith("13");
     });
   });
@@ -1669,19 +1620,6 @@ describe(`::${fork}-Vault-rev4`, function () {
   });
 
   describe(`${fork}-#userWithdrawVault(uint256,bytes32[],bytes32[])`, function () {
-    it("fail userWithdrawVault() expected output amount not reached, INSUFFICIENT_OUTPUT_AMOUNT", async function () {
-      const _proofs = getAccountsMerkleProof(
-        [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
-        this.signers.alice.address,
-      );
-      const _balanceVT = await this.opUSDCearn.balanceOf(this.signers.alice.address);
-      await expect(
-        this.opUSDCearn
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _balanceVT, _balanceVT.mul(2), _proofs),
-      ).to.be.revertedWith("9");
-    });
-
     it("userWithdrawVault()", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -1691,7 +1629,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       const _userbalanceBefore = await this.usdc.balanceOf(this.signers.alice.address);
       const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
       const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
-      const _adapterInstance = await ethers.getContractAt("IAdapterFull", _adapterAddress);
+      const _adapterInstance = <IAdapterFull>await ethers.getContractAt("IAdapterFull", _adapterAddress);
       const canStake: boolean = await _adapterInstance.canStake(_pool);
       let _allAmountInToken = BigNumber.from("0");
       if (canStake) {
@@ -1701,7 +1639,7 @@ describe(`::${fork}-Vault-rev4`, function () {
           _pool,
         );
       } else {
-        _allAmountInToken = await _adapterInstance.getAllAmountInToken(
+        _allAmountInToken = await _adapterInstance["getAllAmountInToken(address,address,address)"](
           this.opUSDCearn.address,
           MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
           _pool,
@@ -1713,9 +1651,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       const _calculatedWithdrawalFee = await this.opUSDCearn.calcWithdrawalFeeUT(_calculatedReceivableUT);
       const _calculatedReceivableUTWithFee = _calculatedReceivableUT.sub(_calculatedWithdrawalFee);
       await expect(
-        this.opUSDCearn
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _redeemVT, _redeemVT, _proofs),
+        this.opUSDCearn.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proofs),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);
@@ -1733,9 +1669,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       );
       const _redeemVT = (await this.opUSDCearn.balanceOf(this.signers.alice.address)).div("2");
       await expect(
-        this.opUSDCearn
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, _redeemVT, _redeemVT, _proof),
+        this.opUSDCearn.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, _redeemVT, _proof),
       )
         .to.emit(this.opUSDCearn, "Transfer")
         .withArgs(this.signers.alice.address, ethers.constants.AddressZero, _redeemVT);

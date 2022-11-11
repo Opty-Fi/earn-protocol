@@ -153,10 +153,18 @@ export async function getOraValueUT(
       if (await adapterInstance.canStake(poolAddress)) {
         amountUT = await adapterInstance.getAllAmountInTokenStake(vault.address, inputTokenAddress, poolAddress);
       } else {
-        amountUT = await adapterInstance.getAllAmountInToken(vault.address, inputTokenAddress, poolAddress);
+        amountUT = await adapterInstance["getAllAmountInToken(address,address,address)"](
+          vault.address,
+          inputTokenAddress,
+          poolAddress,
+        );
       }
     } else {
-      amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
+      amountUT = await adapterInstance["getSomeAmountInToken(address,address,uint256)"](
+        inputTokenAddress,
+        poolAddress,
+        outputTokenAmount,
+      );
     }
     index++;
     outputTokenAmount = amountUT;
@@ -184,7 +192,11 @@ export async function getOraSomeValueUT(
     if (!iterator.eq("0")) {
       inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
     }
-    amountUT = await adapterInstance.getSomeAmountInToken(inputTokenAddress, poolAddress, outputTokenAmount);
+    amountUT = await adapterInstance["getSomeAmountInToken(address,address,uint256)"](
+      inputTokenAddress,
+      poolAddress,
+      outputTokenAmount,
+    );
     index++;
     outputTokenAmount = amountUT;
   }
@@ -206,13 +218,17 @@ export async function getLastStrategyStepBalanceLP(
     return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
   }
   if (investStrategySteps.length > 1) {
-    return await adapterInstance.getLiquidityPoolTokenBalance(
+    return await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
       vault.address,
       investStrategySteps[investStrategySteps.length - 2].outputToken,
       lastStepPool,
     );
   }
-  return await adapterInstance.getLiquidityPoolTokenBalance(vault.address, underlyingToken.address, lastStepPool);
+  return await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
+    vault.address,
+    underlyingToken.address,
+    lastStepPool,
+  );
 }
 
 export async function getOraSomeValueLP(
@@ -232,7 +248,7 @@ export async function getOraSomeValueLP(
     if (index != 0) {
       inputToken = investStrategySteps[index - 1].outputToken;
     }
-    amountLP = await adapterInstance.calculateAmountInLPToken(
+    amountLP = await adapterInstance["calculateAmountInLPToken(address,address,uint256)"](
       inputToken,
       poolAddress,
       index == 0 ? wantAmount : amountLP,

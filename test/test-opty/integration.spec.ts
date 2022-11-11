@@ -494,7 +494,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), BigNumber.from("0"), "0x", []),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", []),
       ).to.revertedWith("8");
     });
 
@@ -521,18 +521,12 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), BigNumber.from("0"), "0x", _proof),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), "0x", _proof),
       ).to.revertedWith("10");
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(
-            this.signers.alice.address,
-            BigNumber.from("1000000000"),
-            BigNumber.from("0"),
-            "0x",
-            _proof,
-          ),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(hre.ethers.constants.AddressZero, this.signers.alice.address, BigNumber.from("1000000000"));
@@ -560,13 +554,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.bob)
-          .userDepositVault(
-            this.signers.bob.address,
-            BigNumber.from("100000000000"),
-            BigNumber.from("0"),
-            "0x",
-            _proof,
-          ),
+          .userDepositVault(this.signers.bob.address, BigNumber.from("100000000000"), "0x", _proof),
       ).revertedWith("12");
     });
 
@@ -590,9 +578,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         this.signers.bob.address,
       );
       await expect(
-        this.vault
-          .connect(this.signers.bob)
-          .userDepositVault(this.signers.bob.address, depositValue, BigNumber.from("0"), "0x", _proof),
+        this.vault.connect(this.signers.bob).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(hre.ethers.constants.AddressZero, this.signers.bob.address, depositValue);
@@ -626,9 +612,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await this.erc20.connect(this.signers.alice).approve(this.vault.address, depositValue);
       expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(depositValue);
       await expect(
-        this.vault
-          .connect(this.signers.alice)
-          .userDepositVault(this.signers.bob.address, depositValue, BigNumber.from("0"), "0x", _proof),
+        this.vault.connect(this.signers.alice).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof),
       ).to.revertedWith("11");
     });
 
@@ -657,9 +641,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         this.signers.alice.address,
       );
       await expect(
-        this.vault
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, withdrawValue, BigNumber.from("0"), _proof),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, withdrawValue, _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, hre.ethers.constants.AddressZero, withdrawValue);
@@ -672,9 +654,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         this.signers.bob.address,
       );
       await expect(
-        this.vault
-          .connect(this.signers.bob)
-          .userWithdrawVault(this.signers.bob.address, withdrawValue, BigNumber.from("0"), _proof),
+        this.vault.connect(this.signers.bob).userWithdrawVault(this.signers.bob.address, withdrawValue, _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.bob.address, hre.ethers.constants.AddressZero, withdrawValue);
