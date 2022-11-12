@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { default as CurveExports } from "@optyfi/defi-legos/ethereum/curve/contracts";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ERC20, ERC20__factory, Registry__factory, Vault, Vault__factory } from "../typechain";
@@ -192,6 +193,50 @@ const func: DeployFunction = async ({
   if (!allowanceGauge.gt("0")) {
     approvalTokens.push(tokenInstanceLP.address);
     approvalSpender.push(CurveExports.CurveCryptoPoolGauge.pools["bLUSDLUSD3-f"].pool);
+  }
+
+  const usd3Instance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.THREE_CRV);
+
+  const usd3Allowance3Pool = await usd3Instance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool,
+  );
+
+  if (!usd3Allowance3Pool.gt(0)) {
+    approvalTokens.push(usd3Instance.address);
+    approvalSpender.push(CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool);
+  }
+
+  const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+
+  const usdcAllowance3Pool = await usdcInstance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool,
+  );
+  const usdcAllowanceExchange = await usdcInstance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveRegistryExchange.address,
+  );
+
+  if (!usdcAllowance3Pool.gt(0)) {
+    approvalTokens.push(usdcInstance.address);
+    approvalSpender.push(CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool);
+  }
+  if (!usdcAllowanceExchange.gt(0)) {
+    approvalTokens.push(usdcInstance.address);
+    approvalSpender.push(CurveExports.CurveRegistryExchange.address);
+  }
+
+  const fraxInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.FRAX);
+
+  const fraxAllowanceExchange = await fraxInstance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveRegistryExchange.address,
+  );
+
+  if (!fraxAllowanceExchange.gt(0)) {
+    approvalTokens.push(fraxInstance.address);
+    approvalSpender.push(CurveExports.CurveRegistryExchange.address);
   }
 
   if (approvalTokens.length > 0) {

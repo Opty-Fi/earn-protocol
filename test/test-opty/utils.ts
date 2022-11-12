@@ -211,24 +211,44 @@ export async function getLastStrategyStepBalanceLP(
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
   const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
-  const adapterInstance = <IAdapterFull>(
-    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
-  );
+  const isSwap = investStrategySteps[strategyStepCount.sub("1").toNumber()].isSwap;
+  const outputToken = investStrategySteps[strategyStepCount.sub("1").toNumber()].outputToken;
+  const adapterInstance = isSwap
+    ? <IAdapterFull>(
+        await hre.ethers.getContractAt("IAdapterFull", await registryContract.getSwapPoolToAdapter(lastStepPool))
+      )
+    : <IAdapterFull>(
+        await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+      );
   if (await adapterInstance.canStake(lastStepPool)) {
     return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
   }
   if (investStrategySteps.length > 1) {
-    return await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
-      vault.address,
-      investStrategySteps[investStrategySteps.length - 2].outputToken,
-      lastStepPool,
-    );
+    return isSwap
+      ? await adapterInstance["getLiquidityPoolTokenBalance(address,address,address,address)"](
+          vault.address,
+          investStrategySteps[investStrategySteps.length - 2].outputToken,
+          lastStepPool,
+          outputToken,
+        )
+      : await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
+          vault.address,
+          investStrategySteps[investStrategySteps.length - 2].outputToken,
+          lastStepPool,
+        );
   }
-  return await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
-    vault.address,
-    underlyingToken.address,
-    lastStepPool,
-  );
+  return isSwap
+    ? await adapterInstance["getLiquidityPoolTokenBalance(address,address,address,address)"](
+        vault.address,
+        underlyingToken.address,
+        lastStepPool,
+        outputToken,
+      )
+    : await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
+        vault.address,
+        underlyingToken.address,
+        lastStepPool,
+      );
 }
 
 export async function getOraSomeValueLP(
@@ -241,18 +261,31 @@ export async function getOraSomeValueLP(
   let index = 0;
   for (const investStrategyStep of investStrategySteps) {
     const poolAddress = investStrategyStep.pool;
-    const adapterInstance = <IAdapterFull>(
-      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
-    );
+    const isSwap = investStrategyStep.isSwap;
+    const outputToken = investStrategyStep.outputToken;
+    const adapterInstance = isSwap
+      ? <IAdapterFull>(
+          await hre.ethers.getContractAt("IAdapterFull", await registryContract.getSwapPoolToAdapter(poolAddress))
+        )
+      : <IAdapterFull>(
+          await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+        );
     let inputToken = underlyingToken.address;
     if (index != 0) {
       inputToken = investStrategySteps[index - 1].outputToken;
     }
-    amountLP = await adapterInstance["calculateAmountInLPToken(address,address,uint256)"](
-      inputToken,
-      poolAddress,
-      index == 0 ? wantAmount : amountLP,
-    );
+    amountLP = isSwap
+      ? await adapterInstance["calculateAmountInLPToken(address,address,address,uint256)"](
+          inputToken,
+          poolAddress,
+          outputToken,
+          index == 0 ? wantAmount : amountLP,
+        )
+      : await adapterInstance["calculateAmountInLPToken(address,address,uint256)"](
+          inputToken,
+          poolAddress,
+          index == 0 ? wantAmount : amountLP,
+        );
     index++;
   }
   return amountLP;

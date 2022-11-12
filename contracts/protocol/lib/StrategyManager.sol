@@ -130,7 +130,7 @@ library StrategyManager {
             );
         } else {
             address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].pool;
-            bool _isSwap = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].isSwap;
+            bool _isSwap = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].isSwap;
             IAdapterFull _adapter =
                 _isSwap
                     ? IAdapterFull(_registryContract.getSwapPoolToAdapter(_liquidityPool))
@@ -163,7 +163,7 @@ library StrategyManager {
     ) public view returns (bytes[] memory _codes) {
         address _liquidityPool = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].pool;
         IRegistry _registryContract = IRegistry(_strategyConfigurationParams.registryContract);
-        bool _isSwap = _strategySteps[_strategyConfigurationParams.internalTransactionIndex - 1].isSwap;
+        bool _isSwap = _strategySteps[_strategyConfigurationParams.internalTransactionIndex].isSwap;
         IAdapterFull _adapter =
             _isSwap
                 ? IAdapterFull(_registryContract.getSwapPoolToAdapter(_liquidityPool))

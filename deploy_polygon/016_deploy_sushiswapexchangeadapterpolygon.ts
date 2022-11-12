@@ -2,7 +2,10 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import PolygonSushiswapExports from "@optyfi/defi-legos/polygon/sushiswap/index";
+import PolygonTokens from "@optyfi/defi-legos/polygon/tokens/index";
 import { waitforme } from "../helpers/utils";
+import { Registry, Registry__factory, UniswapV2ExchangeAdapter, UniswapV2ExchangeAdapter__factory } from "../typechain";
+import { getAddress } from "ethers/lib/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -65,6 +68,50 @@ const func: DeployFunction = async ({
         });
       }
     }
+  }
+
+  const sushiswapExchangeAdapterPolygonAddress = await (
+    await deployments.get("SushiswapExchangeAdapterPolygon")
+  ).address;
+  const sushiswapExchangeAdapterPolygonInstance = <UniswapV2ExchangeAdapter>(
+    await ethers.getContractAt(UniswapV2ExchangeAdapter__factory.abi, sushiswapExchangeAdapterPolygonAddress)
+  );
+  const registryProxyInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
+  const riskOperator = await registryProxyInstance.riskOperator();
+  const riskOperatorSigner = await ethers.getSigner(riskOperator);
+
+  const USDC_DAI_LP = "0xcd578f016888b57f1b1e3f887f392f0159e26747";
+
+  const liquidityPoolToWantTokenToSlippages = [
+    { liquidityPool: USDC_DAI_LP, wantToken: PolygonTokens.USDC, slippage: "200" },
+    { liquidityPool: USDC_DAI_LP, wantToken: PolygonTokens.DAI, slippage: "200" },
+  ];
+  const pendingLiquidityPoolToWantTokenToSlippages = [];
+  for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
+    const slippage = await sushiswapExchangeAdapterPolygonInstance.liquidityPoolToWantTokenToSlippage(
+      liquidityPoolToWantTokenToSlippage.liquidityPool,
+      liquidityPoolToWantTokenToSlippage.wantToken,
+    );
+    if (!BigNumber.from(slippage).eq(BigNumber.from(liquidityPoolToWantTokenToSlippage.slippage))) {
+      pendingLiquidityPoolToWantTokenToSlippages.push(liquidityPoolToWantTokenToSlippage);
+    }
+  }
+
+  if (pendingLiquidityPoolToWantTokenToSlippages.length > 0) {
+    console.log(JSON.stringify(pendingLiquidityPoolToWantTokenToSlippages, null, 4));
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      console.log("updating pending LiquidityPool To Want Token To Slippages");
+      const tx = await sushiswapExchangeAdapterPolygonInstance
+        .connect(riskOperatorSigner)
+        .setLiquidityPoolToWantTokenToSlippage(pendingLiquidityPoolToWantTokenToSlippages);
+      await tx.wait(1);
+    } else {
+      console.log(
+        "cannot update pending LiquidityPool To Want Token To Slippages because the signer is not the risk operator",
+      );
+    }
+  } else {
+    console.log("pendingLiquidityPoolToWantTokenToSlippages are up to date");
   }
 };
 export default func;

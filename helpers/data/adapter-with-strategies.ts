@@ -10,18 +10,6 @@ import {
   StrategiesByTokenByChainType,
   VaultType,
 } from "../type";
-import {
-  AAVE_V1_ADAPTER_NAME,
-  AAVE_V2_ADAPTER_NAME,
-  COMPOUND_ADAPTER_NAME,
-  CURVE_DEPOSIT_POOL_ADAPTER_NAME,
-  CURVE_SWAP_POOL_ADAPTER_NAME,
-  DFORCE_ADAPTER_NAME,
-  FULCRUM_ADAPTER_NAME,
-  HARVEST_V1_ADAPTER_NAME,
-  SUSHISWAP_ADAPTER_NAME,
-  CONVEX_ADAPTER_NAME,
-} from "../constants/adapters";
 import { eEVMNetwork, NETWORKS_CHAIN_ID, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../constants/tokens";
 
@@ -400,8 +388,8 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
           },
         ],
         riskProfileCode: 1,
-        name: null,
-        description: null,
+        name: "",
+        description: "",
       },
       "usdc-DEPOSIT-Compound-cUSDC-dAMM-dCUSDC": {
         strategyName: "usdc-DEPOSIT-Compound-cUSDC-dAMM-dcUSDC",
@@ -446,6 +434,31 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         name: "USDC Lending on dAMM",
         description:
           "The OptyFi vault supplies USDC to the lending pool on dAMM finance Protocol to earn interest in USDC and, potentially, additional rewards in BDAMM tokens. The earned USDC tokens and any harvested BDAMM rewards are reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-Sushiswap-WETH-DEPOSIT-Compound-cETH": {
+        strategyName: "usdc-DEPOSIT-Sushiswap-WETH-DEPOSIT-Compound-cETH",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            outputToken: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            isSwap: true,
+            outputTokenSymbol: "WETH",
+            adapterName: "SushiswapExchangeAdapterEthereum",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            isSwap: false,
+            outputTokenSymbol: "cETH",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "",
+        description: "",
       },
     },
     WETH: {
@@ -643,6 +656,31 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         description:
           "The OptyFi vault WETH to the lending pool on dAMM finance Protocol to earn interest in WETH and, potentially, additional rewards in BDAMM tokens. The earned BDAMM tokens are harvested to WETH and reinvested into the vault.",
       },
+      "weth-DEPOSIT-UniswapV2-USDC-DEPOSIT-Compound-cUSDC": {
+        strategyName: "weth-DEPOSIT-Uniswap-USDC-DEPOSIT-Compound-cUSDC",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
+            outputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            isSwap: true,
+            outputTokenSymbol: "USDC",
+            adapterName: "UniswapV2ExchangeAdapterEthereum",
+            protocol: "Uniswap",
+          },
+          {
+            contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            isSwap: false,
+            outputTokenSymbol: "cUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDC Lending on Compound",
+        description: "",
+      },
     },
     USD3: {
       "3Crv-DEPOSIT-Convex-cvx3Crv": {
@@ -786,6 +824,39 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         name: "MIM3CRV LP on Curve",
         description:
           "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
+      },
+      "3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX": {
+        strategyName: "3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX",
+        token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            isSwap: true,
+            outputTokenSymbol: "USDC",
+            adapterName: "CurveExchangeAdapterEthereum",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2",
+            outputToken: "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+            isSwap: true,
+            outputTokenSymbol: "FRAX",
+            adapterName: "CurveExchangeAdapterEthereum",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xf1667d8FA2a9d4a00717CB4F74CC698546ACF602",
+            outputToken: "0xf1667d8FA2a9d4a00717CB4F74CC698546ACF602",
+            isSwap: false,
+            outputTokenSymbol: "dFRAX",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "FRAX Lending on dAMM",
+        description: "",
       },
     },
     WBTC: {
@@ -2320,6 +2391,40 @@ const polygonStrategiesbyToken = {
         riskProfileCode: 1,
         name: null,
         description: null,
+      },
+      "usdc-DEPOSIT-Sushiswap-DAI": {
+        strategyName: "usdc-DEPOSIT-Sushiswap-DAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
+            outputToken: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+            isSwap: true,
+            outputTokenSymbol: "DAI",
+            adapterName: "SushiswapExchangeAdapterPolygon",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "",
+        description: "",
+      },
+      "usdc-DEPOSIT-Quickswap-DAI": {
+        strategyName: "usdc-DEPOSIT-Quickswap-DAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
+            outputToken: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+            isSwap: true,
+            outputTokenSymbol: "DAI",
+            adapterName: "QuickswapExchangeAdapterEthereum",
+            protocol: "Quickswap",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "",
+        description: "",
       },
     },
     WMATIC: {
