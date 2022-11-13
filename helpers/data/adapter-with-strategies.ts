@@ -4,7 +4,6 @@
 // import { default as WethStrategies } from "optyfi-sdk/ethereum/strategies/weth.json";
 import { ethers, BigNumber } from "ethers";
 import {
-  ADAPTER_WITH_STRATEGIES_DATA,
   MultiChainVaultsType,
   StrategiesByRiskProfileByTokenByChainType,
   StrategiesByTokenByChainType,
