@@ -1,24 +1,23 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { eEVMNetwork } from "../../../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
-import { RegistryProxy } from "../../../../typechain";
+import { RegistryProxyV1, RegistryProxyV1__factory, RegistryV1__factory } from "../../../../helpers/types/registryV1";
 import { RegistryProxy as registryProxyAddress } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeRegistry(fork: eEVMNetwork): Promise<void> {
-  const registryFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.REGISTRY);
+  const registryFactory = await ethers.getContractFactory(RegistryV1__factory.abi, RegistryV1__factory.bytecode);
   const registryV2 = await registryFactory.deploy();
-  let registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryV2.address);
-  let registryProxyInstance = <RegistryProxy>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxyAddress)
+  let registryV2Instance = await ethers.getContractAt(RegistryV1__factory.abi, registryV2.address);
+  let registryProxyInstance = <RegistryProxyV1>(
+    await ethers.getContractAt(RegistryProxyV1__factory.abi, registryProxyAddress)
   );
   const operatorAddress = await registryProxyInstance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const governanceAddress = await registryProxyInstance.governance();
   const governanceSigner = await ethers.getSigner(governanceAddress);
-  registryProxyInstance = <RegistryProxy>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, registryProxyAddress)
+  registryProxyInstance = <RegistryProxyV1>(
+    await ethers.getContractAt(RegistryProxyV1__factory.abi, registryProxyAddress)
   );
   // upgrade registry
   const registryImplementation = await registryProxyInstance.registryImplementation();
@@ -34,7 +33,7 @@ export async function deployAndUpgradeRegistry(fork: eEVMNetwork): Promise<void>
     await becomeTx.wait(1);
   }
 
-  registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  registryV2Instance = await ethers.getContractAt(RegistryV1__factory.abi, registryProxyAddress);
 
   // approve tokens and map to tokens hash
   const onlySetTokensHash = [];

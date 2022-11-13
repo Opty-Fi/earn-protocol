@@ -10,6 +10,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategyStepType } from "../../helpers/type";
 import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit } from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
+import { RegistryV1 } from "../../helpers/types/registryV1";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -172,6 +173,53 @@ export async function getOraValueUT(
   return amountUT;
 }
 
+export async function getOraValueUTOld(
+  investStrategySteps: {
+    pool: string;
+    outputToken: string;
+    isBorrow: boolean;
+  }[],
+  registryContract: RegistryV1,
+  vault: Contract,
+  underlyingToken: ERC20,
+): Promise<BigNumberish> {
+  let outputTokenAmount = BigNumber.from("0");
+  let amountUT = BigNumber.from("0");
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  let index = 0;
+  for (const _ of investStrategySteps) {
+    const iterator = strategyStepCount.sub("1").sub(index);
+    const poolAddress = investStrategySteps[iterator.toNumber()].pool;
+    const adapterInstance = <IAdapterFull>(
+      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+    );
+    let inputTokenAddress = underlyingToken.address;
+    if (!iterator.eq("0")) {
+      inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
+    }
+    if (iterator.eq(strategyStepCount.sub("1"))) {
+      if (await adapterInstance.canStake(poolAddress)) {
+        amountUT = await adapterInstance.getAllAmountInTokenStake(vault.address, inputTokenAddress, poolAddress);
+      } else {
+        amountUT = await adapterInstance["getAllAmountInToken(address,address,address)"](
+          vault.address,
+          inputTokenAddress,
+          poolAddress,
+        );
+      }
+    } else {
+      amountUT = await adapterInstance["getSomeAmountInToken(address,address,uint256)"](
+        inputTokenAddress,
+        poolAddress,
+        outputTokenAmount,
+      );
+    }
+    index++;
+    outputTokenAmount = amountUT;
+  }
+  return amountUT;
+}
+
 export async function getOraSomeValueUT(
   investStrategySteps: StrategyStepType[],
   registryContract: Registry,
@@ -249,6 +297,38 @@ export async function getLastStrategyStepBalanceLP(
         underlyingToken.address,
         lastStepPool,
       );
+}
+
+export async function getLastStrategyStepBalanceLPOld(
+  investStrategySteps: {
+    pool: string;
+    outputToken: string;
+    isBorrow: boolean;
+  }[],
+  registryContract: RegistryV1,
+  vault: Contract,
+  underlyingToken: ERC20,
+): Promise<BigNumberish> {
+  const strategyStepCount = BigNumber.from(investStrategySteps.length);
+  const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
+  const adapterInstance = <IAdapterFull>(
+    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+  );
+  if (await adapterInstance.canStake(lastStepPool)) {
+    return await adapterInstance.getLiquidityPoolTokenBalanceStake(vault.address, lastStepPool);
+  }
+  if (investStrategySteps.length > 1) {
+    return await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
+      vault.address,
+      investStrategySteps[investStrategySteps.length - 2].outputToken,
+      lastStepPool,
+    );
+  }
+  return await adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
+    vault.address,
+    underlyingToken.address,
+    lastStepPool,
+  );
 }
 
 export async function getOraSomeValueLP(
