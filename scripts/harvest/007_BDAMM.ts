@@ -219,7 +219,7 @@ async function main() {
   const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
   const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
 
-  const oneBDAMMToUSDC = parseUnits("0.28", "6");
+  const oneBDAMMToUSDC = parseUnits("0.26", "6");
   const oneBDAMMToWETH = parseEther("0.0001");
   const oneBDAMMToWBTC = parseUnits("0.00001", "8");
   const oneLUSDTo3CRV = parseEther("1");
@@ -242,127 +242,126 @@ async function main() {
     [bdamm, 10000, ethereumTokens.PLAIN_TOKENS.USDC, 500, ethereumTokens.BTC_TOKENS.WBTC],
   );
   const uniV3SwapPathForLUSDto3CRV = ethers.utils.solidityPack(
-    ["address", "uint24", "address", "uint24", "address"],
-    [lusd.address, 500, ethereumTokens.PLAIN_TOKENS.USDC, 3000, ethereumTokens.WRAPPED_TOKENS.THREE_CRV],
+    ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
+    [
+      lusd.address,
+      10000,
+      ethereumTokens.WRAPPED_TOKENS.WETH,
+      3000,
+      ethereumTokens.PLAIN_TOKENS.USDC,
+      3000,
+      ethereumTokens.WRAPPED_TOKENS.THREE_CRV,
+    ],
   );
   const transactions: MetaTransactionData[] = [
-    // {
-    //   to: compoundComptrollerInstance.address,
-    //   value: "0",
-    //   data: compoundComptrollerInstance.interface.encodeFunctionData("claimComp", [
-    //     [opUSDCEarn.address, opWETHEarn.address, opWBTCEarn.address],
-    //     [
-    //       // "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5", // dAMM finance - dUSDC
-    //       // "0x118823514681353634FF95837939E783D85B18AF", // dAMM finance - dWETH
-    //       "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80", // dAMM finance - dWBTC
-    //       "0x5714EB15A226059202CdfA1bF304167e36752862", // dAMM finance - dCUSDC
-    //       "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc", // dAMM finance - dCWETH
-    //       // "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1", //dAMM finance - dAWBTC
-    //     ],
-    //     false,
-    //     true,
-    //   ]),
-    // },
-    // {
-    //   to: opUSDCEarn.address,
-    //   value: "0",
-    //   data: opUSDCEarn.interface.encodeFunctionData("harvest", [
-    //     bdamm,
-    //     uniswapV3Router,
-    //     true,
-    //     expectedMinUSDC.mul("9900").div("10000"),
-    //     BigNumber.from(timestamp).add("600"),
-    //     [],
-    //     uniV3SwapPathForBDAMMtoUSDC,
-    //   ]),
-    // },
-    // {
-    //   to: opUSDCEarn.address,
-    //   value: "0",
-    //   data: opUSDCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
-    // },
-    // {
-    //   to: opWETHEarn.address,
-    //   value: "0",
-    //   data: opWETHEarn.interface.encodeFunctionData("harvest", [
-    //     bdamm,
-    //     uniswapV3Router,
-    //     true,
-    //     expectedMinETH.mul("9700").div("10000"),
-    //     BigNumber.from(timestamp).add("600"),
-    //     [],
-    //     uniV3SwapPathForBDAMMtoWETH,
-    //   ]),
-    // },
-    // {
-    //   to: strategyProvider.address,
-    //   value: "0",
-    //   data: strategyProvider.interface.encodeFunctionData("setBestStrategy", [
-    //     "1",
-    //     await opWETHEarn.underlyingTokensHash(),
-    //     [
-    //       {
-    //         pool: "0x118823514681353634FF95837939E783D85B18AF",
-    //         outputToken: "0x118823514681353634FF95837939E783D85B18AF",
-    //         isBorrow: false,
-    //       },
-    //     ],
-    //   ]),
-    // },
-    // {
-    //   to: opWETHEarn.address,
-    //   value: "0",
-    //   data: opWETHEarn.interface.encodeFunctionData("rebalance"),
-    // },
-    // {
-    //   to: opWBTCEarn.address,
-    //   value: "0",
-    //   data: opWBTCEarn.interface.encodeFunctionData("harvest", [
-    //     bdamm,
-    //     uniswapV3Router,
-    //     true,
-    //     expectedMinWBTC.mul("9900").div("10000"),
-    //     BigNumber.from(timestamp).add("600"),
-    //     [],
-    //     uniV3SwapPathForBDAMMtoWBTC,
-    //   ]),
-    // },
-    // {
-    //   to: opWBTCEarn.address,
-    //   value: "0",
-    //   data: opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
-    // },
-    // {
-    //   to: bLUSDLUSD3FactoryGauge.address,
-    //   value: "0",
-    //   data: bLUSDLUSD3FactoryGauge.interface.encodeFunctionData("claim_rewards", [opUSD3Earn.address]),
-    // },
-    // {
-    //   to: opUSD3Earn.address,
-    //   value: "0",
-    //   data: opUSD3Earn.interface.encodeFunctionData("harvest", [
-    //     lusd.address,
-    //     uniswapV3Router,
-    //     true,
-    //     expected3CRVForopUSD3EarnFromLUSD.mul("9900").div("10000"),
-    //     BigNumber.from(timestamp).add("600"),
-    //     [],
-    //     uniV3SwapPathForLUSDto3CRV,
-    //   ]),
-    // },
+    {
+      to: compoundComptrollerInstance.address,
+      value: "0",
+      data: compoundComptrollerInstance.interface.encodeFunctionData("claimComp", [
+        [opUSDCEarn.address, opWETHEarn.address, opWBTCEarn.address],
+        [
+          // "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5", // dAMM finance - dUSDC
+          // "0x118823514681353634FF95837939E783D85B18AF", // dAMM finance - dWETH
+          "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80", // dAMM finance - dWBTC
+          "0x5714EB15A226059202CdfA1bF304167e36752862", // dAMM finance - dCUSDC
+          "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc", // dAMM finance - dCWETH
+          // "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1", //dAMM finance - dAWBTC
+        ],
+        false,
+        true,
+      ]),
+    },
+    {
+      to: opUSDCEarn.address,
+      value: "0",
+      data: opUSDCEarn.interface.encodeFunctionData("harvest", [
+        bdamm,
+        uniswapV3Router,
+        true,
+        expectedMinUSDC.mul("9900").div("10000"),
+        BigNumber.from(timestamp).add("600"),
+        [],
+        uniV3SwapPathForBDAMMtoUSDC,
+      ]),
+    },
+    {
+      to: opUSDCEarn.address,
+      value: "0",
+      data: opUSDCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
+    },
+    {
+      to: opWETHEarn.address,
+      value: "0",
+      data: opWETHEarn.interface.encodeFunctionData("harvest", [
+        bdamm,
+        uniswapV3Router,
+        true,
+        expectedMinETH.mul("9700").div("10000"),
+        BigNumber.from(timestamp).add("600"),
+        [],
+        uniV3SwapPathForBDAMMtoWETH,
+      ]),
+    },
+    {
+      to: opWETHEarn.address,
+      value: "0",
+      data: opWETHEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
+    },
     {
       to: strategyProvider.address,
       value: "0",
       data: strategyProvider.interface.encodeFunctionData("setBestStrategy", [
         "1",
-        await opUSD3Earn.underlyingTokensHash(),
+        await opWBTCEarn.underlyingTokensHash(),
+        [
+          {
+            pool: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            outputToken: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            isBorrow: false,
+          },
+        ],
+      ]),
+    },
+    {
+      to: opWBTCEarn.address,
+      value: "0",
+      data: opWBTCEarn.interface.encodeFunctionData("harvest", [
+        bdamm,
+        uniswapV3Router,
+        true,
+        expectedMinWBTC.mul("9900").div("10000"),
+        BigNumber.from(timestamp).add("600"),
         [],
+        uniV3SwapPathForBDAMMtoWBTC,
+      ]),
+    },
+    {
+      to: opWBTCEarn.address,
+      value: "0",
+      data: opWBTCEarn.interface.encodeFunctionData("rebalance"),
+    },
+    {
+      to: bLUSDLUSD3FactoryGauge.address,
+      value: "0",
+      data: bLUSDLUSD3FactoryGauge.interface.encodeFunctionData("claim_rewards", [opUSD3Earn.address]),
+    },
+    {
+      to: opUSD3Earn.address,
+      value: "0",
+      data: opUSD3Earn.interface.encodeFunctionData("harvest", [
+        lusd.address,
+        uniswapV3Router,
+        true,
+        expected3CRVForopUSD3EarnFromLUSD.mul("9900").div("10000"),
+        BigNumber.from(timestamp).add("600"),
+        [],
+        uniV3SwapPathForLUSDto3CRV,
       ]),
     },
     {
       to: opUSD3Earn.address,
       value: "0",
-      data: opUSD3Earn.interface.encodeFunctionData("rebalance"),
+      data: opUSD3Earn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
     },
   ];
   const safeOwner = ethers.provider.getSigner(0);
@@ -375,12 +374,9 @@ async function main() {
   const safeTransaction = await safeSdk.createTransaction(transactions);
 
   console.log("safeTransaction ", safeTransaction.data);
-
-  console.log("PPS BEFORE ", (await opUSD3Earn.getPricePerFullShare()).toString());
   const tx = await safeSdk.executeTransaction(safeTransaction);
   const txR = await tx.transactionResponse?.wait(1);
   console.log(txR);
-  console.log("PPS After ", (await opUSD3Earn.getPricePerFullShare()).toString());
 }
 
 main().then(console.log).catch(console.error);

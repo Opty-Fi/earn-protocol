@@ -10,8 +10,6 @@ import { Signers } from "../../../../helpers/utils";
 import {
   InitializableImmutableAdminUpgradeabilityProxy,
   InitializableImmutableAdminUpgradeabilityProxy__factory,
-  Vault,
-  Vault__factory,
 } from "../../../../typechain";
 import { ethereumTestVaults, polygonTestVaults } from "./test-vaults";
 import { RegistryProxy as MainnetRegistryProxyAddress } from "../../_deployments/mainnet.json";
@@ -33,6 +31,7 @@ const EIP712_REVISION = ethers.utils.id("1");
 // reference : https://github.com/ethers-io/ethers.js/issues/195#issuecomment-1212815642
 function linkLibrary(bytecode: string, name: string, address: string): string {
   let linkedBytecode = bytecode;
+  // eslint-disable-next-line no-useless-escape
   const placeholder = `__\$${ethers.utils.solidityKeccak256(["string"], [name]).slice(2, 36)}\$__`;
   const formattedAddress = ethers.utils.getAddress(address).toLowerCase().replace("0x", "");
   if (linkedBytecode.indexOf(placeholder) === -1) {
