@@ -91,8 +91,8 @@ const func: DeployFunction = async ({
   const USDC_DAI_LP = "0xCD578F016888B57F1b1e3f887f392F0159E26747";
 
   const liquidityPoolToTolerances = [
-    { liquidityPool: USDC_USDT_LP, tolerance: "100" },
-    { liquidityPool: USDC_DAI_LP, tolerance: "150" },
+    { liquidityPool: USDC_USDT_LP, tolerance: "200" },
+    { liquidityPool: USDC_DAI_LP, tolerance: "500" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -120,10 +120,10 @@ const func: DeployFunction = async ({
   }
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: USDC_USDT_LP, wantToken: polygonTokens.USDT, slippage: "100" },
-    { liquidityPool: USDC_USDT_LP, wantToken: polygonTokens.USDC, slippage: "100" },
-    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.USDC, slippage: "100" },
-    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.DAI, slippage: "100" },
+    { liquidityPool: USDC_USDT_LP, wantToken: polygonTokens.USDT, slippage: "250" },
+    { liquidityPool: USDC_USDT_LP, wantToken: polygonTokens.USDC, slippage: "250" },
+    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.USDC, slippage: "450" },
+    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.DAI, slippage: "450" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {

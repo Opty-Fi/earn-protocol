@@ -94,13 +94,13 @@ const func: DeployFunction = async ({
     args: [
       registryProxyAddress,
       MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
-      "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694",
+      "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783",
       "WETH",
       "0",
-      "905369955037451290754171167376807445279006054759646228016501227483694104576",
-      "60000000000000000000",
+      "905369955037451290754171167376807445279006054759646227094164023798216523776",
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "0",
-      "6000000000000000000000",
+      "6666000000000000000000",
     ],
   };
   const result = await deploy("opWETH-Save", {
@@ -118,7 +118,7 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 2,
+      upgradeIndex: networkName == "hardhat" ? 0 : 3,
       proxyContract: {
         abi: artifactVaultProxyV2.abi,
         bytecode: artifactVaultProxyV2.bytecode,

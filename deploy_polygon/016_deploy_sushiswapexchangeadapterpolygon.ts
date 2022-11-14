@@ -83,8 +83,8 @@ const func: DeployFunction = async ({
   const USDC_DAI_LP = "0xcd578f016888b57f1b1e3f887f392f0159e26747";
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: USDC_DAI_LP, wantToken: PolygonTokens.USDC, slippage: "200" },
-    { liquidityPool: USDC_DAI_LP, wantToken: PolygonTokens.DAI, slippage: "200" },
+    { liquidityPool: USDC_DAI_LP, wantToken: PolygonTokens.USDC, slippage: "2000" },
+    { liquidityPool: USDC_DAI_LP, wantToken: PolygonTokens.DAI, slippage: "2000" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {

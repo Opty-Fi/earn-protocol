@@ -2,6 +2,12 @@ import chai, { expect } from "chai";
 import { artifacts, deployments, ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import EthereumSushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
+import PolygonTokens from "@optyfi/defi-legos/polygon/tokens/index";
+import PolygonSushiswap from "@optyfi/defi-legos/polygon/sushiswap/index";
+import PolygonQuickswap from "@optyfi/defi-legos/polygon/quickswap/index";
+import PolygonApeswap from "@optyfi/defi-legos/polygon/apeswap/index";
 import { Signers, to_10powNumber_BN } from "../../helpers/utils";
 import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
@@ -17,6 +23,7 @@ import {
   ERC20__factory,
   StrategyManager,
   StrategyManager__factory,
+  TestStrategyManager,
 } from "../../typechain";
 import { generateTokenHashV2 } from "../../helpers/helpers";
 import { StrategyConfigurationParams } from "../../helpers/type";
@@ -94,7 +101,7 @@ describe(`${fork}-Vault-rev4 StrategyManager Library`, () => {
               StrategyManager: this.strategyManager.address,
             },
           });
-          this.testStrategyManager = await testStrategyManagerFactory.deploy();
+          this.testStrategyManager = <TestStrategyManager>await testStrategyManagerFactory.deploy();
           await this.optyFiVaults[token]
             .connect(this.signers.governance)
             .setVaultConfiguration(MultiChainVaults[fork][riskProfile][token].vaultConfig);
@@ -104,6 +111,96 @@ describe(`${fork}-Vault-rev4 StrategyManager Library`, () => {
           this.minimumDepositValueUT = BigNumber.from(
             MultiChainVaults[fork][riskProfile][token].minimumDepositValueUT,
           ).div(to_10powNumber_BN(await this.optyFiVaults[token].decimals()));
+
+          if (fork === eEVMNetwork.mainnet) {
+            await this.testStrategyManager.giveAllowances(
+              [EthereumTokens.PLAIN_TOKENS.USDC, EthereumTokens.WRAPPED_TOKENS.WETH],
+              [EthereumSushiswap.SushiswapRouter.address, EthereumSushiswap.SushiswapRouter.address],
+            );
+          }
+
+          if (fork === eEVMNetwork.polygon) {
+            if (strategy === "usdc-DEPOSIT-Sushiswap-USDC-USDT-SLP-DEPOSIT-Beefy-mooSushiUSDC-USDT") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.USDT, PolygonSushiswap.liquidity.pools["USDC-USDT"].pool],
+                [
+                  PolygonSushiswap.SushiswapRouter.address,
+                  PolygonSushiswap.SushiswapRouter.address,
+                  PolygonSushiswap.SushiswapRouter.address,
+                ],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Sushiswap-USDC-DAI-SLP-DEPOSIT-Beefy-mooSushiUSDC-DAI") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.DAI, PolygonSushiswap.liquidity.pools["USDC-DAI"].pool],
+                [
+                  PolygonSushiswap.SushiswapRouter.address,
+                  PolygonSushiswap.SushiswapRouter.address,
+                  PolygonSushiswap.SushiswapRouter.address,
+                ],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Quickswap-USDC-USDT-QLP-Beefy-mooQuickUSDC-USDT") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.USDT, PolygonQuickswap.liquidity.pools["USDC-USDT"].pool],
+                [
+                  PolygonQuickswap.QuickswapRouter.address,
+                  PolygonQuickswap.QuickswapRouter.address,
+                  PolygonQuickswap.QuickswapRouter.address,
+                ],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Quickswap-USDC-DAI-QLP-Beefy-mooQuickUSDC-DAI") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.DAI, "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd"],
+                [
+                  PolygonQuickswap.QuickswapRouter.address,
+                  PolygonQuickswap.QuickswapRouter.address,
+                  PolygonQuickswap.QuickswapRouter.address,
+                ],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Quickswap-USDC-MAI-QLP-Beefy-mooMaiUSDC-miMATIC") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.MIMATIC, PolygonQuickswap.liquidity.pools["USDC-miMATIC"].pool],
+                [
+                  PolygonQuickswap.QuickswapRouter.address,
+                  PolygonQuickswap.QuickswapRouter.address,
+                  PolygonQuickswap.QuickswapRouter.address,
+                ],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Apeswap-USDC-DAI-ALP-Beefy-mooApeUSDC-DAI") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.DAI, "0x5b13B583D4317aB15186Ed660A1E4C65C10da659"],
+                [
+                  PolygonApeswap.ApeswapRouter.address,
+                  PolygonApeswap.ApeswapRouter.address,
+                  PolygonApeswap.ApeswapRouter.address,
+                ],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Sushiswap-DAI") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.DAI],
+                [PolygonSushiswap.SushiswapRouter.address, PolygonSushiswap.SushiswapRouter.address],
+              );
+              await tx.wait(1);
+            }
+            if (strategy === "usdc-DEPOSIT-Quickswap-DAI") {
+              const tx = await this.testStrategyManager.giveAllowances(
+                [PolygonTokens.USDC, PolygonTokens.DAI],
+                [PolygonQuickswap.QuickswapRouter.address, PolygonQuickswap.QuickswapRouter.address],
+              );
+              await tx.wait(1);
+            }
+          }
         });
 
         it("[getDepositInternalTransactionCount] should return the correct number of internal transactions", async function () {

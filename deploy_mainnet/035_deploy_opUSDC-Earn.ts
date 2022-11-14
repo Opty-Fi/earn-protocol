@@ -8,7 +8,7 @@ import EthereumSushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { Vault, Vault__factory } from "../typechain";
+import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -120,7 +120,7 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 2,
+      upgradeIndex: networkName == "hardhat" ? 0 : 3,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Save_Implementation",
       execute: {
@@ -155,8 +155,30 @@ const func: DeployFunction = async ({
   const vaultInstance = <Vault>(
     await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
-  const approvalTokens = [EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.PLAIN_TOKENS.USDC];
-  const approvalSpender = [EthereumSushiswap.SushiswapRouter.address, EthereumSushiswap.SushiswapRouter.address];
+  const approvalTokens = [];
+  const approvalSpender = [];
+
+  const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
+  const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+
+  const wethSushiswapAllowance = await wethInstance.allowance(
+    vaultInstance.address,
+    EthereumSushiswap.SushiswapRouter.address,
+  );
+  const usdcSushiswapAllowance = await usdcInstance.allowance(
+    vaultInstance.address,
+    EthereumSushiswap.SushiswapRouter.address,
+  );
+
+  if (!wethSushiswapAllowance.gt(0)) {
+    approvalTokens.push(wethInstance.address);
+    approvalSpender.push(EthereumSushiswap.SushiswapRouter.address);
+  }
+
+  if (!usdcSushiswapAllowance.gt(0)) {
+    approvalTokens.push(usdcInstance.address);
+    approvalSpender.push(EthereumSushiswap.SushiswapRouter.address);
+  }
 
   if (approvalTokens.length > 0) {
     console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);

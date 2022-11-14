@@ -89,7 +89,7 @@ const func: DeployFunction = async ({
 
   const USDC_DAI_LP = "0x5b13B583D4317aB15186Ed660A1E4C65C10da659";
 
-  const liquidityPoolToTolerances = [{ liquidityPool: USDC_DAI_LP, tolerance: "70" }];
+  const liquidityPoolToTolerances = [{ liquidityPool: USDC_DAI_LP, tolerance: "300" }];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
     const tolerance = await apeswapPoolAdapterInstance.liquidityPoolToTolerance(liquidityPoolToTolerance.liquidityPool);
@@ -114,8 +114,8 @@ const func: DeployFunction = async ({
   }
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.USDC, slippage: "100" },
-    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.DAI, slippage: "100" },
+    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.USDC, slippage: "300" },
+    { liquidityPool: USDC_DAI_LP, wantToken: polygonTokens.DAI, slippage: "300" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {

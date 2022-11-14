@@ -74,7 +74,7 @@ const func: DeployFunction = async ({
   const USDC_WETH_LP = "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0";
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: USDC_WETH_LP, wantToken: EthereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
+    { liquidityPool: USDC_WETH_LP, wantToken: EthereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
     { liquidityPool: USDC_WETH_LP, wantToken: EthereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];

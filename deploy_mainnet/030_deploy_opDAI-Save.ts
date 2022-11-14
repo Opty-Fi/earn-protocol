@@ -117,7 +117,7 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 2,
+      upgradeIndex: networkName == "hardhat" ? 0 : 3,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Save_Implementation",
       execute: {

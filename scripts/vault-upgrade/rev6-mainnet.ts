@@ -2,7 +2,6 @@ import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
 import { deployments, ethers } from "hardhat";
 import Safe from "@gnosis.pm/safe-core-sdk";
 import { MetaTransactionData, EthAdapter } from "@gnosis.pm/safe-core-sdk-types";
-import { VaultV3, VaultV3__factory } from "../../helpers/types/vaultv3";
 import {
   AdminUpgradeabilityProxy,
   AdminUpgradeabilityProxy__factory,
@@ -12,10 +11,13 @@ import {
   Vault__factory,
 } from "../../typechain";
 import { getRiskProfileCode } from "../../helpers/utils";
+import { VaultV5 } from "../../helpers/types/vaultv5/VaultV5";
+import { VaultV5__factory } from "../../helpers/types/vaultv5";
 
 async function main() {
-  const implementation = (await deployments.get("opWETH-Earn")).implementation;
+  const implementation = (await deployments.get("opWETH-Save")).implementation;
   const vaults: { [name: string]: string } = {
+    // "opWETH-Save": (await deployments.get("opWETH-Save")).address,
     "opAAVE-Invst": (await deployments.get("opAAVE-Invst")).address,
     "opAPE-Invst": (await deployments.get("opAPE-Invst")).address,
     "opDAI-Save": (await deployments.get("opDAI-Save")).address,
@@ -25,13 +27,12 @@ async function main() {
     "opSUSHI-Invst": (await deployments.get("opSUSHI-Invst")).address,
     "opUSD3-Earn": (await deployments.get("opUSD3-Earn")).address,
     "opUSDC-Invst": (await deployments.get("opUSDC-Invst")).address,
-    // "opUSDC-Save": (await deployments.get("opUSDC-Save")).address,
+    // "opUSDC-Earn": (await deployments.get("opUSDC-Earn")).address,
     "opUSDT-Save": (await deployments.get("opUSDT-Save")).address,
     "opWBTC-Earn": (await deployments.get("opWBTC-Earn")).address,
     "opWBTC-Save": (await deployments.get("opWBTC-Save")).address,
     // "opWETH-Earn": (await deployments.get("opWETH-Earn")).address,
     "opWETH-Invst": (await deployments.get("opWETH-Invst")).address,
-    // "opWETH-Save": (await deployments.get("opWETH-Save")).address
   };
 
   const transactions: MetaTransactionData[] = [];
@@ -39,7 +40,7 @@ async function main() {
     const proxyInstance = <AdminUpgradeabilityProxy>(
       await ethers.getContractAt(AdminUpgradeabilityProxy__factory.abi, vaults[vault])
     );
-    const oldVaultProxyInstance = <VaultV3>await ethers.getContractAt(VaultV3__factory.abi, vaults[vault]);
+    const oldVaultProxyInstance = <VaultV5>await ethers.getContractAt(VaultV5__factory.abi, vaults[vault]);
     const newVaultInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, oldVaultProxyInstance.address);
     const _underlyingToken = await oldVaultProxyInstance.underlyingToken();
     const _underlyingTokenInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _underlyingToken);

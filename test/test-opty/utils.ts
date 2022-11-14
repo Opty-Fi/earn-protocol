@@ -121,9 +121,14 @@ export async function getDepositInternalTransactionCount(
 ): Promise<BigNumberish> {
   const strategyStepCount = BigNumber.from(investStrategySteps.length);
   const lastStepPool = investStrategySteps[strategyStepCount.sub("1").toNumber()].pool;
-  const adapterInstance = <IAdapterFull>(
-    await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
-  );
+  const isSwap = investStrategySteps[strategyStepCount.sub("1").toNumber()].isSwap;
+  const adapterInstance = isSwap
+    ? <IAdapterFull>(
+        await hre.ethers.getContractAt("IAdapterFull", await registryContract.getSwapPoolToAdapter(lastStepPool))
+      )
+    : <IAdapterFull>(
+        await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(lastStepPool))
+      );
   if (await adapterInstance.canStake(lastStepPool)) {
     return strategyStepCount.add("1");
   }
@@ -143,10 +148,16 @@ export async function getOraValueUT(
   for (const _ of investStrategySteps) {
     const iterator = strategyStepCount.sub("1").sub(index);
     const poolAddress = investStrategySteps[iterator.toNumber()].pool;
-    const adapterInstance = <IAdapterFull>(
-      await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
-    );
+    const isSwap = investStrategySteps[iterator.toNumber()].isSwap;
+    const adapterInstance = isSwap
+      ? <IAdapterFull>(
+          await hre.ethers.getContractAt("IAdapterFull", await registryContract.getSwapPoolToAdapter(poolAddress))
+        )
+      : <IAdapterFull>(
+          await hre.ethers.getContractAt("IAdapterFull", await registryContract.getLiquidityPoolToAdapter(poolAddress))
+        );
     let inputTokenAddress = underlyingToken.address;
+    const outputToken = investStrategySteps[iterator.toNumber()].outputToken;
     if (!iterator.eq("0")) {
       inputTokenAddress = investStrategySteps[iterator.sub("1").toNumber()].outputToken;
     }
@@ -154,18 +165,32 @@ export async function getOraValueUT(
       if (await adapterInstance.canStake(poolAddress)) {
         amountUT = await adapterInstance.getAllAmountInTokenStake(vault.address, inputTokenAddress, poolAddress);
       } else {
-        amountUT = await adapterInstance["getAllAmountInToken(address,address,address)"](
-          vault.address,
-          inputTokenAddress,
-          poolAddress,
-        );
+        amountUT = isSwap
+          ? await adapterInstance["getAllAmountInToken(address,address,address,address)"](
+              vault.address,
+              inputTokenAddress,
+              poolAddress,
+              outputToken,
+            )
+          : await adapterInstance["getAllAmountInToken(address,address,address)"](
+              vault.address,
+              inputTokenAddress,
+              poolAddress,
+            );
       }
     } else {
-      amountUT = await adapterInstance["getSomeAmountInToken(address,address,uint256)"](
-        inputTokenAddress,
-        poolAddress,
-        outputTokenAmount,
-      );
+      amountUT = isSwap
+        ? await adapterInstance["getSomeAmountInToken(address,address,address,uint256)"](
+            inputTokenAddress,
+            poolAddress,
+            outputToken,
+            outputTokenAmount,
+          )
+        : await adapterInstance["getSomeAmountInToken(address,address,uint256)"](
+            inputTokenAddress,
+            poolAddress,
+            outputTokenAmount,
+          );
     }
     index++;
     outputTokenAmount = amountUT;

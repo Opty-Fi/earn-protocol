@@ -28,6 +28,7 @@ import {
   StrategyProvider,
   TestVault,
   Vault,
+  TestStrategyManager,
 } from "../typechain";
 import { VaultV3 } from "./types/vaultv3";
 import { expect } from "chai";
@@ -131,6 +132,7 @@ declare module "mocha" {
       };
     };
     tokens: { [key: string]: ERC20 };
+    testStrategyManager: TestStrategyManager;
   }
 }
 
