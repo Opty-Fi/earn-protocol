@@ -64,6 +64,8 @@ jobs:
           yarn test-fast:vaultv3-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:polygon
+          yarn test-fast:vaultv6-upgrade-test:mainnet
+          yarn test-fast:vaultv6-upgrade-test:polygon
           yarn test-fast:vault-strategy:mainnet
           yarn test-fast:vault-strategy:polygon
           yarn test-fast:vault-strategy:avalanche
