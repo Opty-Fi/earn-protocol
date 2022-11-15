@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import sushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
@@ -159,21 +159,21 @@ const func: DeployFunction = async ({
 
   const usdc = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.PLAIN_TOKENS.USDC);
   const usdcAllowance = await usdc.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
-  if (!usdcAllowance.gt("0")) {
+  if (!usdcAllowance.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdc.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }
 
   const weth = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.WRAPPED_TOKENS.WETH);
   const wethAllowance = await weth.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
-  if (!wethAllowance.gt("0")) {
+  if (!wethAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(weth.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }
 
   const wbtc = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.BTC_TOKENS.WBTC);
   const wbtcAllowance = await wbtc.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
-  if (!wbtcAllowance.gt("0")) {
+  if (!wbtcAllowance.gt(parseUnits("1000000", "8"))) {
     approvalTokens.push(wbtc.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }
@@ -188,11 +188,11 @@ const func: DeployFunction = async ({
   const usdcWethSLPAllowance = await usdcWethSLP.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
   const wbtcWethSLPAllowance = await wbtcWethSLP.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
 
-  if (!usdcWethSLPAllowance.gt("0")) {
+  if (!usdcWethSLPAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(usdcWethSLP.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }
-  if (!wbtcWethSLPAllowance.gt("0")) {
+  if (!wbtcWethSLPAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(wbtcWethSLP.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }

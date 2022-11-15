@@ -104,6 +104,7 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
     "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4": { rate: 80, adapter: curveMetapoolGaugeAdapter.address }, // curve gauge for bLUSDLUSD3-f
     "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1": { rate: 90, adapter: compoundAdapter.address }, //dAMM finance - dAWBTC
     "0xf1667d8FA2a9d4a00717CB4F74CC698546ACF602": { rate: 90, adapter: compoundAdapter.address }, // dAMM finance - dFRAX
+    "0xBf0852A95eC76e87f7431Fa505B27937C9836372": { rate: 90, adapter: compoundAdapter.address }, //dAMM finance - dUSDT
   };
 
   const onlyMapPoolsToAdapters = [];

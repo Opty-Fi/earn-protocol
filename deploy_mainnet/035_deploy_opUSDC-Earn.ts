@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import EthereumSushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
@@ -170,12 +170,12 @@ const func: DeployFunction = async ({
     EthereumSushiswap.SushiswapRouter.address,
   );
 
-  if (!wethSushiswapAllowance.gt(0)) {
+  if (!wethSushiswapAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(wethInstance.address);
     approvalSpender.push(EthereumSushiswap.SushiswapRouter.address);
   }
 
-  if (!usdcSushiswapAllowance.gt(0)) {
+  if (!usdcSushiswapAllowance.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdcInstance.address);
     approvalSpender.push(EthereumSushiswap.SushiswapRouter.address);
   }

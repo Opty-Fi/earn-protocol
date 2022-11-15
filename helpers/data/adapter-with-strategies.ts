@@ -857,6 +857,31 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         name: "FRAX Lending on dAMM",
         description: "",
       },
+      "3Crv-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-dAMM-dUSDT": {
+        strategyName: "3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX",
+        token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            isSwap: true,
+            outputTokenSymbol: "USDT",
+            adapterName: "CurveExchangeAdapterEthereum",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+            outputToken: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+            isSwap: false,
+            outputTokenSymbol: "dUSDT",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDT Lending on dAMM",
+        description: "",
+      },
     },
     WBTC: {
       "wbtc-DEPOSIT-Compound-cWBTC": {

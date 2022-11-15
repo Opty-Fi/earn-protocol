@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import sushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
@@ -160,14 +160,14 @@ const func: DeployFunction = async ({
 
   const usdc = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.PLAIN_TOKENS.USDC);
   const usdcAllowance = await usdc.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
-  if (!usdcAllowance.gt("0")) {
+  if (!usdcAllowance.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdc.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }
 
   const weth = <ERC20>await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.WRAPPED_TOKENS.WETH);
   const wethAllowance = await weth.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
-  if (!wethAllowance.gt("0")) {
+  if (!wethAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(weth.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }
@@ -178,7 +178,7 @@ const func: DeployFunction = async ({
 
   const usdcWethSLPAllowance = await usdcWethSLP.allowance(vaultInstance.address, sushiswap.SushiswapRouter.address);
 
-  if (!usdcWethSLPAllowance.gt("0")) {
+  if (!usdcWethSLPAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(usdcWethSLP.address);
     approvalSpender.push(sushiswap.SushiswapRouter.address);
   }

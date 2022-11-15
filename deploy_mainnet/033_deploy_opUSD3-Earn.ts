@@ -2,7 +2,7 @@ import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import { default as CurveExports } from "@optyfi/defi-legos/ethereum/curve/contracts";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
@@ -167,7 +167,7 @@ const func: DeployFunction = async ({
     vaultInstance.address,
     CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool,
   );
-  if (!allowanceUT.gt("0")) {
+  if (!allowanceUT.gt(parseEther("1000000"))) {
     approvalTokens.push(tokenInstanceUT.address);
     approvalSpender.push(CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool);
   }
@@ -181,7 +181,7 @@ const func: DeployFunction = async ({
     vaultInstance.address,
     CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool,
   );
-  if (!allowanceLP.gt("0")) {
+  if (!allowanceLP.gt(parseEther("1000000"))) {
     approvalTokens.push(tokenInstanceLP.address);
     approvalSpender.push(CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool);
   }
@@ -190,7 +190,7 @@ const func: DeployFunction = async ({
     vaultInstance.address,
     CurveExports.CurveCryptoPoolGauge.pools["bLUSDLUSD3-f"].pool,
   );
-  if (!allowanceGauge.gt("0")) {
+  if (!allowanceGauge.gt(parseEther("1000000"))) {
     approvalTokens.push(tokenInstanceLP.address);
     approvalSpender.push(CurveExports.CurveCryptoPoolGauge.pools["bLUSDLUSD3-f"].pool);
   }
@@ -202,7 +202,7 @@ const func: DeployFunction = async ({
     CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool,
   );
 
-  if (!usd3Allowance3Pool.gt(0)) {
+  if (!usd3Allowance3Pool.gt(parseEther("1000000"))) {
     approvalTokens.push(usd3Instance.address);
     approvalSpender.push(CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool);
   }
@@ -218,12 +218,32 @@ const func: DeployFunction = async ({
     CurveExports.CurveRegistryExchange.address,
   );
 
-  if (!usdcAllowance3Pool.gt(0)) {
+  if (!usdcAllowance3Pool.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdcInstance.address);
     approvalSpender.push(CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool);
   }
-  if (!usdcAllowanceExchange.gt(0)) {
+  if (!usdcAllowanceExchange.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdcInstance.address);
+    approvalSpender.push(CurveExports.CurveRegistryExchange.address);
+  }
+
+  const usdtInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDT);
+
+  const usdtAllowance3Pool = await usdtInstance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool,
+  );
+  const usdtAllowanceExchange = await usdtInstance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveRegistryExchange.address,
+  );
+
+  if (!usdtAllowance3Pool.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(usdtInstance.address);
+    approvalSpender.push(CurveExports.CurveSwapPool["dai+usdc+usdt_3crv"].pool);
+  }
+  if (!usdtAllowanceExchange.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(usdtInstance.address);
     approvalSpender.push(CurveExports.CurveRegistryExchange.address);
   }
 
@@ -234,7 +254,7 @@ const func: DeployFunction = async ({
     CurveExports.CurveRegistryExchange.address,
   );
 
-  if (!fraxAllowanceExchange.gt(0)) {
+  if (!fraxAllowanceExchange.gt(parseEther("1000000"))) {
     approvalTokens.push(fraxInstance.address);
     approvalSpender.push(CurveExports.CurveRegistryExchange.address);
   }
