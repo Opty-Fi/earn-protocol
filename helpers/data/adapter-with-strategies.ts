@@ -858,7 +858,7 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         description: "",
       },
       "3Crv-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-dAMM-dUSDT": {
-        strategyName: "3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX",
+        strategyName: "3Crv-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-dAMM-dUSDT",
         token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
         strategy: [
           {
