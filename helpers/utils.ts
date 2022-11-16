@@ -185,6 +185,7 @@ declare module "mocha" {
       tokensHashToTokenList: string[];
       liquidityPools: { rating: number; isLiquidityPool: boolean };
       creditPools: { rating: number; isLiquidityPool: boolean };
+      liquidityPoolToAdapter: string;
       riskProfiles: {
         index: BigNumber;
         canBorrow: boolean;

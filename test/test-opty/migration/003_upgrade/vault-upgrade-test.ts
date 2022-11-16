@@ -81,7 +81,7 @@ const registryArguments: {
   },
 };
 
-describe("Registry Upgrade", async function () {
+describe(`${fork}-Vault-rev6 upgrade test`, async function () {
   before(async function () {
     this.registryV1 = <RegistryV1>(
       await ethers.getContractAt(RegistryV1__factory.abi, registryArguments[fork].registryProxy)
@@ -152,6 +152,15 @@ describe("Registry Upgrade", async function () {
     }
     const registryFactory = await ethers.getContractFactory(RegistryV2__factory.abi, RegistryV2__factory.bytecode);
     const registryV2 = await registryFactory.deploy();
+
+    const riskManagerFactory = await ethers.getContractFactory(
+      RiskManagerV2__factory.abi,
+      RiskManagerV2__factory.bytecode,
+    );
+
+    // deploy risk manager
+    const riskManager = await riskManagerFactory.deploy(this.registryV1.address);
+    this.riskManagerV2 = await ethers.getContractAt(RiskManagerV2__factory.abi, riskManager.address);
     // registryV1Obj
     this.registryV1Obj = {
       instance: this.registryV1,
@@ -170,6 +179,7 @@ describe("Registry Upgrade", async function () {
       tokensHashToTokenList: await this.registryV1.getTokensHashToTokenList(registryArguments[fork].testToken.hash),
       liquidityPools: await this.registryV1.liquidityPools(registryArguments[fork].testLiquidityPool),
       creditPools: { rating: 99, isLiquidityPool: true },
+      liquidityPoolToAdapter: registryArguments[fork].testLiquidityPoolAdapter,
       riskProfiles: await this.registryV1.getRiskProfile("2"),
       vaultToVaultConfiguration: await this.registryV1.vaultToVaultConfiguration(registryArguments[fork].testVault),
       whitelistedUsers: await this.registryV1.whitelistedUsers(
@@ -181,7 +191,7 @@ describe("Registry Upgrade", async function () {
       riskProfilesArray: await this.registryV1.riskProfilesArray(3),
       strategyProvider: await this.registryV1.strategyProvider(),
       investStrategyRegistry: await this.registryV1.investStrategyRegistry(),
-      riskManager: await this.registryV1.riskManager(),
+      riskManager: this.riskManagerV2.address,
       harvestCodeProvider: await this.registryV1.harvestCodeProvider(),
       strategyManager: await this.registryV1.strategyManager(),
       opty: await this.registryV1.opty(),
@@ -316,15 +326,6 @@ describe("Registry Upgrade", async function () {
     await tx.wait(1);
 
     this.registryV2 = <RegistryV2>await ethers.getContractAt(RegistryV2__factory.abi, registryV2Instance.address);
-
-    const riskManagerFactory = await ethers.getContractFactory(
-      RiskManagerV2__factory.abi,
-      RiskManagerV2__factory.bytecode,
-    );
-
-    // deploy risk manager
-    const riskManager = await riskManagerFactory.deploy(this.registryV1.address);
-    this.riskManagerV2 = await ethers.getContractAt(RiskManagerV2__factory.abi, riskManager.address);
 
     // update risk manager
     const tx2 = await this.registryV2.connect(operatorSigner).setRiskManager(riskManager.address);
@@ -496,25 +497,80 @@ describe("Registry Upgrade", async function () {
         await this.registryV2.pendingRegistryImplementation(),
       );
     });
-    // it("tokens mapping as expected", async function () {});
-    // it("tokensHashToTokens mapping as expected", async function () {});
-    // it("liquidity pools mapping as expected", async function () {});
-    // it("swap pools mapping as expected", async function () {});
-    // it("liquidityPoolToAdapter mapping as expected", async function () {});
-    // it("riskProfiles mapping as expected", async function () {});
-    // it("vaultToVaultConfiguration mapping as expected", async function () {});
-    // it("whitelistedUsers mapping as expected", async function () {});
-    // it("withdrawalFeeRange as expected", async function () {});
-    // it("tokenHashIndexes Array as expected", async function () {});
-    // it("riskProfilesArray as expected", async function () {});
-    // it("strategyprovider as expected", async function () {});
-    // it("investStrategyRegistry as expected", async function () {});
-    // it("riskManager as expected", async function () {});
-    // it("harvestCodeProvider as expected", async function () {});
-    // it("strategyManager as expected", async function () {});
-    // it("opty as expected", async function () {});
-    // it("optyStakingRateBalance as expected", async function () {});
-    // it("odefiVaultBooster as expected", async function () {});
+    it("tokens mapping as expected", async function () {
+      expect(this.registryV1Obj.tokens).to.eq(await this.registryV2.tokens(registryArguments[fork].testToken.address));
+    });
+    it("tokensHashIndexByHash as expected", async function () {
+      expect(this.registryV1Obj.tokensHashIndexByHash).to.eq(
+        await this.registryV2.getTokensHashIndexByHash(registryArguments[fork].testToken.hash),
+      );
+    });
+    it("tokensHashToTokenList as expected", async function () {
+      expect(this.registryV1Obj.tokensHashToTokenList).to.deep.eq(
+        await this.registryV2.getTokensHashToTokenList(registryArguments[fork].testToken.hash),
+      );
+    });
+    it("liquidity pools mapping as expected", async function () {
+      expect(this.registryV1Obj.liquidityPools).to.deep.eq(
+        await this.registryV2.liquidityPools(registryArguments[fork].testLiquidityPool),
+      );
+    });
+    it("swap pools mapping as expected", async function () {
+      expect(Object.values(this.registryV1Obj.creditPools)).to.deep.eq(
+        await this.registryV2.swapPools(registryArguments[fork].testSwapPool),
+      );
+    });
+    it("liquidityPoolToAdapter mapping as expected", async function () {
+      expect(getAddress(this.registryV1Obj.liquidityPoolToAdapter)).to.eq(
+        getAddress(await this.registryV2.liquidityPoolToAdapter(registryArguments[fork].testLiquidityPool)),
+      );
+    });
+    it("riskProfiles mapping as expected", async function () {
+      expect(this.registryV1Obj.riskProfiles).to.deep.eq(await this.registryV2.getRiskProfile("2"));
+    });
+    it("vaultToVaultConfiguration mapping as expected", async function () {
+      expect(this.registryV1Obj.vaultToVaultConfiguration).to.deep.eq(
+        await this.registryV2.vaultToVaultConfiguration(registryArguments[fork].testVault),
+      );
+    });
+    it("whitelistedUsers mapping as expected", async function () {
+      expect(this.registryV1Obj.whitelistedUsers).to.eq(
+        await this.registryV2.whitelistedUsers(registryArguments[fork].testVault, registryArguments[fork].testAccount),
+      );
+    });
+    it("withdrawalFeeRange as expected", async function () {
+      expect(this.registryV1Obj.withdrawalFeeRange).to.deep.eq(await this.registryV2.withdrawalFeeRange());
+    });
+    it("tokenHashIndexes Array as expected", async function () {
+      expect(this.registryV1Obj.tokensHashIndexes).to.eq(await this.registryV2.tokensHashIndexes("0"));
+    });
+    it("riskProfilesArray as expected", async function () {
+      expect(this.registryV1Obj.riskProfilesArray).to.eq(await this.registryV2.riskProfilesArray("3"));
+    });
+    it("strategyprovider as expected", async function () {
+      expect(this.registryV1Obj.strategyProvider).to.eq(await this.registryV2.strategyProvider());
+    });
+    it("investStrategyRegistry as expected", async function () {
+      expect(this.registryV1Obj.investStrategyRegistry).to.eq(await this.registryV2.investStrategyRegistry());
+    });
+    it("riskManager as expected", async function () {
+      expect(this.registryV1Obj.riskManager).to.eq(await this.registryV2.riskManager());
+    });
+    it("harvestCodeProvider as expected", async function () {
+      expect(this.registryV1Obj.harvestCodeProvider).to.eq(await this.registryV2.harvestCodeProvider());
+    });
+    it("strategyManager as expected", async function () {
+      expect(this.registryV1Obj.strategyManager).to.eq(await this.registryV2.strategyManager());
+    });
+    it("opty as expected", async function () {
+      expect(this.registryV1Obj.opty).to.eq(await this.registryV2.opty());
+    });
+    it("optyStakingRateBalance as expected", async function () {
+      expect(this.registryV1Obj.optyStakingRateBalancer).to.eq(await this.registryV2.optyStakingRateBalancer());
+    });
+    it("odefiVaultBooster as expected", async function () {
+      expect(this.registryV1Obj.odefiVaultBooster).to.eq(await this.registryV2.odefiVaultBooster());
+    });
     it("swapPoolToAdapter mapping as expected", async function () {
       expect(await this.registryV2.swapPoolToAdapter(registryArguments[fork].testSwapPool)).to.eq(
         this.sushiswapExchangeAdapter.address,
@@ -695,8 +751,36 @@ describe("Registry Upgrade", async function () {
         opUSD3Earn = <VaultV6>(
           await ethers.getContractAt(VaultV6__factory.abi, "0x9E8262534fAeF7cBB7E1AfDa483829246a0eB963")
         );
+        expect(
+          await opUSD3Earn.getLastStrategyStepBalanceLP([
+            {
+              pool: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+              outputToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+              isSwap: true,
+            },
+            {
+              pool: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+              outputToken: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+              isSwap: false,
+            },
+          ]),
+        ).eq("0");
         const tx = await opUSD3Earn.rebalance();
         await tx.wait(1);
+        expect(
+          await opUSD3Earn.getLastStrategyStepBalanceLP([
+            {
+              pool: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+              outputToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+              isSwap: true,
+            },
+            {
+              pool: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+              outputToken: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+              isSwap: false,
+            },
+          ]),
+        ).gt("0");
       });
       it("null strategy", async function () {
         await opUSD3Earn
@@ -708,6 +792,21 @@ describe("Registry Upgrade", async function () {
         await tx.wait(1);
         tx = await opUSD3Earn.rebalance();
         await tx.wait(1);
+        expect(await opUSD3Earn.getInvestStrategySteps()).to.deep.eq([]);
+        expect(
+          await opUSD3Earn.getLastStrategyStepBalanceLP([
+            {
+              pool: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+              outputToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+              isSwap: true,
+            },
+            {
+              pool: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+              outputToken: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+              isSwap: false,
+            },
+          ]),
+        ).eq("0");
       });
     });
   }
