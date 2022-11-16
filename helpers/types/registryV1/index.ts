@@ -4,7 +4,7 @@
 export type { IRegistryV1 } from "./IRegistryV1";
 export type { RegistryV1 } from "./RegistryV1";
 export type { RegistryProxyV1 } from "./RegistryProxyV1";
-export type { RegistryAdminStorage } from "./RegistryAdminStorageV1";
+export type { RegistryAdminStorageV1 } from "./RegistryAdminStorageV1";
 export type { RegistryStorageV1 } from "./RegistryStorageV1";
 export type { RegistryStorageV1V1 } from "./RegistryStorageV1V1";
 export { IRegistryV1__factory } from "./factories/IRegistryV1__factory";

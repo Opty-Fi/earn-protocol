@@ -997,7 +997,7 @@ const _abi = [
   },
 ];
 
-export class IRegistry__factory {
+export class IRegistryV1__factory {
   static readonly abi = _abi;
   static createInterface(): IRegistryV1Interface {
     return new utils.Interface(_abi) as IRegistryV1Interface;
