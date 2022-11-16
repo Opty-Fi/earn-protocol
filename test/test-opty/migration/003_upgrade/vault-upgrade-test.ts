@@ -203,6 +203,7 @@ describe("Registry Upgrade", async function () {
     const governanceSigner = await ethers.getSigner(governanceAddress);
     const riskOperatorAddress = await registryProxyInstance.riskOperator();
     const riskOperatorSigner = await ethers.getSigner(riskOperatorAddress);
+    this.signers.riskOperator = riskOperatorSigner;
     const strategyOperatorAddress = await registryProxyInstance.strategyOperator();
     const strategyOperatorSigner = await ethers.getSigner(strategyOperatorAddress);
     this.signers.strategyOperator = strategyOperatorSigner;
@@ -270,6 +271,17 @@ describe("Registry Upgrade", async function () {
       tx = await registryV2Instance
         .connect(riskOperatorSigner)
         ["rateSwapPool(address,uint8)"]("0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", 99);
+      await tx.wait(1);
+      tx = await registryV2Instance
+        .connect(operatorSigner)
+        ["approveLiquidityPoolAndMapToAdapter(address,address)"](
+          "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+          "0x9680624ad6bf5a34ce496a483400585136c575a4",
+        );
+      await tx.wait(1);
+      tx = await registryV2Instance
+        .connect(riskOperatorSigner)
+        ["rateLiquidityPool(address,uint8)"]("0xBf0852A95eC76e87f7431Fa505B27937C9836372", 90);
       await tx.wait(1);
 
       this.strategyProvider = <StrategyProvider>(
@@ -683,14 +695,19 @@ describe("Registry Upgrade", async function () {
         opUSD3Earn = <VaultV6>(
           await ethers.getContractAt(VaultV6__factory.abi, "0x9E8262534fAeF7cBB7E1AfDa483829246a0eB963")
         );
-        await opUSD3Earn.rebalance();
+        const tx = await opUSD3Earn.rebalance();
+        await tx.wait(1);
       });
       it("null strategy", async function () {
-        const tx = await this.strategyProvider
+        await opUSD3Earn
+          .connect(this.signers.riskOperator)
+          .giveAllowances([EthereumTokens.PLAIN_TOKENS.USDT], ["0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"]);
+        let tx = await this.strategyProvider
           .connect(this.signers.strategyOperator)
           .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[eEVMNetwork.mainnet]["USD3"].hash, []);
         await tx.wait(1);
-        await opUSD3Earn.rebalance();
+        tx = await opUSD3Earn.rebalance();
+        await tx.wait(1);
       });
     });
   }
