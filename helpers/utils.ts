@@ -28,6 +28,8 @@ import {
   TestVault,
   Vault,
   TestStrategyManager,
+  UniswapV2ExchangeAdapter,
+  CurveExchangeAdapter,
 } from "../typechain";
 import { VaultV3 } from "./types/vaultv3";
 import { expect } from "chai";
@@ -164,6 +166,65 @@ declare module "mocha" {
     };
     tokens: { [key: string]: ERC20 };
     testStrategyManager: TestStrategyManager;
+    sushiswapExchangeAdapter: UniswapV2ExchangeAdapter;
+    curveExchangeAdapter: CurveExchangeAdapter;
+    registryV1Obj: {
+      instance: RegistryV1;
+      governance: string;
+      financeOperator: string;
+      riskOperator: string;
+      strategyOperator: string;
+      operator: string;
+      treasury: string;
+      optyDistributor: string;
+      pendingGovernance: string;
+      registryImplementation: string;
+      pendingRegistryImplementation: string;
+      tokens: boolean;
+      tokensHashIndexByHash: BigNumber;
+      tokensHashToTokenList: string[];
+      liquidityPools: { rating: number; isLiquidityPool: boolean };
+      creditPools: { rating: number; isLiquidityPool: boolean };
+      riskProfiles: {
+        index: BigNumber;
+        canBorrow: boolean;
+        poolRatingsRange: [number, number] & {
+          lowerLimit: number;
+          upperLimit: number;
+        };
+        exists: boolean;
+        name: string;
+        symbol: string;
+      };
+      vaultToVaultConfiguration: {
+        discontinued: boolean;
+        unpaused: boolean;
+        isLimitedState: boolean;
+        allowWhitelistedState: boolean;
+        withdrawalFee: BigNumber;
+        userDepositCap: BigNumber;
+        minimumDepositAmount: BigNumber;
+        totalValueLockedLimitInUnderlying: BigNumber;
+        queueCap: BigNumber;
+      };
+      whitelistedUsers: boolean;
+      withdrawalFeeRange: {
+        lowerLimit: BigNumber;
+        upperLimit: BigNumber;
+      };
+      tokensHashIndexes: string;
+      riskProfilesArray: BigNumber;
+      strategyProvider: string;
+      investStrategyRegistry: string;
+      riskManager: string;
+      harvestCodeProvider: string;
+      strategyManager: string;
+      opty: string;
+      aprOracle: string;
+      optyStakingRateBalancer: string;
+      odefiVaultBooster: string;
+      swapPoolToAdapter: string;
+    };
   }
 }
 
