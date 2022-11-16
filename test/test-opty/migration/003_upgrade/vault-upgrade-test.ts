@@ -14,7 +14,8 @@ import {
   InitializableImmutableAdminUpgradeabilityProxy__factory,
   RegistryProxy,
   RegistryProxy__factory,
-  Registry__factory,
+  StrategyProvider,
+  StrategyProvider__factory,
   UniswapV2ExchangeAdapter,
   UniswapV2ExchangeAdapter__factory,
 } from "../../../../typechain";
@@ -32,6 +33,7 @@ import { RiskManagerV2__factory } from "../../../../helpers/types/riskManagerv2/
 import { VaultV6, VaultV6__factory } from "../../../../helpers/types/vaultv6";
 import { VaultV5 } from "../../../../helpers/types/vaultv5/VaultV5";
 import { BigNumber } from "ethers";
+import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
 
 const fork = process.env.FORK as eEVMNetwork;
 const testVaults = fork === eEVMNetwork.mainnet ? ethereumTestVaults : polygonTestVaults;
@@ -148,7 +150,7 @@ describe("Registry Upgrade", async function () {
         await ethers.getContractAt(UniswapV2ExchangeAdapter__factory.abi, sushiswapExchangeAdapter.address)
       );
     }
-    const registryFactory = await ethers.getContractFactory(Registry__factory.abi, Registry__factory.bytecode);
+    const registryFactory = await ethers.getContractFactory(RegistryV2__factory.abi, RegistryV2__factory.bytecode);
     const registryV2 = await registryFactory.deploy();
     // registryV1Obj
     this.registryV1Obj = {
@@ -191,7 +193,7 @@ describe("Registry Upgrade", async function () {
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.admin = signers[1];
-    let registryV2Instance = await ethers.getContractAt(Registry__factory.abi, registryV2.address);
+    let registryV2Instance = await ethers.getContractAt(RegistryV2__factory.abi, registryV2.address);
     let registryProxyInstance = <RegistryProxy>(
       await ethers.getContractAt(RegistryProxy__factory.abi, this.registryV1.address)
     );
@@ -201,6 +203,9 @@ describe("Registry Upgrade", async function () {
     const governanceSigner = await ethers.getSigner(governanceAddress);
     const riskOperatorAddress = await registryProxyInstance.riskOperator();
     const riskOperatorSigner = await ethers.getSigner(riskOperatorAddress);
+    const strategyOperatorAddress = await registryProxyInstance.strategyOperator();
+    const strategyOperatorSigner = await ethers.getSigner(strategyOperatorAddress);
+    this.signers.strategyOperator = strategyOperatorSigner;
     registryProxyInstance = <RegistryProxy>(
       await ethers.getContractAt(RegistryProxy__factory.abi, this.registryV1.address)
     );
@@ -215,6 +220,10 @@ describe("Registry Upgrade", async function () {
     await network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [await registryProxyInstance.riskOperator()],
+    });
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [await registryProxyInstance.strategyOperator()],
     });
     let txs = await this.signers.admin.sendTransaction({
       to: await registryProxyInstance.governance(),
@@ -231,6 +240,11 @@ describe("Registry Upgrade", async function () {
       value: parseEther("1"),
     });
     await txs.wait(1);
+    txs = await this.signers.admin.sendTransaction({
+      to: await registryProxyInstance.strategyOperator(),
+      value: parseEther("1"),
+    });
+    await txs.wait(1);
     // upgrade registry
     const registryImplementation = await registryProxyInstance.registryImplementation();
     if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
@@ -244,7 +258,7 @@ describe("Registry Upgrade", async function () {
       const becomeTx = await registryV2Instance.connect(governanceSigner).become(this.registryV1.address);
       await becomeTx.wait(1);
     }
-    registryV2Instance = await ethers.getContractAt(Registry__factory.abi, this.registryV1.address);
+    registryV2Instance = await ethers.getContractAt(RegistryV2__factory.abi, this.registryV1.address);
     if (fork === eEVMNetwork.mainnet) {
       let tx = await registryV2Instance
         .connect(operatorSigner)
@@ -256,6 +270,25 @@ describe("Registry Upgrade", async function () {
       tx = await registryV2Instance
         .connect(riskOperatorSigner)
         ["rateSwapPool(address,uint8)"]("0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", 99);
+      await tx.wait(1);
+
+      this.strategyProvider = <StrategyProvider>(
+        await ethers.getContractAt(StrategyProvider__factory.abi, await registryV2Instance.strategyProvider())
+      );
+      tx = await this.strategyProvider
+        .connect(strategyOperatorSigner)
+        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[eEVMNetwork.mainnet]["USD3"].hash, [
+          {
+            pool: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            isSwap: true,
+          },
+          {
+            pool: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+            outputToken: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+            isSwap: false,
+          },
+        ]);
       await tx.wait(1);
     }
     let tx = await registryV2Instance
@@ -642,6 +675,24 @@ describe("Registry Upgrade", async function () {
         });
       });
     }
+  }
+  if (fork === eEVMNetwork.mainnet) {
+    describe("Rebalance opUSD3-Earn", async function () {
+      let opUSD3Earn: VaultV6;
+      it("USDT Lending on DAMM", async function () {
+        opUSD3Earn = <VaultV6>(
+          await ethers.getContractAt(VaultV6__factory.abi, "0x9E8262534fAeF7cBB7E1AfDa483829246a0eB963")
+        );
+        await opUSD3Earn.rebalance();
+      });
+      it("null strategy", async function () {
+        const tx = await this.strategyProvider
+          .connect(this.signers.strategyOperator)
+          .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[eEVMNetwork.mainnet]["USD3"].hash, []);
+        await tx.wait(1);
+        await opUSD3Earn.rebalance();
+      });
+    });
   }
 });
 
