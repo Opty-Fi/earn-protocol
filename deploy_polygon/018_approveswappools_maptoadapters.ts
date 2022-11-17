@@ -3,7 +3,8 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
 
-const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvironment) => {
+const func: DeployFunction = async ({ deployments, ethers, getNamedAccounts }: HardhatRuntimeEnvironment) => {
+  const { deployer } = await getNamedAccounts();
   const { getAddress } = ethers.utils;
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -46,15 +47,19 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (approveSwapPoolAndMap.length > 0) {
     // approve swap pool and map adapter
     console.log(`operator approving and mapping ${approveSwapPoolAndMap.length} pools ...`, approveSwapPoolAndMap);
-    const feeData = await ethers.provider.getFeeData();
-    const approveSwapPoolAndMapAdapterTx = await registryV2Instance
-      .connect(operatorSigner)
-      ["approveSwapPoolAndMapToAdapter((address,address)[])"](approveSwapPoolAndMap, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await approveSwapPoolAndMapAdapterTx.wait();
+    if (getAddress(operatorSigner.address) === getAddress(deployer)) {
+      const feeData = await ethers.provider.getFeeData();
+      const approveSwapPoolAndMapAdapterTx = await registryV2Instance
+        .connect(operatorSigner)
+        ["approveSwapPoolAndMapToAdapter((address,address)[])"](approveSwapPoolAndMap, {
+          type: 2,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
+      await approveSwapPoolAndMapAdapterTx.wait();
+    } else {
+      console.log("cannot approve swap pool and map to adapter as signer is not operator");
+    }
   } else {
     console.log("Already approved swap pool and map to adapter");
   }
@@ -63,15 +68,19 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (onlyMapSwapPoolsToAdapters.length > 0) {
     // only map swappool to adapter
     console.log(`operator only mapping ${onlyMapSwapPoolsToAdapters.length} pools ...`, onlyMapSwapPoolsToAdapters);
-    const feeData = await ethers.provider.getFeeData();
-    const mapToAdapterTx = await registryV2Instance
-      .connect(operatorSigner)
-      ["setSwapPoolToAdapter((address,address)[])"](onlyMapSwapPoolsToAdapters, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await mapToAdapterTx.wait();
+    if (getAddress(operatorSigner.address) === getAddress(deployer)) {
+      const feeData = await ethers.provider.getFeeData();
+      const mapToAdapterTx = await registryV2Instance
+        .connect(operatorSigner)
+        ["setSwapPoolToAdapter((address,address)[])"](onlyMapSwapPoolsToAdapters, {
+          type: 2,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
+      await mapToAdapterTx.wait();
+    } else {
+      console.log("cannot map swap pool to adapter as signer is not operator");
+    }
   } else {
     console.log("Already mapped to adapter");
   }
@@ -80,15 +89,19 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   if (rateSwapPools.length > 0) {
     // rate swappools
     console.log(`risk operator rating ${rateSwapPools.length} pools ...`, rateSwapPools);
-    const feeData = await ethers.provider.getFeeData();
-    const rateAdapterTx = await registryV2Instance
-      .connect(riskOperatorSigner)
-      ["rateSwapPool((address,uint8)[])"](rateSwapPools, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await rateAdapterTx.wait();
+    if (getAddress(riskOperatorSigner.address) === getAddress(deployer)) {
+      const feeData = await ethers.provider.getFeeData();
+      const rateAdapterTx = await registryV2Instance
+        .connect(riskOperatorSigner)
+        ["rateSwapPool((address,uint8)[])"](rateSwapPools, {
+          type: 2,
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+        });
+      await rateAdapterTx.wait();
+    } else {
+      console.log("cannot rate swap pool as signer is not risk operator");
+    }
   } else {
     console.log("Already rate swap pool");
   }
