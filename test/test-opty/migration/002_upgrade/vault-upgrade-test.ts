@@ -10,12 +10,13 @@ import { Signers } from "../../../../helpers/utils";
 import {
   InitializableImmutableAdminUpgradeabilityProxy,
   InitializableImmutableAdminUpgradeabilityProxy__factory,
-  Vault,
-  Vault__factory,
 } from "../../../../typechain";
 import { ethereumTestVaults, polygonTestVaults } from "./test-vaults";
 import { RegistryProxy as MainnetRegistryProxyAddress } from "../../_deployments/mainnet.json";
 import { RegistryProxy as PolygonRegistryProxyAddress } from "../../_deployments/polygon.json";
+import { VaultV5__factory } from "../../../../helpers/types/vaultv5";
+import { StrategyManagerV1__factory } from "../../../../helpers/types/strategyManagerv1";
+import { VaultV5 } from "../../../../helpers/types/vaultv5/VaultV5";
 
 chai.use(solidity);
 
@@ -27,21 +28,42 @@ const EIP712_DOMAIN = ethers.utils.id(
 );
 const EIP712_REVISION = ethers.utils.id("1");
 
+// reference : https://github.com/ethers-io/ethers.js/issues/195#issuecomment-1212815642
+function linkLibrary(bytecode: string, name: string, address: string): string {
+  let linkedBytecode = bytecode;
+  // eslint-disable-next-line no-useless-escape
+  const placeholder = `__\$${ethers.utils.solidityKeccak256(["string"], [name]).slice(2, 36)}\$__`;
+  const formattedAddress = ethers.utils.getAddress(address).toLowerCase().replace("0x", "");
+  if (linkedBytecode.indexOf(placeholder) === -1) {
+    throw new Error(`Unable to find placeholder for library ${name}`);
+  }
+  while (linkedBytecode.indexOf(placeholder) !== -1) {
+    linkedBytecode = linkedBytecode.replace(placeholder, formattedAddress);
+  }
+  return linkedBytecode;
+}
+
 describe(`${fork}-Vault-rev4 upgrade test`, () => {
   before(async function () {
     this.vaultsV3 = {};
-    this.vaults = {};
+    this.vaultsV5 = {};
     this.signers = {} as Signers;
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.admin = signers[1];
-    const strategyManagerFactory = await ethers.getContractFactory("StrategyManager");
+    const strategyManagerFactory = await ethers.getContractFactory(
+      StrategyManagerV1__factory.abi,
+      StrategyManagerV1__factory.bytecode,
+    );
     const strategyManager = await strategyManagerFactory.deploy();
 
-    const vaultFactory = await ethers.getContractFactory("Vault", {
-      libraries: {
-        "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
-      },
-    });
+    const vaultFactory = await ethers.getContractFactory(
+      VaultV5__factory.abi,
+      linkLibrary(
+        VaultV5__factory.bytecode,
+        "contracts/protocol/lib/StrategyManager.sol:StrategyManager",
+        strategyManager.address,
+      ),
+    );
     let vaultImplementation;
     if (fork == eEVMNetwork.mainnet) {
       await network.provider.request({
@@ -73,7 +95,7 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
     }
     for (const underlyingToken of Object.keys(testVaults)) {
       this.vaultsV3[underlyingToken] = {};
-      this.vaults[underlyingToken] = {};
+      this.vaultsV5[underlyingToken] = {};
       for (const testVault of Object.keys(testVaults[underlyingToken])) {
         await network.provider.request({
           method: "hardhat_impersonateAccount",
@@ -162,12 +184,14 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
         const proxyInstance = <InitializableImmutableAdminUpgradeabilityProxy>(
           await ethers.getContractAt(InitializableImmutableAdminUpgradeabilityProxy__factory.abi, testVault)
         );
-        this.vaults[underlyingToken][testVault] = <Vault>await ethers.getContractAt(Vault__factory.abi, testVault);
+        this.vaultsV5[underlyingToken][testVault] = <VaultV5>(
+          await ethers.getContractAt(VaultV5__factory.abi, testVault)
+        );
         const tx = await proxyInstance
           .connect(proxySigner)
           .upgradeToAndCall(
             vaultImplementation?.address as string,
-            this.vaults[underlyingToken][testVault].interface.encodeFunctionData("initialize", [
+            this.vaultsV5[underlyingToken][testVault].interface.encodeFunctionData("initialize", [
               this.vaultsV3[underlyingToken][testVault].registryContract,
               this.vaultsV3[underlyingToken][testVault].underlyingTokensHash,
               this.vaultsV3[underlyingToken][testVault].whitelistedAccountsRoot,
@@ -188,34 +212,34 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
     for (const testVault of Object.keys(testVaults[testVaultUnderlyingToken])) {
       describe(`${fork}-${testVaults[testVaultUnderlyingToken][testVault].newSymbol} storage test`, () => {
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} registryContract as expected`, async function () {
-          console.log("registryContract ", await this.vaults[testVaultUnderlyingToken][testVault].registryContract());
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].registryContract()).to.eq(
+          console.log("registryContract ", await this.vaultsV5[testVaultUnderlyingToken][testVault].registryContract());
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].registryContract()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].registryContract,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} name as expected`, async function () {
-          console.log("name ", await this.vaults[testVaultUnderlyingToken][testVault].name());
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].name()).to.eq(
+          console.log("name ", await this.vaultsV5[testVaultUnderlyingToken][testVault].name());
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].name()).to.eq(
             testVaults[testVaultUnderlyingToken][testVault].newName,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} symbol as expected`, async function () {
-          console.log("symbol ", await this.vaults[testVaultUnderlyingToken][testVault].symbol());
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].symbol()).to.eq(
+          console.log("symbol ", await this.vaultsV5[testVaultUnderlyingToken][testVault].symbol());
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].symbol()).to.eq(
             testVaults[testVaultUnderlyingToken][testVault].newSymbol,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} op_Revision as expected`, async function () {
           console.log(
             "op_Revision ",
-            await (await this.vaults[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).toString(),
+            await (await this.vaultsV5[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).toString(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).to.eq("5");
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].opTOKEN_REVISION()).to.eq("5");
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} pendingDeposits as expected`, async function () {
           if (testVaults[testVaultUnderlyingToken][testVault].testAccount !== undefined) {
             expect(
-              await this.vaults[testVaultUnderlyingToken][testVault].pendingDeposits(
+              await this.vaultsV5[testVaultUnderlyingToken][testVault].pendingDeposits(
                 testVaults[testVaultUnderlyingToken][testVault].testAccount as string,
               ),
             ).to.eq(this.vaultsV3[testVaultUnderlyingToken][testVault].pendingDeposits);
@@ -224,7 +248,7 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} totalDeposits as expected`, async function () {
           if (testVaults[testVaultUnderlyingToken][testVault].testAccount !== undefined) {
             expect(
-              await this.vaults[testVaultUnderlyingToken][testVault].totalDeposits(
+              await this.vaultsV5[testVaultUnderlyingToken][testVault].totalDeposits(
                 testVaults[testVaultUnderlyingToken][testVault].testAccount as string,
               ),
             ).to.eq(this.vaultsV3[testVaultUnderlyingToken][testVault].totalDeposits);
@@ -232,7 +256,7 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} blockToBlockVaultValues as expected`, async function () {
           if (testVaults[testVaultUnderlyingToken][testVault].testBlockNumber !== undefined) {
-            const actualBlockToBlockVaultValues = await this.vaults[testVaultUnderlyingToken][
+            const actualBlockToBlockVaultValues = await this.vaultsV5[testVaultUnderlyingToken][
               testVault
             ].blockToBlockVaultValues(testVaults[testVaultUnderlyingToken][testVault]?.testBlockNumber as BigNumber, 0);
             expect({
@@ -243,58 +267,58 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
           }
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} investStrategyHash as expected`, async function () {
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].investStrategyHash()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].investStrategyHash()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].investStrategyHash,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} userDepositCapUT as expected`, async function () {
           console.log(
             "userDepositCapUT ",
-            await (await this.vaults[testVaultUnderlyingToken][testVault].userDepositCapUT()).toString(),
+            await (await this.vaultsV5[testVaultUnderlyingToken][testVault].userDepositCapUT()).toString(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].userDepositCapUT()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].userDepositCapUT()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].userDepositCap,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} minimumDepositVaultUT as expected`, async function () {
           console.log(
             "minimumDepositVaultUT ",
-            await (await this.vaults[testVaultUnderlyingToken][testVault].minimumDepositValueUT()).toString(),
+            await (await this.vaultsV5[testVaultUnderlyingToken][testVault].minimumDepositValueUT()).toString(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].minimumDepositValueUT()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].minimumDepositValueUT()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].minimumDepositValueUT,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} vaultConfiguration as expected`, async function () {
           console.log(
             "vaultConfiguration ",
-            await (await this.vaults[testVaultUnderlyingToken][testVault].vaultConfiguration()).toString(),
+            await (await this.vaultsV5[testVaultUnderlyingToken][testVault].vaultConfiguration()).toString(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].vaultConfiguration()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].vaultConfiguration()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].vaultConfiguration,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} underlyingToken as expected`, async function () {
-          console.log("underlyingToken ", await this.vaults[testVaultUnderlyingToken][testVault].underlyingToken());
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].underlyingToken()).to.eq(
+          console.log("underlyingToken ", await this.vaultsV5[testVaultUnderlyingToken][testVault].underlyingToken());
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].underlyingToken()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].underlyingToken,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} whitelistedAccountsRoot as expected`, async function () {
           console.log(
             "whitelistedAccountsRoot ",
-            await this.vaults[testVaultUnderlyingToken][testVault].whitelistedAccountsRoot(),
+            await this.vaultsV5[testVaultUnderlyingToken][testVault].whitelistedAccountsRoot(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].whitelistedAccountsRoot()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].whitelistedAccountsRoot()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].whitelistedAccountsRoot,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} totalValueLockedLimitUT as expected`, async function () {
           console.log(
             "totalValueLockedLimitUT ",
-            await (await this.vaults[testVaultUnderlyingToken][testVault].totalValueLockedLimitUT()).toString(),
+            await (await this.vaultsV5[testVaultUnderlyingToken][testVault].totalValueLockedLimitUT()).toString(),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].totalValueLockedLimitUT()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].totalValueLockedLimitUT()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].totalValueLockedLimitUT,
           );
         });
@@ -307,22 +331,22 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
                 ethers.utils.id(testVaults[testVaultUnderlyingToken][testVault].newName),
                 EIP712_REVISION,
                 await getChainId(),
-                this.vaults[testVaultUnderlyingToken][testVault].address,
+                this.vaultsV5[testVaultUnderlyingToken][testVault].address,
               ],
             ),
           );
-          expect(await this.vaults[testVaultUnderlyingToken][testVault]._domainSeparator()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault]._domainSeparator()).to.eq(
             expectedDomainSeparator,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} underlyingTokensHash as expected`, async function () {
-          expect(await this.vaults[testVaultUnderlyingToken][testVault].underlyingTokensHash()).to.eq(
+          expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].underlyingTokensHash()).to.eq(
             this.vaultsV3[testVaultUnderlyingToken][testVault].underlyingTokensHash,
           );
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} investStrategySteps as expected`, async function () {
           if (testVaults[testVaultUnderlyingToken][testVault].hasStrategy) {
-            const strategyStep = await this.vaults[testVaultUnderlyingToken][testVault].investStrategySteps(0);
+            const strategyStep = await this.vaultsV5[testVaultUnderlyingToken][testVault].investStrategySteps(0);
             expect({
               pool: strategyStep.pool,
               outputToken: strategyStep.outputToken,
@@ -332,15 +356,17 @@ describe(`${fork}-Vault-rev4 upgrade test`, () => {
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} nonces as expected`, async function () {
           expect(
-            await this.vaults[testVaultUnderlyingToken][testVault].nonces("0x6bd60f089B6E8BA75c409a54CDea34AA511277f6"),
+            await this.vaultsV5[testVaultUnderlyingToken][testVault].nonces(
+              "0x6bd60f089B6E8BA75c409a54CDea34AA511277f6",
+            ),
           ).to.eq(0);
         });
         it(`${testVaults[testVaultUnderlyingToken][testVault].newSymbol} blockTransaction as expected`, async function () {
           if (fork == eEVMNetwork.polygon) {
-            expect(await this.vaults[testVaultUnderlyingToken][testVault].blockTransaction(33802456)).to.be.false;
+            expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].blockTransaction(33802456)).to.be.false;
           }
           if (fork == eEVMNetwork.mainnet) {
-            expect(await this.vaults[testVaultUnderlyingToken][testVault].blockTransaction(15654508)).to.be.false;
+            expect(await this.vaultsV5[testVaultUnderlyingToken][testVault].blockTransaction(15654508)).to.be.false;
           }
         });
       });

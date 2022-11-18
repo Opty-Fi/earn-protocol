@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { oldAbis } from "../../../../helpers/data/oldAbis";
+import { RegistryProxyV1, RegistryProxyV1__factory } from "../../../../helpers/types/registryV1";
 import {
   RegistryProxy as RegistryProxyAddress,
   Registry as OldRegistryImplementationAddress,
@@ -9,7 +9,9 @@ import {
 
 export async function setZeroStrategy(): Promise<void> {
   const { getAddress } = ethers.utils;
-  const registryProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY_PROXY, RegistryProxyAddress);
+  const registryProxyInstance = <RegistryProxyV1>(
+    await ethers.getContractAt(RegistryProxyV1__factory.abi, RegistryProxyAddress)
+  );
   const actualRegistryImplementationAddress = await registryProxyInstance.registryImplementation();
   if (getAddress(OldRegistryImplementationAddress) == getAddress(actualRegistryImplementationAddress)) {
     const registryInstance = await ethers.getContractAt(oldAbis.oldRegistry, RegistryProxyAddress);

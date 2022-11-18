@@ -92,9 +92,9 @@ const func: DeployFunction = async ({
   const USDC_MAI_LP = "0x160532D2536175d65C03B97b0630A9802c274daD";
 
   const liquidityPoolToTolerances = [
-    { liquidityPool: USDC_USDT_LP, tolerance: "70" },
-    { liquidityPool: USDC_DAI_LP, tolerance: "70" },
-    { liquidityPool: USDC_MAI_LP, tolerance: "70" },
+    { liquidityPool: USDC_USDT_LP, tolerance: "200" },
+    { liquidityPool: USDC_DAI_LP, tolerance: "200" },
+    { liquidityPool: USDC_MAI_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {

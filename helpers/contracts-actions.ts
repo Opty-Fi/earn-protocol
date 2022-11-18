@@ -697,7 +697,6 @@ export async function addRiskProfiles(owner: Signer, registry: Contract): Promis
       RISK_PROFILES[i].code,
       RISK_PROFILES[i].name,
       RISK_PROFILES[i].symbol,
-      RISK_PROFILES[i].canBorrow,
       RISK_PROFILES[i].poolRating,
     );
   }
@@ -709,27 +708,20 @@ export async function addRiskProfile(
   riskProfileCode: number,
   name: string,
   symbol: string,
-  canBorrow: boolean,
   poolRating: number[],
 ): Promise<void> {
   const profile = await registry.getRiskProfile(riskProfileCode);
   if (!profile.exists) {
     const _addRiskProfileTx = await registry
       .connect(owner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"](
-        riskProfileCode,
-        name,
-        symbol,
-        canBorrow,
-        poolRating,
-      );
+      ["addRiskProfile(uint256,string,string,(uint8,uint8))"](riskProfileCode, name, symbol, poolRating);
     const ownerAddress = await owner.getAddress();
     const addRiskProfileTx = await _addRiskProfileTx.wait(1);
     const { index } = await registry.getRiskProfile(riskProfileCode);
     expect(addRiskProfileTx.events[0].event).to.equal("LogRiskProfile");
     expect(addRiskProfileTx.events[0].args[0]).to.equal(+index);
     expect(addRiskProfileTx.events[0].args[1]).to.equal(true);
-    expect(addRiskProfileTx.events[0].args[2]).to.equal(canBorrow);
+    expect(addRiskProfileTx.events[0].args[2]).to.equal(false);
     expect(addRiskProfileTx.events[0].args[3]).to.equal(ownerAddress);
     expect(addRiskProfileTx.events[1].event).to.equal("LogRPPoolRatings");
     expect(addRiskProfileTx.events[1].args[0]).to.equal(+index);

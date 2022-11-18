@@ -3,8 +3,7 @@ import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
-import { RegistryProxy } from "../typechain";
+import { RegistryProxy, Registry__factory } from "../typechain";
 import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../helper-hardhat-config";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
@@ -40,8 +39,8 @@ const func: DeployFunction = async ({
     maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
   });
 
-  const registryV2 = await deployments.get("Registry");
-  let registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryV2.address);
+  const registry = await deployments.get("Registry");
+  let registryInstance = await ethers.getContractAt(Registry__factory.abi, registry.address);
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   chainId =
     ["31337", "1337"].includes(chainId) && FORK != "" ? NETWORKS_CHAIN_ID[FORK as eEVMNetwork].toString() : chainId;
@@ -60,18 +59,18 @@ const func: DeployFunction = async ({
   // upgrade registry
   const registryImplementation = await registryProxyInstance.registryImplementation();
   console.log("Registry implementation Before ", registryImplementation);
-  console.log("registryV2.address ", registryV2.address);
+  console.log("registry.address ", registry.address);
   console.log("\n");
-  if (getAddress(registryImplementation) != getAddress(registryV2.address)) {
+  if (getAddress(registryImplementation) != getAddress(registry.address)) {
     const pendingImplementation = await registryProxyInstance.pendingRegistryImplementation();
-    if (getAddress(pendingImplementation) != getAddress(registryV2.address)) {
+    if (getAddress(pendingImplementation) != getAddress(registry.address)) {
       console.log("\n");
       console.log("operator setting pending implementation...");
       console.log("\n");
       feeData = await ethers.provider.getFeeData();
       const setPendingImplementationTx = await registryProxyInstance
         .connect(operatorSigner)
-        .setPendingImplementation(registryV2.address, {
+        .setPendingImplementation(registry.address, {
           type: 2,
           maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
           maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -84,7 +83,7 @@ const func: DeployFunction = async ({
     console.log("governance upgrading Registry...");
     console.log("\n");
     feeData = await ethers.provider.getFeeData();
-    const becomeTx = await registryV2Instance.connect(governanceSigner).become(registryProxyAddress, {
+    const becomeTx = await registryInstance.connect(governanceSigner).become(registryProxyAddress, {
       maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
       maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
       type: 2,
@@ -94,95 +93,19 @@ const func: DeployFunction = async ({
     console.log("\n");
   }
 
-  registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
-
-  // approve tokens and map to tokens hash
-  const onlySetTokensHash = [];
-  const approveTokenAndMapHash = [];
-  const tokenHashes: string[] = await registryV2Instance.getTokenHashes();
-  if (!["80001", "137", "43114"].includes(chainId)) {
-    const usdcApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address);
-
-    if (usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
-      console.log("only set USDC hash");
-      console.log("\n");
-      onlySetTokensHash.push([
-        MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
-        [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
-      ]);
-    }
-
-    if (!usdcApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash)) {
-      console.log("approve USDC and set hash");
-      console.log("\n");
-      approveTokenAndMapHash.push([
-        MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash,
-        [MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.address],
-      ]);
-    }
-  }
-
-  if (!["42", "80001", "137", "43114"].includes(chainId)) {
-    const wethApproved = await registryV2Instance.isApprovedToken(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address);
-
-    if (wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
-      console.log("only set WETH hash");
-      console.log("\n");
-      onlySetTokensHash.push([
-        MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
-        [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
-      ]);
-    }
-
-    if (!wethApproved && !tokenHashes.includes(MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash)) {
-      console.log("approve WETH and set hash");
-      console.log("\n");
-      approveTokenAndMapHash.push([
-        MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash,
-        [MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.address],
-      ]);
-    }
-  }
-
-  if (approveTokenAndMapHash.length > 0) {
-    console.log("approve token and map hash");
-    console.log("\n");
-    feeData = await ethers.provider.getFeeData();
-    const approveTokenAndMapToTokensHashTx = await registryV2Instance
-      .connect(operatorSigner)
-      ["approveTokenAndMapToTokensHash((bytes32,address[])[])"](approveTokenAndMapHash, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await approveTokenAndMapToTokensHashTx.wait(1);
-  }
-
-  if (onlySetTokensHash.length > 0) {
-    console.log("operator mapping only tokenshash to tokens..", onlySetTokensHash);
-    console.log("\n");
-    feeData = await ethers.provider.getFeeData();
-    const onlyMapToTokensHashTx = await registryV2Instance
-      .connect(operatorSigner)
-      ["setTokensHashToTokens((bytes32,address[])[])"](onlySetTokensHash, {
-        type: 2,
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
-      });
-    await onlyMapToTokensHashTx.wait(1);
-  }
+  registryInstance = await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
 
   // add risk profile Save
   console.log("==Risk Profile config : Save==");
   console.log("\n");
-  const saveRiskProfileExists = (await registryV2Instance.getRiskProfile("0")).exists;
+  const saveRiskProfileExists = (await registryInstance.getRiskProfile("0")).exists;
   if (!saveRiskProfileExists) {
     console.log("risk operator adding save risk profile...");
     console.log("\n");
     feeData = await ethers.provider.getFeeData();
-    const addRiskProfileTx = await registryV2Instance
+    const addRiskProfileTx = await registryInstance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("0", "Save", "Save", false, [90, 99], {
+      ["addRiskProfile(uint256,string,string,(uint8,uint8))"]("0", "Save", "Save", [90, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -196,14 +119,14 @@ const func: DeployFunction = async ({
   // add risk profile Earn
   console.log("==Risk Profile config : Earn==");
   console.log("\n");
-  const earnRiskProfileExists = (await registryV2Instance.getRiskProfile("1")).exists;
+  const earnRiskProfileExists = (await registryInstance.getRiskProfile("1")).exists;
   if (!earnRiskProfileExists) {
     console.log("risk operator adding earn risk profile...");
     console.log("\n");
     feeData = await ethers.provider.getFeeData();
-    const addRiskProfileTx = await registryV2Instance
+    const addRiskProfileTx = await registryInstance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("1", "Earn", "Earn", false, [80, 99], {
+      ["addRiskProfile(uint256,string,string,(uint8,uint8))"]("1", "Earn", "Earn", [80, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -217,14 +140,14 @@ const func: DeployFunction = async ({
   // add risk profile Invest
   console.log("==Risk Profile config : Invest==");
   console.log("\n");
-  const investRiskProfileExists = (await registryV2Instance.getRiskProfile("2")).exists;
+  const investRiskProfileExists = (await registryInstance.getRiskProfile("2")).exists;
   if (!investRiskProfileExists) {
     console.log("risk operator adding invest risk profile...");
     console.log("\n");
     feeData = await ethers.provider.getFeeData();
-    const addRiskProfileTx = await registryV2Instance
+    const addRiskProfileTx = await registryInstance
       .connect(riskOperatorSigner)
-      ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Invest", "Invst", false, [50, 99], {
+      ["addRiskProfile(uint256,string,string,(uint8,uint8))"]("2", "Invest", "Invst", [50, 99], {
         type: 2,
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
@@ -240,7 +163,7 @@ const func: DeployFunction = async ({
       if (networkName === "tenderly") {
         await tenderly.verify({
           name: "Registry",
-          address: registryV2.address,
+          address: registry.address,
           constructorArguments: [],
           contract: "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
         });
@@ -249,7 +172,7 @@ const func: DeployFunction = async ({
 
         await run("verify:verify", {
           name: "RegistryProxy",
-          address: registryV2.address,
+          address: registry.address,
           constructorArguments: [],
           contract: "contracts/protocol/earn-protocol-configuration/contracts/Registry.sol:Registry",
         });

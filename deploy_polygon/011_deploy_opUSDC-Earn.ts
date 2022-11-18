@@ -47,7 +47,7 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 1,
+      upgradeIndex: networkName == "hardhat" ? 0 : 2,
       proxyContract: {
         abi: artifactVaultProxyV2.abi,
         bytecode: artifactVaultProxyV2.bytecode,
@@ -55,6 +55,20 @@ const func: DeployFunction = async ({
       },
       execute: {
         init: {
+          methodName: "initialize",
+          args: [
+            registryProxyAddress, //address _registry
+            MULTI_CHAIN_VAULT_TOKENS[chainId].USDC.hash, //bytes32 _underlyingTokensHash
+            "0x4a7e14b2b81abccd2dfd58372f0cbd5b5512749fbafee2e2cda5c56ac0fc947a", //bytes32 _whitelistedAccountsRoot
+            "USDC", //string memory _symbol
+            "1", //uint256 _riskProfileCode
+            "907136802102229675083754464877550363794833538656521846974622833684986724352", //uint256 _vaultConfiguration
+            "100000000000", //uint256 _userDepositCapUT
+            "0", //uint256 _minimumDepositValueUT
+            "10000000000000", //uint256 _totalValueLockedLimitUT
+          ],
+        },
+        onUpgrade: {
           methodName: "initialize",
           args: [
             registryProxyAddress, //address _registry

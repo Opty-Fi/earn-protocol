@@ -1,23 +1,28 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { Registry, RiskManagerProxy } from "../../../../typechain";
+import { RegistryV1, RegistryV1__factory } from "../../../../helpers/types/registryV1";
+import { RiskManagerProxyV1 } from "../../../../helpers/types/riskManagerv1";
+import { RiskManagerProxyV1__factory } from "../../../../helpers/types/riskManagerv1/factories/RiskManagerProxyV1__factory";
+import { RiskManagerV1__factory } from "../../../../helpers/types/riskManagerv1/factories/RiskManagerV1__factory";
 import {
   RegistryProxy as registryProxyAddress,
   RiskManagerProxy as riskManagerProxyAddress,
 } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeRiskManager(): Promise<void> {
-  const riskManagerFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.RISK_MANAGER);
+  const riskManagerFactory = await ethers.getContractFactory(
+    RiskManagerV1__factory.abi,
+    RiskManagerV1__factory.bytecode,
+  );
   const riskManagerV2 = await riskManagerFactory.deploy(registryProxyAddress);
 
-  const riskManagerV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, riskManagerV2.address);
+  const riskManagerV2Instance = await ethers.getContractAt(RiskManagerV1__factory.abi, riskManagerV2.address);
 
-  const riskManagerInstance = <RiskManagerProxy>(
-    await ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, riskManagerProxyAddress)
+  const riskManagerInstance = <RiskManagerProxyV1>(
+    await ethers.getContractAt(RiskManagerProxyV1__factory.abi, riskManagerProxyAddress)
   );
 
-  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  const registryV2Instance = <RegistryV1>await ethers.getContractAt(RegistryV1__factory.abi, registryProxyAddress);
   const operatorAddress = await registryV2Instance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
   const governanceAddress = await registryV2Instance.governance();

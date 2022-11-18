@@ -1,14 +1,17 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
-import { Registry } from "../../../../typechain";
+import { RegistryV1, RegistryV1__factory } from "../../../../helpers/types/registryV1";
+import { StrategyProviderV1__factory } from "../../../../helpers/types/strategyProviderv1";
 import { RegistryProxy as registryProxyAddress } from "../../_deployments/mainnet.json";
 
 export async function deployStrategyProvider(): Promise<string> {
-  const strategyProviderFactory = await ethers.getContractFactory(ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER);
+  const strategyProviderFactory = await ethers.getContractFactory(
+    StrategyProviderV1__factory.abi,
+    StrategyProviderV1__factory.bytecode,
+  );
   const strategyProviderV2 = await strategyProviderFactory.deploy(registryProxyAddress);
 
-  const registryV2Instance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  const registryV2Instance = <RegistryV1>await ethers.getContractAt(RegistryV1__factory.abi, registryProxyAddress);
   const operatorAddress = await registryV2Instance.operator();
   const operatorSigner = await ethers.getSigner(operatorAddress);
 

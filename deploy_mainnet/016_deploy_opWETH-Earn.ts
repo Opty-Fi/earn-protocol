@@ -1,11 +1,14 @@
 import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import EthereumUniswapV2 from "@optyfi/defi-legos/ethereum/uniswapV2/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -117,7 +120,7 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 2,
+      upgradeIndex: networkName == "hardhat" ? 0 : 3,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Save_Implementation",
       execute: {
@@ -146,6 +149,50 @@ const func: DeployFunction = async ({
           constructorArguments: [registryProxyAddress],
         });
       }
+    }
+  }
+
+  const vaultInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
+  );
+
+  const approvalTokens = [];
+  const approvalSpender = [];
+
+  const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
+  const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+
+  const wethSushiswapAllowance = await wethInstance.allowance(
+    vaultInstance.address,
+    EthereumUniswapV2.router02.address,
+  );
+  const usdcSushiswapAllowance = await usdcInstance.allowance(
+    vaultInstance.address,
+    EthereumUniswapV2.router02.address,
+  );
+
+  if (!wethSushiswapAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(wethInstance.address);
+    approvalSpender.push(EthereumUniswapV2.router02.address);
+  }
+
+  if (!usdcSushiswapAllowance.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(usdcInstance.address);
+    approvalSpender.push(EthereumUniswapV2.router02.address);
+  }
+
+  if (approvalTokens.length > 0) {
+    console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
+    console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);
+    const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+    if (getAddress(governanceSigner.address) === getAddress(deployer)) {
+      const tx = await vaultInstance.connect(governanceSigner).giveAllowances(approvalTokens, approvalSpender, {
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
+      await tx.wait(1);
+    } else {
+      console.log("cannot approve pools as signer is not the governance");
     }
   }
 };

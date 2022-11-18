@@ -1,17 +1,17 @@
 import { ethers } from "hardhat";
 import { eEVMNetwork } from "../../../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
-import { StrategiesByTokenByChain } from "../../../../helpers/data/adapter-with-strategies";
-import { VaultV3__factory } from "../../../../helpers/types/vaultv3";
+import { RegistryV1, RegistryV1__factory } from "../../../../helpers/types/registryV1";
+import { StrategyProviderV1, StrategyProviderV1__factory } from "../../../../helpers/types/strategyProviderv1";
+import { VaultV3, VaultV3__factory } from "../../../../helpers/types/vaultv3";
 import { getRiskProfileCode, getUnpause } from "../../../../helpers/utils";
 import { RegistryProxy as registryProxyAddress, opWETHgrow } from "../../_deployments/mainnet.json";
 
 export async function configopWETHgrow(strategyProviderAddress: string, fork: eEVMNetwork): Promise<void> {
   const { BigNumber } = ethers;
-  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  const registryV2Instance = <RegistryV1>await ethers.getContractAt(RegistryV1__factory.abi, registryProxyAddress);
 
-  const opWETHgrowInstance = await ethers.getContractAt(VaultV3__factory.abi, opWETHgrow.VaultProxy);
+  const opWETHgrowInstance = <VaultV3>await ethers.getContractAt(VaultV3__factory.abi, opWETHgrow.VaultProxy);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
@@ -75,9 +75,8 @@ export async function configopWETHgrow(strategyProviderAddress: string, fork: eE
     await tx5.wait(1);
   }
 
-  const strategyProviderInstance = await ethers.getContractAt(
-    ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
-    strategyProviderAddress,
+  const strategyProviderInstance = <StrategyProviderV1>(
+    await ethers.getContractAt(StrategyProviderV1__factory.abi, strategyProviderAddress)
   );
   const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
 
@@ -86,10 +85,24 @@ export async function configopWETHgrow(strategyProviderAddress: string, fork: eE
     MULTI_CHAIN_VAULT_TOKENS[fork].WETH.hash,
   );
   const currentBestStrategyHash = await opWETHgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps =
-    StrategiesByTokenByChain[fork]["Earn"].WETH[
-      "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV"
-    ].strategy;
+  const expectedStrategySteps = [
+    {
+      contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
+      outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
+      isBorrow: false,
+      outputTokenSymbol: "steCRV",
+      adapterName: "CurveSwapPoolAdapter",
+      protocol: "Curve",
+    },
+    {
+      contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+      outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
+      isBorrow: false,
+      outputTokenSymbol: "cvxsteCRV",
+      adapterName: "ConvexFinanceAdapter",
+      protocol: "Convex",
+    },
+  ];
   const expectedStrategyHash = await opWETHgrowInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

@@ -1,10 +1,10 @@
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
+import { RegistryV1__factory } from "../../../../helpers/types/registryV1";
 import { RegistryProxy as registryProxyAddress } from "../../_deployments/mainnet.json";
 
 export async function approveAndMapLiquidityPoolToAdapter(): Promise<void> {
-  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  const registryV2Instance = await ethers.getContractAt(RegistryV1__factory.abi, registryProxyAddress);
   const curveSwapPoolAdapterFactory = await ethers.getContractFactory("CurveSwapPoolAdapter");
   const curveSwapPoolAdapter = await curveSwapPoolAdapterFactory.deploy(registryProxyAddress);
   const curveMetapoolSwapAdapterFactory = await ethers.getContractFactory("CurveMetapoolSwapAdapter");

@@ -33,7 +33,6 @@ export type RISK_PROFILE_DATA = {
   code: number;
   name: string;
   symbol: string;
-  canBorrow: boolean;
   poolRating: number[];
 }[];
 
@@ -60,7 +59,7 @@ export type STRATEGY_DATA = {
   contract: string;
   outputTokenSymbol?: string;
   outputToken: string;
-  isBorrow: boolean;
+  isSwap: boolean;
   adapterName?: string;
   protocol?: string;
 };
@@ -110,13 +109,6 @@ export type CURVE_TOKEN_DATA = {
     swap?: boolean;
     old?: boolean;
   };
-};
-
-export type OPTY_STAKING_VAULT = {
-  name: string;
-  numberOfDays: string;
-  lockTime: number;
-  multiplier: number;
 };
 
 export type TOKENS_DATA = {
@@ -181,7 +173,7 @@ export type StrategiesByRiskProfileByTokenByChainType = {
 export type StrategyStepType = {
   pool: string;
   outputToken: string;
-  isBorrow: boolean;
+  isSwap: boolean;
 };
 
 export type StrategyConfigurationParams = {

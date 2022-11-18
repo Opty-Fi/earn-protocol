@@ -55,10 +55,10 @@ describe(`${fork}-Vault-rev4`, () => {
     this.signers.strategyOperator = signers[7];
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
     const registryProxy = await deployments.get("RegistryProxy");
-    const riskManagerProxy = await deployments.get("RiskManagerProxy");
+    const riskManagerAddress = (await deployments.get("RiskManager")).address;
     const strategyProvider = await deployments.get("StrategyProvider");
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxy.address);
-    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, riskManagerProxy.address);
+    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, riskManagerAddress);
     this.strategyProvider = <StrategyProvider>(
       await ethers.getContractAt(StrategyProvider__factory.abi, strategyProvider.address)
     );
@@ -144,7 +144,7 @@ describe(`${fork}-Vault-rev4`, () => {
           const steps = strategyDetail.strategy.map(item => ({
             pool: item.contract,
             outputToken: item.outputToken,
-            isBorrow: item.isBorrow,
+            isSwap: item.isSwap,
           }));
 
           describe(`${fork}-${riskProfile}-${token}-${strategy}`, () => {
@@ -582,7 +582,7 @@ async function deposit(
     const _BalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
     const tx2 = await vaultInstance
       .connect(signers[i])
-      .userDepositVault(signers[i].address, _userDepositInDecimals, BigNumber.from("0"), "0x", []);
+      .userDepositVault(signers[i].address, _userDepositInDecimals, "0x", []);
     await tx2.wait(1);
     const _BalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
     expect(_BalanceBefore).gt(_BalanceAfter);
@@ -695,7 +695,7 @@ async function withdraw(
     }
     const tx = await vaultInstance
       .connect(signers[i])
-      .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), BigNumber.from("0"), []);
+      .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), []);
     await tx.wait();
     const userBalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
     const poolBalanceAfter = await getLastStrategyStepBalanceLP(

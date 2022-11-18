@@ -517,7 +517,7 @@
             },
             {
               "internalType": "bool",
-              "name": "isBorrow",
+              "name": "isSwap",
               "type": "bool"
             }
           ],
@@ -592,7 +592,7 @@
             },
             {
               "internalType": "bool",
-              "name": "isBorrow",
+              "name": "isSwap",
               "type": "bool"
             }
           ],
@@ -620,7 +620,7 @@
             },
             {
               "internalType": "bool",
-              "name": "isBorrow",
+              "name": "isSwap",
               "type": "bool"
             }
           ],
@@ -658,7 +658,7 @@
             },
             {
               "internalType": "bool",
-              "name": "isBorrow",
+              "name": "isSwap",
               "type": "bool"
             }
           ],
@@ -856,7 +856,7 @@
         },
         {
           "internalType": "bool",
-          "name": "isBorrow",
+          "name": "isSwap",
           "type": "bool"
         }
       ],
@@ -1431,11 +1431,6 @@
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "_expectedOutput",
-          "type": "uint256"
-        },
-        {
           "internalType": "bytes",
           "name": "_permitParams",
           "type": "bytes"
@@ -1501,11 +1496,6 @@
         {
           "internalType": "uint256",
           "name": "_userWithdrawVT",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_expectedOutput",
           "type": "uint256"
         },
         {
@@ -1616,20 +1606,20 @@
       "type": "constructor"
     }
   ],
-  "numDeployments": 3,
+  "numDeployments": 4,
   "execute": {
     "methodName": "initialize",
     "args": [
       "0x99fa011e33a8c6196869dec7bc407e896ba67fe3",
       "0xa7f198302712d18d14877cbd951de348bf9746fb371264b0587308cdf488deb4",
-      "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694",
+      "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783",
       "WETH",
+      "1",
+      "907136802102229675083754464877550363794833538656521846052285629999509143552",
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "0",
-      "905369955037451290754171167376807445279006054759646228016501227483694104576",
-      "60000000000000000000",
-      "0",
-      "6000000000000000000000"
+      "6666000000000000000000"
     ]
   },
-  "implementation": "0xBA6d39f9e915947A30b041321D4bF5fBE3177E3A"
+  "implementation": "0x17479f559D26c064fd95F3Ba13E77A3be4d1F576"
 }

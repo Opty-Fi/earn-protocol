@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { VaultV3__factory } from "../../../../helpers/types/vaultv3";
+import { InitializableImmutableAdminUpgradeabilityProxy__factory } from "../../../../typechain";
 import { RegistryProxy, opWETHgrow as opWETHgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeWETH(): Promise<void> {
@@ -9,7 +9,10 @@ export async function deployAndUpgradeWETH(): Promise<void> {
   const { getAddress } = ethers.utils;
   const opWETHgrowAddress = opWETHgrow.address;
 
-  const opWETHgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opWETHgrowObj.VaultProxy);
+  const opWETHgrowProxyInstance = await ethers.getContractAt(
+    InitializableImmutableAdminUpgradeabilityProxy__factory.abi,
+    opWETHgrowObj.VaultProxy,
+  );
   const proxyAdminAddress = await opWETHgrowProxyInstance.admin();
   const proxyAdminSigner = await ethers.getSigner(proxyAdminAddress);
 
