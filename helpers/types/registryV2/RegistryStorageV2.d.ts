@@ -327,7 +327,7 @@ export class RegistryStorageV2 extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: RegistryStorageInterface;
+  interface: RegistryStorageV2Interface;
 
   functions: {
     aprOracle(overrides?: CallOverrides): Promise<[string]>;

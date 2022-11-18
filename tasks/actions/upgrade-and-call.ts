@@ -27,7 +27,13 @@ task(TASKS.ACTION_TASKS.UPGRADE_TO_AND_CALL.NAME, TASKS.ACTION_TASKS.UPGRADE_TO_
         vaultProxyAddress,
         BigNumber.from("0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103"),
       );
-      const oldVaultProxyInstance = <VaultV5>await ethers.getContractAt(VaultV5__factory.abi, vaultProxyAddress);
+      const oldVaultProxyInstance = <VaultV5>(
+        await ethers.getContractAt(
+          VaultV5__factory.abi,
+          vaultProxyAddress,
+          await ethers.getSigner("0xDa1d30af457b8386083C66c9Df7A86269bEbFDF8"),
+        )
+      );
       const _underlyingToken = await oldVaultProxyInstance.underlyingToken();
       const _underlyingTokenInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _underlyingToken);
       const _registry = await oldVaultProxyInstance.registryContract();
@@ -43,7 +49,7 @@ task(TASKS.ACTION_TASKS.UPGRADE_TO_AND_CALL.NAME, TASKS.ACTION_TASKS.UPGRADE_TO_
       const _minimumDepositValueUT = await oldVaultProxyInstance.minimumDepositValueUT();
       const _totalValueLockedLimitUT = await oldVaultProxyInstance.totalValueLockedLimitUT();
       let vaultProxyInstance;
-      if (storage === "0x") {
+      if (storage === ethers.constants.HashZero) {
         console.log("Identified as VaultProxy");
         vaultProxyInstance = <InitializableImmutableAdminUpgradeabilityProxy>(
           await ethers.getContractAt(InitializableImmutableAdminUpgradeabilityProxy__factory.abi, vaultProxyAddress)

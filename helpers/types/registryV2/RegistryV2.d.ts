@@ -499,7 +499,7 @@ export class RegistryV2 extends BaseContract {
     toBlock?: string | number | undefined,
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: RegistryInterface;
+  interface: RegistryV2Interface;
 
   functions: {
     "addRiskProfile(uint256,string,string,(uint8,uint8))"(
