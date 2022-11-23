@@ -20,7 +20,8 @@ task(TASKS.ACTION_TASKS.PRINT_STRATEGY_HASH.NAME, TASKS.ACTION_TASKS.PRINT_STRAT
     }
 
     const tokenInstance = <ERC20>await hre.ethers.getContractAt(ERC20__factory.abi, token);
-    const tokenSymbol = (await tokenInstance.symbol()).toUpperCase();
+    let tokenSymbol = (await tokenInstance.symbol()).toUpperCase();
+    tokenSymbol = tokenSymbol === "3Crv" ? "USD3" : tokenSymbol;
     const tokensHash = MULTI_CHAIN_VAULT_TOKENS[chainId][tokenSymbol].hash;
     for (const riskProfile of Object.keys(StrategiesByTokenByChain[chainId])) {
       if (
