@@ -1,0 +1,16 @@
+account_id: "cc73ac87-1ff4-4a9a-9eea-c4f3ef85583b"
+project_slug: "project"
+actions:
+  dev-optyfi/project:
+    runtime: v1
+    sources: tenderly-actions
+    specs:
+      block-number-printer:
+        description: Example Web3 Action that logs block number once it is mined.
+        function: example:blockHelloWorldFn
+        trigger:
+          type: block
+          block:
+            network:
+            - 1
+            blocks: 300

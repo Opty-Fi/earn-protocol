@@ -19,6 +19,9 @@
   "engines": {
     "node": ">=12"
   },
+  "workspaces": [
+    "tenderly-actions"
+  ],
   "devDependencies": {
     "@codechecks/client": "^0.1.11",
     "@commitlint/cli": "^13.2.0",
