@@ -14,7 +14,7 @@ const strategyProvider = "0x37c31298a5dee7e4cdb58b763f46a1c769287fdc";
 const strategyOperatorMultisig = "0x9DD0E8A985315785473f7EB81bc4e28838e13D96";
 
 export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
-  const provider = ethers.getDefaultProvider(ethers.providers.getNetwork(1));
+  const provider = ethers.getDefaultProvider(await context.secrets.get("MAINNET_NODE_URL"));
   const strategyOperatorWallet = new ethers.Wallet(await context.secrets.get("STRATEGY_OPERATOR_PK"), provider);
 
   const opWETHInvstInstance = new ethers.Contract(opWETHInvst, VaultAbi, strategyOperatorWallet);
