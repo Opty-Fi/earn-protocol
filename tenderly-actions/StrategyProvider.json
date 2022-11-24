@@ -1,0 +1,382 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_registry",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_riskProfileCode",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_underlyingTokensHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRpToTokenToBestStrategy",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isSwap",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct DataTypes.StrategyStep[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_riskProfileCode",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_underlyingTokensHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRpToTokenToDefaultStrategy",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isSwap",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct DataTypes.StrategyStep[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_vaultRewardTokenHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getVaultRewardTokenHashToVaultRewardTokenStrategy",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "hold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "convert",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DataTypes.VaultRewardStrategy",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "registryContract",
+    "outputs": [
+      {
+        "internalType": "contract IRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "rpToTokenToBestStrategy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "outputToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isSwap",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "rpToTokenToDefaultStrategy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "outputToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isSwap",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_riskProfileCode",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_underlyingTokensHash",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isSwap",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct DataTypes.StrategyStep[]",
+        "name": "_strategySteps",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "setBestDefaultStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_riskProfileCode",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_underlyingTokensHash",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isSwap",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct DataTypes.StrategyStep[]",
+        "name": "_strategySteps",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "setBestStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_registry",
+        "type": "address"
+      }
+    ],
+    "name": "setRegistry",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_vaultRewardTokenHash",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "hold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "convert",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DataTypes.VaultRewardStrategy",
+        "name": "_vaultRewardStrategy",
+        "type": "tuple"
+      }
+    ],
+    "name": "setVaultRewardStrategy",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "hold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "convert",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DataTypes.VaultRewardStrategy",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "vaultRewardTokenHashToVaultRewardTokenStrategy",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "hold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "convert",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

@@ -1,0 +1,16 @@
+account_id: "cc73ac87-1ff4-4a9a-9eea-c4f3ef85583b"
+project_slug: "project"
+actions:
+  dev-optyfi/project:
+    runtime: v1
+    sources: tenderly-actions
+    specs:
+      rebalancer:
+        description: Performs rebalance if current strategy is not best strategy.
+        function: switch-strategy:rebalanceFn
+        trigger:
+          type: block
+          block:
+            network:
+            - 1
+            blocks: 300
