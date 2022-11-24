@@ -1,17 +1,17 @@
 import { ethers } from "hardhat";
 import { eEVMNetwork } from "../../../../helper-hardhat-config";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../../../helpers/constants/tokens";
-import { StrategiesByTokenByChain } from "../../../../helpers/data/adapter-with-strategies";
-import { VaultV3__factory } from "../../../../helpers/types/vaultv3";
+import { RegistryV1, RegistryV1__factory } from "../../../../helpers/types/registryV1";
+import { StrategyProviderV1, StrategyProviderV1__factory } from "../../../../helpers/types/strategyProviderv1";
+import { VaultV3, VaultV3__factory } from "../../../../helpers/types/vaultv3";
 import { getRiskProfileCode, getUnpause } from "../../../../helpers/utils";
 import { RegistryProxy as registryProxyAddress, opUSDCgrow } from "../../_deployments/mainnet.json";
 
 export async function configopUSDCgrow(strategyProviderAddress: string, fork: eEVMNetwork): Promise<void> {
   const { BigNumber } = ethers;
-  const registryV2Instance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
+  const registryV2Instance = <RegistryV1>await ethers.getContractAt(RegistryV1__factory.abi, registryProxyAddress);
 
-  const opUSDCgrowInstance = await ethers.getContractAt(VaultV3__factory.abi, opUSDCgrow.VaultProxy);
+  const opUSDCgrowInstance = <VaultV3>await ethers.getContractAt(VaultV3__factory.abi, opUSDCgrow.VaultProxy);
   const financeOperatorSigner = await ethers.getSigner(await registryV2Instance.financeOperator());
   const operatorSigner = await ethers.getSigner(await registryV2Instance.operator());
   const governanceSigner = await ethers.getSigner(await registryV2Instance.governance());
@@ -75,9 +75,8 @@ export async function configopUSDCgrow(strategyProviderAddress: string, fork: eE
     await tx6.wait(1);
   }
 
-  const strategyProviderInstance = await ethers.getContractAt(
-    ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER,
-    strategyProviderAddress,
+  const strategyProviderInstance = <StrategyProviderV1>(
+    await ethers.getContractAt(StrategyProviderV1__factory.abi, strategyProviderAddress)
   );
   const strategyOperatorSigner = await ethers.getSigner(await registryV2Instance.strategyOperator());
 
@@ -86,10 +85,33 @@ export async function configopUSDCgrow(strategyProviderAddress: string, fork: eE
     MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
   );
   const currentBestStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(currentBestStrategySteps);
-  const expectedStrategySteps =
-    StrategiesByTokenByChain[fork]["Earn"].USDC[
-      "usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv"
-    ].strategy;
+  const expectedStrategySteps = [
+    {
+      contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+      outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+      isBorrow: false,
+      adapterName: "CurveSwapPoolAdapter",
+      protocol: "Curve",
+      outputTokenSymbol: "3Crv",
+    },
+    {
+      contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+      outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
+      isBorrow: false,
+      adapterName: "CurveSwapPoolAdapter",
+      protocol: "Curve",
+      outputTokenSymbol: "usdn3Crv",
+    },
+    {
+      contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+      outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
+      isBorrow: false,
+      adapterName: "ConvexFinanceAdapter",
+      protocol: "Convex",
+      outputTokenSymbol: "cvxusdn3CRV",
+    },
+  ];
+
   const expectedStrategyHash = await opUSDCgrowInstance.computeInvestStrategyHash(
     expectedStrategySteps.map(x => ({
       pool: x.contract,

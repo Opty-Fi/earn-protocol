@@ -13,15 +13,6 @@
 [submodule "contracts/protocol/adapters/polygon/aave-polygon-adapter"]
 	path = contracts/protocol/adapters/polygon/aave-polygon-adapter
 	url = git@github.com:Opty-Fi/aave-polygon-adapter.git
-[submodule "contracts/protocol/adapters/polygon/sushiswap_pools_adapter"]
-	path = contracts/protocol/adapters/polygon/sushiswap_pools_adapter
-	url = git@github.com:Opty-Fi/sushiswap_pools_adapter.git
-[submodule "contracts/protocol/adapters/polygon/quickswap-pool-polygon"]
-	path = contracts/protocol/adapters/polygon/quickswap-pool-polygon
-	url = git@github.com:Opty-Fi/quickswap-pool-polygon.git
-[submodule "contracts/protocol/adapters/polygon/apeswap-pool-polygon"]
-	path = contracts/protocol/adapters/polygon/apeswap-pool-polygon
-	url = git@github.com:Opty-Fi/apeswap-pool-polygon.git
 [submodule "contracts/protocol/adapters/ethereum/newo-staking-adapter"]
 	path = contracts/protocol/adapters/ethereum/newo-staking-adapter
 	url = git@github.com:Opty-Fi/newo-staking-adapter
@@ -34,12 +25,21 @@
 [submodule "contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum"]
 	path = contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum
 	url = git@github.com:Opty-Fi/sushiswap-masterchefv2-adapter-ethereum.git
-[submodule "contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum"]
-	path = contracts/protocol/adapters/ethereum/sushiswap-pool-adapter-ethereum
-	url = git@github.com:Opty-Fi/sushiswap-pool-adapter-ethereum.git
-[submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
-	path = contracts/protocol/adapters/ethereum/team-defi-adapters
-	url = git@github.com:Opty-Fi/team-defi-adapters.git
+[submodule "contracts/protocol/adapters/uniswapV2PoolAdapter"]
+	path = contracts/protocol/adapters/uniswapV2PoolAdapter
+	url = git@github.com:Opty-Fi/uniswapV2PoolAdapter.git
+[submodule "contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter"]
+	path = contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter
+	url = git@github.com:Opty-Fi/curve-crypto-pool-adapter.git
+[submodule "contracts/protocol/adapters/polygon/quickswap-farm-polygon"]
+	path = contracts/protocol/adapters/polygon/quickswap-farm-polygon
+	url = git@github.com:Opty-Fi/quickswap-farm-polygon.git
+[submodule "contracts/protocol/adapters/swap-adapters"]
+	path = contracts/protocol/adapters/swap-adapters
+	url = git@github.com:Opty-Fi/swap-adapters.git
 [submodule "contracts/protocol/earn-protocol-configuration"]
 	path = contracts/protocol/earn-protocol-configuration
 	url = git@github.com:Opty-Fi/earn-protocol-configuration.git
+[submodule "contracts/protocol/adapters/ethereum/team-defi-adapters"]
+	path = contracts/protocol/adapters/ethereum/team-defi-adapters
+	url = git@github.com:Opty-Fi/team-defi-adapters.git

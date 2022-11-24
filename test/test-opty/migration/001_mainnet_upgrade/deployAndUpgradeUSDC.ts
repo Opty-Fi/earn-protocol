@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import { ESSENTIAL_CONTRACTS } from "../../../../helpers/constants/essential-contracts-name";
 import { VaultV3__factory } from "../../../../helpers/types/vaultv3";
+import { InitializableImmutableAdminUpgradeabilityProxy__factory } from "../../../../typechain";
 import { RegistryProxy, opUSDCgrow as opUSDCgrowObj } from "../../_deployments/mainnet.json";
 
 export async function deployAndUpgradeUSDC(): Promise<void> {
@@ -9,7 +9,10 @@ export async function deployAndUpgradeUSDC(): Promise<void> {
   const { getAddress } = ethers.utils;
   const opUSDCgrowAddress = opUSDCgrow.address;
 
-  const opUSDCgrowProxyInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT_PROXY, opUSDCgrowObj.VaultProxy);
+  const opUSDCgrowProxyInstance = await ethers.getContractAt(
+    InitializableImmutableAdminUpgradeabilityProxy__factory.abi,
+    opUSDCgrowObj.VaultProxy,
+  );
   const proxyAdminAddress = await opUSDCgrowProxyInstance.admin();
   const proxyAdminSigner = await ethers.getSigner(proxyAdminAddress);
 

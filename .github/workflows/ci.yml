@@ -19,10 +19,7 @@ jobs:
       COINMARKETCAP_API: ${{ secrets.COINMARKETCAP_API}}
       REPORT_GAS: true
       MNEMONIC: ${{ secrets.MNEMONIC}}
-      STAGING_NETWORK_URL: ${{secrets.STAGING_NETWORK_URL}}
-      STRATEGY_DIVISOR: 2
-      MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID}}
-      MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL}}
+      IGNORE_VAULTS: "opNEWO-Invst,opAAVE-Invst,opAPE-Invst,opLINK-Invst,opMANA-Invst,opSUSHI-Invst,opENS-Invst,opCOMP-Invst,opIMX-Invst,opALCX-Invst,opCRV-Invst,opCVX-Invst,opYFI-Invst"
 
     steps:
       - name: Checkout Use Node.js ${{ matrix.node-version}}
@@ -46,9 +43,9 @@ jobs:
       - name: Compile
         run: |
           yarn compile
-      - name: Optyfi-SDK Mainnet
+      - name: Typechain
         run: |
-          yarn typechain && yarn optyfi-sdk:mainnet
+          yarn typechain
       - name: Run Slither
         uses: crytic/slither-action@v0.1.0
         continue-on-error: true
@@ -63,9 +60,14 @@ jobs:
           yarn test-fast:vaultv3-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:mainnet
           yarn test-fast:vaultv4-upgrade-test:polygon
+          yarn test-fast:vaultv6-upgrade-test:mainnet
+          yarn test-fast:vaultv6-upgrade-test:polygon
           yarn test-fast:vault-strategy:mainnet
           yarn test-fast:vault-strategy:polygon
           yarn test-fast:vault-strategy:avalanche
+          yarn test-fast:strategy-manager:mainnet
+          yarn test-fast:strategy-manager:polygon
+          yarn test-fast:strategy-manager:avalanche
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.18.0

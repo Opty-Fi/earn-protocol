@@ -5,7 +5,7 @@ import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts
 import { ERC20, IConvexStake, IUniswapV2Router02, Registry, Vault } from "../../typechain";
 import { BigNumber } from "ethers";
 
-function getCVXUnclaimed(
+export function getCVXUnclaimed(
   _amount: BigNumber,
   _totalSupply: BigNumber,
   _reductionPerCliff: BigNumber,

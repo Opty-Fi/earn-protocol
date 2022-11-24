@@ -4,7 +4,8 @@ import { BigNumber } from "ethers";
 import chai, { expect, assert } from "chai";
 import { solidity } from "ethereum-waffle";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
-
+import EthereumSushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -27,12 +28,13 @@ import {
   ERC20,
   ERC20__factory,
   HarvestCodeProvider,
+  OptyFiOracle,
   Registry,
   RegistryProxy,
   RiskManager,
-  RiskManagerProxy,
   StrategyManager,
   StrategyProvider,
+  UniswapV2ExchangeAdapter,
   Vault,
 } from "../../typechain";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
@@ -213,7 +215,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.registry
           .connect(this.signers.riskOperator)
-          ["addRiskProfile(uint256,string,string,bool,(uint8,uint8))"]("2", "Aggressive", "aggr", false, {
+          ["addRiskProfile(uint256,string,string,(uint8,uint8))"]("2", "Aggressive", "aggr", {
             lowerLimit: "1",
             upperLimit: "20",
           }),
@@ -222,7 +224,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         .withArgs("0", true, false, this.signers.riskOperator.address);
       const riskProfile = await this.registry.getRiskProfile("2");
       expect(riskProfile.index).to.be.equal("0");
-      expect(riskProfile.canBorrow).to.be.false;
+      expect(riskProfile.var0).to.be.false;
       expect(riskProfile.poolRatingsRange.lowerLimit).to.be.equal(BigNumber.from("1"));
       expect(riskProfile.poolRatingsRange.upperLimit).to.be.equal(BigNumber.from("20"));
       expect(riskProfile.exists).to.be.true;
@@ -340,7 +342,35 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(await this.registry.operator()).to.equal(this.signers.operator.address);
     });
 
-    it("20. Operator can register adapter to approved liquidity pools", async function () {
+    it("20. Operator deploys OptyFi Oracle", async function () {
+      this.optyFiOracle = <OptyFiOracle>(
+        await deployContract(hre, ESSENTIAL_CONTRACTS.OPTYFI_ORACLE, false, this.signers.operator, ["3600", "3600"])
+      );
+      assert.isDefined(this.optyFiOracle, "!OptyFiOracle");
+    });
+
+    it("21. Risk operator deploys SushiswapExchange Adapter", async function () {
+      this.sushiswapExchangeAdapterEthereum = <UniswapV2ExchangeAdapter>(
+        await deployContract(hre, "UniswapV2ExchangeAdapter", false, this.signers.riskOperator, [
+          this.registry.address,
+          EthereumSushiswap.SushiswapRouter.address,
+          this.optyFiOracle.address,
+        ])
+      );
+      assert.isDefined(this.sushiswapExchangeAdapterEthereum, "!SushiswapExchangeAdapterEthereum");
+      const USDC_WETH_LP = "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0";
+
+      const liquidityPoolToWantTokenToSlippages = [
+        { liquidityPool: USDC_WETH_LP, wantToken: EthereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
+        { liquidityPool: USDC_WETH_LP, wantToken: EthereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
+      ];
+      const tx = await this.sushiswapExchangeAdapterEthereum
+        .connect(this.signers.riskOperator)
+        .setLiquidityPoolToWantTokenToSlippage(liquidityPoolToWantTokenToSlippages);
+      await tx.wait(1);
+    });
+
+    it("22. Operator can register adapter to approved liquidity pools", async function () {
       const adapterNameToAddress = new Map<string, string>([
         ["AaveV1Adapter", this.aavev1Adapter.address],
         ["AaveV2Adapter", this.aaveV2Adapter.address],
@@ -349,6 +379,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
         ["CurveMetapoolSwapAdapter", this.curveMetapoolSwapAdapter.address],
         ["CurveDepositPoolAdapter", this.curveDepositPoolAdapter.address],
         ["ConvexFinanceAdapter", this.convexAdapter.address],
+        ["SushiswapExchangeAdapterEthereum", this.sushiswapExchangeAdapterEthereum.address],
       ]);
 
       const registryContractInstance = await hre.ethers.getContractAt(
@@ -382,7 +413,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       }
     });
 
-    it("21. Strategy operator can deploy StrategyProvider and operator can register", async function () {
+    it("23. Strategy operator can deploy StrategyProvider and operator can register", async function () {
       this.strategyProvider = <StrategyProvider>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_PROVIDER, false, this.signers.strategyOperator, [
           this.registry.address,
@@ -394,37 +425,29 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(await this.registry.getStrategyProvider()).to.equal(this.strategyProvider.address);
     });
 
-    it("22. Deployer can deploy RiskManager and operator can register it", async function () {
+    it("24. Deployer can deploy RiskManager and operator can register it", async function () {
       this.riskManager = <RiskManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER, false, this.signers.deployer, [
           this.registry.address,
         ])
       );
       assert.isDefined(this.riskManager, "!RiskManager");
-      this.riskManagerProxy = <RiskManagerProxy>(
-        await deployContract(hre, ESSENTIAL_CONTRACTS.RISK_MANAGER_PROXY, false, this.signers.deployer, [
-          this.registry.address,
-        ])
-      );
-      assert.isDefined(this.riskManagerProxy, "!RiskManagerProxy");
-      await this.riskManagerProxy.connect(this.signers.operator).setPendingImplementation(this.riskManager.address);
-      await this.riskManager.connect(this.signers.governance).become(this.riskManagerProxy.address);
       this.riskManager = <RiskManager>(
-        await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, this.riskManagerProxy.address)
+        await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.RISK_MANAGER, this.riskManager.address)
       );
       expect(await this.riskManager.registryContract()).to.equal(this.registry.address);
       await this.registry.connect(this.signers.operator).setRiskManager(this.riskManager.address);
       expect(await this.registry.getRiskManager()).to.equal(this.riskManager.address);
     });
 
-    it("23. Deployer can deploy StrategyManager ", async function () {
+    it("25. Deployer can deploy StrategyManager ", async function () {
       this.strategyManager = <StrategyManager>(
         await deployContract(hre, ESSENTIAL_CONTRACTS.STRATEGY_MANAGER, false, this.signers.deployer, [])
       );
       assert.isDefined(this.strategyManager, "!StrategyManager");
     });
 
-    it("24. Operator can deploy vault and admin can upgrade", async function () {
+    it("26. Operator can deploy vault and admin can upgrade", async function () {
       // (0-15) Deposit fee UT = 1 USDC = 0001
       // (16-31) Deposit fee % = 0.05% = 0005
       // (32-47) Withdrawal fee UT = 1 USDC = 0001
@@ -484,7 +507,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       );
     });
 
-    it("25. Alice deposit should fail, EOA_NOT_WHITELISTED", async function () {
+    it("27. Alice deposit should fail, EOA_NOT_WHITELISTED", async function () {
       this.erc20 = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.USDC);
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
@@ -503,17 +526,17 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), BigNumber.from("0"), "0x", []),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", []),
       ).to.revertedWith("8");
     });
 
-    it("26. Operator can whitelist Alice,Bob for USDC vault", async function () {
+    it("28. Operator can whitelist Alice,Bob for USDC vault", async function () {
       const _root = getAccountsMerkleRoot([this.signers.alice.address, this.signers.bob.address]);
       await this.vault.connect(this.signers.governance).setWhitelistedAccountsRoot(_root);
       expect(await this.vault.whitelistedAccountsRoot()).to.eq(_root);
     });
 
-    it("27. Finance Operator can deposit min, cap and TVL limit", async function () {
+    it("29. Finance Operator can deposit min, cap and TVL limit", async function () {
       await this.vault
         .connect(this.signers.financeOperator)
         .setValueControlParams(BigNumber.from(10000000000), BigNumber.from(1000000000), BigNumber.from(1000000000000));
@@ -522,7 +545,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(await this.vault.totalValueLockedLimitUT()).to.be.equal(BigNumber.from(1000000000000));
     });
 
-    it("28. Alice has to deposit atleast 1000 USDC", async function () {
+    it("30. Alice has to deposit atleast 1000 USDC", async function () {
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
         this.signers.alice.address,
@@ -530,24 +553,18 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), BigNumber.from("0"), "0x", _proof),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("999999999"), "0x", _proof),
       ).to.revertedWith("10");
       await expect(
         this.vault
           .connect(this.signers.alice)
-          .userDepositVault(
-            this.signers.alice.address,
-            BigNumber.from("1000000000"),
-            BigNumber.from("0"),
-            "0x",
-            _proof,
-          ),
+          .userDepositVault(this.signers.alice.address, BigNumber.from("1000000000"), "0x", _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(hre.ethers.constants.AddressZero, this.signers.alice.address, BigNumber.from("1000000000"));
     });
 
-    it("29. Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
+    it("31. Bob tries a failed attempt to deposit beyond maxDepositCap of 10k", async function () {
       const deadline = (await getBlockTimestamp(hre)) * 2;
       await fundWalletToken(
         hre,
@@ -569,17 +586,11 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await expect(
         this.vault
           .connect(this.signers.bob)
-          .userDepositVault(
-            this.signers.bob.address,
-            BigNumber.from("100000000000"),
-            BigNumber.from("0"),
-            "0x",
-            _proof,
-          ),
+          .userDepositVault(this.signers.bob.address, BigNumber.from("100000000000"), "0x", _proof),
       ).revertedWith("12");
     });
 
-    it("30. Finance operator increases the userDepositCap and totalValueLockedLimit", async function () {
+    it("32. Finance operator increases the userDepositCap and totalValueLockedLimit", async function () {
       await expect(this.vault.connect(this.signers.financeOperator).setUserDepositCapUT(BigNumber.from("500000000000")))
         .to.emit(this.vault, "LogUserDepositCapUT")
         .withArgs(BigNumber.from("500000000000"), this.signers.financeOperator.address);
@@ -592,22 +603,20 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(await this.vault.totalValueLockedLimitUT()).to.equal(BigNumber.from("1500000000000"));
     });
 
-    it("31. Big fish Bob can now successfully deposit 100K", async function () {
+    it("33. Big fish Bob can now successfully deposit 100K", async function () {
       const depositValue = BigNumber.from("100000000000");
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
         this.signers.bob.address,
       );
       await expect(
-        this.vault
-          .connect(this.signers.bob)
-          .userDepositVault(this.signers.bob.address, depositValue, BigNumber.from("0"), "0x", _proof),
+        this.vault.connect(this.signers.bob).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(hre.ethers.constants.AddressZero, this.signers.bob.address, depositValue);
     });
 
-    it("32. Operator can set the next strategy and rebalance", async function () {
+    it("34. Operator can set the next strategy and rebalance", async function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[0]];
       const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
@@ -615,7 +624,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       const steps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
         outputToken: item.outputToken,
-        isBorrow: item.isBorrow,
+        isSwap: item.isSwap,
       }));
       expect((await this.vault.getInvestStrategySteps()).length).to.eq(0);
       await this.strategyProvider.connect(this.signers.strategyOperator).setBestStrategy("2", tokenHash, steps);
@@ -626,7 +635,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(await this.vault.getInvestStrategySteps()).to.deep.eq(steps.map(item => Object.values(item)));
     });
 
-    it("33. Alice does failed attempt to go beyond TVL cap of vault", async function () {
+    it("35. Alice does failed attempt to go beyond TVL cap of vault", async function () {
       const depositValue = BigNumber.from("1500000000000");
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
@@ -635,13 +644,11 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       await this.erc20.connect(this.signers.alice).approve(this.vault.address, depositValue);
       expect(await this.erc20.allowance(this.signers.alice.address, this.vault.address)).to.equal(depositValue);
       await expect(
-        this.vault
-          .connect(this.signers.alice)
-          .userDepositVault(this.signers.bob.address, depositValue, BigNumber.from("0"), "0x", _proof),
+        this.vault.connect(this.signers.alice).userDepositVault(this.signers.bob.address, depositValue, "0x", _proof),
       ).to.revertedWith("11");
     });
 
-    it("34. The strategy operator can set the new best strategy", async function () {
+    it("36. The strategy operator can set the new best strategy", async function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
@@ -649,7 +656,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       const steps = strategyDetail.strategy.map(item => ({
         pool: item.contract,
         outputToken: item.outputToken,
-        isBorrow: item.isBorrow,
+        isSwap: item.isSwap,
       }));
       await this.strategyProvider.connect(this.signers.strategyOperator).setBestStrategy("2", tokenHash, steps);
       expect(await this.vault.getNextBestInvestStrategy()).to.deep.eq(steps.map(item => Object.values(item)));
@@ -659,37 +666,33 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(await this.vault.getInvestStrategySteps()).to.deep.eq(steps.map(item => Object.values(item)));
     });
 
-    it("35. Alice can successfully withdraw 500 shares", async function () {
+    it("37. Alice can successfully withdraw 500 shares", async function () {
       const withdrawValue = BigNumber.from("500000000");
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
         this.signers.alice.address,
       );
       await expect(
-        this.vault
-          .connect(this.signers.alice)
-          .userWithdrawVault(this.signers.alice.address, withdrawValue, BigNumber.from("0"), _proof),
+        this.vault.connect(this.signers.alice).userWithdrawVault(this.signers.alice.address, withdrawValue, _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.alice.address, hre.ethers.constants.AddressZero, withdrawValue);
     });
 
-    it("36. The big fish Bob can successfully withdraw 100K shares", async function () {
+    it("38. The big fish Bob can successfully withdraw 100K shares", async function () {
       const withdrawValue = BigNumber.from("100000000000");
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
         this.signers.bob.address,
       );
       await expect(
-        this.vault
-          .connect(this.signers.bob)
-          .userWithdrawVault(this.signers.bob.address, withdrawValue, BigNumber.from("0"), _proof),
+        this.vault.connect(this.signers.bob).userWithdrawVault(this.signers.bob.address, withdrawValue, _proof),
       )
         .to.emit(this.vault, "Transfer")
         .withArgs(this.signers.bob.address, hre.ethers.constants.AddressZero, withdrawValue);
     });
 
-    it("37. The strategy operator claims rewards successfully", async function () {
+    it("39. The strategy operator claims rewards successfully", async function () {
       const strategyDetail =
         StrategiesByTokenByChain[fork]["Earn"]["USDC"][Object.keys(StrategiesByTokenByChain[fork]["Earn"]["USDC"])[3]];
       this.crv = <ERC20>await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.ERC20, TypedTokens.CRV);
@@ -701,7 +704,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(claimedRewardAfter).gt(claimedRewardBefore);
     });
 
-    it("38. The strategy operator harvest rewards successfully", async function () {
+    it("40. The strategy operator harvest rewards successfully", async function () {
       const _rewardTokenInstance = <ERC20>(
         await ethers.getContractAt(ERC20__factory.abi, ethereumTokens.REWARD_TOKENS.CRV)
       );
@@ -730,7 +733,7 @@ describe(`${fork}-Vault-rev4-Integration tests`, function () {
       expect(balanceAfterUT).gt(balanceBeforeUT);
     });
 
-    it("39. Governance calls emergency shutdown", async function () {
+    it("41. Governance calls emergency shutdown", async function () {
       const _balanceUTBefore = await this.vault.balanceUT();
       await expect(this.vault.connect(this.signers.governance).setEmergencyShutdown(true))
         .to.emit(this.vault, "LogEmergencyShutdown")

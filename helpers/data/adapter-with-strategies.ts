@@ -4,217 +4,15 @@
 // import { default as WethStrategies } from "optyfi-sdk/ethereum/strategies/weth.json";
 import { ethers, BigNumber } from "ethers";
 import {
-  ADAPTER_WITH_STRATEGIES_DATA,
   MultiChainVaultsType,
   StrategiesByRiskProfileByTokenByChainType,
+  StrategiesByTokenByChainType,
   VaultType,
 } from "../type";
-import {
-  AAVE_V1_ADAPTER_NAME,
-  AAVE_V2_ADAPTER_NAME,
-  COMPOUND_ADAPTER_NAME,
-  CURVE_DEPOSIT_POOL_ADAPTER_NAME,
-  CURVE_SWAP_POOL_ADAPTER_NAME,
-  DFORCE_ADAPTER_NAME,
-  FULCRUM_ADAPTER_NAME,
-  HARVEST_V1_ADAPTER_NAME,
-  SUSHISWAP_ADAPTER_NAME,
-  CONVEX_ADAPTER_NAME,
-} from "../constants/adapters";
 import { eEVMNetwork, NETWORKS_CHAIN_ID, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../constants/tokens";
 
-export const TypedAdapterStrategies: ADAPTER_WITH_STRATEGIES_DATA = {
-  [CONVEX_ADAPTER_NAME]: [
-    {
-      strategyName:
-        "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
-      token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      strategy: [
-        {
-          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-          isBorrow: false,
-          outputTokenSymbol: "3Crv",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-        {
-          contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-          outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-          isBorrow: false,
-          outputTokenSymbol: "MIM-3LP3CRV-f",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-        {
-          contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-          outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-          isBorrow: false,
-          outputTokenSymbol: "cvxMIM-3LP3CRV-f",
-          adapterName: "ConvexAdapter",
-          protocol: "Convex",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [CURVE_SWAP_POOL_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-CurveSwapPool-3Crv",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-          outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-          isBorrow: false,
-          outputTokenSymbol: "3Crv",
-          adapterName: "CurveSwapPoolAdapter",
-          protocol: "Curve",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [CURVE_DEPOSIT_POOL_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-CurveDepositPool-cDAI+cUSDC",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0xeB21209ae4C2c9FF2a86ACA31E123764A3B6Bc06",
-          outputToken: "0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2",
-          isBorrow: false,
-          outputTokenSymbol: "cDAI+cUSDC",
-          adapterName: "CurveDepositPoolAdapter",
-          protocol: "Curve",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [COMPOUND_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-Compound-cDAI",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-          outputToken: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-          isBorrow: false,
-          outputTokenSymbol: "cDAI",
-          adapterName: "CompoundAdapter",
-          protocol: "Compound",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [AAVE_V1_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-AaveV1-aDAI",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
-          outputToken: "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
-          isBorrow: false,
-          outputTokenSymbol: "aDAI",
-          adapterName: "AaveV1Adapter",
-          protocol: "AaveV1",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [AAVE_V2_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-AaveV2-aDAI",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
-          outputToken: "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
-          isBorrow: false,
-          outputTokenSymbol: "aDAI",
-          adapterName: "AaveV2Adapter",
-          protocol: "AaveV2",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [DFORCE_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-DForce-dDAI",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0x02285AcaafEB533e03A7306C55EC031297df9224",
-          outputToken: "0x02285AcaafEB533e03A7306C55EC031297df9224",
-          isBorrow: false,
-          outputTokenSymbol: "dDAI",
-          adapterName: "DForceAdapter",
-          protocol: "DForce",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [FULCRUM_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-Fulcrum-iDAI",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
-          outputToken: "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0",
-          isBorrow: false,
-          outputTokenSymbol: "iDAI",
-          adapterName: "FulcrumAdapter",
-          protocol: "Fulcrum",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [HARVEST_V1_ADAPTER_NAME]: [
-    {
-      strategyName: "dai-DEPOSIT-HarvestV1-fDAI",
-      token: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      strategy: [
-        {
-          contract: "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
-          outputToken: "0xab7FA2B2985BCcfC13c6D86b1D5A17486ab1e04C",
-          isBorrow: false,
-          outputTokenSymbol: "fDAI",
-          adapterName: "HarvestV1Adapter",
-          protocol: "Harvest",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-  [SUSHISWAP_ADAPTER_NAME]: [
-    {
-      strategyName: "slp-DEPOSIT-Sushiswap",
-      token: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
-      strategy: [
-        {
-          contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
-          outputToken: "0x0000000000000000000000000000000000000000",
-          isBorrow: false,
-          outputTokenSymbol: "",
-          adapterName: "SushiswapMasterChefV1Adapter",
-          protocol: "Sushiswap",
-        },
-      ],
-      riskProfileCode: 1,
-    },
-  ],
-};
-
-const mainnetStrategiesByToken = {
+const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
   Save: {
     DAI: {
       "dai-DEPOSIT-AaveV2-aDAI": {
@@ -224,7 +22,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aDAI",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -233,7 +31,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 0,
         name: "DAI Lending on AAVE",
         description:
-          "The OptyFi vault supplies DAI to the lending pool on Aave Protocol to earn interest in DAI. The earned DAI tokens are reinvested into the vault",
+          "The OptyFi vault supplies DAI to the lending pool on Aave Protocol to earn interest in DAI. The earned DAI tokens are reinvested into the vault.",
       },
       "dai-DEPOSIT-Compound-cDAI": {
         strategyName: "dai-DEPOSIT-Compound-cDAI",
@@ -242,7 +40,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
             outputToken: "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cDAI",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -262,7 +60,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aUSDT",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -271,7 +69,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 0,
         name: "USDT Lending on AAVE",
         description:
-          "The OptyFi vault supplies USDT to the lending pool on Aave Protocol to earn interest in USDT. The earned USDT tokens are reinvested into the vault",
+          "The OptyFi vault supplies USDT to the lending pool on Aave Protocol to earn interest in USDT. The earned USDT tokens are reinvested into the vault.",
       },
       "usdt-DEPOSIT-Compound-cUSDT": {
         strategyName: "usdt-DEPOSIT-Compound-cUSDT",
@@ -280,7 +78,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
             outputToken: "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cUSDT",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -300,7 +98,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aWBTC",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -309,7 +107,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 0,
         name: "WBTC Lending on AAVE",
         description:
-          "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol to earn interest in WBTC. The earned WBTC tokens are reinvested into the vault",
+          "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol to earn interest in WBTC. The earned WBTC tokens are reinvested into the vault.",
       },
       "wbtc-DEPOSIT-Compound-cWBTC": {
         strategyName: "wbtc-DEPOSIT-Compound-cWBTC",
@@ -318,7 +116,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
             outputToken: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cWBTC",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -338,7 +136,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0xBcca60bB61934080951369a648Fb03DF4F96263C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aUSDC",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -347,7 +145,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 0,
         name: "USDC Lending on AAVE",
         description:
-          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault",
+          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault.",
       },
       "usdc-DEPOSIT-Compound-cUSDC": {
         strategyName: "usdc-DEPOSIT-Compound-cUSDC",
@@ -356,7 +154,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
             outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cUSDC",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -376,7 +174,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aWETH",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -394,7 +192,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
             outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cETH",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -416,7 +214,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0xBcca60bB61934080951369a648Fb03DF4F96263C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aUSDC",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -425,7 +223,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 1,
         name: "USDC Lending on AAVE",
         description:
-          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault",
+          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault.",
       },
       "usdc-DEPOSIT-AaveV1-aUSDC": {
         strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
@@ -434,7 +232,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
             outputToken: "0x9bA00D6856a4eDF4665BcA2C2309936572473B7E",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aUSDC",
             adapterName: "AaveV1Adapter",
             protocol: "AaveV1",
@@ -443,7 +241,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 1,
         name: "USDC Lending on AAVE",
         description:
-          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault",
+          "The OptyFi vault supplies USDC to the lending pool on Aave Protocol to earn interest in USDC. The earned USDC tokens are reinvested into the vault.",
       },
       "usdc-DEPOSIT-Compound-cUSDC": {
         strategyName: "usdc-DEPOSIT-Compound-cUSDC",
@@ -452,7 +250,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
             outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cUSDC",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -470,7 +268,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "3Crv",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -478,7 +276,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
             outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvx3Crv",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -497,7 +295,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "3Crv",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -505,7 +303,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
             outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "FRAX3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -513,7 +311,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
             outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxFRAX3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -532,7 +330,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "3Crv",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -540,7 +338,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
             outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "MIM-3LP3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -548,7 +346,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
             outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxMIM-3LP3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -566,7 +364,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
             outputTokenSymbol: "3Crv",
@@ -574,7 +372,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
             outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
-            isBorrow: false,
+            isSwap: false,
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
             outputTokenSymbol: "usdn3Crv",
@@ -582,15 +380,86 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
             outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
-            isBorrow: false,
+            isSwap: false,
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
             outputTokenSymbol: "cvxusdn3CRV",
           },
         ],
         riskProfileCode: 1,
-        name: null,
-        description: null,
+        name: "cvxusdn3CRV staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to the 3Crv liquidity pool on Curve Finance and obtains the 3Crv LP token then it is supplied inturn to its usdn3Crv liquidity pool which accrues yield from the pool’s trading fees and rewards The vault then stakes the usdn3Crv LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-Compound-cUSDC-dAMM-dCUSDC": {
+        strategyName: "usdc-DEPOSIT-Compound-cUSDC-dAMM-dcUSDC",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            isSwap: false,
+            outputTokenSymbol: "cUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+          {
+            contract: "0x5714EB15A226059202CdfA1bF304167e36752862",
+            outputToken: "0x5714EB15A226059202CdfA1bF304167e36752862",
+            isSwap: false,
+            outputTokenSymbol: "dCUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "cUSDC Lending on dAMM",
+        description:
+          "The OptyFi vault supplies USDC to the lending pool on Compound finance. Then it lends cUSDC to cUSDC pool on dAMM finance. The earned USDC tokens and any harvested BDAMM rewards are reinvested into the vault.",
+      },
+      "usdc-DEPOSIT-dAMM-dUSDC": {
+        strategyName: "usdc-DEPOSIT-dAMM-cUSDC",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
+            outputToken: "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5",
+            isSwap: false,
+            outputTokenSymbol: "dUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDC Lending on dAMM",
+        description:
+          "The OptyFi vault supplies USDC to the lending pool on dAMM finance which accrues yield and earns Bonded DAMM rewards. The vault harvests and re-invests the rewards.",
+      },
+      "usdc-DEPOSIT-Sushiswap-WETH-DEPOSIT-Compound-cETH": {
+        strategyName: "usdc-DEPOSIT-Sushiswap-WETH-DEPOSIT-Compound-cETH",
+        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        strategy: [
+          {
+            contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            outputToken: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            isSwap: true,
+            outputTokenSymbol: "WETH",
+            adapterName: "SushiswapExchangeAdapterEthereum",
+            protocol: "Sushiswap",
+          },
+          {
+            contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            isSwap: false,
+            outputTokenSymbol: "cETH",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "ETH lending on Compound",
+        description:
+          "The OptyFi vault swaps USDC for ETH on Sushiswap then lends ETH to Compound. Any COMP rewards earned are harvest and re-invested into the vault.",
       },
     },
     WETH: {
@@ -601,7 +470,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aWETH",
             adapterName: "AaveV2Adapter",
             protocol: "AaveV2",
@@ -619,7 +488,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
             outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cETH",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -637,7 +506,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
             outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "eCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -645,7 +514,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
             outputToken: "0xAF1d4C576bF55f6aE493AEebAcC3a227675e5B98",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxeCRV",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -657,13 +526,13 @@ const mainnetStrategiesByToken = {
           "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
       },
       "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV": {
-        strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
+        strategyName: "weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
         token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         strategy: [
           {
             contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
             outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "steCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -671,7 +540,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
             outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxsteCRV",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -683,13 +552,13 @@ const mainnetStrategiesByToken = {
           "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
       },
       "weth-DEPOSIT-CurveSwapPool-eCRV": {
-        strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV",
+        strategyName: "weth-DEPOSIT-CurveSwapPool-eCRV",
         token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         strategy: [
           {
             contract: "0xc5424B857f758E906013F3555Dad202e4bdB4567",
             outputToken: "0xA3D87FffcE63B53E0d54fAa1cc983B7eB0b74A9c",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "eCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -701,13 +570,13 @@ const mainnetStrategiesByToken = {
           "The OptyFi vault supplies WETH to the sETH-ETH liquidity pool on Curve Finance and obtains the sETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the sETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
       },
       "weth-DEPOSIT-CurveSwapPool-steCRV": {
-        strategyName: "weth-DEPOSIT-Lido-stETH-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV",
+        strategyName: "weth-DEPOSIT-CurveSwapPool-steCRV",
         token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         strategy: [
           {
             contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
             outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "steCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -725,7 +594,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022",
             outputToken: "0x06325440D014e39736583c165C2963BA99fAf14E",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "steCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -733,7 +602,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
             outputToken: "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxsteCRV",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -744,6 +613,76 @@ const mainnetStrategiesByToken = {
         description:
           "The OptyFi vault supplies WETH to the stETH-ETH liquidity pool on Curve Finance and obtains the stETH LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the stETH LP token on Convex Finance to earn additional rewards which are harvested to WETH and reinvested into the vault.",
       },
+      "weth-DEPOSIT-Compound-cETH-DEPOSIT-dAMM-dCWETH": {
+        strategyName: "weth-DEPOSIT-Compound-cETH-DEPOSIT-dAMM-dCWETH",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            outputToken: "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+            isSwap: false,
+            outputTokenSymbol: "cETH",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+          {
+            contract: "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc",
+            outputToken: "0x3Be69a1D7B8821cDcCE90509aBB62D250A5AeFcc",
+            isSwap: false,
+            outputTokenSymbol: "dCWETH",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "cETH Lending on dAMM",
+        description:
+          "The OptyFi vault supplies WETH to the lending pool on Compound finance the lends cETH to cETH lending pool on dAMM finance to earn interest in WETH and, potentially, additional rewards in BDAMM tokens. The earned BDAMM tokens are harvested to WETH and reinvested into the vault.",
+      },
+      "weth-DEPOSIT-dAMM-dWETH": {
+        strategyName: "weth-DEPOSIT-dAMM-dWETH",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0x118823514681353634FF95837939E783D85B18AF",
+            outputToken: "0x118823514681353634FF95837939E783D85B18AF",
+            isSwap: false,
+            outputTokenSymbol: "dWETH",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "WETH Lending on dAMM",
+        description:
+          "The OptyFi vault WETH to the lending pool on dAMM finance Protocol to earn interest in WETH and, potentially, additional rewards in BDAMM tokens. The earned BDAMM tokens are harvested to WETH and reinvested into the vault.",
+      },
+      "weth-DEPOSIT-UniswapV2-USDC-DEPOSIT-Compound-cUSDC": {
+        strategyName: "weth-DEPOSIT-Uniswap-USDC-DEPOSIT-Compound-cUSDC",
+        token: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        strategy: [
+          {
+            contract: "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
+            outputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            isSwap: true,
+            outputTokenSymbol: "USDC",
+            adapterName: "UniswapV2ExchangeAdapterEthereum",
+            protocol: "Uniswap",
+          },
+          {
+            contract: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            outputToken: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+            isSwap: false,
+            outputTokenSymbol: "cUSDC",
+            adapterName: "CompoundAdapter",
+            protocol: "Compound",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDC Lending on Compound",
+        description:
+          "The OptyFi vault swaps WETH for USDC and lends to Compound. The COMP rewards earned are harvested and re-invested into the vault.",
+      },
     },
     USD3: {
       "3Crv-DEPOSIT-Convex-cvx3Crv": {
@@ -753,7 +692,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
             outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvx3Crv",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -771,7 +710,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
             outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "FRAX3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -779,7 +718,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
             outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxFRAX3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -797,7 +736,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
             outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "MIM-3LP3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -805,7 +744,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
             outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxMIM-3LP3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -816,6 +755,42 @@ const mainnetStrategiesByToken = {
         description:
           "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the MIM3CRV LP token on Convex Finance to earn additional rewards which are harvested to 3CRV and reinvested into the vault.",
       },
+      "3Crv-DEPOSIT-CurveMetapoolSwapPool-LUSD3CRV-f-CurveCryptoPool-bLUSDLUSD3-f-CurveCryptoGauge-bLUSDLUSD3-f-gauge":
+        {
+          strategyName:
+            "3Crv-DEPOSIT-CurveMetapoolSwapPool-LUSD3CRV-f-CurveCryptoPool-bLUSDLUSD3-f-CurveCryptoGauge-bLUSDLUSD3-f-gauge",
+          token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+          strategy: [
+            {
+              contract: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
+              outputToken: "0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA",
+              isSwap: false,
+              outputTokenSymbol: "LUSD3CRV-f",
+              protocol: "Curve",
+              adapterName: "CurveMetapoolSwapAdapter",
+            },
+            {
+              contract: "0x74ED5d42203806c8CDCf2F04Ca5F60DC777b901c",
+              outputToken: "0x5ca0313D44551e32e0d7a298EC024321c4BC59B4",
+              isSwap: false,
+              outputTokenSymbol: "bLUSDLUSD3-f",
+              protocol: "Curve",
+              adapterName: "CurveCryptoPoolAdapter",
+            },
+            {
+              contract: "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4",
+              outputToken: "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4",
+              isSwap: false,
+              outputTokenSymbol: "bLUSDLUSD3-f-gauge",
+              protocol: "Curve",
+              adapterName: "CurveMetapoolGaugeAdapter",
+            },
+          ],
+          riskProfileCode: 1,
+          name: "LUSD3CRV staking on Curve",
+          description:
+            "OptyFi vault supplies 3CRV to LUSD3CRV-f factory pool on Curve finance and obtains LUSD3CRV-f lp token which further deposited into bLUSDLUSD3-f and the lp token obtained is staked to bLUSDLUSD3 gauge. The vault earns interest from trading fees and rewards which are harvested to 3CRV are re-invested to the vault.",
+        },
       "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV": {
         strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV",
         token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
@@ -823,7 +798,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
             outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "FRAX3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -835,13 +810,13 @@ const mainnetStrategiesByToken = {
           "The OptyFi vault supplies 3CRV to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
       },
       "3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV": {
-        strategyName: "3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
+        strategyName: "3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV",
         token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
         strategy: [
           {
             contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
             outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "MIM-3LP3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -852,6 +827,66 @@ const mainnetStrategiesByToken = {
         description:
           "The OptyFi vault supplies 3CRV to the MIM3CRV liquidity pool on Curve Finance and obtains the MIM3CRV LP token which accrues yield from the pool’s trading fees and rewards which are harvested to 3CRV and reinvested into the vault.",
       },
+      "3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX": {
+        strategyName: "3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX",
+        token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            isSwap: true,
+            outputTokenSymbol: "USDC",
+            adapterName: "CurveExchangeAdapterEthereum",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2",
+            outputToken: "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+            isSwap: true,
+            outputTokenSymbol: "FRAX",
+            adapterName: "CurveExchangeAdapterEthereum",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xf1667d8FA2a9d4a00717CB4F74CC698546ACF602",
+            outputToken: "0xf1667d8FA2a9d4a00717CB4F74CC698546ACF602",
+            isSwap: false,
+            outputTokenSymbol: "dFRAX",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "FRAX Lending on dAMM",
+        description:
+          "The OptyFi vault obtains USDC from 3Crv pool then swaps USDC for FRAX on Curve which is then lend to DAMM. The earned Bonded DAMM rewards are harvested and re-invested into the vault.",
+      },
+      "3Crv-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-dAMM-dUSDT": {
+        strategyName: "3Crv-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-dAMM-dUSDT",
+        token: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+        strategy: [
+          {
+            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            outputToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            isSwap: true,
+            outputTokenSymbol: "USDT",
+            adapterName: "CurveExchangeAdapterEthereum",
+            protocol: "Curve",
+          },
+          {
+            contract: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+            outputToken: "0xBf0852A95eC76e87f7431Fa505B27937C9836372",
+            isSwap: false,
+            outputTokenSymbol: "dUSDT",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "USDT Lending on dAMM",
+        description:
+          "The OptyFi vault obtains USDT from 3Crv pool which is then lend to DAMM. The earned Bonded DAMM rewards are harvested and re-invested into the vault.",
+      },
     },
     WBTC: {
       "wbtc-DEPOSIT-Compound-cWBTC": {
@@ -861,7 +896,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
             outputToken: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cWBTC",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -879,7 +914,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714",
             outputToken: "0x075b1bb99792c9E1041bA13afEf80C91a1e70fB3",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "crvRenWSBTC",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -887,7 +922,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbA723E335eC2939D52a2efcA2a8199cb4CB93cC3",
             outputToken: "0xbA723E335eC2939D52a2efcA2a8199cb4CB93cC3",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxcrvRenWSBTC",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -905,7 +940,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x93054188d876f558f4a66B2EF1d97d16eDf0895B",
             outputToken: "0x49849C98ae39Fff122806C06791Fa73784FB3675",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "crvRenWBTC",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -913,7 +948,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x74b79021Ea6De3f0D1731fb8BdfF6eE7DF10b8Ae",
             outputToken: "0x74b79021Ea6De3f0D1731fb8BdfF6eE7DF10b8Ae",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxcrvRenWBTC",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -925,13 +960,13 @@ const mainnetStrategiesByToken = {
           "The OptyFi vault supplies WBTC to the crvRenWBTC liquidity pool on Curve Finance and obtains the crvRenWBTC LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the crvRenWBTC LP token on Convex Finance to earn additional rewards which are harvested to WBTC and reinvested into the vault.",
       },
       "wbtc-DEPOSIT-Curve-crvRenWSBTC": {
-        strategyName: "wbtc-DEPOSIT-Curve-crvRenWSBTC-DEPOSIT-Convex-cvxcrvRenWSBTC ",
+        strategyName: "wbtc-DEPOSIT-Curve-crvRenWSBTC",
         token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
         strategy: [
           {
             contract: "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714",
             outputToken: "0x075b1bb99792c9E1041bA13afEf80C91a1e70fB3",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "crvRenWSBTC",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -949,7 +984,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x93054188d876f558f4a66B2EF1d97d16eDf0895B",
             outputToken: "0x49849C98ae39Fff122806C06791Fa73784FB3675",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "crvRenWBTC",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -959,6 +994,50 @@ const mainnetStrategiesByToken = {
         name: "crvRenWBTC LP on Curve",
         description:
           "The OptyFi vault supplies WBTC to the crvRenWBTC liquidity pool on Curve Finance and obtains the crvRenWBTC LP token which accrues yield from the pool’s trading fees and rewards.",
+      },
+      "wbtc-DEPOSIT-dAMM-dWBTC": {
+        strategyName: "wbtc-DEPOSIT-dAMM-dWBTC",
+        token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        strategy: [
+          {
+            contract: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            outputToken: "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80",
+            isSwap: false,
+            outputTokenSymbol: "dWBTC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "WBTC Lending on dAMM",
+        description:
+          "The OptyFi vault supplies WBTC to the lending pool on dAMM finance Protocol to earn interest in WBTC and, potentially, additional rewards in BDAMM tokens. The earned WBTC tokens and any harvested BDAMM rewards are reinvested into the vault.",
+      },
+      "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC": {
+        strategyName: "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC",
+        token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        strategy: [
+          {
+            contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
+            outputToken: "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
+            isSwap: false,
+            outputTokenSymbol: "aWBTC",
+            adapterName: "AaveV2Adapter",
+            protocol: "AaveV2",
+          },
+          {
+            contract: "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1",
+            outputToken: "0x9Dd451aB7bB62DA57b638070760A747bB6b1c5b1",
+            isSwap: false,
+            outputTokenSymbol: "dAWBTC",
+            adapterName: "CompoundAdapter",
+            protocol: "dAMM",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "dAWBTC Lending on Damm",
+        description:
+          "The OptyFi vault supplies WBTC to the lending pool on Aave Protocol then lends aWBTC to dAWBTC pool on Damm. The interest is earned on WBTC and BDAMM rewards are harvested and re-invested to the vault.",
       },
     },
   },
@@ -971,7 +1050,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
             outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-WETH-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -989,7 +1068,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
             outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -997,7 +1076,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1006,7 +1085,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 2,
         name: "USDC-WETH LP Farming and staking on Sushi",
         description:
-          "The OptyFi vault supplies USDC to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+          "The OptyFi vault supplies USDC to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI.",
       },
       "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv": {
         strategyName: "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv",
@@ -1015,7 +1094,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "3Crv",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -1023,7 +1102,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
             outputToken: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvx3Crv",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -1042,7 +1121,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "3Crv",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -1050,7 +1129,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
             outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "FRAX3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -1058,7 +1137,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
             outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxFRAX3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -1077,7 +1156,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "3Crv",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -1085,7 +1164,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
             outputToken: "0x5a6A4D54456819380173272A5E8E9B9904BdF41B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "MIM-3LP3CRV-f",
             adapterName: "CurveMetapoolSwapAdapter",
             protocol: "Curve",
@@ -1093,7 +1172,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
             outputToken: "0xabB54222c2b77158CC975a2b715a3d703c256F05",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxMIM-3LP3CRV-f",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
@@ -1111,7 +1190,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
             outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isBorrow: false,
+            isSwap: false,
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
             outputTokenSymbol: "3Crv",
@@ -1119,7 +1198,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
             outputToken: "0x4f3E8F405CF5aFC05D68142F3783bDfE13811522",
-            isBorrow: false,
+            isSwap: false,
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
             outputTokenSymbol: "usdn3Crv",
@@ -1127,15 +1206,16 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
             outputToken: "0x3689f325E88c2363274E5F3d44b6DaB8f9e1f524",
-            isBorrow: false,
+            isSwap: false,
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
             outputTokenSymbol: "cvxusdn3CRV",
           },
         ],
         riskProfileCode: 2,
-        name: null,
-        description: null,
+        name: "cvxusdn3CRV staking on Convex",
+        description:
+          "The OptyFi vault supplies USDC to 3Crv pool to obtain 3Crv which is to usdn3Crv liquidity pool which accrues yield from the pool’s trading fees and rewards The vault then stakes the usdn3Crv LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
       },
     },
     WETH: {
@@ -1146,7 +1226,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
             outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-WETH-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -1164,7 +1244,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
             outputToken: "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1172,7 +1252,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1181,7 +1261,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 2,
         name: "USDC-WETH LP Farming and staking on Sushi",
         description:
-          "The OptyFi vault supplies WETH to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+          "The OptyFi vault supplies WETH to the USDC-WETH liquidity pool on Sushi and obtains the Sushi USDC-WETH LP token. The vault then stake USDC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI.",
       },
       "weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP": {
         strategyName: "weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP",
@@ -1190,7 +1270,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
             outputToken: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "WBTC-WETH-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -1208,7 +1288,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
             outputToken: "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "WBTC-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1216,7 +1296,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1225,7 +1305,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 2,
         name: "WBTC-WETH LP Farming and staking on Sushi",
         description:
-          "The OptyFi vault supplies WBTC to the WBTC-WETH liquidity pool on Sushi and obtains the Sushi WBTC-WETH LP token. The vault then stake WBTC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+          "The OptyFi vault supplies WBTC to the WBTC-WETH liquidity pool on Sushi and obtains the Sushi WBTC-WETH LP token. The vault then stake WBTC-WETH LP token on sushiswap master chef to claim and harvest $SUSHI.",
       },
     },
     NEWO: {
@@ -1236,7 +1316,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB",
             outputToken: "0xBC9016C379fb218B95Fe3730D5F49F3149E86CAB",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "stkNEWO",
             adapterName: "NewoStakingAdapter",
             protocol: "NewOrder",
@@ -1255,7 +1335,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
             outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "AAVE-WETH-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -1273,7 +1353,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
             outputToken: "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "AAVE-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1281,7 +1361,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1290,7 +1370,7 @@ const mainnetStrategiesByToken = {
         riskProfileCode: 2,
         name: "AAVE-WETH LP Farming and staking on Sushi",
         description:
-          "The OptyFi vault supplies AAVE to the AAVE-WETH liquidity pool on Sushi and obtains the Sushi AAVE-WETH LP token. The vault then stake AAVE-WETH LP token on sushiswap master chef to claim and harvest $SUSHI",
+          "The OptyFi vault supplies AAVE to the AAVE-WETH liquidity pool on Sushi and obtains the Sushi AAVE-WETH LP token. The vault then stake AAVE-WETH LP token on sushiswap master chef to claim and harvest $SUSHI.",
       },
       "aave-DEPOSIT-Compound-cAAVE": {
         strategyName: "aave-DEPOSIT-Compound-cAAVE",
@@ -1299,7 +1379,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
             outputToken: "0xe65cdB6479BaC1e22340E4E755fAE7E509EcD06c",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cAAVE",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -1319,7 +1399,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
             outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "APE-USDT-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1337,7 +1417,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
             outputToken: "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "APE-USDT-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1345,7 +1425,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV2AdapterEthereum",
             protocol: "Sushiswap",
@@ -1365,7 +1445,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
             outputToken: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "SUSHI-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1383,7 +1463,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
             outputToken: "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "SUSHI-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1391,7 +1471,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1409,7 +1489,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7",
             outputToken: "0x4B0181102A0112A2ef11AbEE5563bb4a3176c9d7",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cSUSHI",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -1427,7 +1507,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272",
             outputToken: "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "xSushi",
             adapterName: "SushiBarAdapter",
             protocol: "Sushiswap",
@@ -1444,7 +1524,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272",
             outputToken: "0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "xSushi",
             adapterName: "SushiBarAdapter",
             protocol: "Sushiswap",
@@ -1452,7 +1532,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0xF256CC7847E919FAc9B808cC216cAc87CCF2f47a",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aXSUSHI",
             adapterName: "AaveV2Adapter",
             protocol: "Aave",
@@ -1472,7 +1552,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
             outputToken: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "MANA-WETH-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -1490,7 +1570,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
             outputToken: "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "MANA-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1498,7 +1578,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1516,7 +1596,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
             outputToken: "0x6FCE4A401B6B80ACe52baAefE4421Bd188e76F6f",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aMANA",
             adapterName: "AaveV1Adapter",
             protocol: "Aave",
@@ -1534,7 +1614,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0xa685a61171bb30d4072B338c80Cb7b2c865c873E",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aMANA",
             adapterName: "AaveV2Adapter",
             protocol: "Aave",
@@ -1554,7 +1634,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
             outputToken: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "LINK-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1572,7 +1652,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
             outputToken: "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "LINK-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1580,7 +1660,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1598,7 +1678,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
             outputToken: "0xA64BD6C70Cb9051F6A9ba1F163Fdc07E0DfB5F84",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aLINK",
             adapterName: "AaveV1Adapter",
             protocol: "Aave",
@@ -1616,7 +1696,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0xa06bC25B5805d5F8d82847D191Cb4Af5A3e873E0",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aLINK",
             adapterName: "AaveV2Adapter",
             protocol: "Aave",
@@ -1634,7 +1714,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xFAce851a4921ce59e912d19329929CE6da6EB0c7",
             outputToken: "0xFAce851a4921ce59e912d19329929CE6da6EB0c7",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cLINK",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -1652,15 +1732,15 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0",
             outputToken: "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "linkCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
           },
         ],
         riskProfileCode: 2,
-        name: null,
-        description: null,
+        name: "LINK lending on Curve",
+        description: "The OptyFi vault addd LINK as a liquidity to Curve to earn trading fees.",
       },
       "link-DEPOSIT-Curve-linkCRV-DEPOSIT-Convex-cvxlinkCRV": {
         strategyName: "link-DEPOSIT-Curve-linkCRV-DEPOSIT-Convex-cvxlinkCRV",
@@ -1669,7 +1749,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0",
             outputToken: "0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "linkCRV",
             adapterName: "CurveSwapPoolAdapter",
             protocol: "Curve",
@@ -1677,15 +1757,16 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xD37969740d78C94C648d74671B8BE31eF43c30aB",
             outputToken: "0xD37969740d78C94C648d74671B8BE31eF43c30aB",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cvxlinkCRV",
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
           },
         ],
         riskProfileCode: 2,
-        name: null,
-        description: null,
+        name: "cvxlinkCRV staking on Convex",
+        description:
+          "The OptyFi vault supplies LINK to Curve to obtain linkCRV which is then staked on Convex. The vault earns trading fees and rewards from Convex which are harvested and re-invested into the vault.",
       },
     },
     ENS: {
@@ -1696,7 +1777,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xa1181481bEb2dc5De0DaF2c85392d81C704BF75D",
             outputToken: "0xa1181481bEb2dc5De0DaF2c85392d81C704BF75D",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "ENS-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1714,7 +1795,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xa1181481bEb2dc5De0DaF2c85392d81C704BF75D",
             outputToken: "0xa1181481bEb2dc5De0DaF2c85392d81C704BF75D",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "ENS-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1722,7 +1803,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV2AdapterEthereum",
             protocol: "Sushiswap",
@@ -1740,7 +1821,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x9a14e23A58edf4EFDcB360f68cd1b95ce2081a2F",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aENS",
             adapterName: "AaveV1Adapter",
             protocol: "Aave",
@@ -1760,7 +1841,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x31503dcb60119A812feE820bb7042752019F2355",
             outputToken: "0x31503dcb60119A812feE820bb7042752019F2355",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "COMP-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1778,7 +1859,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x31503dcb60119A812feE820bb7042752019F2355",
             outputToken: "0x31503dcb60119A812feE820bb7042752019F2355",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "COMP-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1786,7 +1867,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1804,7 +1885,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x70e36f6BF80a52b3B46b3aF8e106CC0ed743E8e4",
             outputToken: "0x70e36f6BF80a52b3B46b3aF8e106CC0ed743E8e4",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cCOMP",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -1824,7 +1905,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
             outputToken: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "IMX-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1842,7 +1923,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
             outputToken: "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "IMX-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1850,7 +1931,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV2AdapterEthereum",
             protocol: "Sushiswap",
@@ -1870,7 +1951,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
             outputToken: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "ALCX-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1888,7 +1969,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
             outputToken: "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "ALCX-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1896,7 +1977,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV2AdapterEthereum",
             protocol: "Sushiswap",
@@ -1916,7 +1997,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009",
             outputToken: "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "CRV-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1934,7 +2015,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009",
             outputToken: "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "CRV-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1942,7 +2023,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -1960,7 +2041,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x8dAE6Cb04688C62d939ed9B68d32Bc62e49970b1",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aCRV",
             adapterName: "AaveV2Adapter",
             protocol: "Aave",
@@ -1980,7 +2061,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x05767d9EF41dC40689678fFca0608878fb3dE906",
             outputToken: "0x05767d9EF41dC40689678fFca0608878fb3dE906",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "CVX-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -1998,7 +2079,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x05767d9EF41dC40689678fFca0608878fb3dE906",
             outputToken: "0x05767d9EF41dC40689678fFca0608878fb3dE906",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "CVX-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -2006,7 +2087,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV2AdapterEthereum",
             protocol: "Sushiswap",
@@ -2026,7 +2107,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C",
             outputToken: "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "YFI-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -2044,7 +2125,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C",
             outputToken: "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "YFI-WETH-SLP",
             adapterName: "SushiswapPoolAdapterEthereum",
             protocol: "Sushiswap",
@@ -2052,7 +2133,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd",
             outputToken: "0x0000000000000000000000000000000000000000",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "",
             adapterName: "SushiswapMasterChefV1Adapter",
             protocol: "Sushiswap",
@@ -2070,7 +2151,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x52D306e36E3B6B02c153d0266ff0f85d18BCD413",
             outputToken: "0x5165d24277cD063F5ac44Efd447B27025e888f37",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aYFI",
             adapterName: "AaveV2Adapter",
             protocol: "Aave",
@@ -2088,7 +2169,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8",
             outputToken: "0x12e51E77DAAA58aA0E9247db7510Ea4B46F9bEAd",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aYFI",
             adapterName: "AaveV1Adapter",
             protocol: "Aave",
@@ -2106,7 +2187,7 @@ const mainnetStrategiesByToken = {
           {
             contract: "0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946",
             outputToken: "0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "cYFI",
             adapterName: "CompoundAdapter",
             protocol: "Compound",
@@ -2116,43 +2197,6 @@ const mainnetStrategiesByToken = {
         name: "YFI Lending on Compound",
         description:
           "The OptyFi vault supplies YFI to the lending pool on Compound Protocol to earn interest in YFI and, potentially, additional rewards in COMP tokens. The earned YFI tokens and any harvested COMP rewards are reinvested into the vault.",
-      },
-    },
-  },
-};
-
-const kovanStrategiesByToken = {
-  Earn: {
-    USDC: {
-      "usdc-DEPOSIT-AaveV1-aUSDC": {
-        strategyName: "usdc-DEPOSIT-AaveV1-aUSDC",
-        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-        strategy: [
-          {
-            contract: "0x506B0B2CF20FAA8f38a4E2B524EE43e1f4458Cc5",
-            outputToken: "0x02F626c6ccb6D2ebC071c068DC1f02Bf5693416a",
-            isBorrow: false,
-            outputTokenSymbol: "aUSDC",
-            adapterName: "AaveV1Adapter",
-            protocol: "Aave",
-          },
-        ],
-        riskProfileCode: 1,
-      },
-      "usdc-DEPOSIT-AaveV2-aUSDC": {
-        strategyName: "usdc-DEPOSIT-AaveV2-aUSDC",
-        token: "0xe22da380ee6b445bb8273c81944adeb6e8450422",
-        strategy: [
-          {
-            contract: "0x1E40B561EC587036f9789aF83236f057D1ed2A90",
-            outputToken: "0xe12AFeC5aa12Cf614678f9bFeeB98cA9Bb95b5B0",
-            isBorrow: false,
-            outputTokenSymbol: "aUSDC",
-            adapterName: "AaveV2Adapter",
-            protocol: "Aave",
-          },
-        ],
-        riskProfileCode: 1,
       },
     },
   },
@@ -2168,7 +2212,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
             outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "am3CRV",
             adapterName: "CurveStableSwapAdapter",
             protocol: "Curve",
@@ -2176,7 +2220,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
             outputToken: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "am3CRV-gauge",
             adapterName: "CurveGaugeAdapter",
             protocol: "Curve",
@@ -2193,7 +2237,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
             outputToken: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "amUSDC",
             adapterName: "AaveAdapter",
             protocol: "Aave",
@@ -2211,7 +2255,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x445FE580eF8d70FF569aB36e80c647af338db351",
             outputToken: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "am3CRV",
             adapterName: "CurveStableSwapAdapter",
             protocol: "Curve",
@@ -2219,7 +2263,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
             outputToken: "0xAA7C2879DaF8034722A0977f13c343aF0883E92e",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooCurveAm3CRV",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2236,7 +2280,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
             outputToken: "0x4B1F1e2435A9C96f7330FAea190Ef6A7C8D70001",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-USDT-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -2244,7 +2288,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
             outputToken: "0xB6B89a05ad8228b98d0D8a77e1a695c54500db3b",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooSushiUSDC-USDT",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2261,7 +2305,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
             outputToken: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-DAI-SLP",
             adapterName: "SushiswapPoolAdapter",
             protocol: "Sushiswap",
@@ -2269,7 +2313,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
             outputToken: "0x75424BE5378621AeC2eEF25965f40FeB59039B52",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooSushiUSDC-DAI",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2286,7 +2330,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x2cF7252e74036d1Da831d11089D326296e64a728",
             outputToken: "0x2cF7252e74036d1Da831d11089D326296e64a728",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-USDT-QLP",
             adapterName: "QuickSwapPoolAdapter",
             protocol: "Quickswap",
@@ -2294,7 +2338,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x4462817b53E76b722c2D174D0148ddb81452f1dE",
             outputToken: "0x4462817b53E76b722c2D174D0148ddb81452f1dE",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooQuickUSDC-USDT",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2311,7 +2355,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
             outputToken: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-DAI-QLP",
             adapterName: "QuickSwapPoolAdapter",
             protocol: "Quickswap",
@@ -2319,7 +2363,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x0dFd8c4dd493d8f87Be362878E41537Ca7Ee4d9e",
             outputToken: "0x0dFd8c4dd493d8f87Be362878E41537Ca7Ee4d9e",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooquickUSDC-DAI",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2336,7 +2380,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x160532D2536175d65C03B97b0630A9802c274daD",
             outputToken: "0x160532D2536175d65C03B97b0630A9802c274daD",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-MAI-QLP",
             adapterName: "QuickSwapPoolAdapter",
             protocol: "Quickswap",
@@ -2344,7 +2388,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0xebe0c8d842AA5A57D7BEf8e524dEabA676F91cD1",
             outputToken: "0xebe0c8d842AA5A57D7BEf8e524dEabA676F91cD1",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooMaiUSDC-miMATIC",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2361,7 +2405,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
             outputToken: "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "USDC-DAI-ALP",
             adapterName: "ApeSwapPoolAdapter",
             protocol: "Apeswap",
@@ -2369,7 +2413,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x8440DAe4E1002e83D57fbFD6d33E6F3684a35036",
             outputToken: "0x8440DAe4E1002e83D57fbFD6d33E6F3684a35036",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "mooApeSwapUSDC-DAI",
             adapterName: "BeefyFinanceAdapter",
             protocol: "Beefy",
@@ -2378,6 +2422,40 @@ const polygonStrategiesbyToken = {
         riskProfileCode: 1,
         name: null,
         description: null,
+      },
+      "usdc-DEPOSIT-Sushiswap-DAI": {
+        strategyName: "usdc-DEPOSIT-Sushiswap-DAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0xCD578F016888B57F1b1e3f887f392F0159E26747",
+            outputToken: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+            isSwap: true,
+            outputTokenSymbol: "DAI",
+            adapterName: "SushiswapExchangeAdapterPolygon",
+            protocol: "Sushiswap",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "",
+        description: "",
+      },
+      "usdc-DEPOSIT-Quickswap-DAI": {
+        strategyName: "usdc-DEPOSIT-Quickswap-DAI",
+        token: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        strategy: [
+          {
+            contract: "0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd",
+            outputToken: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+            isSwap: true,
+            outputTokenSymbol: "DAI",
+            adapterName: "QuickswapExchangeAdapterEthereum",
+            protocol: "Quickswap",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "",
+        description: "",
       },
     },
     WMATIC: {
@@ -2388,7 +2466,7 @@ const polygonStrategiesbyToken = {
           {
             contract: "0x3ac4e9aa29940770aeC38fe853a4bbabb2dA9C19",
             outputToken: "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "amWMATIC",
             adapterName: "AaveAdapter",
             protocol: "Aave",
@@ -2412,7 +2490,7 @@ const mumbaiStrategiesbyToken = {
           {
             contract: "0xE6ef11C967898F9525D550014FDEdCFAB63536B5",
             outputToken: "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "amUSDC",
             adapterName: "AaveAdapter",
             protocol: "Aave",
@@ -2434,7 +2512,7 @@ const avalancheStrategiesbyToken = {
           {
             contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
             outputToken: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aAvaUSDC",
             adapterName: "AaveV3AvalancheAdapter",
             protocol: "AaveV3",
@@ -2451,7 +2529,7 @@ const avalancheStrategiesbyToken = {
           {
             contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
             outputToken: "0xDFE521292EcE2A4f44242efBcD66Bc594CA9714B",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "avWAVAX",
             adapterName: "AaveV2AvalancheAdapter",
             protocol: "AaveV2",
@@ -2466,7 +2544,7 @@ const avalancheStrategiesbyToken = {
           {
             contract: "0x770ef9f4fe897e59daCc474EF11238303F9552b6",
             outputToken: "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "aAvaWAVAX",
             adapterName: "AaveV3AvalancheAdapter",
             protocol: "AaveV3",
@@ -2483,7 +2561,7 @@ const avalancheStrategiesbyToken = {
           {
             contract: "0x4235E22d9C3f28DCDA82b58276cb6370B01265C2",
             outputToken: "0x46A51127C3ce23fb7AB1DE06226147F446e4a857",
-            isBorrow: false,
+            isSwap: false,
             outputTokenSymbol: "avUSDC",
             adapterName: "AaveV2AvalancheAdapter",
             protocol: "AaveV2",
@@ -2499,9 +2577,6 @@ export const StrategiesByTokenByChain: StrategiesByRiskProfileByTokenByChainType
   [eEVMNetwork.mainnet]: mainnetStrategiesByToken,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: mainnetStrategiesByToken,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]]: mainnetStrategiesByToken,
-  [eEVMNetwork.kovan]: kovanStrategiesByToken,
-  [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanStrategiesByToken,
-  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanStrategiesByToken,
   [eEVMNetwork.polygon]: polygonStrategiesbyToken,
   [NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: polygonStrategiesbyToken,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]]: polygonStrategiesbyToken,
@@ -2842,21 +2917,6 @@ const mainnetVaults: VaultType = {
   },
 };
 
-const kovanVaults: VaultType = {
-  Intermediate: {
-    USDC: {
-      symbol: "opAVUSDC-Int",
-      name: "OptyFi AVUSDC Intermediate Vault",
-      underlyingToken: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.address,
-      underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.kovan.USDC.hash,
-      vaultConfig: vaultConfigRP1,
-      userDepositCapUT: BigNumber.from(ethers.constants.MaxUint256),
-      minimumDepositValueUT: BigNumber.from("0"),
-      totalValueLockedLimitUT: BigNumber.from(ethers.constants.MaxUint256),
-    },
-  },
-};
-
 const polygonVaults: VaultType = {
   Earn: {
     USDC: {
@@ -2939,9 +2999,6 @@ export const MultiChainVaults: MultiChainVaultsType = {
   [eEVMNetwork.mainnet]: mainnetVaults,
   [NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: mainnetVaults,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.mainnet]]: mainnetVaults,
-  [eEVMNetwork.kovan]: kovanVaults,
-  [NETWORKS_CHAIN_ID[eEVMNetwork.kovan]]: kovanVaults,
-  [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.kovan]]: kovanVaults,
   [eEVMNetwork.polygon]: polygonVaults,
   [NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: polygonVaults,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.polygon]]: polygonVaults,

@@ -59,7 +59,7 @@ contract Vault is
     /**
      * @dev The version of the Vault implementation
      */
-    uint256 public constant opTOKEN_REVISION = 0x5;
+    uint256 public constant opTOKEN_REVISION = 0x6;
 
     /**
      * @dev hash of the permit function
@@ -255,7 +255,7 @@ contract Vault is
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
         for (uint256 _i; _i < _tokens.length; _i++) {
-            _tokens[_i].approve(_spenders[_i], uint256(-1));
+            _tokens[_i].safeApprove(_spenders[_i], uint256(-1));
         }
     }
 
@@ -270,7 +270,7 @@ contract Vault is
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
         for (uint256 _i; _i < _tokens.length; _i++) {
-            _tokens[_i].approve(_spenders[_i], 0);
+            _tokens[_i].safeApprove(_spenders[_i], 0);
         }
     }
 
@@ -280,14 +280,13 @@ contract Vault is
     function userDepositVault(
         address _beneficiary,
         uint256 _userDepositUT,
-        uint256 _expectedOutput,
         bytes calldata _permitParams,
         bytes32[] calldata _accountsProof
     ) external override nonReentrant returns (uint256) {
         _checkVaultDeposit();
         _emergencyBrake(true);
         _permit(_permitParams);
-        return _depositVaultFor(_beneficiary, false, _userDepositUT, _expectedOutput, _accountsProof);
+        return _depositVaultFor(_beneficiary, false, _userDepositUT, _accountsProof);
     }
 
     /**
@@ -646,8 +645,6 @@ contract Vault is
      * @param _addUserDepositUT whether to add _userDepositUT while
      *         checking for TVL limit reached.
      * @param _userDepositUT amount to deposit in underlying token
-     * @param _expectedOutput The minimum amount of vault tokens that must be
-     *         minted for the transaction not to revert.
      * @param _accountsProof merkle proof for caller
      *        required only if whitelisted state is true
      */
@@ -655,7 +652,6 @@ contract Vault is
         address _beneficiary,
         bool _addUserDepositUT,
         uint256 _userDepositUT,
-        uint256 _expectedOutput,
         bytes32[] calldata _accountsProof
     ) internal returns (uint256) {
         // check vault + strategy balance (in UT) before user token transfer
@@ -684,7 +680,6 @@ contract Vault is
         } else {
             _mintAmount = (_netUserDepositUT.mul(totalSupply())).div(_oraVaultAndStratValuePreDepositUT);
         }
-        require(_mintAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
         _mint(_beneficiary, _mintAmount);
 
         return _mintAmount;
@@ -783,8 +778,6 @@ contract Vault is
             IERC20(underlyingToken).safeTransfer(address(uint160(vaultConfiguration >> 80)), _withdrawFeeUT);
         }
         uint256 _withdrawAmount = _oraUserWithdrawUT.sub(_withdrawFeeUT);
-
-        require(_withdrawAmount >= _expectedOutput, Errors.INSUFFICIENT_OUTPUT_AMOUNT);
 
         IERC20(underlyingToken).safeTransfer(_receiver, _withdrawAmount);
         return _withdrawAmount;

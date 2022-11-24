@@ -2,14 +2,10 @@ import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import sushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
 import { getAddress } from "ethers/lib/utils";
 import { waitforme } from "../helpers/utils";
-import {
-  Registry,
-  Registry__factory,
-  SushiswapPoolAdapterEthereum,
-  SushiswapPoolAdapterEthereum__factory,
-} from "../typechain";
+import { Registry, Registry__factory, UniswapV2PoolAdapter, UniswapV2PoolAdapter__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -24,7 +20,7 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("SushiswapPoolAdapterEthereum");
+  const artifact = await deployments.getArtifact("UniswapV2PoolAdapter");
   const registryProxyAddress = await (await deployments.get("RegistryProxy")).address;
   const optyfiOracleAddress = await (await deployments.get("OptyFiOracle")).address;
 
@@ -38,7 +34,13 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress, optyfiOracleAddress],
+    args: [
+      registryProxyAddress,
+      optyfiOracleAddress,
+      sushiswap.SushiswapRouter.address,
+      sushiswap.SushiswapFactory.address,
+      sushiswap.rootKFactor,
+    ],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -52,7 +54,13 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "SushiswapPoolAdapterEthereum",
           address: sushiswapPoolAdapterEthereum.address,
-          constructorArguments: [registryProxyAddress, optyfiOracleAddress],
+          constructorArguments: [
+            registryProxyAddress,
+            optyfiOracleAddress,
+            sushiswap.SushiswapRouter.address,
+            sushiswap.SushiswapFactory.address,
+            sushiswap.rootKFactor,
+          ],
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
@@ -60,60 +68,30 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "SushiswapPoolAdapterEthereum",
           address: sushiswapPoolAdapterEthereum.address,
-          constructorArguments: [registryProxyAddress, optyfiOracleAddress],
+          constructorArguments: [
+            registryProxyAddress,
+            optyfiOracleAddress,
+            sushiswap.SushiswapRouter.address,
+            sushiswap.SushiswapFactory.address,
+            sushiswap.rootKFactor,
+          ],
         });
       }
     }
   }
   const sushiswapPoolAdapterEthereumAddress = await (await deployments.get("SushiswapPoolAdapterEthereum")).address;
-  const sushiswapPoolAdapterEthereumInstance = <SushiswapPoolAdapterEthereum>(
-    await ethers.getContractAt(SushiswapPoolAdapterEthereum__factory.abi, sushiswapPoolAdapterEthereumAddress)
+  const sushiswapPoolAdapterEthereumInstance = <UniswapV2PoolAdapter>(
+    await ethers.getContractAt(UniswapV2PoolAdapter__factory.abi, sushiswapPoolAdapterEthereumAddress)
   );
   const registryProxyInstance = <Registry>await ethers.getContractAt(Registry__factory.abi, registryProxyAddress);
   const riskOperator = await registryProxyInstance.riskOperator();
   const riskOperatorSigner = await ethers.getSigner(riskOperator);
 
-  const APE = "0x4d224452801ACEd8B2F0aebE155379bb5D594381";
-  const ENS = "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72";
-  const IMX = "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF";
-  const YGG = "0x25f8087EAD173b73D6e8B84329989A8eEA16CF73";
-  const ALCX = "0xdBdb4d16EdA451D0503b854CF79D55697F90c8DF";
-  const CVX = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
-  const MANA = "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942";
-  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
-  const AAVE_WETH_LP = "0xD75EA151a61d06868E31F8988D28DFE5E9df57B4";
-  const APE_USDT_LP = "0xB27C7b131Cf4915BeC6c4Bc1ce2F33f9EE434b9f";
-  const SUSHI_WETH_LP = "0x795065dCc9f64b5614C407a6EFDC400DA6221FB0";
-  const MANA_WETH_LP = "0x1bEC4db6c3Bc499F3DbF289F5499C30d541FEc97";
-  const LINK_WETH_LP = "0xC40D16476380e4037e6b1A2594cAF6a6cc8Da967";
-  const ENS_WETH_LP = "0xa1181481bEb2dc5De0DaF2c85392d81C704BF75D";
-  const COMP_WETH_LP = "0x31503dcb60119A812feE820bb7042752019F2355";
-  const IMX_WETH_LP = "0x18Cd890F4e23422DC4aa8C2D6E0Bd3F3bD8873d8";
-  const LDO_WETH_LP = "0xC558F600B34A5f69dD2f0D06Cb8A88d829B7420a";
-  const YGG_WETH_LP = "0x99B42F2B49C395D2a77D973f6009aBb5d67dA343";
-  const ALCX_WETH_LP = "0xC3f279090a47e80990Fe3a9c30d24Cb117EF91a8";
-  const CRV_WETH_LP = "0x58Dc5a51fE44589BEb22E8CE67720B5BC5378009";
-  const CVX_WETH_LP = "0x05767d9EF41dC40689678fFca0608878fb3dE906";
-  const YFI_WETH_LP = "0x088ee5007C98a9677165D78dD2109AE4a3D04d0C";
   const USDC_WETH_LP = "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0";
   const WBTC_WETH_LP = "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58";
 
   const liquidityPoolToTolerances = [
-    { liquidityPool: AAVE_WETH_LP, tolerance: "50" },
-    { liquidityPool: APE_USDT_LP, tolerance: "150" },
-    { liquidityPool: SUSHI_WETH_LP, tolerance: "100" },
-    { liquidityPool: MANA_WETH_LP, tolerance: "150" },
-    { liquidityPool: LINK_WETH_LP, tolerance: "50" },
-    { liquidityPool: ENS_WETH_LP, tolerance: "200" },
-    { liquidityPool: COMP_WETH_LP, tolerance: "150" },
-    { liquidityPool: IMX_WETH_LP, tolerance: "150" },
-    { liquidityPool: LDO_WETH_LP, tolerance: "100" },
-    { liquidityPool: YGG_WETH_LP, tolerance: "100" },
-    { liquidityPool: ALCX_WETH_LP, tolerance: "90" },
-    { liquidityPool: CRV_WETH_LP, tolerance: "50" },
-    { liquidityPool: CVX_WETH_LP, tolerance: "200" },
-    { liquidityPool: YFI_WETH_LP, tolerance: "150" },
-    { liquidityPool: USDC_WETH_LP, tolerance: "50" },
+    { liquidityPool: USDC_WETH_LP, tolerance: "100" },
     { liquidityPool: WBTC_WETH_LP, tolerance: "50" },
   ];
   const pendingLiquidityPoolToTolerances = [];
@@ -142,36 +120,10 @@ const func: DeployFunction = async ({
   }
 
   const liquidityPoolToWantTokenToSlippages = [
-    { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.AAVE, slippage: "100" },
-    { liquidityPool: AAVE_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
-    { liquidityPool: APE_USDT_LP, wantToken: APE, slippage: "150" },
-    { liquidityPool: APE_USDT_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDT, slippage: "50" },
-    { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: SUSHI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.SUSHI, slippage: "150" },
-    { liquidityPool: MANA_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "200" },
-    { liquidityPool: MANA_WETH_LP, wantToken: MANA, slippage: "90" },
-    { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.LINK, slippage: "70" },
-    { liquidityPool: LINK_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: ENS_WETH_LP, wantToken: ENS, slippage: "200" },
-    { liquidityPool: ENS_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: COMP_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.COMP, slippage: "150" },
-    { liquidityPool: IMX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
-    { liquidityPool: IMX_WETH_LP, wantToken: IMX, slippage: "150" },
-    { liquidityPool: YGG_WETH_LP, wantToken: YGG, slippage: "100" },
-    { liquidityPool: YGG_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
-    { liquidityPool: ALCX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
-    { liquidityPool: ALCX_WETH_LP, wantToken: ALCX, slippage: "90" },
-    { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "50" },
-    { liquidityPool: CRV_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.CRV, slippage: "150" },
-    { liquidityPool: CVX_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "150" },
-    { liquidityPool: CVX_WETH_LP, wantToken: CVX, slippage: "90" },
-    { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
-    { liquidityPool: YFI_WETH_LP, wantToken: ethereumTokens.REWARD_TOKENS.YFI, slippage: "150" },
     { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
     { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
     { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
-    { liquidityPool: WBTC_WETH_LP, wantToken: WBTC, slippage: "70" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.BTC_TOKENS.WBTC, slippage: "70" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {
