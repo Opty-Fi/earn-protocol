@@ -5,9 +5,9 @@ actions:
     runtime: v1
     sources: tenderly-actions
     specs:
-      block-number-printer:
-        description: Example Web3 Action that logs block number once it is mined.
-        function: example:blockHelloWorldFn
+      rebalancer:
+        description: Performs rebalance if current strategy is not best strategy.
+        function: switch-strategy:rebalanceFn
         trigger:
           type: block
           block:
