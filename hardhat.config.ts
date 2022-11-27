@@ -183,6 +183,11 @@ const config: HardhatUserConfig = {
       eEVMNetwork.tenderly,
       NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
     ),
+    ftm: getCommonNetworkConfig(
+      NETWORKS_RPC_URL[eEVMNetwork.ftm],
+      eEVMNetwork.ftm,
+      NETWORKS_CHAIN_ID[NETWORK_NAME as eEVMNetwork],
+    ),
     hardhat: {
       hardfork: "merge",
       initialBaseFeePerGas: 1_00_000_000,
