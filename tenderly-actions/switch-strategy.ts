@@ -1,6 +1,6 @@
 import { ActionFn, Context, Event } from "@tenderly/actions";
 import axios from "axios";
-import { BigNumber, ContractReceipt, ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
 import Safe from "@gnosis.pm/safe-core-sdk";
 import { MetaTransactionData, EthAdapter } from "@gnosis.pm/safe-core-sdk-types";
@@ -52,7 +52,7 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
         await opUSDCInvstInstance.underlyingTokensHash(),
         opUSDCInvstInfo.data.best_strategy.steps.map((x: any) => ({
           pool: x.pool_address,
-          outputToken: x.output_token_address,
+          outputToken: x.output_token_address === null ? ethers.constants.AddressZero : x.output_token_address,
           isSwap: x.is_borrow,
         })),
       ]),
@@ -73,7 +73,7 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
         await opWETHInvstInstance.underlyingTokensHash(),
         opWETHInvstInfo.data.best_strategy.steps.map((x: any) => ({
           pool: x.pool_address,
-          outputToken: x.output_token_address,
+          outputToken: x.output_token_address === null ? ethers.constants.AddressZero : x.output_token_address,
           isSwap: x.is_borrow,
         })),
       ]),
@@ -88,30 +88,16 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
   if (transactions.length > 0) {
     try {
       const safeTransaction = await safeSdk.createTransaction(transactions);
-      const estimatedGasLimit = await provider.estimateGas({
-        to: strategyOperatorMultisig,
-        data: safeTransaction.data.data,
-        value: "0",
-      });
       let feeData = await provider.getFeeData();
       const tx = await safeSdk.executeTransaction(safeTransaction, {
-        gasLimit: estimatedGasLimit.mul("11000").div("10000").toString(), // 10% more gas limit than estimate
         maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]).toString(), // Recommended maxPriorityFeePerGas
         maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]).toString(),
       });
-      const txR = <ContractReceipt>await tx.transactionResponse?.wait(1);
-      let postData;
-      if (txR.status === 1) {
-        // success
-        postData = JSON.stringify({
-          text: `Successful rebalance https://etherscan.io/tx/${txR.transactionHash}`,
-        });
-      } else {
-        // failed
-        postData = JSON.stringify({
-          text: `Failed rebalance https://etherscan.io/tx/${txR.transactionHash}`,
-        });
-      }
+      const hash = tx.transactionResponse?.hash;
+      await context.storage.putJson("pendingTx", { hash });
+      const postData = JSON.stringify({
+        text: `Rebalance tx : https://etherscan.io/tx/${hash}`,
+      });
       await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +109,7 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
         JSON.stringify({
           text: `${await context.secrets.get("DHRUVIN_SLACK_MEMBER_ID")} ${await context.secrets.get(
             "FAISAL_SLACK_MEMBER_ID",
-          )} The rebalance errored`,
+          )} The rebalance errored ${error}`,
         }),
         {
           headers: {
