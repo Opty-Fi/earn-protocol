@@ -99,7 +99,10 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
         text: "Rebalance transaction pending",
         blocks: {
           type: "section",
-          text: `https://etherscan.io/tx/${hash}`,
+          text: {
+            type: "mrkdwn",
+            text: `https://etherscan.io/tx/${hash}`,
+          },
         },
       });
       await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {

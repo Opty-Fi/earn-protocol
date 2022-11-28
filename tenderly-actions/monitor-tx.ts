@@ -12,7 +12,7 @@ export const monitorFn: ActionFn = async (context: Context, event: Event) => {
     if (resolvedTx.hash !== pendingTx.hash) {
       const txReceipt = await provider.getTransactionReceipt(pendingTx.hash);
       if (txReceipt) {
-        await context.storage.putJson("resolvedTx", { hash: pendingTx });
+        await context.storage.putJson("resolvedTx", { hash: pendingTx.hash });
         let postData;
         if (txReceipt.status === 1) {
           postData = JSON.stringify({
