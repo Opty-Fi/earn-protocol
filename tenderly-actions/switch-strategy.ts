@@ -96,7 +96,11 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
       const hash = tx.transactionResponse?.hash;
       await context.storage.putJson("pendingTx", { hash });
       const postData = JSON.stringify({
-        text: `Rebalance tx : https://etherscan.io/tx/${hash}`,
+        text: "Rebalance transaction pending",
+        blocks: {
+          type: "section",
+          text: `https://etherscan.io/tx/${hash}`,
+        },
       });
       await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {
         headers: {
@@ -109,7 +113,7 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
         JSON.stringify({
           text: `${await context.secrets.get("DHRUVIN_SLACK_MEMBER_ID")} ${await context.secrets.get(
             "FAISAL_SLACK_MEMBER_ID",
-          )} The rebalance errored ${error}`,
+          )} The rebalance script errored ${error}`,
         }),
         {
           headers: {

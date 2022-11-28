@@ -136,9 +136,9 @@ async function main() {
   const sushiBalanceForopUSDCInvst = await sushiInstance.balanceOf(opUSDCInvst.address);
   const sushiBalanceForopWETHInvst = await sushiInstance.balanceOf(opWETHInvst.address);
 
-  const oneCRVToUSDC = parseUnits("0.684784", "6"); // crv - usdc
+  const oneCRVToUSDC = parseUnits("0.63", "6"); // crv - usdc
   const oneCVXToUSDC = parseUnits("3.9", "6");
-  const oneLDOToWETH = parseEther("0.000974892");
+  const oneLDOToWETH = parseEther("0.00091");
   const oneSUSHIToUSDC = parseUnits("1", "6");
   const oneSUSHIToWETH = parseEther("0.001"); // sushi-dai-weth
 
@@ -247,12 +247,14 @@ async function main() {
     //   value: "0",
     //   data: opUSDCEarn.interface.encodeFunctionData("harvest", [
     //     EthereumTokens.REWARD_TOKENS.CVX,
-    //    uniswapV3Router,
+    //     uniswapV3Router,
     //     true,
     //     expectedMInUSDCFromCVXForopUSDCEarn,
     //     BigNumber.from(timestamp).add("600"),
-    //   [/*EthereumTokens.REWARD_TOKENS.CVX, EthereumTokens.PLAIN_TOKENS.USDC*/],
-    //   uniV3SwapPathForCVXtoUSDC,
+    //     [
+    //       /*EthereumTokens.REWARD_TOKENS.CVX, EthereumTokens.PLAIN_TOKENS.USDC*/
+    //     ],
+    //     uniV3SwapPathForCVXtoUSDC,
     //   ]),
     // },
     // ----
@@ -302,7 +304,7 @@ async function main() {
                     .add(usdcBalanceForopUSD3Earn),
                   0,
                 ],
-                "11000000000000000000",
+                "17000000000000000000",
               ]),
             ],
           ),
@@ -310,7 +312,7 @@ async function main() {
       ]),
     },
     // ----
-    // harvest CVX for opWETHEarn
+    // // harvest CVX for opWETHEarn
     // // harvest LDO for opWETHEarn
     // {
     //   to: opWETHEarn.address,

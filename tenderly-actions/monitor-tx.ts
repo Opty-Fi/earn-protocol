@@ -16,11 +16,31 @@ export const monitorFn: ActionFn = async (context: Context, event: Event) => {
         let postData;
         if (txReceipt.status === 1) {
           postData = JSON.stringify({
-            text: `Successful Rebalance tx : https://etherscan.io/tx/${pendingTx.hash}`,
+            text: "Rebalance transaction resolved",
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `Successful Rebalance tx : https://etherscan.io/tx/${pendingTx.hash}`,
+                },
+              },
+            ],
           });
         } else {
           postData = JSON.stringify({
-            text: `Failed Rebalance tx : https://etherscan.io/tx/${pendingTx.hash}`,
+            text: "Rebalance transaction resolved",
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `${await context.secrets.get("DHRUVIN_SLACK_MEMBER_ID")} ${await context.secrets.get(
+                    "FAISAL_SLACK_MEMBER_ID",
+                  )} Failed Rebalance tx : https://etherscan.io/tx/${pendingTx.hash}`,
+                },
+              },
+            ],
           });
         }
         await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {
