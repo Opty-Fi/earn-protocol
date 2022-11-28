@@ -97,13 +97,15 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
       await context.storage.putJson("pendingTx", { hash });
       const postData = JSON.stringify({
         text: "Rebalance transaction pending",
-        blocks: {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `https://etherscan.io/tx/${hash}`,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `Rebalance transaction pending https://etherscan.io/tx/${hash}`,
+            },
           },
-        },
+        ],
       });
       await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {
         headers: {
