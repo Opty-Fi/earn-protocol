@@ -9,11 +9,9 @@ actions:
         description: Performs rebalance if current strategy is not best strategy.
         function: switch-strategy:rebalanceFn
         trigger:
-          type: block
-          block:
-            network:
-            - 1
-            blocks: 300
+          type: webhook
+          webhook:
+           authenticated: true
       polling:
         description : Monitors the rebalance transaction until it gets mined
         function: monitor-tx:monitorFn

@@ -4,6 +4,7 @@ import { BigNumber, ethers } from "ethers";
 import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
 import Safe from "@gnosis.pm/safe-core-sdk";
 import { MetaTransactionData, EthAdapter } from "@gnosis.pm/safe-core-sdk-types";
+import _ from "lodash";
 import VaultAbi from "./Vault.json";
 import StrategyProviderAbi from "./StrategyProvider.json";
 
@@ -87,31 +88,35 @@ export const rebalanceFn: ActionFn = async (context: Context, event: Event) => {
 
   if (transactions.length > 0) {
     try {
-      const safeTransaction = await safeSdk.createTransaction(transactions);
-      let feeData = await provider.getFeeData();
-      const tx = await safeSdk.executeTransaction(safeTransaction, {
-        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]).toString(), // Recommended maxPriorityFeePerGas
-        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]).toString(),
-      });
-      const hash = tx.transactionResponse?.hash;
-      await context.storage.putJson("pendingTx", { hash });
-      const postData = JSON.stringify({
-        text: "Rebalance transaction pending",
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `Rebalance transaction pending https://etherscan.io/tx/${hash}`,
+      const pendingTx = await context.storage.getJson("pendingTx");
+      const resolvedTx = await context.storage.getJson("resolvedTx");
+      if (_.isEmpty(pendingTx) || pendingTx.hash === resolvedTx.hash) {
+        const safeTransaction = await safeSdk.createTransaction(transactions);
+        let feeData = await provider.getFeeData();
+        const tx = await safeSdk.executeTransaction(safeTransaction, {
+          maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]).toString(), // Recommended maxPriorityFeePerGas
+          maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]).toString(),
+        });
+        const hash = tx.transactionResponse?.hash;
+        await context.storage.putJson("pendingTx", { hash });
+        const postData = JSON.stringify({
+          text: "Rebalance transaction pending",
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `Rebalance transaction pending https://etherscan.io/tx/${hash}`,
+              },
             },
+          ],
+        });
+        await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {
+          headers: {
+            "Content-Type": "application/json",
           },
-        ],
-      });
-      await axios.post(await context.secrets.get("SLACK_WEBHOOK_URL"), postData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        });
+      }
     } catch (error: any) {
       await axios.post(
         await context.secrets.get("SLACK_WEBHOOK_URL"),
