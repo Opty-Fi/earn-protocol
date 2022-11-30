@@ -49,4 +49,8 @@ contract TestVault {
         uint256 _depositFee = _vault.calcDepositFeeUT(_valueUT);
         return _vault.userDepositPermitted(address(this), true, _valueUT.sub(_depositFee), _depositFee, _accountsProof);
     }
+
+    function pureFunctionUint256(uint256 _arg) external pure returns (uint256) {
+        return _arg;
+    }
 }

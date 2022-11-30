@@ -4,6 +4,8 @@ pragma solidity ^0.6.12;
 
 import "./CommandBuilder.sol";
 
+import "hardhat/console.sol";
+
 abstract contract VM {
     using CommandBuilder for bytes[];
 
@@ -84,6 +86,74 @@ abstract contract VM {
                         bytes32(uint256(indices << 8) | CommandBuilder.IDX_END_OF_ARGS)
                     )
                 );
+            } else {
+                revert("Invalid calltype");
+            }
+
+            if (!success) {
+                if (outdata.length > 0) {
+                    assembly {
+                        outdata := add(outdata, 68)
+                    }
+                }
+                revert(
+                    string(
+                        abi.encodePacked(
+                            "Execution Failed : command_index=",
+                            string("0"),
+                            ", target=",
+                            address(uint160(uint256(command))),
+                            ", message=",
+                            outdata.length > 0 ? string(outdata) : "Unknown"
+                        )
+                    )
+                );
+            }
+
+            if (flags & FLAG_TUPLE_RETURN != 0) {
+                state.writeTuple(bytes1(command << 88), outdata);
+            } else {
+                state = state.writeOutputs(bytes1(command << 88), outdata);
+            }
+            ++i;
+        }
+        return state;
+    }
+
+    function _readExecute(bytes32[] memory commands, bytes[] memory state) internal view returns (bytes[] memory) {
+        bytes32 command;
+        uint256 flags;
+        bytes32 indices;
+
+        bool success;
+        bytes memory outdata;
+
+        uint256 commandsLength = commands.length;
+        for (uint256 i; i < commandsLength; ) {
+            command = commands[i];
+            flags = uint256(uint8(bytes1(command << 32)));
+
+            if (flags & FLAG_EXTENDED_COMMAND != 0) {
+                indices = commands[i++];
+            } else {
+                indices = bytes32(uint256(command << 40) | SHORT_COMMAND_FILL);
+            }
+
+            if (flags & FLAG_CT_MASK == FLAG_CT_DELEGATECALL) {
+                revert("FLAG_CT_DELEGATECALL");
+            } else if (flags & FLAG_CT_MASK == FLAG_CT_CALL) {
+                revert("FLAG_CT_CALL");
+            } else if (flags & FLAG_CT_MASK == FLAG_CT_STATICCALL) {
+                (success, outdata) = address(uint160(uint256(command))).staticcall( // target
+                    // inputs
+                    state.buildInputs(
+                        //selector
+                        bytes4(command),
+                        indices
+                    )
+                );
+            } else if (flags & FLAG_CT_MASK == FLAG_CT_VALUECALL) {
+                revert("FLAG_CT_VALUECALL");
             } else {
                 revert("Invalid calltype");
             }
