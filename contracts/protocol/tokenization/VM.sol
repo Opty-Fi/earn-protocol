@@ -4,8 +4,6 @@ pragma solidity ^0.6.12;
 
 import "./CommandBuilder.sol";
 
-import "hardhat/console.sol";
-
 abstract contract VM {
     using CommandBuilder for bytes[];
 

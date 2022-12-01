@@ -10,8 +10,6 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Constants } from "../../utils/Constants.sol";
 
-import "hardhat/console.sol";
-
 contract VaultWeiroll is VM, ERC20 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -22,18 +20,25 @@ contract VaultWeiroll is VM, ERC20 {
     }
 
     Inputs internal _oraValueUT;
+    Inputs internal _oraValueLP;
     Inputs internal _lastStepBalanceLP;
     Inputs internal _depositToStrategy;
+    Inputs internal _withdrawSomeFromStrategy;
+    Inputs internal _withdrawAllFromStrategy;
 
-    ERC20 public underlyingToken;
+    uint256 internal _cacheOraAmountLP;
+    uint256 internal _cacheExpectedStratWithdrawUT;
+
+    IERC20 public underlyingToken;
 
     constructor(
-        ERC20 _underlyingToken,
+        IERC20 _underlyingToken,
+        uint8 _decimals,
         string memory _name,
         string memory _symbol
     ) public ERC20(_name, _symbol) {
         underlyingToken = _underlyingToken;
-        _setupDecimals(underlyingToken.decimals());
+        _setupDecimals(_decimals);
     }
 
     function setOraValueUT(bytes32[] calldata commands, bytes[] memory state) external {
@@ -48,6 +53,21 @@ contract VaultWeiroll is VM, ERC20 {
         _oraValueUT.state = new bytes[](_sLen);
         for (uint256 _i; _i < _sLen; _i++) {
             _oraValueUT.state[_i] = state[_i];
+        }
+    }
+
+    function setOraValueLP(bytes32[] calldata commands, bytes[] memory state) external {
+        delete _oraValueLP.commands;
+        delete _oraValueLP.state;
+        uint256 _cLen = commands.length;
+        uint256 _sLen = state.length;
+        _oraValueLP.commands = new bytes32[](_cLen);
+        for (uint256 _i; _i < _cLen; _i++) {
+            _oraValueLP.commands[_i] = commands[_i];
+        }
+        _oraValueLP.state = new bytes[](_sLen);
+        for (uint256 _i; _i < _sLen; _i++) {
+            _oraValueLP.state[_i] = state[_i];
         }
     }
 
@@ -81,10 +101,39 @@ contract VaultWeiroll is VM, ERC20 {
         }
     }
 
+    function setWithdrawSomeFromStrategy(bytes32[] calldata commands, bytes[] memory state) external {
+        delete _withdrawSomeFromStrategy.commands;
+        delete _withdrawSomeFromStrategy.state;
+        uint256 _cLen = commands.length;
+        uint256 _sLen = state.length;
+        _withdrawSomeFromStrategy.commands = new bytes32[](_cLen);
+        for (uint256 _i; _i < _cLen; _i++) {
+            _withdrawSomeFromStrategy.commands[_i] = commands[_i];
+        }
+        _withdrawSomeFromStrategy.state = new bytes[](_sLen);
+        for (uint256 _i; _i < _sLen; _i++) {
+            _withdrawSomeFromStrategy.state[_i] = state[_i];
+        }
+    }
+
+    function setWithdrawAllFromStrategy(bytes32[] calldata commands, bytes[] memory state) external {
+        delete _withdrawAllFromStrategy.commands;
+        delete _withdrawAllFromStrategy.state;
+        uint256 _cLen = commands.length;
+        uint256 _sLen = state.length;
+        _withdrawAllFromStrategy.commands = new bytes32[](_cLen);
+        for (uint256 _i; _i < _cLen; _i++) {
+            _withdrawAllFromStrategy.commands[_i] = commands[_i];
+        }
+        _withdrawAllFromStrategy.state = new bytes[](_sLen);
+        for (uint256 _i; _i < _sLen; _i++) {
+            _withdrawAllFromStrategy.state[_i] = state[_i];
+        }
+    }
+
     function userDepositVault(uint256 _amount) external {
-        underlyingToken.transferFrom(msg.sender, address(this), _amount);
-        bytes[] memory _ut = _readExecute(_oraValueUT.commands, _oraValueUT.state);
-        uint256 _oraVaultAndStratValuePreDepositUT = abi.decode(_ut[0], (uint256));
+        uint256 _oraVaultAndStratValuePreDepositUT = _oraVaultAndStratValueUT();
+        underlyingToken.safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _mintAmount;
         if (_oraVaultAndStratValuePreDepositUT == 0 || totalSupply() == 0) {
             _mintAmount = _amount;
@@ -94,42 +143,67 @@ contract VaultWeiroll is VM, ERC20 {
         _mint(msg.sender, _mintAmount);
     }
 
-    function readFn() external view returns (uint256) {
-        bytes[] memory _c = _readExecute(_oraValueUT.commands, _oraValueUT.state);
-        uint256 _cLen = _c.length;
-        console.log("_c length ", _cLen);
-        for (uint256 _i; _i < _cLen; _i++) {
-            console.log("_i=", _i);
-            console.logBytes(_c[_i]);
+    function userWithdrawVault(uint256 _amount) external {
+        uint256 _oraUserWithdrawUT = _amount.mul(_oraVaultAndStratValueUT()).div(totalSupply());
+        _burn(msg.sender, _amount);
+        uint256 _vaultValuePreStratWithdrawUT = balanceUT();
+        // if vault does not have sufficient UT, we need to withdraw from strategy
+        if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
+            // withdraw UT shortage from strategy
+            _cacheExpectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            _cacheOraAmountLP = _getOraSomeValueLP();
+            _execute(_withdrawSomeFromStrategy.commands, _withdrawSomeFromStrategy.state);
+            uint256 _vaultValuePostStratWithdrawUT = balanceUT();
+            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+
+            // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
+            if (_receivedStratWithdrawUT < _cacheExpectedStratWithdrawUT) {
+                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(
+                    _cacheExpectedStratWithdrawUT.sub(_receivedStratWithdrawUT)
+                );
+            }
         }
-        return abi.decode(_c[0], (uint256));
+        underlyingToken.safeTransfer(msg.sender, _oraUserWithdrawUT);
+    }
+
+    function vaultWithdrawAllFromStrategy() external {
+        _execute(_withdrawAllFromStrategy.commands, _withdrawAllFromStrategy.state);
     }
 
     function getPPS() external view returns (uint256) {
-        // read the last strategy step's balance
-        bytes[] memory _bal = _readExecute(_lastStepBalanceLP.commands, _lastStepBalanceLP.state);
-        uint256 _lastStepBalance = abi.decode(_bal[0], (uint256));
-        uint256 _cashBalance = underlyingToken.balanceOf(address(this));
         // if the last strategt step's balance > 0 then execute lastStepBalanceLP
-        if (_lastStepBalance > 0) {
-            // get amount in token
-            bytes[] memory _amt = _readExecute(_oraValueUT.commands, _oraValueUT.state);
-            uint256 _amountInToken = abi.decode(_amt[0], (uint256));
-            return (_amountInToken.add(_cashBalance)).mul(Constants.WEI_DECIMAL).div(totalSupply());
+        if (getLastStrategyStepBalance() > 0) {
+            return _oraVaultAndStratValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
         } else {
-            return _cashBalance.mul(Constants.WEI_DECIMAL).div(totalSupply());
+            return balanceUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
         }
     }
 
-    function getLastStrategyStepBalance() external view returns (uint256) {
+    function getLastStrategyStepBalance() public view returns (uint256) {
         bytes[] memory _bal = _readExecute(_lastStepBalanceLP.commands, _lastStepBalanceLP.state);
-        uint256 _cLen = _bal.length;
-        console.log("_bal length ", _cLen);
-        for (uint256 _i; _i < _cLen; _i++) {
-            console.log("_i=", _i);
-            console.logBytes(_bal[_i]);
-        }
-        return abi.decode(_bal[0], (uint256));
+        return abi.decode(_bal[_bal.length - 1], (uint256));
+    }
+
+    function balanceUT() public view returns (uint256) {
+        return underlyingToken.balanceOf(address(this));
+    }
+
+    function _oraVaultAndStratValueUT() internal view returns (uint256) {
+        return _getOraValueUT().add(balanceUT());
+    }
+
+    function _oraStratValueUT() internal view returns (uint256) {
+        return getLastStrategyStepBalance() > 0 ? _getOraValueUT() : 0;
+    }
+
+    function _getOraValueUT() internal view returns (uint256) {
+        bytes[] memory _ut = _readExecute(_oraValueUT.commands, _oraValueUT.state);
+        return abi.decode(_ut[0], (uint256));
+    }
+
+    function _getOraSomeValueLP() internal view returns (uint256) {
+        bytes[] memory _lp = _readExecute(_oraValueLP.commands, _oraValueLP.state);
+        return abi.decode(_lp[_lp.length - 1], (uint256));
     }
 
     function vaultDepositAllToStrategy() external {
@@ -150,5 +224,13 @@ contract VaultWeiroll is VM, ERC20 {
         for (uint256 _i; _i < _tokens.length; _i++) {
             _tokens[_i].safeApprove(_spenders[_i], 0);
         }
+    }
+
+    function getCacheOraAmountLP() external view returns (uint256) {
+        return _cacheOraAmountLP;
+    }
+
+    function getCacheExpectedStratWithdrawUT() external view returns (uint256) {
+        return _cacheExpectedStratWithdrawUT;
     }
 }
