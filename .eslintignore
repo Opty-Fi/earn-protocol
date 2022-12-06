@@ -12,6 +12,6 @@ deployments/
 contracts/protocol/earn-protocol-configuration
 contracts/protocol/adapters
 tenderly-actions/
-
+helpers/types/
 # files
 .solcover.js
