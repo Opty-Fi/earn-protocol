@@ -9,6 +9,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Constants } from "../../utils/Constants.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 contract VaultWeiroll is VM, ERC20 {
     using SafeMath for uint256;
@@ -17,7 +18,23 @@ contract VaultWeiroll is VM, ERC20 {
     struct Inputs {
         bytes32[] commands;
         bytes[] state;
+        uint256 outputIndex;
     }
+
+    struct Strategy {
+        bool enable;
+        bytes32 hash;
+        Inputs oraValueUT;
+        Inputs oraValueLP;
+        Inputs lastStepBalanceLP;
+        Inputs depositToStrategy;
+        Inputs withdrawSomeFromStrategy;
+        Inputs withdrawAllFromStrategy;
+    }
+
+    mapping(uint256 => Strategy) public strategies;
+
+    EnumerableSet.Bytes32Set internal strategiesArr;
 
     Inputs internal _oraValueUT;
     Inputs internal _oraValueLP;
@@ -41,7 +58,15 @@ contract VaultWeiroll is VM, ERC20 {
         _setupDecimals(_decimals);
     }
 
-    function setOraValueUT(bytes32[] calldata commands, bytes[] memory state) external {
+    function setTemp(uint256 _index, Strategy memory _strategy) external {
+        strategies[_index] = _strategy;
+    }
+
+    function setOraValueUT(
+        bytes32[] calldata commands,
+        bytes[] memory state,
+        uint256 _outputIndex
+    ) external {
         delete _oraValueUT.commands;
         delete _oraValueUT.state;
         uint256 _cLen = commands.length;
@@ -54,6 +79,7 @@ contract VaultWeiroll is VM, ERC20 {
         for (uint256 _i; _i < _sLen; _i++) {
             _oraValueUT.state[_i] = state[_i];
         }
+        _oraValueUT.outputIndex = _outputIndex;
     }
 
     function setOraValueLP(bytes32[] calldata commands, bytes[] memory state) external {
