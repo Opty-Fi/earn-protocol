@@ -321,6 +321,7 @@ contract Vault is
      */
     function harvestRewards(bytes32 _strategyHash) external payable override {
         _onlyStrategyOperator();
+        // TODO : get the harvest rewards code from StrategyRegistry
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
             IStrategyRegistry(registryContract.getStrategyRegistry()).getClaimRewardsPlan(address(this), _strategyHash);
         _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
@@ -523,12 +524,12 @@ contract Vault is
             );
     }
 
-    function getCacheDepositValueUT() external view returns (uint256) {
-        return _cacheDepositValueUT;
+    function getCacheValueUT() external view returns (uint256) {
+        return _cacheValueUT;
     }
 
-    function getCacheWithdrawAmountLP() external view returns (uint256) {
-        return _cacheWithdrawAmountLP;
+    function getCacheAmountLP() external view returns (uint256) {
+        return _cacheAmountLP;
     }
 
     //===Internal functions===//
@@ -638,37 +639,23 @@ contract Vault is
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
             IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
 
-            // proportionally redeem LP from each strategy
-            // 1. get the allocation ratio in each strategy
-
-            // for (uint256 i; i < _withdrawStrategies.length; i++) {
-            //     uint256 _oraAmountLP;
-
-            //     bytes32 withdrawStrategyHash = _withdrawStrategies[i];
-            //     uint256 buffer = withdrawalBuffers[withdrawStrategyHash];
-            //     DataTypes.StrategyStep[] memory _steps = strategyRegistry.getStrategySteps(withdrawStrategyHash);
-
-            //     if (buffer >= _expectedStratWithdrawUT) {
-            //         _oraAmountLP = _steps.getOraSomeValueLP(
-            //             address(registryContract),
-            //             underlyingToken,
-            //             _expectedStratWithdrawUT
-            //         );
-
-            //         _vaultWithdrawSomeFromStrategy(_steps, _oraAmountLP);
-
-            //         break;
-            //     } else {
-            //         _expectedStratWithdrawUT -= buffer;
-            //         _oraAmountLP = _steps.getOraSomeValueLP(address(registryContract), underlyingToken, buffer);
-
-            //         _vaultWithdrawSomeFromStrategy(_steps, _oraAmountLP);
-
-            //         if (i == _withdrawStrategies.length - 1 && _expectedStratWithdrawUT != 0) {
-            //             revert(Errors.WITHDRAWAL_TOO_LARGE);
-            //         }
-            //     }
-            // }
+            for (uint256 _i; _i < strategies.length(); _i++) {
+                uint256 _a = _oraStratValueUTByStrategy(strategyRegistry, strategies.at(_i));
+                _cacheValueUT = _a.sub(
+                    (
+                        (
+                            (_oraVaultAndStratValueUT().sub(_expectedStratWithdrawUT)).mul((_a.mul(10000))).div(
+                                _oraVaultAndStratValueUT()
+                            )
+                        )
+                            .div(10000)
+                    )
+                );
+                _cacheAmountLP = _getOraSomeValueLPByStrategy(strategyRegistry, strategies.at(_i));
+                DataTypes.StrategyPlanInput memory _strategyPlanInput =
+                    strategyRegistry.getWithdrawSomeFromStrategyPlan(address(this), strategies.at(_i));
+                _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
+            }
 
             // Identify Slippage
             // UT requested from strategy withdraw  = _expectedStratWithdrawUT
@@ -712,7 +699,7 @@ contract Vault is
     function _vaultWithdrawSomeFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) internal {
         require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_SET);
         if (_withdrawAmountLP != 0) {
-            _cacheWithdrawAmountLP = _withdrawAmountLP;
+            _cacheAmountLP = _withdrawAmountLP;
             DataTypes.StrategyPlanInput memory _strategyPlanInput =
                 IStrategyRegistry(registryContract.getStrategyRegistry()).getWithdrawSomeFromStrategyPlan(
                     address(this),
@@ -731,7 +718,7 @@ contract Vault is
             _strategyHash,
             (vaultConfiguration >> 240) & 0xFF
         );
-        _cacheDepositValueUT = _depositValueUT;
+        _cacheValueUT = _depositValueUT;
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
             IStrategyRegistry(registryContract.getStrategyRegistry()).getDepositSomeToStrategyPlan(
                 address(this),
@@ -850,6 +837,22 @@ contract Vault is
             _sum += _getUint256(_strategyRegistry.getOraValueUTPlan(address(this), strategies.at(_i)));
         }
         return _sum;
+    }
+
+    function _oraStratValueUTByStrategy(IStrategyRegistry _strategyRegistry, bytes32 _strategyHash)
+        internal
+        view
+        returns (uint256)
+    {
+        return _getUint256(_strategyRegistry.getOraValueUTPlan(address(this), _strategyHash));
+    }
+
+    function _getOraSomeValueLPByStrategy(IStrategyRegistry _strategyRegistry, bytes32 _strategyHash)
+        internal
+        view
+        returns (uint256)
+    {
+        return _getUint256(_strategyRegistry.getOraValueLPPlan(address(this), _strategyHash));
     }
 
     function _getUint256(DataTypes.StrategyPlanInput memory _strategyPlanInput) internal view returns (uint256) {

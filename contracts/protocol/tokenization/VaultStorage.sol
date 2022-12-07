@@ -36,9 +36,9 @@ contract VaultStorage {
     mapping(uint256 => DataTypes.BlockVaultValue[]) public blockToBlockVaultValues;
 
     /**
-     * @dev Current vault invest strategy
+     * @dev cache value in UT for intermediate calculations
      */
-    uint256 internal _cacheDepositValueUT;
+    uint256 internal _cacheValueUT;
 
     /**
      * @dev Maximum amount in underlying token allowed to be deposited by user
@@ -113,8 +113,5 @@ contract VaultStorageV4 is VaultStorageV3 {
     /**@dev set of strategy hashes which the vault may operate on */
     EnumerableSet.Bytes32Set internal strategies;
 
-    /**@dev mapping of strategy to withdrawal buffer */
-    // mapping(bytes32 => uint256) internal withdrawalBuffers;
-
-    uint256 internal _cacheWithdrawAmountLP;
+    uint256 internal _cacheAmountLP;
 }
