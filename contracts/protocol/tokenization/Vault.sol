@@ -16,7 +16,6 @@ import { EIP712Base } from "../../utils/EIP712Base.sol";
 import { VM } from "./VM.sol";
 
 // libraries
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Constants } from "../../utils/Constants.sol";
 import { Errors } from "../../utils/Errors.sol";
@@ -30,7 +29,6 @@ import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
-import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
 import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
 
 /**
@@ -50,7 +48,6 @@ contract Vault is
     VM
 {
     using SafeERC20 for IERC20;
-    using Address for address;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     /**
@@ -314,9 +311,8 @@ contract Vault is
      */
     function claimRewardToken(bytes32 _strategyHash) external payable override {
         _onlyStrategyOperator();
-        IStrategyRegistry _strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            _strategyRegistry.getClaimRewardsPlan(address(this), _strategyHash);
+            IStrategyRegistry(registryContract.getStrategyRegistry()).getClaimRewardsPlan(address(this), _strategyHash);
         _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
     }
 
@@ -325,9 +321,8 @@ contract Vault is
      */
     function harvestRewards(bytes32 _strategyHash) external payable override {
         _onlyStrategyOperator();
-        IStrategyRegistry _strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            _strategyRegistry.getClaimRewardsPlan(address(this), _strategyHash);
+            IStrategyRegistry(registryContract.getStrategyRegistry()).getClaimRewardsPlan(address(this), _strategyHash);
         _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
     }
 
@@ -420,11 +415,7 @@ contract Vault is
      * @inheritdoc IVault
      */
     function getPricePerFullShare() public view override returns (uint256) {
-        if (totalSupply() != 0) {
-            return _oraVaultAndStratValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
-        } else {
-            return uint256(0);
-        }
+        return totalSupply() == 0 ? 0 : _oraVaultAndStratValueUT().mul(Constants.WEI_DECIMAL).div(totalSupply());
     }
 
     /**
@@ -520,11 +511,16 @@ contract Vault is
      * @inheritdoc IVault
      */
     function getLastStrategyStepBalanceLP(bytes32 _strategyHash) public view override returns (uint256) {
-        IStrategyRegistry _strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            _strategyRegistry.getLastStepBalanceLPPlan(address(this), _strategyHash);
-        bytes[] memory _bal = _readExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
-        return abi.decode(_bal[_strategyPlanInput.outputIndex], (uint256));
+            IStrategyRegistry(registryContract.getStrategyRegistry()).getLastStepBalanceLPPlan(
+                address(this),
+                _strategyHash
+            );
+        return
+            abi.decode(
+                _readExecute(_strategyPlanInput.commands, _strategyPlanInput.state)[_strategyPlanInput.outputIndex],
+                (uint256)
+            );
     }
 
     function getCacheDepositValueUT() external view returns (uint256) {
@@ -640,7 +636,10 @@ contract Vault is
         if (_vaultValuePreStratWithdrawUT < _oraUserWithdrawUT) {
             // withdraw UT shortage from strategy
             uint256 _expectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
-            // IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
+            IStrategyRegistry strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
+
+            // proportionally redeem LP from each strategy
+            // 1. get the allocation ratio in each strategy
 
             // for (uint256 i; i < _withdrawStrategies.length; i++) {
             //     uint256 _oraAmountLP;
@@ -700,8 +699,8 @@ contract Vault is
      * @dev Internal function to withdraw all investments
      */
     function _vaultWithdrawFromAllStrategies() internal {
-        for (uint256 i; i < strategies.length(); i++) {
-            _vaultWithdrawSomeFromStrategy(strategies.at(i), getLastStrategyStepBalanceLP(strategies.at(i)));
+        for (uint256 _i; _i < strategies.length(); _i++) {
+            _vaultWithdrawSomeFromStrategy(strategies.at(_i), getLastStrategyStepBalanceLP(strategies.at(_i)));
         }
     }
 
@@ -711,25 +710,33 @@ contract Vault is
      * @param _withdrawAmountLP amount in lpToken
      */
     function _vaultWithdrawSomeFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) internal {
-        require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_WHITELISTED);
-        IStrategyRegistry _strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
-        _cacheWithdrawAmountLP = _withdrawAmountLP;
-        DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            _strategyRegistry.getWithdrawSomeFromStrategyPlan(address(this), _strategyHash);
-        _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
+        require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_SET);
+        if (_withdrawAmountLP != 0) {
+            _cacheWithdrawAmountLP = _withdrawAmountLP;
+            DataTypes.StrategyPlanInput memory _strategyPlanInput =
+                IStrategyRegistry(registryContract.getStrategyRegistry()).getWithdrawSomeFromStrategyPlan(
+                    address(this),
+                    _strategyHash
+                );
+            _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
+        }
     }
 
     function _vaultDepositSomeToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) internal {
         _onlyStrategyOperator();
         _checkVaultDeposit();
-        require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_WHITELISTED);
-        IStrategyRegistry _strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
-        IRiskManager _riskManager = IRiskManager(registryContract.getRiskManager());
+        require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_SET);
         // TODO : isValidStrategy should be read only function
-        _riskManager.isValidStrategy(_strategyHash, (vaultConfiguration >> 240) & 0xFF);
+        IRiskManager(registryContract.getRiskManager()).isValidStrategy(
+            _strategyHash,
+            (vaultConfiguration >> 240) & 0xFF
+        );
         _cacheDepositValueUT = _depositValueUT;
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            _strategyRegistry.getDepositSomeToStrategyPlan(address(this), _strategyHash);
+            IStrategyRegistry(registryContract.getStrategyRegistry()).getDepositSomeToStrategyPlan(
+                address(this),
+                _strategyHash
+            );
         _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
     }
 
@@ -805,15 +812,6 @@ contract Vault is
         vaultConfiguration = _vaultConfiguration;
     }
 
-    // /**
-    //  * @dev Internal function to control the allowance of user interaction
-    //  *         only when vault's whitelistedstate is enabled
-    //  * @param _whitelistedAccountsRoot whitelisted accounts root hash
-    //  */
-    // function _setWhitelistedAccountsRoot(bytes32 _whitelistedAccountsRoot) internal {
-    //     whitelistedAccountsRoot = _whitelistedAccountsRoot;
-    // }
-
     /**
      * @dev Internal function to configure the vault's value control params
      * @param _userDepositCapUT maximum amount in underlying token allowed to be deposited by user
@@ -855,8 +853,11 @@ contract Vault is
     }
 
     function _getUint256(DataTypes.StrategyPlanInput memory _strategyPlanInput) internal view returns (uint256) {
-        bytes[] memory _result = _readExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
-        return abi.decode(_result[_strategyPlanInput.outputIndex], (uint256));
+        return
+            abi.decode(
+                _readExecute(_strategyPlanInput.commands, _strategyPlanInput.state)[_strategyPlanInput.outputIndex],
+                (uint256)
+            );
     }
 
     function _verifyWhitelistedAccount(bytes32 _leaf, bytes32[] memory _proof) internal view returns (bool) {

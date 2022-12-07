@@ -1,3 +1,5 @@
+/*solhint-disable no-inline-assembly*/
+/*solhint-disable state-visibility*/
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.12;
@@ -32,7 +34,8 @@ library CommandBuilder {
                     }
                     count += stateData.length;
                 } else {
-                    // Add the size of the value, rounded up to the next word boundary, plus space for pointer and length
+                    // Add the size of the value, rounded up to the next word boundary,
+                    // plus space for pointer and length
                     uint256 arglen = state[idx & IDX_VALUE_MASK].length;
                     require(arglen % 32 == 0, "Dynamic state variables must be a multiple of 32 bytes");
                     count += arglen + 32;
