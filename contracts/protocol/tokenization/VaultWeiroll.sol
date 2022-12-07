@@ -178,7 +178,7 @@ contract VaultWeiroll is VM, ERC20 {
             // withdraw UT shortage from strategy
             _cacheExpectedStratWithdrawUT = _oraUserWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
             _cacheOraAmountLP = _getOraSomeValueLP();
-            _execute(_withdrawSomeFromStrategy.commands, _withdrawSomeFromStrategy.state);
+            _writeExecute(_withdrawSomeFromStrategy.commands, _withdrawSomeFromStrategy.state);
             uint256 _vaultValuePostStratWithdrawUT = balanceUT();
             uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
 
@@ -193,7 +193,7 @@ contract VaultWeiroll is VM, ERC20 {
     }
 
     function vaultWithdrawAllFromStrategy() external {
-        _execute(_withdrawAllFromStrategy.commands, _withdrawAllFromStrategy.state);
+        _writeExecute(_withdrawAllFromStrategy.commands, _withdrawAllFromStrategy.state);
     }
 
     function getPPS() external view returns (uint256) {
@@ -233,7 +233,7 @@ contract VaultWeiroll is VM, ERC20 {
     }
 
     function vaultDepositAllToStrategy() external {
-        _execute(_depositToStrategy.commands, _depositToStrategy.state);
+        _writeExecute(_depositToStrategy.commands, _depositToStrategy.state);
     }
 
     function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external {

@@ -28,11 +28,9 @@ contract TestVault {
     function withdraw(
         IVault _vault,
         uint256 _amountVT,
-        uint256 _expectedOutput,
-        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountsProof
     ) external {
-        _vault.userWithdrawVault(msg.sender, _amountVT, _expectedOutput, _withdrawStrategies, _accountsProof);
+        _vault.userWithdrawVault(msg.sender, _amountVT, _accountsProof);
     }
 
     function withdrawERC20(ERC20 _token, address _recipient) external {

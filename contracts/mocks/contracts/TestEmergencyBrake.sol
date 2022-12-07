@@ -24,12 +24,8 @@ contract TestEmergencyBrake {
         vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs);
     }
 
-    function runUserWithdrawVault(
-        uint256 _userWithdrawVT,
-        bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountProofs
-    ) external {
-        vaultAddr.userWithdrawVault(address(this), _userWithdrawVT, uint256(0), _withdrawStrategies, _accountProofs);
+    function runUserWithdrawVault(uint256 _userWithdrawVT, bytes32[] calldata _accountProofs) external {
+        vaultAddr.userWithdrawVault(address(this), _userWithdrawVT, _accountProofs);
     }
 
     function runTwoTxnUserDepositVault(
@@ -42,26 +38,21 @@ contract TestEmergencyBrake {
         vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs);
     }
 
-    function runTwoTxnUserWithdrawVault(
-        uint256 _userDepositUT,
-        bytes32[] memory _withdrawStrategies,
-        bytes32[] calldata _accountProofs
-    ) external {
+    function runTwoTxnUserWithdrawVault(uint256 _userDepositUT, bytes32[] calldata _accountProofs) external {
         tokenAddr.approve(address(vaultAddr), (_userDepositUT + _userDepositUT));
         tokenAddr.transfer(address(vaultAddr), (_userDepositUT + _userDepositUT));
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, uint256(0), _withdrawStrategies, _accountProofs);
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, uint256(0), _withdrawStrategies, _accountProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs);
     }
 
     function runTwoTxnDepositAndWithdraw(
         uint256 _userDepositUT,
         bytes calldata _permit,
-        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountProofs
     ) external {
         tokenAddr.approve(address(vaultAddr), _userDepositUT);
-        vaultAddr.userDepositVault(address(this), _userDepositUT, uint256(0), _permit, _accountProofs);
-        vaultAddr.userWithdrawVault(address(this), _userDepositUT, uint256(0), _withdrawStrategies, _accountProofs);
+        vaultAddr.userDepositVault(address(this), _userDepositUT, _permit, _accountProofs);
+        vaultAddr.userWithdrawVault(address(this), _userDepositUT, _accountProofs);
     }
 
     function runTwoTxnDepositAndTransfer(

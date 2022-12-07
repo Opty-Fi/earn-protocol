@@ -32,7 +32,7 @@ library Errors {
     string public constant INVALID_SIGNATURE = "27";
     string public constant LENGTH_MISMATCH = "28";
     string public constant BUFFER_EXCEEDED = "29";
-    string public constant INVALID_STRATEGY = "30";
+    string public constant STRATEGY_NOT_WHITELISTED = "30";
     string public constant WITHDRAWAL_TOO_LARGE = "31";
     string public constant RETURNED_UT_TOO_FEW = "32";
     string public constant RETURNED_LP_TOO_FEW = "33";

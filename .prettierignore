@@ -15,6 +15,7 @@ contracts/protocol/earn-protocol-configuration
 contracts/protocol/adapters
 **out/
 helpers/types/
+deployments/
 
 # files
 *.env

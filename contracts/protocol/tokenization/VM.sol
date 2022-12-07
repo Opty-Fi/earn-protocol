@@ -2,7 +2,7 @@
 
 pragma solidity ^0.6.12;
 
-import "./CommandBuilder.sol";
+import { CommandBuilder } from "../lib/CommandBuilder.sol";
 
 abstract contract VM {
     using CommandBuilder for bytes[];
@@ -17,13 +17,13 @@ abstract contract VM {
 
     uint256 constant SHORT_COMMAND_FILL = 0x000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
-    address immutable self;
+    // address immutable self;
 
     constructor() public {
-        self = address(this);
+        // self = address(this);
     }
 
-    function _execute(bytes32[] memory commands, bytes[] memory state) internal returns (bytes[] memory) {
+    function _writeExecute(bytes32[] memory commands, bytes[] memory state) internal returns (bytes[] memory) {
         bytes32 command;
         uint256 flags;
         bytes32 indices;
@@ -137,11 +137,7 @@ abstract contract VM {
                 indices = bytes32(uint256(command << 40) | SHORT_COMMAND_FILL);
             }
 
-            if (flags & FLAG_CT_MASK == FLAG_CT_DELEGATECALL) {
-                revert("FLAG_CT_DELEGATECALL");
-            } else if (flags & FLAG_CT_MASK == FLAG_CT_CALL) {
-                revert("FLAG_CT_CALL");
-            } else if (flags & FLAG_CT_MASK == FLAG_CT_STATICCALL) {
+            if (flags & FLAG_CT_MASK == FLAG_CT_STATICCALL) {
                 (success, outdata) = address(uint160(uint256(command))).staticcall( // target
                     // inputs
                     state.buildInputs(
@@ -150,8 +146,6 @@ abstract contract VM {
                         indices
                     )
                 );
-            } else if (flags & FLAG_CT_MASK == FLAG_CT_VALUECALL) {
-                revert("FLAG_CT_VALUECALL");
             } else {
                 revert("Invalid calltype");
             }

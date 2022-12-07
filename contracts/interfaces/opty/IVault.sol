@@ -107,7 +107,7 @@ interface IVault {
      * @param _active If true, the Vault goes into Emergency Shutdown. If false, the Vault
      *        goes back into Normal Operation
      */
-    function setEmergencyShutdown(bool _active) external;
+    function setEmergencyShutdown(bool _active) external payable;
 
     /**
      * @notice activates or deactivates vault mode where all strategies
@@ -119,7 +119,7 @@ interface IVault {
      * @param _unpaused If true, the vault goes into unpause mode. If false(default), the vault
      *        goes into pause mode
      */
-    function setUnpaused(bool _unpaused) external;
+    function setUnpaused(bool _unpaused) external payable;
 
     /**
      * @notice Deposit underlying tokens to the vault
@@ -141,82 +141,49 @@ interface IVault {
      * @dev Burn the shares right away as per oracle based price per full share value
      * @param _receiver the address which will receive the underlying tokens
      * @param _userWithdrawVT amount in vault token
-     * @param _expectedOutput minimum amount of underlying tokens that must be received
-     *         to not revert transaction
-     * @param _withdrawStrategies array of strategy hashes to identify which strategies to withdraw from
      * @param _accountsProof merkle proof for caller
      */
     function userWithdrawVault(
         address _receiver,
         uint256 _userWithdrawVT,
-        uint256 _expectedOutput,
-        bytes32[] memory _withdrawStrategies,
         bytes32[] calldata _accountsProof
     ) external returns (uint256);
-
-    /**
-     * @notice function to deposit whole balance of underlying token to strategy
-     * @param _strategyHash hash of strategy
-     */
-    function vaultDepositAllToStrategy(bytes32 _strategyHash) external;
 
     /**
      * @notice deposits underlying tokens to a strategy from the vault
      * @param _strategyHash hash of strategy to deposit to
      * @param _depositValueUT the amount of underlying token to deposit
-     * @param _minExpectedLP the minimum amount of LP expected in return for deposit
      */
-    function vaultDepositToStrategy(
-        bytes32 _strategyHash,
-        uint256 _depositValueUT,
-        uint256 _minExpectedLP
-    ) external;
+    function vaultDepositSomeToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) external payable;
 
     /**
      * @notice withdraws LP tokens from a strategy from the vault
      * @param _strategyHash hash of the strategy to withdraw from
      * @param _withdrawAmountLP the amount of LP to withdraw
-     * @param _minExpectedUT the minimum amount of underlying tokens expected
      */
-    function vaultWithdrawFromStrategy(
-        bytes32 _strategyHash,
-        uint256 _withdrawAmountLP,
-        uint256 _minExpectedUT
-    ) external;
+    function vaultWithdrawSomeFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) external payable;
 
     /**
      * @notice A function to be called in case vault needs to claim and harvest tokens in case a strategy
      *         provides multiple reward tokens
-     * @param _codes Array of encoded data in bytes which acts as code to execute
+     * @param _commands list of values that encode single
+     *        operation for the VM to take
+     * @param _state list of elements to call a smart contract function
+     *         specified in the command via delegatecall
      */
-    function adminCall(bytes[] memory _codes) external;
+    function adminCall(bytes32[] memory _commands, bytes[] memory _state) external payable;
 
     /**
      * @notice function to claim the whole balance of reward tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     * @param _strategyHash keccak256 hash of the strategy
      */
-    function claimRewardToken(address _liquidityPool) external;
+    function claimRewardToken(bytes32 _strategyHash) external payable;
 
     /**
-     * @notice function to swap the vault's entire balance of reward token for the vault's underlying token
-     * @param _rewardToken address of the reward token to harvest
-     * @param _dex swap router
-     * @param _isUniV3 whether router is uniswapV3 or not
-     * @param _minimumUnderlyingTokenAmount minimum underlying after swap that must be received
-     *         for the transaction to not revert
-     * @param _deadline swap deadline
-     * @param _path token path for uniswapV2 and its forks
-     * @param _pathUniV3 path for uniswapV3
+     * @notice function to swap the vault's reward token for the vault's underlying token
+     * @param _strategyHash keccak256 hash of the strategy
      */
-    function harvest(
-        address _rewardToken,
-        address _dex,
-        bool _isUniV3,
-        uint256 _minimumUnderlyingTokenAmount,
-        uint256 _deadline,
-        address[] memory _path,
-        bytes memory _pathUniV3
-    ) external;
+    function harvestRewards(bytes32 _strategyHash) external payable;
 
     /**
      * @notice Allow passing a signed message to approve spending
@@ -362,13 +329,10 @@ interface IVault {
     /**
      * @notice function to compute the balance of lptoken of the vault
      *         in the last step of the strategy
-     * @param _strategySteps array of strategy step tuple
+     * @param _strategyHash keccak256 hash of the strategyHash
      * @return balance in lptoken
      */
-    function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _strategySteps)
-        external
-        view
-        returns (uint256);
+    function getLastStrategyStepBalanceLP(bytes32 _strategyHash) external view returns (uint256);
 
     /**
      * @dev Emitted when emergency shutdown over vault is changed
