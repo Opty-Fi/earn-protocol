@@ -628,7 +628,8 @@ contract Vault is
         // burning should occur at pre userwithdraw price UNLESS there is slippage
         // if there is slippage, the withdrawing user should absorb that cost (see below)
         // i.e. get less underlying tokens than calculated by pre userwithdraw price
-        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(_oraVaultAndStratValueUT()).div(totalSupply());
+        uint256 _poolOraValueUT = _oraVaultAndStratValueUT();
+        uint256 _oraUserWithdrawUT = _userWithdrawVT.mul(_poolOraValueUT).div(totalSupply());
         _burn(msg.sender, _userWithdrawVT);
 
         uint256 _vaultValuePreStratWithdrawUT = balanceUT();
@@ -643,12 +644,9 @@ contract Vault is
                 uint256 _a = _oraStratValueUTByStrategy(strategyRegistry, strategies.at(_i));
                 _cacheValueUT = _a.sub(
                     (
-                        (
-                            (_oraVaultAndStratValueUT().sub(_expectedStratWithdrawUT)).mul((_a.mul(10000))).div(
-                                _oraVaultAndStratValueUT()
-                            )
+                        ((_poolOraValueUT.sub(_expectedStratWithdrawUT)).mul((_a.mul(10000))).div(_poolOraValueUT)).div(
+                            10000
                         )
-                            .div(10000)
                     )
                 );
                 _cacheAmountLP = _getOraSomeValueLPByStrategy(strategyRegistry, strategies.at(_i));

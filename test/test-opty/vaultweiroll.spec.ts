@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { deployContract, solidity } from "ethereum-waffle";
-import { artifacts, ethers as ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { Contract as weirollContract, Planner as weirollPlanner } from "@weiroll/weiroll.js";
 import { Signers } from "../../helpers/utils";
@@ -73,7 +73,7 @@ describe("VaultWeiroll", async function () {
       compoundAdapterContract.getSomeAmountInToken(usdc.address, cUSDC.address, lpTokenBalance).staticcall(),
     );
     oraValueUTPlanner.add(testVaultContract.pureFunctionUint256(amountInToken).staticcall());
-    await vaultWeirollUSDC.setOraValueUT(oraValueUTPlanner.plan().commands, oraValueUTPlanner.plan().state);
+    await vaultWeirollUSDC.setOraValueUT(oraValueUTPlanner.plan().commands, oraValueUTPlanner.plan().state, 0);
 
     // lastStepBalanceLP planner
     const lastStepBalanceLPPlanner = new weirollPlanner();

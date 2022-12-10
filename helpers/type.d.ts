@@ -1,5 +1,7 @@
 import { BigNumberish, Contract } from "ethers";
 import { MockContract } from "@defi-wonderland/smock";
+import { Value, FunctionCall } from "@weiroll/weiroll.js";
+import { ParamType } from "@ethersproject/abi";
 
 export type ESSENTIAL_CONTRACTS = {
   registry: Contract;
@@ -212,3 +214,26 @@ export type PoolRate = {
   pool: string;
   rate: number;
 };
+
+export type WeirollPlan = {
+  commands: string[];
+  state: string[];
+};
+
+export declare class ReturnValue implements Value {
+  readonly param: ParamType;
+  readonly command: Command;
+  constructor(param: ParamType, command: Command);
+}
+
+export declare class Command {
+  readonly call: FunctionCall;
+  readonly type: CommandType;
+  constructor(call: FunctionCall, type: CommandType);
+}
+
+export declare enum CommandType {
+  CALL = 0,
+  RAWCALL = 1,
+  SUBPLAN = 2,
+}
