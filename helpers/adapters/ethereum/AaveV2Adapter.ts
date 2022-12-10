@@ -1,10 +1,10 @@
 import { Contract } from "ethers";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
-import Aave from "@optyfi/defi-legos/ethereum/aave/index";
+import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
 import { ReturnValue } from "../../type";
 
-export class AaveV1Adapter {
+export class Aavev2Adapter {
   getDepositPlan(
     planner: weirollPlanner,
     vaultInstance: Contract,
@@ -13,11 +13,18 @@ export class AaveV1Adapter {
     outputTokenInstance: Contract,
     inputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    // TODO handle ETH deposit
-    const lendingPoolContract = new ethers.Contract("0x398eC7346DcD622eDc5ae82352F02bE94C62d119", Aave.LendingPool.abi);
+    const lendingPoolContract = new ethers.Contract(
+      "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9",
+      AaveV2.LendingPool.abi,
+    );
     const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
     planner.add(
-      lendingPoolInstance["deposit(address,uint256,uint16)"](inputTokenInstance.address, inputTokenAmount, "0"),
+      lendingPoolInstance["deposit(address,uint256,address,uint16)"](
+        inputTokenInstance.address,
+        inputTokenAmount,
+        vaultInstance.address,
+        "0",
+      ),
     );
     return planner;
   }
@@ -30,10 +37,18 @@ export class AaveV1Adapter {
     outputTokenInstance: Contract,
     outputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    // TODO handle ETH withdraw
-    const lpTokenContract = new ethers.Contract(outputTokenInstance.address, Aave.ATokenAbi);
-    const lpTokenInstance = weirollContract.createContract(lpTokenContract);
-    planner.add(lpTokenInstance["redeem(uint256)"](outputTokenAmount));
+    const lendingPoolContract = new ethers.Contract(
+      "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9",
+      AaveV2.LendingPool.abi,
+    );
+    const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
+    planner.add(
+      lendingPoolInstance["withdraw(address,uint256,address)"](
+        inputTokenInstance.address,
+        outputTokenAmount,
+        vaultInstance.address,
+      ),
+    );
     return planner;
   }
 

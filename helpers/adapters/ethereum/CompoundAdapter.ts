@@ -5,6 +5,7 @@ import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { ReturnValue } from "../../type";
 import { ERC20__factory, ISwapRouter__factory } from "../../../typechain";
+import { getAddress } from "ethers/lib/utils";
 
 export class CompoundAdapter {
   getDepositPlan(
@@ -15,6 +16,7 @@ export class CompoundAdapter {
     outputTokenInstance: Contract,
     inputTokenAmount: ReturnValue,
   ): weirollPlanner {
+    // TODO handle ETH deposits
     planner.add(poolInstance["mint(uint256)"](inputTokenAmount));
     return planner;
   }
@@ -27,6 +29,7 @@ export class CompoundAdapter {
     outputTokenInstance: Contract,
     outputTokenAmount: ReturnValue,
   ): weirollPlanner {
+    // TODO handle ETH withdraws
     planner.add(poolInstance["redeem(uint256)"](outputTokenAmount));
     return planner;
   }
@@ -105,12 +108,10 @@ export class CompoundAdapter {
   getHarvestRewardsPlan(
     planner: weirollPlanner,
     vaultInstance: Contract,
-    inputTokenInstance: Contract,
-    poolInstance: Contract,
-    outputTokenInstance: Contract,
+    vaulltUnderlyingTokenInstance: Contract,
   ): weirollPlanner {
-    EthereumTokens.REWARD_TOKENS.COMP;
-    // add read call to oracle for computing minimum expected
+    // TODO add read call to oracle for computing minimum expected
+    // TODO consider uniswapV2 / sushiswap router for swapping
     const uniswapV3RouterContract = new ethers.Contract(
       "0xE592427A0AEce92De3Edee1F18E0157C05861564",
       ISwapRouter__factory.abi,
@@ -119,21 +120,29 @@ export class CompoundAdapter {
     const rewardContract = new ethers.Contract(EthereumTokens.REWARD_TOKENS.COMP, ERC20__factory.abi);
     const rewardInstance = weirollContract.createContract(rewardContract);
     const rewardAmount = planner.add(rewardInstance["balanceOf(address)"](vaultInstance.address).staticcall());
-    const uniV3SwapPathForCOMPtoUT = ethers.utils.solidityPack(
-      ["address", "uint24", "address", "uint24", "address"],
-      [
-        ethereumTokens.REWARD_TOKENS.COMP,
-        10000,
-        ethereumTokens.WRAPPED_TOKENS.WETH,
-        500,
-        ethereumTokens.PLAIN_TOKENS.USDT,
-      ],
-    );
+    let univ3Path;
+    if (getAddress(vaulltUnderlyingTokenInstance.address) === getAddress(EthereumTokens.PLAIN_TOKENS.USDC)) {
+      univ3Path = ethers.utils.solidityPack(
+        ["address", "uint24", "address", "uint24", "address"],
+        [
+          EthereumTokens.REWARD_TOKENS.COMP,
+          3000,
+          EthereumTokens.WRAPPED_TOKENS.WETH,
+          500,
+          EthereumTokens.PLAIN_TOKENS.USDC,
+        ],
+      );
+    } else if (getAddress(vaulltUnderlyingTokenInstance.address) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
+      univ3Path = ethers.utils.solidityPack(
+        ["address", "uint24", "address"],
+        [EthereumTokens.REWARD_TOKENS.COMP, 3000, EthereumTokens.WRAPPED_TOKENS.WETH],
+      );
+    }
     planner.add(
       uniswapV3RouterInstance["exactInput((bytes,address,uint256,uint256,uint256))"]([
-        path,
-        recipient,
-        deadline,
+        univ3Path,
+        vaultInstance.address,
+        ethers.constants.MaxUint256,
         rewardAmount,
         0,
       ]),
