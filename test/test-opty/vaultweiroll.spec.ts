@@ -180,5 +180,3 @@ describe("VaultWeiroll", async function () {
     console.log("Last strategy step balance ", (await vaultWeirollUSDC.getLastStrategyStepBalance()).toString());
   });
 });
-
-async function setCompoundUSDCStrategy() {}

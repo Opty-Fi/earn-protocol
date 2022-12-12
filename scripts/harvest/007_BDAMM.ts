@@ -10,11 +10,10 @@ import {
   ICompound__factory,
   StrategyProvider,
   StrategyProvider__factory,
-  Vault,
-  Vault__factory,
 } from "../../typechain";
 import { BigNumber } from "ethers";
 import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
+import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
 
 const cryptoPoolGaugeABI = [
   {
@@ -153,17 +152,17 @@ const bdamm = ethers.utils.getAddress("0xfa372fF1547fa1a283B5112a4685F1358CE5574
 const bLUSDLUSD3FactoryGaugeAddress = "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4";
 
 async function main() {
-  const opUSDCEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
+  const opUSDCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
-  const opWETHEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
+  const opWETHEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
   );
-  const opWBTCEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
+  const opWBTCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
   );
-  const opUSD3Earn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSD3-Earn_Proxy")).address)
+  const opUSD3Earn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSD3-Earn_Proxy")).address)
   );
   const cUSDCInstanceopUSDCEarn = <ICompound>(
     await ethers.getContractAt(ICompound__factory.abi, "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5")

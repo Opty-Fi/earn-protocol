@@ -1,4 +1,4 @@
-import chai, { expect } from "chai";
+import { expect } from "chai";
 import { deployments, ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
@@ -7,7 +7,6 @@ import {
   Registry,
   StrategyRegistry,
   Vault,
-  IAdapterFull,
   ERC20,
   Registry__factory,
   Vault__factory,
@@ -31,9 +30,12 @@ import { BigNumber } from "ethers";
 import { TypedTokens } from "../../helpers/data";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { formatUnits, getAddress } from "ethers/lib/utils";
+import { solidity } from "ethereum-waffle";
 
 const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
+
+chai.use(solidity);
 
 describe("Multi-Strategy Vault", () => {
   before(async function () {
@@ -147,7 +149,7 @@ describe("Multi-Strategy Vault", () => {
               const steps = strategyDetail.strategy.map(item => ({
                 pool: item.contract,
                 outputToken: item.outputToken,
-                isBorrow: item.isBorrow,
+                isBorrow: item.isSwap,
               }));
               let tx = await this.strategyRegistry.connect(strategyOperator).addStrategySteps(strategyHash, steps);
               await tx.wait(1);
@@ -291,7 +293,7 @@ async function deposit(
     const _BalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
     const tx2 = await vaultInstance
       .connect(signers[i])
-      .userDepositVault(signers[i].address, _userDepositInDecimals, "0x", [], []);
+      .userDepositVault(signers[i].address, _userDepositInDecimals, "0x", []);
     await tx2.wait(1);
     const _BalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
     expect(_BalanceBefore).gt(_BalanceAfter);

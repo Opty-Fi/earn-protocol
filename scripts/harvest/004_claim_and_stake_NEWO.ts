@@ -1,7 +1,8 @@
 import { formatUnits } from "ethers/lib/utils";
 import { ethers, network } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { ERC20, INewoStaking, Registry, Vault } from "../../typechain";
+import { VaultV6 } from "../../helpers/types/vaultv6";
+import { ERC20, INewoStaking, Registry } from "../../typechain";
 
 async function main() {
   const newoLPStaking = ethers.utils.getAddress("0xdb36b23964FAB32dCa717c99D6AEFC9FB5748f3a");
@@ -10,7 +11,7 @@ async function main() {
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011e33a8c6196869dec7bc407e896ba67fe3");
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const governanceSigner = await ethers.getSigner(await registryInstance.governance());
-  const vaultInstance = <Vault>(
+  const vaultInstance = <VaultV6>(
     await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opNEWOinvstProxyAddress, governanceSigner)
   );
   const newoLPStakingInstance = <INewoStaking>await ethers.getContractAt("INewoStaking", newoLPStaking);

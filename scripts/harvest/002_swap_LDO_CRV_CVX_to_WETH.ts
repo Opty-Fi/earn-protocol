@@ -1,7 +1,8 @@
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { ERC20, IUniswapV2Router02, Registry, Vault } from "../../typechain";
+import { VaultV6 } from "../../helpers/types/vaultv6";
+import { ERC20, IUniswapV2Router02, Registry } from "../../typechain";
 
 async function main() {
   const uniswapV2Router02Address = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
@@ -12,7 +13,7 @@ async function main() {
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
   const opWETHearnProxyAddress = ethers.utils.getAddress("0xFf2fbd9Fbc6d03BAA77cf97A3D5671bEA183b9a8");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3");
-  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWETHearnProxyAddress);
+  const vaultInstance = <VaultV6>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opWETHearnProxyAddress);
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const uniswapRouterInstance = <IUniswapV2Router02>(
     await ethers.getContractAt("IUniswapV2Router02", uniswapV2Router02Address)
