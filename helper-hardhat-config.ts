@@ -16,6 +16,7 @@ export enum eEVMNetwork {
   mumbai = "mumbai",
   dashboard = "dashboard",
   tenderly = "tenderly",
+  ftm = "ftm",
 }
 
 export type iEVMParamsPerNetwork<T> = {
@@ -34,6 +35,7 @@ export const NETWORKS_CHAIN_ID: iEVMParamsPerNetwork<number> = {
   [eEVMNetwork.mumbai]: 80001,
   [eEVMNetwork.dashboard]: 1,
   [eEVMNetwork.tenderly]: 1,
+  [eEVMNetwork.ftm]: 250,
 };
 
 export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
@@ -48,6 +50,7 @@ export const NETWORKS_CHAIN_ID_HEX: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.mumbai]: "0x13881",
   [eEVMNetwork.dashboard]: "0x1",
   [eEVMNetwork.tenderly]: "0x1",
+  [eEVMNetwork.ftm]: "0xFA",
 };
 
 export const NETWORKS_CHAIN_ID_TO_HEX: { [key: string]: string } = {
@@ -59,6 +62,7 @@ export const NETWORKS_CHAIN_ID_TO_HEX: { [key: string]: string } = {
   "43114": "0xa86a",
   "1337": "0x539",
   "80001": "0x13881",
+  "250": "0xFA",
 };
 
 export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
@@ -73,6 +77,7 @@ export const NETWORKS_RPC_URL: iEVMParamsPerNetwork<string> = {
   [eEVMNetwork.ganache]: "http://localhost:8545",
   [eEVMNetwork.dashboard]: "http://localhost:24012/rpc",
   [eEVMNetwork.tenderly]: process.env.TENDERLY_FORK_URL ? process.env.TENDERLY_FORK_URL : "",
+  [eEVMNetwork.ftm]: process.env.FTM_NODE_URL ? process.env.FTM_NODE_URL : "",
 };
 
 export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
@@ -87,6 +92,7 @@ export const NETWORKS_DEFAULT_GAS: iEVMParamsPerNetwork<number | "auto"> = {
   [eEVMNetwork.ganache]: "auto",
   [eEVMNetwork.dashboard]: "auto",
   [eEVMNetwork.tenderly]: 65 * GWEI,
+  [eEVMNetwork.ftm]: "auto",
 };
 
 export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
@@ -101,6 +107,7 @@ export const BLOCK_TO_FORK: iEVMParamsPerNetwork<number | undefined> = {
   [eEVMNetwork.mumbai]: 25291667,
   [eEVMNetwork.dashboard]: undefined,
   [eEVMNetwork.tenderly]: undefined,
+  [eEVMNetwork.ftm]: undefined,
 };
 
 export const buildForkConfig = (
