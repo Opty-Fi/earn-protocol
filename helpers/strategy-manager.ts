@@ -42,7 +42,7 @@ export class StrategyManager {
           new ethers.Contract(strategySteps[index - 1].outputToken, ERC20__factory.abi),
         );
         const inputTokenAmount = <ReturnValue>(
-          planner.add(inputTokenContract["balanceOf(uint256)"](vaultContract.address).staticcall())
+          planner.add(inputTokenContract["balanceOf(address)"](vaultContract.address).staticcall())
         );
         planner = adapterObj.getDepositPlan(
           planner,
@@ -95,7 +95,7 @@ export class StrategyManager {
           new ethers.Contract(strategySteps[iteratorIndex].outputToken, ERC20__factory.abi),
         );
         const amountLP = <ReturnValue>(
-          planner.add(outputTokenContract["balanceOf(uint256)"](vaultContract.address).staticcall())
+          planner.add(outputTokenContract["balanceOf(address)"](vaultContract.address).staticcall())
         );
         planner = adapterObj.getWithdrawPlan(
           planner,
@@ -107,8 +107,147 @@ export class StrategyManager {
           amountLP,
         );
       }
-      const { commands, state } = planner.plan();
-      return { commands, state, outputIndex: 0 };
     }
+    const { commands, state } = planner.plan();
+    return { commands, state, outputIndex: 0 };
+  }
+
+  getOraValueUTPlan(underlyingTokenInstance: ERC20, strategySteps: STRATEGY_DATA[], vaultInstance: Vault): WeirollPlan {
+    const planner = new weirollPlanner();
+    const outputTokenContract = weirollContract.createContract(
+      new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
+    );
+    const amountLP = <ReturnValue>planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address));
+    let amountUT;
+    for (const [index, _strategyStep] of strategySteps.entries()) {
+      const iteratorIndex = strategySteps.length - index - 1;
+      const adapterObj = this.liquidityPoolToAdapter[strategySteps[iteratorIndex].contract];
+      let inputToken = underlyingTokenInstance.address;
+      if (iteratorIndex !== 0) {
+        inputToken = strategySteps[iteratorIndex - 1].outputToken;
+      }
+      if (iteratorIndex === strategySteps.length - 1) {
+        amountUT = <ReturnValue>(
+          adapterObj.getAmountInInputTokenPlan(
+            planner,
+            vaultInstance,
+            inputToken,
+            strategySteps[iteratorIndex].contract,
+            strategySteps[iteratorIndex].outputToken,
+            strategySteps[iteratorIndex].isSwap,
+            amountLP,
+          )
+        );
+      } else {
+        amountUT = <ReturnValue>(
+          adapterObj.getAmountInInputTokenPlan(
+            planner,
+            vaultInstance,
+            inputToken,
+            strategySteps[iteratorIndex].contract,
+            strategySteps[iteratorIndex].outputToken,
+            strategySteps[iteratorIndex].isSwap,
+            amountUT as ReturnValue,
+          )
+        );
+      }
+    }
+    const { commands, state } = planner.plan();
+    return { commands, state, outputIndex: 0 };
+  }
+
+  getOraSomeValueLPPlan(
+    underlyingTokenInstance: ERC20,
+    strategySteps: STRATEGY_DATA[],
+    vaultInstance: Vault,
+  ): WeirollPlan {
+    const planner = new weirollPlanner();
+    const vaultContract = weirollContract.createContract(
+      new ethers.Contract(vaultInstance.address, Vault__factory.abi),
+    );
+    const valueUT = <ReturnValue>planner.add(vaultContract.getCacheExpectedStratWithdrawUT().staticcall());
+    let amountLP;
+    for (const [index, strategyStep] of strategySteps.entries()) {
+      const adapterObj = this.liquidityPoolToAdapter[strategyStep.contract];
+      let inputToken = underlyingTokenInstance.address;
+      if (index !== 0) {
+        inputToken = strategySteps[index - 1].outputToken;
+      }
+      if (index === 0) {
+        amountLP = adapterObj.getAmountInOutputTokenPlan(
+          planner,
+          vaultInstance,
+          inputToken,
+          strategyStep.contract,
+          strategyStep.outputToken,
+          strategyStep.isSwap,
+          amountLP as ReturnValue,
+        );
+      } else {
+        amountLP = adapterObj.getAmountInOutputTokenPlan(
+          planner,
+          vaultInstance,
+          inputToken,
+          strategyStep.contract,
+          strategyStep.outputToken,
+          strategyStep.isSwap,
+          valueUT,
+        );
+      }
+    }
+    const { commands, state } = planner.plan();
+    return { commands, state, outputIndex: 0 };
+  }
+
+  getLastStrategyStepBalancePlan(
+    underlyingTokenInstance: ERC20,
+    strategySteps: STRATEGY_DATA[],
+    vaultInstance: Vault,
+  ): WeirollPlan {
+    const planner = new weirollPlanner();
+    const outputTokenContract = weirollContract.createContract(
+      new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
+    );
+    planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address));
+    const { commands, state } = planner.plan();
+    return { commands, state, outputIndex: 0 };
+  }
+
+  getClaimRewardsPlan(
+    underlyingTokenInstance: ERC20,
+    strategySteps: STRATEGY_DATA[],
+    vaultInstance: Vault,
+  ): WeirollPlan {
+    let planner = new weirollPlanner();
+    const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].contract];
+    let inputToken = underlyingTokenInstance.address;
+    if (strategySteps.length > 1) {
+      inputToken = strategySteps[strategySteps.length - 2].outputToken;
+    }
+    planner = adapterObj.getClaimRewardsPlan(
+      planner,
+      vaultInstance,
+      inputToken,
+      strategySteps[strategySteps.length - 1].contract,
+      strategySteps[strategySteps.length - 1].outputToken,
+    );
+    const { commands, state } = planner.plan();
+    return { commands, state, outputIndex: 0 };
+  }
+
+  getHarvestRewardsPlan(
+    underlyingTokenInstance: ERC20,
+    strategySteps: STRATEGY_DATA[],
+    vaultInstance: Vault,
+  ): WeirollPlan {
+    let planner = new weirollPlanner();
+    const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].contract];
+    let inputToken = underlyingTokenInstance.address;
+    if (strategySteps.length > 1) {
+      inputToken = strategySteps[strategySteps.length - 2].outputToken;
+    }
+    planner = adapterObj.getHarvestRewardsPlan(planner, vaultInstance, inputToken);
+    const { commands, state } = planner.plan();
+    return { commands, state, outputIndex: 0 };
   }
 }
