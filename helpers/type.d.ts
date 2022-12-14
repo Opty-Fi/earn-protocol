@@ -218,6 +218,7 @@ export type PoolRate = {
 export type WeirollPlan = {
   commands: string[];
   state: string[];
+  outputIndex: number;
 };
 
 export declare class ReturnValue implements Value {

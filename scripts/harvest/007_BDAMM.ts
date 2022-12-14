@@ -51,7 +51,7 @@ const cryptoPoolGaugeABI = [
   },
 ];
 
-const comptrollerABI = [
+export const comptrollerABI = [
   {
     constant: true,
     inputs: [{ internalType: "address", name: "", type: "address" }],
@@ -204,19 +204,21 @@ async function main() {
   const unclaimedLUSDInopUSD3Earn = await bLUSDLUSD3FactoryGauge.claimable_reward(opUSD3Earn.address, lusd.address);
   const totalLusdInopUSD3Earn = lusdBalanceInopUSD3Earn.add(unclaimedLUSDInopUSD3Earn);
 
-  console.log("opUSDCEarn ", formatEther(unclaimedCompopUSDCEarn));
-  console.log("opWETHEarn ", formatEther(unclaimedCompopWETHEarn));
-  console.log("opWBTCEarn ", formatEther(unclaimedCompopWBTCEarn));
+  // console.log("opUSDCEarn ", formatEther(unclaimedCompopUSDCEarn));
+  // console.log("opWETHEarn ", formatEther(unclaimedCompopWETHEarn));
+  // console.log("opWBTCEarn ", formatEther(unclaimedCompopWBTCEarn));
 
-  console.log("accrue opUSDCEarn", formatEther(compBalanceopUSDCEarn));
-  console.log("accrue opWETHEarn ", formatEther(compBalanceopWETHEarn));
-  console.log("accrue opWBTCEarn ", formatEther(compBalanceopWBTCEarn));
+  // console.log("accrue opUSDCEarn", formatEther(compBalanceopUSDCEarn));
+  // console.log("accrue opWETHEarn ", formatEther(compBalanceopWETHEarn));
+  // console.log("accrue opWBTCEarn ", formatEther(compBalanceopWBTCEarn));
 
   const timestamp = await (await ethers.provider.getBlock("latest")).timestamp;
 
   const totalUnharvestedBDAMMopUSDCEarn = BigNumber.from(unclaimedCompopUSDCEarn).add(compBalanceopUSDCEarn);
   const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
   const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
+
+  console.log("totalUnharvestedBDAMMopWBTCEarn ", totalUnharvestedBDAMMopWBTCEarn.toString());
 
   const oneBDAMMToUSDC = parseUnits("0.26", "6");
   const oneBDAMMToWETH = parseEther("0.0001");
