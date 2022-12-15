@@ -1,21 +1,26 @@
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
-import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
+import { Contract } from "ethers";
+import { ERC20__factory } from "../typechain";
 import { AdapterInterface } from "./adapters/AdapterInterface";
 import { AaveV1Adapter } from "./adapters/ethereum/AaveV1Adapter";
 import { Aavev2Adapter } from "./adapters/ethereum/AaveV2Adapter";
 import { CompoundAdapter } from "./adapters/ethereum/CompoundAdapter";
-import { ReturnValue, STRATEGY_DATA, WeirollPlan } from "./type";
+import { ReturnValue, StrategyStepType, WeirollPlan } from "./type";
 
 export class StrategyManager {
-  compoundAdapterObj: AdapterInterface;
-  aaveV1AdapterObj: AdapterInterface;
-  aaveV2AdapterObj: AdapterInterface;
+  public readonly compoundAdapterObj: AdapterInterface;
+  public readonly aaveV1AdapterObj: AdapterInterface;
+  public readonly aaveV2AdapterObj: AdapterInterface;
+  public readonly vaultHelperContract: weirollContract;
 
   public readonly liquidityPoolToAdapter: { [key: string]: AdapterInterface } = {};
 
-  constructor(compoundAdapterAddress: string) {
-    this.compoundAdapterObj = new CompoundAdapter(compoundAdapterAddress);
+  constructor(vaultHelperInstance: Contract, compoundAdapterInstance: Contract) {
+    this.vaultHelperContract = weirollContract.createContract(
+      new ethers.Contract(vaultHelperInstance.address, vaultHelperInstance.interface),
+    );
+    this.compoundAdapterObj = new CompoundAdapter(compoundAdapterInstance);
     this.aaveV1AdapterObj = new AaveV1Adapter();
     this.aaveV2AdapterObj = new Aavev2Adapter();
     this.liquidityPoolToAdapter["0x52D306e36E3B6B02c153d0266ff0f85d18BCD413"] = this.aaveV2AdapterObj;
@@ -29,13 +34,13 @@ export class StrategyManager {
     this.liquidityPoolToAdapter["0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946"] = this.compoundAdapterObj;
   }
 
-  getDepositPlan(underlyingTokenInstance: ERC20, strategySteps: STRATEGY_DATA[], vaultInstance: Vault): WeirollPlan {
-    let planner = new weirollPlanner();
+  getDepositPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {
+    const planner = new weirollPlanner();
     const vaultContract = weirollContract.createContract(
-      new ethers.Contract(vaultInstance.address, Vault__factory.abi),
+      new ethers.Contract(vaultInstance.address, vaultInstance.interface),
     );
     for (const [index, strategyStep] of strategySteps.entries()) {
-      const adapterObj = this.liquidityPoolToAdapter[strategyStep.contract];
+      const adapterObj = this.liquidityPoolToAdapter[strategyStep.pool];
 
       if (index > 0) {
         const inputTokenContract = weirollContract.createContract(
@@ -44,22 +49,22 @@ export class StrategyManager {
         const inputTokenAmount = <ReturnValue>(
           planner.add(inputTokenContract["balanceOf(address)"](vaultContract.address).staticcall())
         );
-        planner = adapterObj.getDepositPlan(
+        adapterObj.getDepositPlan(
           planner,
           vaultInstance,
           strategySteps[index - 1].outputToken,
-          strategyStep.contract,
+          strategyStep.pool,
           strategyStep.outputToken,
           strategyStep.isSwap,
           inputTokenAmount,
         );
       } else {
         const amountUT = <ReturnValue>planner.add(vaultContract["getCacheValueUT()"].staticcall());
-        planner = adapterObj.getDepositPlan(
+        adapterObj.getDepositPlan(
           planner,
           vaultInstance,
-          underlyingTokenInstance.address,
-          strategyStep.contract,
+          underlyingToken,
+          strategyStep.pool,
           strategyStep.outputToken,
           strategyStep.isSwap,
           amountUT,
@@ -70,22 +75,22 @@ export class StrategyManager {
     return { commands, state, outputIndex: 0 };
   }
 
-  getWithdrawPlan(underlyingTokenInstance: ERC20, strategySteps: STRATEGY_DATA[], vaultInstance: Vault): WeirollPlan {
-    let planner = new weirollPlanner();
+  getWithdrawPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {
+    const planner = new weirollPlanner();
     const vaultContract = weirollContract.createContract(
-      new ethers.Contract(vaultInstance.address, Vault__factory.abi),
+      new ethers.Contract(vaultInstance.address, vaultInstance.interface),
     );
     for (const [index, _strategyStep] of strategySteps.entries()) {
       const iteratorIndex = strategySteps.length - index - 1;
-      const adapterObj = this.liquidityPoolToAdapter[strategySteps[iteratorIndex].contract];
+      const adapterObj = this.liquidityPoolToAdapter[strategySteps[iteratorIndex].pool];
       if (iteratorIndex === strategySteps.length - 1) {
         // last step
         const amountLP = planner.add(vaultContract.getCacheOraAmountLP().staticcall());
-        planner = adapterObj.getWithdrawPlan(
+        adapterObj.getWithdrawPlan(
           planner,
           vaultInstance,
-          underlyingTokenInstance.address,
-          strategySteps[iteratorIndex].contract,
+          underlyingToken,
+          strategySteps[iteratorIndex].pool,
           strategySteps[iteratorIndex].outputToken,
           strategySteps[iteratorIndex].isSwap,
           amountLP as ReturnValue,
@@ -97,11 +102,11 @@ export class StrategyManager {
         const amountLP = <ReturnValue>(
           planner.add(outputTokenContract["balanceOf(address)"](vaultContract.address).staticcall())
         );
-        planner = adapterObj.getWithdrawPlan(
+        adapterObj.getWithdrawPlan(
           planner,
           vaultInstance,
-          underlyingTokenInstance.address,
-          strategySteps[iteratorIndex].contract,
+          underlyingToken,
+          strategySteps[iteratorIndex].pool,
           strategySteps[iteratorIndex].outputToken,
           strategySteps[iteratorIndex].isSwap,
           amountLP,
@@ -112,7 +117,7 @@ export class StrategyManager {
     return { commands, state, outputIndex: 0 };
   }
 
-  getOraValueUTPlan(underlyingTokenInstance: ERC20, strategySteps: STRATEGY_DATA[], vaultInstance: Vault): WeirollPlan {
+  getOraValueUTPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {
     const planner = new weirollPlanner();
     const outputTokenContract = weirollContract.createContract(
       new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
@@ -121,8 +126,8 @@ export class StrategyManager {
     let amountUT;
     for (const [index, _strategyStep] of strategySteps.entries()) {
       const iteratorIndex = strategySteps.length - index - 1;
-      const adapterObj = this.liquidityPoolToAdapter[strategySteps[iteratorIndex].contract];
-      let inputToken = underlyingTokenInstance.address;
+      const adapterObj = this.liquidityPoolToAdapter[strategySteps[iteratorIndex].pool];
+      let inputToken = underlyingToken;
       if (iteratorIndex !== 0) {
         inputToken = strategySteps[iteratorIndex - 1].outputToken;
       }
@@ -132,7 +137,7 @@ export class StrategyManager {
             planner,
             vaultInstance,
             inputToken,
-            strategySteps[iteratorIndex].contract,
+            strategySteps[iteratorIndex].pool,
             strategySteps[iteratorIndex].outputToken,
             strategySteps[iteratorIndex].isSwap,
             amountLP,
@@ -144,7 +149,7 @@ export class StrategyManager {
             planner,
             vaultInstance,
             inputToken,
-            strategySteps[iteratorIndex].contract,
+            strategySteps[iteratorIndex].pool,
             strategySteps[iteratorIndex].outputToken,
             strategySteps[iteratorIndex].isSwap,
             amountUT as ReturnValue,
@@ -152,24 +157,25 @@ export class StrategyManager {
         );
       }
     }
+    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountUT).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
 
   getOraSomeValueLPPlan(
-    underlyingTokenInstance: ERC20,
-    strategySteps: STRATEGY_DATA[],
-    vaultInstance: Vault,
+    underlyingToken: string,
+    strategySteps: StrategyStepType[],
+    vaultInstance: Contract,
   ): WeirollPlan {
     const planner = new weirollPlanner();
     const vaultContract = weirollContract.createContract(
-      new ethers.Contract(vaultInstance.address, Vault__factory.abi),
+      new ethers.Contract(vaultInstance.address, vaultInstance.interface),
     );
     const valueUT = <ReturnValue>planner.add(vaultContract.getCacheExpectedStratWithdrawUT().staticcall());
     let amountLP;
     for (const [index, strategyStep] of strategySteps.entries()) {
-      const adapterObj = this.liquidityPoolToAdapter[strategyStep.contract];
-      let inputToken = underlyingTokenInstance.address;
+      const adapterObj = this.liquidityPoolToAdapter[strategyStep.pool];
+      let inputToken = underlyingToken;
       if (index !== 0) {
         inputToken = strategySteps[index - 1].outputToken;
       }
@@ -178,7 +184,7 @@ export class StrategyManager {
           planner,
           vaultInstance,
           inputToken,
-          strategyStep.contract,
+          strategyStep.pool,
           strategyStep.outputToken,
           strategyStep.isSwap,
           amountLP as ReturnValue,
@@ -188,61 +194,70 @@ export class StrategyManager {
           planner,
           vaultInstance,
           inputToken,
-          strategyStep.contract,
+          strategyStep.pool,
           strategyStep.outputToken,
           strategyStep.isSwap,
           valueUT,
         );
       }
     }
+    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
 
   getLastStrategyStepBalancePlan(
-    underlyingTokenInstance: ERC20,
-    strategySteps: STRATEGY_DATA[],
-    vaultInstance: Vault,
+    underlyingToken: string,
+    strategySteps: StrategyStepType[],
+    vaultInstance: Contract,
   ): WeirollPlan {
     const planner = new weirollPlanner();
     const outputTokenContract = weirollContract.createContract(
       new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
     );
-    planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address));
+    const amountLP = planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address).staticcall());
+    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
 
   getClaimRewardsPlan(
-    underlyingTokenInstance: ERC20,
-    strategySteps: STRATEGY_DATA[],
-    vaultInstance: Vault,
+    underlyingToken: string,
+    strategySteps: StrategyStepType[],
+    vaultInstance: Contract,
   ): WeirollPlan {
-    let planner = new weirollPlanner();
-    const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].contract];
-    let inputToken = underlyingTokenInstance.address;
-    if (strategySteps.length > 1) {
-      inputToken = strategySteps[strategySteps.length - 2].outputToken;
+    try {
+      let planner = new weirollPlanner();
+      const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].pool];
+      let inputToken = underlyingToken;
+      if (strategySteps.length > 1) {
+        inputToken = strategySteps[strategySteps.length - 2].outputToken;
+      }
+      planner = adapterObj.getClaimRewardsPlan(
+        planner,
+        vaultInstance,
+        inputToken,
+        strategySteps[strategySteps.length - 1].pool,
+        strategySteps[strategySteps.length - 1].outputToken,
+      );
+      const { commands, state } = planner.plan();
+      return { commands, state, outputIndex: 0 };
+    } catch (error: any) {
+      if (error.message === "not implemented") {
+        return { commands: [], state: [], outputIndex: 0 };
+      }
+      throw error;
     }
-    planner = adapterObj.getClaimRewardsPlan(
-      planner,
-      vaultInstance,
-      inputToken,
-      strategySteps[strategySteps.length - 1].contract,
-      strategySteps[strategySteps.length - 1].outputToken,
-    );
-    const { commands, state } = planner.plan();
-    return { commands, state, outputIndex: 0 };
   }
 
   getHarvestRewardsPlan(
-    underlyingTokenInstance: ERC20,
-    strategySteps: STRATEGY_DATA[],
-    vaultInstance: Vault,
+    underlyingToken: string,
+    strategySteps: StrategyStepType[],
+    vaultInstance: Contract,
   ): WeirollPlan {
     let planner = new weirollPlanner();
-    const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].contract];
-    let inputToken = underlyingTokenInstance.address;
+    const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].pool];
+    let inputToken = underlyingToken;
     if (strategySteps.length > 1) {
       inputToken = strategySteps[strategySteps.length - 2].outputToken;
     }

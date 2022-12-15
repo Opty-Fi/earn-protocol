@@ -1,5 +1,6 @@
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { Planner as weirollPlanner } from "@weiroll/weiroll.js";
+import { JsonRpcProvider } from "@ethersproject/providers";
 import { ReturnValue } from "../type";
 
 export interface AdapterInterface {
@@ -61,4 +62,13 @@ export interface AdapterInterface {
   ): weirollPlanner;
 
   getHarvestRewardsPlan(planner: weirollPlanner, vaultInstance: Contract, vaultUnderlyingToken: string): weirollPlanner;
+
+  getLPTokenBalance(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber>;
 }

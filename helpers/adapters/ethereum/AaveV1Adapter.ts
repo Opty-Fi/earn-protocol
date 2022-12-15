@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
 import Aave from "@optyfi/defi-legos/ethereum/aave/index";
@@ -7,6 +7,7 @@ import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { ReturnValue } from "../../type";
 import { AdapterInterface } from "../AdapterInterface";
 import { ERC20__factory, IWETH9__factory } from "../../../typechain";
+import { JsonRpcProvider } from "@ethersproject/providers";
 export class AaveV1Adapter implements AdapterInterface {
   getDepositPlan(
     planner: weirollPlanner,
@@ -103,5 +104,21 @@ export class AaveV1Adapter implements AdapterInterface {
     _vaulltUnderlyingToken: string,
   ): weirollPlanner {
     throw new Error("not implemented");
+  }
+
+  async getLPTokenBalance(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    const outputTokenInstance = new ethers.Contract(
+      outputToken,
+      ERC20__factory.abi,
+      <ethers.providers.JsonRpcProvider>_provider,
+    );
+    return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
   }
 }

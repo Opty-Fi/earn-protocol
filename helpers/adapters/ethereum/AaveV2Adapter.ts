@@ -1,12 +1,13 @@
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
 import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import { getAddress } from "ethers/lib/utils";
 import { ReturnValue } from "../../type";
 import { AdapterInterface } from "../AdapterInterface";
 import { ERC20__factory, ISwapRouter__factory } from "../../../typechain";
-import { getAddress } from "ethers/lib/utils";
+import { JsonRpcProvider } from "@ethersproject/providers";
 
 const STK_AAVE = "0x4da27a545c0c5B758a6BA100e3a049001de870f5";
 export class Aavev2Adapter implements AdapterInterface {
@@ -209,6 +210,22 @@ export class Aavev2Adapter implements AdapterInterface {
       ]),
     );
     return planner;
+  }
+
+  async getLPTokenBalance(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    const outputTokenInstance = new ethers.Contract(
+      outputToken,
+      ERC20__factory.abi,
+      <ethers.providers.JsonRpcProvider>_provider,
+    );
+    return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
   }
 }
 

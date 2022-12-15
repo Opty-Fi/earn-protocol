@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
 import Compound from "@optyfi/defi-legos/ethereum/compound/index";
@@ -8,13 +8,14 @@ import { ReturnValue } from "../../type";
 import { CompoundAdapter__factory, ERC20__factory, ICompound__factory, IWETH9__factory } from "../../../typechain";
 import { getAddress } from "ethers/lib/utils";
 import { AdapterInterface } from "../AdapterInterface";
+import { JsonRpcProvider } from "@ethersproject/providers";
 
 export class CompoundAdapter implements AdapterInterface {
   compoundAdapterInstance;
 
-  constructor(compoundAdapterAddress: string) {
+  constructor(compoundAdapterInstance: Contract) {
     this.compoundAdapterInstance = weirollContract.createContract(
-      new ethers.Contract(compoundAdapterAddress, CompoundAdapter__factory.abi),
+      new ethers.Contract(compoundAdapterInstance.address, compoundAdapterInstance.interface),
     );
   }
 
@@ -207,6 +208,22 @@ export class CompoundAdapter implements AdapterInterface {
       }
     }
     return planner;
+  }
+
+  async getLPTokenBalance(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    const outputTokenInstance = new ethers.Contract(
+      outputToken,
+      ERC20__factory.abi,
+      <ethers.providers.JsonRpcProvider>_provider,
+    );
+    return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
   }
 }
 

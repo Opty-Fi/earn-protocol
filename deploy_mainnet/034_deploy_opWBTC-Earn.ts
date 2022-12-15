@@ -23,7 +23,7 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   const artifact = await deployments.getArtifact("Vault");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
-  const strategyManager = await deployments.get("StrategyManager");
+  const commandBuilder = await deployments.get("CommandBuilder");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
@@ -113,7 +113,7 @@ const func: DeployFunction = async ({
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
-      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/CommandBuilder.sol:CommandBuilder": commandBuilder.address,
     },
     proxy: {
       owner: admin,
