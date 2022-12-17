@@ -2,10 +2,13 @@ import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseEther } from "ethers/lib/utils";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -153,7 +156,42 @@ const func: DeployFunction = async ({
       }
     }
   }
+  const vaultInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Save_Proxy")).address)
+  );
+  const approvalTokens = [];
+  const approvalSpender = [];
+
+  const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+  const awethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AaveV2.pools.weth.lpToken);
+
+  const wethAaveV2Allowance = await wethInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+  const awethAaveV2Allowance = await awethInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+
+  if (!wethAaveV2Allowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(wethInstance.address);
+    approvalSpender.push(AaveV2.LendingPool.address);
+  }
+
+  if (!awethAaveV2Allowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(awethInstance.address);
+    approvalSpender.push(AaveV2.LendingPool.address);
+  }
+  if (approvalTokens.length > 0) {
+    console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
+    console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);
+    const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+    if (getAddress(governanceSigner.address) === getAddress(deployer)) {
+      const tx = await vaultInstance.connect(governanceSigner).giveAllowances(approvalTokens, approvalSpender, {
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
+      await tx.wait(1);
+    } else {
+      console.log("cannot approve pools as signer is not the governance");
+    }
+  }
 };
 export default func;
 func.tags = ["opWETH-Save"];
-func.dependencies = ["Registry"];
+func.dependencies = ["Registry", "CommandBuilder"];

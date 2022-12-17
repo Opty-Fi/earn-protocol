@@ -8,9 +8,10 @@ import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit } from "../../typechain";
+import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit, Vault } from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { RegistryV1 } from "../../helpers/types/registryV1";
+import { StrategyManager } from "../../helpers/strategy-manager";
 
 const setStorageAt = (address: string, slot: string, val: string): Promise<any> =>
   hre.network.provider.send("hardhat_setStorageAt", [address, slot, val]);
@@ -509,4 +510,48 @@ export async function getPermitLegacySignature(
       },
     ),
   );
+}
+
+export async function getPreUserDepositState(
+  signer: SignerWithAddress,
+  underlyingTokenInstance: ERC20,
+  vaultInstance: Vault,
+  strategyManager: StrategyManager,
+  steps: StrategyStepType[],
+): Promise<{
+  userBalanceBeforeUT: BigNumber;
+  userBalanceBeforeVT: BigNumber;
+  vaultTotalSupplyBeforeVT: BigNumber;
+  vaultValueBeforeUT: BigNumber;
+}> {
+  const userBalanceBeforeUT = await underlyingTokenInstance.balanceOf(signer.address);
+  const userBalanceBeforeVT = await vaultInstance.balanceOf(signer.address);
+  const vaultBalanceBeforeUT = await underlyingTokenInstance.balanceOf(vaultInstance.address);
+  const vaultBalanceBeforeLP = await strategyManager.liquidityPoolToAdapter[
+    steps[steps.length - 1].pool
+  ].getOutputTokenBalance(
+    vaultInstance,
+    steps.length === 1 ? underlyingTokenInstance.address : steps[steps.length - 2].outputToken,
+    steps[steps.length - 1].pool,
+    steps[steps.length - 1].outputToken,
+    steps[steps.length - 1].isSwap,
+    ethers.provider,
+  );
+  const vaultTotalSupplyBeforeVT = await vaultInstance.totalSupply();
+  const vaultValueBeforeUT = (
+    await strategyManager.getValueInInputToken(
+      underlyingTokenInstance.address,
+      steps,
+      vaultInstance,
+      vaultBalanceBeforeLP,
+      ethers.provider,
+    )
+  ).add(vaultBalanceBeforeUT);
+
+  return {
+    userBalanceBeforeUT,
+    userBalanceBeforeVT,
+    vaultTotalSupplyBeforeVT,
+    vaultValueBeforeUT,
+  };
 }

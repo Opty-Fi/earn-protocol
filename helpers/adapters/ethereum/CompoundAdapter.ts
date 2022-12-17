@@ -5,8 +5,8 @@ import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import UniswapV2 from "@optyfi/defi-legos/ethereum/uniswapV2/index";
 import { ReturnValue } from "../../type";
-import { CompoundAdapter__factory, ERC20__factory, ICompound__factory, IWETH9__factory } from "../../../typechain";
-import { getAddress } from "ethers/lib/utils";
+import { ERC20__factory, ICompound__factory, IWETH9__factory } from "../../../typechain";
+import { getAddress, parseEther } from "ethers/lib/utils";
 import { AdapterInterface } from "../AdapterInterface";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
@@ -210,7 +210,7 @@ export class CompoundAdapter implements AdapterInterface {
     return planner;
   }
 
-  async getLPTokenBalance(
+  async getOutputTokenBalance(
     vaultInstance: Contract,
     inputToken: string,
     pool: string,
@@ -224,6 +224,42 @@ export class CompoundAdapter implements AdapterInterface {
       <ethers.providers.JsonRpcProvider>_provider,
     );
     return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
+  }
+
+  async getValueInInputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    outputTokenAmount: BigNumber,
+    isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    const cTokenInstance = new ethers.Contract(
+      pool,
+      ICompound__factory.abi,
+      <ethers.providers.JsonRpcProvider>_provider,
+    );
+    const exchangeRateStored = await cTokenInstance.exchangeRateStored();
+    return outputTokenAmount.mul(exchangeRateStored).div(parseEther("1"));
+  }
+
+  async getValueInOutputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    inputTokenAmount: BigNumber,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    const cTokenInstance = new ethers.Contract(
+      pool,
+      ICompound__factory.abi,
+      <ethers.providers.JsonRpcProvider>_provider,
+    );
+    const exchangeRateStored = await cTokenInstance.exchangeRateStored();
+    return inputTokenAmount.mul(parseEther("1")).div(exchangeRateStored);
   }
 }
 

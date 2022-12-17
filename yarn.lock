@@ -3407,12 +3407,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weiroll/weiroll.js@npm:^0.3.0":
+"@weiroll/weiroll.js@github:weiroll/weiroll.js#main":
   version: 0.3.0
-  resolution: "@weiroll/weiroll.js@npm:0.3.0"
+  resolution: "@weiroll/weiroll.js@https://github.com/weiroll/weiroll.js.git#commit=d1bdb851c42183e27b341e39e58eb3956d3237fb"
   dependencies:
     ethers: ^5.3.1
-  checksum: 571d94ed27edb3433d4b4dcae20ee0489130adaf523f74aa54b2681bc601f6557bb5e9d15db626fef8524b43eee5119f46cac6118290fa936c63237d9bbdace5
+  checksum: fd828fb42769a5da0243caa1709e072fde45d82446d84084bf9291187ad280aeda7f08ed62cdb77c15acf949248c7a5b0c0564ea7eda00bfa779c2a8523444a3
   languageName: node
   linkType: hard
 
@@ -7052,7 +7052,7 @@ __metadata:
     "@uniswap/v2-periphery": ^1.1.0-beta.0
     "@uniswap/v3-core": ^1.0.1
     "@uniswap/v3-periphery": ^1.4.2
-    "@weiroll/weiroll.js": ^0.3.0
+    "@weiroll/weiroll.js": "github:weiroll/weiroll.js#main"
     bignumber.js: ^9.0.2
     chai: ^4.3.4
     commitizen: ^4.2.4

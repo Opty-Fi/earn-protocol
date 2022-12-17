@@ -2,10 +2,14 @@ import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseUnits } from "ethers/lib/utils";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
+import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -149,7 +153,51 @@ const func: DeployFunction = async ({
       }
     }
   }
+
+  const vaultInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWBTC-Save_Proxy")).address)
+  );
+  const approvalTokens = [];
+  const approvalSpender = [];
+
+  const wbtcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.BTC_TOKENS.WBTC);
+  const awbtcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AaveV2.pools.wbtc.lpToken);
+  const cwbtcInstance = <ERC20>await ethers.getContractAt(Compound.cToken.abi, Compound.pools.wbtc.pool);
+
+  const wbtcAaveV2Allowance = await wbtcInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+  const awbtcAaveV2Allowance = await awbtcInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+
+  const wbtcCompoundAllowance = await wbtcInstance.allowance(vaultInstance.address, cwbtcInstance.address);
+
+  if (!wbtcAaveV2Allowance.gt(parseUnits("1000000", "8"))) {
+    approvalTokens.push(wbtcInstance.address);
+    approvalSpender.push(AaveV2.LendingPool.address);
+  }
+
+  if (!awbtcAaveV2Allowance.gt(parseUnits("1000000", "8"))) {
+    approvalTokens.push(awbtcInstance.address);
+    approvalSpender.push(AaveV2.LendingPool.address);
+  }
+
+  if (!wbtcCompoundAllowance.gt(parseUnits("1000000", "8"))) {
+    approvalTokens.push(wbtcInstance.address);
+    approvalSpender.push(Compound.pools.wbtc.pool);
+  }
+  if (approvalTokens.length > 0) {
+    console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
+    console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);
+    const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+    if (getAddress(governanceSigner.address) === getAddress(deployer)) {
+      const tx = await vaultInstance.connect(governanceSigner).giveAllowances(approvalTokens, approvalSpender, {
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
+      await tx.wait(1);
+    } else {
+      console.log("cannot approve pools as signer is not the governance");
+    }
+  }
 };
 export default func;
 func.tags = ["opWBTC-Save"];
-func.dependencies = ["Registry"];
+func.dependencies = ["Registry", "CommandBuilder"];

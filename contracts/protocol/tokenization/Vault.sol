@@ -321,9 +321,11 @@ contract Vault is
      */
     function harvestRewards(bytes32 _strategyHash) external payable override {
         _onlyStrategyOperator();
-        // TODO : get the harvest rewards code from StrategyRegistry
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            IStrategyRegistry(registryContract.getStrategyRegistry()).getClaimRewardsPlan(address(this), _strategyHash);
+            IStrategyRegistry(registryContract.getStrategyRegistry()).getHarvestRewardsPlan(
+                address(this),
+                _strategyHash
+            );
         _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
     }
 
@@ -365,7 +367,7 @@ contract Vault is
             _strategyHash,
             (vaultConfiguration >> 240) & 0xFF
         );
-        strategies.add(_strategyHash);
+        require(strategies.add(_strategyHash), Errors.ADD_STRATEGY);
         emit AddStrategy(_strategyHash);
     }
 
@@ -374,7 +376,8 @@ contract Vault is
      */
     function removeStrategy(bytes32 _strategyHash) external override {
         _onlyStrategyOperator();
-        strategies.remove(_strategyHash);
+        _vaultWithdrawSomeFromStrategy(_strategyHash, getLastStrategyStepBalanceLP(_strategyHash));
+        require(strategies.remove(_strategyHash), Errors.REMOVE_STRATEGY);
         emit RemoveStrategy(_strategyHash);
     }
 
@@ -530,6 +533,14 @@ contract Vault is
 
     function getCacheAmountLP() external view returns (uint256) {
         return _cacheAmountLP;
+    }
+
+    function getStrategies() external view returns (bytes32[] memory _strategies) {
+        uint256 _len = strategies.length();
+        _strategies = new bytes32[](_len);
+        for (uint256 _i; _i < _len; _i++) {
+            _strategies[_i] = strategies.at(_i);
+        }
     }
 
     //===Internal functions===//
@@ -826,15 +837,14 @@ contract Vault is
 
     /**
      * @dev Computes the amount in underlying token for the investment made in strategy
-     * @return amount in underlying token
+     * @return _sum amount in underlying token
      */
-    function _oraStratValueUT() internal view returns (uint256) {
+    function _oraStratValueUT() internal view returns (uint256 _sum) {
         IStrategyRegistry _strategyRegistry = IStrategyRegistry(registryContract.getStrategyRegistry());
-        uint256 _sum;
-        for (uint256 _i; _i < strategies.length(); _i++) {
+        uint256 _len = strategies.length();
+        for (uint256 _i; _i < _len; _i++) {
             _sum += _getUint256(_strategyRegistry.getOraValueUTPlan(address(this), strategies.at(_i)));
         }
-        return _sum;
     }
 
     function _oraStratValueUTByStrategy(IStrategyRegistry _strategyRegistry, bytes32 _strategyHash)

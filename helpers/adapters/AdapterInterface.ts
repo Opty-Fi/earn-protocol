@@ -63,12 +63,32 @@ export interface AdapterInterface {
 
   getHarvestRewardsPlan(planner: weirollPlanner, vaultInstance: Contract, vaultUnderlyingToken: string): weirollPlanner;
 
-  getLPTokenBalance(
+  getOutputTokenBalance(
     vaultInstance: Contract,
     inputToken: string,
     pool: string,
     outputToken: string,
     _isSwap: boolean,
     _provider: JsonRpcProvider,
+  ): Promise<BigNumber>;
+
+  getValueInInputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    outputTokenAmount: BigNumber,
+    isSwap: boolean,
+    provider: JsonRpcProvider,
+  ): Promise<BigNumber>;
+
+  getValueInOutputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    inputTokenAmount: BigNumber,
+    isSwap: boolean,
+    provider: JsonRpcProvider,
   ): Promise<BigNumber>;
 }

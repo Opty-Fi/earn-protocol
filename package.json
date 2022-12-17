@@ -45,7 +45,7 @@
     "@types/node": "^16.10.2",
     "@typescript-eslint/eslint-plugin": "^4.32.0",
     "@typescript-eslint/parser": "^4.32.0",
-    "@weiroll/weiroll.js": "^0.3.0",
+    "@weiroll/weiroll.js": "github:weiroll/weiroll.js#main",
     "bignumber.js": "^9.0.2",
     "chai": "^4.3.4",
     "commitizen": "^4.2.4",
@@ -114,7 +114,7 @@
     "test-fast:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/2_vault.spec.ts --deploy-fixture",
     "test-fast:emergency-brake": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/emergency-brake.spec.ts --deploy-fixture",
     "test-fast:vault-strategy:polygon": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=polygon NETWORK_NAME=polygon hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
-    "test-fast:vault-strategy:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/vaultweiroll.spec.ts",
+    "test-fast:vault-strategy:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
     "test-fast:vault-strategy:avalanche": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=avalanche NETWORK_NAME=avalanche FORK_BLOCK_NUMBER=13936470 hardhat --max-memory 4096 test test/test-opty/3_vault_strategies.spec.ts --deploy-fixture",
     "test-fast:integration:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/integration.spec.ts",
     "test-fast:strategy-manager:mainnet": "env SKIP_LOAD=true TS_NODE_TRANSPILE_ONLY=1 FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/strategy-manager.spec.ts",
@@ -149,7 +149,6 @@
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "@uniswap/v3-core": "^1.0.1",
-    "@uniswap/v3-periphery": "^1.4.2",
-    "hardhat-contract-sizer": "^2.6.1"
+    "@uniswap/v3-periphery": "^1.4.2"
   }
 }

@@ -2,10 +2,14 @@ import hre from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BigNumber } from "ethers";
-import { getAddress } from "ethers/lib/utils";
+import { getAddress, parseUnits } from "ethers/lib/utils";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
+import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
+import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -149,7 +153,51 @@ const func: DeployFunction = async ({
       }
     }
   }
+
+  const vaultInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDT-Save_Proxy")).address)
+  );
+  const approvalTokens = [];
+  const approvalSpender = [];
+
+  const usdtInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDT);
+  const ausdtInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AaveV2.pools.usdt.lpToken);
+  const cusdtInstance = <ERC20>await ethers.getContractAt(Compound.cToken.abi, Compound.pools.usdt.pool);
+
+  const usdtAaveV2Allowance = await usdtInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+  const ausdtAaveV2Allowance = await ausdtInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+
+  const usdtCompoundAllowance = await usdtInstance.allowance(vaultInstance.address, cusdtInstance.address);
+
+  if (!usdtAaveV2Allowance.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(usdtInstance.address);
+    approvalSpender.push(AaveV2.LendingPool.address);
+  }
+
+  if (!ausdtAaveV2Allowance.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(ausdtInstance.address);
+    approvalSpender.push(AaveV2.LendingPool.address);
+  }
+
+  if (!usdtCompoundAllowance.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(usdtInstance.address);
+    approvalSpender.push(Compound.pools.usdt.pool);
+  }
+  if (approvalTokens.length > 0) {
+    console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
+    console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);
+    const governanceSigner = await hre.ethers.getSigner(await registryInstance.getGovernance());
+    if (getAddress(governanceSigner.address) === getAddress(deployer)) {
+      const tx = await vaultInstance.connect(governanceSigner).giveAllowances(approvalTokens, approvalSpender, {
+        maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
+        maxFeePerGas: BigNumber.from(feeData["maxFeePerGas"]),
+      });
+      await tx.wait(1);
+    } else {
+      console.log("cannot approve pools as signer is not the governance");
+    }
+  }
 };
 export default func;
 func.tags = ["opUSDT-Save"];
-func.dependencies = ["Registry"];
+func.dependencies = ["Registry", "CommandBuilder"];

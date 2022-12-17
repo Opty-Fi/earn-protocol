@@ -6,7 +6,7 @@ import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { getAddress } from "ethers/lib/utils";
 import { ReturnValue } from "../../type";
 import { AdapterInterface } from "../AdapterInterface";
-import { ERC20__factory, ISwapRouter__factory } from "../../../typechain";
+import { ERC20__factory, ISwapRouter, ISwapRouter__factory } from "../../../typechain";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
 const STK_AAVE = "0x4da27a545c0c5B758a6BA100e3a049001de870f5";
@@ -20,10 +20,7 @@ export class Aavev2Adapter implements AdapterInterface {
     isSwap: boolean,
     inputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    const lendingPoolContract = new ethers.Contract(
-      "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9",
-      AaveV2.LendingPool.abi,
-    );
+    const lendingPoolContract = new ethers.Contract(AaveV2.LendingPool.address, AaveV2.LendingPool.abi);
     const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
     planner.add(
       lendingPoolInstance["deposit(address,uint256,address,uint16)"](
@@ -45,10 +42,7 @@ export class Aavev2Adapter implements AdapterInterface {
     isSwap: boolean,
     outputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    const lendingPoolContract = new ethers.Contract(
-      "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9",
-      AaveV2.LendingPool.abi,
-    );
+    const lendingPoolContract = new ethers.Contract(AaveV2.LendingPool.address, AaveV2.LendingPool.abi);
     const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
     planner.add(
       lendingPoolInstance["withdraw(address,uint256,address)"](inputToken, outputTokenAmount, vaultInstance.address),
@@ -205,14 +199,14 @@ export class Aavev2Adapter implements AdapterInterface {
         univ3Path,
         vaultInstance.address,
         ethers.constants.MaxUint256,
-        rewardAmount,
+        0, // TODO add reward amount
         0,
       ]),
     );
     return planner;
   }
 
-  async getLPTokenBalance(
+  async getOutputTokenBalance(
     vaultInstance: Contract,
     inputToken: string,
     pool: string,
@@ -226,6 +220,30 @@ export class Aavev2Adapter implements AdapterInterface {
       <ethers.providers.JsonRpcProvider>_provider,
     );
     return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
+  }
+
+  async getValueInInputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    outputTokenAmount: BigNumber,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    return outputTokenAmount;
+  }
+
+  async getValueInOutputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    inputTokenAmount: BigNumber,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    return inputTokenAmount;
   }
 }
 

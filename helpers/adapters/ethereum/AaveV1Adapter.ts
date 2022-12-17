@@ -106,7 +106,7 @@ export class AaveV1Adapter implements AdapterInterface {
     throw new Error("not implemented");
   }
 
-  async getLPTokenBalance(
+  async getOutputTokenBalance(
     vaultInstance: Contract,
     inputToken: string,
     pool: string,
@@ -120,5 +120,29 @@ export class AaveV1Adapter implements AdapterInterface {
       <ethers.providers.JsonRpcProvider>_provider,
     );
     return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
+  }
+
+  async getValueInInputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    outputTokenAmount: BigNumber,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    return outputTokenAmount;
+  }
+
+  async getValueInOutputToken(
+    vaultInstance: Contract,
+    inputToken: string,
+    pool: string,
+    outputToken: string,
+    inputTokenAmount: BigNumber,
+    _isSwap: boolean,
+    _provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    return inputTokenAmount;
   }
 }
