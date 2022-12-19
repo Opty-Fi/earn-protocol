@@ -105,6 +105,7 @@
     "watch:ci": "hardhat --max-memory 4096 watch ci",
     "test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/2_vault.spec.ts",
     "vaultv2-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
+    "adapters:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet hardhat --max-memory 4096 test test/test-opty/adapters/compound-adapter.spec.ts",
     "test-clean": "yarn clean && yarn test",
     "test-fast:vaultv3-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/001_mainnet_upgrade/vault_mainnet_upgrade.spec.ts",
     "test-fast:vaultv4-upgrade-test:mainnet": "env SKIP_LOAD=true FORK=mainnet NETWORK_NAME=mainnet TS_NODE_TRANSPILE_ONLY=1 hardhat --max-memory 4096 test test/test-opty/migration/002_upgrade/vault-upgrade-test.ts",

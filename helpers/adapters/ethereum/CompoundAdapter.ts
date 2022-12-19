@@ -32,7 +32,7 @@ export class CompoundAdapter implements AdapterInterface {
     if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
       const wethContract = weirollContract.createContract(new ethers.Contract(inputToken, IWETH9__factory.abi));
       planner.add(wethContract["withdraw(uint256)"](inputTokenAmount));
-      planner.add(poolInstance["mint()"].withValue(inputTokenAmount));
+      planner.add(poolInstance["mint()"]().withValue(inputTokenAmount));
     } else {
       planner.add(poolInstance["mint(uint256)"](inputTokenAmount));
     }

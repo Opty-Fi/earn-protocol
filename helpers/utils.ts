@@ -24,13 +24,13 @@ import {
   Registry,
   RegistryProxy,
   RiskManager,
-  StrategyProvider,
   TestVault,
   Vault,
   TestStrategyManager,
   UniswapV2ExchangeAdapter,
   CurveExchangeAdapter,
   StrategyRegistry,
+  TestDeFiAdapterWeiroll,
 } from "../typechain";
 import { VaultV3 } from "./types/vaultv3";
 import { expect } from "chai";
@@ -116,6 +116,7 @@ declare module "mocha" {
     vaultProxyV2: AdminUpgradeabilityProxy;
     testVaultArtifact: Artifact;
     testVault: TestVault;
+    testAdapter: TestDeFiAdapterWeiroll;
     erc20: ERC20;
     token: ERC20;
     usdc: ERC20Permit;
