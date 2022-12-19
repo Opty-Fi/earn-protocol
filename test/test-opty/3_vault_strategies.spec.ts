@@ -4,9 +4,16 @@ import { solidity } from "ethereum-waffle";
 import BN from "bignumber.js";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { BigNumber, Contract } from "ethers";
-import { formatEther, formatUnits, getAddress, parseEther, parseUnits } from "ethers/lib/utils";
+import { formatEther, formatUnits, getAddress, parseUnits } from "ethers/lib/utils";
 import Compound from "@optyfi/defi-legos/ethereum/compound/index";
-import { assertPostDepositState, assertPostUserDepositState, Signers, to_10powNumber_BN } from "../../helpers/utils";
+import {
+  assertPostUserDepositState,
+  assertPostUserWithdrawState,
+  assertPostVaultDepositState,
+  assertPostVaultWithdrawState,
+  Signers,
+  to_10powNumber_BN,
+} from "../../helpers/utils";
 import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import {
@@ -29,7 +36,7 @@ import {
 } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
-import { getPreDepositState, getPreUserDepositState, setTokenBalanceInStorage } from "./utils";
+import { getPreActionState, setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedTokens } from "../../helpers/data";
 import { StrategyManager } from "../../helpers/strategy-manager";
@@ -42,9 +49,11 @@ const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
 const IGNORE_VAULTS = process.env.IGNORE_VAULTS;
 
-const strategyHashLPoutputIndex: { [key: string]: number } = {
-  "0x9d5b0ec470b7cc0292aa6f12b02080fab6963a074f01f19bf163819cb6e38cb6": 0,
-  "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": 2,
+const strategyHashReadIndexes: { [key: string]: { valueLPIndex: number } } = {
+  "0x9d5b0ec470b7cc0292aa6f12b02080fab6963a074f01f19bf163819cb6e38cb6": {
+    valueLPIndex: 0,
+  },
+  "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": { valueLPIndex: 2 },
 };
 
 describe(`${fork}-Vault-rev7`, () => {
@@ -170,7 +179,7 @@ describe(`${fork}-Vault-rev7`, () => {
                       steps,
                       this.vaults[riskProfile][token],
                     ),
-                    outputIndex: strategyHashLPoutputIndex[strategyHash],
+                    outputIndex: strategyHashReadIndexes[strategyHash].valueLPIndex,
                   },
                   lastStepBalanceLPPlan: this.strategyManager.getLastStrategyStepBalancePlan(
                     StrategiesByTokenByChain[fork][riskProfile][token][strategy].token,
@@ -266,7 +275,7 @@ describe(`${fork}-Vault-rev7`, () => {
             it(`${riskProfile}-${token}-${strategy}-(first) alice and bob should deposit into Vault successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
-                await deposit(
+                await userDeposit(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -275,7 +284,7 @@ describe(`${fork}-Vault-rev7`, () => {
                   this.strategyManager,
                 );
               } else {
-                await deposit(
+                await userDeposit(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -288,14 +297,6 @@ describe(`${fork}-Vault-rev7`, () => {
             it(`${riskProfile}-${token}-${strategy}-should receive new strategy after rebalancing`, async function () {
               const underlyingTokenSymbol = await this.tokens[token].symbol();
               const vaultTokenSymbol = await this.vaults[riskProfile][token].symbol();
-              // ToDo
-              // 1. assert alice UT balance before rebalance
-              // 2. assert bob UT balance before rebalance
-              // 3. assert alice VT balance before rebalance
-              // 4. assert bob VT balance before rebalance
-              // 5. assert vault LP token balance before rebalance
-              // 6. assert vault PPS before rebalance
-              // 7. assert vault total supply before rebalance
               if (DEBUG == true) {
                 console.log("\n");
                 console.log("Before rebalance ");
@@ -361,21 +362,39 @@ describe(`${fork}-Vault-rev7`, () => {
 
               expect(await this.vaults[riskProfile][token].getStrategies()).to.deep.eq([strategyHash]);
 
+              const {
+                userBalanceBeforeUT,
+                userBalanceBeforeVT,
+                vaultTotalSupplyBeforeVT,
+                vaultBalanceBeforeLP,
+                vaultBalanceBeforeUT,
+              } = await getPreActionState(
+                this.signers.alice,
+                this.tokens[token],
+                this.vaults[riskProfile][token],
+                this.strategyManager,
+                steps,
+              );
+              const vaultDepositUT = await this.tokens[token].balanceOf(this.vaults[riskProfile][token].address);
               const vaultDepositTx = await this.vaults[riskProfile][token]
                 .connect(this.signers.strategyOperator)
-                .vaultDepositSomeToStrategy(
-                  strategyHash,
-                  await this.tokens[token].balanceOf(this.vaults[riskProfile][token].address),
-                );
+                .vaultDepositSomeToStrategy(strategyHash, vaultDepositUT);
               await vaultDepositTx.wait(1);
-              // ToDo
-              // 1. assert alice UT balance after rebalance
-              // 2. assert bob UT balance after rebalance
-              // 3. assert alice VT balance after rebalance
-              // 4. assert bob VT balance after rebalance
-              // 5. assert vault LP token balance after rebalance
-              // 6. assert vault PPS after rebalance
-              // 7. assert vault total supply after rebalance
+
+              await assertPostVaultDepositState(
+                this.signers.alice,
+                this.tokens[token],
+                this.vaults[riskProfile][token],
+                this.strategyManager,
+                steps,
+                ethers.provider,
+                userBalanceBeforeUT,
+                vaultDepositUT,
+                vaultTotalSupplyBeforeVT,
+                userBalanceBeforeVT,
+                vaultBalanceBeforeLP,
+                vaultBalanceBeforeUT,
+              );
               if (DEBUG == true) {
                 console.log("\n");
                 console.log("After rebalance ");
@@ -437,7 +456,7 @@ describe(`${fork}-Vault-rev7`, () => {
             it(`${riskProfile}-${token}-${strategy}-(first) alice and bob should be able to withdraw successfully, vault should withdraw from the current strategy successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
-                await withdraw(
+                await userWithdraw(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -447,7 +466,7 @@ describe(`${fork}-Vault-rev7`, () => {
                   this.strategyManager,
                 );
               } else {
-                await withdraw(
+                await userWithdraw(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -461,7 +480,7 @@ describe(`${fork}-Vault-rev7`, () => {
             it(`${riskProfile}-${token}-${strategy}-(second) alice and bob should deposit into Vault successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
               if (fork == eEVMNetwork.mainnet) {
-                await deposit(
+                await userDeposit(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -470,7 +489,7 @@ describe(`${fork}-Vault-rev7`, () => {
                   this.strategyManager,
                 );
               } else {
-                await deposit(
+                await userDeposit(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -483,26 +502,17 @@ describe(`${fork}-Vault-rev7`, () => {
             it(`${riskProfile}-${token}-${strategy}-vault should deposit successfully to strategy after vaultDepositAllToStrategy()`, async function () {
               const underlyingTokenSymbol = await this.tokens[token].symbol();
               const vaultTokenSymbol = await this.vaults[riskProfile][token].symbol();
-              const vaultBalanceBefore = await this.vaults[riskProfile][token].balanceUT();
-              const poolBalanceBefore = await this.strategyManager.liquidityPoolToAdapter[
-                steps[steps.length - 1].pool
-              ].getOutputTokenBalance(
-                this.vaults[riskProfile][token],
-                steps.length === 1 ? this.tokens[token].address : steps[steps.length - 2].outputToken,
-                steps[steps.length - 1].pool,
-                steps[steps.length - 1].outputToken,
-                steps[steps.length - 1].isSwap,
-                ethers.provider,
-              );
-              // ToDo
-              // 1. assert alice UT balance before vaultDeposit
-              // 2. assert bob UT balance before vaultDeposit
-              // 3. assert alice VT balance before vaultDeposit
-              // 4. assert bob VT balance before vaultDeposit
-              // 5. assert vault LP token balance before vaultDeposit
-              // 6. assert vault PPS before vaultDeposit
-              // 7. assert vault total supply before vaultDeposit
               if (DEBUG == true) {
+                const poolBalanceBefore = await this.strategyManager.liquidityPoolToAdapter[
+                  steps[steps.length - 1].pool
+                ].getOutputTokenBalance(
+                  this.vaults[riskProfile][token],
+                  steps.length === 1 ? this.tokens[token].address : steps[steps.length - 2].outputToken,
+                  steps[steps.length - 1].pool,
+                  steps[steps.length - 1].outputToken,
+                  steps[steps.length - 1].isSwap,
+                  ethers.provider,
+                );
                 console.log("\n");
                 console.log("Before vault deposit ");
                 console.log("poolBalanceBefore ", formatEther(poolBalanceBefore));
@@ -560,37 +570,51 @@ describe(`${fork}-Vault-rev7`, () => {
                 );
                 console.log("strategies ", await this.vaults[riskProfile][token].getStrategies());
               }
+              const {
+                userBalanceBeforeUT,
+                userBalanceBeforeVT,
+                vaultTotalSupplyBeforeVT,
+                vaultBalanceBeforeLP,
+                vaultBalanceBeforeUT,
+              } = await getPreActionState(
+                this.signers.bob,
+                this.tokens[token],
+                this.vaults[riskProfile][token],
+                this.strategyManager,
+                steps,
+              );
+              const vaultDepositUT = await this.tokens[token].balanceOf(this.vaults[riskProfile][token].address);
               const vaultDepositSomeTx = await this.vaults[riskProfile][token]
                 .connect(this.signers.operator)
-                .vaultDepositSomeToStrategy(
-                  strategyHash,
-                  await this.tokens[token].balanceOf(this.vaults[riskProfile][token].address),
-                );
+                .vaultDepositSomeToStrategy(strategyHash, vaultDepositUT);
               await vaultDepositSomeTx.wait(1);
-              const vaultBalanceAfter = await this.vaults[riskProfile][token].balanceUT();
-              const poolBalanceAfter = await this.strategyManager.liquidityPoolToAdapter[
-                steps[steps.length - 1].pool
-              ].getOutputTokenBalance(
+              await assertPostVaultDepositState(
+                this.signers.bob,
+                this.tokens[token],
                 this.vaults[riskProfile][token],
-                steps.length === 1 ? this.tokens[token].address : steps[steps.length - 2].outputToken,
-                steps[steps.length - 1].pool,
-                steps[steps.length - 1].outputToken,
-                steps[steps.length - 1].isSwap,
+                this.strategyManager,
+                steps,
                 ethers.provider,
+                userBalanceBeforeUT,
+                vaultDepositUT,
+                vaultTotalSupplyBeforeVT,
+                userBalanceBeforeVT,
+                vaultBalanceBeforeLP,
+                vaultBalanceBeforeUT,
               );
-              expect(vaultBalanceBefore).gt(vaultBalanceAfter);
-              expect(poolBalanceBefore).lt(poolBalanceAfter);
-              // ToDo
-              // 1. assert alice UT balance after vaultDeposit
-              // 2. assert bob UT balance after vaultDeposit
-              // 3. assert alice VT balance after vaultDeposit
-              // 4. assert bob VT balance after vaultDeposit
-              // 5. assert vault LP token balance after vaultDeposit
-              // 6. assert vault PPS after vaultDeposit
-              // 7. assert vault total supply after vaultDeposit
               if (DEBUG == true) {
                 console.log("\n");
                 console.log("After vault deposit ");
+                const poolBalanceAfter = await this.strategyManager.liquidityPoolToAdapter[
+                  steps[steps.length - 1].pool
+                ].getOutputTokenBalance(
+                  this.vaults[riskProfile][token],
+                  steps.length === 1 ? this.tokens[token].address : steps[steps.length - 2].outputToken,
+                  steps[steps.length - 1].pool,
+                  steps[steps.length - 1].outputToken,
+                  steps[steps.length - 1].isSwap,
+                  ethers.provider,
+                );
                 console.log("poolBalanceAfter ", formatEther(poolBalanceAfter));
                 console.log(
                   `${underlyingTokenSymbol} balance `,
@@ -651,7 +675,7 @@ describe(`${fork}-Vault-rev7`, () => {
               const signers = [this.signers.alice, this.signers.bob];
               console.log("\nStrategy ", strategy);
               if (fork == eEVMNetwork.mainnet) {
-                await withdraw(
+                await userWithdraw(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -661,7 +685,7 @@ describe(`${fork}-Vault-rev7`, () => {
                   this.strategyManager,
                 );
               } else {
-                await withdraw(
+                await userWithdraw(
                   signers,
                   this.vaults[riskProfile][token],
                   this.tokens[token],
@@ -671,7 +695,9 @@ describe(`${fork}-Vault-rev7`, () => {
                   this.strategyManager,
                 );
               }
-              const lpTokenBalance = await this.strategyManager.liquidityPoolToAdapter[
+            });
+            after(async function () {
+              const vaultWithdrawLP = await this.strategyManager.liquidityPoolToAdapter[
                 steps[steps.length - 1].pool
               ].getOutputTokenBalance(
                 this.vaults[riskProfile][token],
@@ -681,10 +707,43 @@ describe(`${fork}-Vault-rev7`, () => {
                 steps[steps.length - 1].isSwap,
                 ethers.provider,
               );
+
+              const {
+                userBalanceBeforeUT,
+                userBalanceBeforeVT,
+                vaultTotalSupplyBeforeVT,
+                vaultValueBeforeUT,
+                vaultBalanceBeforeLP,
+                vaultBalanceBeforeUT,
+              } = await getPreActionState(
+                this.signers.alice,
+                this.tokens[token],
+                this.vaults[riskProfile][token],
+                this.strategyManager,
+                steps,
+              );
+
               const vaultWithdrawSomeFromStrategyTx = await this.vaults[riskProfile][token]
                 .connect(this.signers.strategyOperator)
-                .vaultWithdrawSomeFromStrategy(strategyHash, lpTokenBalance);
+                .vaultWithdrawSomeFromStrategy(strategyHash, vaultWithdrawLP);
               await vaultWithdrawSomeFromStrategyTx.wait(1);
+
+              await assertPostVaultWithdrawState(
+                this.signers.alice,
+                this.tokens[token],
+                this.vaults[riskProfile][token],
+                this.strategyManager,
+                steps,
+                ethers.provider,
+                userBalanceBeforeUT,
+                vaultWithdrawLP,
+                vaultTotalSupplyBeforeVT,
+                vaultValueBeforeUT,
+                userBalanceBeforeVT,
+                vaultBalanceBeforeLP,
+                vaultBalanceBeforeUT,
+              );
+
               const removeStrategyTx = await this.vaults[riskProfile][token]
                 .connect(this.signers.operator)
                 .removeStrategy(strategyHash);
@@ -697,7 +756,7 @@ describe(`${fork}-Vault-rev7`, () => {
   });
 });
 
-async function deposit(
+async function userDeposit(
   signers: SignerWithAddress[],
   vaultInstance: Vault,
   underlyingTokenInstance: ERC20,
@@ -763,32 +822,8 @@ async function deposit(
       .approve(vaultInstance.address, _userDepositInDecimals);
     await tx1.wait(1);
 
-    // const userBalanceBeforeUT = await underlyingTokenInstance.balanceOf(signers[i].address);
-    // const userBalanceBeforeVT = await vaultInstance.balanceOf(signers[i].address);
-    // const vaultBalanceBeforeUT = await underlyingTokenInstance.balanceOf(vaultInstance.address);
-    // const vaultBalanceBeforeLP = await strategyManager.liquidityPoolToAdapter[
-    //   steps[steps.length - 1].pool
-    // ].getOutputTokenBalance(
-    //   vaultInstance,
-    //   steps.length === 1 ? underlyingTokenInstance.address : steps[steps.length - 2].outputToken,
-    //   steps[steps.length - 1].pool,
-    //   steps[steps.length - 1].outputToken,
-    //   steps[steps.length - 1].isSwap,
-    //   ethers.provider,
-    // );
-    // const vaultTotalSupplyBeforeVT = await vaultInstance.totalSupply();
-    // const vaultValueBeforeUT = (
-    //   await strategyManager.getValueInInputToken(
-    //     underlyingTokenInstance.address,
-    //     steps,
-    //     vaultInstance,
-    //     vaultBalanceBeforeLP,
-    //     ethers.provider,
-    //   )
-    // ).add(vaultBalanceBeforeUT);
-
     const { userBalanceBeforeUT, userBalanceBeforeVT, vaultTotalSupplyBeforeVT, vaultValueBeforeUT } =
-      await getPreUserDepositState(signers[i], underlyingTokenInstance, vaultInstance, strategyManager, steps);
+      await getPreActionState(signers[i], underlyingTokenInstance, vaultInstance, strategyManager, steps);
 
     const tx2 = await vaultInstance
       .connect(signers[i])
@@ -808,51 +843,6 @@ async function deposit(
       vaultValueBeforeUT,
       userBalanceBeforeVT,
     );
-
-    // const userBalanceAfterUT = await underlyingTokenInstance.balanceOf(signers[i].address);
-    // const userBalanceAfterVT = await vaultInstance.balanceOf(signers[i].address);
-    // const vaultBalanceAfterUT = await underlyingTokenInstance.balanceOf(vaultInstance.address);
-    // const vaultBalanceAfterLP = await strategyManager.liquidityPoolToAdapter[
-    //   steps[steps.length - 1].pool
-    // ].getOutputTokenBalance(
-    //   vaultInstance,
-    //   steps.length === 1 ? underlyingTokenInstance.address : steps[steps.length - 2].outputToken,
-    //   steps[steps.length - 1].pool,
-    //   steps[steps.length - 1].outputToken,
-    //   steps[steps.length - 1].isSwap,
-    //   ethers.provider,
-    // );
-    // const ppsAfter = await vaultInstance.getPricePerFullShare();
-    // const vaultTotalSupplyAfterVT = await vaultInstance.totalSupply();
-    // const expectedUserBalanceUT = userBalanceBeforeUT.sub(_userDepositInDecimals);
-    // let expectedUserVT: BigNumber = BigNumber.from(0);
-    // if (vaultTotalSupplyBeforeVT.eq(0) || vaultValueBeforeUT.eq(0)) {
-    //   expectedUserVT = _userDepositInDecimals;
-    // } else {
-    //   expectedUserVT = _userDepositInDecimals.mul(vaultTotalSupplyBeforeVT).div(vaultValueBeforeUT);
-    // }
-    // const actualUserMintedVT = userBalanceAfterVT.sub(userBalanceBeforeVT);
-    // const expectedTotalSupplyVT = vaultTotalSupplyBeforeVT.add(expectedUserVT);
-    // const expectedPPS = expectedTotalSupplyVT.eq("0")
-    //   ? BigNumber.from("0")
-    //   : (
-    //       await strategyManager.getValueInInputToken(
-    //         underlyingTokenInstance.address,
-    //         steps,
-    //         vaultInstance,
-    //         vaultBalanceAfterLP,
-    //         ethers.provider,
-    //       )
-    //     )
-    //       .add(vaultBalanceAfterUT)
-    //       .mul(parseEther("1"))
-    //       .div(expectedTotalSupplyVT);
-
-    // expect(userBalanceBeforeUT).gt(userBalanceAfterUT);
-    // expect(userBalanceAfterUT).to.eq(expectedUserBalanceUT);
-    // expect(actualUserMintedVT).to.gte(expectedUserVT);
-    // expect(vaultTotalSupplyAfterVT).to.eq(expectedTotalSupplyVT);
-    // expect(ppsAfter).to.eq(expectedPPS);
     if (DEBUG == true) {
       console.log("\n");
       console.log("After user deposit ");
@@ -900,7 +890,7 @@ async function deposit(
   }
 }
 
-async function withdraw(
+async function userWithdraw(
   signers: SignerWithAddress[],
   vaultInstance: Vault,
   underlyingTokenInstance: ERC20,
@@ -913,7 +903,6 @@ async function withdraw(
   const vaultTokenSymbol = await vaultInstance.symbol();
   for (let i = 0; i < signers.length; i++) {
     const userWithdrawBalance = await vaultInstance.balanceOf(signers[i].address);
-    const userBalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
     const poolBalanceBefore = await strategyManager.liquidityPoolToAdapter[
       steps[steps.length - 1].pool
     ].getOutputTokenBalance(
@@ -924,14 +913,14 @@ async function withdraw(
       steps[steps.length - 1].isSwap,
       ethers.provider,
     );
-    // ToDo
-    // 1. assert alice UT balance before withdraw
-    // 2. assert bob UT balance before withdraw
-    // 3. assert alice VT balance before withdraw
-    // 4. assert bob VT balance before withdraw
-    // 5. assert vault LP token balance before withdraw
-    // 6. assert vault PPS before withdraw
-    // 7. assert vault total supply before withdraw
+    const {
+      userBalanceBeforeUT,
+      userBalanceBeforeVT,
+      vaultTotalSupplyBeforeVT,
+      vaultValueBeforeUT,
+      vaultBalanceBeforeLP,
+      vaultBalanceBeforeUT,
+    } = await getPreActionState(signers[i], underlyingTokenInstance, vaultInstance, strategyManager, steps);
     if (DEBUG == true) {
       console.log("\n");
       console.log("Before user withdraw ");
@@ -981,38 +970,35 @@ async function withdraw(
       .connect(signers[i])
       .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), []);
     await tx.wait();
-    const userBalanceAfter = await underlyingTokenInstance.balanceOf(signers[i].address);
-    const poolBalanceAfter = await strategyManager.liquidityPoolToAdapter[
-      steps[steps.length - 1].pool
-    ].getOutputTokenBalance(
+
+    await assertPostUserWithdrawState(
+      signers[i],
+      underlyingTokenInstance,
       vaultInstance,
-      steps.length === 1 ? underlyingTokenInstance.address : steps[steps.length - 2].outputToken,
-      steps[steps.length - 1].pool,
-      steps[steps.length - 1].outputToken,
-      steps[steps.length - 1].isSwap,
+      strategyManager,
+      steps,
       ethers.provider,
+      userBalanceBeforeUT,
+      userWithdrawBalance.mul(3).div(4),
+      vaultTotalSupplyBeforeVT,
+      vaultValueBeforeUT,
+      userBalanceBeforeVT,
+      vaultBalanceBeforeLP,
+      vaultBalanceBeforeUT,
     );
-    expect(userBalanceBefore).lt(userBalanceAfter);
-    // if (
-    //   ![
-    //     "0xdf3f8ef63f05db6e4b04c3b5a8198d128b61faee8075aed893d76832a0deed6f", //wbtc-DEPOSIT-dAMM-cWBTC has 0% supply APY at fork block
-    //     "0x44216c2a6ff5f35d0b24f54cfddb2f39f8ab9a7a998bfa4683aa6083dceb9a9a",
-    //   ] //wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC has 0% supply APY at fork block
-    //     .includes(await vaultInstance.investStrategyHash())
-    // ) {
-    expect(poolBalanceBefore).gt(poolBalanceAfter);
-    // }
-    // ToDo
-    // 1. assert alice UT balance after withdraw
-    // 2. assert bob UT balance after withdraw
-    // 3. assert alice VT balance after withdraw
-    // 4. assert bob VT balance after withdraw
-    // 5. assert vault LP token balance after withdraw
-    // 6. assert vault PPS after withdraw
-    // 7. assert vault total supply after withdraw
     if (DEBUG == true) {
       console.log("\n");
       console.log("After user withdraw ");
+      const poolBalanceAfter = await strategyManager.liquidityPoolToAdapter[
+        steps[steps.length - 1].pool
+      ].getOutputTokenBalance(
+        vaultInstance,
+        steps.length === 1 ? underlyingTokenInstance.address : steps[steps.length - 2].outputToken,
+        steps[steps.length - 1].pool,
+        steps[steps.length - 1].outputToken,
+        steps[steps.length - 1].isSwap,
+        ethers.provider,
+      );
       console.log("poolBalanceAfter ", formatEther(poolBalanceAfter));
       console.log(
         `${underlyingTokenSymbol} balance `,

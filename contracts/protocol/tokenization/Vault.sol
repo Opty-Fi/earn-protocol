@@ -237,7 +237,7 @@ contract Vault is
         _onlyRiskOperator();
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
-        for (uint256 _i; _i < _tokens.length; _i++) {
+        for (uint256 _i; _i < _tokensLen; _i++) {
             _tokens[_i].safeApprove(_spenders[_i], uint256(-1));
         }
     }
@@ -249,7 +249,7 @@ contract Vault is
         _onlyRiskOperator();
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
-        for (uint256 _i; _i < _tokens.length; _i++) {
+        for (uint256 _i; _i < _tokensLen; _i++) {
             _tokens[_i].safeApprove(_spenders[_i], 0);
         }
     }
@@ -666,18 +666,12 @@ contract Vault is
                 _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
             }
 
-            // Identify Slippage
-            // UT requested from strategy withdraw  = _expectedStratWithdrawUT
             // UT actually received from strategy withdraw
-            // = _receivedStratWithdrawUT
-            // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
-            // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
-            uint256 _vaultValuePostStratWithdrawUT = balanceUT();
-            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            uint256 _receivedStratWithdrawUT = balanceUT().sub(_vaultValuePreStratWithdrawUT);
 
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
             if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
-                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(_expectedStratWithdrawUT.sub(_receivedStratWithdrawUT));
+                _oraUserWithdrawUT = _oraUserWithdrawUT.add(_receivedStratWithdrawUT);
             }
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
@@ -722,7 +716,6 @@ contract Vault is
         _onlyStrategyOperator();
         _checkVaultDeposit();
         require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_SET);
-        // TODO : isValidStrategy should be read only function
         IRiskManager(registryContract.getRiskManager()).isValidStrategy(
             _strategyHash,
             (vaultConfiguration >> 240) & 0xFF
