@@ -14,6 +14,8 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
   const USDC_WETH_FEED = "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4";
   const WBTC_WETH_FEED = "0xdeb288F737066589598e9214E782fa5A8eD689e8";
   const WETH_WBTC_FEED = "0xAc559F25B1619171CbC396a50854A3240b6A4e99";
+  const COMP_ETH_FEED = "0x1B39Ee86Ec5979ba5C322b826B3ECb8C79991699";
+  const COMP_USD_FEED = "0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5";
 
   const owner = await optyfiOracleInstance.owner();
   const feedToTokens = [
@@ -31,6 +33,16 @@ const func: DeployFunction = async ({ deployments, ethers }: HardhatRuntimeEnvir
       tokenA: ethereumTokens.WRAPPED_TOKENS.WETH,
       tokenB: ethereumTokens.BTC_TOKENS.WBTC,
       priceFeed: WETH_WBTC_FEED,
+    },
+    {
+      tokenA: ethereumTokens.REWARD_TOKENS.COMP,
+      tokenB: ethereumTokens.WRAPPED_TOKENS.WETH,
+      priceFeed: COMP_ETH_FEED,
+    },
+    {
+      tokenA: ethereumTokens.REWARD_TOKENS.COMP,
+      tokenB: ethereumTokens.PLAIN_TOKENS.USD,
+      priceFeed: COMP_USD_FEED,
     },
   ];
   const pendingFeedToTokens = [];

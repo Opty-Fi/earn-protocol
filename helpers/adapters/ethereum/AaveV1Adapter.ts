@@ -9,6 +9,14 @@ import { AdapterInterface } from "../AdapterInterface";
 import { ERC20__factory, IWETH9__factory } from "../../../typechain";
 import { JsonRpcProvider } from "@ethersproject/providers";
 export class AaveV1Adapter implements AdapterInterface {
+  vaultHelperMainnetInstance;
+
+  constructor(vaultHelperMainnetContract: Contract) {
+    this.vaultHelperMainnetInstance = weirollContract.createContract(
+      new ethers.Contract(vaultHelperMainnetContract.address, vaultHelperMainnetContract.interface),
+    );
+  }
+
   getDepositPlan(
     planner: weirollPlanner,
     vaultInstance: Contract,
@@ -18,14 +26,13 @@ export class AaveV1Adapter implements AdapterInterface {
     isSwap: boolean,
     inputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    // TODO handle ETH deposit
-    const lendingPoolContract = new ethers.Contract("0x398eC7346DcD622eDc5ae82352F02bE94C62d119", Aave.LendingPool.abi);
+    const lendingPoolContract = new ethers.Contract(Aave.LendingPool.address, Aave.LendingPool.abi);
     const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
     if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
-      const wethContract = weirollContract.createContract(new ethers.Contract(inputToken, IWETH9__factory.abi));
-      planner.add(wethContract["withdraw(uint256)"](inputTokenAmount));
       planner.add(
-        lendingPoolInstance["deposit(address,uint256,uint16)"](inputToken, inputTokenAmount, "0").withValue(
+        this.vaultHelperMainnetInstance["depositETH_AaveV1(address,address,uint256)"](
+          lendingPoolContract.address,
+          outputToken,
           inputTokenAmount,
         ),
       );
@@ -44,10 +51,15 @@ export class AaveV1Adapter implements AdapterInterface {
     isSwap: boolean,
     outputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    // TODO handle ETH withdraw
     const lpTokenContract = new ethers.Contract(outputToken, Aave.ATokenAbi);
     const lpTokenInstance = weirollContract.createContract(lpTokenContract);
-    planner.add(lpTokenInstance["redeem(uint256)"](outputTokenAmount));
+    if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
+      planner.add(
+        this.vaultHelperMainnetInstance["withdrawETH_AaveV1(address,uint256)"](outputToken, outputTokenAmount),
+      );
+    } else {
+      planner.add(lpTokenInstance["redeem(uint256)"](outputTokenAmount));
+    }
     return planner;
   }
 

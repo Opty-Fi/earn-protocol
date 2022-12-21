@@ -13,17 +13,17 @@ export class StrategyManager {
   public readonly compoundAdapterObj: AdapterInterface;
   public readonly aaveV1AdapterObj: AdapterInterface;
   public readonly aaveV2AdapterObj: AdapterInterface;
-  public readonly vaultHelperContract: weirollContract;
+  public readonly vaultHelperMainnetContract: weirollContract;
 
   public readonly liquidityPoolToAdapter: { [key: string]: AdapterInterface } = {};
 
-  constructor(vaultHelperInstance: Contract, compoundAdapterInstance: Contract) {
-    this.vaultHelperContract = weirollContract.createContract(
-      new ethers.Contract(vaultHelperInstance.address, vaultHelperInstance.interface),
+  constructor(vaultHelperMainnetInstance: Contract, optyFiOracleAddress: string) {
+    this.vaultHelperMainnetContract = weirollContract.createContract(
+      new ethers.Contract(vaultHelperMainnetInstance.address, vaultHelperMainnetInstance.interface),
     );
-    this.compoundAdapterObj = new CompoundAdapter(compoundAdapterInstance);
-    this.aaveV1AdapterObj = new AaveV1Adapter();
-    this.aaveV2AdapterObj = new Aavev2Adapter();
+    this.compoundAdapterObj = new CompoundAdapter(vaultHelperMainnetInstance, optyFiOracleAddress);
+    this.aaveV1AdapterObj = new AaveV1Adapter(vaultHelperMainnetInstance);
+    this.aaveV2AdapterObj = new Aavev2Adapter(vaultHelperMainnetInstance, optyFiOracleAddress);
     this.liquidityPoolToAdapter["0x52D306e36E3B6B02c153d0266ff0f85d18BCD413"] = this.aaveV2AdapterObj;
     this.liquidityPoolToAdapter["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"] = this.compoundAdapterObj;
     this.liquidityPoolToAdapter["0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9"] = this.compoundAdapterObj;
@@ -160,7 +160,7 @@ export class StrategyManager {
         );
       }
     }
-    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountUT).staticcall());
+    planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountUT).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
@@ -204,7 +204,7 @@ export class StrategyManager {
         );
       }
     }
-    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
+    planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
@@ -219,7 +219,7 @@ export class StrategyManager {
       new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
     );
     const amountLP = planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address).staticcall());
-    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
+    planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }

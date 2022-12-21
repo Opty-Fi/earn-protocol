@@ -5,10 +5,11 @@ import { BigNumber } from "ethers";
 import { getAddress, parseEther } from "ethers/lib/utils";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
+import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
+import { ERC20, ERC20__factory, Vault, VaultHelperMainnet__factory, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -159,14 +160,31 @@ const func: DeployFunction = async ({
   const vaultInstance = <Vault>(
     await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Save_Proxy")).address)
   );
+
+  const vaultHelperMainnetInstance = await ethers.getContractAt(
+    VaultHelperMainnet__factory.abi,
+    (
+      await deployments.get("VaultHelperMainnet")
+    ).address,
+  );
+
   const approvalTokens = [];
   const approvalSpender = [];
 
-  const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+  const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
   const awethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AaveV2.pools.weth.lpToken);
+  const cethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, Compound.pools.eth.lpToken);
 
   const wethAaveV2Allowance = await wethInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
   const awethAaveV2Allowance = await awethInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
+  const wethVaultHelperMainnetAllowance = await wethInstance.allowance(
+    vaultInstance.address,
+    vaultHelperMainnetInstance.address,
+  );
+  const cethVaultHelperMainnetAllowance = await cethInstance.allowance(
+    vaultInstance.address,
+    vaultHelperMainnetInstance.address,
+  );
 
   if (!wethAaveV2Allowance.gt(parseEther("1000000"))) {
     approvalTokens.push(wethInstance.address);
@@ -177,6 +195,17 @@ const func: DeployFunction = async ({
     approvalTokens.push(awethInstance.address);
     approvalSpender.push(AaveV2.LendingPool.address);
   }
+
+  if (!wethVaultHelperMainnetAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(wethInstance.address);
+    approvalSpender.push(vaultHelperMainnetInstance.address);
+  }
+
+  if (!cethVaultHelperMainnetAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(cethInstance.address);
+    approvalSpender.push(vaultHelperMainnetInstance.address);
+  }
+
   if (approvalTokens.length > 0) {
     console.log(`${approvalTokens.length} tokens to approve ...`, approvalTokens);
     console.log(`${approvalSpender.length} spender to spend ...`, approvalSpender);

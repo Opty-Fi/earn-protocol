@@ -32,6 +32,7 @@ import {
   CurveExchangeAdapter,
   StrategyRegistry,
   ERC20__factory,
+  VaultHelperMainnet,
 } from "../typechain";
 import { VaultV3 } from "./types/vaultv3";
 import { expect } from "chai";
@@ -43,7 +44,6 @@ import { RiskManagerProxyV1 } from "./types/riskManagerv1";
 import { RegistryV2 } from "./types/registryV2/RegistryV2";
 import { RiskManagerV2 } from "./types/riskManagerv2";
 import { StrategyManager } from "./strategy-manager";
-import { VaultHelper } from "../typechain/VaultHelper";
 import { StrategyStepType } from "./type";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { parseEther, parseUnits } from "ethers/lib/utils";
@@ -99,7 +99,7 @@ declare module "mocha" {
     curveDepositPoolAdapter: CurveDepositPoolAdapter;
     curveSwapPoolAdapter: CurveSwapPoolAdapter;
     curveSwapEthGateway: CurveSwapETHGateway;
-    // strategyProvider: StrategyProvider;
+    strategyProvider: StrategyProvider;
     strategyRegistry: StrategyRegistry;
     strategyManager: StrategyManager;
     strategyProviderV1: StrategyProviderV1;
@@ -108,7 +108,7 @@ declare module "mocha" {
     riskManagerV2: RiskManagerV2;
     vault: Vault;
     vaultProxy: InitializableImmutableAdminUpgradeabilityProxy;
-    vaultHelper: VaultHelper;
+    vaultHelperMainnet: VaultHelperMainnet;
     opUSDCearn: Vault;
     opUSDCearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
     opWETHearn: Vault;

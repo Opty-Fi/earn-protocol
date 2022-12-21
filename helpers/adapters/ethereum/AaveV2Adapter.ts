@@ -6,11 +6,21 @@ import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { getAddress } from "ethers/lib/utils";
 import { ReturnValue } from "../../type";
 import { AdapterInterface } from "../AdapterInterface";
-import { ERC20__factory, ISwapRouter, ISwapRouter__factory } from "../../../typechain";
+import { ERC20__factory } from "../../../typechain";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
 const STK_AAVE = "0x4da27a545c0c5B758a6BA100e3a049001de870f5";
 export class Aavev2Adapter implements AdapterInterface {
+  optyFiOracleAddress;
+  vaultHelperMainnetInstance;
+
+  constructor(vaultHelperMainnetContract: Contract, _optyFiOracleAddress: string) {
+    this.optyFiOracleAddress = _optyFiOracleAddress;
+    this.vaultHelperMainnetInstance = weirollContract.createContract(
+      new ethers.Contract(vaultHelperMainnetContract.address, vaultHelperMainnetContract.interface),
+    );
+  }
+
   getDepositPlan(
     planner: weirollPlanner,
     vaultInstance: Contract,
@@ -112,15 +122,14 @@ export class Aavev2Adapter implements AdapterInterface {
     vaultInstance: Contract,
     vaultUnderlyingToken: string,
   ): weirollPlanner {
-    // TODO consider adding minimum amount to receive
-    const uniswapV3RouterContract = new ethers.Contract(
-      "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-      ISwapRouter__factory.abi,
-    );
-    const uniswapV3RouterInstance = weirollContract.createContract(uniswapV3RouterContract);
     const rewardContract = new ethers.Contract(STK_AAVE, ERC20__factory.abi);
     const rewardInstance = weirollContract.createContract(rewardContract);
     const rewardAmount = planner.add(rewardInstance["balanceOf(address)"](vaultInstance.address).staticcall());
+    const minumumOutputAmount = planner.add(
+      this.vaultHelperMainnetInstance[
+        "getMinimumExpectedTokenOutPrice_OptyFiOracle(address,address,address,uint256,uint256)"
+      ](this.optyFiOracleAddress, rewardInstance.address, vaultUnderlyingToken, rewardAmount, 100).staticcall(),
+    );
     let univ3Path;
     switch (getAddress(vaultUnderlyingToken)) {
       case getAddress(EthereumTokens.PLAIN_TOKENS.USDT): {
@@ -195,13 +204,12 @@ export class Aavev2Adapter implements AdapterInterface {
       }
     }
     planner.add(
-      uniswapV3RouterInstance["exactInput((bytes,address,uint256,uint256,uint256))"]([
+      this.vaultHelperMainnetInstance["exactInput_UniswapV3(bytes,uint256,uint256,uint256)"](
         univ3Path,
-        vaultInstance.address,
         ethers.constants.MaxUint256,
-        0, // TODO add reward amount
-        0,
-      ]),
+        rewardAmount,
+        minumumOutputAmount,
+      ),
     );
     return planner;
   }

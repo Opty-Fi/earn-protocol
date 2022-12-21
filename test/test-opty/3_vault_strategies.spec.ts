@@ -25,14 +25,10 @@ import {
   Registry__factory,
   Vault__factory,
   ERC20__factory,
-  CurveSwapPoolAdapter,
-  CurveSwapPoolAdapter__factory,
-  CurveSwapETHGateway,
-  CurveSwapETHGateway__factory,
   IComptroller__factory,
-  CompoundAdapter__factory,
-  CompoundAdapter,
   StrategyRegistry__factory,
+  VaultHelperMainnet,
+  VaultHelperMainnet__factory,
 } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
@@ -40,8 +36,6 @@ import { getPreActionState, setTokenBalanceInStorage } from "./utils";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
 import { TypedTokens } from "../../helpers/data";
 import { StrategyManager } from "../../helpers/strategy-manager";
-import { VaultHelper__factory } from "../../typechain/factories/VaultHelper__factory";
-import { VaultHelper } from "../../typechain/VaultHelper";
 
 chai.use(solidity);
 
@@ -51,9 +45,21 @@ const IGNORE_VAULTS = process.env.IGNORE_VAULTS;
 
 const strategyHashReadIndexes: { [key: string]: { valueLPIndex: number } } = {
   "0x9d5b0ec470b7cc0292aa6f12b02080fab6963a074f01f19bf163819cb6e38cb6": {
+    // dai-DEPOSIT-AaveV2-aDAI
     valueLPIndex: 0,
   },
-  "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": { valueLPIndex: 2 },
+  "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": {
+    // dai-DEPOSIT-Compound-cDAI
+    valueLPIndex: 2,
+  },
+  "0x514e845e4f1401cfe30f214a1386dfd06a98e15316dde7f669889a82ddffdeb8": {
+    // weth-DEPOSIT-AaveV2-aWETH
+    valueLPIndex: 0,
+  },
+  "0x87ed056054f13b934a9864226aa8c1f52ad63a7ad25bb2c74c1f920c9635c04c": {
+    // weth-DEPOSIT-Compound-cETH
+    valueLPIndex: 1,
+  },
 };
 
 describe(`${fork}-Vault-rev7`, () => {
@@ -64,13 +70,13 @@ describe(`${fork}-Vault-rev7`, () => {
         await deployments.get("StrategyRegistry")
       ).address,
     );
-    this.compoundAdapter = <CompoundAdapter>(
-      await ethers.getContractAt(CompoundAdapter__factory.abi, (await deployments.get("CompoundAdapter")).address)
+    this.vaultHelperMainnet = <VaultHelperMainnet>(
+      await ethers.getContractAt(VaultHelperMainnet__factory.abi, (await deployments.get("VaultHelperMainnet")).address)
     );
-    this.vaultHelper = <VaultHelper>(
-      await ethers.getContractAt(VaultHelper__factory.abi, (await deployments.get("VaultHelper")).address)
+    this.strategyManager = new StrategyManager(
+      <Contract>this.vaultHelperMainnet,
+      (await deployments.get("OptyFiOracle")).address,
     );
-    this.strategyManager = new StrategyManager(<Contract>this.vaultHelper, this.compoundAdapter);
     this.registry = <Registry>(
       await ethers.getContractAt(Registry__factory.abi, (await deployments.get("RegistryProxy")).address)
     );
