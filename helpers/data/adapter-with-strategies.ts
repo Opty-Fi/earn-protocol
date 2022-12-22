@@ -2660,7 +2660,7 @@ const mainnetVaults: VaultType = {
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.USDC.hash,
       vaultConfig: vaultConfigRP0,
       userDepositCapUT: BigNumber.from("100000000000"), // 100,000 USDC user deposit cap
-      minimumDepositValueUT: BigNumber.from("1000000000"), // 1000 USDC minimum deposit
+      minimumDepositValueUT: BigNumber.from("0"), // 0 USDC minimum deposit
       totalValueLockedLimitUT: BigNumber.from("10000000000000"), // 10,000,000 USDC TVL limit
     },
     WETH: {

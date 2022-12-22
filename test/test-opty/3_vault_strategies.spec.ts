@@ -18,10 +18,8 @@ import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/a
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import {
   Registry,
-  RiskManager,
   Vault,
   ERC20,
-  RiskManager__factory,
   Registry__factory,
   Vault__factory,
   ERC20__factory,
@@ -42,7 +40,6 @@ chai.use(solidity);
 const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
 const IGNORE_VAULTS = process.env.IGNORE_VAULTS;
-
 const strategyHashReadIndexes: { [key: string]: { valueLPIndex: number } } = {
   "0x9d5b0ec470b7cc0292aa6f12b02080fab6963a074f01f19bf163819cb6e38cb6": {
     // dai-DEPOSIT-AaveV2-aDAI
@@ -50,7 +47,31 @@ const strategyHashReadIndexes: { [key: string]: { valueLPIndex: number } } = {
   },
   "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": {
     // dai-DEPOSIT-Compound-cDAI
-    valueLPIndex: 2,
+    valueLPIndex: 1,
+  },
+  "0x74ceffc4d239683893dd31f6c4bed33f65aafb1bdad2c47d61bae7db81a42e4d": {
+    // usdt-DEPOSIT-AaveV2-aUSDT
+    valueLPIndex: 0,
+  },
+  "0x4103355b18f7a7ea81aebc211548510bb077426632fbe4899f4cf162c70ba396": {
+    // usdt-DEPOSIT-Compound-cUSDT
+    valueLPIndex: 1,
+  },
+  "0x46b9c41c6ff6c82958774b97fc426f046011e4177b8f64ded0d1a704d083b3c6": {
+    // wbtc-DEPOSIT-AaveV2-aWBTC
+    valueLPIndex: 0,
+  },
+  "0x35f4123193f545465801d2cd7418a60c7cfe6ade80b8be4f941124705fb7a39c": {
+    // wbtc-DEPOSIT-Compound-cWBTC
+    valueLPIndex: 1,
+  },
+  "0xdc405bd6462f69e015108f9c274278cf552f891ed2015820827a672abafd48fc": {
+    // usdc-DEPOSIT-AaveV2-aUSDC
+    valueLPIndex: 0,
+  },
+  "0x58404c3f191270f62e374653c7aa923e5487ed261523b0aef0a432a01a8ea088": {
+    // usdc-DEPOSIT-Compound-cUSDC
+    valueLPIndex: 1,
   },
   "0x514e845e4f1401cfe30f214a1386dfd06a98e15316dde7f669889a82ddffdeb8": {
     // weth-DEPOSIT-AaveV2-aWETH
@@ -79,9 +100,6 @@ describe(`${fork}-Vault-rev7`, () => {
     );
     this.registry = <Registry>(
       await ethers.getContractAt(Registry__factory.abi, (await deployments.get("RegistryProxy")).address)
-    );
-    this.riskManager = <RiskManager>(
-      await ethers.getContractAt(RiskManager__factory.abi, (await deployments.get("RiskManager")).address)
     );
     this.vaults = {};
     this.tokens = {};
@@ -703,57 +721,59 @@ describe(`${fork}-Vault-rev7`, () => {
               }
             });
             after(async function () {
-              const vaultWithdrawLP = await this.strategyManager.liquidityPoolToAdapter[
-                steps[steps.length - 1].pool
-              ].getOutputTokenBalance(
-                this.vaults[riskProfile][token],
-                steps.length === 1 ? this.tokens[token].address : steps[steps.length - 2].outputToken,
-                steps[steps.length - 1].pool,
-                steps[steps.length - 1].outputToken,
-                steps[steps.length - 1].isSwap,
-                ethers.provider,
-              );
+              if ((await this.vaults[riskProfile][token].getStrategies()).length !== 0) {
+                const vaultWithdrawLP = await this.strategyManager.liquidityPoolToAdapter[
+                  steps[steps.length - 1].pool
+                ].getOutputTokenBalance(
+                  this.vaults[riskProfile][token],
+                  steps.length === 1 ? this.tokens[token].address : steps[steps.length - 2].outputToken,
+                  steps[steps.length - 1].pool,
+                  steps[steps.length - 1].outputToken,
+                  steps[steps.length - 1].isSwap,
+                  ethers.provider,
+                );
 
-              const {
-                userBalanceBeforeUT,
-                userBalanceBeforeVT,
-                vaultTotalSupplyBeforeVT,
-                vaultValueBeforeUT,
-                vaultBalanceBeforeLP,
-                vaultBalanceBeforeUT,
-              } = await getPreActionState(
-                this.signers.alice,
-                this.tokens[token],
-                this.vaults[riskProfile][token],
-                this.strategyManager,
-                steps,
-              );
+                const {
+                  userBalanceBeforeUT,
+                  userBalanceBeforeVT,
+                  vaultTotalSupplyBeforeVT,
+                  vaultValueBeforeUT,
+                  vaultBalanceBeforeLP,
+                  vaultBalanceBeforeUT,
+                } = await getPreActionState(
+                  this.signers.alice,
+                  this.tokens[token],
+                  this.vaults[riskProfile][token],
+                  this.strategyManager,
+                  steps,
+                );
 
-              const vaultWithdrawSomeFromStrategyTx = await this.vaults[riskProfile][token]
-                .connect(this.signers.strategyOperator)
-                .vaultWithdrawSomeFromStrategy(strategyHash, vaultWithdrawLP);
-              await vaultWithdrawSomeFromStrategyTx.wait(1);
+                const vaultWithdrawSomeFromStrategyTx = await this.vaults[riskProfile][token]
+                  .connect(this.signers.strategyOperator)
+                  .vaultWithdrawSomeFromStrategy(strategyHash, vaultWithdrawLP);
+                await vaultWithdrawSomeFromStrategyTx.wait(1);
 
-              await assertPostVaultWithdrawState(
-                this.signers.alice,
-                this.tokens[token],
-                this.vaults[riskProfile][token],
-                this.strategyManager,
-                steps,
-                ethers.provider,
-                userBalanceBeforeUT,
-                vaultWithdrawLP,
-                vaultTotalSupplyBeforeVT,
-                vaultValueBeforeUT,
-                userBalanceBeforeVT,
-                vaultBalanceBeforeLP,
-                vaultBalanceBeforeUT,
-              );
+                await assertPostVaultWithdrawState(
+                  this.signers.alice,
+                  this.tokens[token],
+                  this.vaults[riskProfile][token],
+                  this.strategyManager,
+                  steps,
+                  ethers.provider,
+                  userBalanceBeforeUT,
+                  vaultWithdrawLP,
+                  vaultTotalSupplyBeforeVT,
+                  vaultValueBeforeUT,
+                  userBalanceBeforeVT,
+                  vaultBalanceBeforeLP,
+                  vaultBalanceBeforeUT,
+                );
 
-              const removeStrategyTx = await this.vaults[riskProfile][token]
-                .connect(this.signers.operator)
-                .removeStrategy(strategyHash);
-              await removeStrategyTx.wait(1);
+                const removeStrategyTx = await this.vaults[riskProfile][token]
+                  .connect(this.signers.operator)
+                  .removeStrategy(strategyHash);
+                await removeStrategyTx.wait(1);
+              }
             });
           });
         }
@@ -774,7 +794,7 @@ async function userDeposit(
   const underlyingTokenSymbol = await underlyingTokenInstance.symbol();
   const decimals = await underlyingTokenInstance.decimals();
   if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
-    _userDepositInDecimals = BigNumber.from("10").pow(decimals);
+    _userDepositInDecimals = BigNumber.from("2").mul(parseUnits("1", decimals));
   }
   const vaultTokenSymbol = await vaultInstance.symbol();
 

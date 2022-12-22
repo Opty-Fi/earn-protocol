@@ -481,7 +481,7 @@ export async function assertPostVaultDepositState(
   expect(userBalanceBeforeVT).to.eq(userBalanceAfterVT);
   expect(userBalanceAfterUT).to.eq(userBalanceBeforeUT);
   expect(vaultTotalSupplyAfterVT).to.eq(vaultTotalSupplyBeforeVT);
-  expect(ppsAfter).to.closeTo(expectedPPS, parseUnits("9", 9).toNumber());
+  expect(ppsAfter).to.closeTo(expectedPPS, parseUnits("9", 13).toNumber());
 }
 
 export async function assertPostUserWithdrawState(

@@ -3,8 +3,6 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-//NOTE: Variable Shadowing
-
 // helper contracts
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
@@ -28,7 +26,6 @@ import { IERC20Permit } from "@openzeppelin/contracts/drafts/IERC20Permit.sol";
 import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol";
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
-import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
 
 /**
@@ -363,10 +360,6 @@ contract Vault is
      */
     function addStrategy(bytes32 _strategyHash) external override {
         _onlyStrategyOperator();
-        IRiskManager(registryContract.getRiskManager()).isValidStrategy(
-            _strategyHash,
-            (vaultConfiguration >> 240) & 0xFF
-        );
         require(strategies.add(_strategyHash), Errors.ADD_STRATEGY);
         emit AddStrategy(_strategyHash);
     }
@@ -716,10 +709,6 @@ contract Vault is
         _onlyStrategyOperator();
         _checkVaultDeposit();
         require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_SET);
-        IRiskManager(registryContract.getRiskManager()).isValidStrategy(
-            _strategyHash,
-            (vaultConfiguration >> 240) & 0xFF
-        );
         _cacheValueUT = _depositValueUT;
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
             IStrategyRegistry(registryContract.getStrategyRegistry()).getDepositSomeToStrategyPlan(
