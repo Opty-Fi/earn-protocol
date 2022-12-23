@@ -10,11 +10,10 @@ import {
   ICompound__factory,
   StrategyProvider,
   StrategyProvider__factory,
-  Vault,
-  Vault__factory,
 } from "../../typechain";
 import { BigNumber } from "ethers";
 import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
+import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
 
 const cryptoPoolGaugeABI = [
   {
@@ -52,7 +51,7 @@ const cryptoPoolGaugeABI = [
   },
 ];
 
-const comptrollerABI = [
+export const comptrollerABI = [
   {
     constant: true,
     inputs: [{ internalType: "address", name: "", type: "address" }],
@@ -153,17 +152,17 @@ const bdamm = ethers.utils.getAddress("0xfa372fF1547fa1a283B5112a4685F1358CE5574
 const bLUSDLUSD3FactoryGaugeAddress = "0xdA0DD1798BE66E17d5aB1Dc476302b56689C2DB4";
 
 async function main() {
-  const opUSDCEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
+  const opUSDCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
-  const opWETHEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
+  const opWETHEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
   );
-  const opWBTCEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
+  const opWBTCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
   );
-  const opUSD3Earn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSD3-Earn_Proxy")).address)
+  const opUSD3Earn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSD3-Earn_Proxy")).address)
   );
   const cUSDCInstanceopUSDCEarn = <ICompound>(
     await ethers.getContractAt(ICompound__factory.abi, "0xa3006250a22E1Ca3C3f19fd1FB080C5dc65992c5")
@@ -205,19 +204,21 @@ async function main() {
   const unclaimedLUSDInopUSD3Earn = await bLUSDLUSD3FactoryGauge.claimable_reward(opUSD3Earn.address, lusd.address);
   const totalLusdInopUSD3Earn = lusdBalanceInopUSD3Earn.add(unclaimedLUSDInopUSD3Earn);
 
-  console.log("opUSDCEarn ", formatEther(unclaimedCompopUSDCEarn));
-  console.log("opWETHEarn ", formatEther(unclaimedCompopWETHEarn));
-  console.log("opWBTCEarn ", formatEther(unclaimedCompopWBTCEarn));
+  // console.log("opUSDCEarn ", formatEther(unclaimedCompopUSDCEarn));
+  // console.log("opWETHEarn ", formatEther(unclaimedCompopWETHEarn));
+  // console.log("opWBTCEarn ", formatEther(unclaimedCompopWBTCEarn));
 
-  console.log("accrue opUSDCEarn", formatEther(compBalanceopUSDCEarn));
-  console.log("accrue opWETHEarn ", formatEther(compBalanceopWETHEarn));
-  console.log("accrue opWBTCEarn ", formatEther(compBalanceopWBTCEarn));
+  // console.log("accrue opUSDCEarn", formatEther(compBalanceopUSDCEarn));
+  // console.log("accrue opWETHEarn ", formatEther(compBalanceopWETHEarn));
+  // console.log("accrue opWBTCEarn ", formatEther(compBalanceopWBTCEarn));
 
   const timestamp = await (await ethers.provider.getBlock("latest")).timestamp;
 
   const totalUnharvestedBDAMMopUSDCEarn = BigNumber.from(unclaimedCompopUSDCEarn).add(compBalanceopUSDCEarn);
   const totalUnharvestedBDAMMopWETHEarn = BigNumber.from(unclaimedCompopWETHEarn).add(compBalanceopWETHEarn);
   const totalUnharvestedBDAMMopWBTCEarn = BigNumber.from(unclaimedCompopWBTCEarn).add(compBalanceopWBTCEarn);
+
+  console.log("totalUnharvestedBDAMMopWBTCEarn ", totalUnharvestedBDAMMopWBTCEarn.toString());
 
   const oneBDAMMToUSDC = parseUnits("0.26", "6");
   const oneBDAMMToWETH = parseEther("0.0001");

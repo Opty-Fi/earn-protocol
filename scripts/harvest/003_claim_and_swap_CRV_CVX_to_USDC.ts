@@ -2,8 +2,9 @@ import { parseUnits } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import Convex from "@optyfi/defi-legos/ethereum/convex";
 import { ESSENTIAL_CONTRACTS } from "../../helpers/constants/essential-contracts-name";
-import { ERC20, IConvexStake, IUniswapV2Router02, Registry, Vault } from "../../typechain";
+import { ERC20, IConvexStake, IUniswapV2Router02, Registry } from "../../typechain";
 import { BigNumber } from "ethers";
+import { VaultV6 } from "../../helpers/types/vaultv6";
 
 export function getCVXUnclaimed(
   _amount: BigNumber,
@@ -42,7 +43,7 @@ async function main() {
   const WETH = ethers.utils.getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
   const opUSDCearnProxyAddress = ethers.utils.getAddress("0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88");
   const registryProxyAddress = ethers.utils.getAddress("0x99fa011E33A8c6196869DeC7Bc407E896BA67fE3");
-  const vaultInstance = <Vault>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCearnProxyAddress);
+  const vaultInstance = <VaultV6>await ethers.getContractAt(ESSENTIAL_CONTRACTS.VAULT, opUSDCearnProxyAddress);
   const registryInstance = <Registry>await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const uniswapRouterInstance = <IUniswapV2Router02>(
     await ethers.getContractAt("IUniswapV2Router02", uniswapV2Router02Address)

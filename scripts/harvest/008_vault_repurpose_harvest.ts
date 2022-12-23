@@ -11,12 +11,11 @@ import {
   Registry__factory,
   StrategyProvider,
   StrategyProvider__factory,
-  Vault,
-  Vault__factory,
 } from "../../typechain";
 import { getRiskProfileCode } from "../../helpers/utils";
 import { parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
+import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
 
 const compoundLensABI = [
   {
@@ -165,35 +164,35 @@ async function main() {
   );
 
   // vault instances
-  const opUSDCEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
+  const opUSDCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
   // const opWETHEarn = <Vault>(
   //     await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
   // );
-  const opDAISave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opDAI-Save_Proxy")).address)
+  const opDAISave = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opDAI-Save_Proxy")).address)
   );
-  const opUSDTSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDT-Save_Proxy")).address)
+  const opUSDTSave = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSDT-Save_Proxy")).address)
   );
-  const opWBTCSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWBTC-Save_Proxy")).address)
+  const opWBTCSave = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWBTC-Save_Proxy")).address)
   );
-  const opUSD3Earn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSD3-Earn_Proxy")).address)
+  const opUSD3Earn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSD3-Earn_Proxy")).address)
   );
-  const opWETHSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Save_Proxy")).address)
+  const opWETHSave = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWETH-Save_Proxy")).address)
   );
-  const opWBTCEarn = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
+  const opWBTCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
   );
-  const opUSDCInvst = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Invst_Proxy")).address)
+  const opUSDCInvst = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSDC-Invst_Proxy")).address)
   );
-  const opWETHInvst = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Invst_Proxy")).address)
+  const opWETHInvst = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWETH-Invst_Proxy")).address)
   );
 
   // strategy provider

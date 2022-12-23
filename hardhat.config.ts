@@ -14,7 +14,6 @@ import "@typechain/hardhat";
 import "hardhat-storage-layout";
 import "@tenderly/hardhat-tenderly";
 import "hardhat-contract-sizer";
-// import "hardhat-storage-layout";
 import {
   NETWORKS_RPC_URL,
   NETWORKS_DEFAULT_GAS,
@@ -87,7 +86,7 @@ const config: HardhatUserConfig = {
           // https://hardhat.org/hardhat-network/#solidity-optimizer-support
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 40,
           },
         },
       },

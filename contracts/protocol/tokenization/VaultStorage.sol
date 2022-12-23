@@ -6,6 +6,7 @@ pragma solidity ^0.6.12;
 // library
 import { DataTypes } from "../../protocol/earn-protocol-configuration/contracts/libraries/types/DataTypes.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 /**
  * @title Vault state that can change
@@ -35,9 +36,9 @@ contract VaultStorage {
     mapping(uint256 => DataTypes.BlockVaultValue[]) public blockToBlockVaultValues;
 
     /**
-     * @dev Current vault invest strategy
+     * @dev cache value in UT for intermediate calculations
      */
-    bytes32 public investStrategyHash;
+    uint256 internal _cacheValueUT;
 
     /**
      * @dev Maximum amount in underlying token allowed to be deposited by user
@@ -106,4 +107,11 @@ contract VaultStorageV3 is VaultStorageV2 {
 
     /**@dev deposit and withdraw flag*/
     mapping(uint256 => bool) public blockTransaction;
+}
+
+contract VaultStorageV4 is VaultStorageV3 {
+    /**@dev set of strategy hashes which the vault may operate on */
+    EnumerableSet.Bytes32Set internal strategies;
+
+    uint256 internal _cacheAmountLP;
 }

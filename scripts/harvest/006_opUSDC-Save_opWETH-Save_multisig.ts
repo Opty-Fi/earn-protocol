@@ -15,11 +15,10 @@ import {
   IUniswapV2Router02__factory,
   Registry,
   Registry__factory,
-  Vault,
-  Vault__factory,
 } from "../../typechain";
 import { BigNumber } from "ethers";
 import { hexlify, parseEther, parseUnits } from "ethers/lib/utils";
+import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
 
 // const uniswapV2Router02Address = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
 const sushiswapRouterAddress = ethers.utils.getAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F");
@@ -55,11 +54,11 @@ const comptrollerABI = [
 ];
 
 async function main() {
-  const opUSDCSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
+  const opUSDCSave = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
-  const opWETHSave = <Vault>(
-    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
+  const opWETHSave = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
   );
   const registry = <Registry>(
     await ethers.getContractAt(Registry__factory.abi, (await deployments.get("RegistryProxy")).address)

@@ -107,7 +107,7 @@ interface IVault {
      * @param _active If true, the Vault goes into Emergency Shutdown. If false, the Vault
      *        goes back into Normal Operation
      */
-    function setEmergencyShutdown(bool _active) external;
+    function setEmergencyShutdown(bool _active) external payable;
 
     /**
      * @notice activates or deactivates vault mode where all strategies
@@ -119,16 +119,7 @@ interface IVault {
      * @param _unpaused If true, the vault goes into unpause mode. If false(default), the vault
      *        goes into pause mode
      */
-    function setUnpaused(bool _unpaused) external;
-
-    /**
-     * @notice Withdraw the underlying asset of vault from previous strategy if any,
-     *         claims and swaps the reward tokens for the underlying token
-     *         performs batch minting of shares for users deposited previously without rebalance,
-     *         deposits the assets into the new strategy if any or holds the same in the vault
-     * @dev the vault will be charged to compensate gas fees if operator calls this function
-     */
-    function rebalance() external;
+    function setUnpaused(bool _unpaused) external payable;
 
     /**
      * @notice Deposit underlying tokens to the vault
@@ -159,43 +150,40 @@ interface IVault {
     ) external returns (uint256);
 
     /**
-     * @notice function to deposit whole balance of underlying token to current strategy
+     * @notice deposits underlying tokens to a strategy from the vault
+     * @param _strategyHash hash of strategy to deposit to
+     * @param _depositValueUT the amount of underlying token to deposit
      */
-    function vaultDepositAllToStrategy() external;
+    function vaultDepositSomeToStrategy(bytes32 _strategyHash, uint256 _depositValueUT) external payable;
+
+    /**
+     * @notice withdraws LP tokens from a strategy from the vault
+     * @param _strategyHash hash of the strategy to withdraw from
+     * @param _withdrawAmountLP the amount of LP to withdraw
+     */
+    function vaultWithdrawSomeFromStrategy(bytes32 _strategyHash, uint256 _withdrawAmountLP) external payable;
 
     /**
      * @notice A function to be called in case vault needs to claim and harvest tokens in case a strategy
      *         provides multiple reward tokens
-     * @param _codes Array of encoded data in bytes which acts as code to execute
+     * @param _commands list of values that encode single
+     *        operation for the VM to take
+     * @param _state list of elements to call a smart contract function
+     *         specified in the command via delegatecall
      */
-    function adminCall(bytes[] memory _codes) external;
+    function adminCall(bytes32[] memory _commands, bytes[] memory _state) external payable;
 
     /**
      * @notice function to claim the whole balance of reward tokens
-     * @param _liquidityPool Liquidity pool's contract address from where to claim the reward token
+     * @param _strategyHash keccak256 hash of the strategy
      */
-    function claimRewardToken(address _liquidityPool) external;
+    function claimRewardToken(bytes32 _strategyHash) external payable;
 
     /**
-     * @notice function to swap the vault's entire balance of reward token for the vault's underlying token
-     * @param _rewardToken address of the reward token to harvest
-     * @param _dex swap router
-     * @param _isUniV3 whether router is uniswapV3 or not
-     * @param _minimumUnderlyingTokenAmount minimum underlying after swap that must be received
-     *         for the transaction to not revert
-     * @param _deadline swap deadline
-     * @param _path token path for uniswapV2 and its forks
-     * @param _pathUniV3 path for uniswapV3
+     * @notice function to swap the vault's reward token for the vault's underlying token
+     * @param _strategyHash keccak256 hash of the strategy
      */
-    function harvest(
-        address _rewardToken,
-        address _dex,
-        bool _isUniV3,
-        uint256 _minimumUnderlyingTokenAmount,
-        uint256 _deadline,
-        address[] memory _path,
-        bytes memory _pathUniV3
-    ) external;
+    function harvestRewards(bytes32 _strategyHash) external payable;
 
     /**
      * @notice Allow passing a signed message to approve spending
@@ -218,6 +206,18 @@ interface IVault {
         bytes32 _r,
         bytes32 _s
     ) external;
+
+    /**
+     * @notice adds a strategy to the vault
+     * @param _strategyHash hash of strategy
+     */
+    function addStrategy(bytes32 _strategyHash) external;
+
+    /**
+     * @notice removes a strategy from the vault
+     * @param _strategyHash hash of strategy
+     */
+    function removeStrategy(bytes32 _strategyHash) external;
 
     /**
      * @notice Provide the allowances for the spenders to spent vault owned tokens
@@ -327,37 +327,12 @@ interface IVault {
     function calcWithdrawalFeeUT(uint256 _userWithdrawUT) external view returns (uint256);
 
     /**
-     * @notice Returns next best invest strategy that the vault will execute on next rebalance
-     * @return the strategy metadata
-     */
-    function getNextBestInvestStrategy() external view returns (DataTypes.StrategyStep[] memory);
-
-    /**
      * @notice function to compute the balance of lptoken of the vault
      *         in the last step of the strategy
-     * @param _strategySteps array of strategy step tuple
+     * @param _strategyHash keccak256 hash of the strategyHash
      * @return balance in lptoken
      */
-    function getLastStrategyStepBalanceLP(DataTypes.StrategyStep[] memory _strategySteps)
-        external
-        view
-        returns (uint256);
-
-    /**
-     * @notice retireves current strategy metadata
-     * @return array of strategy steps
-     */
-    function getInvestStrategySteps() external view returns (DataTypes.StrategyStep[] memory);
-
-    /**
-     * @dev function to compute the keccak256 hash of the strategy steps
-     * @param _investStrategySteps metadata for invest strategy
-     * @return keccak256 hash of the invest strategy and underlying tokens hash
-     */
-    function computeInvestStrategyHash(DataTypes.StrategyStep[] memory _investStrategySteps)
-        external
-        view
-        returns (bytes32);
+    function getLastStrategyStepBalanceLP(bytes32 _strategyHash) external view returns (uint256);
 
     /**
      * @dev Emitted when emergency shutdown over vault is changed
@@ -393,4 +368,16 @@ interface IVault {
      * @param caller Address of user who has called the respective function to trigger this event
      */
     event LogTotalValueLockedLimitUT(uint256 indexed totalValueLockedLimitUT, address indexed caller);
+
+    /**
+     * @notice Emitted when a strategy is added to the vault
+     * @param _strategyHash the hash of the strategy added
+     */
+    event AddStrategy(bytes32 _strategyHash);
+
+    /**
+     * @notice Emitted when a strategy is removed from the vault
+     * @param _strategyHash the hash of the strategy removed
+     */
+    event RemoveStrategy(bytes32 _strategyHash);
 }

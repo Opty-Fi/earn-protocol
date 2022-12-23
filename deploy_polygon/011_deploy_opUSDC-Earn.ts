@@ -27,7 +27,7 @@ const func: DeployFunction = async ({
   const artifact = await deployments.getArtifact("Vault");
   const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
-  const strategyManager = await deployments.get("StrategyManager");
+  const commandBuilder = await deployments.get("CommandBuilder");
   const registryInstance = await ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const chainId = await getChainId();
   const networkName = network.name;
@@ -43,7 +43,7 @@ const func: DeployFunction = async ({
     log: true,
     skipIfAlreadyDeployed: true,
     libraries: {
-      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+      "contracts/protocol/lib/CommandBuilder.sol:CommandBuilder": commandBuilder.address,
     },
     proxy: {
       owner: admin,

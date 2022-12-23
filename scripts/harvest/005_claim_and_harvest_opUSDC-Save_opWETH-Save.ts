@@ -15,9 +15,8 @@ import {
   ITokenMinter,
   ITokenMinter__factory,
   IUniswapV2Router02,
-  Vault,
-  Vault__factory,
 } from "../../typechain";
+import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
 
 const curveGuageABI = [
   {
@@ -118,8 +117,8 @@ async function main() {
   // const STK_AAVE = ethers.utils.getAddress("0x4da27a545c0c5B758a6BA100e3a049001de870f5")
   const opUSDCSaveProxyAddress = ethers.utils.getAddress("0x6d8BfdB4c4975bB086fC9027e48D5775f609fF88");
   const opWETHSaveProxyAddress = ethers.utils.getAddress("0xff2fbd9fbc6d03baa77cf97a3d5671bea183b9a8");
-  const opUSDCSavevaultInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opUSDCSaveProxyAddress);
-  const opWETHSavevaultInstance = <Vault>await ethers.getContractAt(Vault__factory.abi, opWETHSaveProxyAddress);
+  const opUSDCSavevaultInstance = <VaultV6>await ethers.getContractAt(VaultV6__factory.abi, opUSDCSaveProxyAddress);
+  const opWETHSavevaultInstance = <VaultV6>await ethers.getContractAt(VaultV6__factory.abi, opWETHSaveProxyAddress);
   const aaveIncentiveControlleInstance = await ethers.getContractAt(
     aaveIncentiveController,
     "0xd784927Ff2f95ba542BfC824c8a8a98F3495f6b5",
