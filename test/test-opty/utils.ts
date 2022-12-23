@@ -512,7 +512,7 @@ export async function getPermitLegacySignature(
   );
 }
 
-export async function getPreUserDepositState(
+export async function getPreActionState(
   signer: SignerWithAddress,
   underlyingTokenInstance: ERC20,
   vaultInstance: Vault,
@@ -523,6 +523,8 @@ export async function getPreUserDepositState(
   userBalanceBeforeVT: BigNumber;
   vaultTotalSupplyBeforeVT: BigNumber;
   vaultValueBeforeUT: BigNumber;
+  vaultBalanceBeforeLP: BigNumber;
+  vaultBalanceBeforeUT: BigNumber;
 }> {
   const userBalanceBeforeUT = await underlyingTokenInstance.balanceOf(signer.address);
   const userBalanceBeforeVT = await vaultInstance.balanceOf(signer.address);
@@ -553,5 +555,7 @@ export async function getPreUserDepositState(
     userBalanceBeforeVT,
     vaultTotalSupplyBeforeVT,
     vaultValueBeforeUT,
+    vaultBalanceBeforeLP,
+    vaultBalanceBeforeUT,
   };
 }

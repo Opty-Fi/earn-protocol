@@ -5,18 +5,20 @@ import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import UniswapV2 from "@optyfi/defi-legos/ethereum/uniswapV2/index";
 import { ReturnValue } from "../../type";
-import { ERC20__factory, ICompound__factory, IWETH9__factory } from "../../../typechain";
+import { ICompound__factory } from "../../../typechain";
 import { getAddress, parseEther } from "ethers/lib/utils";
 import { AdapterInterface } from "../AdapterInterface";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
 export class CompoundAdapter implements AdapterInterface {
-  compoundAdapterInstance;
+  vaultHelperMainnetInstance;
+  optyFiOracleAddress;
 
-  constructor(compoundAdapterInstance: Contract) {
-    this.compoundAdapterInstance = weirollContract.createContract(
-      new ethers.Contract(compoundAdapterInstance.address, compoundAdapterInstance.interface),
+  constructor(vaultHelperMainnetContract: Contract, _optyFiOracleAddress: string) {
+    this.vaultHelperMainnetInstance = weirollContract.createContract(
+      new ethers.Contract(vaultHelperMainnetContract.address, vaultHelperMainnetContract.interface),
     );
+    this.optyFiOracleAddress = _optyFiOracleAddress;
   }
 
   getDepositPlan(
@@ -30,9 +32,7 @@ export class CompoundAdapter implements AdapterInterface {
   ): weirollPlanner {
     const poolInstance = weirollContract.createContract(new ethers.Contract(pool, ICompound__factory.abi));
     if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
-      const wethContract = weirollContract.createContract(new ethers.Contract(inputToken, IWETH9__factory.abi));
-      planner.add(wethContract["withdraw(uint256)"](inputTokenAmount));
-      planner.add(poolInstance["mint()"]().withValue(inputTokenAmount));
+      planner.add(this.vaultHelperMainnetInstance["depositETH_Compound(address,uint256)"](pool, inputTokenAmount));
     } else {
       planner.add(poolInstance["mint(uint256)"](inputTokenAmount));
     }
@@ -50,9 +50,7 @@ export class CompoundAdapter implements AdapterInterface {
   ): weirollPlanner {
     const poolInstance = weirollContract.createContract(new ethers.Contract(pool, ICompound__factory.abi));
     if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
-      planner.add(poolInstance["redeem(uint256)"](outputTokenAmount));
-      const wethContract = weirollContract.createContract(new ethers.Contract(inputToken, IWETH9__factory.abi));
-      planner.add(wethContract["deposit(uint256)"].withValue(outputTokenAmount));
+      planner.add(this.vaultHelperMainnetInstance["withdrawETH_Compound(address,uint256)"](pool, outputTokenAmount));
     } else {
       planner.add(poolInstance["redeem(uint256)"](outputTokenAmount));
     }
@@ -69,8 +67,7 @@ export class CompoundAdapter implements AdapterInterface {
     outputTokenAmount: ReturnValue,
   ): ReturnValue {
     const amountUT = planner.add(
-      this.compoundAdapterInstance["getSomeAmountInToken(address,address,uint256)"](
-        inputToken,
+      this.vaultHelperMainnetInstance["calculateAmountInToken_Compound(address,uint256)"](
         pool,
         outputTokenAmount,
       ).staticcall(),
@@ -88,8 +85,7 @@ export class CompoundAdapter implements AdapterInterface {
     inputTokenAmount: ReturnValue,
   ): ReturnValue {
     const amountLP = planner.add(
-      this.compoundAdapterInstance["calculateAmountInLPToken(address,address,uint256)"](
-        inputToken,
+      this.vaultHelperMainnetInstance["calculateAmountInLPToken_Compound(address,uint256)"](
         pool,
         inputTokenAmount,
       ).staticcall(),
@@ -105,8 +101,12 @@ export class CompoundAdapter implements AdapterInterface {
     outputToken: string,
     _isSwap: boolean,
   ): ReturnValue {
-    const outputTokenInstance = weirollContract.createContract(new ethers.Contract(outputToken, ERC20__factory.abi));
-    const amountLP = planner.add(outputTokenInstance["balanceOf(address)"](vaultInstance.address).staticcall());
+    const amountLP = planner.add(
+      this.vaultHelperMainnetInstance["getERC20Balance(address,address)"](
+        outputToken,
+        vaultInstance.address,
+      ).staticcall(),
+    );
     return amountLP as ReturnValue;
   }
 
@@ -135,19 +135,31 @@ export class CompoundAdapter implements AdapterInterface {
     vaultInstance: Contract,
     vaultUnderlyingToken: string,
   ): weirollPlanner {
-    // TODO add read call to oracle for computing minimum expected
     const uniswapV2RouterContract = new ethers.Contract(UniswapV2.router02.address, UniswapV2.router02.abi);
     const uniswapV2RouterInstance = weirollContract.createContract(uniswapV2RouterContract);
-    const rewardContract = new ethers.Contract(EthereumTokens.REWARD_TOKENS.COMP, ERC20__factory.abi);
-    const rewardInstance = weirollContract.createContract(rewardContract);
-    const rewardAmount = planner.add(rewardInstance["balanceOf(address)"](vaultInstance.address).staticcall());
-
+    const rewardAmount = planner.add(
+      this.vaultHelperMainnetInstance["getERC20Balance(address,address)"](
+        EthereumTokens.REWARD_TOKENS.COMP,
+        vaultInstance.address,
+      ).staticcall(),
+    );
+    const minumumOutputAmount = planner.add(
+      this.vaultHelperMainnetInstance[
+        "getMinimumExpectedTokenOutPrice_OptyFiOracle(address,address,address,uint256,uint256)"
+      ](
+        this.optyFiOracleAddress,
+        EthereumTokens.REWARD_TOKENS.COMP,
+        vaultUnderlyingToken,
+        rewardAmount,
+        100,
+      ).staticcall(),
+    );
     switch (getAddress(vaultUnderlyingToken)) {
       case getAddress(EthereumTokens.PLAIN_TOKENS.USDC): {
         planner.add(
           uniswapV2RouterInstance["swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"](
             rewardAmount,
-            0,
+            minumumOutputAmount,
             [EthereumTokens.REWARD_TOKENS.COMP, EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.PLAIN_TOKENS.USDC],
             vaultInstance.address,
             ethers.constants.MaxUint256,
@@ -159,7 +171,7 @@ export class CompoundAdapter implements AdapterInterface {
         planner.add(
           uniswapV2RouterInstance["swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"](
             rewardAmount,
-            0,
+            minumumOutputAmount,
             [EthereumTokens.REWARD_TOKENS.COMP, EthereumTokens.WRAPPED_TOKENS.WETH],
             vaultInstance.address,
             ethers.constants.MaxUint256,
@@ -171,7 +183,7 @@ export class CompoundAdapter implements AdapterInterface {
         planner.add(
           uniswapV2RouterInstance["swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"](
             rewardAmount,
-            0,
+            minumumOutputAmount,
             [EthereumTokens.REWARD_TOKENS.COMP, EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.PLAIN_TOKENS.DAI],
             vaultInstance.address,
             ethers.constants.MaxUint256,
@@ -183,7 +195,7 @@ export class CompoundAdapter implements AdapterInterface {
         planner.add(
           uniswapV2RouterInstance["swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"](
             rewardAmount,
-            0,
+            minumumOutputAmount,
             [EthereumTokens.REWARD_TOKENS.COMP, EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.PLAIN_TOKENS.USDT],
             vaultInstance.address,
             ethers.constants.MaxUint256,
@@ -195,7 +207,7 @@ export class CompoundAdapter implements AdapterInterface {
         planner.add(
           uniswapV2RouterInstance["swapExactTokensForTokens(uint256,uint256,address[],address,uint256)"](
             rewardAmount,
-            0,
+            minumumOutputAmount,
             [EthereumTokens.REWARD_TOKENS.COMP, EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.BTC_TOKENS.WBTC],
             vaultInstance.address,
             ethers.constants.MaxUint256,
@@ -216,14 +228,14 @@ export class CompoundAdapter implements AdapterInterface {
     pool: string,
     outputToken: string,
     _isSwap: boolean,
-    _provider: JsonRpcProvider,
+    provider: JsonRpcProvider,
   ): Promise<BigNumber> {
-    const outputTokenInstance = new ethers.Contract(
-      outputToken,
-      ERC20__factory.abi,
-      <ethers.providers.JsonRpcProvider>_provider,
+    const vaultHelperMainnet = new ethers.Contract(
+      this.vaultHelperMainnetInstance.address,
+      this.vaultHelperMainnetInstance.interface,
+      <ethers.providers.JsonRpcProvider>provider,
     );
-    return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
+    return await vaultHelperMainnet["getERC20Balance(address,address)"](outputToken, vaultInstance.address);
   }
 
   async getValueInInputToken(
@@ -233,12 +245,12 @@ export class CompoundAdapter implements AdapterInterface {
     outputToken: string,
     outputTokenAmount: BigNumber,
     isSwap: boolean,
-    _provider: JsonRpcProvider,
+    provider: JsonRpcProvider,
   ): Promise<BigNumber> {
     const cTokenInstance = new ethers.Contract(
       pool,
       ICompound__factory.abi,
-      <ethers.providers.JsonRpcProvider>_provider,
+      <ethers.providers.JsonRpcProvider>provider,
     );
     const exchangeRateStored = await cTokenInstance.exchangeRateStored();
     return outputTokenAmount.mul(exchangeRateStored).div(parseEther("1"));

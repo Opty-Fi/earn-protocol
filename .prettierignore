@@ -16,6 +16,7 @@ contracts/protocol/adapters
 **out/
 helpers/types/
 deployments/
+contracts/utils/optyfi-oracle
 
 # files
 *.env

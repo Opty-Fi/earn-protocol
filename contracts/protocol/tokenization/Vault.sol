@@ -3,8 +3,6 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-//NOTE: Variable Shadowing
-
 // helper contracts
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { VersionedInitializable } from "../../dependencies/openzeppelin/VersionedInitializable.sol";
@@ -28,7 +26,6 @@ import { IERC20Permit } from "@openzeppelin/contracts/drafts/IERC20Permit.sol";
 import { IERC20PermitLegacy } from "../../interfaces/opty/IERC20PermitLegacy.sol";
 import { IVault } from "../../interfaces/opty/IVault.sol";
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
-import { IRiskManager } from "../earn-protocol-configuration/contracts/interfaces/opty/IRiskManager.sol";
 import { IStrategyRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IStrategyRegistry.sol";
 
 /**
@@ -237,7 +234,7 @@ contract Vault is
         _onlyRiskOperator();
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
-        for (uint256 _i; _i < _tokens.length; _i++) {
+        for (uint256 _i; _i < _tokensLen; _i++) {
             _tokens[_i].safeApprove(_spenders[_i], uint256(-1));
         }
     }
@@ -249,7 +246,7 @@ contract Vault is
         _onlyRiskOperator();
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
-        for (uint256 _i; _i < _tokens.length; _i++) {
+        for (uint256 _i; _i < _tokensLen; _i++) {
             _tokens[_i].safeApprove(_spenders[_i], 0);
         }
     }
@@ -363,10 +360,6 @@ contract Vault is
      */
     function addStrategy(bytes32 _strategyHash) external override {
         _onlyStrategyOperator();
-        IRiskManager(registryContract.getRiskManager()).isValidStrategy(
-            _strategyHash,
-            (vaultConfiguration >> 240) & 0xFF
-        );
         require(strategies.add(_strategyHash), Errors.ADD_STRATEGY);
         emit AddStrategy(_strategyHash);
     }
@@ -515,15 +508,12 @@ contract Vault is
      * @inheritdoc IVault
      */
     function getLastStrategyStepBalanceLP(bytes32 _strategyHash) public view override returns (uint256) {
-        DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            IStrategyRegistry(registryContract.getStrategyRegistry()).getLastStepBalanceLPPlan(
-                address(this),
-                _strategyHash
-            );
         return
-            abi.decode(
-                _readExecute(_strategyPlanInput.commands, _strategyPlanInput.state)[_strategyPlanInput.outputIndex],
-                (uint256)
+            _getUint256(
+                IStrategyRegistry(registryContract.getStrategyRegistry()).getLastStepBalanceLPPlan(
+                    address(this),
+                    _strategyHash
+                )
             );
     }
 
@@ -666,18 +656,12 @@ contract Vault is
                 _writeExecute(_strategyPlanInput.commands, _strategyPlanInput.state);
             }
 
-            // Identify Slippage
-            // UT requested from strategy withdraw  = _expectedStratWithdrawUT
             // UT actually received from strategy withdraw
-            // = _receivedStratWithdrawUT
-            // = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT)
-            // slippage = _expectedStratWithdrawUT - _receivedStratWithdrawUT
-            uint256 _vaultValuePostStratWithdrawUT = balanceUT();
-            uint256 _receivedStratWithdrawUT = _vaultValuePostStratWithdrawUT.sub(_vaultValuePreStratWithdrawUT);
+            uint256 _receivedStratWithdrawUT = balanceUT().sub(_vaultValuePreStratWithdrawUT);
 
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
             if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
-                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(_expectedStratWithdrawUT.sub(_receivedStratWithdrawUT));
+                _oraUserWithdrawUT = _oraUserWithdrawUT.add(_receivedStratWithdrawUT);
             }
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);
@@ -722,11 +706,6 @@ contract Vault is
         _onlyStrategyOperator();
         _checkVaultDeposit();
         require(strategies.contains(_strategyHash), Errors.STRATEGY_NOT_SET);
-        // TODO : isValidStrategy should be read only function
-        IRiskManager(registryContract.getRiskManager()).isValidStrategy(
-            _strategyHash,
-            (vaultConfiguration >> 240) & 0xFF
-        );
         _cacheValueUT = _depositValueUT;
         DataTypes.StrategyPlanInput memory _strategyPlanInput =
             IStrategyRegistry(registryContract.getStrategyRegistry()).getDepositSomeToStrategyPlan(

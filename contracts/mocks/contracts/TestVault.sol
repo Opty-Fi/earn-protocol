@@ -53,4 +53,8 @@ contract TestVault {
     function pureFunctionUint256(uint256 _arg) external pure returns (uint256) {
         return _arg;
     }
+
+    function getERC20Balance(address _owner, ERC20 _token) external view returns (uint256) {
+        return _token.balanceOf(_owner);
+    }
 }
