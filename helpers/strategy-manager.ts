@@ -44,11 +44,13 @@ export class StrategyManager {
       const adapterObj = this.liquidityPoolToAdapter[strategyStep.pool];
 
       if (index > 0) {
-        const inputTokenContract = weirollContract.createContract(
-          new ethers.Contract(strategySteps[index - 1].outputToken, ERC20__factory.abi),
-        );
         const inputTokenAmount = <ReturnValue>(
-          planner.add(inputTokenContract["balanceOf(address)"](vaultContract.address).staticcall())
+          planner.add(
+            this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+              strategySteps[index - 1].outputToken,
+              vaultContract.address,
+            ).staticcall(),
+          )
         );
         adapterObj.getDepositPlan(
           planner,
@@ -97,11 +99,13 @@ export class StrategyManager {
           amountLP as ReturnValue,
         );
       } else {
-        const outputTokenContract = weirollContract.createContract(
-          new ethers.Contract(strategySteps[iteratorIndex].outputToken, ERC20__factory.abi),
-        );
         const amountLP = <ReturnValue>(
-          planner.add(outputTokenContract["balanceOf(address)"](vaultContract.address).staticcall())
+          planner.add(
+            this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+              strategySteps[iteratorIndex].outputToken,
+              vaultContract.address,
+            ).staticcall(),
+          )
         );
         adapterObj.getWithdrawPlan(
           planner,
@@ -120,11 +124,13 @@ export class StrategyManager {
 
   getOraValueUTPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {
     const planner = new weirollPlanner();
-    const outputTokenContract = weirollContract.createContract(
-      new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
-    );
     const amountLP = <ReturnValue>(
-      planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address).staticcall())
+      planner.add(
+        this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+          strategySteps[strategySteps.length - 1].outputToken,
+          vaultInstance.address,
+        ).staticcall(),
+      )
     );
     let amountUT;
     for (const [index, _strategyStep] of strategySteps.entries()) {
@@ -215,10 +221,12 @@ export class StrategyManager {
     vaultInstance: Contract,
   ): WeirollPlan {
     const planner = new weirollPlanner();
-    const outputTokenContract = weirollContract.createContract(
-      new ethers.Contract(strategySteps[strategySteps.length - 1].outputToken, ERC20__factory.abi),
+    const amountLP = planner.add(
+      this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+        strategySteps[strategySteps.length - 1].outputToken,
+        vaultInstance.address,
+      ).staticcall(),
     );
-    const amountLP = planner.add(outputTokenContract["balanceOf(address)"](vaultInstance.address).staticcall());
     planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };

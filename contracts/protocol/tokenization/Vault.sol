@@ -508,15 +508,12 @@ contract Vault is
      * @inheritdoc IVault
      */
     function getLastStrategyStepBalanceLP(bytes32 _strategyHash) public view override returns (uint256) {
-        DataTypes.StrategyPlanInput memory _strategyPlanInput =
-            IStrategyRegistry(registryContract.getStrategyRegistry()).getLastStepBalanceLPPlan(
-                address(this),
-                _strategyHash
-            );
         return
-            abi.decode(
-                _readExecute(_strategyPlanInput.commands, _strategyPlanInput.state)[_strategyPlanInput.outputIndex],
-                (uint256)
+            _getUint256(
+                IStrategyRegistry(registryContract.getStrategyRegistry()).getLastStepBalanceLPPlan(
+                    address(this),
+                    _strategyHash
+                )
             );
     }
 

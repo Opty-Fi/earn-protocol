@@ -5,6 +5,8 @@ import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { Contract as weirollContract, Planner as weirollPlanner } from "@weiroll/weiroll.js";
 import { Signers } from "../../helpers/utils";
 import {
+  CommandBuilder,
+  CommandBuilder__factory,
   CompoundAdapter,
   CompoundAdapter__factory,
   ERC20,
@@ -13,6 +15,7 @@ import {
   ICompound__factory,
   TestVault,
   VaultWeiroll,
+  VaultWeiroll__factory,
 } from "../../typechain";
 import { setTokenBalanceInStorage } from "./utils";
 import { parseUnits } from "ethers/lib/utils";
@@ -39,23 +42,36 @@ describe("VaultWeiroll", async function () {
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.deployer = signers[0];
     this.signers.alice = signers[3];
-    vaultWeirollUSDC = <VaultWeiroll>(
-      await deployContract(this.signers.deployer, await artifacts.readArtifact("VaultWeiroll"), [
-        EthereumTokens.PLAIN_TOKENS.USDC,
-        "6",
-        "USD Coin",
-        "USDC",
-      ])
+    usdc = await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDT);
+    const commandBuilderFactory = await ethers.getContractFactory(
+      CommandBuilder__factory.abi,
+      CommandBuilder__factory.bytecode,
     );
+    const commandBuilder = <CommandBuilder>await commandBuilderFactory.deploy();
+
+    const vaultWeirollUSDCFactory = await ethers.getContractFactory(
+      VaultWeiroll__factory.abi,
+      linkLibrary(
+        VaultWeiroll__factory.bytecode,
+        "contracts/protocol/lib/CommandBuilder.sol:CommandBuilder",
+        commandBuilder.address,
+      ),
+    );
+    vaultWeirollUSDC = await vaultWeirollUSDCFactory.deploy(
+      usdc.address,
+      await usdc.decimals(),
+      await usdc.name(),
+      await usdc.symbol(),
+    );
+
     testVault = <TestVault>await deployContract(this.signers.deployer, await artifacts.readArtifact("TestVault"));
-    usdc = await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
-    cUSDC = <ICompound>await ethers.getContractAt(ICompound__factory.abi, "0x39AA39c021dfbaE8faC545936693aC917d5E7563");
-    cToken = <ERC20>await ethers.getContractAt(ERC20__factory.abi, "0x39AA39c021dfbaE8faC545936693aC917d5E7563");
+    cUSDC = <ICompound>await ethers.getContractAt(ICompound__factory.abi, "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9");
+    cToken = <ERC20>await ethers.getContractAt(ERC20__factory.abi, "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9");
     compoundAdapter = <CompoundAdapter>(
       await ethers.getContractAt(CompoundAdapter__factory.abi, "0x9680624ad6bf5a34ce496a483400585136c575a4")
     );
     await setTokenBalanceInStorage(usdc, this.signers.alice.address, "20");
-    await usdc.connect(this.signers.alice).approve(vaultWeirollUSDC.address, parseUnits("20", "6"));
+    await usdc.connect(this.signers.alice).approve(vaultWeirollUSDC.address, parseUnits("20", await usdc.decimals()));
     await vaultWeirollUSDC.connect(this.signers.alice).giveAllowances([usdc.address], [cUSDC.address]);
     compoundContract = weirollContract.createContract(cUSDC);
     cTokenContract = weirollContract.createContract(cToken);
@@ -68,7 +84,10 @@ describe("VaultWeiroll", async function () {
   it("userDepositVault", async function () {
     // oraValueUT planner
     const oraValueUTPlanner = new weirollPlanner();
-    const lpTokenBalance = oraValueUTPlanner.add(cTokenContract.balanceOf(vaultWeirollUSDC.address).staticcall());
+    const lpTokenBalance = oraValueUTPlanner.add(
+      // cTokenContract.balanceOf(vaultWeirollUSDC.address).staticcall()
+      testVaultContract.getERC20Balance(vaultWeirollUSDC.address, cTokenContract.address).staticcall(),
+    );
     const amountInToken = oraValueUTPlanner.add(
       compoundAdapterContract.getSomeAmountInToken(usdc.address, cUSDC.address, lpTokenBalance).staticcall(),
     );
@@ -78,7 +97,8 @@ describe("VaultWeiroll", async function () {
     // lastStepBalanceLP planner
     const lastStepBalanceLPPlanner = new weirollPlanner();
     const lastStepBalance = lastStepBalanceLPPlanner.add(
-      cTokenContract.balanceOf(vaultWeirollUSDC.address).staticcall(),
+      // cTokenContract.balanceOf(vaultWeirollUSDC.address).staticcall(),
+      testVaultContract.getERC20Balance(vaultWeirollUSDC.address, cTokenContract.address).staticcall(),
     );
     lastStepBalanceLPPlanner.add(testVaultContract.pureFunctionUint256(lastStepBalance).staticcall());
     await vaultWeirollUSDC.setLastStepBalanceLP(
@@ -129,15 +149,17 @@ describe("VaultWeiroll", async function () {
     );
 
     // user deposit no strategy
-    await expect(vaultWeirollUSDC.connect(this.signers.alice).userDepositVault(parseUnits("20", "6")))
+    await expect(vaultWeirollUSDC.connect(this.signers.alice).userDepositVault(parseUnits("20", await usdc.decimals())))
       .to.emit(vaultWeirollUSDC, "Transfer")
-      .withArgs(ethers.constants.AddressZero, this.signers.alice.address, parseUnits("20", "6"));
+      .withArgs(ethers.constants.AddressZero, this.signers.alice.address, parseUnits("20", await usdc.decimals()));
 
     // user withdraw no strategy
-    await expect(vaultWeirollUSDC.connect(this.signers.alice).userWithdrawVault(parseUnits("10", "6")))
+    await expect(
+      vaultWeirollUSDC.connect(this.signers.alice).userWithdrawVault(parseUnits("10", await usdc.decimals())),
+    )
       .to.emit(vaultWeirollUSDC, "Transfer")
-      .withArgs(this.signers.alice.address, ethers.constants.AddressZero, parseUnits("10", "6"));
-    expect(await await usdc.balanceOf(this.signers.alice.address)).to.eq(parseUnits("10", "6"));
+      .withArgs(this.signers.alice.address, ethers.constants.AddressZero, parseUnits("10", await usdc.decimals()));
+    expect(await await usdc.balanceOf(this.signers.alice.address)).to.eq(parseUnits("10", await usdc.decimals()));
 
     // deposit all to strategy
     await vaultWeirollUSDC.connect(this.signers.alice).vaultDepositAllToStrategy();
@@ -149,10 +171,14 @@ describe("VaultWeiroll", async function () {
     console.log("price per full share ", (await vaultWeirollUSDC.getPPS()).toString());
 
     // 2. user deposit
-    await usdc.connect(this.signers.alice).approve(vaultWeirollUSDC.address, parseUnits("10", "6"));
-    await expect(vaultWeirollUSDC.connect(this.signers.alice).userDepositVault(parseUnits("10", "6")))
+    await usdc.connect(this.signers.alice).approve(vaultWeirollUSDC.address, parseUnits("10", await usdc.decimals()));
+    await expect(vaultWeirollUSDC.connect(this.signers.alice).userDepositVault(parseUnits("10", await usdc.decimals())))
       .to.emit(vaultWeirollUSDC, "Transfer")
-      .withArgs(ethers.constants.AddressZero, this.signers.alice.address, parseUnits("10.000001", "6"));
+      .withArgs(
+        ethers.constants.AddressZero,
+        this.signers.alice.address,
+        parseUnits("10.000001", await usdc.decimals()),
+      );
 
     // 2. deposit all to strategy
     await vaultWeirollUSDC.connect(this.signers.alice).vaultDepositAllToStrategy();
@@ -165,9 +191,11 @@ describe("VaultWeiroll", async function () {
 
     // 2. user withdraw
     console.log("balance USDC ", await usdc.balanceOf(this.signers.alice.address));
-    await expect(await vaultWeirollUSDC.connect(this.signers.alice).userWithdrawVault(parseUnits("5", "6")))
+    await expect(
+      await vaultWeirollUSDC.connect(this.signers.alice).userWithdrawVault(parseUnits("5", await usdc.decimals())),
+    )
       .to.emit(usdc, "Transfer")
-      .withArgs(vaultWeirollUSDC.address, this.signers.alice.address, parseUnits("4.999999", "6"));
+      .withArgs(vaultWeirollUSDC.address, this.signers.alice.address, parseUnits("4.999999", await usdc.decimals()));
     console.log("balance USDC ", await usdc.balanceOf(this.signers.alice.address));
     console.log("PPS ", (await vaultWeirollUSDC.getPPS()).toString());
     console.log("Total Supply ", (await vaultWeirollUSDC.totalSupply()).toString());
@@ -180,3 +208,18 @@ describe("VaultWeiroll", async function () {
     console.log("Last strategy step balance ", (await vaultWeirollUSDC.getLastStrategyStepBalance()).toString());
   });
 });
+
+// reference : https://github.com/ethers-io/ethers.js/issues/195#issuecomment-1212815642
+function linkLibrary(bytecode: string, name: string, address: string): string {
+  let linkedBytecode = bytecode;
+  // eslint-disable-next-line no-useless-escape
+  const placeholder = `__\$${ethers.utils.solidityKeccak256(["string"], [name]).slice(2, 36)}\$__`;
+  const formattedAddress = ethers.utils.getAddress(address).toLowerCase().replace("0x", "");
+  if (linkedBytecode.indexOf(placeholder) === -1) {
+    throw new Error(`Unable to find placeholder for library ${name}`);
+  }
+  while (linkedBytecode.indexOf(placeholder) !== -1) {
+    linkedBytecode = linkedBytecode.replace(placeholder, formattedAddress);
+  }
+  return linkedBytecode;
+}

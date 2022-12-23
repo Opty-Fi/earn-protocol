@@ -6,7 +6,6 @@ import { getAddress } from "ethers/lib/utils";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { ReturnValue } from "../../type";
 import { AdapterInterface } from "../AdapterInterface";
-import { ERC20__factory, IWETH9__factory } from "../../../typechain";
 import { JsonRpcProvider } from "@ethersproject/providers";
 export class AaveV1Adapter implements AdapterInterface {
   vaultHelperMainnetInstance;
@@ -95,8 +94,12 @@ export class AaveV1Adapter implements AdapterInterface {
     outputToken: string,
     _isSwap: boolean,
   ): ReturnValue {
-    const outputTokenInstance = new ethers.Contract(outputToken, ERC20__factory.abi);
-    const amountLP = planner.add(outputTokenInstance["balanceOf(address)"](vaultInstance.address).staticcall());
+    const amountLP = planner.add(
+      this.vaultHelperMainnetInstance["getERC20Balance(address,address)"](
+        outputToken,
+        vaultInstance.address,
+      ).staticcall(),
+    );
     return amountLP as ReturnValue;
   }
 
@@ -124,14 +127,14 @@ export class AaveV1Adapter implements AdapterInterface {
     pool: string,
     outputToken: string,
     _isSwap: boolean,
-    _provider: JsonRpcProvider,
+    provider: JsonRpcProvider,
   ): Promise<BigNumber> {
-    const outputTokenInstance = new ethers.Contract(
-      outputToken,
-      ERC20__factory.abi,
-      <ethers.providers.JsonRpcProvider>_provider,
+    const vaultHelperMainnet = new ethers.Contract(
+      this.vaultHelperMainnetInstance.address,
+      this.vaultHelperMainnetInstance.interface,
+      <ethers.providers.JsonRpcProvider>provider,
     );
-    return await outputTokenInstance["balanceOf(address)"](vaultInstance.address);
+    return await vaultHelperMainnet["getERC20Balance(address,address)"](outputToken, vaultInstance.address);
   }
 
   async getValueInInputToken(

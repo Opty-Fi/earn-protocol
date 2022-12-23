@@ -123,5 +123,9 @@ contract VaultHelperMainnet {
         return (_amountOut * (10000 - _slippage)) / 10000;
     }
 
+    function getERC20Balance(IERC20 _token, address _owner) external view returns (uint256) {
+        return _token.balanceOf(_owner);
+    }
+
     receive() external payable {}
 }
