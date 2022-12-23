@@ -92,7 +92,7 @@ const func: DeployFunction = async ({
 
   const liquidityPoolToTolerances = [
     { liquidityPool: USDC_WETH_LP, tolerance: "100" },
-    { liquidityPool: WBTC_WETH_LP, tolerance: "50" },
+    { liquidityPool: WBTC_WETH_LP, tolerance: "100" },
   ];
   const pendingLiquidityPoolToTolerances = [];
   for (const liquidityPoolToTolerance of liquidityPoolToTolerances) {
@@ -122,8 +122,8 @@ const func: DeployFunction = async ({
   const liquidityPoolToWantTokenToSlippages = [
     { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "90" },
     { liquidityPool: USDC_WETH_LP, wantToken: ethereumTokens.PLAIN_TOKENS.USDC, slippage: "70" },
-    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "70" },
-    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.BTC_TOKENS.WBTC, slippage: "70" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.WRAPPED_TOKENS.WETH, slippage: "100" },
+    { liquidityPool: WBTC_WETH_LP, wantToken: ethereumTokens.BTC_TOKENS.WBTC, slippage: "100" },
   ];
   const pendingLiquidityPoolToWantTokenToSlippages = [];
   for (const liquidityPoolToWantTokenToSlippage of liquidityPoolToWantTokenToSlippages) {

@@ -2720,7 +2720,7 @@ const mainnetVaults: VaultType = {
       underlyingTokensHash: MULTI_CHAIN_VAULT_TOKENS.mainnet.WBTC.hash,
       vaultConfig: vaultConfigRP0,
       userDepositCapUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC user deposit cap
-      minimumDepositValueUT: BigNumber.from("1"), // 0.00000001 WBTC minimum deposit
+      minimumDepositValueUT: BigNumber.from("0"), // 0 WBTC minimum deposit
       totalValueLockedLimitUT: BigNumber.from("100000000000000000000000000"), // 100000000000000000000000000 WBTC TVL limit
     },
   },
