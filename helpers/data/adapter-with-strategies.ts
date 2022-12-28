@@ -1013,6 +1013,24 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         description:
           "The OptyFi vault supplies WBTC to the lending pool on dAMM finance Protocol to earn interest in WBTC and, potentially, additional rewards in BDAMM tokens. The earned WBTC tokens and any harvested BDAMM rewards are reinvested into the vault.",
       },
+      "wbtc-DEPOSIT-Curve-crvWSBTC": {
+        strategyName: "wbtc-DEPOSIT-Curve-crvWSBTC",
+        token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        strategy: [
+          {
+            contract: "0xf253f83AcA21aAbD2A20553AE0BF7F65C755A07F",
+            outputToken: "0x051d7e5609917Bd9b73f04BAc0DED8Dd46a74301",
+            isSwap: false,
+            outputTokenSymbol: "crvWSBTC",
+            adapterName: "CurveSwapPoolAdapter",
+            protocol: "Curve",
+          },
+        ],
+        riskProfileCode: 1,
+        name: "crvWSBTC staking on Curve",
+        description:
+          "The OptyFi vault deposit WBTC to sbtc2 pool of Curve. The received crvWSBTC token is staked to gauge that earns rewards which are harvested and re-invested in the vault.",
+      },
       "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC": {
         strategyName: "wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC",
         token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",

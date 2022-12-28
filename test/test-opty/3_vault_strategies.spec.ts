@@ -644,6 +644,7 @@ async function withdraw(
   for (let i = 0; i < signers.length; i++) {
     const userWithdrawBalance = await vaultInstance.balanceOf(signers[i].address);
     const userBalanceBefore = await underlyingTokenInstance.balanceOf(signers[i].address);
+    const balanceUT = await underlyingTokenInstance.balanceOf(vaultInstance.address);
     const poolBalanceBefore = await getLastStrategyStepBalanceLP(
       steps,
       registryInstance,
@@ -705,13 +706,9 @@ async function withdraw(
       underlyingTokenInstance,
     );
     expect(userBalanceBefore).lt(userBalanceAfter);
-    if (
-      ![
-        "0xdf3f8ef63f05db6e4b04c3b5a8198d128b61faee8075aed893d76832a0deed6f", //wbtc-DEPOSIT-dAMM-cWBTC has 0% supply APY at fork block
-        "0x44216c2a6ff5f35d0b24f54cfddb2f39f8ab9a7a998bfa4683aa6083dceb9a9a",
-      ] //wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC has 0% supply APY at fork block
-        .includes(await vaultInstance.investStrategyHash())
-    ) {
+    const userReceivedUT = userBalanceAfter.sub(userBalanceBefore);
+
+    if (balanceUT.lt(userReceivedUT)) {
       expect(poolBalanceBefore).gt(poolBalanceAfter);
     }
     if (DEBUG == true) {
