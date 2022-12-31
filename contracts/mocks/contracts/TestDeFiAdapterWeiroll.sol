@@ -14,6 +14,14 @@ contract TestDeFiAdapterWeiroll is VM {
         _writeExecute(commands, state);
     }
 
+    function executeReadUint256Commands(
+        bytes32[] calldata commands,
+        bytes[] memory state,
+        uint256 outputIndex
+    ) external view returns (uint256) {
+        return abi.decode(_readExecute(commands, state)[outputIndex], (uint256));
+    }
+
     function giveAllowances(ERC20[] calldata _tokens, address[] calldata _spenders) external {
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, "!LENGTH_MISMATCH");

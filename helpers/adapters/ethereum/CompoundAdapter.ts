@@ -119,13 +119,9 @@ export class CompoundAdapter implements AdapterInterface {
   ): weirollPlanner {
     const comptrollerContract = new ethers.Contract(Compound.comptroller.address, comptrollerAbi);
     const comptrollerInstance = weirollContract.createContract(comptrollerContract);
+
     planner.add(
-      comptrollerInstance["claimComp(address[],address[],bool,bool)"](
-        [vaultInstance.address],
-        [pool],
-        false,
-        true,
-      ).staticcall(),
+      comptrollerInstance["claimComp(address[],address[],bool,bool)"]([vaultInstance.address], [pool], false, true),
     );
     return planner;
   }
