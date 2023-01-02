@@ -11,12 +11,16 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 const STK_AAVE = "0x4da27a545c0c5B758a6BA100e3a049001de870f5";
 export class Aavev2Adapter implements AdapterInterface {
   optyFiOracleAddress;
-  vaultHelperMainnetInstance;
+  vaultHelperInstance;
+  swapHelperInstance;
 
-  constructor(vaultHelperMainnetContract: Contract, _optyFiOracleAddress: string) {
+  constructor(_optyFiOracleAddress: string, vaultHelperContract: Contract, swapHelperContract: Contract) {
     this.optyFiOracleAddress = _optyFiOracleAddress;
-    this.vaultHelperMainnetInstance = weirollContract.createContract(
-      new ethers.Contract(vaultHelperMainnetContract.address, vaultHelperMainnetContract.interface),
+    this.vaultHelperInstance = weirollContract.createContract(
+      new ethers.Contract(vaultHelperContract.address, vaultHelperContract.interface),
+    );
+    this.swapHelperInstance = weirollContract.createContract(
+      new ethers.Contract(swapHelperContract.address, swapHelperContract.interface),
     );
   }
 
@@ -92,10 +96,7 @@ export class Aavev2Adapter implements AdapterInterface {
     _isSwap: boolean,
   ): ReturnValue {
     const amountLP = planner.add(
-      this.vaultHelperMainnetInstance["getERC20Balance(address,address)"](
-        outputToken,
-        vaultInstance.address,
-      ).staticcall(),
+      this.vaultHelperInstance["getERC20Balance(address,address)"](outputToken, vaultInstance.address).staticcall(),
     );
     return amountLP as ReturnValue;
   }
@@ -126,12 +127,18 @@ export class Aavev2Adapter implements AdapterInterface {
     vaultUnderlyingToken: string,
   ): weirollPlanner {
     const rewardAmount = planner.add(
-      this.vaultHelperMainnetInstance["getERC20Balance(address,address)"](STK_AAVE, vaultInstance.address).staticcall(),
+      this.vaultHelperInstance["getERC20Balance(address,address)"](STK_AAVE, vaultInstance.address).staticcall(),
     );
-    const minumumOutputAmount = planner.add(
-      this.vaultHelperMainnetInstance[
-        "getMinimumExpectedTokenOutPrice_OptyFiOracle(address,address,address,uint256,uint256)"
-      ](this.optyFiOracleAddress, STK_AAVE, vaultUnderlyingToken, rewardAmount, 100).staticcall(),
+    const outputAmount = planner.add(
+      this.vaultHelperInstance["getTokenOutPrice_OptyFiOracle(address,address,address,uint256)"](
+        this.optyFiOracleAddress,
+        STK_AAVE,
+        vaultUnderlyingToken,
+        rewardAmount,
+      ).staticcall(),
+    );
+    const minimumOutputAmount = planner.add(
+      this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](outputAmount, 100),
     );
     let univ3Path;
     switch (getAddress(vaultUnderlyingToken)) {
@@ -207,11 +214,11 @@ export class Aavev2Adapter implements AdapterInterface {
       }
     }
     planner.add(
-      this.vaultHelperMainnetInstance["exactInput_UniswapV3(bytes,uint256,uint256,uint256)"](
+      this.swapHelperInstance["exactInput_UniswapV3(bytes,uint256,uint256,uint256)"](
         univ3Path,
         ethers.constants.MaxUint256,
         rewardAmount,
-        minumumOutputAmount,
+        minimumOutputAmount,
       ),
     );
     return planner;
@@ -226,8 +233,8 @@ export class Aavev2Adapter implements AdapterInterface {
     provider: JsonRpcProvider,
   ): Promise<BigNumber> {
     const vaultHelperMainnet = new ethers.Contract(
-      this.vaultHelperMainnetInstance.address,
-      this.vaultHelperMainnetInstance.interface,
+      this.vaultHelperInstance.address,
+      this.vaultHelperInstance.interface,
       <ethers.providers.JsonRpcProvider>provider,
     );
     return await vaultHelperMainnet["getERC20Balance(address,address)"](outputToken, vaultInstance.address);

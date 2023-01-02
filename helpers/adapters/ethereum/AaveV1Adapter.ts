@@ -8,11 +8,15 @@ import { ReturnValue } from "../../type";
 import { AdapterInterface } from "../AdapterInterface";
 import { JsonRpcProvider } from "@ethersproject/providers";
 export class AaveV1Adapter implements AdapterInterface {
-  vaultHelperMainnetInstance;
+  vaultHelperInstance;
+  aaveV1HelperInstance;
 
-  constructor(vaultHelperMainnetContract: Contract) {
-    this.vaultHelperMainnetInstance = weirollContract.createContract(
-      new ethers.Contract(vaultHelperMainnetContract.address, vaultHelperMainnetContract.interface),
+  constructor(vaultHelperContract: Contract, aaveV1HelperInstance: Contract) {
+    this.vaultHelperInstance = weirollContract.createContract(
+      new ethers.Contract(vaultHelperContract.address, vaultHelperContract.interface),
+    );
+    this.aaveV1HelperInstance = weirollContract.createContract(
+      new ethers.Contract(aaveV1HelperInstance.address, aaveV1HelperInstance.interface),
     );
   }
 
@@ -29,7 +33,7 @@ export class AaveV1Adapter implements AdapterInterface {
     const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
     if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
       planner.add(
-        this.vaultHelperMainnetInstance["depositETH_AaveV1(address,address,uint256)"](
+        this.aaveV1HelperInstance["depositETH_AaveV1(address,address,uint256)"](
           lendingPoolContract.address,
           outputToken,
           inputTokenAmount,
@@ -53,9 +57,7 @@ export class AaveV1Adapter implements AdapterInterface {
     const lpTokenContract = new ethers.Contract(outputToken, Aave.ATokenAbi);
     const lpTokenInstance = weirollContract.createContract(lpTokenContract);
     if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
-      planner.add(
-        this.vaultHelperMainnetInstance["withdrawETH_AaveV1(address,uint256)"](outputToken, outputTokenAmount),
-      );
+      planner.add(this.aaveV1HelperInstance["withdrawETH_AaveV1(address,uint256)"](outputToken, outputTokenAmount));
     } else {
       planner.add(lpTokenInstance["redeem(uint256)"](outputTokenAmount));
     }
@@ -95,10 +97,7 @@ export class AaveV1Adapter implements AdapterInterface {
     _isSwap: boolean,
   ): ReturnValue {
     const amountLP = planner.add(
-      this.vaultHelperMainnetInstance["getERC20Balance(address,address)"](
-        outputToken,
-        vaultInstance.address,
-      ).staticcall(),
+      this.vaultHelperInstance["getERC20Balance(address,address)"](outputToken, vaultInstance.address).staticcall(),
     );
     return amountLP as ReturnValue;
   }
@@ -129,12 +128,12 @@ export class AaveV1Adapter implements AdapterInterface {
     _isSwap: boolean,
     provider: JsonRpcProvider,
   ): Promise<BigNumber> {
-    const vaultHelperMainnet = new ethers.Contract(
-      this.vaultHelperMainnetInstance.address,
-      this.vaultHelperMainnetInstance.interface,
+    const vaultHelper = new ethers.Contract(
+      this.vaultHelperInstance.address,
+      this.vaultHelperInstance.interface,
       <ethers.providers.JsonRpcProvider>provider,
     );
-    return await vaultHelperMainnet["getERC20Balance(address,address)"](outputToken, vaultInstance.address);
+    return await vaultHelper["getERC20Balance(address,address)"](outputToken, vaultInstance.address);
   }
 
   async getValueInInputToken(

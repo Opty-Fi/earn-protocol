@@ -2,7 +2,6 @@ import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { BigNumber, Contract } from "ethers";
 import { JsonRpcProvider } from "@ethersproject/providers";
-import { ERC20__factory } from "../typechain";
 import { AdapterInterface } from "./adapters/AdapterInterface";
 import { AaveV1Adapter } from "./adapters/ethereum/AaveV1Adapter";
 import { Aavev2Adapter } from "./adapters/ethereum/AaveV2Adapter";
@@ -13,17 +12,23 @@ export class StrategyManager {
   public readonly compoundAdapterObj: AdapterInterface;
   public readonly aaveV1AdapterObj: AdapterInterface;
   public readonly aaveV2AdapterObj: AdapterInterface;
-  public readonly vaultHelperMainnetContract: weirollContract;
+  public readonly vaultHelperContract: weirollContract;
 
   public readonly liquidityPoolToAdapter: { [key: string]: AdapterInterface } = {};
 
-  constructor(vaultHelperMainnetInstance: Contract, optyFiOracleAddress: string) {
-    this.vaultHelperMainnetContract = weirollContract.createContract(
-      new ethers.Contract(vaultHelperMainnetInstance.address, vaultHelperMainnetInstance.interface),
+  constructor(
+    optyFiOracleAddress: string,
+    vaultHelperInstance: Contract,
+    compoundHelperContract: Contract,
+    aaveV1HelperContract: Contract,
+    swapHelperContract: Contract,
+  ) {
+    this.vaultHelperContract = weirollContract.createContract(
+      new ethers.Contract(vaultHelperInstance.address, vaultHelperInstance.interface),
     );
-    this.compoundAdapterObj = new CompoundAdapter(vaultHelperMainnetInstance, optyFiOracleAddress);
-    this.aaveV1AdapterObj = new AaveV1Adapter(vaultHelperMainnetInstance);
-    this.aaveV2AdapterObj = new Aavev2Adapter(vaultHelperMainnetInstance, optyFiOracleAddress);
+    this.compoundAdapterObj = new CompoundAdapter(optyFiOracleAddress, vaultHelperInstance, compoundHelperContract);
+    this.aaveV1AdapterObj = new AaveV1Adapter(vaultHelperInstance, aaveV1HelperContract);
+    this.aaveV2AdapterObj = new Aavev2Adapter(optyFiOracleAddress, vaultHelperInstance, swapHelperContract);
     this.liquidityPoolToAdapter["0x52D306e36E3B6B02c153d0266ff0f85d18BCD413"] = this.aaveV2AdapterObj;
     this.liquidityPoolToAdapter["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"] = this.compoundAdapterObj; // cDAI
     this.liquidityPoolToAdapter["0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9"] = this.compoundAdapterObj; // cUSDT
@@ -46,7 +51,7 @@ export class StrategyManager {
       if (index > 0) {
         const inputTokenAmount = <ReturnValue>(
           planner.add(
-            this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+            this.vaultHelperContract["getERC20Balance(address,address)"](
               strategySteps[index - 1].outputToken,
               vaultContract.address,
             ).staticcall(),
@@ -101,7 +106,7 @@ export class StrategyManager {
       } else {
         const amountLP = <ReturnValue>(
           planner.add(
-            this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+            this.vaultHelperContract["getERC20Balance(address,address)"](
               strategySteps[iteratorIndex].outputToken,
               vaultContract.address,
             ).staticcall(),
@@ -126,7 +131,7 @@ export class StrategyManager {
     const planner = new weirollPlanner();
     const amountLP = <ReturnValue>(
       planner.add(
-        this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+        this.vaultHelperContract["getERC20Balance(address,address)"](
           strategySteps[strategySteps.length - 1].outputToken,
           vaultInstance.address,
         ).staticcall(),
@@ -166,7 +171,7 @@ export class StrategyManager {
         );
       }
     }
-    planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountUT).staticcall());
+    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountUT).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
@@ -210,7 +215,7 @@ export class StrategyManager {
         );
       }
     }
-    planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
+    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }
@@ -222,12 +227,12 @@ export class StrategyManager {
   ): WeirollPlan {
     const planner = new weirollPlanner();
     const amountLP = planner.add(
-      this.vaultHelperMainnetContract["getERC20Balance(address,address)"](
+      this.vaultHelperContract["getERC20Balance(address,address)"](
         strategySteps[strategySteps.length - 1].outputToken,
         vaultInstance.address,
       ).staticcall(),
     );
-    planner.add(this.vaultHelperMainnetContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
+    planner.add(this.vaultHelperContract["pureFunctionUint256(uint256)"](amountLP).staticcall());
     const { commands, state } = planner.plan();
     return { commands, state, outputIndex: 0 };
   }

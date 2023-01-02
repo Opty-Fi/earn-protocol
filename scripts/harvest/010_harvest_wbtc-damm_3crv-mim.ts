@@ -18,7 +18,7 @@ import {
   IUniswapV2Router02,
   IUniswapV2Router02__factory,
 } from "../../typechain";
-import { parseEther, parseUnits } from "ethers/lib/utils";
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import { comptrollerABI } from "./007_BDAMM";
 import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
@@ -93,8 +93,11 @@ async function main() {
     BigNumber.from("100000000000000000000000000"),
   );
 
+  console.log(formatEther(crvUnclaimedForopUSD3Earn));
+  console.log(formatEther(cvxUnclaimedForopUSD3Earn));
+
   const oneCRVToUSDC = parseUnits("0.5", "6"); //0.53 crv - usdc
-  const oneCVXToUSDC = parseUnits("3.3", "6"); // 3.3
+  const oneCVXToUSDC = parseUnits("3.1", "6"); // 3.3
 
   const expectedMinUSDCFromCRVForopUSD3Earn = BigNumber.from(crvBalanceForOPUSD3Earn.add(crvUnclaimedForopUSD3Earn))
     .mul(oneCRVToUSDC)
@@ -131,86 +134,86 @@ async function main() {
     [EthereumTokens.REWARD_TOKENS.CVX, 10000, EthereumTokens.PLAIN_TOKENS.USDC],
   );
   const transactions: MetaTransactionData[] = [
-    {
-      to: compoundComptrollerInstance.address,
-      value: "0",
-      data: compoundComptrollerInstance.interface.encodeFunctionData("claimComp", [
-        [opWBTCEarn.address],
-        [
-          "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80", // dAMM finance - dWBTC
-        ],
-        false,
-        true,
-      ]),
-    },
-    {
-      to: opWBTCEarn.address,
-      value: "0",
-      data: opWBTCEarn.interface.encodeFunctionData("adminCall", [
-        [
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [dWBTCInstance.address, dWBTCInstance.interface.encodeFunctionData("redeem", [dwbtcBalance])],
-          ),
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              sushiswapRouter.address,
-              sushiswapRouter.interface.encodeFunctionData("swapTokensForExactTokens", [
-                parseUnits("57.886070", "6"),
-                parseUnits("0.0035", "8"),
-                [EthereumTokens.BTC_TOKENS.WBTC, EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.PLAIN_TOKENS.USDC],
-                opWBTCEarn.address,
-                BigNumber.from(timestamp).add("600"),
-              ]),
-            ],
-          ),
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              EthereumTokens.PLAIN_TOKENS.USDC,
-              usdc.interface.encodeFunctionData("approve", [bdammRedemption.address, parseUnits("57.886070", "6")]),
-            ],
-          ),
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              "0xfa372fF1547fa1a283B5112a4685F1358CE5574d",
-              usdc.interface.encodeFunctionData("approve", [bdammRedemption.address, parseEther("526.237")]),
-            ],
-          ),
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              bdammRedemption.address,
-              bdammRedemption.interface.encodeFunctionData("redeem", [
-                parseEther("526.237"),
-                parseUnits("57.886070", "6"),
-              ]),
-            ],
-          ),
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [
-              uniswapV3Router,
-              uniswapV3RouterInstance.interface.encodeFunctionData("exactInput", [
-                {
-                  path: uniV3SwapPathForDAMMtoWBTC,
-                  recipient: opWBTCEarn.address,
-                  deadline: BigNumber.from(timestamp).add("600"),
-                  amountIn: parseEther("526.237"),
-                  amountOutMinimum: parseUnits("0", "6"),
-                },
-              ]),
-            ],
-          ),
-          ethers.utils.defaultAbiCoder.encode(
-            ["address", "bytes"],
-            [opWBTCEarn.address, opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy")],
-          ),
-        ],
-      ]),
-    },
+    // {
+    //   to: compoundComptrollerInstance.address,
+    //   value: "0",
+    //   data: compoundComptrollerInstance.interface.encodeFunctionData("claimComp", [
+    //     [opWBTCEarn.address],
+    //     [
+    //       "0x63D6b99659f7b05b054DEEF582F5DaAa51780E80", // dAMM finance - dWBTC
+    //     ],
+    //     false,
+    //     true,
+    //   ]),
+    // },
+    // {
+    //   to: opWBTCEarn.address,
+    //   value: "0",
+    //   data: opWBTCEarn.interface.encodeFunctionData("adminCall", [
+    //     [
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [dWBTCInstance.address, dWBTCInstance.interface.encodeFunctionData("redeem", [dwbtcBalance])],
+    //       ),
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [
+    //           sushiswapRouter.address,
+    //           sushiswapRouter.interface.encodeFunctionData("swapTokensForExactTokens", [
+    //             parseUnits("57.886070", "6"),
+    //             parseUnits("0.0035", "8"),
+    //             [EthereumTokens.BTC_TOKENS.WBTC, EthereumTokens.WRAPPED_TOKENS.WETH, EthereumTokens.PLAIN_TOKENS.USDC],
+    //             opWBTCEarn.address,
+    //             BigNumber.from(timestamp).add("600"),
+    //           ]),
+    //         ],
+    //       ),
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [
+    //           EthereumTokens.PLAIN_TOKENS.USDC,
+    //           usdc.interface.encodeFunctionData("approve", [bdammRedemption.address, parseUnits("57.886070", "6")]),
+    //         ],
+    //       ),
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [
+    //           "0xfa372fF1547fa1a283B5112a4685F1358CE5574d",
+    //           usdc.interface.encodeFunctionData("approve", [bdammRedemption.address, parseEther("526.237")]),
+    //         ],
+    //       ),
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [
+    //           bdammRedemption.address,
+    //           bdammRedemption.interface.encodeFunctionData("redeem", [
+    //             parseEther("526.237"),
+    //             parseUnits("57.886070", "6"),
+    //           ]),
+    //         ],
+    //       ),
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [
+    //           uniswapV3Router,
+    //           uniswapV3RouterInstance.interface.encodeFunctionData("exactInput", [
+    //             {
+    //               path: uniV3SwapPathForDAMMtoWBTC,
+    //               recipient: opWBTCEarn.address,
+    //               deadline: BigNumber.from(timestamp).add("600"),
+    //               amountIn: parseEther("526.237"),
+    //               amountOutMinimum: parseUnits("0", "6"),
+    //             },
+    //           ]),
+    //         ],
+    //       ),
+    //       ethers.utils.defaultAbiCoder.encode(
+    //         ["address", "bytes"],
+    //         [opWBTCEarn.address, opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy")],
+    //       ),
+    //     ],
+    //   ]),
+    // },
     // claim CRV, CVX for opUSD3Earn
     {
       to: cvxMIM3lp3GaugeInstance.address,
@@ -267,7 +270,7 @@ async function main() {
                     .add(usdcBalanceForopUSD3Earn),
                   0,
                 ],
-                "32000000000000000000",
+                "31000000000000000000",
               ]),
             ],
           ),

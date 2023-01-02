@@ -9,7 +9,15 @@ import Compound from "@optyfi/defi-legos/ethereum/compound/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { ERC20, ERC20__factory, Vault, VaultHelperMainnet__factory, Vault__factory } from "../typechain";
+import {
+  CompoundHelper,
+  CompoundHelper__factory,
+  ERC20,
+  ERC20__factory,
+  Vault,
+  VaultHelper__factory,
+  Vault__factory,
+} from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -161,11 +169,8 @@ const func: DeployFunction = async ({
     await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Save_Proxy")).address)
   );
 
-  const vaultHelperMainnetInstance = await ethers.getContractAt(
-    VaultHelperMainnet__factory.abi,
-    (
-      await deployments.get("VaultHelperMainnet")
-    ).address,
+  const compoundHelperInstance = <CompoundHelper>(
+    await ethers.getContractAt(CompoundHelper__factory.abi, (await deployments.get("CompoundHelper")).address)
   );
 
   const approvalTokens = [];
@@ -177,13 +182,13 @@ const func: DeployFunction = async ({
 
   const wethAaveV2Allowance = await wethInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
   const awethAaveV2Allowance = await awethInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
-  const wethVaultHelperMainnetAllowance = await wethInstance.allowance(
+  const wethCompoundHelperAllowance = await wethInstance.allowance(
     vaultInstance.address,
-    vaultHelperMainnetInstance.address,
+    compoundHelperInstance.address,
   );
-  const cethVaultHelperMainnetAllowance = await cethInstance.allowance(
+  const cethCompoundHelperAllowance = await cethInstance.allowance(
     vaultInstance.address,
-    vaultHelperMainnetInstance.address,
+    compoundHelperInstance.address,
   );
 
   if (!wethAaveV2Allowance.gt(parseEther("1000000"))) {
@@ -196,14 +201,14 @@ const func: DeployFunction = async ({
     approvalSpender.push(AaveV2.LendingPool.address);
   }
 
-  if (!wethVaultHelperMainnetAllowance.gt(parseEther("1000000"))) {
+  if (!wethCompoundHelperAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(wethInstance.address);
-    approvalSpender.push(vaultHelperMainnetInstance.address);
+    approvalSpender.push(compoundHelperInstance.address);
   }
 
-  if (!cethVaultHelperMainnetAllowance.gt(parseEther("1000000"))) {
+  if (!cethCompoundHelperAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(cethInstance.address);
-    approvalSpender.push(vaultHelperMainnetInstance.address);
+    approvalSpender.push(compoundHelperInstance.address);
   }
 
   if (approvalTokens.length > 0) {

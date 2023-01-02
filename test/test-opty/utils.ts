@@ -8,7 +8,7 @@ import polygonTokens from "@optyfi/defi-legos/polygon/tokens";
 import avaxTokens from "@optyfi/defi-legos/avalanche/tokens";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import { StrategyStepType } from "../../helpers/type";
-import { ERC20, IAdapterFull, IWETH, Registry, ERC20Permit, Vault } from "../../typechain";
+import { ERC20, IAdapterFull, Registry, ERC20Permit, Vault, IWETH9__factory, IWETH9 } from "../../typechain";
 import { fundWalletToken, getBlockTimestamp } from "../../helpers/contracts-actions";
 import { RegistryV1 } from "../../helpers/types/registryV1";
 import { StrategyManager } from "../../helpers/strategy-manager";
@@ -60,9 +60,11 @@ export async function setTokenBalanceInStorage(
         getAddress(token.address),
       )
     ) {
-      const weth = <IWETH>(
-        await ethers.getContractAt("@uniswap/v2-periphery/contracts/interfaces/IWETH.sol:IWETH", token.address)
-      );
+      const weth = <IWETH9>await ethers.getContractAt(IWETH9__factory.abi, token.address);
+      const wethBalance = await weth.balanceOf(account);
+      if (wethBalance.gt("0")) {
+        await weth.connect(await ethers.getSigner(account)).withdraw(wethBalance);
+      }
       await weth.deposit({ value: parseEther(amount) });
       await weth.transfer(account, parseEther(amount));
     } else {

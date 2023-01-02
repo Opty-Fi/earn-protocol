@@ -7,7 +7,7 @@ import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
 import Safe from "@gnosis.pm/safe-core-sdk";
 import { MetaTransactionData, EthAdapter } from "@gnosis.pm/safe-core-sdk-types";
 import { ERC20, ERC20__factory, IUniswapV2Router02, IUniswapV2Router02__factory } from "../../typechain";
-import { parseEther, parseUnits } from "ethers/lib/utils";
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import { getCVXUnclaimed } from "./003_claim_and_swap_CRV_CVX_to_USDC";
 import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
@@ -27,6 +27,11 @@ async function main() {
   const opWETHInvst = <VaultV6>(
     await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWETH-Invst_Proxy")).address)
   );
+
+  const opWBTCEarn = <VaultV6>(
+    await ethers.getContractAt(VaultV6__factory.abi, (await deployments.get("opWBTC-Earn_Proxy")).address)
+  );
+
   const sushiswapRouter = <IUniswapV2Router02>(
     await ethers.getContractAt(IUniswapV2Router02__factory.abi, EthereumSushiswap.SushiswapRouter.address)
   );
@@ -79,6 +84,8 @@ async function main() {
 
   const cvxMIM3lp3GaugeInstance = await ethers.getContractAt(cvxABI, Convex.pools.mim.stakingPool);
 
+  const crvWSBTCGaugeInstance = await ethers.getContractAt(curveGuageABI, "0x6D787113F23bED1D5e1530402B3f364D0A6e5Af3");
+
   const cvxStEthGaugeInstance = await ethers.getContractAt(cvxABI, Convex.pools.steth.stakingPool);
 
   const cvxInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.REWARD_TOKENS.CVX);
@@ -90,6 +97,11 @@ async function main() {
 
   const crvUnclaimedForopUSDCEarn = await cvxMIM3lp3GaugeInstance.earned(opUSDCEarn.address);
   const crvBalanceForopUSDCEarn = await crvInstance.balanceOf(opUSDCEarn.address);
+  const crvBalanceForopWBTCEarn = await crvInstance.balanceOf(opWBTCEarn.address);
+
+  const crvUnclaimedForopWBTCEarn = await crvWSBTCGaugeInstance.claimable_tokens(opWBTCEarn.address);
+
+  console.log(formatEther(crvUnclaimedForopWBTCEarn));
 
   const cvxUnclaimedForopUSDCEarn = getCVXUnclaimed(
     crvUnclaimedForopUSDCEarn,
@@ -100,7 +112,7 @@ async function main() {
   );
   const cvxBalanceForopUSDCEarn = await cvxInstance.balanceOf(opUSDCEarn.address);
 
-  const ldoUnclaimedForopWETHEarn = parseEther("13.310000000000000000");
+  const ldoUnclaimedForopWETHEarn = parseEther("31.630000000000000000");
   const ldoBalanceForopWETHEarn = await ldoInstance.balanceOf(opWETHEarn.address);
 
   const sushiBalanceForopUSDCInvst = await sushiInstance.balanceOf(opUSDCInvst.address);
@@ -111,6 +123,7 @@ async function main() {
   const oneLDOToWETH = parseEther("0.0007"); //0.0008
   const oneSUSHIToUSDC = parseUnits("0.96", "6");
   const oneSUSHIToWETH = parseEther("0.0007"); // sushi-dai-weth
+  const oneCRVToWBTC = parseUnits("0", "8");
 
   const expectedMinUSDCFromCRVForopUSDCEarn = BigNumber.from(crvBalanceForopUSDCEarn.add(crvUnclaimedForopUSDCEarn))
     .mul(oneCRVToUSDC)
@@ -122,6 +135,10 @@ async function main() {
 
   const expectedMInUSDCFromCVXForopUSDCEarn = BigNumber.from(cvxBalanceForopUSDCEarn.add(cvxUnclaimedForopUSDCEarn))
     .mul(oneCVXToUSDC)
+    .div(parseEther("1"));
+
+  const expectedMinWBTCFromCRVForopWBTCEarn = BigNumber.from(crvBalanceForopWBTCEarn.add(crvUnclaimedForopWBTCEarn))
+    .mul(oneCRVToWBTC)
     .div(parseEther("1"));
 
   const expectedMinUSDCFromSUSHIForopUSDCInvst = sushiBalanceForopUSDCInvst.mul(oneSUSHIToUSDC).div(parseEther("1"));
@@ -151,6 +168,12 @@ async function main() {
       to: cvxStEthGaugeInstance.address,
       value: "0",
       data: cvxStEthGaugeInstance.interface.encodeFunctionData("getReward", [opWETHEarn.address, true]),
+    },
+    // claim CRV for opWBTCEarn
+    {
+      to: crvWSBTCGaugeInstance.address,
+      value: "0",
+      data: crvWSBTCGaugeInstance.interface.encodeFunctionData("claim_rewards", [opWBTCEarn.address]),
     },
     // harvest CRV for opUSDCEarn
     {
@@ -199,44 +222,58 @@ async function main() {
         "0x",
       ]),
     },
-    // harvest SUSHI for opWETHInvst
-    {
-      to: opWETHInvst.address,
-      value: "0",
-      data: opWETHInvst.interface.encodeFunctionData("harvest", [
-        sushiInstance.address,
-        sushiswapRouter.address,
-        false,
-        expectMinWETHFromSUSHIForopWETHInvst,
-        BigNumber.from(timestamp).add("600"),
-        [
-          sushiInstance.address,
-          EthereumTokens.PLAIN_TOKENS.USDT,
-          EthereumTokens.PLAIN_TOKENS.DAI,
-          EthereumTokens.WRAPPED_TOKENS.WETH,
-        ],
-        "0x",
-      ]),
-    },
-    // harvest SUSHI for opUSDCInvst
-    {
-      to: opUSDCInvst.address,
-      value: "0",
-      data: opUSDCInvst.interface.encodeFunctionData("harvest", [
-        sushiInstance.address,
-        sushiswapRouter.address,
-        false,
-        expectedMinUSDCFromSUSHIForopUSDCInvst,
-        BigNumber.from(timestamp).add("600"),
-        [
-          sushiInstance.address,
-          EthereumTokens.PLAIN_TOKENS.USDT,
-          EthereumTokens.PLAIN_TOKENS.DAI,
-          EthereumTokens.PLAIN_TOKENS.USDC,
-        ],
-        "0x",
-      ]),
-    },
+    // // harvest CRV for opWBTCEarn
+    // {
+    //   to: opWBTCEarn.address,
+    //   value: "0",
+    //   data: opWBTCEarn.interface.encodeFunctionData("harvest", [
+    //     crvInstance.address,
+    //     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+    //     false,
+    //     "0",
+    //     BigNumber.from(timestamp).add("600"),
+    //     [crvInstance.address, EthereumTokens.PLAIN_TOKENS.USDC, EthereumTokens.BTC_TOKENS.WBTC],
+    //     "0x",
+    //   ]),
+    // },
+    // // harvest SUSHI for opWETHInvst
+    // {
+    //   to: opWETHInvst.address,
+    //   value: "0",
+    //   data: opWETHInvst.interface.encodeFunctionData("harvest", [
+    //     sushiInstance.address,
+    //     sushiswapRouter.address,
+    //     false,
+    //     expectMinWETHFromSUSHIForopWETHInvst,
+    //     BigNumber.from(timestamp).add("600"),
+    //     [
+    //       sushiInstance.address,
+    //       EthereumTokens.PLAIN_TOKENS.USDT,
+    //       EthereumTokens.PLAIN_TOKENS.DAI,
+    //       EthereumTokens.WRAPPED_TOKENS.WETH,
+    //     ],
+    //     "0x",
+    //   ]),
+    // },
+    // // harvest SUSHI for opUSDCInvst
+    // {
+    //   to: opUSDCInvst.address,
+    //   value: "0",
+    //   data: opUSDCInvst.interface.encodeFunctionData("harvest", [
+    //     sushiInstance.address,
+    //     sushiswapRouter.address,
+    //     false,
+    //     expectedMinUSDCFromSUSHIForopUSDCInvst,
+    //     BigNumber.from(timestamp).add("600"),
+    //     [
+    //       sushiInstance.address,
+    //       EthereumTokens.PLAIN_TOKENS.USDT,
+    //       EthereumTokens.PLAIN_TOKENS.DAI,
+    //       EthereumTokens.PLAIN_TOKENS.USDC,
+    //     ],
+    //     "0x",
+    //   ]),
+    // },
     // vaultDepositAllToStrategy for opUSDCEarn
     {
       to: opUSDCEarn.address,
@@ -249,18 +286,24 @@ async function main() {
       value: "0",
       data: opWETHEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
     },
-    // vaultDepositAllToStrategy for opWETHInvst
-    {
-      to: opWETHInvst.address,
-      value: "0",
-      data: opWETHInvst.interface.encodeFunctionData("vaultDepositAllToStrategy"),
-    },
-    // vaultDepositAllToStrategy for opUSDCInvst
-    {
-      to: opUSDCInvst.address,
-      value: "0",
-      data: opUSDCInvst.interface.encodeFunctionData("vaultDepositAllToStrategy"),
-    },
+    // // vaultDepositAllToStrategy for opWBTCEarn
+    // {
+    //   to: opWBTCEarn.address,
+    //   value: "0",
+    //   data: opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
+    // },
+    // // vaultDepositAllToStrategy for opWETHInvst
+    // {
+    //   to: opWETHInvst.address,
+    //   value: "0",
+    //   data: opWETHInvst.interface.encodeFunctionData("vaultDepositAllToStrategy"),
+    // },
+    // // vaultDepositAllToStrategy for opUSDCInvst
+    // {
+    //   to: opUSDCInvst.address,
+    //   value: "0",
+    //   data: opUSDCInvst.interface.encodeFunctionData("vaultDepositAllToStrategy"),
+    // },
   ];
 
   const safeOwner = ethers.provider.getSigner(0);
@@ -279,3 +322,47 @@ async function main() {
 }
 
 main().then(console.log).catch(console.error);
+
+const curveGuageABI = [
+  {
+    stateMutability: "nonpayable",
+    type: "function",
+    name: "claim_rewards",
+    inputs: [
+      {
+        name: "_addr",
+        type: "address",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    name: "claimable_tokens",
+    outputs: [
+      {
+        type: "uint256",
+        name: "",
+      },
+    ],
+    inputs: [
+      {
+        type: "address",
+        name: "addr",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    name: "minter",
+    outputs: [
+      {
+        type: "address",
+        name: "",
+      },
+    ],
+    inputs: [],
+    stateMutability: "view",
+    type: "function",
+  },
+];

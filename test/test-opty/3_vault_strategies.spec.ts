@@ -14,7 +14,11 @@ import {
   Signers,
   to_10powNumber_BN,
 } from "../../helpers/utils";
-import { MultiChainVaults, StrategiesByTokenByChain } from "../../helpers/data/adapter-with-strategies";
+import {
+  MultiChainVaults,
+  StrategiesByTokenByChain,
+  strategyHashReadIndexes,
+} from "../../helpers/data/adapter-with-strategies";
 import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import {
   Registry,
@@ -25,8 +29,11 @@ import {
   ERC20__factory,
   IComptroller__factory,
   StrategyRegistry__factory,
-  VaultHelperMainnet,
-  VaultHelperMainnet__factory,
+  VaultHelper,
+  AaveV1Helper__factory,
+  CompoundHelper__factory,
+  SwapHelper__factory,
+  VaultHelper__factory,
 } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
@@ -40,70 +47,6 @@ chai.use(solidity);
 const fork = process.env.FORK as eEVMNetwork;
 const DEBUG = process.env.DEBUG === "true" ? true : false;
 const IGNORE_VAULTS = process.env.IGNORE_VAULTS;
-const strategyHashReadIndexes: {
-  [key: string]: { oraValueUTIndex: number; oraValueLPIndex: number; lastStepLPBalanceIndex: number };
-} = {
-  "0x9d5b0ec470b7cc0292aa6f12b02080fab6963a074f01f19bf163819cb6e38cb6": {
-    // dai-DEPOSIT-AaveV2-aDAI
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 0,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": {
-    // dai-DEPOSIT-Compound-cDAI
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 1,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x74ceffc4d239683893dd31f6c4bed33f65aafb1bdad2c47d61bae7db81a42e4d": {
-    // usdt-DEPOSIT-AaveV2-aUSDT
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 0,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x4103355b18f7a7ea81aebc211548510bb077426632fbe4899f4cf162c70ba396": {
-    // usdt-DEPOSIT-Compound-cUSDT
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 1,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x46b9c41c6ff6c82958774b97fc426f046011e4177b8f64ded0d1a704d083b3c6": {
-    // wbtc-DEPOSIT-AaveV2-aWBTC
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 0,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x35f4123193f545465801d2cd7418a60c7cfe6ade80b8be4f941124705fb7a39c": {
-    // wbtc-DEPOSIT-Compound-cWBTC
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 1,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0xdc405bd6462f69e015108f9c274278cf552f891ed2015820827a672abafd48fc": {
-    // usdc-DEPOSIT-AaveV2-aUSDC
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 0,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x58404c3f191270f62e374653c7aa923e5487ed261523b0aef0a432a01a8ea088": {
-    // usdc-DEPOSIT-Compound-cUSDC
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 1,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x514e845e4f1401cfe30f214a1386dfd06a98e15316dde7f669889a82ddffdeb8": {
-    // weth-DEPOSIT-AaveV2-aWETH
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 0,
-    lastStepLPBalanceIndex: 1,
-  },
-  "0x87ed056054f13b934a9864226aa8c1f52ad63a7ad25bb2c74c1f920c9635c04c": {
-    // weth-DEPOSIT-Compound-cETH
-    oraValueUTIndex: 1,
-    oraValueLPIndex: 1,
-    lastStepLPBalanceIndex: 1,
-  },
-};
 
 describe(`${fork}-Vault-rev7`, () => {
   before(async function () {
@@ -113,12 +56,34 @@ describe(`${fork}-Vault-rev7`, () => {
         await deployments.get("StrategyRegistry")
       ).address,
     );
-    this.vaultHelperMainnet = <VaultHelperMainnet>(
-      await ethers.getContractAt(VaultHelperMainnet__factory.abi, (await deployments.get("VaultHelperMainnet")).address)
+    this.vaultHelper = <VaultHelper>(
+      await ethers.getContractAt(VaultHelper__factory.abi, (await deployments.get("VaultHelper")).address)
     );
+    this.aaveV1Helper = await ethers.getContractAt(
+      AaveV1Helper__factory.abi,
+      (
+        await deployments.get("AaveV1Helper")
+      ).address,
+    );
+    this.compoundHelper = await ethers.getContractAt(
+      CompoundHelper__factory.abi,
+      (
+        await deployments.get("CompoundHelper")
+      ).address,
+    );
+    this.swapHelper = await ethers.getContractAt(
+      SwapHelper__factory.abi,
+      (
+        await deployments.get("SwapHelper")
+      ).address,
+    );
+
     this.strategyManager = new StrategyManager(
-      <Contract>this.vaultHelperMainnet,
       (await deployments.get("OptyFiOracle")).address,
+      <Contract>this.vaultHelper,
+      this.compoundHelper,
+      this.aaveV1Helper,
+      this.swapHelper,
     );
     this.registry = <Registry>(
       await ethers.getContractAt(Registry__factory.abi, (await deployments.get("RegistryProxy")).address)
@@ -137,14 +102,8 @@ describe(`${fork}-Vault-rev7`, () => {
     this.signers.strategyOperator = await ethers.getSigner(await this.registry.getStrategyOperator());
     this.signers.governance = await ethers.getSigner(await this.registry.getGovernance());
     for (const riskProfile of Object.keys(MultiChainVaults[fork])) {
-      if (riskProfile !== "Save") {
-        continue;
-      }
       this.vaults[riskProfile] = {};
       for (const token of Object.keys(MultiChainVaults[fork][riskProfile])) {
-        if (!["DAI", "USDT", "WBTC", "USDC", "WETH"].includes(token)) {
-          continue;
-        }
         if (IGNORE_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
           continue;
         }
@@ -179,18 +138,6 @@ describe(`${fork}-Vault-rev7`, () => {
         this.tokens[token] = <ERC20>(
           await ethers.getContractAt(ERC20__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork][token].address)
         );
-        let _userDepositInDecimals = await this.vaults[riskProfile][token].minimumDepositValueUT();
-        const decimals = await this.tokens[token].decimals();
-        if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
-          _userDepositInDecimals = BigNumber.from("3").mul(parseUnits("1", decimals));
-        }
-        const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
-          new BN(to_10powNumber_BN(await this.vaults[riskProfile][token].decimals()).toString()),
-        );
-        await setTokenBalanceInStorage(this.tokens[token], this.signers.alice.address, _userDeposit.toString());
-        await setTokenBalanceInStorage(this.tokens[token], this.signers.bob.address, _userDeposit.toString());
-        expect(await this.tokens[token].balanceOf(this.signers.alice.address)).to.eq(_userDepositInDecimals);
-        expect(await this.tokens[token].balanceOf(this.signers.bob.address)).to.eq(_userDepositInDecimals);
       }
     }
     if (fork == eEVMNetwork.mainnet) {
@@ -203,7 +150,7 @@ describe(`${fork}-Vault-rev7`, () => {
         continue;
       }
       for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
-        if (!["DAI", "USDT", "WBTC", "USDC", "WETH"].includes(token)) {
+        if (!["WETH"].includes(token)) {
           continue;
         }
         if (IGNORE_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
@@ -213,7 +160,6 @@ describe(`${fork}-Vault-rev7`, () => {
           const strategyDetail = StrategiesByTokenByChain[fork][riskProfile][token][strategy];
           const tokenHash = generateTokenHashV2([strategyDetail.token], NETWORKS_CHAIN_ID_HEX[fork]);
           const strategyHash = generateStrategyHashV2(strategyDetail.strategy, tokenHash);
-          console.log("strategyHash ", strategyHash);
           const lastPool = strategyDetail.strategy[strategyDetail.strategy.length - 1].contract;
           const steps = strategyDetail.strategy.map(item => ({
             pool: item.contract,
@@ -223,6 +169,7 @@ describe(`${fork}-Vault-rev7`, () => {
 
           describe(`${fork}-${riskProfile}-${token}-${strategy}`, () => {
             before(async function () {
+              console.log(`${token}-${strategy} `, strategyHash);
               const addStrategyPlantx = await this.strategyRegistry
                 .connect(this.signers.operator)
                 .addStrategyPlan(this.vaults[riskProfile][token].address, strategyHash, {
@@ -335,6 +282,18 @@ describe(`${fork}-Vault-rev7`, () => {
                 //   }
                 // }
               }
+              let _userDepositInDecimals = await this.vaults[riskProfile][token].minimumDepositValueUT();
+              const decimals = await this.tokens[token].decimals();
+              if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
+                _userDepositInDecimals = BigNumber.from("3").mul(parseUnits("1", decimals));
+              }
+              const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
+                new BN(to_10powNumber_BN(await this.tokens[token].decimals()).toString()),
+              );
+              await setTokenBalanceInStorage(this.tokens[token], this.signers.alice.address, _userDeposit.toString());
+              await setTokenBalanceInStorage(this.tokens[token], this.signers.bob.address, _userDeposit.toString());
+              expect(await this.tokens[token].balanceOf(this.signers.alice.address)).to.eq(_userDepositInDecimals);
+              expect(await this.tokens[token].balanceOf(this.signers.bob.address)).to.eq(_userDepositInDecimals);
             });
             it(`${riskProfile}-${token}-${strategy}-(first) alice and bob should deposit into Vault successfully`, async function () {
               const signers = [this.signers.alice, this.signers.bob];
@@ -443,8 +402,7 @@ describe(`${fork}-Vault-rev7`, () => {
               const vaultDepositTx = await this.vaults[riskProfile][token]
                 .connect(this.signers.strategyOperator)
                 .vaultDepositSomeToStrategy(strategyHash, vaultDepositUT);
-              const res = await vaultDepositTx.wait(1);
-              console.log("gas ", res.gasUsed.toString());
+              await vaultDepositTx.wait(1);
 
               await assertPostVaultDepositState(
                 this.signers.alice,
@@ -792,8 +750,7 @@ describe(`${fork}-Vault-rev7`, () => {
                 const vaultWithdrawSomeFromStrategyTx = await this.vaults[riskProfile][token]
                   .connect(this.signers.strategyOperator)
                   .vaultWithdrawSomeFromStrategy(strategyHash, vaultWithdrawLP);
-                const res = await vaultWithdrawSomeFromStrategyTx.wait(1);
-                console.log("gas ", res.gasUsed.toString());
+                await vaultWithdrawSomeFromStrategyTx.wait(1);
 
                 await assertPostVaultWithdrawState(
                   this.signers.alice,
@@ -888,6 +845,7 @@ async function userDeposit(
     const tx1 = await underlyingTokenInstance
       .connect(signers[i])
       .approve(vaultInstance.address, _userDepositInDecimals);
+    await tx1.wait(1);
 
     const { userBalanceBeforeUT, userBalanceBeforeVT, vaultTotalSupplyBeforeVT, vaultValueBeforeUT } =
       await getPreActionState(signers[i], underlyingTokenInstance, vaultInstance, strategyManager, steps);
@@ -895,9 +853,7 @@ async function userDeposit(
     const tx2 = await vaultInstance
       .connect(signers[i])
       .userDepositVault(signers[i].address, _userDepositInDecimals, "0x", []);
-    const res = await tx2.wait(1);
-
-    console.log("gas ", res.gasUsed.toString());
+    await tx2.wait(1);
 
     await assertPostUserDepositState(
       signers[i],
@@ -1038,8 +994,7 @@ async function userWithdraw(
     const tx = await vaultInstance
       .connect(signers[i])
       .userWithdrawVault(signers[i].address, userWithdrawBalance.mul(3).div(4), []);
-    const res = await tx.wait();
-    console.log("gas ", res.gasUsed.toString());
+    await tx.wait();
 
     await assertPostUserWithdrawState(
       signers[i],

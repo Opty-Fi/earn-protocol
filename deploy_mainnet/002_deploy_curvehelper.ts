@@ -1,12 +1,9 @@
 import { BigNumber } from "ethers";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { waitforme } from "../helpers/utils";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
-
-const uniswapV3Router = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
 const func: DeployFunction = async ({
   deployments,
@@ -19,19 +16,19 @@ const func: DeployFunction = async ({
 }: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const artifact = await deployments.getArtifact("VaultHelperMainnet");
+  const artifact = await deployments.getArtifact("CurveHelper");
   const chainId = await getChainId();
   const networkName = network.name;
 
   const feeData = await ethers.provider.getFeeData();
-  const result = await deploy("VaultHelperMainnet", {
+  const result = await deploy("CurveHelper", {
     from: deployer,
     contract: {
       abi: artifact.abi,
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [EthereumTokens.WRAPPED_TOKENS.WETH, uniswapV3Router],
+    args: [],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -40,27 +37,27 @@ const func: DeployFunction = async ({
 
   if (CONTRACTS_VERIFY == "true") {
     if (result.newlyDeployed) {
-      const vaultHelperMainnet = await deployments.get("VaultHelperMainnet");
+      const curvehelper = await deployments.get("CurveHelper");
       if (networkName === "tenderly") {
         await tenderly.verify({
-          name: "VaultHelperMainnet",
-          address: vaultHelperMainnet.address,
-          constructorArguments: [EthereumTokens.WRAPPED_TOKENS.WETH, uniswapV3Router],
-          contract: "VaultHelperMainnet",
+          name: "CurveHelper",
+          address: curvehelper.address,
+          constructorArguments: [],
+          contract: "CurveHelper",
         });
       } else if (!["31337"].includes(chainId)) {
         await waitforme(20000);
 
         await run("verify:verify", {
-          name: "VaultHelperMainnet",
-          address: vaultHelperMainnet.address,
-          constructorArguments: [EthereumTokens.WRAPPED_TOKENS.WETH, uniswapV3Router],
-          contract: "VaultHelperMainnet",
+          name: "CurveHelper",
+          address: curvehelper.address,
+          constructorArguments: [],
+          contract: "CurveHelper",
         });
       }
     }
   }
 };
 export default func;
-func.tags = ["VaultHelperMainnet"];
+func.tags = ["CurveHelper"];
 func.dependencies = ["Registry"];

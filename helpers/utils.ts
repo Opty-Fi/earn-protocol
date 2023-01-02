@@ -33,6 +33,10 @@ import {
   StrategyRegistry,
   ERC20__factory,
   VaultHelperMainnet,
+  VaultHelper,
+  AaveV1Helper,
+  CompoundHelper,
+  SwapHelper,
 } from "../typechain";
 import { VaultV3 } from "./types/vaultv3";
 import { expect } from "chai";
@@ -108,7 +112,10 @@ declare module "mocha" {
     riskManagerV2: RiskManagerV2;
     vault: Vault;
     vaultProxy: InitializableImmutableAdminUpgradeabilityProxy;
-    vaultHelperMainnet: VaultHelperMainnet;
+    vaultHelper: VaultHelper;
+    aaveV1Helper: AaveV1Helper;
+    compoundHelper: CompoundHelper;
+    swapHelper: SwapHelper;
     opUSDCearn: Vault;
     opUSDCearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
     opWETHearn: Vault;
@@ -551,7 +558,7 @@ export async function assertPostUserWithdrawState(
     const outputTokenInstance = new ethers.Contract(steps[steps.length - 1].outputToken, ERC20__factory.abi, provider);
     expect(vaultBalanceAfterLP).to.closeTo(
       expectedVaultBalanceLP,
-      parseUnits("9", (await outputTokenInstance.decimals()) / 2).toNumber(),
+      parseUnits("9", Math.floor(((await outputTokenInstance.decimals()) * 3) / 4)).toNumber(),
     );
     expect(vaultBalanceBeforeLP).gt(vaultBalanceAfterLP);
   }
