@@ -19,6 +19,7 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("SwapHelper");
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const chainId = await getChainId();
   const networkName = network.name;
 
@@ -30,7 +31,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [uniswapV3Router],
+    args: [registryProxyAddress, uniswapV3Router],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -44,7 +45,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "SwapHelper",
           address: swapHelper.address,
-          constructorArguments: [uniswapV3Router],
+          constructorArguments: [registryProxyAddress, uniswapV3Router],
           contract: "SwapHelper",
         });
       } else if (!["31337"].includes(chainId)) {
@@ -53,7 +54,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "SwapHelper",
           address: swapHelper.address,
-          constructorArguments: [uniswapV3Router],
+          constructorArguments: [registryProxyAddress, uniswapV3Router],
           contract: "SwapHelper",
         });
       }

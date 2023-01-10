@@ -9,14 +9,12 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 
 export class CurveSwapPoolAdapter implements AdapterInterface {
   vaultHelperInstance;
-  optyFiOracleAddress;
   curveHelperInstance;
 
-  constructor(_optyFiOracleAddress: string, vaultHelperContract: Contract, curveHelper: Contract) {
+  constructor(vaultHelperContract: Contract, curveHelper: Contract) {
     this.vaultHelperInstance = weirollContract.createContract(
       new ethers.Contract(vaultHelperContract.address, vaultHelperContract.interface),
     );
-    this.optyFiOracleAddress = _optyFiOracleAddress;
     this.curveHelperInstance = weirollContract.createContract(
       new ethers.Contract(curveHelper.address, curveHelper.interface),
     );

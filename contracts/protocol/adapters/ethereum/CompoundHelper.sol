@@ -11,13 +11,16 @@ import { IWETH } from "@optyfi/defi-legos/interfaces/misc/contracts/IWETH.sol";
 contract CompoundHelper {
     using SafeERC20 for IERC20;
 
+    // solhint-disable-next-line var-name-mixedcase
     IWETH public immutable WETH;
- 
-    constructor(IWETH _WETH, IERC20 cETH) {
-        WETH = _WETH;
-        cETH.safeApprove(address(cETH),type(uint256).max);
+
+    // solhint-disable-next-line var-name-mixedcase
+    constructor(IWETH _weth, IERC20 cETH) {
+        WETH = _weth;
+        cETH.safeApprove(address(cETH), type(uint256).max);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function calculateAmountInToken_Compound(address _liquidityPool, uint256 _liquidityPoolTokenAmount)
         external
         view
@@ -26,6 +29,7 @@ contract CompoundHelper {
         return (_liquidityPoolTokenAmount * ICompound(_liquidityPool).exchangeRateStored()) / 1e18;
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function calculateAmountInLPToken_Compound(address _liquidityPool, uint256 _depositAmount)
         external
         view
@@ -34,6 +38,7 @@ contract CompoundHelper {
         return (_depositAmount * 1e18) / ICompound(_liquidityPool).exchangeRateStored();
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function depositETH_Compound(address _liquidityPool, uint256 _amount) external {
         uint256 _wethBalanceBefore = IERC20(address(WETH)).balanceOf(address(this));
         IERC20(address(WETH)).safeTransferFrom(msg.sender, address(this), _amount);
@@ -46,6 +51,7 @@ contract CompoundHelper {
         IERC20(_liquidityPool).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function withdrawETH_Compound(address _liquidityPool, uint256 _amount) external {
         uint256 _lpTokenBalanceBefore = IERC20(_liquidityPool).balanceOf(address(this));
         IERC20(_liquidityPool).safeTransferFrom(msg.sender, address(this), _amount);
@@ -58,5 +64,7 @@ contract CompoundHelper {
         IERC20(address(WETH)).safeTransfer(msg.sender, _balanceAfterETH - _balanceBeforeETH);
     }
 
+    /* solhint-disable no-empty-blocks*/
     receive() external payable {}
+    /* solhint-enable no-empty-blocks*/
 }

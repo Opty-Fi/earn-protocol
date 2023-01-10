@@ -70,6 +70,7 @@ export class CompoundAdapter implements AdapterInterface {
     isSwap: boolean,
     outputTokenAmount: ReturnValue,
   ): ReturnValue {
+    // TODO : consider unclaimed and claimed Reward token
     const amountUT = planner.add(
       this.compoundHelperInstance["calculateAmountInToken_Compound(address,uint256)"](
         pool,
@@ -243,6 +244,7 @@ export class CompoundAdapter implements AdapterInterface {
     isSwap: boolean,
     provider: JsonRpcProvider,
   ): Promise<BigNumber> {
+    // TODO : consider unclaimed and claimed Reward token
     const cTokenInstance = new ethers.Contract(
       pool,
       ICompound__factory.abi,

@@ -12,7 +12,7 @@ import {
   StrategyProvider__factory,
 } from "../../typechain";
 import { BigNumber } from "ethers";
-import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
+import { parseEther, parseUnits } from "ethers/lib/utils";
 import { VaultV6, VaultV6__factory } from "../../helpers/types/vaultv6";
 
 const cryptoPoolGaugeABI = [

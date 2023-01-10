@@ -7,5 +7,16 @@ contracts/utils/
 contracts/dependencies/
 contracts/mocks/
 contracts/protocol/earn-protocol-configuration
-contracts/protocol/adapters
+contracts/protocol/adapters/avalanche
+contracts/protocol/adapters/defi-adapters
+contracts/protocol/adapters/ethereum/curve-crypto-pool-adapter
+contracts/protocol/adapters/ethereum/curve-metapool-gauge-adapter
+contracts/protocol/adapters/ethereum/curve-metapool-swap-adapter
+contracts/protocol/adapters/ethereum/newo-staking-adapter
+contracts/protocol/adapters/ethereum/sushi-bar-adapter
+contracts/protocol/adapters/ethereum/sushiswap-masterchefv2-adapter-ethereum
+contracts/protocol/adapters/ethereum/team-defi-adapters
+contracts/protocol/adapters/polygon
+contracts/protocol/adapters/swap-adapters
+contracts/protocol/adapters/uniswapV2PoolAdapter
 contracts/utils/optyfi-oracle

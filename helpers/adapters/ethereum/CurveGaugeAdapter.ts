@@ -1,24 +1,29 @@
 import { BigNumber, Contract } from "ethers";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
-import AaveV2 from "@optyfi/defi-legos/ethereum/aavev2/index";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
-import { getAddress } from "ethers/lib/utils";
 import { ReturnValue } from "../../type";
+import { ICurveGauge__factory, ITokenMinter__factory } from "../../../typechain";
 import { AdapterInterface } from "../AdapterInterface";
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { getAddress } from "ethers/lib/utils";
 
-const STK_AAVE = "0x4da27a545c0c5B758a6BA100e3a049001de870f5";
-export class Aavev2Adapter implements AdapterInterface {
-  optyFiOracleAddress;
+export class CurveGaugeAdapter implements AdapterInterface {
   vaultHelperInstance;
+  optyFiOracleAddress;
   swapHelperInstance;
+  readonly tokenMinter = "0xd061D61a4d941c39E5453435B6345Dc261C2fcE0";
 
-  constructor(_optyFiOracleAddress: string, vaultHelperContract: Contract, swapHelperContract: Contract) {
-    this.optyFiOracleAddress = _optyFiOracleAddress;
+  constructor(
+    _optyFiOracleAddress: string,
+    vaultHelperContract: Contract,
+    curveHelper: Contract,
+    swapHelperContract: Contract,
+  ) {
     this.vaultHelperInstance = weirollContract.createContract(
       new ethers.Contract(vaultHelperContract.address, vaultHelperContract.interface),
     );
+    this.optyFiOracleAddress = _optyFiOracleAddress;
     this.swapHelperInstance = weirollContract.createContract(
       new ethers.Contract(swapHelperContract.address, swapHelperContract.interface),
     );
@@ -33,16 +38,8 @@ export class Aavev2Adapter implements AdapterInterface {
     isSwap: boolean,
     inputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    const lendingPoolContract = new ethers.Contract(AaveV2.LendingPool.address, AaveV2.LendingPool.abi);
-    const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
-    planner.add(
-      lendingPoolInstance["deposit(address,uint256,address,uint16)"](
-        inputToken,
-        inputTokenAmount,
-        vaultInstance.address,
-        "0",
-      ),
-    );
+    const gaugeInstance = weirollContract.createContract(new ethers.Contract(pool, ICurveGauge__factory.abi));
+    planner.add(gaugeInstance["deposit(uint256)"](inputTokenAmount));
     return planner;
   }
 
@@ -55,11 +52,8 @@ export class Aavev2Adapter implements AdapterInterface {
     isSwap: boolean,
     outputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    const lendingPoolContract = new ethers.Contract(AaveV2.LendingPool.address, AaveV2.LendingPool.abi);
-    const lendingPoolInstance = weirollContract.createContract(lendingPoolContract);
-    planner.add(
-      lendingPoolInstance["withdraw(address,uint256,address)"](inputToken, outputTokenAmount, vaultInstance.address),
-    );
+    const gaugeInstance = weirollContract.createContract(new ethers.Contract(pool, ICurveGauge__factory.abi));
+    planner.add(gaugeInstance["withdraw(uint256)"](outputTokenAmount));
     return planner;
   }
 
@@ -107,18 +101,12 @@ export class Aavev2Adapter implements AdapterInterface {
     vaultInstance: Contract,
     inputToken: string,
     pool: string,
-    outputToken: string,
+    _outputToken: string,
   ): weirollPlanner {
-    const aaveIncentiveControllerInstance = weirollContract.createContract(
-      new ethers.Contract("0xd784927Ff2f95ba542BfC824c8a8a98F3495f6b5", aaveIncentiveControllerAbi),
+    const minterInstance = weirollContract.createContract(
+      new ethers.Contract(this.tokenMinter, ITokenMinter__factory.abi),
     );
-    planner.add(
-      aaveIncentiveControllerInstance["claimRewards(address[],uint256,address)"](
-        [outputToken],
-        ethers.constants.MaxUint256,
-        vaultInstance.address,
-      ),
-    );
+    planner.add(minterInstance["mint(address)"](pool));
     return planner;
   }
 
@@ -128,12 +116,15 @@ export class Aavev2Adapter implements AdapterInterface {
     vaultUnderlyingToken: string,
   ): weirollPlanner {
     const rewardAmount = planner.add(
-      this.vaultHelperInstance["getERC20Balance(address,address)"](STK_AAVE, vaultInstance.address).staticcall(),
+      this.vaultHelperInstance["getERC20Balance(address,address)"](
+        EthereumTokens.REWARD_TOKENS.CRV,
+        vaultInstance.address,
+      ).staticcall(),
     );
     const outputAmount = planner.add(
       this.vaultHelperInstance["getTokenOutPrice_OptyFiOracle(address,address,address,uint256)"](
         this.optyFiOracleAddress,
-        STK_AAVE,
+        EthereumTokens.REWARD_TOKENS.CRV,
         vaultUnderlyingToken,
         rewardAmount,
       ).staticcall(),
@@ -143,31 +134,14 @@ export class Aavev2Adapter implements AdapterInterface {
     );
     let univ3Path;
     switch (getAddress(vaultUnderlyingToken)) {
-      case getAddress(EthereumTokens.PLAIN_TOKENS.USDT): {
-        univ3Path = ethers.utils.solidityPack(
-          ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
-          [
-            STK_AAVE,
-            500,
-            EthereumTokens.REWARD_TOKENS.AAVE,
-            3000,
-            EthereumTokens.WRAPPED_TOKENS.WETH,
-            500,
-            EthereumTokens.PLAIN_TOKENS.USDT,
-          ],
-        );
-        break;
-      }
       case getAddress(EthereumTokens.BTC_TOKENS.WBTC): {
         univ3Path = ethers.utils.solidityPack(
-          ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
+          ["address", "uint24", "address", "uint24", "address"],
           [
-            STK_AAVE,
-            500,
-            EthereumTokens.REWARD_TOKENS.AAVE,
+            EthereumTokens.REWARD_TOKENS.CRV,
             3000,
-            EthereumTokens.WRAPPED_TOKENS.WETH,
-            500,
+            EthereumTokens.PLAIN_TOKENS.USDT,
+            3000,
             EthereumTokens.BTC_TOKENS.WBTC,
           ],
         );
@@ -175,37 +149,29 @@ export class Aavev2Adapter implements AdapterInterface {
       }
       case getAddress(EthereumTokens.PLAIN_TOKENS.USDC): {
         univ3Path = ethers.utils.solidityPack(
-          ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
-          [
-            STK_AAVE,
-            500,
-            EthereumTokens.REWARD_TOKENS.AAVE,
-            3000,
-            EthereumTokens.WRAPPED_TOKENS.WETH,
-            500,
-            EthereumTokens.PLAIN_TOKENS.USDC,
-          ],
+          ["address", "uint24", "address"],
+          [EthereumTokens.REWARD_TOKENS.CRV, 10000, EthereumTokens.PLAIN_TOKENS.USDC],
         );
         break;
       }
       case getAddress(EthereumTokens.WRAPPED_TOKENS.WETH): {
         univ3Path = ethers.utils.solidityPack(
-          ["address", "uint24", "address", "uint24", "address"],
-          [STK_AAVE, 500, EthereumTokens.REWARD_TOKENS.AAVE, 3000, EthereumTokens.WRAPPED_TOKENS.WETH],
+          ["address", "uint24", "address"],
+          [EthereumTokens.REWARD_TOKENS.CRV, 3000, EthereumTokens.WRAPPED_TOKENS.WETH],
         );
         break;
       }
-      case getAddress(EthereumTokens.PLAIN_TOKENS.DAI): {
+      case getAddress(EthereumTokens.WRAPPED_TOKENS.THREE_CRV): {
         univ3Path = ethers.utils.solidityPack(
           ["address", "uint24", "address", "uint24", "address", "uint24", "address"],
           [
-            STK_AAVE,
-            500,
-            EthereumTokens.REWARD_TOKENS.AAVE,
+            EthereumTokens.REWARD_TOKENS.CRV,
             3000,
             EthereumTokens.WRAPPED_TOKENS.WETH,
             500,
-            EthereumTokens.PLAIN_TOKENS.DAI,
+            EthereumTokens.PLAIN_TOKENS.USDC,
+            3000,
+            EthereumTokens.WRAPPED_TOKENS.THREE_CRV,
           ],
         );
         break;
@@ -266,24 +232,3 @@ export class Aavev2Adapter implements AdapterInterface {
     return inputTokenAmount;
   }
 }
-
-const aaveIncentiveControllerAbi = [
-  {
-    inputs: [
-      { internalType: "address[]", name: "assets", type: "address[]" },
-      { internalType: "uint256", name: "amount", type: "uint256" },
-      { internalType: "address", name: "to", type: "address" },
-    ],
-    name: "claimRewards",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "_user", type: "address" }],
-    name: "getUserUnclaimedRewards",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-];

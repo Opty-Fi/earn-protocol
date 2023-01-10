@@ -4,11 +4,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import Curve from "@optyfi/defi-legos/ethereum/curve/index";
 import EthereumSushiswap from "@optyfi/defi-legos/ethereum/sushiswap/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
-import { ERC20, ERC20__factory, Vault, Vault__factory } from "../typechain";
+import { ERC20, ERC20__factory, Vault, VaultHelper, VaultHelper__factory, Vault__factory } from "../typechain";
 
 const CONTRACTS_VERIFY = process.env.CONTRACTS_VERIFY;
 
@@ -155,11 +156,15 @@ const func: DeployFunction = async ({
   const vaultInstance = <Vault>(
     await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opUSDC-Earn_Proxy")).address)
   );
+  const vaultHelperInstance = <VaultHelper>(
+    await ethers.getContractAt(VaultHelper__factory.abi, (await deployments.get("VaultHelper")).address)
+  );
   const approvalTokens = [];
   const approvalSpender = [];
 
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
   const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+  const threeCrvInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, Curve.CurveSwapPool.usdc_3crv.lpToken);
 
   const wethSushiswapAllowance = await wethInstance.allowance(
     vaultInstance.address,
@@ -168,6 +173,11 @@ const func: DeployFunction = async ({
   const usdcSushiswapAllowance = await usdcInstance.allowance(
     vaultInstance.address,
     EthereumSushiswap.SushiswapRouter.address,
+  );
+  const usdcVaultHelperAllowance = await usdcInstance.allowance(vaultInstance.address, vaultHelperInstance.address);
+  const threeCrvCurveGaugeAllowance = await threeCrvInstance.allowance(
+    vaultInstance.address,
+    Curve.CurveSwapPool.usdc_3crv.gauge,
   );
 
   if (!wethSushiswapAllowance.gt(parseEther("1000000"))) {
@@ -178,6 +188,16 @@ const func: DeployFunction = async ({
   if (!usdcSushiswapAllowance.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdcInstance.address);
     approvalSpender.push(EthereumSushiswap.SushiswapRouter.address);
+  }
+
+  if (!usdcVaultHelperAllowance.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(usdcInstance.address);
+    approvalSpender.push(vaultHelperInstance.address);
+  }
+
+  if (!threeCrvCurveGaugeAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(threeCrvInstance.address);
+    approvalSpender.push(Curve.CurveSwapPool.usdc_3crv.gauge);
   }
 
   if (approvalTokens.length > 0) {

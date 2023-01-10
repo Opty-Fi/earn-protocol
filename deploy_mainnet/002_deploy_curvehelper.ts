@@ -17,6 +17,7 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const artifact = await deployments.getArtifact("CurveHelper");
+  const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   const chainId = await getChainId();
   const networkName = network.name;
 
@@ -28,7 +29,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [],
+    args: [registryProxyAddress],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -42,7 +43,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "CurveHelper",
           address: curvehelper.address,
-          constructorArguments: [],
+          constructorArguments: [registryProxyAddress],
           contract: "CurveHelper",
         });
       } else if (!["31337"].includes(chainId)) {
@@ -51,7 +52,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "CurveHelper",
           address: curvehelper.address,
-          constructorArguments: [],
+          constructorArguments: [registryProxyAddress],
           contract: "CurveHelper",
         });
       }

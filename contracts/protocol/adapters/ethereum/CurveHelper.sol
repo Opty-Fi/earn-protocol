@@ -1,17 +1,28 @@
 // SPDX-License-Identifier:MIT
 
-pragma solidity =0.8.11;
+pragma solidity ^0.6.12;
 
 //  interfaces
-import { IERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/utils/SafeERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { IWETH } from "@optyfi/defi-legos/interfaces/misc/contracts/IWETH.sol";
 import { ICurveSwap } from "@optyfi/defi-legos/ethereum/curve/contracts/interfacesV0/ICurveSwap.sol";
 
+//  helper contracts
+import { Modifiers } from "../../earn-protocol-configuration/contracts/Modifiers.sol";
 
-contract CurveHelper {
+// libraries
+import { Errors } from "../../../utils/Errors.sol";
+
+contract CurveHelper is Modifiers {
     using SafeERC20 for IERC20;
 
+    /* solhint-disable no-empty-blocks*/
+    constructor(address _registry) public Modifiers(_registry) {}
+
+    /* solhint-enable no-empty-blocks*/
+
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_two_coin_zero_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -29,6 +40,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_two_coin_one_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -46,6 +58,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_three_coin_zero_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -63,6 +76,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_three_coin_one_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -80,6 +94,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_three_coin_two_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -97,6 +112,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_four_coin_zero_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -114,7 +130,8 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
-        function addLiquidity_four_coin_one_index_Curve(
+    // solhint-disable-next-line func-name-mixedcase
+    function addLiquidity_four_coin_one_index_Curve(
         address _underlyingToken,
         address _pool,
         address _liquidityPoolToken,
@@ -131,6 +148,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_four_coin_two_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -148,6 +166,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_four_coin_three_index_Curve(
         address _underlyingToken,
         address _pool,
@@ -165,6 +184,7 @@ contract CurveHelper {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_two_coin_zero_index_Curve(
         address _pool,
         uint256 _amount,
@@ -173,6 +193,7 @@ contract CurveHelper {
         return ICurveSwap(_pool).calc_token_amount([_amount, 0], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_two_coin_one_index_Curve(
         address _pool,
         uint256 _amount,
@@ -181,59 +202,82 @@ contract CurveHelper {
         return ICurveSwap(_pool).calc_token_amount([0, _amount], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_three_coin_zero_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([_amount,0,0], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([_amount, 0, 0], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_three_coin_one_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([0,_amount,0], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([0, _amount, 0], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_three_coin_two_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([0,0,_amount], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([0, 0, _amount], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_four_coin_zero_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([_amount,0,0,0], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([_amount, 0, 0, 0], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_four_coin_one_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([0,_amount,0,0], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([0, _amount, 0, 0], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_four_coin_two_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([0,0,_amount,0], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([0, 0, _amount, 0], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_four_coin_three_index_Curve(
         address _pool,
         uint256 _amount,
         bool _isDeposit
     ) external view returns (uint256) {
-        return ICurveSwap(_pool).calc_token_amount([0,0,0,_amount], _isDeposit);
+        return ICurveSwap(_pool).calc_token_amount([0, 0, 0, _amount], _isDeposit);
+    }
+
+    function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external onlyRiskOperator {
+        uint256 _tokensLen = _tokens.length;
+        require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
+        for (uint256 _i; _i < _tokensLen; _i++) {
+            _tokens[_i].safeApprove(_spenders[_i], uint256(-1));
+        }
+    }
+
+    function removeAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external onlyRiskOperator {
+        uint256 _tokensLen = _tokens.length;
+        require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);
+        for (uint256 _i; _i < _tokensLen; _i++) {
+            _tokens[_i].safeApprove(_spenders[_i], 0);
+        }
     }
 }

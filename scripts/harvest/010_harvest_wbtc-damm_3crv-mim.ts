@@ -98,6 +98,8 @@ async function main() {
 
   const oneCRVToUSDC = parseUnits("0.5", "6"); //0.53 crv - usdc
   const oneCVXToUSDC = parseUnits("3.1", "6"); // 3.3
+  const oneCRVToUSD3 = parseUnits("0.5", "18");
+  const oneCVXToUSD3 = parseUnits("3", "18");
 
   const expectedMinUSDCFromCRVForopUSD3Earn = BigNumber.from(crvBalanceForOPUSD3Earn.add(crvUnclaimedForopUSD3Earn))
     .mul(oneCRVToUSDC)
@@ -133,6 +135,7 @@ async function main() {
     ["address", "uint24", "address"],
     [EthereumTokens.REWARD_TOKENS.CVX, 10000, EthereumTokens.PLAIN_TOKENS.USDC],
   );
+  const crvWSBTCGaugeInstance = await ethers.getContractAt(curveGuageABI, "0x6D787113F23bED1D5e1530402B3f364D0A6e5Af3");
   const transactions: MetaTransactionData[] = [
     // {
     //   to: compoundComptrollerInstance.address,
@@ -270,7 +273,7 @@ async function main() {
                     .add(usdcBalanceForopUSD3Earn),
                   0,
                 ],
-                "31000000000000000000",
+                "11000000000000000000",
               ]),
             ],
           ),
@@ -281,6 +284,19 @@ async function main() {
         ],
       ]),
     },
+    // {
+    //   to: opWBTCEarn.address,
+    //   value: "0",
+    //   data: opWBTCEarn.interface.encodeFunctionData("adminCall", [
+    //     ethers.utils.defaultAbiCoder.encode(
+    //       ["address", "bytes"],
+    //       [
+    //         crvWSBTCGaugeInstance.address,
+    //         crvWSBTCGaugeInstance.interface.encodeFunctionData("claim_rewards(address,address)", [opWBTCEarn.address, opWBTCEarn.address])
+    //       ]
+    //     )
+    //   ])
+    // }
   ];
 
   const safeTransaction = await safeSdk.createTransaction(transactions);
@@ -333,6 +349,73 @@ const cvxABI = [
         type: "uint256",
       },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
+const curveGuageABI = [
+  // {
+  //   stateMutability: "nonpayable",
+  //   type: "function",
+  //   name: "claim_rewards",
+  //   inputs: [
+  //     {
+  //       name: "_addr",
+  //       type: "address",
+  //     },
+  //   ],
+  //   outputs: [],
+  // },
+  // {
+  //   "stateMutability": "nonpayable",
+  //   "type": "function",
+  //   "name": "claim_rewards",
+  //   "inputs": [],
+  //   "outputs": []
+  // },
+  {
+    stateMutability: "nonpayable",
+    type: "function",
+    name: "claim_rewards",
+    inputs: [
+      {
+        name: "_addr",
+        type: "address",
+      },
+      {
+        name: "_receiver",
+        type: "address",
+      },
+    ],
+    outputs: [],
+  },
+  {
+    name: "claimable_tokens",
+    outputs: [
+      {
+        type: "uint256",
+        name: "",
+      },
+    ],
+    inputs: [
+      {
+        type: "address",
+        name: "addr",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    name: "minter",
+    outputs: [
+      {
+        type: "address",
+        name: "",
+      },
+    ],
+    inputs: [],
     stateMutability: "view",
     type: "function",
   },

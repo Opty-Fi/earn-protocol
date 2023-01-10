@@ -12,16 +12,25 @@ import { IAaveV1Token } from "@optyfi/defi-legos/ethereum/aave/contracts/IAaveV1
 contract AaveV1Helper {
     using SafeERC20 for IERC20;
 
+    // solhint-disable-next-line var-name-mixedcase
     IWETH public immutable WETH;
 
     // solhint-disable-next-line var-name-mixedcase
     address public constant ETH = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
-    constructor(IWETH _WETH) {
-        WETH = _WETH;
+    /* solhint-disable no-empty-blocks*/
+    constructor(IWETH _weth) {
+        WETH = _weth;
     }
 
-    function depositETH_AaveV1(address _lendingPool, address _lpToken, uint256 _amount) external {
+    /* solhint-enable no-empty-blocks*/
+
+    // solhint-disable-next-line func-name-mixedcase
+    function depositETH_AaveV1(
+        address _lendingPool,
+        address _lpToken,
+        uint256 _amount
+    ) external {
         uint256 _wethBalanceBefore = IERC20(address(WETH)).balanceOf(address(this));
         IERC20(address(WETH)).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 _wethBalanceAfter = IERC20(address(WETH)).balanceOf(address(this));
@@ -33,6 +42,7 @@ contract AaveV1Helper {
         IERC20(_lpToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function withdrawETH_AaveV1(address _lpToken, uint256 _amount) external {
         uint256 _lpTokenBalanceBefore = IERC20(_lpToken).balanceOf(address(this));
         IERC20(_lpToken).safeTransferFrom(msg.sender, address(this), _amount);
@@ -45,5 +55,7 @@ contract AaveV1Helper {
         IERC20(address(WETH)).safeTransfer(msg.sender, _balanceAfterETH - _balanceBeforeETH);
     }
 
+    /* solhint-disable no-empty-blocks*/
     receive() external payable {}
+    /* solhint-enable no-empty-blocks*/
 }

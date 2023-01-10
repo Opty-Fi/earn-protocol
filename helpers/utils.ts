@@ -32,7 +32,6 @@ import {
   CurveExchangeAdapter,
   StrategyRegistry,
   ERC20__factory,
-  VaultHelperMainnet,
   VaultHelper,
   AaveV1Helper,
   CompoundHelper,

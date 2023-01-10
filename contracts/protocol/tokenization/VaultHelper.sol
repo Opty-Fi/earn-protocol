@@ -7,13 +7,12 @@ import { IERC20 } from "@openzeppelin/contracts-0.8.x/token/ERC20/IERC20.sol";
 import { IOptyFiOracle } from "../../utils/optyfi-oracle/contracts/interfaces/IOptyFiOracle.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts-0.8.x/token/ERC20/extensions/IERC20Metadata.sol";
 
-// libraries
-
 contract VaultHelper {
     function pureFunctionUint256(uint256 _arg) external pure returns (uint256) {
         return _arg;
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getTokenOutPrice_OptyFiOracle(
         IOptyFiOracle _optyFiOracle,
         address _tokenIn,
