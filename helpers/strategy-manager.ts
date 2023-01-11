@@ -6,22 +6,31 @@ import { AdapterInterface } from "./adapters/AdapterInterface";
 import { AaveV1Adapter } from "./adapters/ethereum/AaveV1Adapter";
 import { Aavev2Adapter } from "./adapters/ethereum/AaveV2Adapter";
 import { CompoundAdapter } from "./adapters/ethereum/CompoundAdapter";
+import { CurveAdapter } from "./adapters/ethereum/CurveAdapter";
+import { CurveGaugeAdapter } from "./adapters/ethereum/CurveGaugeAdapter";
+import { ConvexAdapter } from "./adapters/ethereum/ConvexAdapter";
+import { ConvexStakingAdapter } from "./adapters/ethereum/ConvexStakingAdapter";
 import { ReturnValue, StrategyStepType, WeirollPlan } from "./type";
 
 export class StrategyManager {
+  public readonly vaultHelperContract: weirollContract;
   public readonly compoundAdapterObj: AdapterInterface;
   public readonly aaveV1AdapterObj: AdapterInterface;
   public readonly aaveV2AdapterObj: AdapterInterface;
-  public readonly vaultHelperContract: weirollContract;
+  public readonly curveAdapterObj: AdapterInterface;
+  public readonly curveGaugeAdapterObj: AdapterInterface;
+  public readonly convexAdapterObj: AdapterInterface;
+  public convexStakingAdapterObj: AdapterInterface;
 
   public readonly liquidityPoolToAdapter: { [key: string]: AdapterInterface } = {};
 
   constructor(
     optyFiOracleAddress: string,
     vaultHelperInstance: Contract,
+    swapHelperContract: Contract,
     compoundHelperContract: Contract,
     aaveV1HelperContract: Contract,
-    swapHelperContract: Contract,
+    curveHelperContract: Contract,
   ) {
     this.vaultHelperContract = weirollContract.createContract(
       new ethers.Contract(vaultHelperInstance.address, vaultHelperInstance.interface),
@@ -29,6 +38,19 @@ export class StrategyManager {
     this.compoundAdapterObj = new CompoundAdapter(optyFiOracleAddress, vaultHelperInstance, compoundHelperContract);
     this.aaveV1AdapterObj = new AaveV1Adapter(vaultHelperInstance, aaveV1HelperContract);
     this.aaveV2AdapterObj = new Aavev2Adapter(optyFiOracleAddress, vaultHelperInstance, swapHelperContract);
+    this.curveAdapterObj = new CurveAdapter(vaultHelperInstance, curveHelperContract);
+    this.curveGaugeAdapterObj = new CurveGaugeAdapter(
+      optyFiOracleAddress,
+      vaultHelperInstance,
+      curveHelperContract,
+      swapHelperContract,
+    );
+    this.convexAdapterObj = new ConvexAdapter(vaultHelperInstance);
+    this.convexStakingAdapterObj = new ConvexStakingAdapter(
+      optyFiOracleAddress,
+      vaultHelperInstance,
+      swapHelperContract,
+    );
     this.liquidityPoolToAdapter["0x52D306e36E3B6B02c153d0266ff0f85d18BCD413"] = this.aaveV2AdapterObj;
     this.liquidityPoolToAdapter["0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643"] = this.compoundAdapterObj; // cDAI
     this.liquidityPoolToAdapter["0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9"] = this.compoundAdapterObj; // cUSDT
@@ -38,6 +60,9 @@ export class StrategyManager {
     this.liquidityPoolToAdapter["0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"] = this.aaveV1AdapterObj;
     this.liquidityPoolToAdapter["0x70e36f6BF80a52b3B46b3aF8e106CC0ed743E8e4"] = this.compoundAdapterObj; // cCOMP
     this.liquidityPoolToAdapter["0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946"] = this.compoundAdapterObj; // cYFI
+    this.liquidityPoolToAdapter["0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"] = this.curveAdapterObj; // 3Crv pool
+    this.liquidityPoolToAdapter["0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C"] = this.convexAdapterObj; // cvx3Crv
+    this.liquidityPoolToAdapter["0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8"] = this.convexStakingAdapterObj; // cvx3Crv staking pool
   }
 
   getDepositPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {

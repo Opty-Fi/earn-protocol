@@ -116,7 +116,7 @@ async function main() {
   );
   const cvxBalanceForopUSDCEarn = await cvxInstance.balanceOf(opUSDCEarn.address);
 
-  const ldoUnclaimedForopWETHEarn = parseEther("11.280000000000000000");
+  const ldoUnclaimedForopWETHEarn = parseEther("21.460000000000000000");
   const ldoBalanceForopWETHEarn = await ldoInstance.balanceOf(opWETHEarn.address);
 
   const sushiBalanceForopUSDCInvst = await sushiInstance.balanceOf(opUSDCInvst.address);
@@ -133,14 +133,14 @@ async function main() {
     BigNumber.from("100000000000000000000000000"),
   );
 
-  const oneCRVToUSDC = parseUnits("0.4", "6"); //0.53 crv - usdc
-  const oneCVXToUSDC = parseUnits("3", "6"); // 3.3
-  const oneLDOToWETH = parseEther("0.0008"); //0.0008
+  const oneCRVToUSDC = parseUnits("0.6", "6"); //0.53 crv - usdc
+  const oneCVXToUSDC = parseUnits("3.2", "6"); // 3.3
+  const oneLDOToWETH = parseEther("0.001"); //0.0008
   const oneSUSHIToUSDC = parseUnits("0.96", "6");
   const oneSUSHIToWETH = parseEther("0.0007"); // sushi-dai-weth
   const oneCRVToWBTC = parseUnits("0", "8");
-  const oneCRVToUSD3 = parseUnits("0.5", "18");
-  const oneCVXToUSD3 = parseUnits("3", "18");
+  const oneCRVToUSD3 = parseUnits("0.6", "18");
+  const oneCVXToUSD3 = parseUnits("3.2", "18");
 
   const expectedMinUSD3FromCRVForopUSD3Earn = BigNumber.from(crvBalanceForOPUSD3Earn.add(crvUnclaimedForopUSD3Earn))
     .mul(oneCRVToUSD3)
@@ -379,12 +379,12 @@ async function main() {
     //   value: "0",
     //   data: opWBTCEarn.interface.encodeFunctionData("vaultDepositAllToStrategy"),
     // },
-    // vaultDepositAllToStrategy for opWETHInvst
-    {
-      to: opWETHInvst.address,
-      value: "0",
-      data: opWETHInvst.interface.encodeFunctionData("vaultDepositAllToStrategy"),
-    },
+    // // vaultDepositAllToStrategy for opWETHInvst
+    // {
+    //   to: opWETHInvst.address,
+    //   value: "0",
+    //   data: opWETHInvst.interface.encodeFunctionData("vaultDepositAllToStrategy"),
+    // },
     // // vaultDepositAllToStrategy for opUSDCInvst
     // {
     //   to: opUSDCInvst.address,

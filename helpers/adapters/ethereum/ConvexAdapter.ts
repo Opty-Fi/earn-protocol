@@ -8,14 +8,12 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 
 export class ConvexAdapter implements AdapterInterface {
   vaultHelperInstance;
-  optyFiOracleAddress;
   readonly boosterDepositPool = "0xF403C135812408BFbE8713b5A23a04b3D48AAE31";
 
-  constructor(_optyFiOracleAddress: string, vaultHelperContract: Contract) {
+  constructor(vaultHelperContract: Contract) {
     this.vaultHelperInstance = weirollContract.createContract(
       new ethers.Contract(vaultHelperContract.address, vaultHelperContract.interface),
     );
-    this.optyFiOracleAddress = _optyFiOracleAddress;
   }
 
   getDepositPlan(
@@ -31,7 +29,7 @@ export class ConvexAdapter implements AdapterInterface {
       new ethers.Contract(this.boosterDepositPool, IConvexDeposit__factory.abi),
     );
     planner.add(
-      boosterDepositPoolInstance["deposit(uint256,uint256,bool)"](lpTokenToPoolData[pool], inputTokenAmount, false),
+      boosterDepositPoolInstance["deposit(uint256,uint256,bool)"](lpTokenToPoolData[pool].pid, inputTokenAmount, false),
     );
     return planner;
   }
@@ -49,7 +47,7 @@ export class ConvexAdapter implements AdapterInterface {
       new ethers.Contract(this.boosterDepositPool, IConvexDeposit__factory.abi),
     );
     planner.add(
-      boosterDepositPoolInstance["withdraw(uint256,uint256)"](lpTokenToPoolData[pool], outputTokenAmount, false),
+      boosterDepositPoolInstance["withdraw(uint256,uint256)"](lpTokenToPoolData[pool].pid, outputTokenAmount),
     );
     return planner;
   }
@@ -108,7 +106,7 @@ export class ConvexAdapter implements AdapterInterface {
     _vaultInstance: Contract,
     _vaultUnderlyingToken: string,
   ): weirollPlanner {
-    throw new Error("not implemented");
+    throw new Error(`not implemented for ${_vaultUnderlyingToken}`);
   }
 
   async getOutputTokenBalance(

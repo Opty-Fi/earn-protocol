@@ -265,6 +265,17 @@ contract CurveHelper is Modifiers {
         return ICurveSwap(_pool).calc_token_amount([0, 0, 0, _amount], _isDeposit);
     }
 
+    function getCalc_withdraw_one_coin(
+        address _pool,
+        uint256 _lpTokenAmount,
+        int128 _index
+    ) external view returns (uint256) {
+        if (_lpTokenAmount > 0) {
+            return ICurveSwap(_pool).calc_withdraw_one_coin(_lpTokenAmount, _index);
+        }
+        return 0;
+    }
+
     function giveAllowances(IERC20[] calldata _tokens, address[] calldata _spenders) external onlyRiskOperator {
         uint256 _tokensLen = _tokens.length;
         require(_tokensLen == _spenders.length, Errors.LENGTH_MISMATCH);

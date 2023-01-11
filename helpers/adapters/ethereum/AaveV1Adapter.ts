@@ -115,9 +115,9 @@ export class AaveV1Adapter implements AdapterInterface {
   getHarvestRewardsPlan(
     _planner: weirollPlanner,
     _vaultInstance: Contract,
-    _vaulltUnderlyingToken: string,
+    _vaultUnderlyingToken: string,
   ): weirollPlanner {
-    throw new Error("not implemented");
+    throw new Error(`not implemented for ${_vaultUnderlyingToken}`);
   }
 
   async getOutputTokenBalance(

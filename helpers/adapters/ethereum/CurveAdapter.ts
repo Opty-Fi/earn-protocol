@@ -7,7 +7,7 @@ import { getAddress } from "ethers/lib/utils";
 import { AdapterInterface } from "../AdapterInterface";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
-export class CurveSwapPoolAdapter implements AdapterInterface {
+export class CurveAdapter implements AdapterInterface {
   vaultHelperInstance;
   curveHelperInstance;
 
@@ -29,7 +29,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
     isSwap: boolean,
     inputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    const tokenIndex = this.getTokenIndex(inputToken, poolRegistry[pool].underlyingTokens).toNumber();
+    const tokenIndex = this.getTokenIndex(inputToken, poolRegistry[getAddress(pool)].underlyingTokens).toNumber();
     switch (poolRegistry[pool].underlyingTokens.length) {
       case 2: {
         switch (tokenIndex) {
@@ -42,7 +42,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -60,7 +60,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -85,7 +85,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -103,7 +103,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -121,7 +121,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -146,7 +146,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -164,7 +164,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -182,7 +182,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -200,7 +200,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
               ).staticcall(),
             );
             const minimumMintAmount = planner.add(
-              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5),
+              this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](mintAmount, 5).staticcall(),
             );
             planner.add(
               this.curveHelperInstance[
@@ -235,7 +235,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
       poolInstance["calc_withdraw_one_coin(uint256,int128)"](outputTokenAmount, tokenIndex).staticcall(),
     );
     const minimumWithdrawAmount = planner.add(
-      this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](withdrawAmount, 5),
+      this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](withdrawAmount, 300).staticcall(),
     );
     planner.add(
       poolInstance["remove_liquidity_one_coin(uint256,int128,uint256)"](
@@ -256,10 +256,13 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
     isSwap: boolean,
     outputTokenAmount: ReturnValue,
   ): ReturnValue {
-    const poolInstance = weirollContract.createContract(new ethers.Contract(pool, ICurveSwap__factory.abi));
     const tokenIndex = this.getTokenIndex(inputToken, poolRegistry[pool].underlyingTokens);
     const amountUT = planner.add(
-      poolInstance["calc_withdraw_one_coin(uint256,int128)"](outputTokenAmount, tokenIndex).staticcall(),
+      this.curveHelperInstance["getCalc_withdraw_one_coin(address,uint256,int128)"](
+        pool,
+        outputTokenAmount,
+        tokenIndex,
+      ).staticcall(),
     );
     return amountUT as ReturnValue;
   }
@@ -422,7 +425,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
     _vaultInstance: Contract,
     _vaultUnderlyingToken: string,
   ): weirollPlanner {
-    throw new Error("not implemented");
+    throw new Error(`not implemented for ${_vaultUnderlyingToken}`);
   }
 
   async getOutputTokenBalance(
@@ -451,10 +454,13 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
     provider: JsonRpcProvider,
   ): Promise<BigNumber> {
     const poolInstance = new ethers.Contract(pool, ICurveSwap__factory.abi, <ethers.providers.JsonRpcProvider>provider);
-    return await poolInstance["calc_withdraw_one_coin(uint256,int128)"](
-      outputTokenAmount,
-      this.getTokenIndex(inputToken, poolRegistry[pool].underlyingTokens),
-    );
+    if (outputTokenAmount.gt(0)) {
+      return await poolInstance["calc_withdraw_one_coin(uint256,int128)"](
+        outputTokenAmount,
+        this.getTokenIndex(inputToken, poolRegistry[pool].underlyingTokens),
+      );
+    }
+    return BigNumber.from("0");
   }
 
   async getValueInOutputToken(
@@ -563,7 +569,7 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
   }
 
   private getTokenIndex(token: string, underlyingTokens: string[]): BigNumber {
-    for (const [index, underlyingToken] of underlyingTokens) {
+    for (const [index, underlyingToken] of underlyingTokens.entries()) {
       if (getAddress(token) === getAddress(underlyingToken)) {
         return BigNumber.from(index);
       }

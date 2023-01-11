@@ -661,7 +661,7 @@ contract Vault is
 
             // If slippage occurs, reduce _oraUserWithdrawUT by slippage amount
             if (_receivedStratWithdrawUT < _expectedStratWithdrawUT) {
-                _oraUserWithdrawUT = _oraUserWithdrawUT.add(_receivedStratWithdrawUT);
+                _oraUserWithdrawUT = _oraUserWithdrawUT.sub(_expectedStratWithdrawUT.sub(_receivedStratWithdrawUT));
             }
         }
         uint256 _withdrawFeeUT = calcWithdrawalFeeUT(_oraUserWithdrawUT);

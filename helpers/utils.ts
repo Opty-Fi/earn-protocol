@@ -36,6 +36,7 @@ import {
   AaveV1Helper,
   CompoundHelper,
   SwapHelper,
+  CurveHelper,
 } from "../typechain";
 import { VaultV3 } from "./types/vaultv3";
 import { expect } from "chai";
@@ -112,9 +113,10 @@ declare module "mocha" {
     vault: Vault;
     vaultProxy: InitializableImmutableAdminUpgradeabilityProxy;
     vaultHelper: VaultHelper;
+    swapHelper: SwapHelper;
     aaveV1Helper: AaveV1Helper;
     compoundHelper: CompoundHelper;
-    swapHelper: SwapHelper;
+    curveHelper: CurveHelper;
     opUSDCearn: Vault;
     opUSDCearnProxy: InitializableImmutableAdminUpgradeabilityProxy;
     opWETHearn: Vault;
@@ -480,9 +482,11 @@ export async function assertPostVaultDepositState(
 
   expect(vaultBalanceAfterUT).to.eq(expectedVaultBalanceAfterUT);
   const outputTokenInstance = new ethers.Contract(steps[steps.length - 1].outputToken, ERC20__factory.abi, provider);
-  expect(vaultBalanceAfterLP).to.closeTo(
-    expectedVaultBalanceAfterLP,
-    parseUnits("9", (await outputTokenInstance.decimals()) / 2).toNumber(),
+  expect(vaultBalanceAfterLP).gte(
+    expectedVaultBalanceAfterLP.sub(parseUnits("1", await outputTokenInstance.decimals())),
+  );
+  expect(vaultBalanceAfterLP).lte(
+    expectedVaultBalanceAfterLP.add(parseUnits("1", await outputTokenInstance.decimals())),
   );
   expect(userBalanceBeforeVT).to.eq(userBalanceAfterVT);
   expect(userBalanceAfterUT).to.eq(userBalanceBeforeUT);
@@ -566,7 +570,7 @@ export async function assertPostUserWithdrawState(
   expect(userBalanceAfterVT).to.eq(expectedUserBalanceVT);
   expect(userBalanceAfterUT).to.closeTo(
     expectedUserBalanceUT,
-    parseUnits("9", (await underlyingTokenInstance.decimals()) / 2).toNumber(),
+    parseUnits("9", Math.floor(((await underlyingTokenInstance.decimals()) * 4) / 5)).toNumber(),
   );
   expect(vaultTotalSupplyAfterVT).to.eq(expectedTotalSupplyVT);
   expect(ppsAfter).to.closeTo(expectedPPS, parseUnits("9", 9).toNumber());

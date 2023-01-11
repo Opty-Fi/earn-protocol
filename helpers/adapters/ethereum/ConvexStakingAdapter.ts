@@ -8,7 +8,7 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 import { IConvexStake__factory } from "../../../typechain";
 import { getAddress } from "ethers/lib/utils";
 
-export class CurveSwapPoolAdapter implements AdapterInterface {
+export class ConvexStakingAdapter implements AdapterInterface {
   vaultHelperInstance;
   optyFiOracleAddress;
   swapHelperInstance;
@@ -46,8 +46,34 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
     isSwap: boolean,
     outputTokenAmount: ReturnValue,
   ): weirollPlanner {
-    const stakingVault = weirollContract.createContract(new ethers.Contract(pool, IConvexStake__factory.abi));
-    planner.add(stakingVault["withdraw(uint256,boll)"](outputTokenAmount, true));
+    const abi = [
+      {
+        inputs: [
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "claim",
+            type: "bool",
+          },
+        ],
+        name: "withdraw",
+        outputs: [
+          {
+            internalType: "bool",
+            name: "",
+            type: "bool",
+          },
+        ],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+    const stakingVault = weirollContract.createContract(new ethers.Contract(pool, abi));
+    planner.add(stakingVault["withdraw(uint256,bool)"](outputTokenAmount, true));
     return planner;
   }
 
@@ -97,8 +123,23 @@ export class CurveSwapPoolAdapter implements AdapterInterface {
     pool: string,
     _outputToken: string,
   ): weirollPlanner {
-    const stakingVault = weirollContract.createContract(new ethers.Contract(pool, IConvexStake__factory.abi));
-    planner.add(stakingVault["getReward"]);
+    const abi = [
+      {
+        inputs: [],
+        name: "getReward",
+        outputs: [
+          {
+            internalType: "bool",
+            name: "",
+            type: "bool",
+          },
+        ],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+    const stakingVault = weirollContract.createContract(new ethers.Contract(pool, abi));
+    planner.add(stakingVault["getReward"]());
     return planner;
   }
 
