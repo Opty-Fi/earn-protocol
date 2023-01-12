@@ -34,6 +34,7 @@ import {
   CompoundHelper__factory,
   SwapHelper__factory,
   VaultHelper__factory,
+  CurveHelper__factory,
 } from "../../typechain";
 import { generateTokenHashV2, generateStrategyHashV2 } from "../../helpers/helpers";
 import { StrategyStepType } from "../../helpers/type";
@@ -59,6 +60,12 @@ describe(`${fork}-Vault-rev7`, () => {
     this.vaultHelper = <VaultHelper>(
       await ethers.getContractAt(VaultHelper__factory.abi, (await deployments.get("VaultHelper")).address)
     );
+    this.swapHelper = await ethers.getContractAt(
+      SwapHelper__factory.abi,
+      (
+        await deployments.get("SwapHelper")
+      ).address,
+    );
     this.aaveV1Helper = await ethers.getContractAt(
       AaveV1Helper__factory.abi,
       (
@@ -71,19 +78,20 @@ describe(`${fork}-Vault-rev7`, () => {
         await deployments.get("CompoundHelper")
       ).address,
     );
-    this.swapHelper = await ethers.getContractAt(
-      SwapHelper__factory.abi,
+    this.curveHelper = await ethers.getContractAt(
+      CurveHelper__factory.abi,
       (
-        await deployments.get("SwapHelper")
+        await deployments.get("CurveHelper")
       ).address,
     );
 
     this.strategyManager = new StrategyManager(
       (await deployments.get("OptyFiOracle")).address,
       <Contract>this.vaultHelper,
+      this.swapHelper,
       this.compoundHelper,
       this.aaveV1Helper,
-      this.swapHelper,
+      this.curveHelper,
     );
     this.registry = <Registry>(
       await ethers.getContractAt(Registry__factory.abi, (await deployments.get("RegistryProxy")).address)
@@ -146,13 +154,7 @@ describe(`${fork}-Vault-rev7`, () => {
   });
   describe(`${fork}-Vault-rev7 strategies`, () => {
     for (const riskProfile of Object.keys(StrategiesByTokenByChain[fork])) {
-      if (riskProfile !== "Save") {
-        continue;
-      }
       for (const token of Object.keys(StrategiesByTokenByChain[fork][riskProfile])) {
-        if (!["WETH"].includes(token)) {
-          continue;
-        }
         if (IGNORE_VAULTS?.split(",").includes(MultiChainVaults[fork][riskProfile][token].symbol)) {
           continue;
         }
@@ -286,6 +288,8 @@ describe(`${fork}-Vault-rev7`, () => {
               const decimals = await this.tokens[token].decimals();
               if (_userDepositInDecimals.eq(BigNumber.from("0"))) {
                 _userDepositInDecimals = BigNumber.from("3").mul(parseUnits("1", decimals));
+              } else {
+                _userDepositInDecimals = _userDepositInDecimals.mul(3);
               }
               const _userDeposit = new BN(_userDepositInDecimals.toString()).div(
                 new BN(to_10powNumber_BN(await this.tokens[token].decimals()).toString()),

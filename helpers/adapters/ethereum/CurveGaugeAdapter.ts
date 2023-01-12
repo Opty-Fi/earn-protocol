@@ -130,7 +130,7 @@ export class CurveGaugeAdapter implements AdapterInterface {
       ).staticcall(),
     );
     const minimumOutputAmount = planner.add(
-      this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](outputAmount, 100),
+      this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](outputAmount, 100).staticcall(),
     );
     let univ3Path;
     switch (getAddress(vaultUnderlyingToken)) {

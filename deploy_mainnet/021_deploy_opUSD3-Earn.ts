@@ -157,11 +157,18 @@ const func: DeployFunction = async ({
   const approvalTokens: string[] = [];
   const approvalSpender: string[] = [];
 
+  const threeCrvInstance = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, CurveExports.CurveSwapPool.usdc_3crv.lpToken)
+  );
   const tokenInstanceUT = <ERC20>(
     await ethers.getContractAt(
       ERC20__factory.abi,
       CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].tokens[0],
     )
+  );
+  const threeCrvCurveGaugeAllowance = await threeCrvInstance.allowance(
+    vaultInstance.address,
+    CurveExports.CurveSwapPool.usdc_3crv.gauge,
   );
   const allowanceUT = await tokenInstanceUT.allowance(
     vaultInstance.address,
@@ -181,6 +188,12 @@ const func: DeployFunction = async ({
     vaultInstance.address,
     CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool,
   );
+
+  if (!threeCrvCurveGaugeAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(threeCrvInstance.address);
+    approvalSpender.push(CurveExports.CurveSwapPool.usdc_3crv.gauge);
+  }
+
   if (!allowanceLP.gt(parseEther("1000000"))) {
     approvalTokens.push(tokenInstanceLP.address);
     approvalSpender.push(CurveExports.CurveCryptoPool.pools["LUSD3CRV-f_bLUSDLUSD3-f"].pool);

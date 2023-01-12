@@ -61,6 +61,7 @@ export class StrategyManager {
     this.liquidityPoolToAdapter["0x70e36f6BF80a52b3B46b3aF8e106CC0ed743E8e4"] = this.compoundAdapterObj; // cCOMP
     this.liquidityPoolToAdapter["0x80a2AE356fc9ef4305676f7a3E2Ed04e12C33946"] = this.compoundAdapterObj; // cYFI
     this.liquidityPoolToAdapter["0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"] = this.curveAdapterObj; // 3Crv pool
+    this.liquidityPoolToAdapter["0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A"] = this.curveGaugeAdapterObj; // 3Crv gauge
     this.liquidityPoolToAdapter["0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C"] = this.convexAdapterObj; // cvx3Crv
     this.liquidityPoolToAdapter["0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8"] = this.convexStakingAdapterObj; // cvx3Crv staking pool
   }
