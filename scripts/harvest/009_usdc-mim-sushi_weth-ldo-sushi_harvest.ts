@@ -133,14 +133,14 @@ async function main() {
     BigNumber.from("100000000000000000000000000"),
   );
 
-  const oneCRVToUSDC = parseUnits("0.6", "6"); //0.53 crv - usdc
-  const oneCVXToUSDC = parseUnits("3.2", "6"); // 3.3
+  const oneCRVToUSDC = parseUnits("0.7", "6"); //0.53 crv - usdc
+  const oneCVXToUSDC = parseUnits("3.6", "6"); // 3.3
   const oneLDOToWETH = parseEther("0.001"); //0.0008
   const oneSUSHIToUSDC = parseUnits("0.96", "6");
   const oneSUSHIToWETH = parseEther("0.0007"); // sushi-dai-weth
   const oneCRVToWBTC = parseUnits("0", "8");
-  const oneCRVToUSD3 = parseUnits("0.6", "18");
-  const oneCVXToUSD3 = parseUnits("3.2", "18");
+  const oneCRVToUSD3 = parseUnits("0.7", "18");
+  const oneCVXToUSD3 = parseUnits("3.4", "18");
 
   const expectedMinUSD3FromCRVForopUSD3Earn = BigNumber.from(crvBalanceForOPUSD3Earn.add(crvUnclaimedForopUSD3Earn))
     .mul(oneCRVToUSD3)

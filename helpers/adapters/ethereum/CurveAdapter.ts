@@ -232,7 +232,11 @@ export class CurveAdapter implements AdapterInterface {
     const poolInstance = weirollContract.createContract(new ethers.Contract(pool, ICurveSwap__factory.abi));
     const tokenIndex = this.getTokenIndex(inputToken, poolRegistry[pool].underlyingTokens);
     const withdrawAmount = planner.add(
-      poolInstance["calc_withdraw_one_coin(uint256,int128)"](outputTokenAmount, tokenIndex).staticcall(),
+      this.curveHelperInstance["getCalc_withdraw_one_coin(address,uint256,int128)"](
+        pool,
+        outputTokenAmount,
+        tokenIndex,
+      ).staticcall(),
     );
     const minimumWithdrawAmount = planner.add(
       this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](withdrawAmount, 300).staticcall(),
@@ -585,5 +589,8 @@ const poolRegistry: { [key: string]: { underlyingTokens: string[] } } = {
       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
       "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     ],
+  },
+  "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B": {
+    underlyingTokens: ["0x853d955aCEf822Db058eb8505911ED77F175b99e", "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"],
   },
 };

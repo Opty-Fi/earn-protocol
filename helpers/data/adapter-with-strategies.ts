@@ -261,8 +261,8 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
         description:
           "The OptyFi vault supplies USDC to the lending pool on Compound Protocol to earn interest in USDC and, potentially, additional rewards in COMP tokens. The earned USDC tokens and any harvested COMP rewards are reinvested into the vault.",
       },
-      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv": {
-        strategyName: "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv",
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv-DEPOSIT-Convex-cvx3crv-gauge": {
+        strategyName: "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv-DEPOSIT-Convex-cvx3crv-gauge",
         token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         strategy: [
           {
@@ -281,47 +281,64 @@ const mainnetStrategiesByToken: StrategiesByTokenByChainType = {
             adapterName: "ConvexFinanceAdapter",
             protocol: "Convex",
           },
+          {
+            contract: "0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8",
+            outputToken: "0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8",
+            isSwap: false,
+            outputTokenSymbol: "cvx3Crv-gauge",
+            adapterName: "ConvexFinanceAdapter",
+            protocol: "Convex",
+          },
         ],
         riskProfileCode: 1,
         name: "3CRV LP Staking on Convex",
         description:
           "The OptyFi vault supplies USDC to the 3CRV liquidity pool on Curve Finance and obtains the 3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the 3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
       },
-      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f": {
-        strategyName:
-          "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f",
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        strategy: [
-          {
-            contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
-            outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
-            isSwap: false,
-            outputTokenSymbol: "3Crv",
-            adapterName: "CurveSwapPoolAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
-            isSwap: false,
-            outputTokenSymbol: "FRAX3CRV-f",
-            adapterName: "CurveMetapoolSwapAdapter",
-            protocol: "Curve",
-          },
-          {
-            contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
-            isSwap: false,
-            outputTokenSymbol: "cvxFRAX3CRV-f",
-            adapterName: "ConvexFinanceAdapter",
-            protocol: "Convex",
-          },
-        ],
-        riskProfileCode: 1,
-        name: "FRAX3CRV LP Staking on Convex",
-        description:
-          "The OptyFi vault supplies USDC to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
-      },
+      "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f-DEPOSIT-Convex-stake":
+        {
+          strategyName:
+            "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f-DEPOSIT-Convex-stake",
+          token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          strategy: [
+            {
+              contract: "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+              outputToken: "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+              isSwap: false,
+              outputTokenSymbol: "3Crv",
+              adapterName: "CurveSwapPoolAdapter",
+              protocol: "Curve",
+            },
+            {
+              contract: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+              outputToken: "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B",
+              isSwap: false,
+              outputTokenSymbol: "FRAX3CRV-f",
+              adapterName: "CurveMetapoolSwapAdapter",
+              protocol: "Curve",
+            },
+            {
+              contract: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+              outputToken: "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA",
+              isSwap: false,
+              outputTokenSymbol: "cvxFRAX3CRV-f",
+              adapterName: "ConvexFinanceAdapter",
+              protocol: "Convex",
+            },
+            {
+              contract: "0xB900EF131301B307dB5eFcbed9DBb50A3e209B2e",
+              outputToken: "0xB900EF131301B307dB5eFcbed9DBb50A3e209B2e",
+              isSwap: false,
+              outputTokenSymbol: "cvxFRAX3CRV-f-gauge",
+              adapterName: "ConvexStakingAdapter",
+              protocol: "Convex",
+            },
+          ],
+          riskProfileCode: 1,
+          name: "FRAX3CRV LP Staking on Convex",
+          description:
+            "The OptyFi vault supplies USDC to the FRAX3CRV liquidity pool on Curve Finance and obtains the FRAX3CRV LP token which accrues yield from the pool’s trading fees and rewards. The vault then stakes the FRAX3CRV LP token on Convex Finance to earn additional rewards which are harvested to USDC and reinvested into the vault.",
+        },
       "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f": {
         strategyName:
           "usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f",
@@ -3008,4 +3025,309 @@ export const MultiChainVaults: MultiChainVaultsType = {
   [eEVMNetwork.avalanche]: avalancheVaults,
   [NETWORKS_CHAIN_ID[eEVMNetwork.avalanche]]: avalancheVaults,
   [NETWORKS_CHAIN_ID_HEX[eEVMNetwork.avalanche]]: avalancheVaults,
+};
+
+export const strategyHashReadIndexes: {
+  [key: string]: { oraValueUTIndex: number; oraValueLPIndex: number; lastStepLPBalanceIndex: number };
+} = {
+  "0x9d5b0ec470b7cc0292aa6f12b02080fab6963a074f01f19bf163819cb6e38cb6": {
+    // dai-DEPOSIT-AaveV2-aDAI
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x209d8398fa428a480aa63498a065daaa46d3d7ef77e2d367194e8a6a4d3ebf9a": {
+    // dai-DEPOSIT-Compound-cDAI
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x74ceffc4d239683893dd31f6c4bed33f65aafb1bdad2c47d61bae7db81a42e4d": {
+    // usdt-DEPOSIT-AaveV2-aUSDT
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x4103355b18f7a7ea81aebc211548510bb077426632fbe4899f4cf162c70ba396": {
+    // usdt-DEPOSIT-Compound-cUSDT
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x46b9c41c6ff6c82958774b97fc426f046011e4177b8f64ded0d1a704d083b3c6": {
+    // wbtc-DEPOSIT-AaveV2-aWBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x35f4123193f545465801d2cd7418a60c7cfe6ade80b8be4f941124705fb7a39c": {
+    // wbtc-DEPOSIT-Compound-cWBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xdc405bd6462f69e015108f9c274278cf552f891ed2015820827a672abafd48fc": {
+    // usdc-DEPOSIT-AaveV2-aUSDC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x58404c3f191270f62e374653c7aa923e5487ed261523b0aef0a432a01a8ea088": {
+    // usdc-DEPOSIT-Compound-cUSDC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x514e845e4f1401cfe30f214a1386dfd06a98e15316dde7f669889a82ddffdeb8": {
+    // weth-DEPOSIT-AaveV2-aWETH
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x87ed056054f13b934a9864226aa8c1f52ad63a7ad25bb2c74c1f920c9635c04c": {
+    // weth-DEPOSIT-Compound-cETH
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x33e72ee91a5fcfa11c583c3be5fd45eddbef67a615865be872a394c8305806b4": {
+    // USDC-usdc-DEPOSIT-AaveV1-aUSDC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xa1b19fa34fb71db306003f9ba72dc16b2c107535a0ebb3975f094908b8d5f9c4": {
+    // usdc-3Crv
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 2,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x962f5a2c0adec65d44b6c7de93d8ad396729b769d4f5d94c7747456859863153": {
+    // usdc-3crv-stake
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 2,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xcc1280fc747f012724200b50ba7e674c6d26dccca7b339b2118e4187e70f10ae": {
+    // usd3-3crv-gauge
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 0,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xd99e7dc1561021e2f6a6526f082a16432cd44110600e7706a3590f3cb20053cb": {
+    // usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-Convex-cvx3Crv-DEPOSIT-Convex-cvx3crv-gauge
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 2,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x58121072e9862448a198a175b3a42d2e83c50ebd19857d5b20efe565862f101f": {
+    // usdc-DEPOSIT-Curve-3Crv-Convex-cvx3Crv
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 2,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xd9ea0597f2f2f5a4918a68a60ef6a4abc8219adbe430c8233415a32b4658b1aa": {
+    // USDC-usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f-stake
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 3,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x1a51589f4b4d7e8c0b180cc03a180bec364072acb3d473e74148e0a8645fa720": {
+    // USDC-usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 3,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xe730dd3e3fb79dbbc0e3309ea466ed5456d2442a9d727a5304d91526f1b99115": {
+    // USDC-usdc-DEPOSIT-CurveSwapPool-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x7f4a606bdb57acf36a7b3885df335d058d516e820fb9b9c3ec601b28dac881ac": {
+    // USDC-usdc-DEPOSIT-Curve_3Crv-DEPOSIT-Curve_USDN-3Crv-DEPOSIT-Convex_CurveUsdn-3Crv
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xc592b22e23c6bd72c7b3ed34396ed41051f7f7be478b4d2b11f657b588b7b99b": {
+    // USDC-usdc-DEPOSIT-Compound-cUSDC-dAMM-dCUSDC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x6bc8319b2a8fe26c05d78a307ad47d29cfc49563c73a9670addd3463a39c82d4": {
+    // USDC-usdc-DEPOSIT-dAMM-dUSDC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xf04ccd8132ade155ababcc7558707e687ba9de09a298863eedb8fb6d5f093e2d": {
+    // USDC-usdc-DEPOSIT-Sushiswap-WETH-DEPOSIT-Compound-cETH
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xa527d077e8da7fa29812630176c559b4d26243c3e365bf08ac3190d5f7620dd8": {
+    // WETH-weth-DEPOSIT-CurveSwapPool-eCRV-DEPOSIT-Convex-cvxeCRV
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x9558552b170165e5318b71ed27d1a323d3d27958b3ee8ed1e6552b70df4ecb2b": {
+    // WETH-weth-DEPOSIT-CurveSwapPool-steCRV-DEPOSIT-Convex-cvxsteCRV
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xc2a070b74e17df73591dd75d00255d928bd989bd1a2bf32ddcba0d467c9da368": {
+    // WETH-weth-DEPOSIT-CurveSwapPool-eCRV
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x78adc751570d29a87ace5b66a47fa7d7bfd675885263d91c62d8cb51a7e9e2fb": {
+    // WETH-weth-DEPOSIT-CurveSwapPool-steCRV
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xc51fafbe25400cba7415597d7bb033ee9e5765e678b90d557583fa15d612d4ff": {
+    // WETH-weth-DEPOSIT-Compound-cETH-DEPOSIT-dAMM-dCWETH
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x3d1029e6895ff5617a91aa3a754a4d837e85495f8e5c5076a82f391aefb4870f": {
+    // WETH-weth-DEPOSIT-dAMM-dWETH
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xd23479645ebe943a9682b6d47c682941edd01b3efd048c976ede8e7c8d124f9d": {
+    // WETH-weth-DEPOSIT-UniswapV2-USDC-DEPOSIT-Compound-cUSDC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x169858bb623971d8e95c014b2eb7eabd74b61054f218a9118bb3a199b5473b6e": {
+    // USD3-3Crv-DEPOSIT-Convex-cvx3Crv
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x28e7d2a9e4f8fdb4af62b83502048bd2f8ed90479d08d59129edef563514ddf7": {
+    // USD3-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV-f-DEPOSIT-Convex-cvxFRAX3CRV-f
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x5c1aabba365f3cec8d5fab3dfd3870cfcb8d8519863d257bcd45d571eea8b41b": {
+    // USD3-3Crv-DEPOSIT-CurveSwapPool-MIM-3LP3CRV-f-DEPOSIT-Convex-cvxMIM-3LP3CRV-f
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x34af0fe7f4f4402eb8cc7741574cb56fb61b429dc6c513dd711a6c12438e312c": {
+    // USD3-3Crv-DEPOSIT-CurveMetapoolSwapPool-LUSD3CRV-f-CurveCryptoPool-bLUSDLUSD3-f-CurveCryptoGauge-bLUSDLUSD3-f-gauge
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x565d78b41d6405bf914ced726961c011be482e204b9a9c727bc6a30f02f2ead4": {
+    // USD3-3Crv-DEPOSIT-CurveMetapoolSwapPool-FRAX3CRV
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xfa8e9be61f6087993f79d18ee05ab6de67354a4a11207e7933b875663a25a0ad": {
+    // USD3-3Crv-DEPOSIT-CurveMetapoolSwapPool-MIM-3LP3CRV
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x6f7fa816dfb53eb6c69f45942e1687728a9ec8764c16cd1e404987d97c0ddc77": {
+    // USD3-3Crv-DEPOSIT-CurveSwapPool-USDC-DEPOSIT-CurveSwapPool-FRAX-DEPOSIT-dAMM-dFRAX
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xb7cb51e4a9ee742b890d6015f2b3db006aa5fc33eb6b7f6eb4d41b64238be549": {
+    // USD3-3Crv-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-CurveSwapPool-USDT-DEPOSIT-dAMM-dUSDT
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xe50750078cfbef2576b5f2ca5b81f701e899e9138f24ee93769cdb70ddf48ce6": {
+    // WBTC-wbtc-DEPOSIT-Curve-crvRenWSBTC-DEPOSIT-Convex-cvxcrvRenWSBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x5c93a95e1ca1b7c5edd4f2ed8eb017661d1d8cc961c0dec93d37ce4cdc169073": {
+    // WBTC-wbtc-DEPOSIT-Curve-crvRenWBTC-DEPOSIT-Convex-cvxcrvRenWBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x34fc4a8fff5422894f940ac0db60dc3e3aaf3f9d3c15c62d7f3479d193b0a2fc": {
+    // WBTC-wbtc-DEPOSIT-Curve-crvRenWSBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x256dbd9be6cd307045aba664b0cae4a18341d2f4d0e9e51f9b658686260017a7": {
+    // WBTC-wbtc-DEPOSIT-Curve-crvRenWBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xdf3f8ef63f05db6e4b04c3b5a8198d128b61faee8075aed893d76832a0deed6f": {
+    // WBTC-wbtc-DEPOSIT-dAMM-dWBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x44216c2a6ff5f35d0b24f54cfddb2f39f8ab9a7a998bfa4683aa6083dceb9a9a": {
+    // WBTC-wbtc-DEPOSIT-AaveV2-aWBTC-DEPOSIT-dAMM-dAWBTC
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x9088797ca169aa71efbef61dbada999c1508855dfea7e62fde222933ffdb190b": {
+    // USDC-usdc-DEPOSIT-SushiswapPool-USDC-WETH-SLP
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x1761fc82fc48c50dd013e8b21e8eddfd963c7edc6473d7806771c3692692668a": {
+    // USDC-usdc-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xf7a93716c5628af5a4bd1a5c743b02e699b6a9810ee2f0baec0fe197f931856c": {
+    // WETH-weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x3c5b9d8948861c5be71f8d95cfd4f45ef382db65ef1b8da7a3fe54bf3b53a862": {
+    // WETH-weth-DEPOSIT-SushiswapPool-USDC-WETH-SLP-DEPOSIT-SushiswapMasterChef
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0x7de3006bfe10fe1130dcfd6715c8bfdc2f456b55ea1a61c110d83fce5a428aec": {
+    // WETH-weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
+  "0xe4616c097c874aeabc748db2dc5055118c040b17cbf86862b4cec849f196d63c": {
+    // WETH-weth-DEPOSIT-SushiswapPool-WBTC-WETH-SLP-DEPOSIT-SushiswapMasterChef
+    oraValueUTIndex: 1,
+    oraValueLPIndex: 1,
+    lastStepLPBalanceIndex: 1,
+  },
 };

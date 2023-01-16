@@ -265,6 +265,7 @@ contract CurveHelper is Modifiers {
         return ICurveSwap(_pool).calc_token_amount([0, 0, 0, _amount], _isDeposit);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function getCalc_withdraw_one_coin(
         address _pool,
         uint256 _lpTokenAmount,

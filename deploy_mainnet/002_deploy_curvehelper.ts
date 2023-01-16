@@ -74,15 +74,28 @@ const func: DeployFunction = async ({
   );
 
   const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+  const threeCrvInstance = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.THREE_CRV)
+  );
 
   const usdcThreeCrvAllowance = await usdcInstance.allowance(
     curveHelperInstance.address,
     Curve.CurveSwapPool.usdc_3crv.pool,
   );
 
+  const threeCrvCurveFraxAllowance = await threeCrvInstance.allowance(
+    curveHelperInstance.address,
+    Curve.CurveMetapoolSwap.pools["3crv_frax+3crv"].pool,
+  );
+
   if (!usdcThreeCrvAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(usdcInstance.address);
     approvalSpender.push(Curve.CurveSwapPool.usdc_3crv.pool);
+  }
+
+  if (!threeCrvCurveFraxAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(threeCrvInstance.address);
+    approvalSpender.push(Curve.CurveMetapoolSwap.pools["3crv_frax+3crv"].pool);
   }
 
   if (approvalTokens.length > 0) {

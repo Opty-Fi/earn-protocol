@@ -98,18 +98,7 @@ abstract contract VM {
                         outdata := add(outdata, 68)
                     }
                 }
-                revert(
-                    string(
-                        abi.encodePacked(
-                            "Execution Failed : command_index=",
-                            string("0"),
-                            ", target=",
-                            address(uint160(uint256(command))),
-                            ", message=",
-                            outdata.length > 0 ? string(outdata) : "Unknown"
-                        )
-                    )
-                );
+                revert("_writeExecute");
             }
 
             if (flags & FLAG_TUPLE_RETURN != 0) {
@@ -160,18 +149,7 @@ abstract contract VM {
                         outdata := add(outdata, 68)
                     }
                 }
-                revert(
-                    string(
-                        abi.encodePacked(
-                            "Execution Failed : command_index=",
-                            string("0"),
-                            ", target=",
-                            address(uint160(uint256(command))),
-                            ", message=",
-                            outdata.length > 0 ? string(outdata) : "Unknown"
-                        )
-                    )
-                );
+                revert("_readExecute");
             }
 
             if (flags & FLAG_TUPLE_RETURN != 0) {

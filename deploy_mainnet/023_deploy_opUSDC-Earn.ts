@@ -173,6 +173,10 @@ const func: DeployFunction = async ({
   const cvxThreeCrvInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, Convex.pools["3pool"].lpToken);
   const ausdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, AaveV2.pools.usdc.lpToken);
   const cusdcInstance = <ERC20>await ethers.getContractAt(Compound.cToken.abi, Compound.pools.usdc.pool);
+  const fraxThreeCrvInstance = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, Curve.CurveMetapoolSwap.pools["3crv_frax+3crv"].lpToken)
+  );
+  const cvxFraxThreeCrvInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, Convex.pools.frax.lpToken);
 
   const usdcAaveV1Allowance = await usdcInstance.allowance(vaultInstance.address, AaveV1.LendingPoolCore.address);
   const usdcAaveV2Allowance = await usdcInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
@@ -188,6 +192,11 @@ const func: DeployFunction = async ({
     EthereumSushiswap.SushiswapRouter.address,
   );
   const usdcCurveHelperAllowance = await usdcInstance.allowance(vaultInstance.address, curveHelperInstance.address);
+  const threeCrvCurveHelperAllowance = await threeCrvInstance.allowance(
+    vaultInstance.address,
+    curveHelperInstance.address,
+  );
+
   const threeCrvConvexAllowance = await threeCrvInstance.allowance(vaultInstance.address, BOOSTER_DEPOSIT_POOL);
   const threeCrvConvexStakingAllowance = await cvxThreeCrvInstance.allowance(
     vaultInstance.address,
@@ -200,6 +209,17 @@ const func: DeployFunction = async ({
   const threeCrvCurveGaugeAllowance = await threeCrvInstance.allowance(
     vaultInstance.address,
     Curve.CurveSwapPool.usdc_3crv.gauge,
+  );
+
+  const fraxThreeConvexAllowance = await fraxThreeCrvInstance.allowance(vaultInstance.address, BOOSTER_DEPOSIT_POOL);
+  const fraxThreeCrvCurveHelperAllowance = await fraxThreeCrvInstance.allowance(
+    vaultInstance.address,
+    curveHelperInstance.address,
+  );
+
+  const cvxFraxThreeCrvConvexStakingAllowance = await cvxFraxThreeCrvInstance.allowance(
+    vaultInstance.address,
+    Convex.pools.frax.stakingPool,
   );
 
   if (!usdcAaveV1Allowance.gt(parseUnits("1000000", "6"))) {
@@ -237,6 +257,11 @@ const func: DeployFunction = async ({
     approvalSpender.push(curveHelperInstance.address);
   }
 
+  if (!threeCrvCurveHelperAllowance.gt(parseUnits("1000000", "6"))) {
+    approvalTokens.push(threeCrvInstance.address);
+    approvalSpender.push(curveHelperInstance.address);
+  }
+
   if (!threeCrvCurveAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(threeCrvInstance.address);
     approvalSpender.push(Curve.CurveSwapPool.usdc_3crv.pool);
@@ -255,6 +280,21 @@ const func: DeployFunction = async ({
   if (!threeCrvConvexStakingAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(cvxThreeCrvInstance.address);
     approvalSpender.push(Convex.pools["3pool"].stakingPool);
+  }
+
+  if (!fraxThreeCrvCurveHelperAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(fraxThreeCrvInstance.address);
+    approvalSpender.push(curveHelperInstance.address);
+  }
+
+  if (!fraxThreeConvexAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(fraxThreeCrvInstance.address);
+    approvalSpender.push(BOOSTER_DEPOSIT_POOL);
+  }
+
+  if (!cvxFraxThreeCrvConvexStakingAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(cvxFraxThreeCrvInstance.address);
+    approvalSpender.push(Convex.pools.frax.stakingPool);
   }
 
   if (approvalTokens.length > 0) {

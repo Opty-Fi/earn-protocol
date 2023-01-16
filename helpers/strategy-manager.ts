@@ -64,6 +64,9 @@ export class StrategyManager {
     this.liquidityPoolToAdapter["0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A"] = this.curveGaugeAdapterObj; // 3Crv gauge
     this.liquidityPoolToAdapter["0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C"] = this.convexAdapterObj; // cvx3Crv
     this.liquidityPoolToAdapter["0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8"] = this.convexStakingAdapterObj; // cvx3Crv staking pool
+    this.liquidityPoolToAdapter["0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B"] = this.curveAdapterObj; // frax3crv-f
+    this.liquidityPoolToAdapter["0xbE0F6478E0E4894CFb14f32855603A083A57c7dA"] = this.convexAdapterObj; // cvxFRAX3Crv-f
+    this.liquidityPoolToAdapter["0xB900EF131301B307dB5eFcbed9DBb50A3e209B2e"] = this.convexStakingAdapterObj; // cvxFRAX3Crv-f gauge
   }
 
   getDepositPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {
@@ -123,7 +126,7 @@ export class StrategyManager {
         adapterObj.getWithdrawPlan(
           planner,
           vaultInstance,
-          underlyingToken,
+          iteratorIndex > 0 ? strategySteps[iteratorIndex - 1].outputToken : underlyingToken,
           strategySteps[iteratorIndex].pool,
           strategySteps[iteratorIndex].outputToken,
           strategySteps[iteratorIndex].isSwap,
@@ -141,7 +144,7 @@ export class StrategyManager {
         adapterObj.getWithdrawPlan(
           planner,
           vaultInstance,
-          underlyingToken,
+          iteratorIndex > 0 ? strategySteps[iteratorIndex - 1].outputToken : underlyingToken,
           strategySteps[iteratorIndex].pool,
           strategySteps[iteratorIndex].outputToken,
           strategySteps[iteratorIndex].isSwap,
