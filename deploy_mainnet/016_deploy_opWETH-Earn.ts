@@ -24,10 +24,9 @@ const func: DeployFunction = async ({
   const { deploy } = deployments;
   const { deployer, admin } = await getNamedAccounts();
   const chainId = await getChainId();
-  // const artifact = await deployments.getArtifact("Vault");
-  const artifact = await deployments.getArtifact("VaultMigrator");
+  const artifact = await deployments.getArtifact("Vault");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
-  // const strategyManager = await deployments.get("StrategyManager");
+  const strategyManager = await deployments.get("StrategyManager");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
   const operatorAddress = await registryInstance.getOperator();
   const operator = await hre.ethers.getSigner(operatorAddress);
@@ -114,16 +113,16 @@ const func: DeployFunction = async ({
       deployedBytecode: artifact.deployedBytecode,
     },
     args: [registryProxyAddress],
-    // libraries: {
-    //   "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
-    // },
+    libraries: {
+      "contracts/protocol/lib/StrategyManager.sol:StrategyManager": strategyManager.address,
+    },
     log: true,
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 0,
+      upgradeIndex: networkName == "hardhat" ? 0 : 1,
       proxyContract: "AdminUpgradeabilityProxy",
-      // implementationName: "opWETH-Save_Implementation",
+      implementationName: "opWETH-Save_Implementation",
       execute: {
         init: proxyArgs,
         onUpgrade: proxyArgs,

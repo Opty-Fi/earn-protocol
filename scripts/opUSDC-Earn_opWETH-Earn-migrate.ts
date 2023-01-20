@@ -27,6 +27,8 @@ async function main() {
 
   const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
+  const crvInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.REWARD_TOKENS.CRV);
+  const cvxInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.REWARD_TOKENS.CVX);
 
   const opUSDCEarnHolderAddresses = opUSDCEarnHolders.map(x => x.HolderAddress);
   const opWETHEarnHolderAddresses = opWETHEarnHolders.map(x => x.HolderAddress);
@@ -35,12 +37,12 @@ async function main() {
   const opWETHEarnHolderBalances = [];
 
   for (const opUSDCEarnHolderAddress of opUSDCEarnHolderAddresses) {
-    const balance = await usdcInstance.balanceOf(opUSDCEarnHolderAddress, { blockTag: 16446249 });
+    const balance = await opUSDCEarnOld.balanceOf(opUSDCEarnHolderAddress);
     opUSDCEarnHolderBalances.push(balance);
   }
 
   for (const opWETHEarnHolderAddress of opWETHEarnHolderAddresses) {
-    const balance = await wethInstance.balanceOf(opWETHEarnHolderAddress, { blockTag: 16446249 });
+    const balance = await opWETHEarnOld.balanceOf(opWETHEarnHolderAddress);
     opWETHEarnHolderBalances.push(balance);
   }
 
@@ -64,7 +66,7 @@ async function main() {
         ],
       ]),
     },
-    // transfer WETH from old opWETH-Earn to new opWETH-Earn
+    // transfer WETH,CRV,CVX from old opWETH-Earn to new opWETH-Earn
     {
       to: opWETHEarnOld.address,
       value: "0",
@@ -77,6 +79,26 @@ async function main() {
               wethInstance.interface.encodeFunctionData("transfer", [
                 opWETHEarnNew.address,
                 await wethInstance.balanceOf(opWETHEarnOld.address),
+              ]),
+            ],
+          ),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              crvInstance.address,
+              crvInstance.interface.encodeFunctionData("transfer", [
+                opWETHEarnNew.address,
+                await crvInstance.balanceOf(opWETHEarnOld.address),
+              ]),
+            ],
+          ),
+          ethers.utils.defaultAbiCoder.encode(
+            ["address", "bytes"],
+            [
+              cvxInstance.address,
+              cvxInstance.interface.encodeFunctionData("transfer", [
+                opWETHEarnNew.address,
+                await cvxInstance.balanceOf(opWETHEarnOld.address),
               ]),
             ],
           ),
