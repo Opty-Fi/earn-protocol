@@ -17,22 +17,22 @@ import { VaultV5__factory } from "../../helpers/types/vaultv5";
 async function main() {
   const implementation = (await deployments.get("opWETH-Save")).implementation;
   const vaults: { [name: string]: string } = {
-    // "opWETH-Save": (await deployments.get("opWETH-Save")).address,
-    "opAAVE-Invst": (await deployments.get("opAAVE-Invst")).address,
-    "opAPE-Invst": (await deployments.get("opAPE-Invst")).address,
-    "opDAI-Save": (await deployments.get("opDAI-Save")).address,
-    "opLINK-Invst": (await deployments.get("opLINK-Invst")).address,
-    "opMANA-Invst": (await deployments.get("opMANA-Invst")).address,
-    "opNEWO-Invst": (await deployments.get("opNEWO-Invst")).address,
-    "opSUSHI-Invst": (await deployments.get("opSUSHI-Invst")).address,
-    "opUSD3-Earn": (await deployments.get("opUSD3-Earn")).address,
-    "opUSDC-Invst": (await deployments.get("opUSDC-Invst")).address,
-    // "opUSDC-Earn": (await deployments.get("opUSDC-Earn")).address,
-    "opUSDT-Save": (await deployments.get("opUSDT-Save")).address,
-    "opWBTC-Earn": (await deployments.get("opWBTC-Earn")).address,
-    "opWBTC-Save": (await deployments.get("opWBTC-Save")).address,
-    // "opWETH-Earn": (await deployments.get("opWETH-Earn")).address,
-    "opWETH-Invst": (await deployments.get("opWETH-Invst")).address,
+    // // "opWETH-Save": (await deployments.get("opWETH-Save")).address,
+    // "opAAVE-Invst": (await deployments.get("opAAVE-Invst")).address,
+    // "opAPE-Invst": (await deployments.get("opAPE-Invst")).address,
+    // "opDAI-Save": (await deployments.get("opDAI-Save")).address,
+    // "opLINK-Invst": (await deployments.get("opLINK-Invst")).address,
+    // "opMANA-Invst": (await deployments.get("opMANA-Invst")).address,
+    // "opNEWO-Invst": (await deployments.get("opNEWO-Invst")).address,
+    // "opSUSHI-Invst": (await deployments.get("opSUSHI-Invst")).address,
+    // "opUSD3-Earn": (await deployments.get("opUSD3-Earn")).address,
+    // "opUSDC-Invst": (await deployments.get("opUSDC-Invst")).address,
+    "opUSDC-Earn": (await deployments.get("opUSDC-Earn")).address,
+    // "opUSDT-Save": (await deployments.get("opUSDT-Save")).address,
+    // "opWBTC-Earn": (await deployments.get("opWBTC-Earn")).address,
+    // "opWBTC-Save": (await deployments.get("opWBTC-Save")).address,
+    "opWETH-Earn": (await deployments.get("opWETH-Earn")).address,
+    // "opWETH-Invst": (await deployments.get("opWETH-Invst")).address,
   };
 
   const transactions: MetaTransactionData[] = [];

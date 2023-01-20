@@ -20,12 +20,8 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
   .addOptionalParam("beneficiary", "beneficiary of DEPOSIT or WITHDRAW", "", types.string)
   .addOptionalParam("useAll", "use whole balance", false, types.boolean)
   .addOptionalParam("amount", "amount of token", "0", types.string)
-  .addOptionalParam("expectedOutput", "minimum amount of vault tokens minted after fees", "0", types.string)
   .setAction(
-    async (
-      { vaultSymbol, action, user, beneficiary, amount, expectedOutput, useAll, merkleProof },
-      { ethers, deployments },
-    ) => {
+    async ({ vaultSymbol, action, user, beneficiary, amount, useAll, merkleProof }, { ethers, deployments }) => {
       const ACTIONS = ["DEPOSIT", "WITHDRAW", "REBALANCE", "VAULT-DEPOSIT-ALL-TO-STRATEGY"];
 
       if (!ACTIONS.includes(action.toUpperCase())) {
@@ -34,13 +30,6 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
 
       if (!useAll && !BigNumber.from(amount).gt("0") && action.toUpperCase() != "REBALANCE") {
         throw new Error("amount is not set");
-      }
-
-      if (
-        !BigNumber.from(expectedOutput).gt("0") &&
-        (action.toUpperCase() != "REBALANCE" || action.toUpperCase() != "VAULT-DEPOSIT-ALL-TO-STRATEGY")
-      ) {
-        throw new Error("expected output amount not set");
       }
 
       try {
@@ -106,12 +95,12 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
                 const depositTx = await vaultContract
                   .connect(userSigner)
-                  .userDepositVault(beneficiary, checkedAmount, expectedOutput, [], merkleProof.split(","));
+                  .userDepositVault(beneficiary, checkedAmount, [], merkleProof.split(","));
                 await depositTx.wait(1);
               } else {
                 const depositTx = await vaultContract
                   .connect(userSigner)
-                  .userDepositVault(beneficiary, checkedAmount, expectedOutput, [], []);
+                  .userDepositVault(beneficiary, checkedAmount, [], []);
                 await depositTx.wait(1);
               }
               console.log("Block after : ", await ethers.provider.getBlockNumber());
@@ -173,20 +162,20 @@ task(TASKS.ACTION_TASKS.VAULT_ACTIONS.NAME, TASKS.ACTION_TASKS.VAULT_ACTIONS.DES
               if (getAllowWhitelistState(await vaultContract.vaultConfiguration())) {
                 const gasLimit = await vaultContract
                   .connect(userSigner)
-                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, expectedOutput, merkleProof.split(","));
+                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, merkleProof.split(","));
                 const withdrawTx = await vaultContract
                   .connect(userSigner)
-                  .userWithdrawVault(beneficiary, checkedAmount, expectedOutput, merkleProof.split(","), {
+                  .userWithdrawVault(beneficiary, checkedAmount, merkleProof.split(","), {
                     gasLimit: gasLimit.add("1000000"),
                   });
                 await withdrawTx.wait(1);
               } else {
                 const gasLimit = await vaultContract
                   .connect(userSigner)
-                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, expectedOutput, []);
+                  .estimateGas.userWithdrawVault(beneficiary, checkedAmount, []);
                 const withdrawTx = await vaultContract
                   .connect(userSigner)
-                  .userWithdrawVault(beneficiary, checkedAmount, expectedOutput, [], {
+                  .userWithdrawVault(beneficiary, checkedAmount, [], {
                     gasLimit: gasLimit.add("1000000"),
                   });
                 await withdrawTx.wait(1);

@@ -26,7 +26,6 @@ const func: DeployFunction = async ({
   const chainId = await getChainId();
   // const artifact = await deployments.getArtifact("Vault");
   const artifact = await deployments.getArtifact("VaultMigrator");
-  const artifactVaultProxyV2 = await deployments.getArtifact("AdminUpgradeabilityProxy");
   const registryProxyAddress = (await deployments.get("RegistryProxy")).address;
   // const strategyManager = await deployments.get("StrategyManager");
   const registryInstance = await hre.ethers.getContractAt(ESSENTIAL_CONTRACTS.REGISTRY, registryProxyAddress);
@@ -123,12 +122,7 @@ const func: DeployFunction = async ({
     proxy: {
       owner: admin,
       upgradeIndex: networkName == "hardhat" ? 0 : 0,
-      // proxyContract: "AdminUpgradeabilityProxy",
-      proxyContract: {
-        abi: artifactVaultProxyV2.abi,
-        bytecode: artifactVaultProxyV2.bytecode,
-        deployedBytecode: artifactVaultProxyV2.deployedBytecode,
-      },
+      proxyContract: "AdminUpgradeabilityProxy",
       // implementationName: "opWETH-Save_Implementation",
       execute: {
         init: proxyArgs,
