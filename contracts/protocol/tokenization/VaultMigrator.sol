@@ -20,9 +20,9 @@ import { DataTypes } from "../earn-protocol-configuration/contracts/libraries/ty
 import { IRegistry } from "../earn-protocol-configuration/contracts/interfaces/opty/IRegistry.sol";
 
 /**
- * @title Vault contract inspired by AAVE V3's AToken.sol
+ * @title Vault Migrator
  * @author opty.fi
- * @notice Implementation of the risk specific interest bearing vault
+ * @notice Implementation to admin mint the opToken
  */
 
 contract VaultMigrator is
