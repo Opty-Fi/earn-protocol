@@ -36,7 +36,7 @@ const func: DeployFunction = async ({
       bytecode: artifact.bytecode,
       deployedBytecode: artifact.deployedBytecode,
     },
-    args: [registryProxyAddress],
+    args: [registryProxyAddress, EthereumTokens.WRAPPED_TOKENS.WETH],
     log: true,
     skipIfAlreadyDeployed: true,
     maxPriorityFeePerGas: BigNumber.from(feeData["maxPriorityFeePerGas"]), // Recommended maxPriorityFeePerGas
@@ -50,7 +50,7 @@ const func: DeployFunction = async ({
         await tenderly.verify({
           name: "CurveHelper",
           address: curvehelper.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, EthereumTokens.WRAPPED_TOKENS.WETH],
           contract: "CurveHelper",
         });
       } else if (!["31337"].includes(chainId)) {
@@ -59,7 +59,7 @@ const func: DeployFunction = async ({
         await run("verify:verify", {
           name: "CurveHelper",
           address: curvehelper.address,
-          constructorArguments: [registryProxyAddress],
+          constructorArguments: [registryProxyAddress, EthereumTokens.WRAPPED_TOKENS.WETH],
           contract: "CurveHelper",
         });
       }
@@ -74,8 +74,12 @@ const func: DeployFunction = async ({
   );
 
   const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+  const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
   const threeCrvInstance = <ERC20>(
     await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.THREE_CRV)
+  );
+  const steCRVInstance = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, Curve.CurveSwapPool["eth_eth+steth"].lpToken)
   );
 
   const usdcThreeCrvAllowance = await usdcInstance.allowance(
@@ -88,6 +92,21 @@ const func: DeployFunction = async ({
     Curve.CurveMetapoolSwap.pools["3crv_frax+3crv"].pool,
   );
 
+  const threeCrvMimAllowance = await threeCrvInstance.allowance(
+    curveHelperInstance.address,
+    Curve.CurveMetapoolSwap.pools["3crv_mim+3crv"].pool,
+  );
+
+  const wethsteCRVAllowance = await wethInstance.allowance(
+    curveHelperInstance.address,
+    Curve.CurveSwapPool["eth_eth+steth"].pool,
+  );
+
+  const steCRVCurveAllowance = await steCRVInstance.allowance(
+    curveHelperInstance.address,
+    Curve.CurveSwapPool["eth_eth+steth"].pool,
+  );
+
   if (!usdcThreeCrvAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(usdcInstance.address);
     approvalSpender.push(Curve.CurveSwapPool.usdc_3crv.pool);
@@ -96,6 +115,21 @@ const func: DeployFunction = async ({
   if (!threeCrvCurveFraxAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(threeCrvInstance.address);
     approvalSpender.push(Curve.CurveMetapoolSwap.pools["3crv_frax+3crv"].pool);
+  }
+
+  if (!threeCrvMimAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(threeCrvInstance.address);
+    approvalSpender.push(Curve.CurveMetapoolSwap.pools["3crv_mim+3crv"].pool);
+  }
+
+  if (!wethsteCRVAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(wethInstance.address);
+    approvalSpender.push(Curve.CurveSwapPool["eth_eth+steth"].pool);
+  }
+
+  if (!steCRVCurveAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(steCRVInstance.address);
+    approvalSpender.push(Curve.CurveSwapPool["eth_eth+steth"].pool);
   }
 
   if (approvalTokens.length > 0) {

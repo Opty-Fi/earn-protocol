@@ -1,6 +1,7 @@
 import { BigNumber, Contract } from "ethers";
 import { ethers } from "@weiroll/weiroll.js/node_modules/ethers";
 import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import { ReturnValue } from "../../type";
 import { ICurveSwap__factory } from "../../../typechain";
 import { getAddress } from "ethers/lib/utils";
@@ -241,13 +242,25 @@ export class CurveAdapter implements AdapterInterface {
     const minimumWithdrawAmount = planner.add(
       this.vaultHelperInstance["getMinimumExpectedTokenOutPrice(uint256,uint256)"](withdrawAmount, 300).staticcall(),
     );
-    planner.add(
-      poolInstance["remove_liquidity_one_coin(uint256,int128,uint256)"](
-        outputTokenAmount,
-        tokenIndex,
-        minimumWithdrawAmount,
-      ),
-    );
+    if (getAddress(inputToken) === getAddress(EthereumTokens.WRAPPED_TOKENS.WETH)) {
+      planner.add(
+        this.curveHelperInstance["withdrawETH(address,address,uint256,uint256,int128)"](
+          pool,
+          outputToken,
+          outputTokenAmount,
+          minimumWithdrawAmount,
+          tokenIndex,
+        ),
+      );
+    } else {
+      planner.add(
+        poolInstance["remove_liquidity_one_coin(uint256,int128,uint256)"](
+          outputTokenAmount,
+          tokenIndex,
+          minimumWithdrawAmount,
+        ),
+      );
+    }
     return planner;
   }
 
@@ -592,5 +605,11 @@ const poolRegistry: { [key: string]: { underlyingTokens: string[] } } = {
   },
   "0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B": {
     underlyingTokens: ["0x853d955aCEf822Db058eb8505911ED77F175b99e", "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"],
+  },
+  "0x5a6A4D54456819380173272A5E8E9B9904BdF41B": {
+    underlyingTokens: ["0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3", "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"],
+  },
+  "0xDC24316b9AE028F1497c275EB9192a3Ea0f67022": {
+    underlyingTokens: ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"],
   },
 };

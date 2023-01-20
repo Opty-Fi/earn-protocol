@@ -5,6 +5,8 @@ import { getAddress, parseEther, parseUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import EthereumUniswapV2 from "@optyfi/defi-legos/ethereum/uniswapV2/index";
+import Curve from "@optyfi/defi-legos/ethereum/curve/index";
+import Convex from "@optyfi/defi-legos/ethereum/convex/index";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../helpers/constants/tokens";
 import { waitforme } from "../helpers/utils";
 import { ESSENTIAL_CONTRACTS } from "../helpers/constants/essential-contracts-name";
@@ -156,11 +158,20 @@ const func: DeployFunction = async ({
     await ethers.getContractAt(Vault__factory.abi, (await deployments.get("opWETH-Earn_Proxy")).address)
   );
 
+  const curveHelperInstance = <Vault>(
+    await ethers.getContractAt(Vault__factory.abi, (await deployments.get("CurveHelper")).address)
+  );
+
   const approvalTokens = [];
   const approvalSpender = [];
 
+  const BOOSTER_DEPOSIT_POOL = "0xF403C135812408BFbE8713b5A23a04b3D48AAE31";
   const wethInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.WRAPPED_TOKENS.WETH);
   const usdcInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, EthereumTokens.PLAIN_TOKENS.USDC);
+  const steCRVInstance = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, Curve.CurveSwapPool["eth_eth+steth"].lpToken)
+  );
+  const cvxsteCRVInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, Convex.pools.steth.lpToken);
 
   const wethSushiswapAllowance = await wethInstance.allowance(
     vaultInstance.address,
@@ -171,6 +182,16 @@ const func: DeployFunction = async ({
     EthereumUniswapV2.router02.address,
   );
 
+  const wethCurveHelperAllowance = await wethInstance.allowance(vaultInstance.address, curveHelperInstance.address);
+
+  const steCRVConvexAllowance = await steCRVInstance.allowance(vaultInstance.address, BOOSTER_DEPOSIT_POOL);
+  const steCRVCurveHelperAllowance = await steCRVInstance.allowance(vaultInstance.address, curveHelperInstance.address);
+
+  const cvxsteCRVConvexStakingAllownce = await cvxsteCRVInstance.allowance(
+    vaultInstance.address,
+    Convex.pools.steth.stakingPool,
+  );
+
   if (!wethSushiswapAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(wethInstance.address);
     approvalSpender.push(EthereumUniswapV2.router02.address);
@@ -179,6 +200,26 @@ const func: DeployFunction = async ({
   if (!usdcSushiswapAllowance.gt(parseUnits("1000000", "6"))) {
     approvalTokens.push(usdcInstance.address);
     approvalSpender.push(EthereumUniswapV2.router02.address);
+  }
+
+  if (!wethCurveHelperAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(wethInstance.address);
+    approvalSpender.push(curveHelperInstance.address);
+  }
+
+  if (!steCRVConvexAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(steCRVInstance.address);
+    approvalSpender.push(BOOSTER_DEPOSIT_POOL);
+  }
+
+  if (!cvxsteCRVConvexStakingAllownce.gt(parseEther("1000000"))) {
+    approvalTokens.push(cvxsteCRVInstance.address);
+    approvalSpender.push(Convex.pools.steth.stakingPool);
+  }
+
+  if (!steCRVCurveHelperAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(steCRVInstance.address);
+    approvalSpender.push(curveHelperInstance.address);
   }
 
   if (approvalTokens.length > 0) {

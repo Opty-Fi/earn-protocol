@@ -177,6 +177,10 @@ const func: DeployFunction = async ({
     await ethers.getContractAt(ERC20__factory.abi, Curve.CurveMetapoolSwap.pools["3crv_frax+3crv"].lpToken)
   );
   const cvxFraxThreeCrvInstance = <ERC20>await ethers.getContractAt(ERC20__factory.abi, Convex.pools.frax.lpToken);
+  const mimThreeCrvLpInstance = <ERC20>(
+    await ethers.getContractAt(ERC20__factory.abi, Curve.CurveMetapoolSwap.pools["3crv_mim+3crv"].lpToken)
+  );
+  const cvxmimThreeCrvLpInstance = await ethers.getContractAt(ERC20__factory.abi, Convex.pools.mim.lpToken);
 
   const usdcAaveV1Allowance = await usdcInstance.allowance(vaultInstance.address, AaveV1.LendingPoolCore.address);
   const usdcAaveV2Allowance = await usdcInstance.allowance(vaultInstance.address, AaveV2.LendingPool.address);
@@ -220,6 +224,13 @@ const func: DeployFunction = async ({
   const cvxFraxThreeCrvConvexStakingAllowance = await cvxFraxThreeCrvInstance.allowance(
     vaultInstance.address,
     Convex.pools.frax.stakingPool,
+  );
+
+  const cvxMimConvexAllowance = await mimThreeCrvLpInstance.allowance(vaultInstance.address, BOOSTER_DEPOSIT_POOL);
+
+  const mimThreeCrvConvexStakingAllowance = await cvxmimThreeCrvLpInstance.allowance(
+    vaultInstance.address,
+    Convex.pools.mim.stakingPool,
   );
 
   if (!usdcAaveV1Allowance.gt(parseUnits("1000000", "6"))) {
@@ -295,6 +306,16 @@ const func: DeployFunction = async ({
   if (!cvxFraxThreeCrvConvexStakingAllowance.gt(parseEther("1000000"))) {
     approvalTokens.push(cvxFraxThreeCrvInstance.address);
     approvalSpender.push(Convex.pools.frax.stakingPool);
+  }
+
+  if (!cvxMimConvexAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(mimThreeCrvLpInstance.address);
+    approvalSpender.push(BOOSTER_DEPOSIT_POOL);
+  }
+
+  if (!mimThreeCrvConvexStakingAllowance.gt(parseEther("1000000"))) {
+    approvalTokens.push(cvxmimThreeCrvLpInstance.address);
+    approvalSpender.push(Convex.pools.mim.stakingPool);
   }
 
   if (approvalTokens.length > 0) {

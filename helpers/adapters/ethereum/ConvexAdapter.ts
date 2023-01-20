@@ -158,4 +158,10 @@ const lpTokenToPoolData: { [key: string]: { pid: number } } = {
   "0xbE0F6478E0E4894CFb14f32855603A083A57c7dA": {
     pid: 32,
   },
+  "0xabB54222c2b77158CC975a2b715a3d703c256F05": {
+    pid: 40,
+  },
+  "0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0": {
+    pid: 25,
+  },
 };

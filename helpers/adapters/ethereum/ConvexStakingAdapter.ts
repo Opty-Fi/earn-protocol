@@ -264,6 +264,17 @@ export class ConvexStakingAdapter implements AdapterInterface {
         );
         break;
       }
+      case getAddress(EthereumTokens.WRAPPED_TOKENS.WETH): {
+        univ3PathCRV = ethers.utils.solidityPack(
+          ["address", "uint24", "address"],
+          [EthereumTokens.REWARD_TOKENS.CRV, 3000, EthereumTokens.WRAPPED_TOKENS.WETH],
+        );
+        univ3PathCVX = ethers.utils.solidityPack(
+          ["address", "uint24", "address"],
+          [EthereumTokens.REWARD_TOKENS.CVX, 10000, EthereumTokens.WRAPPED_TOKENS.WETH],
+        );
+        break;
+      }
     }
 
     planner.add(

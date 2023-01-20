@@ -67,6 +67,12 @@ export class StrategyManager {
     this.liquidityPoolToAdapter["0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B"] = this.curveAdapterObj; // frax3crv-f
     this.liquidityPoolToAdapter["0xbE0F6478E0E4894CFb14f32855603A083A57c7dA"] = this.convexAdapterObj; // cvxFRAX3Crv-f
     this.liquidityPoolToAdapter["0xB900EF131301B307dB5eFcbed9DBb50A3e209B2e"] = this.convexStakingAdapterObj; // cvxFRAX3Crv-f gauge
+    this.liquidityPoolToAdapter["0x5a6A4D54456819380173272A5E8E9B9904BdF41B"] = this.curveAdapterObj; // curve mim-3lp3crv-f
+    this.liquidityPoolToAdapter["0xabB54222c2b77158CC975a2b715a3d703c256F05"] = this.convexAdapterObj; // convex cvxMIM-3LP3CRV-f
+    this.liquidityPoolToAdapter["0xFd5AbF66b003881b88567EB9Ed9c651F14Dc4771"] = this.convexStakingAdapterObj; // convex cvxMIM-3LP3CRV-f-stake
+    this.liquidityPoolToAdapter["0xDC24316b9AE028F1497c275EB9192a3Ea0f67022"] = this.curveAdapterObj; // curve steCRV
+    this.liquidityPoolToAdapter["0x9518c9063eB0262D791f38d8d6Eb0aca33c63ed0"] = this.convexAdapterObj; // convex cvxsteCRV
+    this.liquidityPoolToAdapter["0x0A760466E1B4621579a82a39CB56Dda2F4E70f03"] = this.convexStakingAdapterObj; // convex cvssteCRV-stake
   }
 
   getDepositPlan(underlyingToken: string, strategySteps: StrategyStepType[], vaultInstance: Contract): WeirollPlan {

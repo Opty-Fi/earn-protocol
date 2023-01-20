@@ -7,6 +7,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { IWETH } from "@optyfi/defi-legos/interfaces/misc/contracts/IWETH.sol";
 import { ICurveSwap } from "@optyfi/defi-legos/ethereum/curve/contracts/interfacesV0/ICurveSwap.sol";
+import { ICurveETHSwapV1 as ICurveETHSwap } from "@optyfi/defi-legos/ethereum/curve/contracts/ICurveETHSwapV1.sol";
 
 //  helper contracts
 import { Modifiers } from "../../earn-protocol-configuration/contracts/Modifiers.sol";
@@ -17,10 +18,11 @@ import { Errors } from "../../../utils/Errors.sol";
 contract CurveHelper is Modifiers {
     using SafeERC20 for IERC20;
 
-    /* solhint-disable no-empty-blocks*/
-    constructor(address _registry) public Modifiers(_registry) {}
+    IWETH public immutable WETH;
 
-    /* solhint-enable no-empty-blocks*/
+    constructor(address _registry, IWETH _weth) public Modifiers(_registry) {
+        WETH = _weth;
+    }
 
     // solhint-disable-next-line func-name-mixedcase
     function addLiquidity_two_coin_zero_index_Curve(
@@ -35,7 +37,12 @@ contract CurveHelper is Modifiers {
         uint256 _underlyingTokenBalanceAfter = IERC20(_underlyingToken).balanceOf(address(this));
         uint256 _actualAmount = _underlyingTokenBalanceAfter - _underlyingTokenBalanceBefore;
         uint256 _balanceBeforeLP = IERC20(_liquidityPoolToken).balanceOf(address(this));
-        ICurveSwap(_pool).add_liquidity([_actualAmount, 0], _minMintAmount);
+        if (_underlyingToken == address(WETH)) {
+            WETH.withdraw(_actualAmount);
+            ICurveETHSwap(_pool).add_liquidity{ value: _actualAmount }([_actualAmount, 0], _minMintAmount);
+        } else {
+            ICurveSwap(_pool).add_liquidity([_actualAmount, 0], _minMintAmount);
+        }
         uint256 _balanceAfterLP = IERC20(_liquidityPoolToken).balanceOf(address(this));
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
@@ -184,6 +191,25 @@ contract CurveHelper is Modifiers {
         IERC20(_liquidityPoolToken).safeTransfer(msg.sender, _balanceAfterLP - _balanceBeforeLP);
     }
 
+    function withdrawETH(
+        address _pool,
+        address _liquidityPoolToken,
+        uint256 _amount,
+        uint256 _minMintAmount,
+        int128 _tokenIndex
+    ) external {
+        uint256 _lpTokenBalanceBefore = IERC20(_liquidityPoolToken).balanceOf(address(this));
+        IERC20(_liquidityPoolToken).transferFrom(msg.sender, address(this), _amount);
+        uint256 _lpTokenBalanceAfter = IERC20(_liquidityPoolToken).balanceOf(address(this));
+        uint256 _actualLpTokenAmount = _lpTokenBalanceAfter - _lpTokenBalanceBefore;
+        uint256 _ethBalanceBefore = address(this).balance;
+        ICurveETHSwap(_pool).remove_liquidity_one_coin(_actualLpTokenAmount, _tokenIndex, _minMintAmount);
+        uint256 _ethBalanceAfter = address(this).balance;
+        uint256 _actualEthReceived = _ethBalanceAfter - _ethBalanceBefore;
+        WETH.deposit{ value: _actualEthReceived }();
+        IERC20(address(WETH)).transfer(msg.sender, _actualEthReceived);
+    }
+
     // solhint-disable-next-line func-name-mixedcase
     function getMintAmount_two_coin_zero_index_Curve(
         address _pool,
@@ -292,4 +318,8 @@ contract CurveHelper is Modifiers {
             _tokens[_i].safeApprove(_spenders[_i], 0);
         }
     }
+
+    /* solhint-disable no-empty-blocks*/
+    receive() external payable {}
+    /* solhint-enable no-empty-blocks*/
 }
