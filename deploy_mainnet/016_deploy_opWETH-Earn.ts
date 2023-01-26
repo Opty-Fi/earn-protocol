@@ -96,13 +96,13 @@ const func: DeployFunction = async ({
     args: [
       registryProxyAddress, //address _registry
       MULTI_CHAIN_VAULT_TOKENS[chainId].WETH.hash, //bytes32 _underlyingTokensHash
-      "0x1f241a0f2460742481da49475eb1683fb84eb69cf3da43519a8b701f3309f783", //bytes32 _whitelistedAccountsRoot
+      "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694", //bytes32 _whitelistedAccountsRoot
       "WETH", //string memory _symbol
       "1", //uint256 _riskProfileCode
-      "907136802102229675083754464877550363794833538656521846052285629999509143552", //uint256 _vaultConfiguration
-      "115792089237316195423570985008687907853269984665640564039457584007913129639935", //uint256 _userDepositCapUT
+      "907526671970000184333670559907166992856131736632788760499285483235496165376", //uint256 _vaultConfiguration
+      "60000000000000000000", //uint256 _userDepositCapUT
       "0", //uint256 _minimumDepositValueUT
-      "6666000000000000000000", //uint256 _totalValueLockedLimitUT
+      "6000000000000000000000", //uint256 _totalValueLockedLimitUT
     ],
   };
   const result = await deploy("opWETH-Earn", {
@@ -120,7 +120,7 @@ const func: DeployFunction = async ({
     skipIfAlreadyDeployed: true,
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 3,
+      upgradeIndex: networkName == "hardhat" ? 0 : 1,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Save_Implementation",
       execute: {

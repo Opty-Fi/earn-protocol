@@ -99,7 +99,7 @@ const func: DeployFunction = async ({
       "0x62689e8751ba85bee0855c30d61d17345faa5b23e82626a83f8d63db50d67694", //bytes32 _whitelistedAccountsRoot
       "USDC", //string memory _symbol
       "1", //uint256 _riskProfileCode
-      "905369955037451290754171167376807445279006054759646228016501227483694104576", //uint256 _vaultConfiguration
+      "907526671970000184333670559907166992856131736632788761421622686920973746176", //uint256 _vaultConfiguration
       "100000000000", //uint256 _userDepositCapUT
       "0", //uint256 _minimumDepositValueUT
       "10000000000000", //uint256 _totalValueLockedLimitUT
@@ -120,7 +120,7 @@ const func: DeployFunction = async ({
     },
     proxy: {
       owner: admin,
-      upgradeIndex: networkName == "hardhat" ? 0 : 3,
+      upgradeIndex: networkName == "hardhat" ? 0 : 1,
       proxyContract: "AdminUpgradeabilityProxy",
       implementationName: "opWETH-Save_Implementation",
       execute: {
