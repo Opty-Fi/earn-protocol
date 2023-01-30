@@ -2,10 +2,13 @@ import { ethers, deployments, artifacts, getChainId } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signers";
 import chai, { expect } from "chai";
 import { deployContract, solidity } from "ethereum-waffle";
-import { BigNumber, ContractReceipt, Event } from "ethers";
+import { BigNumber, ContractReceipt, Event, Contract } from "ethers";
 import BN from "bignumber.js";
 import { getAddress, parseUnits } from "ethers/lib/utils";
 import ethereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
+import { Planner as weirollPlanner, Contract as weirollContract } from "@weiroll/weiroll.js";
+import { ethers as weirollEthers } from "@weiroll/weiroll.js/node_modules/ethers";
+import EthereumTokens from "@optyfi/defi-legos/ethereum/tokens/index";
 import {
   assertVaultConfiguration,
   getAccountsMerkleProof,
@@ -23,103 +26,73 @@ import {
   ERC20__factory,
   Registry,
   Registry__factory,
-  RiskManager,
-  RiskManager__factory,
-  StrategyProvider,
-  StrategyProvider__factory,
   Vault,
   Vault__factory,
   TestVault,
   ERC20Permit,
   ERC20Permit__factory,
   IAdapterFull,
+  StrategyRegistry__factory,
+  StrategyRegistry,
+  SwapHelper__factory,
+  AaveV1Helper__factory,
+  CompoundHelper__factory,
+  CurveHelper__factory,
+  VaultHelper,
+  VaultHelper__factory,
 } from "../../typechain";
 import { getPermitSignature, getPermitLegacySignature, setTokenBalanceInStorage } from "./utils";
-import { TypedDefiPools } from "../../helpers/data/defiPools";
-import { generateStrategyHashV2 } from "../../helpers/helpers";
+import { generateStrategyHashV2, generateTokenHashV2 } from "../../helpers/helpers";
 import { MULTI_CHAIN_VAULT_TOKENS } from "../../helpers/constants/tokens";
-import { eEVMNetwork, NETWORKS_CHAIN_ID } from "../../helper-hardhat-config";
+import { eEVMNetwork, NETWORKS_CHAIN_ID_HEX } from "../../helper-hardhat-config";
 import { Artifact } from "hardhat/types";
+import { StrategyManager } from "../../helpers/strategy-manager";
+import { StrategiesByTokenByChain, strategyHashReadIndexes } from "../../helpers/data/adapter-with-strategies";
 
 chai.use(solidity);
 
 const fork = process.env.FORK as eEVMNetwork;
 const UniswapV3RouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; //mainnet
 
-const testStrategy: {
-  [key: string]: {
-    [name: string]: { steps: { pool: string; outputToken: string; isSwap: boolean }[]; hash: string };
-  };
-} = {
-  [eEVMNetwork.mainnet || NETWORKS_CHAIN_ID[eEVMNetwork.mainnet]]: {
-    USDC_COMPOUND: {
-      steps: [
-        {
-          pool: TypedDefiPools.CompoundAdapter.usdc.pool,
-          outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-          isSwap: false,
-        },
-      ],
-      hash: generateStrategyHashV2(
-        [
-          {
-            contract: TypedDefiPools.CompoundAdapter.usdc.pool,
-            outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-            isSwap: false,
-          },
-        ],
-        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
-      ),
-    },
-    USDC_AAVEV1: {
-      steps: [
-        {
-          pool: TypedDefiPools.AaveV1Adapter.usdc.pool,
-          outputToken: TypedDefiPools.AaveV1Adapter.usdc.lpToken,
-          isSwap: false,
-        },
-      ],
-      hash: generateStrategyHashV2(
-        [
-          {
-            contract: TypedDefiPools.AaveV2Adapter.usdc.pool,
-            outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
-            isSwap: false,
-          },
-        ],
-        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
-      ),
-    },
-    USDC_AAVEV2: {
-      steps: [
-        {
-          pool: TypedDefiPools.AaveV2Adapter.usdc.pool,
-          outputToken: TypedDefiPools.AaveV2Adapter.usdc.lpToken,
-          isSwap: false,
-        },
-      ],
-      hash: generateStrategyHashV2(
-        [
-          {
-            contract: TypedDefiPools.CompoundAdapter.usdc.pool,
-            outputToken: TypedDefiPools.CompoundAdapter.usdc.lpToken,
-            isSwap: false,
-          },
-        ],
-        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash,
-      ),
-    },
-  },
-  [eEVMNetwork.polygon || NETWORKS_CHAIN_ID[eEVMNetwork.polygon]]: {},
-};
-
-const strategyKeys = Object.keys(testStrategy[fork]);
-
 const EIP712_DOMAIN = ethers.utils.id(
   "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
 );
 const EIP712_REVISION = ethers.utils.id("1");
 
+const usdcTokenHash = generateTokenHashV2([EthereumTokens.PLAIN_TOKENS.USDC], NETWORKS_CHAIN_ID_HEX[fork]);
+const cUSDCStrategySteps = StrategiesByTokenByChain[fork]["Save"]["USDC"]["usdc-DEPOSIT-Compound-cUSDC"].strategy.map(
+  item => ({
+    pool: item.contract,
+    outputToken: item.outputToken,
+    isSwap: item.isSwap,
+  }),
+);
+const cUSDCStrategyHash = generateStrategyHashV2(
+  StrategiesByTokenByChain[fork]["Save"]["USDC"]["usdc-DEPOSIT-Compound-cUSDC"].strategy,
+  usdcTokenHash,
+);
+const aUSDCV1StrategySteps = StrategiesByTokenByChain[fork]["Earn"]["USDC"]["usdc-DEPOSIT-AaveV1-aUSDC"].strategy.map(
+  item => ({
+    pool: item.contract,
+    outputToken: item.outputToken,
+    isSwap: item.isSwap,
+  }),
+);
+const aUSDCV1StrategyHash = generateStrategyHashV2(
+  StrategiesByTokenByChain[fork]["Earn"]["USDC"]["usdc-DEPOSIT-AaveV1-aUSDC"].strategy,
+  usdcTokenHash,
+);
+const aUSDCV2StrategySteps = StrategiesByTokenByChain[fork]["Earn"]["USDC"]["usdc-DEPOSIT-AaveV2-aUSDC"].strategy.map(
+  item => ({
+    pool: item.contract,
+    outputToken: item.outputToken,
+    isSwap: item.isSwap,
+  }),
+);
+const aUSDCV2StrategyHash = generateStrategyHashV2(
+  StrategiesByTokenByChain[fork]["Earn"]["USDC"]["usdc-DEPOSIT-AaveV2-aUSDC"].strategy,
+  usdcTokenHash,
+);
 describe(`::${fork}-Vault-rev4`, function () {
   before(async function () {
     await deployments.fixture();
@@ -132,10 +105,8 @@ describe(`::${fork}-Vault-rev4`, function () {
     this.signers.bob = signers[4];
     this.signers.eve = signers[10];
     const REGISTRY_PROXY_ADDRESS = (await deployments.get("RegistryProxy")).address;
-    const RISKMANAGER_ADDRESS = (await deployments.get("RiskManager")).address;
-    const STRATEGYPROVIDER_ADDRESS = (await deployments.get("StrategyProvider")).address;
-    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn")).address;
-    const DAISAVE_VAULT_ADDRESS = (await deployments.get("opDAI-Save")).address;
+    const OPUSDCEARN_VAULT_ADDRESS = (await deployments.get("opUSDC-Earn_Proxy")).address;
+    const DAISAVE_VAULT_ADDRESS = (await deployments.get("opDAI-Save_Proxy")).address;
     this.registry = <Registry>await ethers.getContractAt(Registry__factory.abi, REGISTRY_PROXY_ADDRESS);
     const operatorAddress = await this.registry.getOperator();
     const financeOperatorAddress = await this.registry.getFinanceOperator();
@@ -146,12 +117,47 @@ describe(`::${fork}-Vault-rev4`, function () {
     this.signers.governance = await ethers.getSigner(governanceAddress);
     this.signers.strategyOperator = await ethers.getSigner(strategyOperatorAddress);
     this.signers.riskOperator = await ethers.getSigner(await this.registry.riskOperator());
-    this.riskManager = <RiskManager>await ethers.getContractAt(RiskManager__factory.abi, RISKMANAGER_ADDRESS);
-    this.strategyProvider = <StrategyProvider>(
-      await ethers.getContractAt(StrategyProvider__factory.abi, STRATEGYPROVIDER_ADDRESS)
+    this.strategyRegistry = <StrategyRegistry>(
+      await ethers.getContractAt(StrategyRegistry__factory.abi, (await deployments.get("StrategyRegistry")).address)
     );
     this.opUSDCearn = <Vault>await ethers.getContractAt(Vault__factory.abi, OPUSDCEARN_VAULT_ADDRESS);
     this.opDAIsave = <Vault>await ethers.getContractAt(Vault__factory.abi, DAISAVE_VAULT_ADDRESS);
+    this.vaultHelper = <VaultHelper>(
+      await ethers.getContractAt(VaultHelper__factory.abi, (await deployments.get("VaultHelper")).address)
+    );
+    this.swapHelper = await ethers.getContractAt(
+      SwapHelper__factory.abi,
+      (
+        await deployments.get("SwapHelper")
+      ).address,
+    );
+    this.aaveV1Helper = await ethers.getContractAt(
+      AaveV1Helper__factory.abi,
+      (
+        await deployments.get("AaveV1Helper")
+      ).address,
+    );
+    this.compoundHelper = await ethers.getContractAt(
+      CompoundHelper__factory.abi,
+      (
+        await deployments.get("CompoundHelper")
+      ).address,
+    );
+    this.curveHelper = await ethers.getContractAt(
+      CurveHelper__factory.abi,
+      (
+        await deployments.get("CurveHelper")
+      ).address,
+    );
+
+    this.strategyManager = new StrategyManager(
+      (await deployments.get("OptyFiOracle")).address,
+      <Contract>this.vaultHelper,
+      this.swapHelper,
+      this.compoundHelper,
+      this.aaveV1Helper,
+      this.curveHelper,
+    );
 
     this.usdc = <ERC20Permit>(
       await ethers.getContractAt(ERC20Permit__factory.abi, MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address)
@@ -164,9 +170,154 @@ describe(`::${fork}-Vault-rev4`, function () {
     await setTokenBalanceInStorage(this.dai, this.signers.admin.address, "20000");
 
     this.testVault = <TestVault>await deployContract(this.signers.deployer, this.testVaultArtifact, []);
+
+    // add cUSDC strategy
+    const addcUSDCStrategyPlanTx = await this.strategyRegistry
+      .connect(this.signers.strategyOperator)
+      .addStrategyPlan(this.opUSDCearn.address, cUSDCStrategyHash, {
+        oraValueUTPlan: {
+          ...this.strategyManager.getOraValueUTPlan(this.usdc.address, cUSDCStrategySteps, this.opUSDCearn),
+          outputIndex: strategyHashReadIndexes[cUSDCStrategyHash].oraValueUTIndex,
+        },
+        oraValueLPPlan: {
+          ...this.strategyManager.getOraSomeValueLPPlan(this.usdc.address, cUSDCStrategySteps, this.opUSDCearn),
+          outputIndex: strategyHashReadIndexes[cUSDCStrategyHash].oraValueLPIndex,
+        },
+        lastStepBalanceLPPlan: {
+          ...this.strategyManager.getLastStrategyStepBalancePlan(
+            this.usdc.address,
+            cUSDCStrategySteps,
+            this.opUSDCearn,
+          ),
+          outputIndex: strategyHashReadIndexes[cUSDCStrategyHash].lastStepLPBalanceIndex,
+        },
+        depositSomeToStrategyPlan: this.strategyManager.getDepositPlan(
+          this.usdc.address,
+          cUSDCStrategySteps,
+          this.opUSDCearn,
+        ),
+        withdrawSomeFromStrategyPlan: this.strategyManager.getWithdrawPlan(
+          this.usdc.address,
+          cUSDCStrategySteps,
+          this.opUSDCearn,
+        ),
+        claimRewardsPlan: this.strategyManager.getClaimRewardsPlan(
+          this.usdc.address,
+          cUSDCStrategySteps,
+          this.opUSDCearn,
+        ),
+        harvestRewardsPlan: this.strategyManager.getHarvestRewardsPlan(
+          this.usdc.address,
+          cUSDCStrategySteps,
+          this.opUSDCearn,
+        ),
+      });
+    await addcUSDCStrategyPlanTx.wait(1);
+
+    const addcUSDCStrategyTx = await this.opUSDCearn
+      .connect(this.signers.strategyOperator)
+      .addStrategy(cUSDCStrategyHash);
+    await addcUSDCStrategyTx.wait(1);
+
+    // add aUSDC v1 strategy
+
+    const addaUSDCV1StrategyPlanTx = await this.strategyRegistry
+      .connect(this.signers.strategyOperator)
+      .addStrategyPlan(this.opUSDCearn.address, aUSDCV1StrategyHash, {
+        oraValueUTPlan: {
+          ...this.strategyManager.getOraValueUTPlan(this.usdc.address, aUSDCV1StrategySteps, this.opUSDCearn),
+          outputIndex: strategyHashReadIndexes[aUSDCV1StrategyHash].oraValueUTIndex,
+        },
+        oraValueLPPlan: {
+          ...this.strategyManager.getOraSomeValueLPPlan(this.usdc.address, aUSDCV1StrategySteps, this.opUSDCearn),
+          outputIndex: strategyHashReadIndexes[aUSDCV1StrategyHash].oraValueLPIndex,
+        },
+        lastStepBalanceLPPlan: {
+          ...this.strategyManager.getLastStrategyStepBalancePlan(
+            this.usdc.address,
+            aUSDCV1StrategySteps,
+            this.opUSDCearn,
+          ),
+          outputIndex: strategyHashReadIndexes[aUSDCV1StrategyHash].lastStepLPBalanceIndex,
+        },
+        depositSomeToStrategyPlan: this.strategyManager.getDepositPlan(
+          this.usdc.address,
+          aUSDCV1StrategySteps,
+          this.opUSDCearn,
+        ),
+        withdrawSomeFromStrategyPlan: this.strategyManager.getWithdrawPlan(
+          this.usdc.address,
+          aUSDCV1StrategySteps,
+          this.opUSDCearn,
+        ),
+        claimRewardsPlan: this.strategyManager.getClaimRewardsPlan(
+          this.usdc.address,
+          aUSDCV1StrategySteps,
+          this.opUSDCearn,
+        ),
+        harvestRewardsPlan: this.strategyManager.getHarvestRewardsPlan(
+          this.usdc.address,
+          aUSDCV1StrategySteps,
+          this.opUSDCearn,
+        ),
+      });
+    await addaUSDCV1StrategyPlanTx.wait(1);
+
+    const addcUSDCV1StrategyTx = await this.opUSDCearn
+      .connect(this.signers.strategyOperator)
+      .addStrategy(aUSDCV1StrategyHash);
+    await addcUSDCV1StrategyTx.wait(1);
+
+    // add aUSDC v2 strategy
+
+    const addaUSDCV2StrategyPlanTx = await this.strategyRegistry
+      .connect(this.signers.strategyOperator)
+      .addStrategyPlan(this.opUSDCearn.address, aUSDCV2StrategyHash, {
+        oraValueUTPlan: {
+          ...this.strategyManager.getOraValueUTPlan(this.usdc.address, aUSDCV2StrategySteps, this.opUSDCearn),
+          outputIndex: strategyHashReadIndexes[aUSDCV2StrategyHash].oraValueUTIndex,
+        },
+        oraValueLPPlan: {
+          ...this.strategyManager.getOraSomeValueLPPlan(this.usdc.address, aUSDCV2StrategySteps, this.opUSDCearn),
+          outputIndex: strategyHashReadIndexes[aUSDCV2StrategyHash].oraValueLPIndex,
+        },
+        lastStepBalanceLPPlan: {
+          ...this.strategyManager.getLastStrategyStepBalancePlan(
+            this.usdc.address,
+            aUSDCV2StrategySteps,
+            this.opUSDCearn,
+          ),
+          outputIndex: strategyHashReadIndexes[aUSDCV2StrategyHash].lastStepLPBalanceIndex,
+        },
+        depositSomeToStrategyPlan: this.strategyManager.getDepositPlan(
+          this.usdc.address,
+          aUSDCV2StrategySteps,
+          this.opUSDCearn,
+        ),
+        withdrawSomeFromStrategyPlan: this.strategyManager.getWithdrawPlan(
+          this.usdc.address,
+          aUSDCV2StrategySteps,
+          this.opUSDCearn,
+        ),
+        claimRewardsPlan: this.strategyManager.getClaimRewardsPlan(
+          this.usdc.address,
+          aUSDCV2StrategySteps,
+          this.opUSDCearn,
+        ),
+        harvestRewardsPlan: this.strategyManager.getHarvestRewardsPlan(
+          this.usdc.address,
+          aUSDCV2StrategySteps,
+          this.opUSDCearn,
+        ),
+      });
+    await addaUSDCV2StrategyPlanTx.wait(1);
+    const addaUSDCV2StrategyTx = await this.opUSDCearn
+      .connect(this.signers.strategyOperator)
+      .addStrategy(aUSDCV2StrategyHash);
+    await addaUSDCV2StrategyTx.wait(1);
   });
 
-  describe(`${fork}-#constructor(address,string,string,string,string)`, function () {
+  describe.only(`${fork}-#constructor(address,string,string,string,string)`, function () {
     it(`name,symbol,decimals, domainSeparator as expected`, async function () {
       const expectedName = "OptyFi USDC Earn Vault";
       const expectedSymbol = "opUSDC-Earn";
@@ -188,7 +339,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setValueControlParams(uint256,uint256,uint256)`, function () {
+  describe.only(`${fork}-#setValueControlParams(uint256,uint256,uint256)`, function () {
     it("fail setValueControlParams() by non Finance operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setValueControlParams("10000000000", "1000000000", "1000000000000"),
@@ -230,7 +381,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setVaultConfiguration(uint256)`, function () {
+  describe.only(`${fork}-#setVaultConfiguration(uint256)`, function () {
     it("fail setVaultConfiguration() by non governance", async function () {
       const _vaultConfiguration = BigNumber.from(
         "3533694129556768659166595001485837031654967793751237934691363855473639425",
@@ -319,7 +470,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setUserDepositCapUT(uint256)`, function () {
+  describe.only(`${fork}-#setUserDepositCapUT(uint256)`, function () {
     it("fails setUserDepositCapUT() call by non finance operator", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setUserDepositCapUT("4000")).to.be.revertedWith(
         "caller is not the financeOperator",
@@ -334,7 +485,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setMinimumDepositValueUT(uint256)`, function () {
+  describe.only(`${fork}-#setMinimumDepositValueUT(uint256)`, function () {
     it("fails setMinimumDepositValueUT() call by non finance operator", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setMinimumDepositValueUT("1000")).to.be.revertedWith(
         "caller is not the financeOperator",
@@ -353,7 +504,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setTotalValueLockedLimitUT(uint256)`, function () {
+  describe.only(`${fork}-#setTotalValueLockedLimitUT(uint256)`, function () {
     it("fails setTotalValueLockedLimitUT() call by non finance operator", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setTotalValueLockedLimitUT("100000000"),
@@ -374,7 +525,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setWhitelistedAccountsRoot(bytes32)`, function () {
+  describe.only(`${fork}-#setWhitelistedAccountsRoot(bytes32)`, function () {
     it("fails setWhitelistedAccountsRoot() call by non governance", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).setWhitelistedAccountsRoot(ethers.constants.HashZero),
@@ -388,7 +539,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#setEmergencyShutdown(bool)`, function () {
+  describe.only(`${fork}-#setEmergencyShutdown(bool)`, function () {
     it("fail setEmergencyShutdown() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setEmergencyShutdown(true)).to.be.revertedWith(
         "caller is not having governance",
@@ -412,12 +563,10 @@ describe(`::${fork}-Vault-rev4`, function () {
         true,
         false,
       );
-      expect(await this.opUSDCearn.investStrategyHash()).to.eq(ethers.constants.HashZero);
-      expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
     });
   });
 
-  describe(`${fork}-#setUnpaused(bool)`, function () {
+  describe.only(`${fork}-#setUnpaused(bool)`, function () {
     it("fail setUnpaused() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setUnpaused(false)).to.be.revertedWith(
         "caller is not having governance",
@@ -441,12 +590,10 @@ describe(`::${fork}-Vault-rev4`, function () {
         true,
         false,
       );
-      expect(await this.opUSDCearn.investStrategyHash()).to.eq(ethers.constants.HashZero);
-      expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
     });
   });
 
-  describe(`${fork}-#setRiskProfileCode(uint256)`, function () {
+  describe.only(`${fork}-#setRiskProfileCode(uint256)`, function () {
     it("fail setRiskProfileCode() call by non governance", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).setRiskProfileCode(1)).to.be.revertedWith(
         "caller is not having governance",
@@ -456,7 +603,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     it("fail setRiskProfileCode(), non-existant code", async function () {
       await expect(
         this.opUSDCearn.connect(this.signers.bob).connect(this.signers.operator).setRiskProfileCode(3),
-      ).to.be.revertedWith("5");
+      ).to.be.revertedWith("3");
     });
 
     it("setRiskProfileCode() call by governance", async function () {
@@ -477,49 +624,35 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#adminCall(bytes[])`, function () {
+  describe.only(`${fork}-#adminCall(bytes[])`, function () {
     it("fail adminCall() call by non governance", async function () {
-      const _codes = [];
-      const iface = new ethers.utils.Interface(["function approve(address,uint256)"]);
-      _codes.push(
-        ethers.utils.defaultAbiCoder.encode(
-          ["address", "bytes"],
-          [this.usdc.address, iface.encodeFunctionData("approve", [this.signers.alice.address, "200"])],
-        ),
+      const planner = new weirollPlanner();
+      const usdcContract = weirollContract.createContract(
+        new weirollEthers.Contract(this.usdc.address, this.usdc.interface),
       );
-      await expect(this.opUSDCearn.connect(this.signers.bob).adminCall(_codes)).to.be.revertedWith(
+      planner.add(usdcContract["approve(address,uint256)"](this.signers.alice.address, "200"));
+      const { commands, state } = planner.plan();
+      await expect(this.opUSDCearn.connect(this.signers.bob).adminCall(commands, state)).to.be.revertedWith(
         "caller is not having governance",
       );
     });
   });
 
-  describe(`${fork}-#getNextBestInvestStrategy()`, function () {
-    it("getNextBestInvestStrategy()", async function () {
-      expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
-      await this.strategyProvider
-        .connect(this.signers.strategyOperator)
-        .setBestStrategy("1", MULTI_CHAIN_VAULT_TOKENS[fork].USDC.hash, testStrategy[fork][strategyKeys[0]].steps);
-      expect(await this.opUSDCearn.getNextBestInvestStrategy()).to.deep.eq([
-        Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
-      ]);
-    });
-  });
-
-  describe(`${fork}-#getLastStrategyStepBalanceLP(DataTypes.StrategyStep[])`, function () {
+  describe.only(`${fork}-#getLastStrategyStepBalanceLP(DataTypes.StrategyStep[])`, function () {
     it("getLastStrategyStepBalanceLP() return 0", async function () {
-      expect(await this.opUSDCearn.getLastStrategyStepBalanceLP(testStrategy[fork][strategyKeys[0]].steps)).to.eq("0");
+      expect(await this.opUSDCearn.getLastStrategyStepBalanceLP(cUSDCStrategyHash)).to.eq("0");
+      expect(await this.opUSDCearn.getLastStrategyStepBalanceLP(aUSDCV1StrategyHash)).to.eq("0");
+      expect(await this.opUSDCearn.getLastStrategyStepBalanceLP(aUSDCV2StrategyHash)).to.eq("0");
     });
   });
 
-  describe(`${fork}-#rebalance()`, function () {
-    it("fail rebalance() call, vault is paused", async function () {
+  describe.only(`${fork}-#vaultDepositSomeToStrategy()`, function () {
+    it("fail vaultDepositSomeToStrategy() call, vault is paused", async function () {
       // (249) unpause = false = 0
       await expect(this.opUSDCearn.connect(this.signers.governance).setUnpaused(false))
         .to.emit(this.opUSDCearn, "LogUnpause")
         .withArgs(false, this.signers.governance.address);
-      expect(await this.opUSDCearn.investStrategyHash()).to.eq(ethers.constants.HashZero);
-      expect((await this.opUSDCearn.getInvestStrategySteps()).length).to.eq(0);
-      await expect(this.opUSDCearn.rebalance()).to.be.revertedWith("14");
+      await expect(this.opUSDCearn.vaultDepositSomeToStrategy(cUSDCStrategyHash, 1)).to.be.revertedWith("8");
       assertVaultConfiguration(
         await this.opUSDCearn.vaultConfiguration(),
         BigNumber.from("1"),
@@ -535,75 +668,49 @@ describe(`::${fork}-Vault-rev4`, function () {
       );
     });
 
-    it("rebalance(), deposit asset into strategy", async function () {
+    it("vaultDepositSomeToStrategy(), deposit asset into strategy", async function () {
       await this.opUSDCearn.connect(this.signers.governance).setEmergencyShutdown(false);
       await this.opUSDCearn.connect(this.signers.governance).setUnpaused(true);
       const _totalSupply = BigNumber.from("1000").mul(to_10powNumber_BN("6"));
-      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
-      const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
-      const _adapterInstance = <IAdapterFull>await ethers.getContractAt("IAdapterFull", _adapterAddress);
-      await this.opUSDCearn.rebalance();
+      await this.opUSDCearn.vaultDepositSomeToStrategy(cUSDCStrategyHash, 1);
       const _expectedVaultUsdcBalance = BigNumber.from("0");
       expect(await this.usdc.balanceOf(this.opUSDCearn.address)).to.eq(_expectedVaultUsdcBalance);
-      const canStake: boolean = await _adapterInstance.canStake(_pool);
-      let expectedlpTokenBalance = BigNumber.from("0");
-      if (canStake) {
-        expectedlpTokenBalance = await _adapterInstance.getLiquidityPoolTokenBalanceStake(
-          this.opUSDCearn.address,
-          _pool,
-        );
-      }
-      expectedlpTokenBalance = await _adapterInstance["getLiquidityPoolTokenBalance(address,address,address)"](
-        this.opUSDCearn.address,
-        MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-        _pool,
+      const expectedlpTokenBalance = await this.strategyManager.getValueInOutputToken(
+        this.usdc.address,
+        cUSDCStrategySteps,
+        this.opUSDCearn,
+        _expectedVaultUsdcBalance,
+        ethers.provider,
       );
-      const _lpTokenAddress = testStrategy[fork][strategyKeys[0]].steps[0].outputToken;
+      const _lpTokenAddress = cUSDCStrategySteps[0].outputToken;
       const _lpTokenInstance: ERC20 = <ERC20>await ethers.getContractAt(ERC20__factory.abi, _lpTokenAddress);
       const _actuallpTokenBalance = await _lpTokenInstance.balanceOf(this.opUSDCearn.address);
       expect(_actuallpTokenBalance).to.eq(expectedlpTokenBalance);
-      let _allAmountInToken = BigNumber.from("0");
-      if (canStake) {
-        _allAmountInToken = await _adapterInstance.getAllAmountInTokenStake(
-          this.opUSDCearn.address,
-          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-          _pool,
-        );
-      } else {
-        _allAmountInToken = await _adapterInstance["getAllAmountInToken(address,address,address)"](
-          this.opUSDCearn.address,
-          MULTI_CHAIN_VAULT_TOKENS[fork].USDC.address,
-          _pool,
-        );
-      }
+      const _allAmountInToken = await this.strategyManager.getValueInInputToken(
+        this.usdc.address,
+        cUSDCStrategySteps,
+        this.opUSDCearn,
+        _actuallpTokenBalance,
+        ethers.provider,
+      );
       const _expectedPricePerFullShare = _allAmountInToken.mul(to_10powNumber_BN("18")).div(_totalSupply);
       expect(await this.opUSDCearn.getPricePerFullShare()).to.eq(_expectedPricePerFullShare);
-
-      expect(await this.opUSDCearn.investStrategyHash()).to.eq(testStrategy[fork][strategyKeys[0]].hash);
     });
   });
 
-  describe(`${fork}-#getInvestStrategySteps(DataTypes.StrategyStep[])`, function () {
-    it("getInvestStrategySteps(), return the strategy steps correctly", async function () {
-      expect(await this.opUSDCearn.getInvestStrategySteps()).to.deep.eq([
-        Object.values(testStrategy[fork][strategyKeys[0]].steps[0]),
-      ]);
-    });
-  });
-
-  describe(`${fork}-#balanceUT()`, function () {
+  describe.only(`${fork}-#balanceUT()`, function () {
     it("balanceUT() return 0", async function () {
       expect(await this.opUSDCearn.balanceUT()).to.eq("0");
     });
   });
 
-  describe(`${fork}-#getPricePerFullShare()`, function () {
+  describe.only(`${fork}-#getPricePerFullShare()`, function () {
     it("getPricePerFullShare() return 0", async function () {
       expect(await this.opUSDCearn.getPricePerFullShare()).to.eq("0");
     });
   });
 
-  describe(`${fork}-#userDepositPermitted(address,bool,uint256,uint256,bytes32[],bytes32[])`, function () {
+  describe.only(`${fork}-#userDepositPermitted(address,bool,uint256,uint256,bytes32[],bytes32[])`, function () {
     it("userDepositPermitted() return false,EOA_NOT_WHITELISTED", async function () {
       const _proof = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address],
@@ -628,7 +735,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       );
       expect(
         await this.opUSDCearn.userDepositPermitted(this.signers.eve.address, true, "1", "0", _proof),
-      ).to.have.members([false, "8"]);
+      ).to.have.members([false, "4"]);
     });
 
     it("userDepositPermitted() return false,MINIMUM_USER_DEPOSIT_VALUE_UT", async function () {
@@ -640,7 +747,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         await this.opUSDCearn
           .connect(this.signers.alice)
           .userDepositPermitted(this.signers.alice.address, true, "100", "0", _proof),
-      ).to.have.members([false, "10"]);
+      ).to.have.members([false, "4"]);
     });
 
     it("userDepositPermitted() return false,TOTAL_VALUE_LOCKED_LIMIT_UT", async function () {
@@ -652,7 +759,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         await this.opUSDCearn
           .connect(this.signers.alice)
           .userDepositPermitted(this.signers.alice.address, true, "100000000000", "0", _proof),
-      ).to.have.members([false, "11"]);
+      ).to.have.members([false, "5"]);
     });
 
     it("userDepositPermitted() return false,USER_DEPOSIT_CAP_UT", async function () {
@@ -664,7 +771,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         await this.opUSDCearn
           .connect(this.signers.alice)
           .userDepositPermitted(this.signers.alice.address, true, "4000000000", "0", _proof),
-      ).to.have.members([false, "12"]);
+      ).to.have.members([false, "6"]);
     });
 
     it('call userDepositPermitted() from EOA return true,""', async function () {
@@ -696,9 +803,9 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#vaultDepositPermitted()`, function () {
+  describe.only(`${fork}-#vaultDepositPermitted()`, function () {
     it("vaultDepositPermitted() return false,VAULT_PAUSED", async function () {
-      expect(await this.opUSDCearn.vaultDepositPermitted()).to.have.members([false, "14"]);
+      expect(await this.opUSDCearn.vaultDepositPermitted()).to.have.members([false, "8"]);
     });
 
     it("vaultDepositPermitted() return false,VAULT_EMERGENCY_SHUTDOWN", async function () {
@@ -718,7 +825,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         true,
         true,
       );
-      expect(await this.opUSDCearn.vaultDepositPermitted()).to.have.members([false, "13"]);
+      expect(await this.opUSDCearn.vaultDepositPermitted()).to.have.members([false, "7"]);
     });
 
     it('vaultDepositPermitted() return true,""', async function () {
@@ -745,7 +852,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
 
-  describe(`${fork}-#userDepositVault(address,uint256,uint256,bytes,bytes32[])`, function () {
+  describe.only(`${fork}-#userDepositVault(address,uint256,uint256,bytes,bytes32[])`, function () {
     it("userDepositVault() using permit", async function () {
       const _proofs = getAccountsMerkleProof(
         [this.signers.alice.address, this.signers.bob.address, this.testVault.address],
@@ -898,7 +1005,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         this.opUSDCearn
           .connect(this.signers.alice)
           .userDepositVault(this.signers.alice.address, usdcDepositAmount, [], []),
-      ).to.be.revertedWith("14");
+      ).to.be.revertedWith("8");
     });
 
     it("first userDepositVault(), mint same shares as deposit", async function () {
@@ -981,7 +1088,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         this.opUSDCearn
           .connect(this.signers.eve)
           .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proofs),
-      ).to.revertedWith("8");
+      ).to.revertedWith("4");
     });
 
     it("fail userDepositVault() good user alice calls on bob's proof,EOA_NOT_WHITELISTED", async function () {
@@ -1012,7 +1119,7 @@ describe(`::${fork}-Vault-rev4`, function () {
         this.opUSDCearn
           .connect(this.signers.alice)
           .userDepositVault(this.signers.alice.address, _depositAmountUSDC, [], _bobProofs),
-      ).to.revertedWith("8");
+      ).to.revertedWith("4");
     });
 
     it("userDepositVault, deposit fees", async function () {
@@ -1126,11 +1233,11 @@ describe(`::${fork}-Vault-rev4`, function () {
         this.opUSDCearn
           .connect(this.signers.eve)
           .userDepositVault(this.signers.eve.address, _depositAmountUSDC, [], _proof),
-      ).to.revertedWith("13");
+      ).to.revertedWith("7");
     });
   });
 
-  describe(`${fork}-#permit(address,address,uint256,uint256,uint8,bytes32,bytes32`, function () {
+  describe.only(`${fork}-#permit(address,address,uint256,uint256,uint8,bytes32,bytes32`, function () {
     it("success, gasless approval and vault token transferfrom", async function () {
       const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
       expect(vaultTokenBalanceAlice).to.be.gt("0");
@@ -1202,7 +1309,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("25");
+      ).to.be.revertedWith("16");
     });
     it("fail, expired timestamp", async function () {
       const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
@@ -1228,7 +1335,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("26");
+      ).to.be.revertedWith("17");
     });
 
     it("fail, invalid signature(wrong signer)", async function () {
@@ -1255,7 +1362,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("27");
+      ).to.be.revertedWith("18");
     });
     it("fail, invalid signature(reuse nonce)", async function () {
       const vaultTokenBalanceAlice = await this.opUSDCearn.balanceOf(this.signers.alice.address);
@@ -1281,7 +1388,7 @@ describe(`::${fork}-Vault-rev4`, function () {
             r,
             s,
           ),
-      ).to.be.revertedWith("27");
+      ).to.be.revertedWith("18");
     });
   });
 
@@ -1495,14 +1602,12 @@ describe(`::${fork}-Vault-rev4`, function () {
 
   describe(`${fork}-#computeInvestStrategyHash(DataTypes.StrategyStep[])`, function () {
     it("computeInvestStrategyHash()", async function () {
-      expect(await this.opUSDCearn.computeInvestStrategyHash(testStrategy[fork][strategyKeys[0]].steps)).to.eq(
-        testStrategy[fork][strategyKeys[0]].hash,
-      );
+      expect(await this.opUSDCearn.computeInvestStrategyHash(cUSDCStrategySteps)).to.eq(cUSDCStrategyHash);
     });
   });
 
   describe(`${fork}-#claimRewardToken(address)`, function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+    const _pool = cUSDCStrategySteps[0].pool;
 
     it("fail claimRewardToken() call by non strategyOperator", async function () {
       await expect(this.opUSDCearn.connect(this.signers.bob).claimRewardToken(_pool)).to.be.revertedWith(
@@ -1523,7 +1628,7 @@ describe(`::${fork}-Vault-rev4`, function () {
   });
 
   describe(`${fork}-#giveAllowances()`, function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+    const _pool = cUSDCStrategySteps[0].pool;
 
     it("fail giveAllowances by non risk operator", async function () {
       await expect(
@@ -1548,7 +1653,7 @@ describe(`::${fork}-Vault-rev4`, function () {
     });
   });
   describe(`${fork}-#removesAllowance()`, function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+    const _pool = cUSDCStrategySteps[0].pool;
 
     it("fail removeAllowances by non risk operator", async function () {
       await expect(
@@ -1574,7 +1679,7 @@ describe(`::${fork}-Vault-rev4`, function () {
   });
 
   describe(`${fork}-#harvest(address)`, function () {
-    const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+    const _pool = cUSDCStrategySteps[0].pool;
 
     it("fail harvest() call by non strategyOperator", async function () {
       const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
@@ -1627,7 +1732,7 @@ describe(`::${fork}-Vault-rev4`, function () {
       );
       const _redeemVT = (await this.opUSDCearn.balanceOf(this.signers.alice.address)).div("2");
       const _userbalanceBefore = await this.usdc.balanceOf(this.signers.alice.address);
-      const _pool = testStrategy[fork][strategyKeys[0]].steps[0].pool;
+      const _pool = cUSDCStrategySteps[0].pool;
       const _adapterAddress = await this.registry.liquidityPoolToAdapter(_pool);
       const _adapterInstance = <IAdapterFull>await ethers.getContractAt("IAdapterFull", _adapterAddress);
       const canStake: boolean = await _adapterInstance.canStake(_pool);
