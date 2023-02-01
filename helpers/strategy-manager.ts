@@ -399,4 +399,21 @@ export class StrategyManager {
     }
     return amountLP;
   }
+
+  async getLastStepBalance(
+    underlyingToken: string,
+    strategySteps: StrategyStepType[],
+    vaultInstance: Contract,
+    provider: JsonRpcProvider,
+  ): Promise<BigNumber> {
+    const adapterObj = this.liquidityPoolToAdapter[strategySteps[strategySteps.length - 1].pool];
+    return await adapterObj.getOutputTokenBalance(
+      vaultInstance,
+      strategySteps.length === 1 ? underlyingToken : strategySteps[strategySteps.length - 2].outputToken,
+      strategySteps[strategySteps.length - 1].pool,
+      strategySteps[strategySteps.length - 1].outputToken,
+      strategySteps[strategySteps.length - 1].isSwap,
+      provider,
+    );
+  }
 }
